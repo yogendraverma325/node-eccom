@@ -127,22 +127,54 @@ const timeDifferenceNew = async (start, end) => {
   return time;
 };
 
-const calculateLateBy = async (actualTime, scheduleTime) => {
-  let actualMoment = moment(actualTime, "HH:mm:ss");
-  let scheduledTime = moment(scheduleTime, "HH:mm:ss");
+const calculateLateBy = async (
+  actualTime,
+  scheduleTime,
+  withFromDate = null,
+  withToDate = null
+) => {
+  if (withFromDate != null && withToDate != null) {
+    const combinedLastDayTime = moment(
+      `${withFromDate} ${scheduleTime}`,
+      "YYYY-MM-DD HH:mm:ss"
+    );
+    const combinedCurrentTime = moment(
+      `${withToDate} ${actualTime}`,
+      "YYYY-MM-DD HH:mm:ss"
+    );
 
-  if (actualMoment.isAfter(scheduledTime)) {
-    let duration = moment.duration(actualMoment.diff(scheduledTime));
-    let hours = Math.floor(duration.asHours());
-    let minutes = Math.floor(duration.minutes());
-    let seconds = Math.floor(duration.seconds());
-    return moment
-      .utc()
-      .startOf("day")
-      .add({ hours: hours, minutes: minutes, seconds: seconds })
-      .format("HH:mm:ss");
+    if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
+      let duration = moment.duration(
+        combinedCurrentTime.diff(combinedLastDayTime)
+      );
+      let hours = Math.floor(duration.asHours());
+      let minutes = Math.floor(duration.minutes());
+      let seconds = Math.floor(duration.seconds());
+      return moment
+        .utc()
+        .startOf("day")
+        .add({ hours: hours, minutes: minutes, seconds: seconds })
+        .format("HH:mm:ss");
+    } else {
+      return "00:00:00";
+    }
   } else {
-    return "00:00:00";
+    let actualMoment = moment(actualTime, "HH:mm:ss");
+    let scheduledTime = moment(scheduleTime, "HH:mm:ss");
+
+    if (actualMoment.isAfter(scheduledTime)) {
+      let duration = moment.duration(actualMoment.diff(scheduledTime));
+      let hours = Math.floor(duration.asHours());
+      let minutes = Math.floor(duration.minutes());
+      let seconds = Math.floor(duration.seconds());
+      return moment
+        .utc()
+        .startOf("day")
+        .add({ hours: hours, minutes: minutes, seconds: seconds })
+        .format("HH:mm:ss");
+    } else {
+      return "00:00:00";
+    }
   }
 };
 
@@ -326,7 +358,7 @@ const getEmpProfile = async (EMP_ID) => {
         model: db.weekOffMaster,
         required: false,
         where: {
-          isActive: 1
+          isActive: 1,
         },
       },
       {
@@ -577,55 +609,60 @@ const empMarkLeaveOfGivenDate = async function (
     leaveType = "Full Day";
   }
   if (lateCase != null && workCase == null) {
-    leaveText = `Auto-requested for Leave deduction based on late duration policy.${empData.name
-      } (${empData.empCode}) has clocked in late in ${attendanceandOtherData.attendancemaster.attendanceLateBy
-      }
+    leaveText = `Auto-requested for Leave deduction based on late duration policy.${
+      empData.name
+    } (${empData.empCode}) has clocked in late in ${
+      attendanceandOtherData.attendancemaster.attendanceLateBy
+    }
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationHalfDayTime
+    )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationFullDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationFullDayTime
+    )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-        inputData.toDate
-      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+      inputData.toDate
+    ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
   } else if (lateCase == null && workCase != null) {
-    leaveText = `Auto-requested for Leave because of Work duration policy.${empData.name
-      } (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
-      }
+    leaveText = `Auto-requested for Leave because of Work duration policy.${
+      empData.name
+    } (${empData.empCode}) has worked for ${
+      attendanceandOtherData.attendancemaster.attendanceWorkingTime
+    }
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationHalfDayTime
+    )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationFullDayTime
-      )}`;
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationFullDayTime
+    )}`;
   } else {
     leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
-${empData.name} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
-      } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
+${empData.name} (${empData.empCode}) has worked for ${
+      attendanceandOtherData.attendancemaster.attendanceWorkingTime
+    } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationHalfDayTime
+    )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationFullDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationFullDayTime
+    )}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationHalfDayTime
+    )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationFullDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationFullDayTime
+    )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-        inputData.toDate
-      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+      inputData.toDate
+    ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
   }
   inputData.source = "system_generated";
 
