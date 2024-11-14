@@ -1754,86 +1754,78 @@ class AttendanceController {
   async revokeRegularizeRequest(req, res) {
     try {
       const regularizeId = req.query.reqularizeId;
-
-      const regularizeData = await db.regularizationMaster.findOne({
-        where: {
-          regularizeId,
-        },
-        include: [
-          {
-            model: db.attendanceMaster,
-            attributes: ["attendanceAutoId", "attendanceDate"],
-            include: [
-              {
-                model: db.employeeMaster,
-                attributes: ["empCode", "name", "email"],
-                include: [
-                  {
-                    model: db.employeeMaster,
-                    as: "managerData",
-                    attributes: ["empCode", "name", "email"],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-
-      if (!regularizeData) {
-        return respHelper(res, {
-          status: 404,
-          msg: message.REGULARIZE_REQUEST_NOT_FOUND,
-        });
-      }
-
-      // console.log({
-      //   name: `${regularizeData.dataValues.attendancemaster.employee.name} (${regularizeData.dataValues.attendancemaster.employee.empCode})`,
-      //   email: regularizeData.dataValues.attendancemaster.employee.email,
-      //   attendanceDate: moment(
-      //     regularizeData.dataValues.attendancemaster.attendanceDate
-      //   ).format("MMMM DD, YYYY"),
-      //   managerName: `${regularizeData.dataValues.attendancemaster.employee.managerData.name} (${regularizeData.dataValues.attendancemaster.employee.managerData.empCode})`,
-      //   // email: regularizeData.dataValues.attendancemaster.employee.managerData.email
-      // });
-
-      await db.regularizationMaster.update(
-        {
-          regularizeStatus: "Revoked",
-        },
-        {
+      const arrayOfIds = regularizeId.split(",").map(Number);
+      for (const regularizeId of arrayOfIds) {
+        const regularizeData = await db.regularizationMaster.findOne({
           where: {
             regularizeId,
           },
-        }
-      );
+          include: [
+            {
+              model: db.attendanceMaster,
+              attributes: ["attendanceAutoId", "attendanceDate"],
+              include: [
+                {
+                  model: db.employeeMaster,
+                  attributes: ["empCode", "name", "email"],
+                  include: [
+                    {
+                      model: db.employeeMaster,
+                      as: "managerData",
+                      attributes: ["empCode", "name", "email"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
 
-      await db.attendanceMaster.update(
-        {
-          attendanceRegularizeStatus: "Revoked",
-        },
-        {
-          where: {
-            attendanceAutoId:
-              regularizeData.dataValues.attendancemaster.attendanceAutoId,
+        if (!regularizeData) {
+          return respHelper(res, {
+            status: 404,
+            msg: message.REGULARIZE_REQUEST_NOT_FOUND,
+          });
+        }
+
+        await db.regularizationMaster.update(
+          {
+            regularizeStatus: "Revoked",
           },
-        }
-      );
+          {
+            where: {
+              regularizeId,
+            },
+          }
+        );
 
-      eventEmitter.emit(
-        "revokeRegularizationMail",
-        JSON.stringify({
-          name: regularizeData.dataValues.attendancemaster.employee.name,
-          attendanceDate:
-            regularizeData.dataValues.attendancemaster.attendanceDate,
-          managerName:
-            regularizeData.dataValues.attendancemaster.employee.managerData
-              .name,
-          email:
-            regularizeData.dataValues.attendancemaster.employee.managerData
-              .email,
-        })
-      );
+        await db.attendanceMaster.update(
+          {
+            attendanceRegularizeStatus: "Revoked",
+          },
+          {
+            where: {
+              attendanceAutoId:
+                regularizeData.dataValues.attendancemaster.attendanceAutoId,
+            },
+          }
+        );
+
+        eventEmitter.emit(
+          "revokeRegularizationMail",
+          JSON.stringify({
+            name: regularizeData.dataValues.attendancemaster.employee.name,
+            attendanceDate:
+              regularizeData.dataValues.attendancemaster.attendanceDate,
+            managerName:
+              regularizeData.dataValues.attendancemaster.employee.managerData
+                .name,
+            email:
+              regularizeData.dataValues.attendancemaster.employee.managerData
+                .email,
+          })
+        );
+      }
 
       return respHelper(res, {
         status: 200,
