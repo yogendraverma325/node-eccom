@@ -70,7 +70,7 @@ const regularizeRequest = Joi.object({
 
 const approveRegularizationRequestSchema = Joi.object({
   status: Joi.number().valid(0, 1),
-  regularizeId: Joi.number(),
+  regularizeId: Joi.string(),
   remark: Joi.string()
     .trim()
     .max(100)
@@ -384,7 +384,10 @@ const addJobDetailsSchema = Joi.object({
   restrictCompanyPf: Joi.boolean().allow(null).label("Restrict Company PF"),
   pranNumber: Joi.string().allow(null).label("PRAN Number").optional(),
   npsNumber: Joi.string().allow(null).label("NPS Number").optional(),
-  companyLocationId: Joi.number().allow(null).label("Company Location").optional(),
+  companyLocationId: Joi.number()
+    .allow(null)
+    .label("Company Location")
+    .optional(),
   unionId: Joi.number().allow(null).label("Union Code").optional(),
   bandId: Joi.number().allow(null).label("Band").optional(),
   gradeId: Joi.number().allow(null).label("Grade").optional(),
@@ -614,7 +617,9 @@ const buhrInputOnSeparation = Joi.object({
   l2CustomerName: Joi.string().trim().max(100).allow("").label("Customer Name"),
   shortFallPayoutBasis: Joi.string().trim().allow("").label("Payout Basis"),
   shortFallPayoutDays: Joi.number().allow("").label("Payout Days"),
-  shortfallPayoutRequired: Joi.boolean().valid(true, false).label("Short Fall Payout"),
+  shortfallPayoutRequired: Joi.boolean()
+    .valid(true, false)
+    .label("Short Fall Payout"),
   ndaConfirmation: Joi.boolean().valid(0, 1).label("NDA Confirmation"),
   holdFnf: Joi.boolean().valid(0, 1).label("Hold FNF"),
   holdFnfTillDate: Joi.string().trim().allow("").label("FNF Till Date"),
@@ -868,7 +873,9 @@ const onBehalfSeperationByBUHr = Joi.object({
     .label("Customer Name"),
   shortFallPayoutBasis: Joi.string().trim().allow("").label("Payout Basis"),
   shortFallPayoutDays: Joi.number().allow("").label("Payout Days"),
-  shortfallPayoutRequired: Joi.boolean().valid(true, false).label("Short Fall Payout"),
+  shortfallPayoutRequired: Joi.boolean()
+    .valid(true, false)
+    .label("Short Fall Payout"),
   ndaConfirmation: Joi.boolean().valid(0, 1).label("NDA Confirmation"),
   holdFnf: Joi.boolean().valid(0, 1).label("Hold FNF"),
   holdFnfTillDate: Joi.string().trim().allow("").label("FNF Till Date"),
@@ -1034,9 +1041,7 @@ const importOnboardEmployeeSchema = Joi.object({
       then: Joi.required().label("off Role CTC"),
       otherwise: Joi.optional(),
     }),
-  highestQualification: Joi.string()
-    .required()
-    .label("Highest Qualification"),
+  highestQualification: Joi.string().required().label("Highest Qualification"),
   // ESICPFDeduction: Joi.string().valid('Yes', 'No', 'Only PF', 'Only ESIC').optional().label("ESIC/PF Deduction"),
   // fatherName: Joi.string().allow("").label("Father Name"),
   // paymentAccountNumber: Joi.string().allow('').default('NA').trim().max(20).label("Account Number"),
