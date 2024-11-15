@@ -48,7 +48,7 @@ class AttendanceController {
         }
       }
 
-      const currentDate = moment("2024-11-14 09:22:48");
+      const currentDate = moment();
 
       const existEmployee = await db.employeeMaster.findOne({
         where: {
