@@ -109,11 +109,11 @@ class LeaveController {
     try {
       const result = await validator.updateLeaveRequest.validateAsync(req.body);
       let leaveIds = result.employeeLeaveTransactionsIds.split(",");
-      let countLeave = await db.employeeLeaveTransactions.count({
+      let countLeave = await db.EmployeeLeaveHeader.count({
         where: {
           status: "pending",
           pendingAt: req.userId,
-          employeeLeaveTransactionsId: leaveIds,
+          employeeleaveheaderID: leaveIds,
         },
       });
 
@@ -132,29 +132,42 @@ class LeaveController {
         },
         {
           where: {
-            employeeLeaveTransactionsId: leaveIds,
+            employeeleaveheaderID: leaveIds,
+          },
+        }
+      );
+      await db.EmployeeLeaveHeader.update(
+        {
+          status: result.status,
+          updatedBy: req.userId,
+          managerRemark: result.remark != "" ? result.remark : null,
+          updatedAt: moment(),
+        },
+        {
+          where: {
+            employeeleaveheaderID: leaveIds,
           },
         }
       );
       if (result.status == "approved") {
         for (const leaveID of leaveIds) {
           const existingRecord = await db.employeeLeaveTransactions.findOne({
-            where: { employeeLeaveTransactionsId: leaveID },
+            where: { employeeleaveheaderID: leaveID },
           });
 
           if (existingRecord) {
-            await db.attendanceMaster.update(
-              {
-                employeeLeaveTransactionsId: leaveID,
-                attendancePresentStatus: "leave",
-              },
-              {
-                where: {
-                  attendanceDate: existingRecord.appliedFor,
-                  employeeId: existingRecord.employeeId,
-                },
-              }
-            );
+            // await db.attendanceMaster.update(
+            //   {
+            //     employeeLeaveTransactionsId: leaveID,
+            //     attendancePresentStatus: "leave",
+            //   },
+            //   {
+            //     where: {
+            //       attendanceDate: existingRecord.appliedFor,
+            //       employeeId: existingRecord.employeeId,
+            //     },
+            //   }
+            // );
 
             if (existingRecord.leaveAutoId === 6) {
               const lwpLeave = await db.leaveMapping.findOne({
@@ -216,7 +229,7 @@ class LeaveController {
         await db.employeeLeaveTransactions.findOne({
           raw: true,
           where: {
-            employeeleavetransactionsId: leaveIds[0],
+            employeeleaveheaderID: leaveIds[0],
           },
           include: [
             {
@@ -268,6 +281,7 @@ class LeaveController {
       });
     }
   }
+
   //   async requestForLeave(req, res) {
   //     try {
   //       const result = await validator.leaveRequestSchema.validateAsync(req.body);
@@ -767,10 +781,10 @@ class LeaveController {
     try {
       const result = await validator.revoekLeaveRequest.validateAsync(req.body);
       let leaveIds = result.employeeLeaveTransactionsIds.split(",");
-      let countLeave = await db.employeeLeaveTransactions.count({
+      let countLeave = await db.EmployeeLeaveHeader.count({
         where: {
           status: "pending",
-          employeeLeaveTransactionsId: leaveIds,
+          employeeleaveheaderID: leaveIds,
         },
       });
 
@@ -780,6 +794,18 @@ class LeaveController {
           msg: message.LEAVE.NO_UPDATE,
         });
       }
+      await db.EmployeeLeaveHeader.update(
+        {
+          status: "revoked",
+          updatedBy: req.userId,
+          updatedAt: moment(),
+        },
+        {
+          where: {
+            employeeleaveheaderID: leaveIds,
+          },
+        }
+      );
       await db.employeeLeaveTransactions.update(
         {
           status: "revoked",
@@ -788,7 +814,7 @@ class LeaveController {
         },
         {
           where: {
-            employeeLeaveTransactionsId: leaveIds,
+            employeeleaveheaderID: leaveIds,
           },
         }
       );
@@ -796,7 +822,7 @@ class LeaveController {
       const employeeData = await db.employeeLeaveTransactions.findOne({
         raw: true,
         where: {
-          employeeLeaveTransactionsId: leaveIds[0],
+          employeeleaveheaderID: leaveIds[0],
         },
         attributes: ["fromDate", "toDate"],
         include: [
@@ -848,6 +874,7 @@ class LeaveController {
       });
     }
   }
+
 
   // async leaveRemainingCount(req, res) {
   //   try {
