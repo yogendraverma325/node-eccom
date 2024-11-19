@@ -504,6 +504,8 @@ class CronController {
         ],
       });
 
+      console.log(docs.length);
+
       if (docs.length > 0) {
         const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();
         fs.writeFileSync(sheetName + ".xlsx", "", { flag: "a+" }, (err) => {
