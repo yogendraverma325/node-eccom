@@ -8,9 +8,6 @@ export default (sequelize, Sequelize) => {
     name: {
       type: Sequelize.STRING,
     },
-    employeeId: {
-      type: Sequelize.INTEGER,
-    },
     createdBy: {
       type: Sequelize.INTEGER,
     },
