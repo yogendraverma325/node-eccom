@@ -3557,8 +3557,8 @@ class UserController {
       const pageNo = parseInt(req.query.page, 10) || 1;
       const offset = (pageNo - 1) * limit;
 
-      const { count, rows: workflowData } =
-        await db.separationInitiatedTask.findAndCountAll({
+      const docs =
+        await db.separationInitiatedTask.findAll({
           where: {
             updatedBy: req.userId,
           },
@@ -3625,13 +3625,15 @@ class UserController {
           offset,
         });
 
+      const count = await db.separationInitiatedTask.count({ where: { updatedBy: req.userId }});
+
       return respHelper(res, {
         status: 200,
         data: {
           totalRecords: count,
           totalPages: Math.ceil(count / limit),
           currentPage: pageNo,
-          workflowData,
+          workflowData: docs,
         },
       });
     } catch (error) {
