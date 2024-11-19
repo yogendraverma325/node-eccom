@@ -423,7 +423,7 @@ async function newJoinEmployeeMail(input) {
   try {
     const userData = JSON.parse(input);
     await helper.mailService({
-      to: "jay.prakash@teamcomputers.com",
+      to: process.env.NEW_EMPLOYEE_JOINING,
       subject: `New Join Employee`,
       html: await emailTemplate.newJoinEmployeeMail(userData),
     });

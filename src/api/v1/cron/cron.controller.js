@@ -609,16 +609,6 @@ class CronController {
             })
           );
         });
-
-        xlsx(data, settings, () => {
-          // return res.download(sheetName + ".xlsx");
-          eventEmitter.emit(
-            "newJoinEmployeeMail",
-            JSON.stringify({
-              email: "",
-            })
-          );
-        });
       }
     } catch (error) {
       logger.error("Error while export new join employee report", error);
