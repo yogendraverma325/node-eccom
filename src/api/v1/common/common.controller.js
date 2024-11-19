@@ -1475,6 +1475,41 @@ class commonController {
     try {
       const result = await validator.updateContactInfo.validateAsync(req.body);
       const userId = result.userId == 0 ? req.userId : result.userId;
+
+      let query = {
+        [Op.or]: [
+          { personalMobileNumber: result.personalMobileNumber },
+          ...(result.email ? [{ email: result.email }] : []),
+          ...(result.officeMobileNumber
+            ? [{ officeMobileNumber: result.officeMobileNumber }]
+            : []),
+          { personalEmail: result.personalEmail },
+        ],
+        [Op.and]: [{ id: { [Op.not]: userId } }],
+      };
+
+      console.log(query);
+
+      let existUser = await db.employeeMaster.findOne({ where: query });
+      console.log(existUser)
+
+      if (existUser) {
+        if (
+          existUser.email === result.email ||
+          existUser.officeMobileNumber === result.officeMobileNumber
+        ) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Employee company email/mobile no. already exists.",
+          });
+        } else {
+          return respHelper(res, {
+            status: 400,
+            msg: "Employee personal email/mobile no. already exists.",
+          });
+        }
+      }
+
       await db.employeeMaster.update(
         {
           ...result,
