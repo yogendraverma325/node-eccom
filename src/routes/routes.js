@@ -14,7 +14,7 @@ import leave from "../api/v1/leave/leave.routes.js";
 import adminMasterRoutes from "../api/v1/admin/master/master.route.js";
 import cronRoutes from "../api/v1/cron/cron.routes.js";
 import masterImportRoutes from "../api/v1/master/import.routes.js";
-
+import thirdPartyRoutes from "../api/v1/master/thirdparty.routes.js";
 const router = express.Router();
 
 router.use("/export", masterExportRoutes);
@@ -30,5 +30,7 @@ router.use("/leave", authentication.authenticate, leave);
 router.use("/admin/master", authentication.authenticate, adminMasterRoutes);
 router.use("/cron", cronRoutes)
 router.use("/import", masterImportRoutes);
+router.use("/thirdparty", thirdPartyRoutes);
+
 
 export default router;
