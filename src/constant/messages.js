@@ -19,6 +19,7 @@ const message = {
   ALREADY_EXISTS: "<module> Already Exists.",
   PUNCH_IN_SUCCESS: "Successfully Punch In.",
   PUNCH_OUT_SUCCESS: "Successfully Punch Out.",
+  PUNCH_SAVED: "Successfully Saved Your Punch.",
   ATTENDANCE_NOT_AVAILABLE: "Attendance Data Not Available.",
   MAXIMUM_REGULARIZATION_LIMIT:
     "You have reached maximum regularization limit.",
@@ -28,10 +29,8 @@ const message = {
   ALREADY_REQUESTED: "<module> Already Requested.",
   PASSWORD_CHANGED: "Password Changed Successfully.",
   NOT_LOGGED_IN: "Please Login Again.",
-  ACCOUNT_LOCKED:
-    `Your account has been locked for ${process.env.ACCOUNT_RECOVERY_TIME} minutes, Please Contact to admin to recover your account.`,
-  REACHED_WRONG_PASSWORD_LIMIT:
-    `Your account has been locked for ${process.env.ACCOUNT_RECOVERY_TIME} minutes, Please Contact to admin to recover your account.`,
+  ACCOUNT_LOCKED: `Your account has been locked for ${process.env.ACCOUNT_RECOVERY_TIME} minutes, Please Contact to admin to recover your account.`,
+  REACHED_WRONG_PASSWORD_LIMIT: `Your account has been locked for ${process.env.ACCOUNT_RECOVERY_TIME} minutes, Please Contact to admin to recover your account.`,
   ACCOUNT_UNLOCKED: "Account Unlocked",
   REGULARIZE_REQUEST_NOT_FOUND: "Regularize Request Not Found.",
   REGULARIZE_REQUEST_REVOKED: "Regularization Request Revoked.",
@@ -49,9 +48,9 @@ const message = {
   OTP_SENT: "OTP sent successfully",
   OTP_EXPIRED: "OTP expired",
   OTP_NOT_MATACHED: "Incorrect OTP",
-  PAYMENT_REQUEST_FOR_APPROVAL:"Request Sent For Approval",
-  PAYMENT_REQUEST_APPROVED:"Payment Details has Updated Successfully",
-  PAYMENT_REQUEST_REJECTED:"Payment Details has Rejected",
+  PAYMENT_REQUEST_FOR_APPROVAL: "Request Sent For Approval",
+  PAYMENT_REQUEST_APPROVED: "Payment Details has Updated Successfully",
+  PAYMENT_REQUEST_REJECTED: "Payment Details has Rejected",
 
   SHIFT: {
     NO_SHIFT: "No Shift Is assign to you, you can't mark attendance",
@@ -81,7 +80,8 @@ const message = {
   TASK_SUBMITTED: "Task Submitted",
   LOGIN_BLOCKED: "Your login has been disabled.",
   LOGIN_STATUS: "Login <status>",
-  PASSWORD_EXPIRED: "Your Password has been expired. Kindly reset your password and login again."
+  PASSWORD_EXPIRED:
+    "Your Password has been expired. Kindly reset your password and login again.",
 };
 
 export default message;
