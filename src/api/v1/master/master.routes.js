@@ -94,3 +94,5 @@ export default Express.Router()
   .get("/degree", masterController.degree)
   .get("/bank", masterController.bank)
   .get("/ifsc", masterController.ifsc)
+  .get("/employeeDataManupulation", masterController.employeeDataManupulation)
+

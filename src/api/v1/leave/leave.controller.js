@@ -277,6 +277,7 @@ class LeaveController {
       });
     }
   }
+
   //   async requestForLeave(req, res) {
   //     try {
   //       const result = await validator.leaveRequestSchema.validateAsync(req.body);
