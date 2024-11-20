@@ -1488,10 +1488,7 @@ class commonController {
         [Op.and]: [{ id: { [Op.not]: userId } }],
       };
 
-      console.log(query);
-
       let existUser = await db.employeeMaster.findOne({ where: query });
-      console.log(existUser)
 
       if (existUser) {
         if (

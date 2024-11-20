@@ -823,6 +823,16 @@ CHANGE COLUMN `isActive` `isActive` TINYINT(1) NOT NULL DEFAULT 1 ;
 ALTER TABLE `tara`.`employeestaging` 
 CHANGE COLUMN `highestQualification` `highestQualification` INT NULL DEFAULT NULL ;
 
+20-11-2024 (by Jay)
+
+ALTER TABLE `tara`.`grademaster` 
+ADD COLUMN `bandId` INT NOT NULL AFTER `gradeCode`;
+
+ALTER TABLE `tara`.`joblevelmaster` 
+ADD COLUMN `gradeId` INT NOT NULL AFTER `jobLevelCode`;
+
+
+
 
 
 
