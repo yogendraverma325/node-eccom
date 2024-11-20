@@ -2871,7 +2871,7 @@ class AttendanceController {
             }
             await db.attendanceMaster.update(
               {
-                attendanceShiftEndDate: moment().format("YYYY-MM-DD"),
+                //attendanceShiftEndDate: moment().format("YYYY-MM-DD"),
                 attendancePresentStatus: presentStatus,
                 needAttendanceCron: 0,
               },
