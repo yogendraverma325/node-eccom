@@ -275,6 +275,9 @@ class UserController {
                 "isActive",
               ],
             },
+            where: {
+              isActive: 1,
+            },
             include: [
               {
                 model: db.degreeMaster,
@@ -386,6 +389,9 @@ class UserController {
           },
           {
             model: db.employeeWorkExperience,
+            where: {
+              isActive: 1,
+            },
           },
           {
             model: db.hrLetters,
