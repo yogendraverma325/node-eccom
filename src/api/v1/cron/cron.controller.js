@@ -504,7 +504,7 @@ class CronController {
         ],
       });
 
-      console.log(docs.length);
+      console.log("New Joining Employee Cron", docs.length);
 
       if (docs.length > 0) {
         const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();

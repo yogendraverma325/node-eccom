@@ -24,7 +24,7 @@ cron.schedule("0 0 * * *", async () => {
   await cronController.blockAccess()
 });
 
-cron.schedule("* 10,11 * * *", async () => {
+cron.schedule("0 10,11 * * *", async () => {
   cronController.newJoinEmployee();
 });
 
