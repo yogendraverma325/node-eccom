@@ -1548,157 +1548,149 @@ class AttendanceController {
         await validator.approveRegularizationRequestSchema.validateAsync(
           req.body
         );
-
-      const arrayOfIds = result.regularizeId.split(",").map(Number);
-
-      for (const regularizeId of arrayOfIds) {
-        const regularizeData = await db.regularizationMaster.findOne({
-          raw: true,
-          where: {
-            regularizeId: regularizeId,
-            regularizeManagerId: req.userId,
-          },
-          include: [
-            {
-              model: db.attendanceMaster,
-              attributes: ["attendanceAutoId", "employeeId"],
-              include: [
-                {
-                  model: db.employeeMaster,
-                  attributes: ["attendancePolicyId", "name", "email"],
-                  include: [
-                    {
-                      model: db.employeeMaster,
-                      as: "managerData",
-                      attributes: ["name"],
-                    },
-                    {
-                      model: db.shiftMaster,
-                      required: false,
-                      attributes: [
-                        "shiftId",
-                        "shiftName",
-                        "shiftStartTime",
-                        "shiftEndTime",
-                        "isOverNight",
-                      ],
-                      where: {
-                        isActive: true,
-                      },
-                    },
-                    {
-                      model: db.attendancePolicymaster,
-                      attributes: ["graceTimeClockIn"],
-                      where: {
-                        isActive: true,
-                      },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        });
-        if (!regularizeData) {
-          return respHelper(res, {
-            status: 400,
-            msg: message.LEAVE.NO_UPDATE,
-          });
-        }
-
-        let graceTime = moment(
-          regularizeData[
-            "attendancemaster.employee.shiftsmaster.shiftStartTime"
-          ],
-          "HH:mm"
-        ); // set shift start time
-
-        graceTime.add(
-          regularizeData[
-            "attendancemaster.employee.attendancePolicymaster.graceTimeClockIn"
-          ],
-          "minutes"
-        ); // Add buffer time  to the selected time if buffer allow
-
-        const withGraceTime = graceTime.format("HH:mm");
-        await db.regularizationMaster.update(
+      const regularizeData = await db.regularizationMaster.findOne({
+        raw: true,
+        where: {
+          regularizeId: result.regularizeId,
+          regularizeManagerId: req.userId,
+        },
+        include: [
           {
-            regularizeManagerRemark: result.remark != "" ? result.remark : null,
-            regularizeStatus: result.status ? "Approved" : "Rejected",
+            model: db.attendanceMaster,
+            attributes: ["attendanceAutoId", "employeeId"],
+            include: [
+              {
+                model: db.employeeMaster,
+                attributes: ["attendancePolicyId", "name", "email"],
+                include: [
+                  {
+                    model: db.employeeMaster,
+                    as: "managerData",
+                    attributes: ["name"],
+                  },
+                  {
+                    model: db.shiftMaster,
+                    required: false,
+                    attributes: [
+                      "shiftId",
+                      "shiftName",
+                      "shiftStartTime",
+                      "shiftEndTime",
+                      "isOverNight",
+                    ],
+                    where: {
+                      isActive: true,
+                    },
+                  },
+                  {
+                    model: db.attendancePolicymaster,
+                    attributes: ["graceTimeClockIn"],
+                    where: {
+                      isActive: true,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+      if (!regularizeData) {
+        return respHelper(res, {
+          status: 400,
+          msg: message.LEAVE.NO_UPDATE,
+        });
+      }
+
+      let graceTime = moment(
+        regularizeData["attendancemaster.employee.shiftsmaster.shiftStartTime"],
+        "HH:mm"
+      ); // set shift start time
+
+      graceTime.add(
+        regularizeData[
+          "attendancemaster.employee.attendancePolicymaster.graceTimeClockIn"
+        ],
+        "minutes"
+      ); // Add buffer time  to the selected time if buffer allow
+
+      const withGraceTime = graceTime.format("HH:mm");
+      await db.regularizationMaster.update(
+        {
+          regularizeManagerRemark: result.remark != "" ? result.remark : null,
+          regularizeStatus: result.status ? "Approved" : "Rejected",
+          updatedBy: req.userId,
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        },
+        {
+          where: {
+            regularizeId: result.regularizeId,
+          },
+        }
+      );
+
+      if (result.status) {
+        await db.attendanceMaster.update(
+          {
+            attendanceDate: regularizeData.regularizePunchInDate,
+            attendanceWorkingTime: await helper.timeDifference(
+              `${regularizeData.regularizePunchInDate} ${regularizeData.regularizePunchInTime}`,
+              `${regularizeData.regularizePunchOutTime} ${regularizeData.regularizePunchOutTime}`
+            ),
+            attendancePresentStatus: "present",
+            //attandanceShiftStartDate: regularizeData.regularizePunchInDate,
+            // attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
+            attendancePunchInTime: regularizeData.regularizePunchInTime,
+            attendancePunchOutTime: regularizeData.regularizePunchOutTime,
+            attendanceRegularizeUserRemark: regularizeData.regularizeUserRemark,
+            attendanceRegularizeManagerRemark:
+              regularizeData.regularizeManagerRemark,
+            attendanceRegularizeReason: regularizeData.regularizeReason,
+            attendanceRegularizeStatus: "Approved",
+            attendanceLateBy: await helper.calculateLateBy(
+              regularizeData.regularizePunchInTime,
+              withGraceTime,
+              regularizeData.regularizePunchInDate,
+              regularizeData.regularizePunchOutDate
+            ),
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
             updatedBy: req.userId,
             updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
           },
           {
             where: {
-              regularizeId: regularizeId,
+              attendanceAutoId: regularizeData.attendanceAutoId,
             },
           }
         );
-
-        if (result.status) {
-          await db.attendanceMaster.update(
-            {
-              attendanceDate: regularizeData.regularizePunchInDate,
-              attendanceWorkingTime: await helper.timeDifference(
-                `${regularizeData.regularizePunchInDate} ${regularizeData.regularizePunchInTime}`,
-                `${regularizeData.regularizePunchOutTime} ${regularizeData.regularizePunchOutTime}`
-              ),
-              attendancePresentStatus: "present",
-              //attandanceShiftStartDate: regularizeData.regularizePunchInDate,
-              // attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
-              attendancePunchInTime: regularizeData.regularizePunchInTime,
-              attendancePunchOutTime: regularizeData.regularizePunchOutTime,
-              attendanceRegularizeUserRemark:
-                regularizeData.regularizeUserRemark,
-              attendanceRegularizeManagerRemark:
-                regularizeData.regularizeManagerRemark,
-              attendanceRegularizeReason: regularizeData.regularizeReason,
-              attendanceRegularizeStatus: "Approved",
-              attendanceLateBy: await helper.calculateLateBy(
-                regularizeData.regularizePunchInTime,
-                withGraceTime,
-                regularizeData.regularizePunchInDate,
-                regularizeData.regularizePunchOutDate
-              ),
-              createdBy: req.userId,
-              createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-              updatedBy: req.userId,
-              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        _this.attedanceCronManual(
+          regularizeData.attendanceAutoId,
+          regularizeData.regularizePunchInDate
+        );
+      } else {
+        await db.attendanceMaster.update(
+          {
+            attendanceRegularizeStatus: "Rejected",
+          },
+          {
+            where: {
+              attendanceAutoId: regularizeData.attendanceAutoId,
             },
-            {
-              where: {
-                attendanceAutoId: regularizeData.attendanceAutoId,
-              },
-            }
-          );
-          _this.attedanceCronManual(
-            regularizeData.attendanceAutoId,
-            regularizeData.regularizePunchInDate
-          );
-        } else {
-          await db.attendanceMaster.update(
-            {
-              attendanceRegularizeStatus: "Rejected",
-            },
-            {
-              where: {
-                attendanceAutoId: regularizeData.attendanceAutoId,
-              },
-            }
-          );
-        }
-
-        const obj = {
-          email: regularizeData["attendancemaster.employee.email"],
-          status: result.status ? "Approved" : "Rejected",
-          fromDate: regularizeData.regularizePunchInDate,
-          toDate: regularizeData.regularizePunchOutDate,
-          managerName:
-            regularizeData["attendancemaster.employee.managerData.name"],
-          requesterName: regularizeData["attendancemaster.employee.name"],
-        };
-        eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
+          }
+        );
       }
+
+      const obj = {
+        email: regularizeData["attendancemaster.employee.email"],
+        status: result.status ? "Approved" : "Rejected",
+        fromDate: regularizeData.regularizePunchInDate,
+        toDate: regularizeData.regularizePunchOutDate,
+        managerName:
+          regularizeData["attendancemaster.employee.managerData.name"],
+        requesterName: regularizeData["attendancemaster.employee.name"],
+      };
+      eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
 
       return respHelper(res, {
         status: 200,
