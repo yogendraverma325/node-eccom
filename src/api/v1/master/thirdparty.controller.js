@@ -60,7 +60,7 @@ class ThirdPartyController {
           },
           {
             model: db.jobDetails,
-            attributes: ["dateOfJoining", "residentEng", "customerName","pfRestricted","epfApplicable","esicApplicable"],
+            attributes: ["dateOfJoining", "residentEng", "customerName","esicNumber","pfRestricted","epfApplicable","esicApplicable"],
             include: [
               { model: db.gradeMaster, attributes: ["gradeName"] },
               { model: db.bandMaster, attributes: ["bandDesc"] },
@@ -311,8 +311,8 @@ class ThirdPartyController {
       business_unit: employee.bumaster?.dataValues?.buName || "",
       bank_pan: employee.dataValues?.panNo || "",
       pf_number: employee.dataValues?.pfNo || "",
-      esic_number: employee.dataValues?.esicNo || "",
-      blood_group: "B-", 
+      esic_number: employee.employeejobdetail?.dataValues?.esicNumber || "",//employee.dataValues?.esicNo || "",
+      blood_group: employee.employeeemergencycontact?.dataValues?.emergencyBloodGroup || "", 
       bank_name: employee.employeepaymentdetail?.dataValues?.bankmaster?.dataValues?.bankName || "",
       bank_account: employee.employeepaymentdetail?.dataValues?.paymentAccountNumber || "",
       date_of_resignation: "",
