@@ -344,7 +344,7 @@ class ThirdPartyController {
       company_email_id: employee.email || "",
       personal_email_id: employee.personalEmail || "",
       base_office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues?.cityName || ""}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues?.stateName || ""}`,
-      location_type: "Head Office",
+      location_type: "",
       office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues?.cityName || ""}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues?.stateName || ""}`,
       education_details: mappedEducationDetails || [],
       pt_state: "", // Custom field
