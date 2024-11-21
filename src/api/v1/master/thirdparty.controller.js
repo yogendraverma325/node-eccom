@@ -104,7 +104,7 @@ class ThirdPartyController {
   //               ["code", "designation_code"], // Retrieve the code as well
   //               [
   //                 db.sequelize.literal(
-  //                   "CONCAT(`designationMaster`.`name`, ' (', `designationMaster`.`code`, ')')"
+  //                   "CONCAT(`designationmaster`.`name`, ' (', `designationmaster`.`code`, ')')"
   //                 ),
   //                 "designation_with_code", // designation with code combined
   //               ],
@@ -1454,6 +1454,16 @@ class ThirdPartyController {
           console.log("Session time expired");
           return res.status(400).json({ error: "Session time expired" });
         }
+
+        // if (
+        //   crypto.timingSafeEqual(
+        //     Buffer.from(validHash, "hex"),
+        //     Buffer.from(dataset, "hex")
+        //   )
+        // ) {
+        //   isValid = true;
+        //   break;
+        // }
       }
 
       if (isValid && isActive == 1) {
@@ -1498,7 +1508,7 @@ class ThirdPartyController {
                 ["code", "designation_code"], // Retrieve the code as well
                 [
                   db.sequelize.literal(
-                    "CONCAT(`designationMaster`.`name`, ' (', `designationMaster`.`code`, ')')"
+                    "CONCAT(`designationmaster`.`name`, ' (', `designationmaster`.`code`, ')')"
                   ),
                   "designation_with_code", // designation with code combined
                 ],
@@ -2033,7 +2043,7 @@ class ThirdPartyController {
                 ["code", "designation_code"], // Retrieve the code as well
                 [
                   db.sequelize.literal(
-                    "CONCAT(`designationMaster`.`name`, ' (', `designationMaster`.`code`, ')')"
+                    "CONCAT(`designationmaster`.`name`, ' (', `designationmaster`.`code`, ')')"
                   ),
                   "designation_with_code", // designation with code combined
                 ],
