@@ -23,6 +23,7 @@ class ThirdPartyController {
 
       const concatenatedString = `${taraEmailId}${taraSecretKey}`;
       const hash = await helper.generateSHA512Hash(concatenatedString);
+      
       const isEqual = crypto.timingSafeEqual(
         Buffer.from(hash, "hex"),
         Buffer.from(req.body.dataset, "hex")
@@ -129,15 +130,7 @@ class ThirdPartyController {
               where: {
                 status: "approved",
               },
-              attributes: {
-                exclude: [
-                  "createdAt",
-                  "createdBy",
-                  "updatedBy",
-                  "updatedAt",
-                  "isActive",
-                ],
-              },
+
               include: [
                 {
                   model: db.bankMaster,
