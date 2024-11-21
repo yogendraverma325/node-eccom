@@ -104,7 +104,7 @@ class ThirdPartyController {
   //               ["code", "designation_code"], // Retrieve the code as well
   //               [
   //                 db.sequelize.literal(
-  //                   "CONCAT(`designationMaster`.`name`, ' (', `designationMaster`.`code`, ')')"
+  //                   "CONCAT(`designationmaster`.`name`, ' (', `designationmaster`.`code`, ')')"
   //                 ),
   //                 "designation_with_code", // designation with code combined
   //               ],
@@ -1427,16 +1427,33 @@ class ThirdPartyController {
       for (let i = 0; i < 5; i++) {
         const timeToCheck = roundedTime - i * 60; // Current and last 4 minutes
         const validHash = await generateHash(taraEmailId, taraSecretKey, timeToCheck, isActive);
-      
         if (
-          crypto.timingSafeEqual(
-            Buffer.from(validHash, "hex"),
-            Buffer.from(dataset, "hex")
-          )
+          Buffer.from(validHash, "hex").length ==
+          Buffer.from(dataset, "hex").length
         ) {
-          isValid = true;
-          break;
+          if (
+            crypto.timingSafeEqual(
+              Buffer.from(validHash, "hex"),
+              Buffer.from(dataset, "hex")
+            )
+          ) {
+            isValid = true;
+            break;
+          }
+        } else {
+          console.log("Session time expired");
+          return res.status(400).json({ error: "Session time expired" });
         }
+      
+        // if (
+        //   crypto.timingSafeEqual(
+        //     Buffer.from(validHash, "hex"),
+        //     Buffer.from(dataset, "hex")
+        //   )
+        // ) {
+        //   isValid = true;
+        //   break;
+        // }
       }
 
       if (isValid && isActive == 1) {
@@ -1481,7 +1498,7 @@ class ThirdPartyController {
                 ["code", "designation_code"], // Retrieve the code as well
                 [
                   db.sequelize.literal(
-                    "CONCAT(`designationMaster`.`name`, ' (', `designationMaster`.`code`, ')')"
+                    "CONCAT(`designationmaster`.`name`, ' (', `designationmaster`.`code`, ')')"
                   ),
                   "designation_with_code", // designation with code combined
                 ],
@@ -2016,7 +2033,7 @@ class ThirdPartyController {
                 ["code", "designation_code"], // Retrieve the code as well
                 [
                   db.sequelize.literal(
-                    "CONCAT(`designationMaster`.`name`, ' (', `designationMaster`.`code`, ')')"
+                    "CONCAT(`designationmaster`.`name`, ' (', `designationmaster`.`code`, ')')"
                   ),
                   "designation_with_code", // designation with code combined
                 ],
