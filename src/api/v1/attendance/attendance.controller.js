@@ -2087,43 +2087,46 @@ class AttendanceController {
             markHalfDay = 1;
             markHalfDayType = 2;
           }
-          let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
-          if (EMP_DATA) {
-            await helper.empMarkLeaveOfGivenDate(
-              singleEmp.id,
-              {
-                employeeId: singleEmp.id, // Replace with actual employee ID
-                attendanceShiftId: singleEmp.shiftsmaster.shiftId, // Replace with actual attendance shift ID
-                attendancePolicyId:
-                  singleEmp.attendancePolicymaster.attendancePolicyId, // Replace with actual attendance policy ID
-                leaveAutoId:
-                  singleEmp.attendancePolicymaster
-                    .leaveDeductPolicyLateDurationLeaveType, // Replace with actual leave auto ID
-                appliedOn: moment(lastDayDate).format("YYYY-MM-DD"), // Replace with actual applied on date
-                appliedFor: lastDayDate, // Replace with actual applied for date
-                fromDate: lastDayDate,
-                toDate: lastDayDate,
-                isHalfDay: markHalfDay, // Replace with actual is half day value (0 or 1)
-                halfDayFor: markHalfDayType, // Replace with actual half day for value
-                leaveCount: markHalfDay == 1 ? 0.5 : 1,
-                status: isHalfDay_total_work == null ? "approved" : "pending", // Replace with actual status
-                reason: "Late By/ Work Duration", // Replace with actual reason
-                message: "Late By/ Work Duration",
-                pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
-                createdBy: singleEmp.id, // Replace with actual creator user ID
-                createdAt: moment(), // Replace with actual creation date
-                punchInTime: singleEmp.attendancemaster.attendancePunchInTime,
-                punchOutTime: singleEmp.attendancemaster.attendancePunchOutTime,
-                weekOffId: singleEmp.weekOffMaster
-                  ? singleEmp.weekOffMaster.weekOffId
-                  : 0,
-              },
-              "id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
-              isHalfDay_late_by,
-              isHalfDay_total_work,
-              EMP_DATA,
-              singleEmp
-            );
+          if (markHalfDay != null) {
+            let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
+            if (EMP_DATA) {
+              await helper.empMarkLeaveOfGivenDate(
+                singleEmp.id,
+                {
+                  employeeId: singleEmp.id, // Replace with actual employee ID
+                  attendanceShiftId: singleEmp.shiftsmaster.shiftId, // Replace with actual attendance shift ID
+                  attendancePolicyId:
+                    singleEmp.attendancePolicymaster.attendancePolicyId, // Replace with actual attendance policy ID
+                  leaveAutoId:
+                    singleEmp.attendancePolicymaster
+                      .leaveDeductPolicyLateDurationLeaveType, // Replace with actual leave auto ID
+                  appliedOn: moment(lastDayDate).format("YYYY-MM-DD"), // Replace with actual applied on date
+                  appliedFor: lastDayDate, // Replace with actual applied for date
+                  fromDate: lastDayDate,
+                  toDate: lastDayDate,
+                  isHalfDay: markHalfDay, // Replace with actual is half day value (0 or 1)
+                  halfDayFor: markHalfDayType, // Replace with actual half day for value
+                  leaveCount: markHalfDay == 1 ? 0.5 : 1,
+                  status: isHalfDay_total_work == null ? "approved" : "pending", // Replace with actual status
+                  reason: "Late By/ Work Duration", // Replace with actual reason
+                  message: "Late By/ Work Duration",
+                  pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
+                  createdBy: singleEmp.id, // Replace with actual creator user ID
+                  createdAt: moment(), // Replace with actual creation date
+                  punchInTime: singleEmp.attendancemaster.attendancePunchInTime,
+                  punchOutTime:
+                    singleEmp.attendancemaster.attendancePunchOutTime,
+                  weekOffId: singleEmp.weekOffMaster
+                    ? singleEmp.weekOffMaster.weekOffId
+                    : 0,
+                },
+                "id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
+                isHalfDay_late_by,
+                isHalfDay_total_work,
+                EMP_DATA,
+                singleEmp
+              );
+            }
           }
         } else {
           presentStatus = "singlePunchAbsent";
@@ -2514,7 +2517,20 @@ class AttendanceController {
         ],
         where: {
           isActive: 1,
-          empCode: ["17400", "12645"],
+          empCode: [
+            "15543",
+            "15366",
+            "17763",
+            "10124",
+            "19737",
+            "13675",
+            "14622",
+            "18950",
+            "17400",
+            "15368",
+            "15153",
+            "16268",
+          ],
         },
       });
       for (const activeEmployeeSingleItem of activeEmployees) {
