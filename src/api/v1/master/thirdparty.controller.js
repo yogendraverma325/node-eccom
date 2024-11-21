@@ -1437,15 +1437,22 @@ class ThirdPartyController {
           timeToCheck,
           isActive
         );
-
         if (
-          crypto.timingSafeEqual(
-            Buffer.from(validHash, "hex"),
-            Buffer.from(dataset, "hex")
-          )
+          Buffer.from(validHash, "hex").length ==
+          Buffer.from(dataset, "hex").length
         ) {
-          isValid = true;
-          break;
+          if (
+            crypto.timingSafeEqual(
+              Buffer.from(validHash, "hex"),
+              Buffer.from(dataset, "hex")
+            )
+          ) {
+            isValid = true;
+            break;
+          }
+        } else {
+          console.log("Session time expired");
+          return res.status(400).json({ error: "Session time expired" });
         }
       }
 
