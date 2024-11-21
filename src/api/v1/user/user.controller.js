@@ -2663,13 +2663,18 @@ class UserController {
               }),
             ...(type === "all" && isSystemGenerated == 0
               ? {
-                  [Op.or]: [{ pendingAt: req.userId }],
+                  [Op.or]: [
+                    {
+                      pendingAt: req.userId,
+                      source: { [Op.ne]: "system_generated" },
+                    },
+                  ],
                 }
               : type === "all" && isSystemGenerated == 1
               ? {
                   [Op.or]: [
                     { employeeId: req.userId },
-                    { pendingAt: req.userId },
+                    { pendingAt: req.userId, source: "system_generated" },
                   ],
                 }
               : { employeeId: req.userId }), // Default case for non-"all" types
