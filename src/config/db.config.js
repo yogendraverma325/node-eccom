@@ -95,11 +95,16 @@ import CategoryMaster from "../api/model/CategoryMaster.js";
 import SubCategoryMaster from "../api/model/SubCategoryMaster.js";
 import PTLocationMaster from "../api/model/PTLocationMaster.js";
 import TaskBuMapping from "../api/model/TaskBuMapping.js";
-import BankMaster from "../api/model/BankMaster.js"
+import BankMaster from "../api/model/BankMaster.js";
 
 import PolicyHistory from "../api/model/PolicyHistory.js";
 import EmployeeLeaveHeader from "../api/model/EmployeeLeaveHeader.js";
-
+//CONFIRMATION
+import Confirmationinitiated from "../api/model/ConfirmationInitiated.js";
+import Confirmationowners from "../api/model/Confirmationowners.js";
+import Confirmatoinformfields from "../api/model/ConfirmationFormFields.js";
+import Confirmatoinformfieldsoptions from "../api/model/Confirmatoinformfieldsoptions.js";
+//CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -263,6 +268,15 @@ db.taskBuMapping = TaskBuMapping(sequelize, Sequelize);
 
 db.EmployeeLeaveHeader = EmployeeLeaveHeader(sequelize, Sequelize);
 db.bankMaster = BankMaster(sequelize, Sequelize);
+//CONFIRMATION
+db.Confirmationinitiated = Confirmationinitiated(sequelize, Sequelize);
+db.Confirmationowners = Confirmationowners(sequelize, Sequelize);
+db.Confirmatoinformfields = Confirmatoinformfields(sequelize, Sequelize);
+db.Confirmatoinformfieldsoptions = Confirmatoinformfieldsoptions(
+  sequelize,
+  Sequelize
+);
+//CONFIRMATION
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -964,7 +978,6 @@ db.employeeStagingMaster.hasOne(db.degreeMaster, {
   sourceKey: "highestQualification",
 });
 
-
 db.paymentDetails.hasOne(db.bankMaster, {
   foreignKey: "bankId",
   sourceKey: "bankId",
@@ -973,7 +986,7 @@ db.paymentDetails.hasOne(db.bankMaster, {
 db.paymentDetails.hasOne(db.bankMaster, {
   foreignKey: "bankId",
   sourceKey: "newBankId",
-  as:"newBankName"
+  as: "newBankName",
 });
 
 db.paymentDetails.hasOne(db.employeeMaster, {
@@ -982,8 +995,26 @@ db.paymentDetails.hasOne(db.employeeMaster, {
 });
 db.separationMaster.hasOne(db.subCategoryMaster, {
   foreignKey: "subCategoryId",
-  sourceKey: 'l2RevokeReason',
-  as: 'revokeReason'
-})
+  sourceKey: "l2RevokeReason",
+  as: "revokeReason",
+});
+
+//CONFIRMATION
+db.Confirmationinitiated.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "employeeId",
+});
+db.Confirmationowners.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "employeeId",
+});
+db.Confirmationinitiated.hasMany(db.Confirmationowners, {
+  foreignKey: "confirmationinitiatedAutoId",
+});
+db.Confirmatoinformfields.hasMany(db.Confirmatoinformfieldsoptions, {
+  foreignKey: "confirmatoinformfieldsAutoId",
+});
+
+//CONFIRAMTION
 
 export default db;

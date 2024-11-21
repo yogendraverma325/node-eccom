@@ -286,5 +286,10 @@ export default Express.Router()
     "/confirmatonList",
     authentication.authenticate,
     userController.confirmatonList
+  )
+  .get(
+    "/confirmatonFormdetails/:confirmationinitiatedAutoId",
+    authentication.authenticate,
+    userController.confirmatonFormdetails
   );
 ///CONFIRMATION///

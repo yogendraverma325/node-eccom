@@ -1,17 +1,20 @@
 export default (sequelize, Sequelize) => {
-  const ConfirmationMaster = sequelize.define("confirmationmaster", {
-    id: {
+  const Confirmationowners = sequelize.define("confirmationowners", {
+    confirmationownersAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    name: {
-      type: Sequelize.STRING,
+    employeeId: {
+      type: Sequelize.INTEGER,
+    },
+    confirmationinitiatedAutoId: {
+      type: Sequelize.INTEGER,
     },
     createdBy: {
       type: Sequelize.INTEGER,
     },
-    createdDt: {
+    createdAt: {
       type: Sequelize.DATE,
     },
     updatedBy: {
@@ -21,5 +24,5 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  return ConfirmationMaster;
+  return Confirmationowners;
 };

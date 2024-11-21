@@ -3909,51 +3909,77 @@ class UserController {
   }
   ///CONFIRMATION///
   async confirmatonList(req, res) {
-    try {
-      const getAllEmployee = await db.paymentDetails.findAll({
+    // try {
+    const confirmationData = await db.Confirmationinitiated.findAll({
+      where: {},
+      include: [
+        {
+          model: db.employeeMaster,
+          attributes: ["empCode", "name"],
+          include: {
+            model: db.jobDetails,
+            attributes: [
+              "dateOfJoining",
+              "dateOfProbationEnd",
+              "probationPeriod",
+              "probationDays",
+            ],
+          },
+        },
+        {
+          model: db.Confirmationowners,
+          attributes: ["employeeId"],
+          include: {
+            model: db.employeeMaster,
+            attributes: ["empCode", "name"],
+          },
+        },
+      ],
+    });
+
+    return respHelper(res, {
+      status: 200,
+      data: confirmationData,
+    });
+    //   } catch (error) {
+    //     return respHelper(res, {
+    //       status: 500,
+    //       msg: "Internal server error",
+    //     });
+    //   }
+  }
+  async confirmatonFormdetails(req, res) {
+    // try {
+
+    const confirsmationData = await db.Confirmationinitiated.findOne({
+      where: {
+        confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+      },
+    });
+    let formsFields = [];
+    if (confirsmationData) {
+      formsFields = await db.Confirmatoinformfields.findAll({
         where: {
-          paymentBankIfsc: { [Op.ne]: null },
+          confirmationFormGroupId: confirsmationData.confirmationFormGroupId,
+        },
+        exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+        include: {
+          model: db.Confirmatoinformfieldsoptions,
+          attributes: ["value", "label"],
         },
       });
-
-      if (getAllEmployee) {
-        for (let i = 0; i < getAllEmployee.length; i++) {
-          const ele = getAllEmployee[i];
-          const bankRecord = await db.bankMaster.findOne({
-            where: { bankIfsc: ele.paymentBankIfsc },
-          });
-
-          if (bankRecord) {
-            await db.paymentDetails.update(
-              { bankId: bankRecord.bankId },
-              { where: { userId: ele.userId } }
-            );
-          } else {
-            console.log(
-              "Bank ID is not available for IFSC:",
-              ele.paymentBankIfsc
-            );
-          }
-        }
-      }
-
-      return res
-        .status(200)
-        .json({ message: "Bank mapping completed successfully" });
-    } catch (error) {
-      console.error(error);
-
-      if (error.isJoi === true) {
-        return respHelper(res, {
-          status: 422,
-          msg: error.details[0].message,
-        });
-      }
-      return respHelper(res, {
-        status: 500,
-        msg: "Internal server error",
-      });
     }
+
+    return respHelper(res, {
+      status: 200,
+      data: formsFields,
+    });
+    //   } catch (error) {
+    //     return respHelper(res, {
+    //       status: 500,
+    //       msg: "Internal server error",
+    //     });
+    //   }
   }
   ///CONFIRMATION///
 }

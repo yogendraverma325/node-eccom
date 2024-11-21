@@ -15,7 +15,7 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING,
     },
     probationId: {
-      type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
     probationDays: {
       type: Sequelize.INTEGER,
@@ -83,7 +83,7 @@ export default (sequelize, Sequelize) => {
     npsNumber: {
       type: Sequelize.STRING,
     },
-    createdAt: {
+    dateOfProbationEnd: {
       type: Sequelize.DATE,
     },
     createdBy: {
@@ -97,6 +97,9 @@ export default (sequelize, Sequelize) => {
     },
     isActive: {
       type: Sequelize.BOOLEAN,
+    },
+    dateOfProbationEnd: {
+      type: Sequelize.DATE,
     },
   });
   return employeeJobDetails;
