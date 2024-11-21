@@ -2517,20 +2517,6 @@ class AttendanceController {
         ],
         where: {
           isActive: 1,
-          empCode: [
-            "15543",
-            "15366",
-            "17763",
-            "10124",
-            "19737",
-            "13675",
-            "14622",
-            "18950",
-            "17400",
-            "15368",
-            "15153",
-            "16268",
-          ],
         },
       });
       for (const activeEmployeeSingleItem of activeEmployees) {
