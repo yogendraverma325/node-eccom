@@ -371,9 +371,23 @@ class commonController {
       const result = await validator.addJobDetailsSchema.validateAsync(
         req.body
       );
+      const userId = req.body.userId == 0 ? req.userId : req.body.userId;
       result["probationId"] = result.probationPeriod;
 
-      const userId = req.body.userId == 0 ? req.userId : req.body.userId;
+      // fetch bandId and gradeId based on job level
+      if(result.jobLevelId) {
+        const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({ where: { 'jobLevelId': result.jobLevelId }, attributes: ['bandId', 'gradeId'] });
+        if(getJobLevelMappingDetails) {
+          result["bandId"] = getJobLevelMappingDetails.bandId;
+          result["gradeId"] = getJobLevelMappingDetails.gradeId;
+        }
+      }
+
+      // update date of joining and company location in employee master table
+      if(result.companyLocationId) {
+        await db.employeeMaster.update({ 'companyLocationId': result.companyLocationId }, { where: { 'id': userId }});
+      }
+            
       const existPaymentDetails = await db.jobDetails.findOne({
         raw: true,
         where: {

@@ -99,6 +99,7 @@ import BankMaster from "../api/model/BankMaster.js"
 
 import PolicyHistory from "../api/model/PolicyHistory.js";
 import EmployeeLeaveHeader from "../api/model/EmployeeLeaveHeader.js";
+import JobLevelMapping from "../api/model/JobLevelMapping.js";
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -263,6 +264,7 @@ db.taskBuMapping = TaskBuMapping(sequelize, Sequelize);
 
 db.EmployeeLeaveHeader = EmployeeLeaveHeader(sequelize, Sequelize);
 db.bankMaster = BankMaster(sequelize, Sequelize);
+db.jobLevelMapping = JobLevelMapping(sequelize, Sequelize);
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -985,5 +987,9 @@ db.separationMaster.hasOne(db.subCategoryMaster, {
   sourceKey: 'l2RevokeReason',
   as: 'revokeReason'
 })
+db.jobLevelMapping.hasOne(db.jobLevelMaster, {
+  foreignKey: 'jobLevelId',
+  sourceKey: 'jobLevelId'
+});
 
 export default db;
