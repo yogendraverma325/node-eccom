@@ -1635,7 +1635,7 @@ class AttendanceController {
             attendanceDate: regularizeData.regularizePunchInDate,
             attendanceWorkingTime: await helper.timeDifference(
               `${regularizeData.regularizePunchInDate} ${regularizeData.regularizePunchInTime}`,
-              `${regularizeData.regularizePunchOutTime} ${regularizeData.regularizePunchOutTime}`
+              `${regularizeData.regularizePunchOutDate} ${regularizeData.regularizePunchOutTime}`
             ),
             attendancePresentStatus: "present",
             //attandanceShiftStartDate: regularizeData.regularizePunchInDate,
