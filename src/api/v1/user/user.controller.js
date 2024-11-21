@@ -3915,7 +3915,7 @@ class UserController {
       include: [
         {
           model: db.employeeMaster,
-          attributes: ["empCode", "name"],
+          attributes: ["employeeId", "empCode", "name"],
           include: {
             model: db.jobDetails,
             attributes: [
@@ -3973,6 +3973,21 @@ class UserController {
     return respHelper(res, {
       status: 200,
       data: formsFields,
+    });
+    //   } catch (error) {
+    //     return respHelper(res, {
+    //       status: 500,
+    //       msg: "Internal server error",
+    //     });
+    //   }
+  }
+  async confirmatonFormSubmission(req, res) {
+    // try {
+    console.log("hello");
+    let body = req.body;
+    return respHelper(res, {
+      status: 200,
+      data: body,
     });
     //   } catch (error) {
     //     return respHelper(res, {

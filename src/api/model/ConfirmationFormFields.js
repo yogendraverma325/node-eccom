@@ -17,9 +17,13 @@ export default (sequelize, Sequelize) => {
     fieldType: {
       type: Sequelize.STRING,
     },
+    heading: {
+      type: Sequelize.STRING,
+    },
     errorMessage: {
       type: Sequelize.STRING,
     },
+
     isRequired: {
       type: Sequelize.INTEGER,
     },

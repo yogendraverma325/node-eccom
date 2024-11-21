@@ -104,6 +104,7 @@ import Confirmationinitiated from "../api/model/ConfirmationInitiated.js";
 import Confirmationowners from "../api/model/Confirmationowners.js";
 import Confirmatoinformfields from "../api/model/ConfirmationFormFields.js";
 import Confirmatoinformfieldsoptions from "../api/model/Confirmatoinformfieldsoptions.js";
+import Confirmationformfilledvalues from "../api/model/ConfirmationFormFilledValues.js";
 //CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -273,6 +274,10 @@ db.Confirmationinitiated = Confirmationinitiated(sequelize, Sequelize);
 db.Confirmationowners = Confirmationowners(sequelize, Sequelize);
 db.Confirmatoinformfields = Confirmatoinformfields(sequelize, Sequelize);
 db.Confirmatoinformfieldsoptions = Confirmatoinformfieldsoptions(
+  sequelize,
+  Sequelize
+);
+db.Confirmationformfilledvalues = Confirmationformfilledvalues(
   sequelize,
   Sequelize
 );
