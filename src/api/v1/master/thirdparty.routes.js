@@ -5,5 +5,5 @@ import authorization from "../../../middleware/authorization.js";
 
 export default Express.Router().post(
   "/employeeData",
-  thirdPartyController.employeeData
+  ThirdPartyController.employeeData
 );
