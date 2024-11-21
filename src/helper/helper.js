@@ -8,6 +8,7 @@ import bcrypt from "bcrypt";
 import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
+import crypto from 'crypto';
 
 const generateJwtToken = async (data) => {
   const token = jwt.sign(data, process.env.JWT_KEY, {
@@ -1265,6 +1266,17 @@ const generateOTP = async function (length) {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+const dboxEmailId = "abc@123";
+const dboxSecretKey = "b23ec2c914a8974d110ac583311";
+
+const unixTime = Math.floor(Date.now() / 1000);
+
+const generateSHA512Hash = async function(input) {
+  const hash = crypto.createHash('sha512');
+  hash.update(input);
+  return hash.digest('hex'); // Output the hash in hexadecimal format
+}
+
 
 export default {
   generateJwtToken,
@@ -1290,4 +1302,5 @@ export default {
   generateJwtOTPEncrypt,
   generateJwtOTPDecrypt,
   isDayWorkingForReport,
+  generateSHA512Hash
 };
