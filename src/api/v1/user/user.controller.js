@@ -2654,7 +2654,9 @@ class UserController {
         await db.EmployeeLeaveHeader.findAndCountAll({
           where: {
             status: { [Op.ne]: "pending" },
-            ...(isSystemGenerated == 1 && { source: "system_generated" }),
+            ...(isSystemGenerated == 1
+              ? { source: "system_generated" }
+              : { source: { [Op.ne]: "system_generated" } }),
             ...(fromDate &&
               toDate && {
                 appliedFor: {
