@@ -16,35 +16,45 @@ class ThirdPartyController {
       const { dataset, isActive } = req.body;
       const taraEmailId = process.env.TARA_EMAIL_ID;
       const taraSecretKey = process.env.TARA_SECRET_KEY;
-      
+
       // Round Unix timestamp to the nearest minute
       const unixTime = Math.floor(Date.now() / 1000);
       const roundedTime = Math.floor(unixTime / 60) * 60;
-      
+
       console.log("unixTime>>", unixTime);
       console.log("roundedTime>>", roundedTime);
-      
+
       // Function to generate a single hash
       async function generateHash(email, secretKey, time, status) {
         const concatenatedString = `${email}${secretKey}${time}${status}`;
         return await helper.generateSHA512Hash(concatenatedString);
       }
-      
+
       // Generate the hash using the current rounded time
-      const generatedHash = await generateHash(taraEmailId, taraSecretKey, roundedTime, isActive);
+      const generatedHash = await generateHash(
+        taraEmailId,
+        taraSecretKey,
+        roundedTime,
+        isActive
+      );
       console.log("Generated Hash (valid for 5 minutes):", generatedHash);
-      
+
       // Validate input
       if (!dataset || (isActive !== 0 && isActive !== 1)) {
         return res.status(400).json({ error: "Invalid input" });
       }
-      
+
       // Validation: Check if the received hash matches for current or last 4 minutes
       let isValid = false;
-      
+
       for (let i = 0; i < 5; i++) {
         const timeToCheck = roundedTime - i * 60; // Current and last 4 minutes
-        const validHash = await generateHash(taraEmailId, taraSecretKey, timeToCheck, isActive);
+        const validHash = await generateHash(
+          taraEmailId,
+          taraSecretKey,
+          timeToCheck,
+          isActive
+        );
         if (
           Buffer.from(validHash, "hex").length ==
           Buffer.from(dataset, "hex").length
@@ -1055,23 +1065,23 @@ class ThirdPartyController {
             emergency_contact_country_code:
               employee.employeeemergencycontact?.dataValues
                 ?.emergency_contact_country_code || "",
-            // emergency_address: employee.employeeaddress?.dataValues
-            //   ? [
-            //       employee.employeeaddress?.dataValues?.emergencyHouse,
-            //       employee.employeeaddress?.dataValues?.emergencyStreet,
-            //       employee.employeeaddress?.dataValues?.emergencyLandmark,
-            //       employee.employeeaddress?.dataValues?.emergencycity
-            //         ?.dataValues?.cityName,
-            //       employee.employeeaddress?.dataValues?.emergencystate
-            //         ?.dataValues?.stateName,
-            //       employee.employeeaddress?.dataValues?.emergencycountry
-            //         ?.dataValues?.countryName,
-            //       employee.employeeaddress?.dataValues?.emergencypincode
-            //         ?.dataValues?.pincode,
-            //     ]
-            //       .filter((item) => item)
-            //       .join(", ")
-            //   : "",
+            emergency_address: employee.employeeaddress?.dataValues
+              ? [
+                  employee.employeeaddress?.dataValues?.emergencyHouse,
+                  employee.employeeaddress?.dataValues?.emergencyStreet,
+                  employee.employeeaddress?.dataValues?.emergencyLandmark,
+                  employee.employeeaddress?.dataValues?.emergencycity
+                    ?.dataValues?.cityName,
+                  employee.employeeaddress?.dataValues?.emergencystate
+                    ?.dataValues?.stateName,
+                  employee.employeeaddress?.dataValues?.emergencycountry
+                    ?.dataValues?.countryName,
+                  employee.employeeaddress?.dataValues?.emergencypincode
+                    ?.dataValues?.pincode,
+                ]
+                  .filter((item) => item)
+                  .join(", ")
+              : "",
             cost_center: employee.costcentermaster?.dataValues?.costCenterName
               ? `${employee.costcentermaster?.dataValues?.costCenterName} (${employee.costcentermaster?.dataValues?.costCenterCode})`
               : "",

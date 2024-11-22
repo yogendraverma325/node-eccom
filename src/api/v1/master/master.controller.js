@@ -1502,10 +1502,9 @@ class MasterController {
       const bankData = await db.bankMaster.findAndCountAll({
         where: {
           isActive: 1,
-          ...(req.query.search && {bankName: { [Op.like]: `%${req.query.search}%` }})
+          ...(req.query.search && { bankName: req.query.search })
         },
-        attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('bankName')), 'bankName']],
-
+        attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('bankName')), 'bankName']]
       });
 
       return respHelper(res, {
@@ -1525,9 +1524,8 @@ class MasterController {
       const bankData = await db.bankMaster.findAll({
         where: {
           isActive: 1,
-          bankName: { [Op.like]: `%${req.query.bankName}%` },
-          ...(req.query.search && {bankIfsc: { [Op.like]: `%${req.query.search}%` }})
-
+          bankName: req.query.bankName,
+          ...(req.query.search && {bankIfsc: req.query.search })
         }
       });
 

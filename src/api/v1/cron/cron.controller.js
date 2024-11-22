@@ -504,8 +504,10 @@ class CronController {
         ],
       });
 
+      console.log("New Joining Employee Cron", docs.length);
+
       if (docs.length > 0) {
-        const sheetName = "uploads/temp/newJoinEmployee"; //+ dt.getTime();
+        const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();
         fs.writeFileSync(sheetName + ".xlsx", "", { flag: "a+" }, (err) => {
           if (err) {
             console.error("Error writing file:", err);
@@ -594,12 +596,18 @@ class CronController {
           RTL: false,
         };
 
+        let current = moment().format("DD-MMM-YYYY HH:mm");
+        let yesterday = moment().subtract(1, "days");
+        yesterday = moment(yesterday).format("DD-MMM-YYYY HH:mm");
+
         xlsx(data, settings, () => {
           // return res.download(sheetName + ".xlsx");
           eventEmitter.emit(
             "newJoinEmployeeMail",
             JSON.stringify({
-              email: "",
+              today: today,
+              current: current,
+              yesterday: yesterday,
             })
           );
         });
