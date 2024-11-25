@@ -933,6 +933,8 @@ class AdminController {
                 );
 
                 if (employeeOnboardingDetails.employeeType == 3) {
+                  let get_bank_details = await db.bankMaster.findOne({ where: { 'bankName': employeeOnboardingDetails.paymentBankName }, attributes: ["bankId"] });
+
                   let newEmployeePaymentDetails = {
                     userId: createdUser.id,
                     paymentAccountNumber:
@@ -942,6 +944,7 @@ class AdminController {
                     paymentBankIfsc:
                       employeeOnboardingDetails.paymentBankIfsc,
                     status: "approved",
+                    bankId: (get_bank_details) ? get_bank_details.bankId : ""
                   };
 
                   const createdUserPaymentDetails =
