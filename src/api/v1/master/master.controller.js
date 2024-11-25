@@ -488,13 +488,27 @@ class MasterController {
   async jobLevel(req, res) {
     try {
       let condition = { isActive: 1 };
-      const jobLevelData = await db.jobLevelMaster.findAll({
-        where: condition,
-      });
+      let companyId = req.query.companyId;
+      let jobLevelData = [];
+
+      if(companyId) {
+        jobLevelData = await db.jobLevelMapping.findAll({
+          where: { 'companyId': companyId },
+          attributes: ['jobLevelMappingId', 'companyId', 'bandId', 'gradeId', 'jobLevelId'],
+          include: [{ model: db.jobLevelMaster, where: condition, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode', 'isActive'] }]
+        });
+      }
+      else {
+        jobLevelData = await db.jobLevelMaster.findAll({
+          where: condition,
+        });
+      }
+
       return respHelper(res, {
         status: 200,
         data: jobLevelData,
       });
+
     } catch (error) {
       console.log(error);
       return respHelper(res, {

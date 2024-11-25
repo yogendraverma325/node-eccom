@@ -85,10 +85,7 @@ class MasterController {
               const isValidNewCustomerName = await validateNewCustomerName(
                 obj.newCustomerName
               );
-              const isValidJobLevel = await validateJobLevel(obj.jobLevel);
-              // const isValidNoticePeriod = await validateNoticePeriod(
-              //   obj.noticePeriodAutoId
-              // );
+              const isValidJobLevel = await validateJobLevel(isValidCompany, obj.jobLevel);
               const isValidDegree = await validateDegree(
                 obj.highestQualification
               );
@@ -196,8 +193,6 @@ class MasterController {
                   paymentAccountNumber: obj.paymentAccountNumber,
                   paymentBankName: (isValidEmployeeType.data.empTypeId === 3) ? isValidBank.data?.bankName : "",
                   paymentBankIfsc: (isValidEmployeeType.data.empTypeId === 3) ? isValidIFSC.data?.bankIfsc : "",
-                  // noticePeriodAutoId:
-                  //   isValidNoticePeriod.data?.noticePeriodAutoId,
                 };
 
                 newEmployee.role_id = 3;
@@ -231,7 +226,6 @@ class MasterController {
                   degree: isValidDegree.message,
                   bankName: isValidBank.message,
                   bankIFSC: isValidIFSC.message,
-                  // noticePeriod: isValidNoticePeriod.message,
                   alreadyExist: isValidateEmployee.message,
                 };
                 invalidEmployees.push(masterErrors);
@@ -372,8 +366,7 @@ const createObj = (obj) => {
       obj.Bank_IFSC_Number == "" ||
       obj.Bank_IFSC_Number == undefined
         ? null
-        : obj.Bank_IFSC_Number,
-    // noticePeriodAutoId: obj.Notice_Period
+        : obj.Bank_IFSC_Number
   };
 };
 
@@ -761,27 +754,16 @@ const validateNewCustomerName = async (name) => {
   }
 };
 
-const validateJobLevel = async (name) => {
-  let isVerify = await db.jobLevelMaster.findOne({
-    where: { jobLevelName: name },
+const validateJobLevel = async (isValidCompany, name) => {
+  let isVerify = await db.jobLevelMapping.findOne({
+    where: { companyId: isValidCompany.data.companyId },
     attributes: ["jobLevelId"],
+    include: [{ model: db.jobLevelMaster, where: { 'jobLevelName': name }}]
   });
   if (isVerify) {
     return { status: true, message: "", data: isVerify };
   } else {
     return { status: false, message: "Invalid job level", data: {} };
-  }
-};
-
-const validateNoticePeriod = async (name) => {
-  let isVerify = await db.noticePeriodMaster.findOne({
-    where: { noticePeriodName: name },
-    attributes: ["noticePeriodAutoId"],
-  });
-  if (isVerify) {
-    return { status: true, message: "", data: isVerify };
-  } else {
-    return { status: false, message: "Invalid Notice Period", data: {} };
   }
 };
 

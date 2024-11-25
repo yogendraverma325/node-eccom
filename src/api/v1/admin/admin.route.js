@@ -131,11 +131,6 @@ export default Express.Router()
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.updateOnboardEmployee
   )
-  .get(
-    "/backup-onboardEmployee/:id",
-    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-    adminController.getOnboardEmployeeDetailsBackup
-  )
   .put(
     "/updatePolicyOfEMP",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
