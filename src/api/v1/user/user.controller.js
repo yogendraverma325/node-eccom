@@ -3909,92 +3909,197 @@ class UserController {
   }
   ///CONFIRMATION///
   async confirmatonList(req, res) {
-    // try {
-    const confirmationData = await db.Confirmationinitiated.findAll({
-      where: {},
-      include: [
-        {
-          model: db.employeeMaster,
-          attributes: ["employeeId", "empCode", "name"],
-          include: {
-            model: db.jobDetails,
-            attributes: [
-              "dateOfJoining",
-              "dateOfProbationEnd",
-              "probationPeriod",
-              "probationDays",
-            ],
-          },
-        },
-        {
-          model: db.Confirmationowners,
-          attributes: ["employeeId"],
-          include: {
+    try {
+      const confirmationData = await db.Confirmationinitiated.findAll({
+        where: {},
+        include: [
+          {
             model: db.employeeMaster,
-            attributes: ["empCode", "name"],
+            attributes: ["id", "empCode", "name"],
+            include: {
+              model: db.jobDetails,
+              attributes: [
+                "dateOfJoining",
+                "dateOfProbationEnd",
+                "probationPeriod",
+                "probationDays",
+              ],
+            },
           },
-        },
-      ],
-    });
+          {
+            model: db.Confirmationowners,
+            attributes: ["employeeId"],
+            where: {
+              employeeId: req.userId,
+            },
+            include: {
+              model: db.employeeMaster,
+              attributes: ["empCode", "name"],
+            },
+          },
+        ],
+      });
 
-    return respHelper(res, {
-      status: 200,
-      data: confirmationData,
-    });
-    //   } catch (error) {
-    //     return respHelper(res, {
-    //       status: 500,
-    //       msg: "Internal server error",
-    //     });
-    //   }
-  }
-  async confirmatonFormdetails(req, res) {
-    // try {
-
-    const confirsmationData = await db.Confirmationinitiated.findOne({
-      where: {
-        confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
-      },
-    });
-    let formsFields = [];
-    if (confirsmationData) {
-      formsFields = await db.Confirmatoinformfields.findAll({
-        where: {
-          confirmationFormGroupId: confirsmationData.confirmationFormGroupId,
-        },
-        exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
-        include: {
-          model: db.Confirmatoinformfieldsoptions,
-          attributes: ["value", "label"],
-        },
+      return respHelper(res, {
+        status: 200,
+        data: confirmationData,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
       });
     }
-
-    return respHelper(res, {
-      status: 200,
-      data: formsFields,
-    });
-    //   } catch (error) {
-    //     return respHelper(res, {
-    //       status: 500,
-    //       msg: "Internal server error",
-    //     });
-    //   }
   }
   async confirmatonFormSubmission(req, res) {
-    // try {
-    console.log("hello");
-    let body = req.body;
-    return respHelper(res, {
-      status: 200,
-      data: body,
-    });
-    //   } catch (error) {
-    //     return respHelper(res, {
-    //       status: 500,
-    //       msg: "Internal server error",
-    //     });
-    //   }
+    try {
+      console.log("body", req.body);
+      for (const element of req.body) {
+        await db.Confirmationformfilledvalues.update(
+          {
+            values: element.confirmatoinformfieldsValues,
+            updatedBy: req.userId,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: element.confirmationinitiatedAutoId,
+              employeeId: element.employeeId,
+              confirmationFormGroupId: element.confirmationFormGroupId,
+              confirmatoinformfieldsAutoId:
+                element.confirmatoinformfieldsAutoId,
+            },
+          }
+        );
+      }
+      return respHelper(res, {
+        status: 200,
+        msg: constant.CONFIRMATION.FORM_SUBMISSION,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async confirmatonFormdetails(req, res) {
+    try {
+      const confirsmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+        },
+      });
+      let formsFields = [];
+      if (confirsmationData) {
+        formsFields = await db.Confirmationformfilledvalues.findAll({
+          where: {
+            confirmationFormGroupId: confirsmationData.confirmationFormGroupId,
+            confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+          },
+          include: {
+            model: db.Confirmatoinformfields,
+            include: {
+              model: db.Confirmatoinformfieldsoptions,
+              attributes: ["value", "label"],
+            },
+          },
+        });
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: formsFields,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async extendProbation(req, res) {
+    try {
+      const result =
+        await validator.requestForProbationExtendvalidationSchema.validateAsync(
+          req.body
+        );
+      const existUser = await db.employeeMaster.findOne({
+        where: {
+          id: result.employeeId,
+          isActive: 1,
+        },
+        attributes: ["name", "empCode", "profileImage", "id"],
+        include: {
+          model: db.jobDetails,
+        },
+      });
+      const probationData = await db.probationMaster.findOne({
+        where: {
+          probationId: result.noticePeriodId,
+        },
+        attributes: [("probationId", "probationName")],
+      });
+      const confirmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+          employeeId: result.employeeId,
+          status: [1],
+        },
+      });
+      if (existUser && probationData && confirmationData) {
+        const originalDate = moment(
+          existUser.employeejobdetail.dateOfProbationEnd
+        );
+        // Add 5 days
+        const newDate = originalDate.add(5, "days");
+        await db.jobDetails.update(
+          {
+            probationId: result.noticePeriodId,
+            updatedAt: moment(),
+            probationPeriod: probationData.probationName,
+            updatedBy: req.userId,
+            probationDays: probationData.durationOfProbation,
+            dateOfProbationEnd: newDate.format("YYYY-MM-DD"),
+          },
+          {
+            where: {
+              userId: existUser.id,
+            },
+          }
+        );
+        await db.Confirmationinitiated.update(
+          {
+            status: 3,
+            updatedBy: req.userId,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+            },
+          }
+        );
+        return respHelper(res, {
+          status: 200,
+          data: {},
+          msg: constant.CONFIRMATION.FORM_SUBMISSION,
+        });
+      } else {
+        return respHelper(res, {
+          status: 400,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
   }
   ///CONFIRMATION///
 }

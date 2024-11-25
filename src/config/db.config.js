@@ -1020,6 +1020,11 @@ db.Confirmatoinformfields.hasMany(db.Confirmatoinformfieldsoptions, {
   foreignKey: "confirmatoinformfieldsAutoId",
 });
 
+db.Confirmationformfilledvalues.hasOne(db.Confirmatoinformfields, {
+  foreignKey: "confirmatoinformfieldsAutoId",
+  sourceKey: "confirmatoinformfieldsAutoId",
+});
+
 //CONFIRAMTION
 
 export default db;

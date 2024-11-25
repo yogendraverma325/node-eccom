@@ -296,5 +296,10 @@ export default Express.Router()
     "/confirmatonFormSubmission",
     authentication.authenticate,
     userController.confirmatonFormSubmission
+  )
+  .post(
+    "/extendProbation",
+    authentication.authenticate,
+    userController.extendProbation
   );
 ///CONFIRMATION///

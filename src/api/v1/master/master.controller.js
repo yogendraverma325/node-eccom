@@ -1282,9 +1282,16 @@ class MasterController {
   async probation(req, res) {
     try {
       let query = { isActive: 1 };
+      let queryFormat = req.query;
+      console.log("queryFormat", queryFormat);
       const probationData = await db.probationMaster.findAll({
         where: query,
-        attributes: ["probationId", "probationName"],
+        attributes: queryFormat
+          ? [
+              ["probationId", "value"],
+              ["probationName", "label"],
+            ]
+          : [("probationId", "probationName")],
       });
 
       return respHelper(res, {
@@ -1367,7 +1374,10 @@ class MasterController {
 
   async taskFilter(req, res) {
     try {
-      let query = req.query.taskFor == "web"?  { isActive: 1, taskForWeb:1}: { isActive: 1,taskForApp:1 }
+      let query =
+        req.query.taskFor == "web"
+          ? { isActive: 1, taskForWeb: 1 }
+          : { isActive: 1, taskForApp: 1 };
       const taskFilter = await db.taskFilterMaster.findAll({
         where: query,
         //attributes: ['']
@@ -1496,14 +1506,19 @@ class MasterController {
 
   async bank(req, res) {
     try {
-
       const bankData = await db.bankMaster.findAndCountAll({
         where: {
           isActive: 1,
-          ...(req.query.search && {bankName: { [Op.like]: `%${req.query.search}%` }})
+          ...(req.query.search && {
+            bankName: { [Op.like]: `%${req.query.search}%` },
+          }),
         },
-        attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('bankName')), 'bankName']],
-
+        attributes: [
+          [
+            db.sequelize.fn("DISTINCT", db.sequelize.col("bankName")),
+            "bankName",
+          ],
+        ],
       });
 
       return respHelper(res, {
@@ -1524,9 +1539,10 @@ class MasterController {
         where: {
           isActive: 1,
           bankName: { [Op.like]: `%${req.query.bankName}%` },
-          ...(req.query.search && {bankIfsc: { [Op.like]: `%${req.query.search}%` }})
-
-        }
+          ...(req.query.search && {
+            bankIfsc: { [Op.like]: `%${req.query.search}%` },
+          }),
+        },
       });
 
       return respHelper(res, {

@@ -20,6 +20,9 @@ export default (sequelize, Sequelize) => {
     dueDate: {
       type: Sequelize.DATE,
     },
+    status: {
+      type: Sequelize.INTEGER,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
     },
