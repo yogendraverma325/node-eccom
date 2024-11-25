@@ -3304,7 +3304,7 @@ class UserController {
                 where: {
                   finalStatus: 9,
                   resignationAutoId: db.Sequelize.col(
-                    "separationInitiatedTask.resignationAutoId"
+                    "separationinitiatedtask.resignationAutoId"
                   ),
                 },
                 attributes: ["resignationDate", "l2LastWorkingDay"],
