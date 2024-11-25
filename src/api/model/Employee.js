@@ -179,13 +179,6 @@ export default (sequelize, Sequelize) => {
     recruiterName: {
       type: Sequelize.STRING,
     },
-
-    positionType: {
-      type: Sequelize.STRING(45),
-    },
-    newCustomerName: {
-      type: Sequelize.STRING(45),
-    },
     selfService: {
       type: Sequelize.INTEGER
     },

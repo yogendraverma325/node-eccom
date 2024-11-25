@@ -823,6 +823,24 @@ CHANGE COLUMN `isActive` `isActive` TINYINT(1) NOT NULL DEFAULT 1 ;
 ALTER TABLE `tara`.`employeestaging` 
 CHANGE COLUMN `highestQualification` `highestQualification` INT NULL DEFAULT NULL ;
 
+20-11-2024 (by Jay)
+
+CREATE TABLE `tara`.`joblevelmapping` (
+  `jobLevelMappingId` INT NOT NULL AUTO_INCREMENT,
+  `companyId` INT NULL DEFAULT NULL,
+  `bandId` INT NULL DEFAULT NULL,
+  `gradeId` INT NULL DEFAULT NULL,
+  `jobLevelId` INT NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  `isActive` TINYINT NULL DEFAULT NULL,
+  PRIMARY KEY (`jobLevelMappingId`),
+  UNIQUE INDEX `jobLevelMappingId_UNIQUE` (`jobLevelMappingId` ASC) VISIBLE);
+
+
+
 
 
 

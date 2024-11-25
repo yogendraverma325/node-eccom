@@ -140,7 +140,7 @@ class UserController {
             include: [
               {
                 model: db.employeeMaster,
-                attributes: ["id"],
+                attributes: ["id", "companyId"],
                 include: [
                   {
                     model: db.companyLocationMaster,
@@ -275,6 +275,10 @@ class UserController {
                 "isActive",
               ],
             },
+            where: {
+              isActive: 1,
+            },
+            required: false,
             include: [
               {
                 model: db.degreeMaster,
@@ -387,6 +391,10 @@ class UserController {
           },
           {
             model: db.employeeWorkExperience,
+            where: {
+              isActive: 1,
+            },
+            required: false,
           },
           {
             model: db.hrLetters,

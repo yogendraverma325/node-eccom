@@ -842,15 +842,12 @@ class AdminController {
                   companyLocationId:
                     employeeOnboardingDetails.companyLocationId,
                   weekOffId: employeeOnboardingDetails.weekOffId,
-
-                  newCustomerName: employeeOnboardingDetails.newCustomerName,
                   iqTestApplicable: employeeOnboardingDetails.iqTestApplicable,
                   positionType: employeeOnboardingDetails.positionType,
                   password: encryptedPassword,
                   role_id: 3,
                   empCode: empCode,
                   isTempPassword: 1,
-
                   selfService: employeeOnboardingDetails.selfService,
                   offRoleCTC: employeeOnboardingDetails.offRoleCTC,
                   highestQualification:
@@ -902,54 +899,74 @@ class AdminController {
                 let getProbationDetails = await db.probationMaster.findOne({
                   where: { probationId: employeeOnboardingDetails.probationId },
                 });
-                if (getProbationDetails) {
-                  
-                  let newEmployeeJobDetails = {
+
+                // get new customer name details
+                let customerName = '';
+                if(employeeOnboardingDetails.newCustomerNameId) {
+                  let getNewCustomerDetails = await db.newCustomerNameMaster.findOne({
+                    where: { newCustomerNameId: employeeOnboardingDetails.newCustomerNameId },
+                    attributes: ['newCustomerName']
+                  });
+                  if(getNewCustomerDetails) {
+                    customerName = getNewCustomerDetails.newCustomerName;
+                  }
+                }
+
+                // fetch bandId and gradeId based on job level
+                const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({ where: { 'jobLevelId': employeeOnboardingDetails.jobLevelId }, attributes: ['bandId', 'gradeId'] });
+
+                let newEmployeeJobDetails = {
+                  userId: createdUser.id,
+                  dateOfJoining: employeeOnboardingDetails.dateOfJoining,
+                  probationId: getProbationDetails?.probationId,
+                  probationDays: getProbationDetails?.durationOfProbation,
+                  jobLevelId: employeeOnboardingDetails.jobLevelId,
+                  pfNumber: employeeOnboardingDetails.pfNo,
+                  uanNumber: employeeOnboardingDetails.uanNo,
+                  customerName: customerName,
+                  bandId: getJobLevelMappingDetails?.bandId,
+                  gradeId: getJobLevelMappingDetails?.gradeId
+                };
+
+                const createdUserJobDetails = await db.jobDetails.create(
+                  newEmployeeJobDetails
+                );
+
+                if (employeeOnboardingDetails.employeeType == 3) {
+                  let get_bank_details = await db.bankMaster.findOne({ where: { 'bankName': employeeOnboardingDetails.paymentBankName }, attributes: ["bankId"] });
+
+                  let newEmployeePaymentDetails = {
                     userId: createdUser.id,
-                    dateOfJoining: employeeOnboardingDetails.dateOfJoining,
-                    probationId: getProbationDetails.probationId,
-                    probationDays: getProbationDetails.durationOfProbation,
-                    jobLevelId: employeeOnboardingDetails.jobLevelId,
-                    pfNumber: employeeOnboardingDetails.pfNo,
-                    uanNumber: employeeOnboardingDetails.uanNo,
+                    paymentAccountNumber:
+                      employeeOnboardingDetails.paymentAccountNumber,
+                    paymentBankName:
+                      employeeOnboardingDetails.paymentBankName,
+                    paymentBankIfsc:
+                      employeeOnboardingDetails.paymentBankIfsc,
+                    status: "approved",
+                    bankId: (get_bank_details) ? get_bank_details.bankId : ""
                   };
 
-                  const createdUserJobDetails = await db.jobDetails.create(
-                    newEmployeeJobDetails
-                  );
-
-                  if (employeeOnboardingDetails.employeeType == 3) {
-                    let newEmployeePaymentDetails = {
-                      userId: createdUser.id,
-                      paymentAccountNumber:
-                        employeeOnboardingDetails.paymentAccountNumber,
-                      paymentBankName:
-                        employeeOnboardingDetails.paymentBankName,
-                      paymentBankIfsc:
-                        employeeOnboardingDetails.paymentBankIfsc,
-                      status: "approved",
-                    };
-
-                    const createdUserPaymentDetails =
-                      await db.paymentDetails.create(newEmployeePaymentDetails);
-                  }
-
-                  eventEmitter.emit(
-                    "onboardingEmployeeMail",
-                    JSON.stringify({
-                      email: employeeOnboardingDetails.email,
-                      firstName: employeeOnboardingDetails.firstName,
-                      empCode: empCode,
-                      password: password,
-                    })
-                  );
-
-                  await db.employeeStagingMaster.destroy({
-                    where: {
-                      id: selectedUsers[i],
-                    },
-                  });
+                  const createdUserPaymentDetails =
+                    await db.paymentDetails.create(newEmployeePaymentDetails);
                 }
+
+                eventEmitter.emit(
+                  "onboardingEmployeeMail",
+                  JSON.stringify({
+                    email: employeeOnboardingDetails.email,
+                    firstName: employeeOnboardingDetails.firstName,
+                    empCode: empCode,
+                    password: password,
+                  })
+                );
+
+                await db.employeeStagingMaster.destroy({
+                  where: {
+                    id: selectedUsers[i],
+                  },
+                });
+                
               } else {
                 return respHelper(res, {
                   status: 403,
@@ -1104,217 +1121,6 @@ class AdminController {
           msg: error?.parent?.sqlMessage,
         });
       }
-    }
-  }
-
-  async getOnboardEmployeeDetailsBackup(req, res) {
-    try {
-      let id = req.params.id;
-      let condition = { id: id };
-      let attributes = [
-        "name",
-        "firstName",
-        "middleName",
-        "lastName",
-        "email",
-        "personalEmail",
-        "officeMobileNumber",
-        "personalMobileNumber",
-        "panNo",
-        "uanNo",
-        "pfNo",
-        "employeeType",
-        "profileImage",
-        "dateOfJoining",
-        "manager",
-        "designation_id",
-        "functionalAreaId",
-        "buId",
-        "sbuId",
-        "shiftId",
-        "departmentId",
-        "companyId",
-        "buHRId",
-        "buHeadId",
-        "attendancePolicyId",
-        "companyLocationId",
-        "weekOffId",
-        "gender",
-        "maritalStatus",
-        "maritalStatusSince",
-        "nationality",
-        "probationId",
-        "dateOfBirth",
-        "newCustomerNameId",
-        "iqTestApplicable",
-        "positionType",
-        "jobLevelId",
-        "selfService",
-        "mobileAccess",
-        "laptopSystem",
-        "backgroundVerification",
-        "workstationAdmin",
-        "mobileAdmin",
-        "dataCardAdmin",
-        "visitingCardAdmin",
-        "recruiterName",
-        "offRoleCTC",
-        "highestQualification",
-        "ESICPFDeduction",
-        "fatherName",
-        "paymentAccountNumber",
-        "paymentBankName",
-        "paymentBankIfsc",
-        "noticePeriodAutoId",
-      ];
-
-      let result = await db.employeeStagingMaster.findOne({
-        where: condition,
-        attributes: attributes,
-        include: [
-          { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
-          { model: db.shiftMaster, attributes: ['shiftId', 'shiftName'] },
-          { model: db.attendancePolicymaster, attributes: ['attendancePolicyId', 'policyName'] },
-          { model: db.weekOffMaster, attributes: ['weekOffId', 'weekOffName'] },
-          { model: db.employeeMaster, attributes: ['id', 'name', 'empCode'] },
-          { model: db.designationMaster, attributes: ['designationId', 'name', 'code'] },
-        ]
-      });
-      if (result) {
-
-        let subQuery = { 'isActive': 1 };
-
-        const buData = await db.buMapping.findAll({
-          where: { companyId: result.companyId },
-          include: [
-            {
-              model: db.buMaster,
-              where: subQuery,
-              attributes: ["buId", "buName", "buCode"],
-            },
-          ],
-        });
-
-        const mappingBU = buData.find(bu => bu.buId === result.buId);
-
-        const sbuData = await db.sbuMapping.findAll({
-          where: { 'buMappingId': mappingBU.buMappingId },
-          include: [
-            {
-              model: db.sbuMaster,
-              where: subQuery,
-              attributes: ["sbuId", "sbuName", "code"],
-            },
-          ],
-        });
-
-        const mappingSBU = sbuData.find(bu => bu.sbuId === result.sbuId);
-
-        const departmentData = await db.departmentMapping.findAll({
-          where: { sbuMappingId: mappingSBU.sbuMappingId },
-          include: [
-            {
-              model: db.departmentMaster,
-              where: subQuery,
-              attributes: ["departmentId", "departmentName", "departmentCode"],
-            },
-          ],
-        });
-
-        const mappingDepartment = departmentData.find(bu => bu.departmentId === result.departmentId);
-
-        const functionalAreaData = await db.functionalAreaMapping.findAll({
-          where: { departmentMappingId: mappingDepartment.departmentMappingId },
-          include: [
-            {
-              model: db.functionalAreaMaster,
-              where: subQuery,
-              attributes: [
-                "functionalAreaId",
-                "functionalAreaName",
-                "functionalAreaCode",
-              ],
-            },
-          ],
-        });
-
-        const buhrData = await db.buMapping.findAll({
-          where: { 'buMappingId': mappingBU.buMappingId },
-          include: [
-            {
-              model: db.employeeMaster,
-              where: subQuery,
-              attributes: ["id", "name"],
-              as: "buhrData",
-            },
-          ],
-        });
-
-        const buheadData = await db.buMapping.findAll({
-          where: { 'buMappingId': mappingBU.buMappingId },
-          include: [
-            {
-              model: db.employeeMaster,
-              where: subQuery,
-              attributes: ["id", "name"],
-              as: "buHeadData",
-            },
-          ],
-        });
-
-        const companyLocationData = await db.companyLocationMaster.findAll({
-          where: { 'isActive': 1, 'companyId': result.companyId },
-          attributes: ["companyLocationId", "address1", "companyLocationCode"],
-          include: [{ model: db.cityMaster, attributes: ["cityName"] }],
-        });
-
-        const employeeTypeData = await db.employeeTypeMaster.findAll({ where: subQuery });
-        const probationData = await db.probationMaster.findAll({ where: subQuery, attributes: ["probationId", "probationName"] });
-        const newCustomerNameData = await db.newCustomerNameMaster.findAll({ where: subQuery, attributes: ["newCustomerNameId", "newCustomerName"] });
-        const jobLevelData = await db.jobLevelMaster.findAll({ where: subQuery });
-        // const noticePeriodData = await db.noticePeriodMaster.findAll({ where: subQuery, attributes: ["noticePeriodAutoId", "noticePeriodName"] });
-        const noticePeriodData = [];
-        const degreeData = await db.degreeMaster.findAll({ where: subQuery, attributes: ["degreeId", "degreeName"] });
-        
-        let bankData = [];
-        let bankIfscData = [];
-
-        if(result.employeeType === 3) {
-          bankData = await db.bankMaster.findAll(
-            {
-              attributes: [
-                [db.Sequelize.fn("MIN", db.Sequelize.col("bankId")), "bankId"],
-                "bankName"
-              ],
-              group: ["bankName"]
-            }
-          );
-          
-          bankIfscData = await db.bankMaster.findAll({ where: { "bankName": result.paymentBankName }, attributes: ["bankIfsc"] });
-        }
-
-
-        let allDetails = {
-          result, buData, sbuData, departmentData, functionalAreaData, buhrData, buheadData,
-          companyLocationData, employeeTypeData, probationData, newCustomerNameData, jobLevelData, 
-          noticePeriodData, degreeData, bankData, bankIfscData
-        };
-
-        return respHelper(res, {
-          status: 200,
-          msg: constant.DATA_FETCHED,
-          data: allDetails,
-        });
-      } else {
-        return respHelper(res, {
-          status: 400,
-          msg: constant.DATA_BLANK,
-          data: {},
-        });
-      }
-    } catch (error) {
-      logger.error("Error while getting on-boarding employee details", error);
-      return respHelper(res, { status: 500, msg: error?.parent?.sqlMessage });
     }
   }
 
