@@ -1165,7 +1165,6 @@ class ThirdPartyController {
 
       // // Get the current UTC date and time
       // const now = new Date();
-      // console.log("Current UTC DateTime:", now);
 
       // // Calculate the number of days since Unix epoch (January 1, 1970)
       // const daysSinceEpoch = Math.floor(now.getTime() / (24 * 60 * 60 * 1000));
@@ -1277,7 +1276,7 @@ class ThirdPartyController {
                   "maritalStatusSince",
                   "gender",
                 ],
-                required: false,
+                required: false, 
               },
               {
                 model: db.designationMaster,
