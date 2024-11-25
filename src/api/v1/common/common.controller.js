@@ -1864,8 +1864,19 @@ class commonController {
         });
 
         if (getNewChanges) {
+          const d = Math.floor(Date.now() / 1000);
+          if (result.paymentAttachment) {
+            var paymentAttachment = await helper.fileUpload(
+              result.paymentAttachment,
+              `paymentDetails${d}`,
+              `uploads/${existUser.empCode}`
+            );
+          }
           const objForApproval = {
             ...result,
+            //...(paymentAttachment !== "" && { paymentAttachment: paymentAttachment }),
+            ...(paymentAttachment && paymentAttachment !== "" ? { paymentAttachment: paymentAttachment } : { paymentAttachment: null }),
+
             ...{
               status: "approved",
               pendingAt: null,

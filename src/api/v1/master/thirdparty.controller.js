@@ -1213,7 +1213,7 @@ class ThirdPartyController {
       //     console.log(`Hash is valid for time: ${new Date((roundedUnixTime + i) * 1000).toUTCString()}`);
       //   }
       // }
-      const { dataset, isActive } = req.body;
+      const { dataset, empCode, isActive } = req.body;
 
       const taraEmailId = process.env.TARA_EMAIL_ID;
       const taraSecretKey = process.env.TARA_SECRET_KEY;
@@ -1245,7 +1245,13 @@ class ThirdPartyController {
         console.log("Hash matches! Validation successful.");
         if (isActive == 1) {
           const employeeData = await db.employeeMaster.findAll({
-            where: { isActive: isActive, employeeType: [1, 2, 3] },
+            where: { 
+              isActive: isActive, 
+              employeeType: [1, 2, 3] ,
+              ...(empCode && {
+                empCode: empCode,
+              }),
+            },
             attributes: [
               "id",
               "empCode",
@@ -1809,7 +1815,13 @@ class ThirdPartyController {
           });
         } else if (isActive == 0) {
           const employeeData = await db.employeeMaster.findAll({
-            where: { isActive: isActive, employeeType: [1, 2, 3] },
+            where: { 
+              isActive: isActive, 
+              employeeType: [1, 2, 3],
+              ...(empCode && {
+                empCode: empCode,
+              }), 
+            },
             attributes: [
               "id",
               "empCode",

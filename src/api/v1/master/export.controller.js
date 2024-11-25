@@ -1174,7 +1174,7 @@ class MasterController {
       const attendanceData = await db.attendanceMaster.findAll({
         attributes: ["employeeId", "attendanceDate", "attendancePresentStatus"],
         where: {
-          //employeeId: 1431,
+         // employeeId: 1431,
           attendanceDate: {
             [db.Sequelize.Op.between]: [
               fromDate.format("YYYY-MM-DD"),
@@ -1236,7 +1236,7 @@ class MasterController {
               },
               {
                 model: db.departmentMaster,
-                attributes: ["departmentName"],
+                attributes: ["departmentName","departmentCode"],
                 // where: {
                 //   ...(department && {
                 //     departmentId: { [Op.like]: `%${department}%` },
@@ -1287,6 +1287,9 @@ class MasterController {
             employeeRecords[0].employee?.employeejobdetail?.dateOfJoining ||
             null,
           dateOfexit: employeeRecords[0].employee?.dateOfexit || null,
+          designationCode:employeeRecords[0].employee?.departmentmaster?.departmentCode || "",
+          functionArea:employeeRecords[0].employee?.functionalareamaster?.functionalAreaName || "",
+
         };
         console.log("employeeRecordemployeeRecord>>>>", employeeRecord);
         const dayRecords = {};
@@ -1707,6 +1710,8 @@ class MasterController {
           empCode: employeeRecord.empCode,
           dateOfJoining: employeeRecord.dateOfJoining,
           dateOfExit: employeeRecord.dateOfexit,
+          designationCode:employeeRecord.designationCode,
+          functionalArea:employeeRecord.functionArea,
           ...dayRecords,
           P: attendanceCount.P,
           A: attendanceCount.A,
@@ -1749,6 +1754,8 @@ class MasterController {
               { label: "Employee Name", value: "name" },
               { label: "Date Of Joining", value: "dateOfJoining" },
               { label: "Date Of Exit", value: "dateOfExit" },
+              { label: "Designation Code", value: "designationCode" },
+              { label: "functional Area", value: "functionalArea" },
               ...dayColumns,
               { label: "P", value: "P" },
               { label: "A", value: "A" },
