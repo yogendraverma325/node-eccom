@@ -1266,10 +1266,6 @@ const generateOTP = async function (length) {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
-const dboxEmailId = "abc@123";
-const dboxSecretKey = "b23ec2c914a8974d110ac583311";
-
-const unixTime = Math.floor(Date.now() / 1000);
 
 const generateSHA512Hash = async function(input) {
   const hash = crypto.createHash('sha512');
