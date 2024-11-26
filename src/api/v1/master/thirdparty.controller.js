@@ -694,7 +694,7 @@ class ThirdPartyController {
               customer_code: employee.employeejobdetail?.dataValues
                 ?.customerName
                 ? (employee.employeejobdetail.dataValues.customerName.match(
-                    /C(\d+)/
+                    /(C\d+)/
                   ) || [])[1] || ""
                 : "",
               // employee.employeejobdetail?.dataValues?.customerName || "",
@@ -1292,7 +1292,7 @@ class ThirdPartyController {
               customer_code: employee.employeejobdetail?.dataValues
                 ?.customerName
                 ? (employee.employeejobdetail.dataValues.customerName.match(
-                    /C(\d+)/
+                    /(C\d+)/
                   ) || [])[1] || ""
                 : "",
               office_location: `${
