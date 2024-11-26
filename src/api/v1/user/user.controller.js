@@ -3928,7 +3928,12 @@ class UserController {
           },
           {
             model: db.Confirmationowners,
-            attributes: ["employeeId", "canTakeAction", "level"],
+            attributes: [
+              "employeeId",
+              "canTakeAction",
+              "level",
+              "canTakeActionExtend",
+            ],
             where: {
               employeeId: req.userId,
             },

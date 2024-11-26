@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
     canTakeAction: {
       type: Sequelize.INTEGER,
     },
+    canTakeActionExtend: {
+      type: Sequelize.INTEGER,
+    },
     level: {
       type: Sequelize.INTEGER,
     },
