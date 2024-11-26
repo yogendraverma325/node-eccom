@@ -42,6 +42,9 @@ export default (sequelize, Sequelize) => {
     confirmationFormGroupId: {
       type: Sequelize.INTEGER,
     },
+    level: {
+      type: Sequelize.INTEGER,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
     },

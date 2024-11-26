@@ -8,6 +8,15 @@ export default (sequelize, Sequelize) => {
     employeeId: {
       type: Sequelize.INTEGER,
     },
+    canTakeAction: {
+      type: Sequelize.INTEGER,
+    },
+    level: {
+      type: Sequelize.INTEGER,
+    },
+    confirmationFormGroupId: {
+      type: Sequelize.INTEGER,
+    },
     confirmationinitiatedAutoId: {
       type: Sequelize.INTEGER,
     },

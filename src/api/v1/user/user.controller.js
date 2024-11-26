@@ -3928,7 +3928,7 @@ class UserController {
           },
           {
             model: db.Confirmationowners,
-            attributes: ["employeeId"],
+            attributes: ["employeeId", "canTakeAction", "level"],
             where: {
               employeeId: req.userId,
             },
@@ -3963,7 +3963,6 @@ class UserController {
           {
             where: {
               confirmationinitiatedAutoId: element.confirmationinitiatedAutoId,
-              employeeId: element.employeeId,
               confirmationFormGroupId: element.confirmationFormGroupId,
               confirmatoinformfieldsAutoId:
                 element.confirmatoinformfieldsAutoId,
@@ -3988,16 +3987,33 @@ class UserController {
         where: {
           confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
         },
+        include: {
+          model: db.Confirmationowners,
+          attributes: [
+            "employeeId",
+            "canTakeAction",
+            "level",
+            "confirmationFormGroupId",
+          ],
+          where: {
+            employeeId: req.userId,
+          },
+        },
       });
       let formsFields = [];
+
       if (confirsmationData) {
         formsFields = await db.Confirmationformfilledvalues.findAll({
           where: {
-            confirmationFormGroupId: confirsmationData.confirmationFormGroupId,
+            confirmationFormGroupId:
+              confirsmationData?.confirmationowners[0]?.confirmationFormGroupId,
             confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
           },
           include: {
             model: db.Confirmatoinformfields,
+            where: {
+              level: confirsmationData?.confirmationowners[0]?.level,
+            },
             include: {
               model: db.Confirmatoinformfieldsoptions,
               attributes: ["value", "label"],

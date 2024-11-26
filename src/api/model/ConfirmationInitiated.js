@@ -11,9 +11,6 @@ export default (sequelize, Sequelize) => {
     level: {
       type: Sequelize.INTEGER,
     },
-    confirmationFormGroupId: {
-      type: Sequelize.INTEGER,
-    },
     triggerDate: {
       type: Sequelize.DATE,
     },
