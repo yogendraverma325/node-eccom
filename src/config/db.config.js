@@ -992,4 +992,12 @@ db.jobLevelMapping.hasOne(db.jobLevelMaster, {
   sourceKey: 'jobLevelId'
 });
 
+db.functionalAreaMaster.hasOne(db.functionalAreaMaster, {
+  foreignKey: "functionalAreaId",
+  sourceKey: "parentFunctionalAreaId",
+  as: "parentFunctionalArea",
+});
+
+
+
 export default db;
