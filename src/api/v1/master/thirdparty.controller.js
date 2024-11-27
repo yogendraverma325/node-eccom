@@ -400,6 +400,7 @@ class ThirdPartyController {
                 ) || ""
               : "";
             return {
+              isActive: employee.isActive == 1 ? "Yes" : "No",
               employee_id: employee.empCode || "",
               first_name: employee.firstName || "",
               middle_name: employee.middleName || "",

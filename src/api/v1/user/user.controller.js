@@ -3755,7 +3755,8 @@ class UserController {
       if (isSameDetails) {
         if (
           isSameDetails.paymentAccountNumber == result.paymentAccountNumber &&
-          isSameDetails.paymentBankIfsc == result.paymentBankIfsc
+          isSameDetails.paymentBankIfsc == result.paymentBankIfsc &&
+          isSameDetails.paymentHolderName == result.paymentHolderName
         ) {
           return respHelper(res, {
             status: 400,
