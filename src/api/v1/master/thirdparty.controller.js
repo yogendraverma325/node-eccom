@@ -686,7 +686,7 @@ class ThirdPartyController {
               latest_modified_any_attribute: "",
               group_company:
                 employee.companymaster?.dataValues?.companyName || "",
-              sub_employee_type: "Permanent B",
+              sub_employee_type: "",
               sbu_code: employee.sbumaster?.dataValues?.code || "",
               branch_code:
                 employee.companylocationmaster?.dataValues
