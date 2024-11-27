@@ -55,7 +55,13 @@ class AttendanceController {
           id: req.userId,
           isActive: 1,
         },
-        attributes: ["empCode", "name", "email", "weekOffId"],
+        attributes: [
+          "empCode",
+          "name",
+          "email",
+          "weekOffId",
+          "companyLocationId",
+        ],
         include: [
           {
             model: db.shiftMaster,
@@ -113,6 +119,10 @@ class AttendanceController {
           msg: message.ATTENDANCE_POLICY_DID_NOT_MAP,
         });
       }
+      console.log(
+        " existEmployee.companyLocationId",
+        existEmployee.companyLocationId
+      );
 
       if (existEmployee.shiftsmaster.isOverNight == 0) {
         const checkAttendance = await db.attendanceMaster.findOne({
@@ -140,12 +150,28 @@ class AttendanceController {
           const finalShiftStartTimeFormat = shiftStartTime.format("hh:mm A");
 
           if (currentDate.format("HH:mm") < finalShiftStartTime) {
+            let shiftEndTime = moment(
+              existEmployee.shiftsmaster.shiftEndTime,
+              "HH:mm"
+            ); // set shift start time
+
+            shiftEndTime.subtract(
+              existEmployee.attendancePolicymaster.allowBufferTime == 1
+                ? existEmployee.attendancePolicymaster.bufferTimePost
+                : 0,
+              "minutes"
+            ); // Add buffer time  to the selected time if buffer allow
+
+            const finalShiftEndTime = shiftEndTime.format("HH:mm");
+            const finalShiftEndimeFormat = shiftEndTime.format("hh:mm A");
             // campare shift time and current time inclu
             return respHelper(res, {
               status: 400,
-              msg:
-                message.SHIFT.SHIFT_TIME_INVALID +
-                `( Your Shift will start from ${finalShiftStartTimeFormat})`,
+              msg: `Your shift time starts from ${currentDate.format(
+                "DD-MM-YYYY"
+              )} at ${finalShiftStartTimeFormat} and end on ${currentDate.format(
+                "DD-MM-YYYY"
+              )} at ${finalShiftEndimeFormat}`,
             });
           }
 
@@ -162,7 +188,10 @@ class AttendanceController {
           ); // Add buffer time  to the selected time if buffer allow
 
           const withGraceTime = graceTime.format("HH:mm");
-
+          console.log(
+            "existEmployee.companyLocationId",
+            existEmployee.companyLocationId
+          );
           let creationObject = {
             attendanceDate: currentDate.format("YYYY-MM-DD"),
             employeeId: req.userId,
@@ -185,6 +214,8 @@ class AttendanceController {
             createdAt: currentDate,
             weekOffId: existEmployee.weekOffId,
             punchInSource: req.device,
+            holidayCompanyLocationConfigurationID:
+              existEmployee.companyLocationId,
           };
 
           await db.attendanceMaster.create(creationObject);
@@ -347,6 +378,8 @@ class AttendanceController {
               createdAt: currentDate,
               weekOffId: existEmployee.weekOffId,
               punchInSource: req.device,
+              holidayCompanyLocationConfigurationID:
+                existEmployee.companyLocationId,
             };
 
             await db.attendanceMaster.create(creationObject);
@@ -442,6 +475,8 @@ class AttendanceController {
               attendancePolicyId: req.userData.attendancePolicyId,
               createdAt: currentDate,
               weekOffId: existEmployee.weekOffId,
+              holidayCompanyLocationConfigurationID:
+                existEmployee.companyLocationId,
               punchInSource: req.device,
             };
 
@@ -1851,7 +1886,6 @@ class AttendanceController {
     }
   }
   async manageDayNightShiftForEmp(empId) {
-    console.log("hello night shift");
     let lastDayDate = moment().subtract(2, "day").format("YYYY-MM-DD");
     let lastDayDateAnotherFormat = moment()
       .subtract(2, "day")
@@ -1971,9 +2005,15 @@ class AttendanceController {
     });
     let presentStatus = null;
 
-    if (singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) {
+    if (
+      singleEmp.weekOffMaster &&
+      singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0
+    ) {
       presentStatus = "weeklyOff";
-    } else if (singleEmp.holidaycompanylocationconfigurations.length > 0) {
+    } else if (
+      singleEmp.holidaycompanylocationconfigurations &&
+      singleEmp.holidaycompanylocationconfigurations.length > 0
+    ) {
       presentStatus = "holiday";
     } else if (singleEmp.employeeleavetransaction) {
       presentStatus = "leave";
@@ -2166,6 +2206,7 @@ class AttendanceController {
         weekOffId: singleEmp.weekOffMaster
           ? singleEmp.weekOffMaster.weekOffId
           : 0,
+        holidayCompanyLocationConfigurationID: singleEmp.companyLocationId,
       });
     }
   }
@@ -2289,11 +2330,19 @@ class AttendanceController {
         id: empId,
       },
     });
+    console.log("EMPID", empId);
+    console.log("EMPID weekoff", singleEmp);
     let presentStatus = null;
 
-    if (singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) {
+    if (
+      singleEmp.weekOffMaster &&
+      singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0
+    ) {
       presentStatus = "weeklyOff";
-    } else if (singleEmp.holidaycompanylocationconfigurations.length > 0) {
+    } else if (
+      singleEmp.holidaycompanylocationconfigurations &&
+      singleEmp.holidaycompanylocationconfigurations.length > 0
+    ) {
       presentStatus = "holiday";
     } else if (singleEmp.employeeleavetransaction) {
       presentStatus = "leave";
@@ -2470,6 +2519,7 @@ class AttendanceController {
         );
       }
     } else {
+      console.log("attendance create");
       await db.attendanceMaster.create({
         attendanceDate: moment().subtract(1, "day").format("YYYY-MM-DD"),
         attandanceShiftStartDate: moment()
@@ -2486,6 +2536,7 @@ class AttendanceController {
         weekOffId: singleEmp.weekOffMaster
           ? singleEmp.weekOffMaster.weekOffId
           : 0,
+        holidayCompanyLocationConfigurationID: singleEmp.companyLocationId,
       });
     }
   }
@@ -2514,16 +2565,31 @@ class AttendanceController {
               isActive: 1,
             },
           },
+          {
+            model: db.weekOffMaster,
+            required: true,
+            where: {
+              isActive: 1,
+            },
+          },
+          {
+            model: db.holidayCompanyLocationConfiguration,
+            required: true,
+          },
         ],
         where: {
           isActive: 1,
         },
       });
+      let nightwala = 0;
+      let daywala = 0;
       for (const activeEmployeeSingleItem of activeEmployees) {
         if (activeEmployeeSingleItem.shiftsmaster.isOverNight) {
-          _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
+          nightwala++;
+          await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
         } else {
-          _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
+          daywala++;
+          await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
         }
       }
 
@@ -3206,6 +3272,7 @@ class AttendanceController {
             weekOffId: singleEmp.weekOffMaster
               ? singleEmp.weekOffMaster.weekOffId
               : 0,
+            holidayCompanyLocationConfigurationID: singleEmp.companyLocationId,
           });
         }
       }

@@ -95,7 +95,7 @@ import CategoryMaster from "../api/model/CategoryMaster.js";
 import SubCategoryMaster from "../api/model/SubCategoryMaster.js";
 import PTLocationMaster from "../api/model/PTLocationMaster.js";
 import TaskBuMapping from "../api/model/TaskBuMapping.js";
-import BankMaster from "../api/model/BankMaster.js"
+import BankMaster from "../api/model/BankMaster.js";
 
 import PolicyHistory from "../api/model/PolicyHistory.js";
 import EmployeeLeaveHeader from "../api/model/EmployeeLeaveHeader.js";
@@ -966,7 +966,6 @@ db.employeeStagingMaster.hasOne(db.degreeMaster, {
   sourceKey: "highestQualification",
 });
 
-
 db.paymentDetails.hasOne(db.bankMaster, {
   foreignKey: "bankId",
   sourceKey: "bankId",
@@ -975,7 +974,7 @@ db.paymentDetails.hasOne(db.bankMaster, {
 db.paymentDetails.hasOne(db.bankMaster, {
   foreignKey: "bankId",
   sourceKey: "newBankId",
-  as:"newBankName"
+  as: "newBankName",
 });
 
 db.paymentDetails.hasOne(db.employeeMaster, {
@@ -984,12 +983,12 @@ db.paymentDetails.hasOne(db.employeeMaster, {
 });
 db.separationMaster.hasOne(db.subCategoryMaster, {
   foreignKey: "subCategoryId",
-  sourceKey: 'l2RevokeReason',
-  as: 'revokeReason'
-})
+  sourceKey: "l2RevokeReason",
+  as: "revokeReason",
+});
 db.jobLevelMapping.hasOne(db.jobLevelMaster, {
-  foreignKey: 'jobLevelId',
-  sourceKey: 'jobLevelId'
+  foreignKey: "jobLevelId",
+  sourceKey: "jobLevelId",
 });
 
 db.functionalAreaMaster.hasOne(db.functionalAreaMaster, {
@@ -997,7 +996,5 @@ db.functionalAreaMaster.hasOne(db.functionalAreaMaster, {
   sourceKey: "parentFunctionalAreaId",
   as: "parentFunctionalArea",
 });
-
-
 
 export default db;
