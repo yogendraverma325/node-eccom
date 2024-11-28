@@ -168,6 +168,9 @@ const updateBiographicalDetailsSchema = Joi.object({
   highestQualification: Joi.number().allow(null).label("Highest Qualification"),
   ESICPFDeduction: Joi.string().allow(null).label("ESIC/PF Deduction"),
   fatherName: Joi.string().trim().allow(null).label("Father Name"),
+  projectCode: Joi.string().trim().allow(null).label("Project Code"),
+  customerCode: Joi.string().trim().allow(null).label("Customer Code"),
+  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due")
 });
 
 const addFamilyDetailsSchema = Joi.object({
