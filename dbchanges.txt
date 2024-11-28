@@ -1,4 +1,92 @@
+//------------------------------------------2024-11-28------------------------------------------------//
+
+INSERT INTO `tara_hrms_live`.`bankmaster` (`bankName`, `bankIfsc`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`, `isActive`) VALUES ('INDIAN BANK', 'IDIB000T170', '1', '2024-05-17 16:11:13', '1', '2024-11-27 16:11:13', '1');
+INSERT INTO `tara_hrms_live`.`bankmaster` (`bankName`, `bankIfsc`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`, `isActive`) VALUES ('UNION BANK OF INDIA', 'UBIN0806544', '1', '2024-11-27 16:11:13', '1', '2024-11-27 16:11:13', '1');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5064');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5065');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5059');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5060');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5076');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '158' WHERE (`id` = '4885');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '158' WHERE (`id` = '5053');
+
 //-------------------------------------------2024-11-27------------------------------------------------//
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5153');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5073');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5074');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5075');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5151');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5152');
+
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5068');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '143' WHERE (`id` = '5069');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5070');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5071');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '175' WHERE (`id` = '5072');
+
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '171' WHERE (`id` = '5054');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5055');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5056');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '171' WHERE (`id` = '5057');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5058');
+
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5048');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5049');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5050');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5051');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5052');
+
+
+
+
+
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '1811');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '1812');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2254');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2338');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2339');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2756');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3328');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3403');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3499');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3784');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3786');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4295');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4297');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4316');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4560');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4610');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4633');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4671');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4704');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4734');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4783');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4885');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4927');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5022');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5028');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5030');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5032');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5033');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5034');
+
+
+
+
 
 INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('Enterprise Application', '12296', '1');
 INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('Enterprise Application', '12600', '1');

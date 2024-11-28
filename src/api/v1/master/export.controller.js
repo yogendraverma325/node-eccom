@@ -2249,7 +2249,9 @@ class MasterController {
           passportNumber: ele.dataValues.passportNumber || "",
           drivingLicence: ele.dataValues.drivingLicence || "",
           isActive: ele.dataValues.isActive == 1 ? "Active" : "In Active",
-          lastIncrementDate: ele.dataValues.lastIncrementDate || "",
+          lastIncrementDate: ele.dataValues.lastIncrementDate
+            ? moment(ele.dataValues.lastIncrementDate).format("DD-MM-YYYY")
+            : "",
           iqTestApplicable: ele.dataValues.iqTestApplicable == 0 ? "No" : "Yes",
           highestQualification:
             ele.employeeeducationdetails.length > 0
@@ -2261,26 +2263,30 @@ class MasterController {
           attendancePolicymaster: ele.attendancePolicymaster?.policyName || "",
           weekOffMaster: ele.weekOffMaster?.weekOffName || "",
           buhrData: headAndHrData.buhrData,
-          hrbpCode:  ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buhrData?.empCode
-          : "",//ele.dataValues?.buhrData?.empCode || "",
-          hrbpName: ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buhrData?.name
-          : "",//ele.dataValues.buhrData?.name,
+          hrbpCode:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buhrData?.empCode
+              : "", //ele.dataValues?.buhrData?.empCode || "",
+          hrbpName:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buhrData?.name
+              : "", //ele.dataValues.buhrData?.name,
           // first_exp:
           //   ele.dataValues.buId && ele.dataValues.companyId
           //     ? headAndHrData?.buhrData?.name
           //     : "",
-          hrbpEmail: ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buhrData?.email
-          : "",//ele.dataValues.buhrData?.email,
+          hrbpEmail:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buhrData?.email
+              : "", //ele.dataValues.buhrData?.email,
           // second_exp:
           //   ele.dataValues.buId && ele.dataValues.companyId
           //     ? headAndHrData?.buhrData?.email
           //     : "",
-          buHeadName:ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buHeadData?.name
-          : "", //ele.dataValues.buHeadData?.name,
+          buHeadName:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buHeadData?.name
+              : "", //ele.dataValues.buHeadData?.name,
           // third_exp:
           //   ele.dataValues.buId && ele.dataValues.companyId
           //     ? headAndHrData?.buHeadData?.name
@@ -2303,9 +2309,10 @@ class MasterController {
           visitingCardAdmin:
             ele.dataValues.visitingCardAdmin == 0 ? "No" : "Yes",
           workstationAdmin: ele.dataValues.workstationAdmin == 0 ? "No" : "Yes",
-          buHeadCode: ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buHeadData?.empCode
-          : "",//ele.dataValues.buHeadData?.empCode,
+          buHeadCode:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buHeadData?.empCode
+              : "", //ele.dataValues.buHeadData?.empCode,
           nomineeName: ele.employeebiographicaldetail?.nomineeName || "",
           nomineeRelation:
             ele.employeebiographicaldetail?.nomineeRelation || "",
@@ -2331,9 +2338,9 @@ class MasterController {
                 label: "Personal_Mobile_Number",
                 value: "personalMobileNumber",
               },
-              { label: "Bussiness Unit", value: "bu_name" },
-              { label: "Bussiness Unit Head", value: "buHeadName" },
-              { label: "Bussiness Unit Head Code", value: "buHeadCode" },
+              { label: "Business Unit", value: "bu_name" },
+              { label: "Business Unit Head", value: "buHeadName" },
+              { label: "Business Unit Head Code", value: "buHeadCode" },
               { label: "Direct Manager Name", value: "manager_name" },
               { label: "Direct Manager Code", value: "manager_code" },
               { label: "Direct Manager Email Id", value: "manager_email_id" },
@@ -2399,7 +2406,7 @@ class MasterController {
               { label: "Visiting Card (Admin)", value: "visitingCardAdmin" },
               { label: "Workstation (Admin)", value: "workstationAdmin" },
               { label: "Nominee Name", value: "nomineeName" },
-              { label: "Date Of Exit", value: "dateOfexit" }
+              { label: "Date Of Exit", value: "dateOfexit" },
             ],
             content: arr,
           },
