@@ -849,6 +849,25 @@ CREATE TABLE `tara`.`joblevelmapping` (
   UNIQUE INDEX `jobLevelMappingId_UNIQUE` (`jobLevelMappingId` ASC) VISIBLE);
 
 
+  jay prakash singh (28-11-2024)
+
+  CREATE TABLE `tara_hrms_live`.`workrolehistory` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `employeeId` INT NOT NULL,
+  `companyId` INT NOT NULL,
+  `designation_id` INT NOT NULL,
+  `functionalAreaId` INT NOT NULL,
+  `fromDate` DATE NOT NULL,
+  `toDate` DATE NULL DEFAULT NULL,
+  `isPromotion` TINYINT(1) NULL DEFAULT NULL,
+  `createdBy` INT NOT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `createdAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`));
+
+
+
 
 
 

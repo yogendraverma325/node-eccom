@@ -1177,6 +1177,15 @@ const blockLoginSchema = Joi.object({
   employeeCode: Joi.string().trim().required().label("Employee Code"),
 });
 
+const addWorkRoleSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  designation_id: Joi.number().required().label("Designation"),
+  functionalAreaId: Joi.number().required().label("Functional Area"),
+  fromDate: Joi.string().trim().required().label("From Date"),  
+  isPromotion: Joi.number().required().label("Promotion").optional()
+});
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1227,4 +1236,5 @@ export default {
   requestForPaymentApprovalSchema,
   actionPaymentSchema,
   blockLoginSchema,
+  addWorkRoleSchema
 };

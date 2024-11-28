@@ -177,4 +177,9 @@ export default Express.Router()
     "/onboardEmployee/:id",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.getOnboardEmployeeDetails
-  );
+  )
+  .post(
+    "/addWorkRole",
+    authorization("ADMIN"),
+    adminController.addWorkRole
+  )
