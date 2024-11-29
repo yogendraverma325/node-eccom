@@ -109,6 +109,11 @@ class LeaveController {
   async updateLeaveRequest(req, res) {
     try {
       const result = await validator.updateLeaveRequest.validateAsync(req.body);
+      return respHelper(res, {
+        status: 402,
+        msg: 'The Leave Application module is currently unavailable',
+      });
+
       let leaveIds = result.employeeLeaveTransactionsIds.split(",");
       let countLeave = await db.EmployeeLeaveHeader.count({
         where: {
@@ -785,6 +790,11 @@ class LeaveController {
   async revokeLeaveRequest(req, res) {
     try {
       const result = await validator.revoekLeaveRequest.validateAsync(req.body);
+      return respHelper(res, {
+        status: 402,
+        msg: 'The Leave Application module is currently unavailable',
+      });
+
       let leaveIds = result.employeeLeaveTransactionsIds.split(",");
       let countLeave = await db.EmployeeLeaveHeader.count({
         where: {
