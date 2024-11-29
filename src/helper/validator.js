@@ -167,10 +167,7 @@ const updateBiographicalDetailsSchema = Joi.object({
   offRoleCTC: Joi.number().allow(null).label("Off Role CTC"),
   highestQualification: Joi.number().allow(null).label("Highest Qualification"),
   ESICPFDeduction: Joi.string().allow(null).label("ESIC/PF Deduction"),
-  fatherName: Joi.string().trim().allow(null).label("Father Name"),
-  projectCode: Joi.string().trim().allow(null).label("Project Code"),
-  customerCode: Joi.string().trim().allow(null).label("Customer Code"),
-  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due")
+  fatherName: Joi.string().trim().allow(null).label("Father Name")
 });
 
 const addFamilyDetailsSchema = Joi.object({
@@ -441,6 +438,9 @@ const addJobDetailsSchema = Joi.object({
   jobLevelId: Joi.number().allow(null).label("Job Level").optional(),
   residentEng: Joi.boolean().allow(null).label("Resident Engineer").optional(),
   customerName: Joi.string().allow(null).label("Customer Name").optional(),
+  projectCode: Joi.string().trim().allow(null).label("Project Code"),
+  customerCode: Joi.string().trim().allow(null).label("Customer Code"),
+  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due")
 });
 
 const updateManagerSchema = Joi.array()

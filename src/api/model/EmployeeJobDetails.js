@@ -83,6 +83,15 @@ export default (sequelize, Sequelize) => {
     npsNumber: {
       type: Sequelize.STRING,
     },
+    projectCode: {
+      type: Sequelize.STRING
+    },
+    customerCode: {
+        type: Sequelize.STRING
+    },
+    nextAppraisalDue: {
+        type: Sequelize.STRING
+    },
     createdAt: {
       type: Sequelize.DATE,
     },
