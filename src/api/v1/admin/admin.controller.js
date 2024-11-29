@@ -1358,13 +1358,13 @@ class AdminController {
     }
   }
 
-  async addWorkRole(req, res) {
+  async addDesignationEmployment(req, res) {
     try {
-      const result = await validator.addWorkRoleSchema.validateAsync(
+      const result = await validator.addDesignationEmploymentSchema.validateAsync(
         req.body
       );
 
-      const recordsExistForDate = await db.WorkRoleEmployeeHistory.findOne({
+      const recordsExistForDate = await db.DesignationEmploymentHistory.findOne({
         raw: true,
         where: {
           fromDate: result.fromDate,
@@ -1373,18 +1373,18 @@ class AdminController {
       });
 
       if (!recordsExistForDate) {
-        let employeeDetails = await db.employeeMaster.findOne({ where: { id: result.userId }, attributes: ['companyId', 'functionalAreaId', 'designation_id'] });
+        let employeeDetails = await db.employeeMaster.findOne({ where: { id: result.userId }, attributes: ['companyId', 'designation_id'] });
         if(employeeDetails) {
 
-          if(employeeDetails.functionalAreaId == result.functionalAreaId && employeeDetails.designation_id == result.designation_id) {
+          if(employeeDetails.designation_id == result.designation_id) {
             return respHelper(res, {
               status: 400,
-              msg: "This designation and functional area already exist",
+              msg: "This designation already exist",
             });
           }
           else {
             // update toDate of recent work role
-            const recentWorkRoleEmployeeHistory = await db.WorkRoleEmployeeHistory.findOne({
+            const recentDesignationEmploymentHistory = await db.DesignationEmploymentHistory.findOne({
               raw: true,
               where: {
                 employeeId: result.userId
@@ -1393,14 +1393,110 @@ class AdminController {
               order: [[ "createdAt", "DESC"]]
             });
 
-            if(recentWorkRoleEmployeeHistory) {
-              await db.WorkRoleEmployeeHistory.update({ 'toDate': moment(result.fromDate).subtract(1, "day").format("YYYY-MM-DD") }, { where: { 'id': recentWorkRoleEmployeeHistory.id }})
+            if(recentDesignationEmploymentHistory) {
+              await db.DesignationEmploymentHistory.update({ 'toDate': moment(result.fromDate).subtract(1, "day").format("YYYY-MM-DD") }, { where: { 'id': recentWorkRoleEmployeeHistory.id }})
             }
 
             let createHistory = {
               employeeId: result.userId,
               companyId: employeeDetails.companyId,
               designation_id: employeeDetails.designation_id,
+              fromDate: result.fromDate ? result.fromDate : moment().add(1, "day").format("YYYY-MM-DD"),
+              isPromotion: result.isPromotion,
+              toDate: null,
+              createdBy: req.userId,
+              createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            };
+
+            await db.DesignationEmploymentHistory.create(createHistory);
+
+            let updateMasterDetails = { 
+              designation_id: result.designation_id,
+              updatedBy: req.userId,
+              updatedAt: moment()
+            }
+
+            await db.employeeMaster.update(updateMasterDetails, { where: { id: result.userId }});
+            return respHelper(res, {
+              status: 200,
+              msg: "Record Added",
+            });
+          }
+        }
+        else {
+          return respHelper(res, {
+            status: 400,
+            msg: constant.BAD_REQUEST,
+          });
+        }
+      } else {
+        return respHelper(res, {
+          status: 400,
+          msg: "Record Already Exist for the selected date",
+        });
+      }
+
+    } catch (error) {
+      console.log("error", error);
+      if (error.isJoi) {
+        return respHelper(res, {
+          msg: error.details[0].message,
+          status: 422,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async addDepartmentEmployment(req, res) {
+    try {
+      const result = await validator.addDepartmentEmploymentSchema.validateAsync(
+        req.body
+      );
+
+      const recordsExistForDate = await db.DepartmentEmploymentHistory.findOne({
+        raw: true,
+        where: {
+          fromDate: result.fromDate,
+          employeeId: result.userId
+        },
+      });
+
+      if (!recordsExistForDate) {
+        let employeeDetails = await db.employeeMaster.findOne({ where: { id: result.userId }, attributes: ['companyId', 'buId', 'sbuId', 'buHeadId', 'buHRId', 'departmentId', 'functionalAreaId'] });
+        if(employeeDetails) {
+
+          if(employeeDetails.departmentId == result.departmentId && employeeDetails.functionalAreaId == result.functionalAreaId) {
+            return respHelper(res, {
+              status: 400,
+              msg: "This designation and functional area already exist",
+            });
+          }
+          else {
+            // update toDate of recent work role
+            const recentEmployeeHistory = await db.DepartmentEmploymentHistory.findOne({
+              raw: true,
+              where: {
+                employeeId: result.userId
+              },
+              attributes: ['id'],
+              order: [[ "createdAt", "DESC"]]
+            });
+
+            if(recentEmployeeHistory) {
+              await db.DepartmentEmploymentHistory.update({ 'toDate': moment(result.fromDate).subtract(1, "day").format("YYYY-MM-DD") }, { where: { 'id': recentEmployeeHistory.id }})
+            }
+
+            let createHistory = {
+              employeeId: result.userId,
+              companyId: employeeDetails.companyId,
+              buId: employeeDetails.buId,
+              sbuId: employeeDetails.sbuId,
+              buHRId: employeeDetails.buHRId,
+              buHeadId: employeeDetails.buHeadId,
+              departmentId: employeeDetails.departmentId,
               functionalAreaId: employeeDetails.functionalAreaId,
               fromDate: result.fromDate ? result.fromDate : moment().add(1, "day").format("YYYY-MM-DD"),
               isPromotion: result.isPromotion,
@@ -1409,12 +1505,109 @@ class AdminController {
               createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
             };
 
-            await db.WorkRoleEmployeeHistory.create(createHistory);
+            await db.DepartmentEmploymentHistory.create(createHistory);
 
             let updateMasterDetails = { 
-              companyId: result.companyId, 
-              designation_id: result.designation_id, 
-              functionalAreaId: result.functionalAreaId 
+              buId: result.buId,
+              sbuId: result.sbuId,
+              buHRId: result.buHRId,
+              buHeadId: result.buHeadId,
+              departmentId: result.departmentId,
+              functionalAreaId: result.functionalAreaId,
+              updatedBy: req.userId,
+              updatedAt: moment()
+            }
+
+            await db.employeeMaster.update(updateMasterDetails, { where: { id: result.userId }});
+            return respHelper(res, {
+              status: 200,
+              msg: "Record Added",
+            });
+          }
+        }
+        else {
+          return respHelper(res, {
+            status: 400,
+            msg: constant.BAD_REQUEST,
+          });
+        }
+      } else {
+        return respHelper(res, {
+          status: 400,
+          msg: "Record Already Exist for the selected date",
+        });
+      }
+
+    } catch (error) {
+      console.log("error", error);
+      if (error.isJoi) {
+        return respHelper(res, {
+          msg: error.details[0].message,
+          status: 422,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async addCostCenterEmployment(req, res) {
+    try {
+      const result = await validator.addCostCenterEmploymentSchema.validateAsync(
+        req.body
+      );
+
+      const recordsExistForDate = await db.CostCenterEmploymentHistory.findOne({
+        raw: true,
+        where: {
+          fromDate: result.fromDate,
+          employeeId: result.userId
+        },
+      });
+
+      if (!recordsExistForDate) {
+        let employeeDetails = await db.employeeMaster.findOne({ where: { id: result.userId }, attributes: ['costId'] });
+        if(employeeDetails) {
+
+          if(employeeDetails.costId == result.costId) {
+            return respHelper(res, {
+              status: 400,
+              msg: "This cost center already exist",
+            });
+          }
+          else {
+            // update toDate of recent work role
+            const recentEmployeeHistory = await db.CostCenterEmploymentHistory.findOne({
+              raw: true,
+              where: {
+                employeeId: result.userId
+              },
+              attributes: ['id'],
+              order: [[ "createdAt", "DESC"]]
+            });
+
+            if(recentEmployeeHistory) {
+              await db.CostCenterEmploymentHistory.update({ 'toDate': moment(result.fromDate).subtract(1, "day").format("YYYY-MM-DD") }, { where: { 'id': recentEmployeeHistory.id }})
+            }
+
+            let createHistory = {
+              employeeId: result.userId,
+              companyId: employeeDetails.companyId,
+              costId: employeeDetails.costId,
+              fromDate: result.fromDate ? result.fromDate : moment().add(1, "day").format("YYYY-MM-DD"),
+              isPromotion: result.isPromotion,
+              toDate: null,
+              createdBy: req.userId,
+              createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            };
+
+            await db.DepartmentEmploymentHistory.create(createHistory);
+
+            let updateMasterDetails = { 
+              costId: result.costId,
+              updatedBy: req.userId,
+              updatedAt: moment()
             }
 
             await db.employeeMaster.update(updateMasterDetails, { where: { id: result.userId }});

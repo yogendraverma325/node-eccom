@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-    const jobLevelEmployeeHistory = sequelize.define("joblevelemployeehistory", {
+    const designationEmploymentHistory = sequelize.define("designationemploymenthistory", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -8,13 +8,10 @@ export default (sequelize, Sequelize) => {
       employeeId: {
         type: Sequelize.INTEGER,
       },
-      bandId: {
+      companyId: {
         type: Sequelize.INTEGER,
       },
-      gradeId: {
-        type: Sequelize.INTEGER,
-      },
-      jobLevelId: {
+      designation_id: {
         type: Sequelize.INTEGER,
       },
       fromDate: {
@@ -39,5 +36,5 @@ export default (sequelize, Sequelize) => {
         type: Sequelize.DATE,
       },
     });
-    return jobLevelEmployeeHistory;
+    return designationEmploymentHistory;
   };

@@ -179,7 +179,17 @@ export default Express.Router()
     adminController.getOnboardEmployeeDetails
   )
   .post(
-    "/addWorkRole",
+    "/addDesignationEmployment",
     authorization("ADMIN"),
-    adminController.addWorkRole
+    adminController.addDesignationEmployment
+  )
+  .post(
+    "/addDepartmentEmployment",
+    authorization("ADMIN"),
+    adminController.addDepartmentEmployment
+  )
+  .post(
+    "/addCostCenterEmployment",
+    authorization("ADMIN"),
+    adminController.addCostCenterEmployment
   )

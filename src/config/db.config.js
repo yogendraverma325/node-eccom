@@ -100,7 +100,12 @@ import BankMaster from "../api/model/BankMaster.js";
 import PolicyHistory from "../api/model/PolicyHistory.js";
 import EmployeeLeaveHeader from "../api/model/EmployeeLeaveHeader.js";
 import JobLevelMapping from "../api/model/JobLevelMapping.js";
-import WorkRoleEmployeeHistory from "../api/model/WorkRoleEmployeeHistory.js";
+import DesignationEmploymentHistory from "../api/model/DesignationEmploymentHistory.js";
+import DepartmentEmploymentHistory from "../api/model/DepartmentEmploymentHistory.js";
+import CostCenterEmploymentHistory from "../api/model/CostCenterEmploymentHistory.js";
+import JobLevelEmploymentHistory from "../api/model/JobLevelEmploymentHistory.js";
+import OfficeLocationEmploymentHistory from "../api/model/OfficeLocationEmploymentHistory.js";
+import EmployeeTypeEmploymentHistory from "../api/model/EmployeeTypeEmploymentHistory.js";
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -266,7 +271,14 @@ db.taskBuMapping = TaskBuMapping(sequelize, Sequelize);
 db.EmployeeLeaveHeader = EmployeeLeaveHeader(sequelize, Sequelize);
 db.bankMaster = BankMaster(sequelize, Sequelize);
 db.jobLevelMapping = JobLevelMapping(sequelize, Sequelize);
-db.WorkRoleEmployeeHistory = WorkRoleEmployeeHistory(sequelize, Sequelize);
+
+db.DesignationEmploymentHistory = DesignationEmploymentHistory(sequelize, Sequelize);
+db.DepartmentEmploymentHistory = DepartmentEmploymentHistory(sequelize, Sequelize);
+db.CostCenterEmploymentHistory = CostCenterEmploymentHistory(sequelize, Sequelize);
+db.JobLevelEmploymentHistory = JobLevelEmploymentHistory(sequelize, Sequelize);
+db.OfficeLocationEmploymentHistory = OfficeLocationEmploymentHistory(sequelize, Sequelize);
+db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(sequelize, Sequelize);
+
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",

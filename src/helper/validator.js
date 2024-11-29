@@ -1177,13 +1177,36 @@ const blockLoginSchema = Joi.object({
   employeeCode: Joi.string().trim().required().label("Employee Code"),
 });
 
-const addWorkRoleSchema = Joi.object({
+const addDesignationEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
   companyId: Joi.number().required().label("Company"),
   designation_id: Joi.number().required().label("Designation"),
+  fromDate: Joi.string().trim().required().label("From Date"),  
+  isPromotion: Joi.number().required().label("Promotion").optional()
+});
+
+const addDepartmentEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  buId: Joi.number().required().label("Business Unit"),
+  sbuId: Joi.number().required().label("Sub Business Unit"),
+  buHRId: Joi.number().required().label("Business Unit HR"),
+  buHeadId: Joi.number().required().label("Business Unit Head"),
+  departmentId: Joi.number().required().label("Department"),
   functionalAreaId: Joi.number().required().label("Functional Area"),
   fromDate: Joi.string().trim().required().label("From Date"),  
   isPromotion: Joi.number().required().label("Promotion").optional()
+});
+
+const addCostCenterEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  costId: Joi.number().required().label("Cost Center"),
+  fromDate: Joi.string().trim().required().label("From Date"),  
+  isPromotion: Joi.number().required().label("Promotion").optional()
+});
+
+const addJobLevelEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  jobLevelId: Joi.number().required().label("Job Level")
 });
 
 export default {
@@ -1236,5 +1259,8 @@ export default {
   requestForPaymentApprovalSchema,
   actionPaymentSchema,
   blockLoginSchema,
-  addWorkRoleSchema
+  addDesignationEmploymentSchema,
+  addDepartmentEmploymentSchema,
+  addCostCenterEmploymentSchema,
+  addJobLevelEmploymentSchema
 };
