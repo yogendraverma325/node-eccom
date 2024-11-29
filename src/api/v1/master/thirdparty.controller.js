@@ -127,7 +127,7 @@ class ThirdPartyController {
                   "esicNumber",
                   "pfRestricted",
                   "epfApplicable",
-                  "esicApplicable",
+                  "esicApplicable"
                 ],
                 include: [
                   { model: db.gradeMaster, attributes: ["gradeName"] },

@@ -843,10 +843,10 @@ class UserController {
         finalStatus: 2,
         empAttachment: result.attachment
           ? await helper.fileUpload(
-            result.attachment,
-            `separation_attachment_${d}`,
-            `uploads/${existUser.dataValues.empCode}`
-          )
+              result.attachment,
+              `separation_attachment_${d}`,
+              `uploads/${existUser.dataValues.empCode}`
+            )
           : null,
         empSubmissionDate: moment(),
         createdDt: moment(),
@@ -1039,10 +1039,10 @@ class UserController {
           l1Remark: result.l1Remark,
           l1Attachment: result.attachment
             ? await helper.fileUpload(
-              result.attachment,
-              `separation_attachment_${d}`,
-              `uploads/${separationData.dataValues.employee.empCode}`
-            )
+                result.attachment,
+                `separation_attachment_${d}`,
+                `uploads/${separationData.dataValues.employee.empCode}`
+              )
             : null,
           l1SubmissionDate: moment(),
           pendingAt: separationData.dataValues.employee.buHRId,
@@ -2100,10 +2100,10 @@ class UserController {
           l2Remark: result.l2Remark,
           l2Attachment: result.attachment
             ? await helper.fileUpload(
-              result.attachment,
-              `separation_attachment_${d}`,
-              `uploads/${separationData.dataValues.employee.empCode}`
-            )
+                result.attachment,
+                `separation_attachment_${d}`,
+                `uploads/${separationData.dataValues.employee.empCode}`
+              )
             : null,
           l2SubmissionDate: moment(),
           l2RequestStatus: "Approved",
@@ -2566,10 +2566,10 @@ class UserController {
             regularizeStatus: { [Op.ne]: "Pending" },
             ...(fromDate &&
               extendedToDate && {
-              createdAt: {
-                [db.Sequelize.Op.between]: [fromDate, extendedToDate],
-              },
-            }),
+                createdAt: {
+                  [db.Sequelize.Op.between]: [fromDate, extendedToDate],
+                },
+              }),
           },
           include: [
             {
@@ -2589,11 +2589,11 @@ class UserController {
                     ...(search && { name: { [Op.like]: `%${search}%` } }),
                     ...(type === "all"
                       ? {
-                        [Op.or]: [
-                          //{ id: req.userId },
-                          { manager: req.userId },
-                        ],
-                      }
+                          [Op.or]: [
+                            //{ id: req.userId },
+                            { manager: req.userId },
+                          ],
+                        }
                       : { id: req.userId }),
                   },
                   include: [
@@ -2667,27 +2667,27 @@ class UserController {
               : { source: { [Op.ne]: "system_generated" } }),
             ...(fromDate &&
               toDate && {
-              appliedFor: {
-                [db.Sequelize.Op.between]: [fromDate, toDate],
-              },
-            }),
+                appliedFor: {
+                  [db.Sequelize.Op.between]: [fromDate, toDate],
+                },
+              }),
             ...(type === "all" && isSystemGenerated == 0
               ? {
-                [Op.or]: [
-                  {
-                    pendingAt: req.userId,
-                    source: { [Op.ne]: "system_generated" },
-                  },
-                ],
-              }
+                  [Op.or]: [
+                    {
+                      pendingAt: req.userId,
+                      source: { [Op.ne]: "system_generated" },
+                    },
+                  ],
+                }
               : type === "all" && isSystemGenerated == 1
-                ? {
+              ? {
                   [Op.or]: [
                     { employeeId: req.userId },
                     { pendingAt: req.userId, source: "system_generated" },
                   ],
                 }
-                : { employeeId: req.userId }), // Default case for non-"all" types
+              : { employeeId: req.userId }), // Default case for non-"all" types
           },
           include: [
             {
@@ -3907,6 +3907,45 @@ class UserController {
       return res
         .status(200)
         .json({ message: "Bank mapping completed successfully" });
+    } catch (error) {
+      console.error(error);
+
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+
+  async mapOffRoleCtc(req, res) {
+    try {
+      const getOffRoleMaster = await db.offRoleCtc.findAll({});
+      for (let index = 0; index < getOffRoleMaster.length; index++) {
+        const element = getOffRoleMaster[index];
+        await db.employeeMaster.update(
+          {
+            offRoleCTC: element.offRoleCtc,
+            ESICPFDeduction: element.esicPFdeduction,
+          },
+          {
+            where: {
+              empCode: element.tmcCode,
+            },
+          }
+        );
+      }
+
+      // Return success response
+      return respHelper(res, {
+        status: 200,
+        msg: "Updated successfully",
+      });
     } catch (error) {
       console.error(error);
 
