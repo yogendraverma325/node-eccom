@@ -1364,7 +1364,7 @@ class AdminController {
         req.body
       );
 
-      const recordsExistForDate = await db.WorkRoleHistory.findOne({
+      const recordsExistForDate = await db.WorkRoleEmployeeHistory.findOne({
         raw: true,
         where: {
           fromDate: result.fromDate,
@@ -1376,50 +1376,58 @@ class AdminController {
         let employeeDetails = await db.employeeMaster.findOne({ where: { id: result.userId }, attributes: ['companyId', 'functionalAreaId', 'designation_id'] });
         if(employeeDetails) {
 
-          // update toDate of recent work role
-          const recentWorkRoleHistory = await db.WorkRoleHistory.findOne({
-            raw: true,
-            where: {
-              employeeId: result.userId
-            },
-            attributes: ['id'],
-            order: [[ "createdAt", "DESC"]]
-          });
-
-          if(recentWorkRoleHistory) {
-            await db.WorkRoleHistory.update({ 'toDate': moment(result.fromDate).subtract(1, "day").format("YYYY-MM-DD") }, { where: { 'id': recentWorkRoleHistory.id }})
+          if(employeeDetails.functionalAreaId == result.functionalAreaId && employeeDetails.designation_id == result.designation_id) {
+            return respHelper(res, {
+              status: 400,
+              msg: "This designation and functional area already exist",
+            });
           }
+          else {
+            // update toDate of recent work role
+            const recentWorkRoleEmployeeHistory = await db.WorkRoleEmployeeHistory.findOne({
+              raw: true,
+              where: {
+                employeeId: result.userId
+              },
+              attributes: ['id'],
+              order: [[ "createdAt", "DESC"]]
+            });
 
-          let createHistory = {
-            employeeId: result.userId,
-            companyId: employeeDetails.companyId,
-            designation_id: employeeDetails.designation_id,
-            functionalAreaId: employeeDetails.functionalAreaId,
-            fromDate: result.fromDate ? result.fromDate : moment().add(1, "day").format("YYYY-MM-DD"),
-            isPromotion: result.isPromotion,
-            toDate: null,
-            createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-          };
+            if(recentWorkRoleEmployeeHistory) {
+              await db.WorkRoleEmployeeHistory.update({ 'toDate': moment(result.fromDate).subtract(1, "day").format("YYYY-MM-DD") }, { where: { 'id': recentWorkRoleEmployeeHistory.id }})
+            }
 
-          await db.WorkRoleHistory.create(createHistory);
+            let createHistory = {
+              employeeId: result.userId,
+              companyId: employeeDetails.companyId,
+              designation_id: employeeDetails.designation_id,
+              functionalAreaId: employeeDetails.functionalAreaId,
+              fromDate: result.fromDate ? result.fromDate : moment().add(1, "day").format("YYYY-MM-DD"),
+              isPromotion: result.isPromotion,
+              toDate: null,
+              createdBy: req.userId,
+              createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            };
 
-          let updateMasterDetails = { 
-            companyId: result.companyId, 
-            designation_id: result.designation_id, 
-            functionalAreaId: result.functionalAreaId 
+            await db.WorkRoleEmployeeHistory.create(createHistory);
+
+            let updateMasterDetails = { 
+              companyId: result.companyId, 
+              designation_id: result.designation_id, 
+              functionalAreaId: result.functionalAreaId 
+            }
+
+            await db.employeeMaster.update(updateMasterDetails, { where: { id: result.userId }});
+            return respHelper(res, {
+              status: 200,
+              msg: "Record Added",
+            });
           }
-
-          await db.employeeMaster.update(updateMasterDetails, { where: { id: result.userId }});
-          return respHelper(res, {
-            status: 200,
-            msg: "Record Added",
-          });
         }
         else {
           return respHelper(res, {
             status: 400,
-            msg: constant.UNAUTHORIZED_ACCESS,
+            msg: constant.BAD_REQUEST,
           });
         }
       } else {
@@ -1430,7 +1438,6 @@ class AdminController {
       }
 
     } catch (error) {
-      console.log(error.isJoi);
       console.log("error", error);
       if (error.isJoi) {
         return respHelper(res, {

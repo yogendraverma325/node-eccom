@@ -849,9 +849,20 @@ CREATE TABLE `tara`.`joblevelmapping` (
   UNIQUE INDEX `jobLevelMappingId_UNIQUE` (`jobLevelMappingId` ASC) VISIBLE);
 
 
-  jay prakash singh (28-11-2024)
+jay prakash singh (28-11-2024)
 
-  CREATE TABLE `tara_hrms_live`.`workrolehistory` (
+ALTER TABLE tara_hrms_live.employeejobdetails 
+ADD COLUMN projectCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN customerCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
+
+ALTER TABLE tara_hrms_live.employeejobdetailshistory 
+ADD COLUMN projectCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN customerCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
+
+
+  CREATE TABLE `tara_hrms_live`.`workroleemployeehistory` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `employeeId` INT NOT NULL,
   `companyId` INT NOT NULL,
