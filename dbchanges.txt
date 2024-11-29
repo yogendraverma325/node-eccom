@@ -1,5 +1,9 @@
 //------------------------------------------2024-11-28------------------------------------------------//
 
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5154');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5155');
+
+
 INSERT INTO `tara_hrms_live`.`bankmaster` (`bankName`, `bankIfsc`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`, `isActive`) VALUES ('INDIAN BANK', 'IDIB000T170', '1', '2024-05-17 16:11:13', '1', '2024-11-27 16:11:13', '1');
 INSERT INTO `tara_hrms_live`.`bankmaster` (`bankName`, `bankIfsc`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`, `isActive`) VALUES ('UNION BANK OF INDIA', 'UBIN0806544', '1', '2024-11-27 16:11:13', '1', '2024-11-27 16:11:13', '1');
 

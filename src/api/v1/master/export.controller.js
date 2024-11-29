@@ -1832,6 +1832,8 @@ class MasterController {
           "workstationAdmin",
           "dateOfexit",
           "isActive",
+          "offRoleCTC",
+          "ESICPFDeduction"
         ],
         where: {
           //empCode: "18950",
@@ -2316,6 +2318,8 @@ class MasterController {
           nomineeName: ele.employeebiographicaldetail?.nomineeName || "",
           nomineeRelation:
             ele.employeebiographicaldetail?.nomineeRelation || "",
+          offRoleCTC:ele.dataValues.offRoleCTC || "",
+          ESICPFDeduction:ele.dataValues.ESICPFDeduction || "",
         };
 
         arr.push(data);
@@ -2407,6 +2411,8 @@ class MasterController {
               { label: "Workstation (Admin)", value: "workstationAdmin" },
               { label: "Nominee Name", value: "nomineeName" },
               { label: "Date Of Exit", value: "dateOfexit" },
+              { label: "Off Role CTC", value: "offRoleCTC" },
+              { label: "ESIC PF Deduction", value: "ESICPFDeduction" }
             ],
             content: arr,
           },
