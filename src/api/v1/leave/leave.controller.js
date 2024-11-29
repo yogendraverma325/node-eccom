@@ -477,6 +477,11 @@ class LeaveController {
     try {
       const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
+      return respHelper(res, {
+        status: 402,
+        msg: 'The Leave Application module is currently unavailable',
+      });
+
       const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
         where: {
           appliedFor: {
