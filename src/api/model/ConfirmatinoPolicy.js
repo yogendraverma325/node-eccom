@@ -1,33 +1,28 @@
 export default (sequelize, Sequelize) => {
-  const Confirmationowners = sequelize.define("confirmationowners", {
-    confirmationownersAutoId: {
+  const Confimationpolicy = sequelize.define("confimationpolicy", {
+    confimationPolicyAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    employeeId: {
+    name: {
+      type: Sequelize.STRING,
+    },
+    generateOnBeforeDays: {
       type: Sequelize.INTEGER,
     },
-    canTakeAction: {
+    confirmationExtention: {
       type: Sequelize.INTEGER,
     },
-    canTakeActionExtend: {
+    confirmationAssignmentAutoId: {
+      type: Sequelize.STRING,
+    },
+    holdDays: {
       type: Sequelize.INTEGER,
     },
-    level: {
+    isActive: {
       type: Sequelize.INTEGER,
-    },
-    confirmationFormGroupId: {
-      type: Sequelize.INTEGER,
-    },
-    confirmationinitiatedAutoId: {
-      type: Sequelize.INTEGER,
-    },
-    slaEndDate: {
-      type: Sequelize.DATE,
-    },
-    isCompleted: {
-      type: Sequelize.INTEGER,
+      defaultValue: 1,
     },
     createdBy: {
       type: Sequelize.INTEGER,
@@ -42,5 +37,5 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  return Confirmationowners;
+  return Confimationpolicy;
 };

@@ -83,6 +83,7 @@ const message = {
     "Your Password has been expired. Kindly reset your password and login again.",
   CONFIRMATION: {
     FORM_SUBMISSION: "Form  Submitted",
+    CANT_TAKE_ACTION: "You can't not take action on this currently",
   },
 };
 

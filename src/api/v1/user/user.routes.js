@@ -301,5 +301,10 @@ export default Express.Router()
     "/extendProbation",
     authentication.authenticate,
     userController.extendProbation
+  )
+  .get(
+    "/confirmatonFormdetailsFilled/:confirmationinitiatedAutoId/:level",
+    authentication.authenticate,
+    userController.confirmatonFormdetailsFilled
   );
 ///CONFIRMATION///

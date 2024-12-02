@@ -19,8 +19,14 @@ export default (sequelize, Sequelize) => {
       employeeId: {
         type: Sequelize.INTEGER,
       },
+      level: {
+        type: Sequelize.INTEGER,
+      },
       values: {
         type: Sequelize.STRING,
+      },
+      usedInForm: {
+        type: Sequelize.INTEGER,
       },
       createdBy: {
         type: Sequelize.INTEGER,

@@ -110,6 +110,9 @@ export default (sequelize, Sequelize) => {
     companyLocationId: {
       type: Sequelize.INTEGER,
     },
+    confimationPolicyAutoId: {
+      type: Sequelize.INTEGER,
+    },
     weekOffId: {
       type: Sequelize.INTEGER,
     },
@@ -187,19 +190,19 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING(45),
     },
     selfService: {
-      type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
     offRoleCTC: {
       type: Sequelize.INTEGER,
     },
     highestQualification: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
     },
     ESICPFDeduction: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
     },
     fatherName: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
     },
     createdBy: {
       type: Sequelize.INTEGER,
@@ -208,7 +211,7 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
     },
     dateOfexit: {
-      type: Sequelize.DATE
+      type: Sequelize.DATE,
     },
     createdBy: {
       type: Sequelize.INTEGER,
@@ -231,11 +234,11 @@ export default (sequelize, Sequelize) => {
     },
     isLoginActive: {
       type: Sequelize.BOOLEAN,
-      defaultValue: 1
+      defaultValue: 1,
     },
     passwordExpiryDate: {
       type: Sequelize.DATE,
-    }
+    },
   });
   return employeeMaster;
 };

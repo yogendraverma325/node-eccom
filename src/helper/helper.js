@@ -1265,6 +1265,53 @@ const generateOTP = async function (length) {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
+  console.log("inputLevel", inputLevel);
+  let levelData = null;
+  let level = inputLevel;
+  let levelFound = false;
+  levelData = await db.Confirmationpolicyworkflow.findOne({
+    where: {
+      confimationPolicyAutoId: policyId,
+      isEnable: 1,
+      level: level,
+    },
+  });
+  if (!levelData) {
+    level++;
+    levelData = await db.Confirmationpolicyworkflow.findOne({
+      where: {
+        confimationPolicyAutoId: policyId,
+        isEnable: 1,
+        level: level,
+      },
+    });
+  }
+  if (!levelData) {
+    level++;
+    levelData = await db.Confirmationpolicyworkflow.findOne({
+      where: {
+        confimationPolicyAutoId: policyId,
+        isEnable: 1,
+        level: level,
+      },
+    });
+  }
+  if (!levelData) {
+    level++;
+    levelData = await db.Confirmationpolicyworkflow.findOne({
+      where: {
+        confimationPolicyAutoId: policyId,
+        isEnable: 1,
+        level: level,
+      },
+    });
+  }
+  if (levelData) {
+    levelFound = true;
+  }
+  return { levelData: levelData, level: level, levelFound: levelFound };
+};
 
 export default {
   generateJwtToken,
@@ -1290,4 +1337,5 @@ export default {
   generateJwtOTPEncrypt,
   generateJwtOTPDecrypt,
   isDayWorkingForReport,
+  generateFieldsForgivenLevel,
 };

@@ -105,6 +105,10 @@ import Confirmationowners from "../api/model/Confirmationowners.js";
 import Confirmatoinformfields from "../api/model/ConfirmationFormFields.js";
 import Confirmatoinformfieldsoptions from "../api/model/Confirmatoinformfieldsoptions.js";
 import Confirmationformfilledvalues from "../api/model/ConfirmationFormFilledValues.js";
+import Confirmationaudittrail from "../api/model/ConfirmationAudit.js";
+import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
+import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
+import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 //CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -278,6 +282,13 @@ db.Confirmatoinformfieldsoptions = Confirmatoinformfieldsoptions(
   Sequelize
 );
 db.Confirmationformfilledvalues = Confirmationformfilledvalues(
+  sequelize,
+  Sequelize
+);
+db.Confirmationaudittrail = Confirmationaudittrail(sequelize, Sequelize);
+db.Confimationpolicy = Confimationpolicy(sequelize, Sequelize);
+db.Confirmationassignment = Confirmationassignment(sequelize, Sequelize);
+db.Confirmationpolicyworkflow = Confirmationpolicyworkflow(
   sequelize,
   Sequelize
 );
@@ -1016,6 +1027,9 @@ db.Confirmationowners.hasOne(db.employeeMaster, {
 db.Confirmationinitiated.hasMany(db.Confirmationowners, {
   foreignKey: "confirmationinitiatedAutoId",
 });
+db.Confirmationowners.belongsTo(db.Confirmationinitiated, {
+  foreignKey: "confirmationinitiatedAutoId",
+});
 db.Confirmatoinformfields.hasMany(db.Confirmatoinformfieldsoptions, {
   foreignKey: "confirmatoinformfieldsAutoId",
 });
@@ -1024,7 +1038,13 @@ db.Confirmationformfilledvalues.hasOne(db.Confirmatoinformfields, {
   foreignKey: "confirmatoinformfieldsAutoId",
   sourceKey: "confirmatoinformfieldsAutoId",
 });
-
+db.Confirmationinitiated.hasMany(db.Confirmationaudittrail, {
+  foreignKey: "confirmationinitiatedAutoId",
+});
+db.employeeMaster.hasOne(db.Confimationpolicy, {
+  foreignKey: "confimationPolicyAutoId",
+  sourceKey: "confimationPolicyAutoId",
+});
 //CONFIRAMTION
 
 export default db;

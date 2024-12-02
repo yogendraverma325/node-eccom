@@ -1,12 +1,11 @@
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
-
 import xlsx from "json-as-xlsx";
 import fs from "fs";
 import logger from "../../../helper/logger.js";
-
+import helper from "../../../helper/helper.js";
 class CronController {
   async updateAttendance() {
     const existEmployees = await db.employeeMaster.findAll({
@@ -625,6 +624,329 @@ class CronController {
       // return respHelper(res, { status: 500, msg: error?.parent?.sqlMessage });
     }
   }
+
+  ///CONFIRMATION
+  async generateConfirmation() {
+    const confimationData = await db.jobDetails.findAll({
+      where: {
+        dateOfProbationEnd: {
+          [Op.gt]: db.sequelize.literal(
+            `DATE_SUB(CURDATE(), INTERVAL (SELECT generateOnBeforeDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
+          ),
+        },
+        confirmationGenerated: 0,
+      },
+      attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
+      include: {
+        model: db.employeeMaster,
+        attributes: ["id", "name", "confimationPolicyAutoId", "manager"],
+        require: true,
+        where: {
+          isActive: 1,
+        },
+        include: {
+          model: db.Confimationpolicy,
+          require: true,
+          where: {
+            isActive: 1,
+          },
+        },
+      },
+    });
+    for (const Singleconfimation of confimationData) {
+      let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
+        where: {
+          confirmationAssignmentAutoId:
+            Singleconfimation?.employee?.confimationpolicy?.confirmationAssignmentAutoId.split(
+              ","
+            ),
+          jobLevelId: {
+            [Op.or]: [
+              { [Op.like]: `${Singleconfimation.jobLevelId},%` },
+              { [Op.like]: `%,${Singleconfimation.jobLevelId},%` },
+              { [Op.like]: `%,${Singleconfimation.jobLevelId}` },
+              { [Op.eq]: `${Singleconfimation.jobLevelId}` },
+            ],
+          },
+        },
+      });
+      if (checkJobLevelAssignmnet) {
+        let respfrom = await helper.generateFieldsForgivenLevel(
+          Singleconfimation?.employee?.confimationPolicyAutoId,
+          1
+        );
+        if (respfrom.levelFound) {
+          const createdData = await db.Confirmationinitiated.create({
+            employeeId: Singleconfimation?.userId,
+            level: respfrom.level,
+            triggerDate: moment().format("YYYY-MM-DD"),
+            dueDate: Singleconfimation?.dateOfProbationEnd,
+            createdBy: 1,
+            status: 0,
+          });
+          await db.Confirmationaudittrail.create({
+            confirmationinitiatedAutoId:
+              createdData.confirmationinitiatedAutoId,
+            createdBy: 1,
+            status: 1,
+            level: 0,
+            message: "Confirmation Initiated",
+            confirmationAction: 0,
+          });
+          await db.jobDetails.update(
+            {
+              confirmationGenerated: 1,
+            },
+            {
+              where: {
+                userId: Singleconfimation.userId,
+              },
+            }
+          );
+          let EMP_DATA_SELF = await helper.getEmpProfile(
+            Singleconfimation?.userId
+          ); // SELF Manager
+          // if (respfrom.level == 1) {
+          let ownerId = 0;
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+            ownerId = Singleconfimation?.userId;
+          } else if (respfrom?.levelData?.ownerRole == "MANAGER") {
+            ownerId = EMP_DATA_SELF?.managerData?.id;
+          } else if (respfrom?.levelData?.ownerRole == "L2_MANAGER") {
+            let EMP_DATA = await helper.getEmpProfile(
+              EMP_DATA_SELF?.managerData?.id
+            ); // L2 Manager
+            ownerId = EMP_DATA?.id;
+          } else if (respfrom?.levelData?.ownerRole == "ADMIN") {
+            let admin = await db.employeeMaster.findOne({
+              where: {
+                role_id: 2,
+                isActive: 1,
+              },
+            });
+            ownerId = admin?.id;
+          } else if (respfrom?.levelData?.ownerRole == "BUHR") {
+            ownerId = EMP_DATA_SELF?.buHRId;
+          }
+          await db.Confirmationowners.create({
+            confirmationinitiatedAutoId:
+              createdData.confirmationinitiatedAutoId,
+            employeeId: ownerId,
+            level: respfrom.level,
+            canTakeAction: 1,
+            canTakeActionExtend:
+              respfrom?.levelData?.ownerRole == "SELF" ? 0 : 1,
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            slaEndDate: moment()
+              .add(respfrom?.levelData?.maxCompletionDay, "days")
+              .format("YYYY-MM-DD"),
+            createdBy: 1,
+          });
+          const formFields = await db.Confirmatoinformfields.findAll({
+            where: {
+              confirmationFormGroupId:
+                respfrom?.levelData?.confirmationFormGroupId,
+              //level: respfrom.level,
+            },
+          });
+          let bulkArray = [];
+          for (const formField of formFields) {
+            bulkArray.push({
+              confirmationinitiatedAutoId:
+                createdData.confirmationinitiatedAutoId,
+              confirmationFormGroupId: formField.confirmationFormGroupId,
+              confirmatoinformfieldsAutoId:
+                formField.confirmatoinformfieldsAutoId,
+              employeeId: ownerId,
+              values: "",
+              level: respfrom.level,
+              createdBy: 1,
+            });
+          }
+          if (bulkArray.length > 0) {
+            await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
+          }
+          // }
+        }
+      }
+    }
+  }
+  async checkSLA() {
+    let givenTimeExpiredRecordsFromLevel = await db.Confirmationowners.findAll({
+      where: {
+        slaEndDate: {
+          [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+        },
+        isCompleted: 0,
+      },
+      include: {
+        model: db.Confirmationinitiated,
+        include: {
+          model: db.employeeMaster,
+        },
+        where: {
+          status: 0,
+        },
+      },
+    });
+    for (const singleRecords of givenTimeExpiredRecordsFromLevel) {
+      let level = parseInt(singleRecords.level);
+      let respfrom = await helper.generateFieldsForgivenLevel(
+        singleRecords?.confirmationinitiated?.employee?.confimationPolicyAutoId,
+        level + 1
+      );
+
+      await db.Confirmationowners.update(
+        {
+          canTakeAction: 0,
+          canTakeActionExtend: 0,
+          isCompleted: 1,
+        },
+        {
+          where: {
+            confirmationinitiatedAutoId:
+              singleRecords.confirmationinitiatedAutoId,
+            level: level,
+          },
+        }
+      );
+
+      await db.Confirmationformfilledvalues.update(
+        {
+          usedInForm: 0,
+        },
+        {
+          where: {
+            confirmationinitiatedAutoId:
+              singleRecords.confirmationinitiatedAutoId,
+            level: level,
+          },
+        }
+      );
+      if (respfrom.levelFound) {
+        await db.Confirmationinitiated.update(
+          {
+            level: respfrom.level,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                singleRecords.confirmationinitiatedAutoId,
+            },
+          }
+        );
+        let EMP_DATA_SELF = await helper.getEmpProfile(
+          singleRecords?.confirmationinitiated?.employee?.id
+        ); // SELF Manager
+        console.log(
+          "respfrom?.levelData?.ownerRole",
+          respfrom?.levelData?.ownerRole
+        );
+        // if (respfrom.level == 1) {
+        let ownerId = 0;
+        if (respfrom?.levelData?.ownerRole == "SELF") {
+          ownerId = singleRecords?.confirmationinitiated?.employee?.id;
+        } else if (respfrom?.levelData?.ownerRole == "MANAGER") {
+          ownerId = EMP_DATA_SELF?.managerData?.id;
+        } else if (respfrom?.levelData?.ownerRole == "L2_MANAGER") {
+          let MANAAGER_MANAGER = await helper.getEmpProfile(
+            EMP_DATA_SELF?.managerData?.id
+          ); // MANAGER KA MANAGER
+          ownerId = MANAAGER_MANAGER?.managerData?.id;
+        } else if (respfrom?.levelData?.ownerRole == "ADMIN") {
+          let admin = await db.employeeMaster.findOne({
+            where: {
+              role_id: 2,
+              isActive: 1,
+            },
+          });
+          ownerId = admin?.id;
+        } else if (respfrom?.levelData?.ownerRole == "BUHR") {
+          ownerId = EMP_DATA_SELF?.buHRId;
+        }
+        await db.Confirmationowners.create({
+          confirmationinitiatedAutoId:
+            singleRecords.confirmationinitiatedAutoId,
+          employeeId: ownerId,
+          level: respfrom.level,
+          canTakeAction: 1,
+          canTakeActionExtend: respfrom?.levelData?.ownerRole == "SELF" ? 0 : 1,
+          confirmationFormGroupId: respfrom?.levelData?.confirmationFormGroupId,
+          slaEndDate: moment()
+            .add(respfrom?.levelData?.maxCompletionDay, "days")
+            .format("YYYY-MM-DD"),
+          createdBy: 1,
+        });
+        const formFields = await db.Confirmatoinformfields.findAll({
+          where: {
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            level: respfrom.level,
+          },
+        });
+        let bulkArray = [];
+        for (const formField of formFields) {
+          bulkArray.push({
+            confirmationinitiatedAutoId:
+              singleRecords.confirmationinitiatedAutoId,
+            confirmationFormGroupId: formField.confirmationFormGroupId,
+            confirmatoinformfieldsAutoId:
+              formField.confirmatoinformfieldsAutoId,
+            employeeId: singleRecords?.confirmationinitiated?.employee?.id,
+            values: "",
+            level: respfrom.level,
+            createdBy: 1,
+          });
+        }
+        if (bulkArray.length > 0) {
+          await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
+        }
+        await db.Confirmationaudittrail.create({
+          confirmationinitiatedAutoId:
+            singleRecords.confirmationinitiatedAutoId,
+          createdBy: 1,
+          status: 1,
+          level: singleRecords.level,
+          message: `not Completed by level ${singleRecords.level} , esclating to next level`,
+          confirmationAction: 0,
+        });
+      } else {
+        await db.Confirmationinitiated.update(
+          {
+            level: 0,
+            status: 1,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                singleRecords.confirmationinitiatedAutoId,
+            },
+          }
+        );
+        await db.Confirmationaudittrail.create({
+          confirmationinitiatedAutoId:
+            singleRecords.confirmationinitiatedAutoId,
+          createdBy: 1,
+          status: 1,
+          level: 0,
+          message: `Confirmation Completed`,
+          confirmationAction: 0,
+        });
+        await db.jobDetails.update(
+          {
+            dateOfProbationEnd: null,
+          },
+          {
+            where: {
+              userId: singleRecords?.confirmationinitiated?.employee?.id,
+            },
+          }
+        );
+      }
+    }
+  }
+  ///CONFIRMATION
 }
 
 export default new CronController();

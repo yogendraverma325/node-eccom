@@ -1,33 +1,24 @@
 export default (sequelize, Sequelize) => {
-  const Confirmationowners = sequelize.define("confirmationowners", {
-    confirmationownersAutoId: {
+  const Confirmationaudittrail = sequelize.define("confirmationaudittrail", {
+    confirmationaudittrailAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    employeeId: {
+    confirmationinitiatedAutoId: {
       type: Sequelize.INTEGER,
     },
-    canTakeAction: {
-      type: Sequelize.INTEGER,
-    },
-    canTakeActionExtend: {
+    status: {
       type: Sequelize.INTEGER,
     },
     level: {
       type: Sequelize.INTEGER,
     },
-    confirmationFormGroupId: {
+    confirmationAction: {
       type: Sequelize.INTEGER,
     },
-    confirmationinitiatedAutoId: {
-      type: Sequelize.INTEGER,
-    },
-    slaEndDate: {
-      type: Sequelize.DATE,
-    },
-    isCompleted: {
-      type: Sequelize.INTEGER,
+    message: {
+      type: Sequelize.STRING,
     },
     createdBy: {
       type: Sequelize.INTEGER,
@@ -42,5 +33,5 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  return Confirmationowners;
+  return Confirmationaudittrail;
 };
