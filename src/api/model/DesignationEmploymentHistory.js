@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
       designation_id: {
         type: Sequelize.INTEGER,
       },
+      needAttendanceCron: {
+        type: Sequelize.INTEGER,
+      },
       fromDate: {
         type: Sequelize.DATE,
       },

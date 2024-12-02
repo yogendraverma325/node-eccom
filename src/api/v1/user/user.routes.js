@@ -282,3 +282,8 @@ export default Express.Router()
     .post("/mapBank",
         userController.mapBank
     )
+    .get(
+        "/getEmploymentDetails",
+        authentication.authenticate,
+        userController.getEmploymentDetails
+      )

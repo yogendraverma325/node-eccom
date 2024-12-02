@@ -3922,6 +3922,72 @@ class UserController {
       });
     }
   }
+
+  async getEmploymentDetails(req, res) {
+    try {
+      let userId = req.userId;
+
+        let employmentDetails = await db.employeeMaster.findOne({ 
+          where: { id: userId },
+          attributes: ['id'],
+          include: [
+            { model: db.DesignationEmploymentHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+              include: [{ model: db.designationMaster, attributes: ['designationId', 'name' ] }],
+              where: { needAttendanceCron: 0 }
+            },
+            { model: db.DepartmentEmploymentHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+              include: [
+                { model: db.departmentMaster, attributes: ['departmentId', 'departmentName' ] },
+                { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName' ] }
+              ],
+              where: { needAttendanceCron: 0 }
+            },
+            { model: db.CostCenterEmploymentHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+              include: [{ model: db.costCenterMaster, attributes: ['costCenterId', 'costCenterName' ] }],
+              where: { needAttendanceCron: 0 }
+            },
+            { model: db.JobLevelEmploymentHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+              include: [{ model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName' ] }],
+              where: { needAttendanceCron: 0 }
+            },
+            { model: db.OfficeLocationEmploymentHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+              include: [{ model: db.companyLocationMaster, attributes: ['companyLocationCode'], 
+                include: [{ model: db.cityMaster, attributes: ['cityId', 'cityName'] }] 
+              }],
+              where: { needAttendanceCron: 0 }
+            },
+            { model: db.EmployeeTypeEmploymentHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+              include: [{ model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] } ],
+              where: { needAttendanceCron: 0 }
+            },
+            { model: db.managerHistory, attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
+              include: [{ model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ] }],
+              where: { needAttendanceCron: 0 }
+            },
+          ]
+        });
+
+        if(employmentDetails) {
+            return respHelper(res, {
+              status: 200,
+              msg: constant.DATA_FETCHED,
+              data: employmentDetails
+            });
+        }
+        else {
+          return respHelper(res, {
+            status: 400,
+            msg: constant.BAD_REQUEST,
+          });
+        }
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
 }
 
 export default new UserController();

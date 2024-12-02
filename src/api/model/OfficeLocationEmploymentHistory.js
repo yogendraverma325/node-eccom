@@ -14,11 +14,17 @@ export default (sequelize, Sequelize) => {
       companyLocationId: {
         type: Sequelize.INTEGER,
       },
+      needAttendanceCron: {
+        type: Sequelize.INTEGER,
+      },
       fromDate: {
         type: Sequelize.DATE,
       },
       toDate: {
         type: Sequelize.DATE,
+      },
+      needAttendanceCron: {
+        type: Sequelize.INTEGER,
       },
       isPromotion: {
         type: Sequelize.BOOLEAN,

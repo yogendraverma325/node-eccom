@@ -23,7 +23,7 @@ export default (sequelize, Sequelize) => {
       buHeadId: {
         type: Sequelize.INTEGER,
       },
-      designation_id: {
+      departmentId: {
         type: Sequelize.INTEGER,
       },
       functionalAreaId: {
@@ -34,6 +34,9 @@ export default (sequelize, Sequelize) => {
       },
       toDate: {
         type: Sequelize.DATE,
+      },
+      needAttendanceCron: {
+        type: Sequelize.INTEGER,
       },
       isPromotion: {
         type: Sequelize.BOOLEAN,

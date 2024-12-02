@@ -1011,4 +1011,75 @@ db.functionalAreaMaster.hasOne(db.functionalAreaMaster, {
   as: "parentFunctionalArea",
 });
 
+db.employeeMaster.hasMany(db.DesignationEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+});
+
+db.employeeMaster.hasMany(db.DepartmentEmploymentHistory, {
+   foreignKey: 'employeeId',
+   sourceKey: 'id'
+});
+
+db.employeeMaster.hasMany(db.CostCenterEmploymentHistory, {
+   foreignKey: 'employeeId',
+   sourceKey: 'id'
+});
+
+db.employeeMaster.hasMany(db.JobLevelEmploymentHistory, {
+   foreignKey: 'employeeId',
+   sourceKey: 'id'
+});
+
+db.employeeMaster.hasMany(db.OfficeLocationEmploymentHistory, {
+   foreignKey: 'employeeId',
+   sourceKey: 'id'
+});
+
+db.employeeMaster.hasMany(db.EmployeeTypeEmploymentHistory, {
+  foreignKey: 'employeeId',
+  sourceKey: 'id'
+});
+
+db.DesignationEmploymentHistory.hasMany(db.designationMaster, {
+  foreignKey: "designationId",
+  sourceKey: "designation_id",
+});
+
+db.DepartmentEmploymentHistory.hasMany(db.departmentMaster, {
+  foreignKey: "departmentId",
+  sourceKey: "departmentId",
+});
+
+db.DepartmentEmploymentHistory.hasMany(db.functionalAreaMaster, {
+  foreignKey: "functionalAreaId",
+  sourceKey: "functionalAreaId",
+});
+
+db.CostCenterEmploymentHistory.hasMany(db.costCenterMaster, {
+  foreignKey: "costCenterId",
+  sourceKey: "costId",
+});
+
+db.JobLevelEmploymentHistory.hasMany(db.jobLevelMaster, {
+  foreignKey: "jobLevelId",
+  sourceKey: "jobLevelId",
+});
+
+db.OfficeLocationEmploymentHistory.hasMany(db.companyLocationMaster, {
+  foreignKey: "companyLocationId",
+  sourceKey: "companyLocationId",
+});
+
+db.EmployeeTypeEmploymentHistory.hasMany(db.employeeTypeMaster, {
+  foreignKey: "empTypeId",
+  sourceKey: "employeeType",
+});
+
+db.employeeMaster.hasMany(db.managerHistory, {
+  foreignKey: "managerId",
+  sourceKey: "manager"
+});
+
+
 export default db;

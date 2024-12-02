@@ -617,6 +617,440 @@ class CronController {
       // return respHelper(res, { status: 500, msg: error?.parent?.sqlMessage });
     }
   }
+
+  async updateDesignation() {
+    const docs = await db.DesignationEmploymentHistory.findAll({
+      raw: true,
+      where: {
+        fromDate: moment().format("YYYY-MM-DD"),
+        needAttendanceCron: 1
+      },
+    });
+
+    if (docs.length > 0) {
+      for (const element of docs) {
+        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+
+        const currentDataOfTheEmployee = await db.DesignationEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            needAttendanceCron: 0,
+            toDate: {
+              [Op.eq]: null,
+            },
+            employeeId: element.employeeId,
+          },
+        });
+
+        if (currentDataOfTheEmployee) {
+          //MARKING LAST DESIGNATION WITH LAST DATE
+
+          await db.DesignationEmploymentHistory.update(
+            {
+              toDate: lastDayDate,
+              updatedBy: 1,
+            },
+            {
+              where: {
+                id: currentDataOfTheEmployee.id,
+              },
+            }
+          );
+          //MARKING LAST DESIGNATION WITH LAST DATE
+        }
+        //DISBALE CURRENT DATE DATA
+        await db.DesignationEmploymentHistory.update(
+          {
+            needAttendanceCron: 0,
+            updatedBy: 1,
+          },
+          {
+            where: {
+              id: element.id,
+            },
+          }
+        );
+        //DISBALE CURRENT DATE DATA
+
+        //UPDATE DESIGNATION TO EMP MASTER TABLE
+
+        let updateDone = await db.employeeMaster.update(
+          {
+            designation_id: element.designation_id,
+          },
+          {
+            where: {
+              id: element.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+  }
+
+  async updateDepartment() {
+    const docs = await db.DepartmentEmploymentHistory.findAll({
+      raw: true,
+      where: {
+        fromDate: moment().format("YYYY-MM-DD"),
+        needAttendanceCron: 1
+      },
+    });
+
+    if (docs.length > 0) {
+      for (const element of docs) {
+        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+
+        const currentDataOfTheEmployee = await db.DepartmentEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            needAttendanceCron: 0,
+            toDate: {
+              [Op.eq]: null,
+            },
+            employeeId: element.employeeId,
+          },
+        });
+
+        if (currentDataOfTheEmployee) {
+          //MARKING LAST DEPARTMENT WITH LAST DATE
+
+          await db.DepartmentEmploymentHistory.update(
+            {
+              toDate: lastDayDate,
+              updatedBy: 1,
+            },
+            {
+              where: {
+                id: currentDataOfTheEmployee.id,
+              },
+            }
+          );
+          //MARKING LAST DEPARTMENT WITH LAST DATE
+        }
+        //DISBALE CURRENT DATE DATA
+        await db.DepartmentEmploymentHistory.update(
+          {
+            needAttendanceCron: 0,
+            updatedBy: 1,
+          },
+          {
+            where: {
+              id: element.id,
+            },
+          }
+        );
+        //DISBALE CURRENT DATE DATA
+
+        //UPDATE DEPARTMENT TO EMP MASTER TABLE
+
+        let updateDone = await db.employeeMaster.update(
+          {
+            buId: element.buId,
+            sbuId: element.sbuId,
+            buHRId: element.buHRId,
+            buHeadId: element.buHeadId,
+            departmentId: element.departmentId,
+            functionalAreaId: element.functionalAreaId
+          },
+          {
+            where: {
+              id: element.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+  }
+
+  async updateCostCenter() {
+    const docs = await db.CostCenterEmploymentHistory.findAll({
+      raw: true,
+      where: {
+        fromDate: moment().format("YYYY-MM-DD"),
+        needAttendanceCron: 1
+      },
+    });
+
+    if (docs.length > 0) {
+      for (const element of docs) {
+        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+
+        const currentDataOfTheEmployee = await db.CostCenterEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            needAttendanceCron: 0,
+            toDate: {
+              [Op.eq]: null,
+            },
+            employeeId: element.employeeId,
+          },
+        });
+
+        if (currentDataOfTheEmployee) {
+          //MARKING LAST COST CENTER WITH LAST DATE
+
+          await db.CostCenterEmploymentHistory.update(
+            {
+              toDate: lastDayDate,
+              updatedBy: 1,
+            },
+            {
+              where: {
+                id: currentDataOfTheEmployee.id,
+              },
+            }
+          );
+          //MARKING LAST DEPARTMENT WITH LAST DATE
+        }
+        //DISBALE CURRENT DATE DATA
+        await db.CostCenterEmploymentHistory.update(
+          {
+            needAttendanceCron: 0,
+            updatedBy: 1,
+          },
+          {
+            where: {
+              id: element.id,
+            },
+          }
+        );
+        //DISBALE CURRENT DATE DATA
+
+        //UPDATE COST CENTER TO EMP MASTER TABLE
+
+        let updateDone = await db.employeeMaster.update(
+          {
+            costId: element.costId
+          },
+          {
+            where: {
+              id: element.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+  }
+
+  async updateCompanyLocation() {
+    const docs = await db.OfficeLocationEmploymentHistory.findAll({
+      raw: true,
+      where: {
+        fromDate: moment().format("YYYY-MM-DD"),
+        needAttendanceCron: 1
+      },
+    });
+
+    if (docs.length > 0) {
+      for (const element of docs) {
+        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+
+        const currentDataOfTheEmployee = await db.OfficeLocationEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            needAttendanceCron: 0,
+            toDate: {
+              [Op.eq]: null,
+            },
+            employeeId: element.employeeId,
+          },
+        });
+
+        if (currentDataOfTheEmployee) {
+          //MARKING LAST COMPANY LOCATION WITH LAST DATE
+
+          await db.OfficeLocationEmploymentHistory.update(
+            {
+              toDate: lastDayDate,
+              updatedBy: 1,
+            },
+            {
+              where: {
+                id: currentDataOfTheEmployee.id,
+              },
+            }
+          );
+          //MARKING LAST COMPANY LOCATION WITH LAST DATE
+        }
+        //DISBALE CURRENT DATE DATA
+        await db.OfficeLocationEmploymentHistory.update(
+          {
+            needAttendanceCron: 0,
+            updatedBy: 1,
+          },
+          {
+            where: {
+              id: element.id,
+            },
+          }
+        );
+        //DISBALE CURRENT DATE DATA
+
+        //UPDATE COMPANY LOCATION TO EMP MASTER TABLE
+
+        let updateDone = await db.employeeMaster.update(
+          {
+            companyLocationId: element.companyLocationId
+          },
+          {
+            where: {
+              id: element.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+  }
+
+  async updateJobLevel() {
+    const docs = await db.JobLevelEmploymentHistory.findAll({
+      raw: true,
+      where: {
+        fromDate: moment().format("YYYY-MM-DD"),
+        needAttendanceCron: 1
+      },
+    });
+
+    if (docs.length > 0) {
+      for (const element of docs) {
+        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+
+        const currentDataOfTheEmployee = await db.JobLevelEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            needAttendanceCron: 0,
+            toDate: {
+              [Op.eq]: null,
+            },
+            employeeId: element.employeeId,
+          },
+        });
+
+        if (currentDataOfTheEmployee) {
+          //MARKING LAST JOB LEVEL WITH LAST DATE
+
+          await db.JobLevelEmploymentHistory.update(
+            {
+              toDate: lastDayDate,
+              updatedBy: 1,
+            },
+            {
+              where: {
+                id: currentDataOfTheEmployee.id,
+              },
+            }
+          );
+          //MARKING LAST JOB LEVEL WITH LAST DATE
+        }
+        //DISBALE CURRENT DATE DATA
+        await db.JobLevelEmploymentHistory.update(
+          {
+            needAttendanceCron: 0,
+            updatedBy: 1,
+          },
+          {
+            where: {
+              id: element.id,
+            },
+          }
+        );
+        //DISBALE CURRENT DATE DATA
+
+        //UPDATE JOB LEVEL TO EMP MASTER TABLE
+
+        let updateDone = await db.jobDetails.update(
+          {
+            bandId: element.bandId,
+            gradeId: element.gradeId,
+            jobLevelId: element.jobLevelId          
+          },
+          {
+            where: {
+              id: element.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+  }
+
+  async updateEmployeeType() {
+    const docs = await db.EmployeeTypeEmploymentHistory.findAll({
+      raw: true,
+      where: {
+        fromDate: moment().format("YYYY-MM-DD"),
+        needAttendanceCron: 1
+      },
+    });
+
+    if (docs.length > 0) {
+      for (const element of docs) {
+        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+
+        const currentDataOfTheEmployee = await db.EmployeeTypeEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            needAttendanceCron: 0,
+            toDate: {
+              [Op.eq]: null,
+            },
+            employeeId: element.employeeId,
+          },
+        });
+
+        if (currentDataOfTheEmployee) {
+          //MARKING LAST EMPLOYEE TYPE WITH LAST DATE
+
+          await db.EmployeeTypeEmploymentHistory.update(
+            {
+              toDate: lastDayDate,
+              updatedBy: 1,
+            },
+            {
+              where: {
+                id: currentDataOfTheEmployee.id,
+              },
+            }
+          );
+          //MARKING LAST EMPLOYEE TYPE WITH LAST DATE
+        }
+        //DISBALE CURRENT DATE DATA
+        await db.EmployeeTypeEmploymentHistory.update(
+          {
+            needAttendanceCron: 0,
+            updatedBy: 1,
+          },
+          {
+            where: {
+              id: element.id,
+            },
+          }
+        );
+        //DISBALE CURRENT DATE DATA
+
+        //UPDATE EMPLOYEE TYPE TO EMP MASTER TABLE
+
+        let updateDone = await db.employeeMaster.update(
+          {
+            employeeType: element.employeeType
+          },
+          {
+            where: {
+              id: element.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+  }
+
 }
 
 export default new CronController();

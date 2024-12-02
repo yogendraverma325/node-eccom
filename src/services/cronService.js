@@ -9,6 +9,13 @@ cron.schedule("30 1 * * *", async () => {
 cron.schedule("* * * * *", async () => {
   await cronController.updateManager();
   await cronController.updatePolicy();
+
+  await cronController.updateDesignation();
+  await cronController.updateDepartment();
+  await cronController.updateCostCenter();
+  await cronController.updateCompanyLocation();
+  await cronController.updateJobLevel();
+  await cronController.updateEmployeeType();
 });
 
 cron.schedule("* * * * *", async () => {

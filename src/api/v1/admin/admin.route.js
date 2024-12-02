@@ -193,3 +193,18 @@ export default Express.Router()
     authorization("ADMIN"),
     adminController.addCostCenterEmployment
   )
+  .post(
+    "/addCompanyLocationEmployment",
+    authorization("ADMIN"),
+    adminController.addCompanyLocationEmployment
+  )
+  .post(
+    "/addJobLevelEmployment",
+    authorization("ADMIN"),
+    adminController.addJobLevelEmployment
+  )
+  .post(
+    "/addEmployeeTypeEmployment",
+    authorization("ADMIN"),
+    adminController.addEmployeeTypeEmployment
+  )

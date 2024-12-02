@@ -1187,6 +1187,7 @@ const addDesignationEmploymentSchema = Joi.object({
 
 const addDepartmentEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
   buId: Joi.number().required().label("Business Unit"),
   sbuId: Joi.number().required().label("Sub Business Unit"),
   buHRId: Joi.number().required().label("Business Unit HR"),
@@ -1199,14 +1200,34 @@ const addDepartmentEmploymentSchema = Joi.object({
 
 const addCostCenterEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
   costId: Joi.number().required().label("Cost Center"),
+  fromDate: Joi.string().trim().required().label("From Date"),  
+  isPromotion: Joi.number().required().label("Promotion").optional()
+});
+
+const addCompanyLocationEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  companyLocationId: Joi.number().required().label("Company Location"),
   fromDate: Joi.string().trim().required().label("From Date"),  
   isPromotion: Joi.number().required().label("Promotion").optional()
 });
 
 const addJobLevelEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
-  jobLevelId: Joi.number().required().label("Job Level")
+  companyId: Joi.number().required().label("Company"),
+  jobLevelId: Joi.number().required().label("Job Level"),
+  fromDate: Joi.string().trim().required().label("From Date"),  
+  isPromotion: Joi.number().required().label("Promotion").optional()
+});
+
+const addEmployeeTypeEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  employeeType: Joi.number().required().label("Employee Type"),
+  fromDate: Joi.string().trim().required().label("From Date"),  
+  isPromotion: Joi.number().required().label("Promotion").optional()
 });
 
 export default {
@@ -1262,5 +1283,7 @@ export default {
   addDesignationEmploymentSchema,
   addDepartmentEmploymentSchema,
   addCostCenterEmploymentSchema,
-  addJobLevelEmploymentSchema
+  addCompanyLocationEmploymentSchema,
+  addJobLevelEmploymentSchema,
+  addEmployeeTypeEmploymentSchema
 };
