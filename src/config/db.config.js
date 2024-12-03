@@ -1014,71 +1014,83 @@ db.functionalAreaMaster.hasOne(db.functionalAreaMaster, {
 db.employeeMaster.hasMany(db.DesignationEmploymentHistory, {
   foreignKey: "employeeId",
   sourceKey: "id",
+  as: 'designationHistories'
 });
 
 db.employeeMaster.hasMany(db.DepartmentEmploymentHistory, {
    foreignKey: 'employeeId',
-   sourceKey: 'id'
+   sourceKey: 'id',
+   as: 'departmentHistories'
 });
 
 db.employeeMaster.hasMany(db.CostCenterEmploymentHistory, {
    foreignKey: 'employeeId',
-   sourceKey: 'id'
+   sourceKey: 'id',
+   as: 'costCenterHistories'
 });
 
 db.employeeMaster.hasMany(db.JobLevelEmploymentHistory, {
    foreignKey: 'employeeId',
-   sourceKey: 'id'
+   sourceKey: 'id',
+   as: 'jobLevelHistories'
 });
 
 db.employeeMaster.hasMany(db.OfficeLocationEmploymentHistory, {
    foreignKey: 'employeeId',
-   sourceKey: 'id'
+   sourceKey: 'id',
+   as: 'officeLocationHistories'
 });
 
 db.employeeMaster.hasMany(db.EmployeeTypeEmploymentHistory, {
   foreignKey: 'employeeId',
-  sourceKey: 'id'
+  sourceKey: 'id',
+   as: 'employeeTypeHistories'
 });
 
-db.DesignationEmploymentHistory.hasMany(db.designationMaster, {
+db.DesignationEmploymentHistory.hasOne(db.designationMaster, {
   foreignKey: "designationId",
   sourceKey: "designation_id",
 });
 
-db.DepartmentEmploymentHistory.hasMany(db.departmentMaster, {
+db.DepartmentEmploymentHistory.hasOne(db.departmentMaster, {
   foreignKey: "departmentId",
   sourceKey: "departmentId",
 });
 
-db.DepartmentEmploymentHistory.hasMany(db.functionalAreaMaster, {
+db.DepartmentEmploymentHistory.hasOne(db.functionalAreaMaster, {
   foreignKey: "functionalAreaId",
   sourceKey: "functionalAreaId",
 });
 
-db.CostCenterEmploymentHistory.hasMany(db.costCenterMaster, {
+db.CostCenterEmploymentHistory.hasOne(db.costCenterMaster, {
   foreignKey: "costCenterId",
   sourceKey: "costId",
 });
 
-db.JobLevelEmploymentHistory.hasMany(db.jobLevelMaster, {
+db.JobLevelEmploymentHistory.hasOne(db.jobLevelMaster, {
   foreignKey: "jobLevelId",
   sourceKey: "jobLevelId",
 });
 
-db.OfficeLocationEmploymentHistory.hasMany(db.companyLocationMaster, {
+db.OfficeLocationEmploymentHistory.hasOne(db.companyLocationMaster, {
   foreignKey: "companyLocationId",
   sourceKey: "companyLocationId",
 });
 
-db.EmployeeTypeEmploymentHistory.hasMany(db.employeeTypeMaster, {
+db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
   foreignKey: "empTypeId",
   sourceKey: "employeeType",
 });
 
 db.employeeMaster.hasMany(db.managerHistory, {
   foreignKey: "managerId",
-  sourceKey: "manager"
+  sourceKey: "manager",
+  as: 'managerHistories'
+});
+
+db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
 });
 
 
