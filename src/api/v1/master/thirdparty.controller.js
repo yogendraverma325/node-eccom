@@ -124,6 +124,7 @@ class ThirdPartyController {
                   "dateOfJoining",
                   "residentEng",
                   "customerName",
+                  "projectCode",
                   "esicNumber",
                   "pfRestricted",
                   "epfApplicable",
@@ -634,7 +635,7 @@ class ThirdPartyController {
                   ) || [])[1] || ""
                 : "",
               // employee.employeejobdetail?.dataValues?.customerName || "",
-              project_code: "",
+              project_code: employee.employeejobdetail?.dataValues?.projectCode || "",
               pf_restricted: employee.employeejobdetail?.dataValues
                 ?.pfRestricted
                 ? "Yes"

@@ -3739,7 +3739,6 @@ class UserController {
     try {
       const result =
         await validator.requestForPaymentApprovalSchema.validateAsync(req.body);
-
       const existUser = await db.employeeMaster.findOne({
         raw: true,
         where: {
@@ -3753,10 +3752,16 @@ class UserController {
       });
 
       if (isSameDetails) {
+        const base64Image = result.paymentAttachment; 
+        const folderImagePath = isSameDetails.paymentAttachment;
+  
+        let imageResult = await helper.compareImages(base64Image.split(",")[1], folderImagePath);
         if (
           isSameDetails.paymentAccountNumber == result.paymentAccountNumber &&
-          isSameDetails.paymentBankIfsc == result.paymentBankIfsc &&
-          isSameDetails.paymentHolderName == result.paymentHolderName
+          //isSameDetails.paymentBankIfsc == result.paymentBankIfsc &&
+          isSameDetails.bankId == result.bankId &&
+          isSameDetails.paymentHolderName == result.paymentHolderName &&
+          imageResult == true
         ) {
           return respHelper(res, {
             status: 400,
@@ -3771,42 +3776,50 @@ class UserController {
               `uploads/${existUser.empCode}`
             );
           }
-          if (result.supportingDocument) {
-            var supportingDocument = await helper.fileUpload(
-              result.supportingDocument,
-              `paymentDetails${d}`,
-              `uploads/${existUser.empCode}`
-            );
-          }
+          // if (result.supportingDocument) {
+          //   var supportingDocument = await helper.fileUpload(
+          //     result.supportingDocument,
+          //     `paymentDetails${d}`,
+          //     `uploads/${existUser.empCode}`
+          //   );
+          // }
           const objForApproval = {
             status: "pending",
             pendingAt: 1982,
+            
             ...(result.bankId != isSameDetails.bankId && {
               newBankId: result.bankId,
             }),
-            ...(result.paymentBankName && {
+            
+            ...(result.paymentBankName != isSameDetails.paymentBankName && {
               newBankNameReq: result.paymentBankName,
             }),
+            
             ...(result.paymentAccountNumber !=
               isSameDetails.paymentAccountNumber && {
               newAccountNumberReq: result.paymentAccountNumber,
             }),
+           
             ...(result.paymentHolderName != isSameDetails.paymentHolderName && {
               newAccountHolderNameReq: result.paymentHolderName,
             }),
+            
             ...(result.paymentBankIfsc != isSameDetails.paymentBankIfsc && {
               newIfscCodeReq: result.paymentBankIfsc,
             }),
+            
             ...(result.comment
               ? { comment: result.comment }
               : { comment: null }),
-            ...(result.paymentAttachment
+            
+              ...(result.paymentAttachment && imageResult == false
               ? { newPaymentAttachment: paymentAttachment }
               : { newPaymentAttachment: null }),
-            ...(result.supportingDocument
-              ? { newSupportingDocument: supportingDocument }
-              : { newSupportingDocument: null }),
-          };
+            
+              // ...(result.supportingDocument
+              // ? { newSupportingDocument: supportingDocument }
+              // : { newSupportingDocument: null }),
+          };          
           await db.paymentDetails.update(objForApproval, {
             where: { userId: req.userId },
           });
@@ -3823,6 +3836,19 @@ class UserController {
           });
         }
       } else {
+        const base64Image = result.paymentAttachment; 
+        const folderImagePath = isSameDetails.paymentAttachment;
+  
+        let imageResult = await helper.compareImages(base64Image.split(",")[1], folderImagePath);
+        const d = Math.floor(Date.now() / 1000);
+        if (result.paymentAttachment) {
+          var paymentAttachment = await helper.fileUpload(
+            result.paymentAttachment,
+            `paymentDetails${d}`,
+            `uploads/${existUser.empCode}`
+          );
+        }
+
         const objForApproval = {
           userId: req.userId,
           status: "pending",
@@ -3841,12 +3867,14 @@ class UserController {
             newIfscCodeReq: result.paymentBankIfsc,
           }),
           ...(result.comment ? { comment: result.comment } : { comment: null }),
+         
           ...(result.paymentAttachment
             ? { newPaymentAttachment: paymentAttachment }
             : { newPaymentAttachment: null }),
-          ...(result.supportingDocument
-            ? { newSupportingDocument: supportingDocument }
-            : { newSupportingDocument: null }),
+         
+            // ...(result.supportingDocument
+          //   ? { newSupportingDocument: supportingDocument }
+          //   : { newSupportingDocument: null }),
         };
         await db.paymentDetails.create(objForApproval);
         eventEmitter.emit(

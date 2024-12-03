@@ -1895,7 +1895,7 @@ class MasterController {
           },
           {
             model: db.jobDetails,
-            attributes: ["dateOfJoining", "residentEng", "customerName"],
+            attributes: ["dateOfJoining", "residentEng", "customerName","projectCode"],
             where: { ...(grade && { gradeId: { [Op.in]: grade.split(",") } }) },
             include: [
               { model: db.gradeMaster, attributes: ["gradeName"] },
@@ -2248,7 +2248,7 @@ class MasterController {
             final_separation_type:"",
             admin_exit_reason:"",
             customer_code:"",
-            project_code:"",
+            project_code:ele.employeejobdetail?.projectCode || "",
             sbu_name:"",
             customer_code: ele.employeejobdetail?.dataValues
             ?.customerName
