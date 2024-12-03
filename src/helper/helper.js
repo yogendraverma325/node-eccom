@@ -12,9 +12,10 @@ import crypto from 'crypto';
 import { createCanvas, loadImage } from 'canvas';
 
 const generateJwtToken = async (data) => {
+  let pattern = /desktop/i
   const token = jwt.sign(data, process.env.JWT_KEY, {
     expiresIn:
-      data.user.device === "desktop"
+      pattern.test(data.user.device)
         ? process.env.JWT_EXPIRY
         : process.env.JWT_EXPIRY_MOBILE,
   });

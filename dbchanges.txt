@@ -926,6 +926,16 @@ CHANGE COLUMN `highestQualification` `highestQualification` INT NULL DEFAULT NUL
 
 20-11-2024 (by Jay)
 
+ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
+ADD COLUMN `projectCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `customerCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `nextAppraisalDue` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`;
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetailshistory` 
+ADD COLUMN `projectCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `customerCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `nextAppraisalDue` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`;
+
 CREATE TABLE `tara`.`joblevelmapping` (
   `jobLevelMappingId` INT NOT NULL AUTO_INCREMENT,
   `companyId` INT NULL DEFAULT NULL,
