@@ -1895,7 +1895,12 @@ class MasterController {
           },
           {
             model: db.jobDetails,
-            attributes: ["dateOfJoining", "residentEng", "customerName","projectCode"],
+            attributes: [
+              "dateOfJoining",
+              "residentEng",
+              "customerName",
+              "projectCode",
+            ],
             where: { ...(grade && { gradeId: { [Op.in]: grade.split(",") } }) },
             include: [
               { model: db.gradeMaster, attributes: ["gradeName"] },
@@ -2032,7 +2037,6 @@ class MasterController {
 
       const arr = [];
       for (let i = 0; i < employeeData.length; i++) {
-        
         const ele = employeeData[i];
 
         let headAndHrData = {};
@@ -2209,7 +2213,7 @@ class MasterController {
             ele.employeebiographicaldetail?.nomineeRelation || "",
           offRoleCTC: ele.dataValues.offRoleCTC || "",
           ESICPFDeduction: ele.dataValues.ESICPFDeduction || "",
-         
+
           anniversary_date: ele.employeebiographicaldetail?.dataValues
             ?.maritalStatusSince
             ? moment(
@@ -2221,77 +2225,68 @@ class MasterController {
             ele.companylocationmaster?.isHeadquarter === true
               ? "Head Office"
               : "Branch",
-              work_area:ele.companylocationmaster?.dataValues
-              ? [
-               ele.companylocationmaster?.dataValues?.address1 || "",
-               ele.companylocationmaster?.dataValues?.currentcity
-                    ?.cityName || "",
-                    ele.companylocationmaster?.dataValues?.currentstate
-                    ?.stateName || "",
-                    ele.companylocationmaster?.dataValues?.currentcountry
-                    ?.countryName || "",
-                    ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
-                    ?.pincode || "",
-                ]
-                  .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-                  .join(", ")
-              : "", 
-          work_area_code:
-          ele.companylocationmaster?.dataValues
-            ?.companyLocationCode || "",
-           
-            date_of_confirmation:"",
-            date_of_resignation:"",
-            exit_date:"",
-            exit_type:"",
-            exit_reason:"",
-            final_separation_type:"",
-            admin_exit_reason:"",
-            customer_code:"",
-            project_code:ele.employeejobdetail?.projectCode || "",
-            sbu_name:"",
-            customer_code: ele.employeejobdetail?.dataValues
-            ?.customerName
-            ? (ele.employeejobdetail.dataValues.customerName.match(
-                /(C\d+)/
-              ) || [])[1] || ""
+          work_area: ele.companylocationmaster?.dataValues
+            ? [
+                ele.companylocationmaster?.dataValues?.address1 || "",
+                ele.companylocationmaster?.dataValues?.currentcity?.cityName ||
+                  "",
+                ele.companylocationmaster?.dataValues?.currentstate
+                  ?.stateName || "",
+                ele.companylocationmaster?.dataValues?.currentcountry
+                  ?.countryName || "",
+                ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
+                  ?.pincode || "",
+              ]
+                .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+                .join(", ")
             : "",
-           current_address: ele.employeeaddress?.dataValues
-           ? [
-            ele.employeeaddress?.dataValues?.currentHouse || "",
-            ele.employeeaddress?.dataValues?.currentStreet || "",
-            ele.employeeaddress?.dataValues?.currentLandmark || "",
-            ele.employeeaddress?.dataValues?.currentcity
-                 ?.cityName || "",
-                 ele.employeeaddress?.dataValues?.currentstate
-                 ?.stateName || "",
-                 ele.employeeaddress?.dataValues?.currentcountry
-                 ?.countryName || "",
-                 ele.employeeaddress?.dataValues?.currentpincode
-                 ?.pincode || "",
-             ]
-               .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-               .join(", ")
-           : "", 
-           permanent_address: ele.employeeaddress?.dataValues
-           ? [
-            ele.employeeaddress?.dataValues?.permanentHouse || "",
-            ele.employeeaddress?.dataValues?.permanentStreet || "",
-            ele.employeeaddress?.dataValues?.permanentLandmark ||
-                 "",
-                 ele.employeeaddress?.dataValues?.permanentcity
-                 ?.cityName || "",
-                 ele.employeeaddress?.dataValues?.permanentstate
-                 ?.stateName || "",
-                 ele.employeeaddress?.dataValues?.permanentcountry
-                 ?.countryName || "",
-                 ele.employeeaddress?.dataValues?.permanentpincode
-                 ?.pincode || "",
-             ]
-               .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-               .join(", ")
-           : "",
+          work_area_code:
+            ele.companylocationmaster?.dataValues?.companyLocationCode || "",
 
+          date_of_confirmation: "",
+          date_of_resignation: "",
+          exit_date: "",
+          exit_type: "",
+          exit_reason: "",
+          final_separation_type: "",
+          admin_exit_reason: "",
+          // customer_code:"",
+          project_code: ele.employeejobdetail?.projectCode || "",
+          sbu_name: "",
+          customer_code: ele.employeejobdetail?.dataValues?.customerName
+            ? (ele.employeejobdetail.dataValues.customerName.match(/(C\d+)/) ||
+                [])[1] || ""
+            : "",
+          current_address: ele.employeeaddress?.dataValues
+            ? [
+                ele.employeeaddress?.dataValues?.currentHouse || "",
+                ele.employeeaddress?.dataValues?.currentStreet || "",
+                ele.employeeaddress?.dataValues?.currentLandmark || "",
+                ele.employeeaddress?.dataValues?.currentcity?.cityName || "",
+                ele.employeeaddress?.dataValues?.currentstate?.stateName || "",
+                ele.employeeaddress?.dataValues?.currentcountry?.countryName ||
+                  "",
+                ele.employeeaddress?.dataValues?.currentpincode?.pincode || "",
+              ]
+                .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+                .join(", ")
+            : "",
+          permanent_address: ele.employeeaddress?.dataValues
+            ? [
+                ele.employeeaddress?.dataValues?.permanentHouse || "",
+                ele.employeeaddress?.dataValues?.permanentStreet || "",
+                ele.employeeaddress?.dataValues?.permanentLandmark || "",
+                ele.employeeaddress?.dataValues?.permanentcity?.cityName || "",
+                ele.employeeaddress?.dataValues?.permanentstate?.stateName ||
+                  "",
+                ele.employeeaddress?.dataValues?.permanentcountry
+                  ?.countryName || "",
+                ele.employeeaddress?.dataValues?.permanentpincode?.pincode ||
+                  "",
+              ]
+                .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+                .join(", ")
+            : "",
         };
 
         arr.push(data);
@@ -2385,25 +2380,25 @@ class MasterController {
               { label: "Date Of Exit", value: "dateOfexit" },
               { label: "Off Role CTC", value: "offRoleCTC" },
               { label: "ESIC PF Deduction", value: "ESICPFDeduction" },
-              { label: "Anniversary Date", value:"anniversary_date"},
-              { label: "Location Type",value:"location_type"},
-              { label: "Work Area", value:"work_area"},
-              { label: "Work Area Code", value:"work_area_code"},
-              { label: "Date Of Confirmation", value:"date_of_confirmation"},
-              { label: "Date Of Resignation", value:"date_of_resignation"},
-              { label: "Exit Date", value:"exit_date"},
-              { label: "Exit Type", value:"exit_type"},
-              { label: "Exit Reason", value:"exit_reason"},
-              { label: "Final Separation Type", value:"final_separation_type"},
-              { label: "Admin Exit Reason", value:"admin_exit_reason"},
-              { label: "Customer Code", value:"customer_code"},
-              { label: "Project Code", value:"project_code"},
-              { label: "Current Address", value:"current_address"},
-              { label: "permanent Address", value:"permanent_address"},
-
-
-
-              ],
+              { label: "Anniversary Date", value: "anniversary_date" },
+              { label: "Location Type", value: "location_type" },
+              { label: "Work Area", value: "work_area" },
+              { label: "Work Area Code", value: "work_area_code" },
+              { label: "Date Of Confirmation", value: "date_of_confirmation" },
+              { label: "Date Of Resignation", value: "date_of_resignation" },
+              { label: "Exit Date", value: "exit_date" },
+              { label: "Exit Type", value: "exit_type" },
+              { label: "Exit Reason", value: "exit_reason" },
+              {
+                label: "Final Separation Type",
+                value: "final_separation_type",
+              },
+              { label: "Admin Exit Reason", value: "admin_exit_reason" },
+              { label: "Customer Code", value: "customer_code" },
+              { label: "Project Code", value: "project_code" },
+              { label: "Current Address", value: "current_address" },
+              { label: "permanent Address", value: "permanent_address" },
+            ],
             content: arr,
           },
         ];

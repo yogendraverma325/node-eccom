@@ -386,8 +386,8 @@ async function paymentDetailsApprovalRequest(input) {
     console.log("userData>>>>>", userData);
     await helper.mailService({
       to: process.env.NEW_EMPLOYEE_JOINING,
-      subject: `New Join Employee`,
-      html: await emailTemplate.newJoinEmployeeMail(userData),
+      subject: `Your profile update request has been submitted for approval of Salary Payment`,
+      html: await emailTemplate.paymentDetailsApprovalRequestMail(userData),
     });
   } catch (error) {
     console.log(error);
