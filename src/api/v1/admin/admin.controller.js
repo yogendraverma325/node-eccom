@@ -862,7 +862,8 @@ class AdminController {
                   recruiterName: employeeOnboardingDetails.recruiterName,
                   noticePeriodAutoId:
                     employeeOnboardingDetails.noticePeriodAutoId,
-                  passwordExpiryDate: moment().add(parseInt(process.env.PASSWORD_EXPIRY_LIMIT), 'days')
+                  passwordExpiryDate: moment().add(parseInt(process.env.PASSWORD_EXPIRY_LIMIT), 'days'),
+                  createdBy: req.userId
                 };
 
                 const createdUser = await db.employeeMaster.create(newEmployee);
@@ -890,6 +891,8 @@ class AdminController {
                   laptopSystem: employeeOnboardingDetails.laptopSystem,
                   backgroundVerification:
                     employeeOnboardingDetails.backgroundVerification,
+                  createdBy: req.userId,
+                  createdAt: moment()
                 };
 
                 const createdUserBioDetails =
@@ -925,7 +928,9 @@ class AdminController {
                   uanNumber: employeeOnboardingDetails.uanNo,
                   customerName: customerName,
                   bandId: getJobLevelMappingDetails?.bandId,
-                  gradeId: getJobLevelMappingDetails?.gradeId
+                  gradeId: getJobLevelMappingDetails?.gradeId,
+                  createdBy: req.userId,
+                  createdAt: moment()
                 };
 
                 const createdUserJobDetails = await db.jobDetails.create(
@@ -944,7 +949,9 @@ class AdminController {
                     paymentBankIfsc:
                       employeeOnboardingDetails.paymentBankIfsc,
                     status: "approved",
-                    bankId: (get_bank_details) ? get_bank_details.bankId : ""
+                    bankId: (get_bank_details) ? get_bank_details.bankId : "",
+                    createdBy: req.userId,
+                    createdAt: moment()
                   };
 
                   const createdUserPaymentDetails =

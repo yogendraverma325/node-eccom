@@ -99,7 +99,9 @@ class commonController {
             offRoleCTC: result.offRoleCTC,
             highestQualification: result.highestQualification,
             ESICPFDeduction: result.ESICPFDeduction,
-            fatherName: result.fatherName
+            fatherName: result.fatherName,
+            updatedAt: moment(),
+            updatedBy: req.userId
           },
           {
             where: { id: userId },

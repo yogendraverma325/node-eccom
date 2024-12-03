@@ -9,6 +9,8 @@ import bcrypt from "bcrypt";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
+import path from 'path';
+
 
 const maritalStatusOptions = {
   Married: 1,
@@ -32,7 +34,17 @@ class MasterController {
           msg: "File is required!",
         });
       } else {
-        const workbookEmployee = pkg.readFile(req.file.path);
+        // Ensure the uploaded file has an extension
+        const originalPath = req.file.path;
+        const newPath = path.join(path.dirname(originalPath), `${path.basename(originalPath)}_${moment().format("YYYY-mm-dd")}.xlsx`);
+
+        // Rename the file with .xlsx extension
+        fs.renameSync(originalPath, newPath);
+
+        // Use newPath to open the file
+        const workbookEmployee = pkg.readFile(newPath);
+
+        // const workbookEmployee = pkg.readFile(req.file.path);
         const sheetNameEmployee = workbookEmployee.SheetNames[0];
         const Employees = pkg.utils.sheet_to_json(
           workbookEmployee.Sheets[sheetNameEmployee]
