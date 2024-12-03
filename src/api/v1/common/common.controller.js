@@ -1860,10 +1860,12 @@ class commonController {
         });
       } else {
         const getNewChanges = await db.paymentDetails.findOne({
+          attributes: { exclude: ['paymentId'] },
           where: { userId: result.userId, status: "pending" },
+          raw:true
         });
 
-        if (getNewChanges) {
+        if (getNewChanges) { 
           const objForApproval = {
             ...result,
             ...{
@@ -1877,9 +1879,12 @@ class commonController {
               // comment: null,
               newPaymentAttachment: null,
               newSupportingDocument: null,
-              paymentAttachment:getNewChanges.newPaymentAttachment
+              paymentAttachment:getNewChanges.newPaymentAttachment,
+              updatedBy:req.userId,
+              updatedAt:moment().format("YYYY-MM-DD HH:mm:ss")
             },
           };
+          await db.paymentDetailsHistory.create(getNewChanges)
           await db.paymentDetails.update(objForApproval, {
             where: { userId: result.userId },
           });

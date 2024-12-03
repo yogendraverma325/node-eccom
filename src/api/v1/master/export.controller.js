@@ -1832,6 +1832,8 @@ class MasterController {
           "workstationAdmin",
           "dateOfexit",
           "isActive",
+          "offRoleCTC",
+          "ESICPFDeduction",
         ],
         where: {
           //empCode: "18950",
@@ -1893,7 +1895,7 @@ class MasterController {
           },
           {
             model: db.jobDetails,
-            attributes: ["dateOfJoining", "residentEng", "customerName"],
+            attributes: ["dateOfJoining", "residentEng", "customerName","projectCode"],
             where: { ...(grade && { gradeId: { [Op.in]: grade.split(",") } }) },
             include: [
               { model: db.gradeMaster, attributes: ["gradeName"] },
@@ -1943,26 +1945,16 @@ class MasterController {
           },
           { model: db.buMaster, attributes: ["buName"], required: false },
           { model: db.sbuMaster, attributes: ["sbuname"], required: false },
-          // {
-          //   model: db.employeeMaster,
-          //   attributes: ["id", "name", "empCode", "email"],
-          //   as: "buHeadData",
-          // },
-          // {
-          //   model: db.employeeMaster,
-          //   attributes: ["id", "name", "empCode", "email"],
-          //   as: "buhrData",
-          // },
           {
             model: db.companyLocationMaster,
-            attributes: ["address1"],
+            attributes: ["address1", "companyLocationCode", "isHeadquarter"],
             include: [
               { model: db.countryMaster, attributes: ["countryName"] },
               { model: db.stateMaster, attributes: ["stateName"] },
               { model: db.cityMaster, attributes: ["cityName"] },
+              { model: db.pinCodeMaster, attributes: ["pincodeId", "pincode"] },
             ],
           },
-
           {
             model: db.companyMaster,
             attributes: ["companyName", "companyCode"],
@@ -1970,178 +1962,77 @@ class MasterController {
           { model: db.shiftMaster, attributes: ["shiftName"] },
           { model: db.attendancePolicymaster, attributes: ["policyName"] },
           { model: db.weekOffMaster, attributes: ["weekOffName"] },
+          {
+            model: db.employeeAddress,
+            include: [
+              {
+                model: db.countryMaster,
+                attributes: ["countryId", "countryName"],
+                as: "currentcountry",
+              },
+              {
+                model: db.countryMaster,
+                attributes: ["countryId", "countryName"],
+                as: "permanentcountry",
+              },
+              {
+                model: db.countryMaster,
+                attributes: ["countryId", "countryName"],
+                as: "emergencycountry",
+              },
+              {
+                model: db.stateMaster,
+                attributes: ["stateId", "stateName"],
+                as: "currentstate",
+              },
+              {
+                model: db.stateMaster,
+                attributes: ["stateId", "stateName"],
+                as: "permanentstate",
+              },
+              {
+                model: db.stateMaster,
+                attributes: ["stateId", "stateName"],
+                as: "emergencystate",
+              },
+              {
+                model: db.cityMaster,
+                attributes: ["cityId", "cityName"],
+                as: "currentcity",
+              },
+              {
+                model: db.cityMaster,
+                attributes: ["cityId", "cityName"],
+                as: "permanentcity",
+              },
+              {
+                model: db.cityMaster,
+                attributes: ["cityId", "cityName"],
+                as: "emergencycity",
+              },
+              {
+                model: db.pinCodeMaster,
+                attributes: ["pincodeId", "pincode"],
+                as: "currentpincode",
+              },
+              {
+                model: db.pinCodeMaster,
+                attributes: ["pincodeId", "pincode"],
+                as: "permanentpincode",
+              },
+              {
+                model: db.pinCodeMaster,
+                attributes: ["pincodeId", "pincode"],
+                as: "emergencypincode",
+              },
+            ],
+          },
         ],
       });
-      // const arr = await Promise.all(
-      //   employeeData.map(async (ele) => {
-
-      //     let headAndHrData = {};
-      //     if (ele.dataValues.buId && ele.dataValues.companyId) {
-      //       headAndHrData =
-      //         (await db.buMapping.findOne({
-      //           where: {
-      //             buId: ele.dataValues.buId,
-      //             companyId: ele.dataValues.companyId,
-      //           },
-      //           include: [
-      //             {
-      //               model: db.employeeMaster,
-      //               attributes: ["id", "name", "empCode", "email"],
-      //               as: "buHeadData",
-      //             },
-      //             {
-      //               model: db.employeeMaster,
-      //               attributes: ["id", "name", "empCode", "email"],
-      //               as: "buhrData",
-      //             },
-      //           ],
-      //         })) || {};
-      //     }
-
-      //     return {
-      //       id: ele.dataValues.id || "",
-      //       empCode: ele.dataValues.empCode || "",
-      //       name: ele.dataValues.name || "",
-      //       email: ele.dataValues.email || "",
-      //       personalEmail: ele.dataValues.personalEmail || "",
-      //       firstName: ele.dataValues.firstName || "",
-      //       lastName: ele.dataValues.lastName || "",
-      //       dateOfexit: ele.dataValues.dateOfexit? moment(ele.dataValues.dateOfexit).format("DD-MM-YYYY") : "",
-      //       officeMobileNumber: ele.dataValues.officeMobileNumber || "",
-      //       personalMobileNumber: ele.dataValues.personalMobileNumber || "",
-      //       manager_code: ele.dataValues.managerData?.empCode || "",
-      //       manager_name: ele.dataValues.managerData?.name || "",
-      //       manager_email_id: ele.dataValues.managerData?.email || "",
-      //       designation_name: ele.dataValues.designationmaster
-      //         ? `${ele.dataValues.designationmaster.name || ""} (${
-      //             ele.dataValues.designationmaster.code || ""
-      //           })`.trim()
-      //         : "",
-      //       // designation_name:
-      //       //   ele.dataValues.designationmaster?.name + " " +
-      //       //     "(" + ele.dataValues.designationmaster?.code +")" || "",
-      //       designation_code: ele.dataValues.designationmaster?.code || "",
-      //       functional_area_name:
-      //         ele.dataValues.functionalareamaster?.functionalAreaName || "",
-      //       functional_area_code:
-      //         ele.dataValues.functionalareamaster?.functionalAreaCode || "",
-      //       parent_functional_area:
-      //         ele.dataValues.functionalareamaster?.parentFunctionalArea
-      //           ?.dataValues?.functionalAreaName || "",
-      //       department_name:
-      //         ele.dataValues.departmentmaster?.departmentName || "",
-      //       department_code:
-      //         ele.dataValues.departmentmaster?.departmentCode || "",
-      //       bu_name: ele.dataValues.bumaster?.buName || "",
-      //       sub_bu_name: ele.dataValues.sbumaster?.dataValues.sbuname || "", //ele.dataValues.sbumaster.dataValues?.sbuname || "",
-      //       grade: ele.employeejobdetail?.grademaster?.gradeName || "",
-      //       band: ele.employeejobdetail?.bandmaster?.bandDesc || "",
-      //       jobLevel: ele.employeejobdetail?.joblevelmaster?.jobLevelName || "",
-      //       jobLevelCode:
-      //         ele.employeejobdetail?.joblevelmaster?.jobLevelCode || "",
-      //       costCenter:
-      //         ele.costcentermaster?.costCenterName +
-      //           " " +
-      //           ele.costcentermaster?.costCenterCode || "",
-      //       dateOfJoining: ele.employeejobdetail?.dateOfJoining
-      //         ? moment(ele.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
-      //         : "",
-      //       residentEng: ele.employeejobdetail?.residentEng || "",
-      //       customerName: ele.employeejobdetail?.customerName || "",
-      //       fathersName:
-      //         ele.employeefamilydetails.find(
-      //           (f) => f.relationWithEmp === "Father"
-      //         )?.name || "",
-      //       motherName:
-      //         ele.employeefamilydetails.find(
-      //           (m) => m.relationWithEmp === "Mother"
-      //         )?.name || "",
-      //       nationality: ele.employeebiographicaldetail?.nationality || "",
-      //       maritalStatus: ele.employeebiographicaldetail?.maritalStatus
-      //         ? Object.keys(maritalStatusOptions).find(
-      //             (key) =>
-      //               maritalStatusOptions[key] ===
-      //               ele.employeebiographicaldetail.maritalStatus
-      //           ) || ""
-      //         : "",
-      //       maritalStatusSince:
-      //         ele.employeebiographicaldetail.maritalStatusSince || "",
-      //       gender: ele.employeebiographicaldetail?.gender,
-      //       dateOfBirth: ele.employeebiographicaldetail?.dateOfBirth
-      //         ? moment(ele.employeebiographicaldetail.dateOfBirth).format(
-      //             "DD-MM-YYYY"
-      //           )
-      //         : "",
-      //       office_country:
-      //         ele.companylocationmaster?.countrymaster?.countryName,
-      //       office_state: ele.companylocationmaster?.statemaster?.stateName,
-      //       office_city: ele.companylocationmaster?.citymaster?.cityName,
-      //       employeeType: ele.employeetypemaster?.emptypename || "",
-      //       groupCompany: ele.companymaster?.companyName || "",
-      //       groupCode: ele.companymaster?.companyCode || "",
-      //       passportNumber: ele.dataValues.passportNumber || "",
-      //       drivingLicence: ele.dataValues.drivingLicence || "",
-      //       isActive: ele.dataValues.isActive == 1 ? "Active" : "In Active",
-      //       lastIncrementDate: ele.dataValues.lastIncrementDate || "",
-      //       iqTestApplicable:
-      //         ele.dataValues.iqTestApplicable == 0 ? "No" : "Yes",
-      //       highestQualification:
-      //         ele.employeeeducationdetails.length > 0
-      //           ? ele.employeeeducationdetails[0].degreemaster.degreeName
-      //           : "",
-      //       positionType: ele.dataValues.positionType,
-      //       newCustomerName: ele.dataValues.newCustomerName,
-      //       shiftName: ele.shiftsmaster?.shiftName || "",
-      //       attendancePolicymaster:
-      //         ele.attendancePolicymaster?.policyName || "",
-      //       weekOffMaster: ele.weekOffMaster?.weekOffName || "",
-      //       buhrData: headAndHrData.buhrData,
-      //       hrbpCode: ele.dataValues?.buhrData?.empCode || "",
-      //       hrbpName: ele.dataValues.buhrData?.name,
-
-      //       first_exp:ele.dataValues.buId && ele.dataValues.companyId
-      //         ? headAndHrData?.buhrData?.name
-      //         : "",
-      //       hrbpEmail: ele.dataValues.buhrData?.email,
-      //       second_exp:ele.dataValues.buId && ele.dataValues.companyId
-      //         ? headAndHrData?.buhrData?.email
-      //         : "",
-      //       buHeadName: ele.dataValues.buHeadData?.name,
-      //       third_exp:ele.dataValues.buId && ele.dataValues.companyId
-      //         ? headAndHrData?.buHeadData?.name
-      //         : "",
-      //       emergencyContactRelation:
-      //         ele.employeeemergencycontact?.emergencyContactRelation || "",
-      //       emergencyBloodGroup:
-      //         ele.employeeemergencycontact?.emergencyBloodGroup || "",
-      //       emergencyContactNumber:
-      //         ele.employeeemergencycontact?.emergencyContactNumber || "",
-      //       recruiterName: ele.dataValues.recruiterName || "",
-      //       mobileAccess:
-      //         ele.employeebiographicaldetail?.mobileAccess == 0 ? "No" : "Yes",
-      //       laptopSystem: ele.employeebiographicaldetail?.laptopSystem || "",
-      //       backgroundVerification:
-      //         ele.employeebiographicaldetail?.backgroundVerification == 0
-      //           ? "No"
-      //           : "Yes",
-      //       dataCardAdmin: ele.dataValues.dataCardAdmin == 0 ? "No" : "Yes",
-      //       visitingCardAdmin:
-      //         ele.dataValues.visitingCardAdmin == 0 ? "No" : "Yes",
-      //       workstationAdmin:
-      //         ele.dataValues.workstationAdmin == 0 ? "No" : "Yes",
-      //       buHeadCode: ele.dataValues.buHeadData?.empCode,
-      //       // ele.dataValues.buId && ele.dataValues.companyId
-      //       //   ? headAndHrData?.buHeadData?.empCode
-      //       //   : "",
-      //       nomineeName: ele.employeebiographicaldetail?.nomineeName || "",
-      //       nomineeRelation:
-      //         ele.employeebiographicaldetail?.nomineeRelation || "",
-      //     };
-      //   })
-      // );
 
       const arr = [];
       for (let i = 0; i < employeeData.length; i++) {
+        
         const ele = employeeData[i];
 
         let headAndHrData = {};
@@ -2249,7 +2140,9 @@ class MasterController {
           passportNumber: ele.dataValues.passportNumber || "",
           drivingLicence: ele.dataValues.drivingLicence || "",
           isActive: ele.dataValues.isActive == 1 ? "Active" : "In Active",
-          lastIncrementDate: ele.dataValues.lastIncrementDate || "",
+          lastIncrementDate: ele.dataValues.lastIncrementDate
+            ? moment(ele.dataValues.lastIncrementDate).format("DD-MM-YYYY")
+            : "",
           iqTestApplicable: ele.dataValues.iqTestApplicable == 0 ? "No" : "Yes",
           highestQualification:
             ele.employeeeducationdetails.length > 0
@@ -2261,26 +2154,30 @@ class MasterController {
           attendancePolicymaster: ele.attendancePolicymaster?.policyName || "",
           weekOffMaster: ele.weekOffMaster?.weekOffName || "",
           buhrData: headAndHrData.buhrData,
-          hrbpCode:  ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buhrData?.empCode
-          : "",//ele.dataValues?.buhrData?.empCode || "",
-          hrbpName: ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buhrData?.name
-          : "",//ele.dataValues.buhrData?.name,
+          hrbpCode:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buhrData?.empCode
+              : "", //ele.dataValues?.buhrData?.empCode || "",
+          hrbpName:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buhrData?.name
+              : "", //ele.dataValues.buhrData?.name,
           // first_exp:
           //   ele.dataValues.buId && ele.dataValues.companyId
           //     ? headAndHrData?.buhrData?.name
           //     : "",
-          hrbpEmail: ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buhrData?.email
-          : "",//ele.dataValues.buhrData?.email,
+          hrbpEmail:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buhrData?.email
+              : "", //ele.dataValues.buhrData?.email,
           // second_exp:
           //   ele.dataValues.buId && ele.dataValues.companyId
           //     ? headAndHrData?.buhrData?.email
           //     : "",
-          buHeadName:ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buHeadData?.name
-          : "", //ele.dataValues.buHeadData?.name,
+          buHeadName:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buHeadData?.name
+              : "", //ele.dataValues.buHeadData?.name,
           // third_exp:
           //   ele.dataValues.buId && ele.dataValues.companyId
           //     ? headAndHrData?.buHeadData?.name
@@ -2303,12 +2200,98 @@ class MasterController {
           visitingCardAdmin:
             ele.dataValues.visitingCardAdmin == 0 ? "No" : "Yes",
           workstationAdmin: ele.dataValues.workstationAdmin == 0 ? "No" : "Yes",
-          buHeadCode: ele.dataValues.buId && ele.dataValues.companyId
-          ? headAndHrData?.buHeadData?.empCode
-          : "",//ele.dataValues.buHeadData?.empCode,
+          buHeadCode:
+            ele.dataValues.buId && ele.dataValues.companyId
+              ? headAndHrData?.buHeadData?.empCode
+              : "", //ele.dataValues.buHeadData?.empCode,
           nomineeName: ele.employeebiographicaldetail?.nomineeName || "",
           nomineeRelation:
             ele.employeebiographicaldetail?.nomineeRelation || "",
+          offRoleCTC: ele.dataValues.offRoleCTC || "",
+          ESICPFDeduction: ele.dataValues.ESICPFDeduction || "",
+         
+          anniversary_date: ele.employeebiographicaldetail?.dataValues
+            ?.maritalStatusSince
+            ? moment(
+                ele.employeebiographicaldetail?.dataValues?.maritalStatusSince
+              ).format("DD-MM-YYYY")
+            : "",
+
+          location_type:
+            ele.companylocationmaster?.isHeadquarter === true
+              ? "Head Office"
+              : "Branch",
+              work_area:ele.companylocationmaster?.dataValues
+              ? [
+               ele.companylocationmaster?.dataValues?.address1 || "",
+               ele.companylocationmaster?.dataValues?.currentcity
+                    ?.cityName || "",
+                    ele.companylocationmaster?.dataValues?.currentstate
+                    ?.stateName || "",
+                    ele.companylocationmaster?.dataValues?.currentcountry
+                    ?.countryName || "",
+                    ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
+                    ?.pincode || "",
+                ]
+                  .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+                  .join(", ")
+              : "", 
+          work_area_code:
+          ele.companylocationmaster?.dataValues
+            ?.companyLocationCode || "",
+           
+            date_of_confirmation:"",
+            date_of_resignation:"",
+            exit_date:"",
+            exit_type:"",
+            exit_reason:"",
+            final_separation_type:"",
+            admin_exit_reason:"",
+            customer_code:"",
+            project_code:ele.employeejobdetail?.projectCode || "",
+            sbu_name:"",
+            customer_code: ele.employeejobdetail?.dataValues
+            ?.customerName
+            ? (ele.employeejobdetail.dataValues.customerName.match(
+                /(C\d+)/
+              ) || [])[1] || ""
+            : "",
+           current_address: ele.employeeaddress?.dataValues
+           ? [
+            ele.employeeaddress?.dataValues?.currentHouse || "",
+            ele.employeeaddress?.dataValues?.currentStreet || "",
+            ele.employeeaddress?.dataValues?.currentLandmark || "",
+            ele.employeeaddress?.dataValues?.currentcity
+                 ?.cityName || "",
+                 ele.employeeaddress?.dataValues?.currentstate
+                 ?.stateName || "",
+                 ele.employeeaddress?.dataValues?.currentcountry
+                 ?.countryName || "",
+                 ele.employeeaddress?.dataValues?.currentpincode
+                 ?.pincode || "",
+             ]
+               .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+               .join(", ")
+           : "", 
+           permanent_address: ele.employeeaddress?.dataValues
+           ? [
+            ele.employeeaddress?.dataValues?.permanentHouse || "",
+            ele.employeeaddress?.dataValues?.permanentStreet || "",
+            ele.employeeaddress?.dataValues?.permanentLandmark ||
+                 "",
+                 ele.employeeaddress?.dataValues?.permanentcity
+                 ?.cityName || "",
+                 ele.employeeaddress?.dataValues?.permanentstate
+                 ?.stateName || "",
+                 ele.employeeaddress?.dataValues?.permanentcountry
+                 ?.countryName || "",
+                 ele.employeeaddress?.dataValues?.permanentpincode
+                 ?.pincode || "",
+             ]
+               .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+               .join(", ")
+           : "",
+
         };
 
         arr.push(data);
@@ -2331,9 +2314,9 @@ class MasterController {
                 label: "Personal_Mobile_Number",
                 value: "personalMobileNumber",
               },
-              { label: "Bussiness Unit", value: "bu_name" },
-              { label: "Bussiness Unit Head", value: "buHeadName" },
-              { label: "Bussiness Unit Head Code", value: "buHeadCode" },
+              { label: "Business Unit", value: "bu_name" },
+              { label: "Business Unit Head", value: "buHeadName" },
+              { label: "Business Unit Head Code", value: "buHeadCode" },
               { label: "Direct Manager Name", value: "manager_name" },
               { label: "Direct Manager Code", value: "manager_code" },
               { label: "Direct Manager Email Id", value: "manager_email_id" },
@@ -2399,8 +2382,28 @@ class MasterController {
               { label: "Visiting Card (Admin)", value: "visitingCardAdmin" },
               { label: "Workstation (Admin)", value: "workstationAdmin" },
               { label: "Nominee Name", value: "nomineeName" },
-              { label: "Date Of Exit", value: "dateOfexit" }
-            ],
+              { label: "Date Of Exit", value: "dateOfexit" },
+              { label: "Off Role CTC", value: "offRoleCTC" },
+              { label: "ESIC PF Deduction", value: "ESICPFDeduction" },
+              { label: "Anniversary Date", value:"anniversary_date"},
+              { label: "Location Type",value:"location_type"},
+              { label: "Work Area", value:"work_area"},
+              { label: "Work Area Code", value:"work_area_code"},
+              { label: "Date Of Confirmation", value:"date_of_confirmation"},
+              { label: "Date Of Resignation", value:"date_of_resignation"},
+              { label: "Exit Date", value:"exit_date"},
+              { label: "Exit Type", value:"exit_type"},
+              { label: "Exit Reason", value:"exit_reason"},
+              { label: "Final Separation Type", value:"final_separation_type"},
+              { label: "Admin Exit Reason", value:"admin_exit_reason"},
+              { label: "Customer Code", value:"customer_code"},
+              { label: "Project Code", value:"project_code"},
+              { label: "Current Address", value:"current_address"},
+              { label: "permanent Address", value:"permanent_address"},
+
+
+
+              ],
             content: arr,
           },
         ];

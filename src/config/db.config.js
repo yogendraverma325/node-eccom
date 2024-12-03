@@ -100,6 +100,8 @@ import BankMaster from "../api/model/BankMaster.js";
 import PolicyHistory from "../api/model/PolicyHistory.js";
 import EmployeeLeaveHeader from "../api/model/EmployeeLeaveHeader.js";
 import JobLevelMapping from "../api/model/JobLevelMapping.js";
+import offRoleCtc from "../api/model/offRoleCtc.js";
+import EmployeePaymentDetailsHistory from "../api/model/EmployeePaymentDetailsHistory.js";
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -261,6 +263,9 @@ db.subCategoryMaster = SubCategoryMaster(sequelize, Sequelize);
 db.PolicyHistory = PolicyHistory(sequelize, Sequelize);
 db.ptLocationMaster = PTLocationMaster(sequelize, Sequelize);
 db.taskBuMapping = TaskBuMapping(sequelize, Sequelize);
+db.offRoleCtc = offRoleCtc(sequelize, Sequelize);
+db.paymentDetailsHistory = EmployeePaymentDetailsHistory(sequelize, Sequelize);
+
 
 db.EmployeeLeaveHeader = EmployeeLeaveHeader(sequelize, Sequelize);
 db.bankMaster = BankMaster(sequelize, Sequelize);

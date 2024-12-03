@@ -282,3 +282,7 @@ export default Express.Router()
     .post("/mapBank",
         userController.mapBank
     )
+
+    .post("/mapOffRoleCtc",
+        userController.mapOffRoleCtc
+    )

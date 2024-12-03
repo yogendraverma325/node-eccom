@@ -9,6 +9,7 @@ import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from 'crypto';
+import { createCanvas, loadImage } from 'canvas';
 
 const generateJwtToken = async (data) => {
   let pattern = /desktop/i
@@ -1269,6 +1270,56 @@ const generateSHA512Hash = async function (input) {
   return hash.digest('hex'); // Output the hash in hexadecimal format
 }
 
+const compareImages = async function (base64Image, folderImagePath) {
+  try {
+
+    // Decode the base64 image into a buffer
+     if(base64Image == null || folderImagePath == null){
+      console.log('Images are different');
+      return false;
+     }
+     else{
+      const base64Buffer = Buffer.from(base64Image, 'base64');
+
+    // Load the base64 image and the folder image into canvases
+    const img1 = await loadImage(base64Buffer);
+    const img2 = await loadImage(folderImagePath);
+
+    const canvas1 = createCanvas(img1.width, img1.height);
+    const canvas2 = createCanvas(img2.width, img2.height);
+
+    const ctx1 = canvas1.getContext('2d');
+    const ctx2 = canvas2.getContext('2d');
+
+    ctx1.drawImage(img1, 0, 0);
+    ctx2.drawImage(img2, 0, 0);
+
+    // Get image data for comparison
+    const data1 = ctx1.getImageData(0, 0, img1.width, img1.height).data;
+    const data2 = ctx2.getImageData(0, 0, img2.width, img2.height).data;
+
+    // Compare pixel by pixel
+    let isIdentical = true;
+    for (let i = 0; i < data1.length; i++) {
+      if (data1[i] !== data2[i]) {
+        isIdentical = false;
+        break;
+      }
+    }
+
+    if (isIdentical) {
+      console.log('Images are identical');
+      return true;
+    } else {
+      console.log('Images are different');
+      return false;
+    }
+     }
+  } catch (error) {
+    console.error('Error comparing images:', error);
+    return false;
+  }
+}
 
 export default {
   generateJwtToken,
@@ -1294,5 +1345,6 @@ export default {
   generateJwtOTPEncrypt,
   generateJwtOTPDecrypt,
   isDayWorkingForReport,
-  generateSHA512Hash
+  generateSHA512Hash,
+  compareImages
 };
