@@ -23,6 +23,12 @@ export default (sequelize, Sequelize) => {
     createdAt: {
       type: Sequelize.DATE,
     },
+    sourceName: {
+      type: Sequelize.STRING
+    },
+    status: {
+      type: Sequelize.INTEGER
+    },
     createdBy: {
       type: Sequelize.INTEGER,
     },

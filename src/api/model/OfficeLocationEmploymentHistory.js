@@ -26,8 +26,11 @@ export default (sequelize, Sequelize) => {
       needAttendanceCron: {
         type: Sequelize.INTEGER,
       },
-      isPromotion: {
-        type: Sequelize.BOOLEAN,
+      sourceName: {
+        type: Sequelize.STRING
+      },
+      status: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         type: Sequelize.DATE,

@@ -180,31 +180,31 @@ export default Express.Router()
   )
   .post(
     "/addDesignationEmployment",
-    authorization("ADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addDesignationEmployment
   )
   .post(
     "/addDepartmentEmployment",
-    authorization("ADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addDepartmentEmployment
   )
   .post(
     "/addCostCenterEmployment",
-    authorization("ADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addCostCenterEmployment
   )
   .post(
     "/addCompanyLocationEmployment",
-    authorization("ADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addCompanyLocationEmployment
   )
   .post(
     "/addJobLevelEmployment",
-    authorization("ADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addJobLevelEmployment
   )
   .post(
     "/addEmployeeTypeEmployment",
-    authorization("ADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addEmployeeTypeEmployment
   )

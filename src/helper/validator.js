@@ -1194,24 +1194,21 @@ const addDepartmentEmploymentSchema = Joi.object({
   buHeadId: Joi.number().required().label("Business Unit Head"),
   departmentId: Joi.number().required().label("Department"),
   functionalAreaId: Joi.number().required().label("Functional Area"),
-  fromDate: Joi.string().trim().required().label("From Date"),  
-  isPromotion: Joi.number().required().label("Promotion").optional()
+  fromDate: Joi.string().trim().required().label("From Date")
 });
 
 const addCostCenterEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
   companyId: Joi.number().required().label("Company"),
   costId: Joi.number().required().label("Cost Center"),
-  fromDate: Joi.string().trim().required().label("From Date"),  
-  isPromotion: Joi.number().required().label("Promotion").optional()
+  fromDate: Joi.string().trim().required().label("From Date")  
 });
 
 const addCompanyLocationEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
   companyId: Joi.number().required().label("Company"),
   companyLocationId: Joi.number().required().label("Company Location"),
-  fromDate: Joi.string().trim().required().label("From Date"),  
-  isPromotion: Joi.number().required().label("Promotion").optional()
+  fromDate: Joi.string().trim().required().label("From Date")
 });
 
 const addJobLevelEmploymentSchema = Joi.object({
@@ -1226,8 +1223,7 @@ const addEmployeeTypeEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
   companyId: Joi.number().required().label("Company"),
   employeeType: Joi.number().required().label("Employee Type"),
-  fromDate: Joi.string().trim().required().label("From Date"),  
-  isPromotion: Joi.number().required().label("Promotion").optional()
+  fromDate: Joi.string().trim().required().label("From Date")
 });
 
 export default {
