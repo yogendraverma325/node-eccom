@@ -95,9 +95,14 @@ export default function getAllListeners(eventEmitter) {
   eventEmitter.on("newJoinEmployeeMail", async (input) => {
     await newJoinEmployeeMail(input);
   });
+  //confirmation
   eventEmitter.on("selfReviewConfirnation", async (input) => {
     await selfReviewConfirnation(input);
   });
+  eventEmitter.on("confirmationLetter", async (input) => {
+    await confirmationLetter(input);
+  });
+  //confirmation
 }
 
 async function regularizationRequestMail(input) {
@@ -445,6 +450,30 @@ async function selfReviewConfirnation(input) {
       to: "yogendra.verma@teamcomputers.com",
       subject: `Confirmation`,
       html: await emailTemplate.selfReviewConfirnation(userData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmationLetter(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    let html = await emailTemplate.confirmationEmail(
+      inpputData?.EMP_DATA_SELF,
+      inpputData?.confirmationData,
+      inpputData?.signatureAuthority
+    );
+    await helper.mailService({
+      to: inpputData?.EMP_DATA_SELF?.email,
+      subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
+      html: html,
+      attachments: [
+        {
+          content: html,
+          filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+        },
+      ],
     });
   } catch (error) {
     console.log(error);

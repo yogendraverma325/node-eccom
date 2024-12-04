@@ -109,6 +109,7 @@ import Confirmationaudittrail from "../api/model/ConfirmationAudit.js";
 import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
+import Signingauthority from "../api/model/signingAuthority.js";
 //CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -292,6 +293,7 @@ db.Confirmationpolicyworkflow = Confirmationpolicyworkflow(
   sequelize,
   Sequelize
 );
+db.Signingauthority = Signingauthority(sequelize, Sequelize);
 //CONFIRMATION
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -1044,6 +1046,10 @@ db.Confirmationinitiated.hasMany(db.Confirmationaudittrail, {
 db.employeeMaster.hasOne(db.Confimationpolicy, {
   foreignKey: "confimationPolicyAutoId",
   sourceKey: "confimationPolicyAutoId",
+});
+db.Signingauthority.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "authorityUser",
 });
 //CONFIRAMTION
 

@@ -126,21 +126,11 @@ const mailService = async (data) => {
     body.personalizations[0] = new pepipost.Personalizations();
 
     console.log("Mail is Sending On --->>", data.to);
-    if (
-      data.attachments &&
-      data.attachments.length >= 1 &&
-      data.attachments != undefined
-    ) {
-      let attach = Buffer.from(data.attachments, "binary").toString("base64");
-      body.personalizations[0].attachments = [];
-      let attachment = data.attachments.map((attc) => {
-        return {
-          content: Buffer.from(attc.content, "binary").toString("base64"),
-          name: attc.filename,
-        };
-      });
-      body.personalizations[0].attachments[0] = new pepipost.Attachments();
-      body.personalizations[0].attachments = attachment;
+    if (data.attachments && data.attachments.length >= 1) {
+      body.personalizations[0].attachments = data.attachments.map((attc) => ({
+        content: Buffer.from(attc.content, "binary").toString("base64"),
+        name: attc.filename,
+      }));
     }
     body.personalizations[0].To = [];
     body.personalizations[0].To = new pepipost.EmailStruct();
@@ -1312,7 +1302,39 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
   }
   return { levelData: levelData, level: level, levelFound: levelFound };
 };
+///CONFIRMATION
+const getSigningAuthorityDate = async (SIGN_FOR, dataForWhereCondition) => {
+  const SigningauthorityData = await db.Signingauthority.findOne({
+    where: {
+      authorityFor: SIGN_FOR,
+      companyIds: {
+        [Op.or]: [
+          { [Op.like]: `${dataForWhereCondition.companyId},%` },
+          { [Op.like]: `%,${dataForWhereCondition.companyId},%` },
+          { [Op.like]: `%,${dataForWhereCondition.companyId}` },
+          { [Op.eq]: `${dataForWhereCondition.companyId}` },
+        ],
+      },
+    },
+    include: [
+      {
+        model: db.employeeMaster,
+        attributes: ["id", "name"],
+        where: {
+          isActive: 1,
+        },
+        include: {
+          model: db.designationMaster,
+          required: false,
+          attributes: ["designationId", "name"],
+        },
+      },
+    ],
+  });
 
+  return SigningauthorityData;
+};
+///CONFIRMATION
 export default {
   generateJwtToken,
   checkFolder,
@@ -1337,5 +1359,8 @@ export default {
   generateJwtOTPEncrypt,
   generateJwtOTPDecrypt,
   isDayWorkingForReport,
+  //CONFIRMAITON
   generateFieldsForgivenLevel,
+  getSigningAuthorityDate,
+  //CONFIRMAITON
 };

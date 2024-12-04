@@ -4135,6 +4135,29 @@ class UserController {
           await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
         }
       } else {
+        const confirmationData = await db.Confirmationinitiated.findOne({
+          where: {
+            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+          },
+        });
+        if (confirmationData) {
+          let EMP_DATA_SELF = await helper.getEmpProfile(
+            confirmationData?.employeeId
+          ); // SELF Manager
+          let signatureAuthority = await helper.getSigningAuthorityDate(
+            "CONFIRMATION",
+            EMP_DATA_SELF
+          ); // SELF Manager
+
+          eventEmitter.emit(
+            "confirmationLetter",
+            JSON.stringify({
+              EMP_DATA_SELF: EMP_DATA_SELF,
+              confirmationData: confirmationData,
+              signatureAuthority: signatureAuthority,
+            })
+          );
+        }
         await db.Confirmationinitiated.update(
           {
             level: 0,

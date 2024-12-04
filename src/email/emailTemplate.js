@@ -3717,6 +3717,19 @@ const selfReviewConfirnation = async (data) => {
 </body>
 </html>`;
 };
+const confirmationEmail = async (
+  data,
+  confiramtionData,
+  signatureAuthority
+) => {
+  return `<html>
+    <body>
+      <h1>Confirmation Letter</h1>
+      <p>Dear User,</p>
+      <p>Your confirmation is approved.</p>
+    </body>
+  </html>`;
+};
 export default {
   regularizationRequestMail,
   resetPasswordMail,
@@ -3742,4 +3755,5 @@ export default {
   postPasswordExpiryNotification,
   newJoinEmployeeMail,
   selfReviewConfirnation,
+  confirmationEmail,
 };
