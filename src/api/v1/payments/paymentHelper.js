@@ -1,0 +1,314 @@
+import db from "../../../config/db.config.js";
+
+let paySlipComponentObject = {
+  EmployeeId: "",
+  paySlipAutoId: "",
+  salaryComponentAutoId: 0,
+  paySlipComponentName: "",
+  paySlipComponentType: "",
+  createdBy: "",
+  createdAt: "",
+  isActive: 0,
+  paySlipComponentAmount: "",
+};
+const payAfterLOPDeductions = async function (employeesList, lopDeductions) {
+  let totalWorkingDays = getDaysInCurrentMonth(),
+    dataAfterLopDeductions = [],
+    errorArray = [];
+  for (const employee of employeesList) {
+    try {
+      if (!employee.packageDetails) {
+        errorArray.push({
+          EmployeeId: employee.id,
+          Message: "CTC Not Assigned.",
+        });
+        continue;
+      }
+      let lopDays = lopDeductions[employee.empCode]
+        ? lopDeductions[employee.empCode]
+        : 0;
+      let obj = {
+        EmployeeId: employee.id,
+        EmployeeName: employee.name,
+        ctc: employee.packageDetails.payPackageMonthlyCTC,
+        lopDays: lopDays,
+        lopDeductions:
+          lopDays == 0
+            ? 0
+            : (
+                (employee.packageDetails.payPackageMonthlyCTC /
+                  totalWorkingDays) *
+                lopDays
+              ).toFixed(2),
+        totalWorkingDays: totalWorkingDays,
+      };
+      Object.assign(obj, { netPay: (obj.ctc - obj.lopDeductions).toFixed(2) });
+      dataAfterLopDeductions.push(obj);
+    } catch (e) {
+      errorArray.push({
+        EmployeeId: employee.id,
+        Message: e.Message,
+      });
+    }
+  }
+  return { dataAfterLopDeductions, errorArray };
+};
+
+const payAfterTDSDeductions = async function (employeesList, tdsDeductions) {
+  let dataAfterTdsDeductions = [];
+  for (const employee of employeesList) {
+    employee["netPay"] = tdsDeductions[employee.EmployeeId]
+      ? employee["netPay"] - tdsDeductions[employee.EmployeeId]
+      : employee["netPay"];
+    employee["tdsDeductions"] = tdsDeductions[employee.EmployeeId]
+      ? tdsDeductions[employee.EmployeeId]
+      : 0;
+    // employee["payAfterTds"] = employee["netPay"];
+    dataAfterTdsDeductions.push(employee);
+  }
+  return employeesList;
+};
+
+const payAfterStandardDeductions = async function (
+  employeesList,
+  standardDeductions
+) {
+  let dataAfterStandardDeductions = [];
+  for (const employee of employeesList) {
+    let deduction = 0,
+      deductionObject = {};
+    employee["deductionName"] = null;
+    employee["deductionAmount"] = 0;
+    if (!standardDeductions[employee.EmployeeId]) {
+      dataAfterStandardDeductions.push(employee);
+      continue;
+    }
+
+    for (const standdardDeducton of standardDeductions[employee.EmployeeId]) {
+      deduction =
+        parseFloat(deduction) + parseFloat(standdardDeducton["Total Amount"]);
+      employee["deductionName"] =
+        employee["deductionName"] == null
+          ? standdardDeducton["Name"]
+          : employee["deductionName"] + "," + standdardDeducton["Name"];
+      employee["deductionAmount"] = deduction;
+    }
+    employee["netPay"] = employee["netPay"] - employee["deductionAmount"];
+    // employee["netPayAfterStandardDeduction"] = employee["netPay"];
+    dataAfterStandardDeductions.push(employee);
+  }
+  return dataAfterStandardDeductions;
+};
+
+const standardDeductions = async function (data) {
+  const deductionsMap = data.reduce((acc, curr) => {
+    const employeeId = curr["EmployeeId"];
+    const category = curr["deductionCategory"];
+
+    // If the employee ID is not yet in the accumulator, add it
+    if (!acc[employeeId]) {
+      acc[employeeId] = [];
+    }
+
+    // Add the current deduction details for this employee
+    acc[employeeId].push({
+      Category: category,
+      Name: curr["deductionName"],
+      "Total Amount": curr["deductionAmount"],
+      "Start Month": curr["startMonth"],
+      Deductions: curr["numberOfDeductions"],
+    });
+
+    return acc;
+  }, {});
+
+  return deductionsMap;
+};
+
+const getDaysInCurrentMonth = (data) => {
+  const currentYear = data.year;
+  const currentMonth = data.month;
+  // Get the total number of days in the current month
+  const lastDayOfMonth = new Date(currentYear, currentMonth , 0); // Last day of the month
+  return lastDayOfMonth.getDate();
+};
+
+function getPercentage(part, total) {
+  if (total === 0) {
+    throw new Error("Total cannot be zero.");
+  }
+
+  return ((part / total) * 100).toFixed(2);
+}
+
+function getPercentagePart(total, percentage) {
+  return (total * (percentage / 100)).toFixed(2);
+}
+
+function query(caseId, data, data2) {
+  switch (caseId) {
+    case 1:
+      return `SELECT p.includeInPackage ,p.empName as "Employee Name", COALESCE(p.lopDays, 0) as "LOP Days", p.arrearMonth as "Arrears Month", COALESCE(p.arrearDays, 0) as "Arrears Days", p.tdsMonth as "TDS Month", COALESCE(p.tdsAmount, 0) as "TDS Amount", p.payPackageMonthlyCTC as "Net Pay", p.payElementAmount as "Element Amount", p.elementMonthlyAmount as "Monthly Element Amount", p.extraDeductionCategories as "Advance Name", COALESCE(p.totalExtraDeduction, 0) as "Advance Amount", e.empCode as "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END as "Element Name" FROM tara_hrms_live.paymonthlyelement p JOIN tara_hrms_live.employee e ON p.empId = e.id WHERE p.payMonth = '2024-09' and empId in(${data2});`;
+      break;
+    case 2:
+      return `SELECT p.EmployeeId, p.paySlipNetPay, e.name AS EmployeeName, e.empCode AS EmployeeCode, d.name AS Designation, b.buName AS BU FROM payslip p JOIN employee e ON p.EmployeeId = e.id JOIN designationmaster d ON e.designation_id = d.designationId JOIN bumaster b ON e.buId = b.buId WHERE p.EmployeeId IN (${data}) AND paySlipStatus = ${data2}`;
+      break;
+    case 3:
+      return `SELECT salarystructure.salaryStructureName as StructureName,  employee.id, employee.empCode as EmployeeId , employee.name as EmployeeName, bumaster.buName as BuName, designationmaster.name as DesignationName FROM salarystructure JOIN paypackage ON salarystructure.salaryStructureName = paypackage.payPackageSalaryStructure JOIN employee ON paypackage.EmployeeId = employee.id JOIN bumaster ON employee.buId = bumaster.buId JOIN designationmaster ON employee.designation_id = designationmaster.designationId WHERE salarystructure.salaryStructureAutoId = ${data}`;
+      break;
+    case 4:
+      return `SELECT pm.name AS process_name, pm.payMonth, pm.payProcessMasterAutoId as processId , pm.createdAt, pm.updatedBy, pm.updatedAt, pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description, e.name AS created_by_name FROM payprocessmaster pm INNER JOIN payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN paystatusmaster ps ON pf.currentstatus = ps.payProcessStatusAutoId LEFT JOIN employee e ON pm.createdBy = e.id WHERE ps.payProcessStatusAutoId IN (${data}) AND pm.payMonth = "${data2.paymonth}" AND pm.companyId = ${data2.companyId}`;
+      break;
+    case 5:
+      return `SELECT pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, pf.currentstatus, ps.name AS status_name, ps.description AS status_description FROM payprocessmaster pm INNER JOIN payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pm.payProcessMasterAutoId = ${data};`;
+      break;
+    case 6:
+      return `SELECT pf.refferenceFlowId, ps.currentRemark FROM tara_hrms_live.payprocessflowmaster pf INNER JOIN tara_hrms_live.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.nextstatus = ${data2} AND pf.currentstatus = ${data}`;
+      break;
+    
+    case 7:
+      return `SELECT pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description FROM payprocessflowmaster pf INNER JOIN paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.currentstatus = ${data}`;
+    break;
+      case 8:
+        return `SELECT ppm.payProcessMasterAutoId, COUNT(CASE WHEN ppd.payStatus = 2 THEN 1 END) AS successfullyProcessed, COUNT(CASE WHEN ppd.payStatus = 3 THEN 1 END) AS processedWithError, COUNT(CASE WHEN ppd.payStatus = 1 THEN 1 END) AS pendingForProcess, COUNT(CASE WHEN ppd.payStatus != 1 THEN 1 END) * 100.0 / COUNT(*) AS totalProcessedPercentage, COUNT(CASE WHEN ppd.payStatus IN (2, 3) THEN 1 END) AS totalProcessed FROM payprocessmaster ppm JOIN payprocessdetails ppd ON ppm.payProcessMasterAutoId = ppd.proceessId WHERE ppm.payProcessMasterAutoId = ${data} GROUP BY ppm.payProcessMasterAutoId;`
+     break;
+     case 9:
+        return `SELECT ppm.payProcessMasterAutoId AS processId, psm.payProcessStatusAutoId AS currentStatusId, psm.name AS statusName FROM payprocessmaster ppm JOIN payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN paystatusmaster psm ON ppfm.currentstatus = psm.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`
+     break;
+     case 10:
+      return `SELECT pm.payProcessMasterAutoId, pd.ctc, pd.lopDays, pd.totalWorkingDays, pd.tdsDeductions, pd.netPay, pd.deductionAmount, pd.arrearAmount, pd.loanAmont, pd.salaryMonth, pd.deductionName, pd.lopDeductions, pp.payPackageEffectiveDate, pe.salaryComponentAutoId, pe.payElementAmount, sc.includeInPackage, sc.includeInPackage, sc.salaryComponentEarningType FROM payprocessmaster pm JOIN payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId JOIN paypackage pp ON pd.EmployeeId = pp.EmployeeId JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE pm.payProcessMasterAutoId = 1 AND pd.payStatus = 2 AND pd.EmployeeId = 484`
+      break;
+      case 11:
+        return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}`
+   break;
+   case 12 :
+    return `SELECT sc.salaryComponentAutoId, scm.elementValue, sce.salaryComponentElementAutoId, sce.salaryComponentElementName FROM salarycomponent sc JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId JOIN salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sc.salaryComponentAutoId = ${data}`
+    break;
+    
+    case 13: return `SELECT COUNT(CASE WHEN scm.salaryComponentElementAutoId = 1 AND scm.elementValue = 1 THEN 1 END) AS lopAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 2 AND scm.elementValue = 1 THEN 1 END) AS arrearAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 3 AND scm.elementValue = 1 THEN 1 END) AS leaveEncashmentCount FROM paypackage pp LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId LEFT JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId WHERE pp.EmployeeId = ${data}`
+    break;
+
+    case 14: return `SELECT SUM(deductionAmount) AS totalDeduction, GROUP_CONCAT(deductionCategory ORDER BY deductionCategory SEPARATOR ' | ') AS deductionCategories FROM extradeductions WHERE startMonth = '${data2}' AND EmployeeId = ${data};`
+    break;
+
+    case 15:return `SELECT ppm.payMonth, ppm.payProcessMasterAutoId, ppfm.currentstatus, ps.name as statusName FROM tara_hrms_live.payprocessmaster ppm JOIN tara_hrms_live.payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN tara_hrms_live.paystatusmaster ps ON ppfm.currentstatus = ps.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`
+    break;
+
+    case 16 : return `SELECT empId, tdsAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType != 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) - SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara_hrms_live.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction')`;
+    break;
+
+    case 17: return `SELECT pm.payMonth, pd.EmployeeId as empId FROM tara_hrms_live.payprocessmaster pm INNER JOIN tara_hrms_live.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId WHERE pm.payProcessMasterAutoId = ${data} AND pd.payStatus = 2`
+    break;
+    case 18: return`SELECT (SELECT COUNT(*) FROM tara_hrms_live.payprocessdetails WHERE payMonth = '${data2.paymonth}') AS totalEmployees, (SELECT COUNT(*) FROM tara_hrms_live.payslip WHERE paySlipMonth = ${data2.month} AND paySlipYear = ${data2.year}) AS total_payslips, (SELECT COUNT(*) FROM tara_hrms_live.payslip WHERE paySlipMonth = ${data2.month} AND paySlipYear = ${data2.year} AND paySlipStatus = 1) AS paySlipReleased, COUNT(ps.paySlipAutoId) AS paySlipGenerated, ROUND((COUNT(ps.paySlipAutoId) * 100.0) / (SELECT COUNT(*) FROM tara_hrms_live.payprocessdetails WHERE payMonth = '${data2.paymonth}'), 2) AS paySlipPercentage FROM tara_hrms_live.payprocessdetails pd LEFT JOIN tara_hrms_live.payslip ps ON pd.EmployeeId = ps.EmployeeId WHERE pd.payMonth = '${data2.paymonth}' AND ps.paySlipMonth = ${data2.month} AND ps.paySlipYear = ${data2.year};`;
+    break;
+    default:
+  }
+}
+
+function getPaySlipObject(processedEmployee, createdBy) {
+  let paySlipDuration =
+    "01" +
+    "/" +
+    processedEmployee.salaryMonth.split("-")[1] +
+    "/" +
+    processedEmployee.salaryMonth.split("-")[0] +
+    "-" +
+    processedEmployee.totalWorkingDays +
+    "/" +
+    processedEmployee.salaryMonth.split("-")[1] +
+    "/" +
+    processedEmployee.salaryMonth.split("-")[0];
+  let paySlipObject = {
+    EmployeeId: processedEmployee.EmployeeId,
+    paySlipMonth: parseInt(processedEmployee.salaryMonth.split("-")[1]),
+    paySlipYear: processedEmployee.salaryMonth.split("-")[0],
+    paySlipFinancialYear: "2024-25",
+    paySlipDuration: paySlipDuration,
+    paySlipTotalDays: processedEmployee.totalWorkingDays,
+    paySlipAbsentDays: processedEmployee.lopDays,
+    paySlipArrearDays: 0,
+    paySlipGrossEarning: processedEmployee.ctc,
+    paySlipTotalPay: processedEmployee.netPay,
+    paySlipNetPay: processedEmployee.netPay,
+    paySlipTotalDeduction:
+      parseFloat(processedEmployee.lopDeductions) +
+      parseFloat(processedEmployee.deductionAmount) +
+      parseFloat(processedEmployee.tdsDeductions),
+    createdBy: createdBy,
+    createdAt: new Date(),
+    paySlipWorkingDays:
+      parseInt(processedEmployee.totalWorkingDays) -
+      parseInt(processedEmployee.lopDays),
+    paySlipTDS: processedEmployee.tdsDeductions,
+  };
+  return paySlipObject;
+}
+function getElementValue(name,data) {
+  // console.log(data);
+  const item = data.find(item => item.salaryComponentElementName === name);
+  return item ? item.elementValue : null; // Return elementValue or null if not found
+}
+function getPayComponentObject(
+  employeePackageDetails,
+  processedEmployee,
+  newPaySlip,
+  req,
+  deductionType
+) {
+  let paySlipComponentObj;
+  if (deductionType == "SalaryComponent") {
+    paySlipComponentObj = {
+      EmployeeId: employeePackageDetails.EmployeeId,
+      paySlipAutoId: newPaySlip.dataValues.paySlipAutoId,
+      salaryComponentAutoId: employeePackageDetails.salaryComponentAutoId,
+      paySlipComponentName: employeePackageDetails.salaryComponentAlias
+        ? employeePackageDetails.salaryComponentAlias
+        : employeePackageDetails.salaryComponentCode,
+      paySlipComponentType: employeePackageDetails.salaryComponentEarningType,
+      createdBy: req.userData.id,
+      createdAt: new Date(),
+      isActive: 0,
+      paySlipComponentAmount:
+        employeePackageDetails.salaryComponentEarningType == "Earning"
+          ? parseFloat(employeePackageDetails.payElementAmount) -
+            parseFloat(
+              getPercentagePart(
+                employeePackageDetails.payElementAmount,
+                getPercentage(
+                  processedEmployee.lopDeductions,
+                  processedEmployee.ctc
+                )
+              )
+            )
+          : parseFloat(employeePackageDetails.payElementAmount),
+    };
+  } else {
+    paySlipComponentObj = {
+      EmployeeId: processedEmployee.EmployeeId,
+      paySlipAutoId: newPaySlip.dataValues.paySlipAutoId,
+      salaryComponentAutoId: 0,
+      paySlipComponentName: deductionType,
+      paySlipComponentType: "Deduction",
+      createdBy: req.userData.id,
+      createdAt: new Date(),
+      isActive: 0,
+      paySlipComponentAmount: employeePackageDetails,
+    };
+  }
+
+  return paySlipComponentObj;
+}
+
+export default {
+  payAfterLOPDeductions,
+  payAfterTDSDeductions,
+  payAfterStandardDeductions,
+  standardDeductions,
+  getDaysInCurrentMonth,
+  getPercentage,
+  getPercentagePart,
+  query,
+  getPaySlipObject,
+  getPayComponentObject,
+  getElementValue
+};
