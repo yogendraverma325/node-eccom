@@ -3752,10 +3752,13 @@ class UserController {
       });
 
       if (isSameDetails) {
-        const base64Image = result.paymentAttachment; 
+        const base64Image = result.paymentAttachment;
         const folderImagePath = isSameDetails.paymentAttachment;
-  
-        let imageResult = await helper.compareImages(base64Image.split(",")[1], folderImagePath);
+
+        let imageResult = await helper.compareImages(
+          base64Image.split(",")[1],
+          folderImagePath
+        );
         if (
           isSameDetails.paymentAccountNumber == result.paymentAccountNumber &&
           //isSameDetails.paymentBankIfsc == result.paymentBankIfsc &&
@@ -3786,7 +3789,7 @@ class UserController {
           const objForApproval = {
             status: "pending",
             pendingAt: 1982,
-            
+            requrestTriggred: moment().format("YYYY-MM-DD HH:mm:ss"),
             ...(result.bankId != isSameDetails.bankId && {
               newBankId: result.bankId,
             }),
@@ -3794,32 +3797,32 @@ class UserController {
             ...(result.paymentBankName != isSameDetails.paymentBankName && {
               newBankNameReq: result.paymentBankName,
             }),
-            
+
             ...(result.paymentAccountNumber !=
               isSameDetails.paymentAccountNumber && {
               newAccountNumberReq: result.paymentAccountNumber,
             }),
-           
+
             ...(result.paymentHolderName != isSameDetails.paymentHolderName && {
               newAccountHolderNameReq: result.paymentHolderName,
             }),
-            
+
             ...(result.paymentBankIfsc != isSameDetails.paymentBankIfsc && {
               newIfscCodeReq: result.paymentBankIfsc,
             }),
-            
+
             ...(result.comment
               ? { comment: result.comment }
               : { comment: null }),
-            
-              ...(result.paymentAttachment && imageResult == false
+
+            ...(result.paymentAttachment && imageResult == false
               ? { newPaymentAttachment: paymentAttachment }
               : { newPaymentAttachment: null }),
-            
-              // ...(result.supportingDocument
-              // ? { newSupportingDocument: supportingDocument }
-              // : { newSupportingDocument: null }),
-          };          
+
+            // ...(result.supportingDocument
+            // ? { newSupportingDocument: supportingDocument }
+            // : { newSupportingDocument: null }),
+          };
           await db.paymentDetails.update(objForApproval, {
             where: { userId: req.userId },
           });
@@ -3836,10 +3839,13 @@ class UserController {
           });
         }
       } else {
-        const base64Image = result.paymentAttachment; 
+        const base64Image = result.paymentAttachment;
         const folderImagePath = isSameDetails.paymentAttachment;
-  
-        let imageResult = await helper.compareImages(base64Image.split(",")[1], folderImagePath);
+
+        let imageResult = await helper.compareImages(
+          base64Image.split(",")[1],
+          folderImagePath
+        );
         const d = Math.floor(Date.now() / 1000);
         if (result.paymentAttachment) {
           var paymentAttachment = await helper.fileUpload(
@@ -3853,6 +3859,7 @@ class UserController {
           userId: req.userId,
           status: "pending",
           pendingAt: 1982,
+          requrestTriggred: moment().format("YYYY-MM-DD HH:mm:ss"),
           ...(result.bankId && { newBankId: result.bankId }),
           ...(result.paymentBankName && {
             newBankNameReq: result.paymentBankName,
@@ -3867,12 +3874,12 @@ class UserController {
             newIfscCodeReq: result.paymentBankIfsc,
           }),
           ...(result.comment ? { comment: result.comment } : { comment: null }),
-         
+
           ...(result.paymentAttachment
             ? { newPaymentAttachment: paymentAttachment }
             : { newPaymentAttachment: null }),
-         
-            // ...(result.supportingDocument
+
+          // ...(result.supportingDocument
           //   ? { newSupportingDocument: supportingDocument }
           //   : { newSupportingDocument: null }),
         };
