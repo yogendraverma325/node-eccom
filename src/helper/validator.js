@@ -1180,6 +1180,16 @@ const blockLoginSchema = Joi.object({
   employeeCode: Joi.string().trim().required().label("Employee Code"),
 });
 
+///Confirmation
+const requestForProbationExtendvalidationSchema = Joi.object({
+  employeeId: Joi.number().label("Employee ID"),
+  noticePeriodId: Joi.number().required().label("Notice Peroid"),
+  confirmationinitiatedAutoId: Joi.number().required().label("Confirmation ID"),
+  recommendation: Joi.number().required().label("Recommendation"),
+  attachment: Joi.string().allow("").optional(),
+});
+///Confirmation
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1230,4 +1240,5 @@ export default {
   requestForPaymentApprovalSchema,
   actionPaymentSchema,
   blockLoginSchema,
+  requestForProbationExtendvalidationSchema,
 };

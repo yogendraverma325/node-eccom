@@ -1314,9 +1314,16 @@ class MasterController {
   async probation(req, res) {
     try {
       let query = { isActive: 1 };
+      let queryFormat = req.query;
+      console.log("queryFormat", queryFormat);
       const probationData = await db.probationMaster.findAll({
         where: query,
-        attributes: ["probationId", "probationName"],
+        attributes: queryFormat
+          ? [
+              ["probationId", "value"],
+              ["probationName", "label"],
+            ]
+          : [("probationId", "probationName")],
       });
 
       return respHelper(res, {

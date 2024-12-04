@@ -103,6 +103,17 @@ import JobLevelMapping from "../api/model/JobLevelMapping.js";
 import offRoleCtc from "../api/model/offRoleCtc.js";
 import EmployeePaymentDetailsHistory from "../api/model/EmployeePaymentDetailsHistory.js";
 
+//CONFIRMATION
+import Confirmationinitiated from "../api/model/ConfirmationInitiated.js";
+import Confirmationowners from "../api/model/Confirmationowners.js";
+import Confirmatoinformfields from "../api/model/ConfirmationFormFields.js";
+import Confirmatoinformfieldsoptions from "../api/model/Confirmatoinformfieldsoptions.js";
+import Confirmationformfilledvalues from "../api/model/ConfirmationFormFilledValues.js";
+import Confirmationaudittrail from "../api/model/ConfirmationAudit.js";
+import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
+import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
+import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
+//CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -266,10 +277,29 @@ db.taskBuMapping = TaskBuMapping(sequelize, Sequelize);
 db.offRoleCtc = offRoleCtc(sequelize, Sequelize);
 db.paymentDetailsHistory = EmployeePaymentDetailsHistory(sequelize, Sequelize);
 
-
 db.EmployeeLeaveHeader = EmployeeLeaveHeader(sequelize, Sequelize);
 db.bankMaster = BankMaster(sequelize, Sequelize);
 db.jobLevelMapping = JobLevelMapping(sequelize, Sequelize);
+//CONFIRMATION
+db.Confirmationinitiated = Confirmationinitiated(sequelize, Sequelize);
+db.Confirmationowners = Confirmationowners(sequelize, Sequelize);
+db.Confirmatoinformfields = Confirmatoinformfields(sequelize, Sequelize);
+db.Confirmatoinformfieldsoptions = Confirmatoinformfieldsoptions(
+  sequelize,
+  Sequelize
+);
+db.Confirmationformfilledvalues = Confirmationformfilledvalues(
+  sequelize,
+  Sequelize
+);
+db.Confirmationaudittrail = Confirmationaudittrail(sequelize, Sequelize);
+db.Confimationpolicy = Confimationpolicy(sequelize, Sequelize);
+db.Confirmationassignment = Confirmationassignment(sequelize, Sequelize);
+db.Confirmationpolicyworkflow = Confirmationpolicyworkflow(
+  sequelize,
+  Sequelize
+);
+//CONFIRMATION
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1001,5 +1031,37 @@ db.functionalAreaMaster.hasOne(db.functionalAreaMaster, {
   sourceKey: "parentFunctionalAreaId",
   as: "parentFunctionalArea",
 });
+
+//CONFIRMATION
+db.Confirmationinitiated.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "employeeId",
+});
+db.Confirmationowners.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "employeeId",
+});
+db.Confirmationinitiated.hasMany(db.Confirmationowners, {
+  foreignKey: "confirmationinitiatedAutoId",
+});
+db.Confirmationowners.belongsTo(db.Confirmationinitiated, {
+  foreignKey: "confirmationinitiatedAutoId",
+});
+db.Confirmatoinformfields.hasMany(db.Confirmatoinformfieldsoptions, {
+  foreignKey: "confirmatoinformfieldsAutoId",
+});
+
+db.Confirmationformfilledvalues.hasOne(db.Confirmatoinformfields, {
+  foreignKey: "confirmatoinformfieldsAutoId",
+  sourceKey: "confirmatoinformfieldsAutoId",
+});
+db.Confirmationinitiated.hasMany(db.Confirmationaudittrail, {
+  foreignKey: "confirmationinitiatedAutoId",
+});
+db.employeeMaster.hasOne(db.Confimationpolicy, {
+  foreignKey: "confimationPolicyAutoId",
+  sourceKey: "confimationPolicyAutoId",
+});
+//CONFIRAMTION
 
 export default db;

@@ -8,16 +8,15 @@ import bcrypt from "bcrypt";
 import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
-import crypto from 'crypto';
-import { createCanvas, loadImage } from 'canvas';
+import crypto from "crypto";
+import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
-  let pattern = /desktop/i
+  let pattern = /desktop/i;
   const token = jwt.sign(data, process.env.JWT_KEY, {
-    expiresIn:
-      pattern.test(data.user.device)
-        ? process.env.JWT_EXPIRY
-        : process.env.JWT_EXPIRY_MOBILE,
+    expiresIn: pattern.test(data.user.device)
+      ? process.env.JWT_EXPIRY
+      : process.env.JWT_EXPIRY_MOBILE,
   });
   return token;
 };
@@ -60,7 +59,7 @@ const fileUpload = async (base64String, fileName, filepath) => {
 };
 
 const checkFolder = async () => {
-  const folder = ["uploads", 'uploads/temp'];
+  const folder = ["uploads", "uploads/temp"];
   for (const iterator of folder) {
     let dir = iterator;
     if (!dir) dir = path.resolve(iterator);
@@ -179,8 +178,8 @@ const mergeEmail = (email) => {
     typeof email === "string"
       ? [{ email }]
       : email.map((email) => {
-        return { email };
-      });
+          return { email };
+        });
   return emails;
 };
 
@@ -712,55 +711,60 @@ const empMarkLeaveOfGivenDate = async function (
     leaveType = "Full Day";
   }
   if (lateCase != null && workCase == null) {
-    leaveText = `Auto-requested for Leave deduction based on late duration policy.${empData.name
-      } (${empData.empCode}) has clocked in late in ${attendanceandOtherData.attendancemaster.attendanceLateBy
-      }
+    leaveText = `Auto-requested for Leave deduction based on late duration policy.${
+      empData.name
+    } (${empData.empCode}) has clocked in late in ${
+      attendanceandOtherData.attendancemaster.attendanceLateBy
+    }
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationHalfDayTime
+    )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationFullDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationFullDayTime
+    )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-        inputData.toDate
-      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+      inputData.toDate
+    ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
   } else if (lateCase == null && workCase != null) {
-    leaveText = `Auto-requested for Leave because of Work duration policy.${empData.name
-      } (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
-      }
+    leaveText = `Auto-requested for Leave because of Work duration policy.${
+      empData.name
+    } (${empData.empCode}) has worked for ${
+      attendanceandOtherData.attendancemaster.attendanceWorkingTime
+    }
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationHalfDayTime
+    )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationFullDayTime
-      )}`;
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationFullDayTime
+    )}`;
   } else {
     leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
-${empData.name} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
-      } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
+${empData.name} (${empData.empCode}) has worked for ${
+      attendanceandOtherData.attendancemaster.attendanceWorkingTime
+    } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationHalfDayTime
+    )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyWorkDurationFullDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyWorkDurationFullDayTime
+    )}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationHalfDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationHalfDayTime
+    )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-        attendanceandOtherData.attendancePolicymaster
-          .leaveDeductPolicyLateDurationFullDayTime
-      )}
+      attendanceandOtherData.attendancePolicymaster
+        .leaveDeductPolicyLateDurationFullDayTime
+    )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-        inputData.toDate
-      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+      inputData.toDate
+    ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
   }
   inputData.source = "system_generated";
 
@@ -1263,63 +1267,108 @@ const generateOTP = async function (length) {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
+  console.log("inputLevel", inputLevel);
+  let levelData = null;
+  let level = inputLevel;
+  let levelFound = false;
+  levelData = await db.Confirmationpolicyworkflow.findOne({
+    where: {
+      confimationPolicyAutoId: policyId,
+      isEnable: 1,
+      level: level,
+    },
+  });
+  if (!levelData) {
+    level++;
+    levelData = await db.Confirmationpolicyworkflow.findOne({
+      where: {
+        confimationPolicyAutoId: policyId,
+        isEnable: 1,
+        level: level,
+      },
+    });
+  }
+  if (!levelData) {
+    level++;
+    levelData = await db.Confirmationpolicyworkflow.findOne({
+      where: {
+        confimationPolicyAutoId: policyId,
+        isEnable: 1,
+        level: level,
+      },
+    });
+  }
+  if (!levelData) {
+    level++;
+    levelData = await db.Confirmationpolicyworkflow.findOne({
+      where: {
+        confimationPolicyAutoId: policyId,
+        isEnable: 1,
+        level: level,
+      },
+    });
+  }
+  if (levelData) {
+    levelFound = true;
+  }
+  return { levelData: levelData, level: level, levelFound: levelFound };
+};
 
 const generateSHA512Hash = async function (input) {
-  const hash = crypto.createHash('sha512');
+  const hash = crypto.createHash("sha512");
   hash.update(input);
-  return hash.digest('hex'); // Output the hash in hexadecimal format
-}
+  return hash.digest("hex"); // Output the hash in hexadecimal format
+};
 
 const compareImages = async function (base64Image, folderImagePath) {
   try {
-
     // Decode the base64 image into a buffer
-     if(base64Image == null || folderImagePath == null){
-      console.log('Images are different');
+    if (base64Image == null || folderImagePath == null) {
+      console.log("Images are different");
       return false;
-     }
-     else{
-      const base64Buffer = Buffer.from(base64Image, 'base64');
+    } else {
+      const base64Buffer = Buffer.from(base64Image, "base64");
 
-    // Load the base64 image and the folder image into canvases
-    const img1 = await loadImage(base64Buffer);
-    const img2 = await loadImage(folderImagePath);
+      // Load the base64 image and the folder image into canvases
+      const img1 = await loadImage(base64Buffer);
+      const img2 = await loadImage(folderImagePath);
 
-    const canvas1 = createCanvas(img1.width, img1.height);
-    const canvas2 = createCanvas(img2.width, img2.height);
+      const canvas1 = createCanvas(img1.width, img1.height);
+      const canvas2 = createCanvas(img2.width, img2.height);
 
-    const ctx1 = canvas1.getContext('2d');
-    const ctx2 = canvas2.getContext('2d');
+      const ctx1 = canvas1.getContext("2d");
+      const ctx2 = canvas2.getContext("2d");
 
-    ctx1.drawImage(img1, 0, 0);
-    ctx2.drawImage(img2, 0, 0);
+      ctx1.drawImage(img1, 0, 0);
+      ctx2.drawImage(img2, 0, 0);
 
-    // Get image data for comparison
-    const data1 = ctx1.getImageData(0, 0, img1.width, img1.height).data;
-    const data2 = ctx2.getImageData(0, 0, img2.width, img2.height).data;
+      // Get image data for comparison
+      const data1 = ctx1.getImageData(0, 0, img1.width, img1.height).data;
+      const data2 = ctx2.getImageData(0, 0, img2.width, img2.height).data;
 
-    // Compare pixel by pixel
-    let isIdentical = true;
-    for (let i = 0; i < data1.length; i++) {
-      if (data1[i] !== data2[i]) {
-        isIdentical = false;
-        break;
+      // Compare pixel by pixel
+      let isIdentical = true;
+      for (let i = 0; i < data1.length; i++) {
+        if (data1[i] !== data2[i]) {
+          isIdentical = false;
+          break;
+        }
+      }
+
+      if (isIdentical) {
+        console.log("Images are identical");
+        return true;
+      } else {
+        console.log("Images are different");
+        return false;
       }
     }
-
-    if (isIdentical) {
-      console.log('Images are identical');
-      return true;
-    } else {
-      console.log('Images are different');
-      return false;
-    }
-     }
   } catch (error) {
-    console.error('Error comparing images:', error);
+    console.error("Error comparing images:", error);
     return false;
   }
-}
+};
 
 export default {
   generateJwtToken,
@@ -1346,5 +1395,6 @@ export default {
   generateJwtOTPDecrypt,
   isDayWorkingForReport,
   generateSHA512Hash,
-  compareImages
+  compareImages,
+  generateFieldsForgivenLevel,
 };

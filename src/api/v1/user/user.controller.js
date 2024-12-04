@@ -3752,10 +3752,13 @@ class UserController {
       });
 
       if (isSameDetails) {
-        const base64Image = result.paymentAttachment; 
+        const base64Image = result.paymentAttachment;
         const folderImagePath = isSameDetails.paymentAttachment;
-  
-        let imageResult = await helper.compareImages(base64Image.split(",")[1], folderImagePath);
+
+        let imageResult = await helper.compareImages(
+          base64Image.split(",")[1],
+          folderImagePath
+        );
         if (
           isSameDetails.paymentAccountNumber == result.paymentAccountNumber &&
           //isSameDetails.paymentBankIfsc == result.paymentBankIfsc &&
@@ -3786,40 +3789,40 @@ class UserController {
           const objForApproval = {
             status: "pending",
             pendingAt: 1982,
-            
+
             ...(result.bankId != isSameDetails.bankId && {
               newBankId: result.bankId,
             }),
-            
+
             ...(result.paymentBankName != isSameDetails.paymentBankName && {
               newBankNameReq: result.paymentBankName,
             }),
-            
+
             ...(result.paymentAccountNumber !=
               isSameDetails.paymentAccountNumber && {
               newAccountNumberReq: result.paymentAccountNumber,
             }),
-           
+
             ...(result.paymentHolderName != isSameDetails.paymentHolderName && {
               newAccountHolderNameReq: result.paymentHolderName,
             }),
-            
+
             ...(result.paymentBankIfsc != isSameDetails.paymentBankIfsc && {
               newIfscCodeReq: result.paymentBankIfsc,
             }),
-            
+
             ...(result.comment
               ? { comment: result.comment }
               : { comment: null }),
-            
-              ...(result.paymentAttachment && imageResult == false
+
+            ...(result.paymentAttachment && imageResult == false
               ? { newPaymentAttachment: paymentAttachment }
               : { newPaymentAttachment: null }),
-            
-              // ...(result.supportingDocument
-              // ? { newSupportingDocument: supportingDocument }
-              // : { newSupportingDocument: null }),
-          };          
+
+            // ...(result.supportingDocument
+            // ? { newSupportingDocument: supportingDocument }
+            // : { newSupportingDocument: null }),
+          };
           await db.paymentDetails.update(objForApproval, {
             where: { userId: req.userId },
           });
@@ -3836,10 +3839,13 @@ class UserController {
           });
         }
       } else {
-        const base64Image = result.paymentAttachment; 
+        const base64Image = result.paymentAttachment;
         const folderImagePath = isSameDetails.paymentAttachment;
-  
-        let imageResult = await helper.compareImages(base64Image.split(",")[1], folderImagePath);
+
+        let imageResult = await helper.compareImages(
+          base64Image.split(",")[1],
+          folderImagePath
+        );
         const d = Math.floor(Date.now() / 1000);
         if (result.paymentAttachment) {
           var paymentAttachment = await helper.fileUpload(
@@ -3847,8 +3853,11 @@ class UserController {
             `paymentDetails${d}`,
             `uploads/${existUser.empCode}`
           );
+          return respHelper(res, {
+            status: 200,
+            msg: constant.PAYMENT_REQUEST_FOR_APPROVAL,
+          });
         }
-
         const objForApproval = {
           userId: req.userId,
           status: "pending",
@@ -3867,12 +3876,12 @@ class UserController {
             newIfscCodeReq: result.paymentBankIfsc,
           }),
           ...(result.comment ? { comment: result.comment } : { comment: null }),
-         
+
           ...(result.paymentAttachment
             ? { newPaymentAttachment: paymentAttachment }
             : { newPaymentAttachment: null }),
-         
-            // ...(result.supportingDocument
+
+          // ...(result.supportingDocument
           //   ? { newSupportingDocument: supportingDocument }
           //   : { newSupportingDocument: null }),
         };
@@ -3989,6 +3998,540 @@ class UserController {
       });
     }
   }
+
+  ///CONFIRMATION///
+  async confirmatonList(req, res) {
+    try {
+      const confirmationData = await db.Confirmationinitiated.findAll({
+        where: {
+          // status: [0, 2],
+        },
+        include: [
+          {
+            model: db.employeeMaster,
+            attributes: ["id", "empCode", "name"],
+            include: {
+              model: db.jobDetails,
+              attributes: [
+                "dateOfJoining",
+                "dateOfProbationEnd",
+                "probationPeriod",
+                "probationDays",
+              ],
+            },
+          },
+          {
+            model: db.Confirmationowners,
+            attributes: [
+              "employeeId",
+              "canTakeAction",
+              "level",
+              "canTakeActionExtend",
+            ],
+            where: {
+              employeeId: req.userId,
+            },
+            include: {
+              model: db.employeeMaster,
+              attributes: ["empCode", "name"],
+            },
+          },
+          {
+            model: db.Confirmationaudittrail,
+          },
+        ],
+      });
+
+      return respHelper(res, {
+        status: 200,
+        data: confirmationData,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async confirmatonFormSubmission(req, res) {
+    // try {
+    const cantakeAction = await db.Confirmationinitiated.findOne({
+      where: {
+        confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+        level: parseInt(req.query.level),
+        status: 0,
+      },
+      include: [
+        {
+          model: db.Confirmationowners,
+          attributes: [
+            "employeeId",
+            "canTakeAction",
+            "level",
+            "canTakeActionExtend",
+          ],
+          where: {
+            employeeId: req.userId,
+            canTakeAction: 1,
+            slaEndDate: {
+              [Op.gte]: moment().format("YYYY-MM-DD"), // today's date in YYYY-MM-DD format
+            },
+          },
+        },
+      ],
+    });
+    if (!cantakeAction) {
+      return respHelper(res, {
+        status: 400,
+        msg: constant.CONFIRMATION.CANT_TAKE_ACTION,
+      });
+    }
+
+    for (const element of req.body) {
+      await db.Confirmationformfilledvalues.update(
+        {
+          values: element.confirmatoinformfieldsValues,
+          updatedBy: req.userId,
+        },
+        {
+          where: {
+            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+            confirmationFormGroupId: element.confirmationFormGroupId,
+            level: parseInt(req.query.level),
+            confirmatoinformfieldsAutoId: element.confirmatoinformfieldsAutoId,
+          },
+        }
+      );
+    }
+
+    const employeeData = await db.jobDetails.findOne({
+      where: {
+        userId: req.query.employeeId,
+      },
+      attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
+      include: {
+        model: db.employeeMaster,
+        attributes: ["id", "name", "confimationPolicyAutoId"],
+        require: true,
+        where: {
+          isActive: 1,
+        },
+        include: {
+          model: db.Confimationpolicy,
+          require: true,
+          where: {
+            isActive: 1,
+          },
+        },
+      },
+    });
+
+    if (employeeData) {
+      let level = parseInt(req.query.level);
+      let respfrom = await helper.generateFieldsForgivenLevel(
+        employeeData?.employee?.confimationPolicyAutoId,
+        level + 1
+      );
+
+      await db.Confirmationowners.update(
+        {
+          canTakeAction: 0,
+          canTakeActionExtend: 0,
+          isCompleted: 1,
+        },
+        {
+          where: {
+            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+            level: req.query.level,
+          },
+        }
+      );
+
+      await db.Confirmationaudittrail.create({
+        confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+        createdBy: 1,
+        status: 1,
+        level: level,
+        message: `Completed by level ${level}`,
+        confirmationAction: 1,
+      });
+
+      if (respfrom.levelFound) {
+        await db.Confirmationinitiated.update(
+          {
+            level: respfrom.level,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                req.query.confirmationinitiatedAutoId,
+            },
+          }
+        );
+        let EMP_DATA_SELF = await helper.getEmpProfile(req.query.employeeId); // SELF Manager
+        // if (respfrom.level == 1) {
+        let ownerId = 0;
+        if (respfrom?.levelData?.ownerRole == "SELF") {
+          ownerId = req.query.employeeId;
+        } else if (respfrom?.levelData?.ownerRole == "MANAGER") {
+          ownerId = EMP_DATA_SELF?.managerData?.id;
+        } else if (respfrom?.levelData?.ownerRole == "L2_MANAGER") {
+          let MANAAGER_MANAGER = await helper.getEmpProfile(
+            EMP_DATA_SELF?.managerData?.id
+          ); // MANAGER KA MANAGER
+          ownerId = MANAAGER_MANAGER?.managerData?.id;
+        } else if (respfrom?.levelData?.ownerRole == "ADMIN") {
+          let admin = await db.employeeMaster.findOne({
+            where: {
+              role_id: 2,
+              isActive: 1,
+            },
+          });
+          ownerId = admin?.id;
+        } else if (respfrom?.levelData?.ownerRole == "BUHR") {
+          ownerId = EMP_DATA_SELF?.buHRId;
+        }
+        await db.Confirmationowners.create({
+          confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+          employeeId: ownerId,
+          level: respfrom.level,
+          canTakeAction: 1,
+          canTakeActionExtend: respfrom?.levelData?.ownerRole == "SELF" ? 0 : 1,
+          confirmationFormGroupId: respfrom?.levelData?.confirmationFormGroupId,
+          slaEndDate: moment()
+            .add(respfrom?.levelData?.maxCompletionDay, "days")
+            .format("YYYY-MM-DD"),
+          createdBy: 1,
+        });
+        const formFields = await db.Confirmatoinformfields.findAll({
+          where: {
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            // level: respfrom.level,
+          },
+        });
+        let bulkArray = [];
+        for (const formField of formFields) {
+          bulkArray.push({
+            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+            confirmationFormGroupId: formField.confirmationFormGroupId,
+            confirmatoinformfieldsAutoId:
+              formField.confirmatoinformfieldsAutoId,
+            employeeId: req.query.employeeId,
+            values: "",
+            level: respfrom.level,
+            createdBy: 1,
+          });
+        }
+        if (bulkArray.length > 0) {
+          await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
+        }
+      } else {
+        await db.Confirmationinitiated.update(
+          {
+            level: 0,
+            status: 1,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                req.query.confirmationinitiatedAutoId,
+            },
+          }
+        );
+
+        await db.jobDetails.update(
+          {
+            dateOfProbationEnd: null,
+          },
+          {
+            where: {
+              userId: req.query.employeeId,
+            },
+          }
+        );
+      }
+    }
+
+    return respHelper(res, {
+      status: 200,
+      msg: constant.CONFIRMATION.FORM_SUBMISSION,
+    });
+    // } catch (error) {
+    //   return respHelper(res, {
+    //     status: 500,
+    //     msg: "Internal server error",
+    //   });
+    // }
+  }
+  async confirmatonFormdetails(req, res) {
+    try {
+      const confirsmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+        },
+        include: {
+          model: db.Confirmationowners,
+          attributes: [
+            "employeeId",
+            "canTakeAction",
+            "level",
+            "confirmationFormGroupId",
+          ],
+          where: {
+            employeeId: req.userId,
+          },
+        },
+      });
+      let formsFields = [];
+
+      if (confirsmationData) {
+        formsFields = await db.Confirmationformfilledvalues.findAll({
+          where: {
+            confirmationFormGroupId:
+              confirsmationData?.confirmationowners[0]?.confirmationFormGroupId,
+            confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+            level: confirsmationData?.confirmationowners[0]?.level,
+          },
+          include: {
+            model: db.Confirmatoinformfields,
+            where: {},
+            include: {
+              model: db.Confirmatoinformfieldsoptions,
+              attributes: ["value", "label"],
+            },
+          },
+        });
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: formsFields,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async extendProbation(req, res) {
+    try {
+      const result =
+        await validator.requestForProbationExtendvalidationSchema.validateAsync(
+          req.body
+        );
+
+      const existUser = await db.employeeMaster.findOne({
+        where: {
+          id: result.employeeId,
+          isActive: 1,
+        },
+        attributes: ["name", "empCode", "profileImage", "id"],
+        include: {
+          model: db.jobDetails,
+        },
+      });
+      const probationData = await db.probationMaster.findOne({
+        where: {
+          probationId: result.noticePeriodId,
+        },
+        attributes: [("probationId", "probationName")],
+      });
+      const confirmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+          employeeId: result.employeeId,
+          status: [0],
+        },
+      });
+      if (existUser && probationData && confirmationData) {
+        const originalDate = moment(
+          existUser.employeejobdetail.dateOfProbationEnd
+        );
+        // Add 5 days
+        const newDate = originalDate.add(5, "days");
+        await db.jobDetails.update(
+          {
+            probationId: result.noticePeriodId,
+            updatedAt: moment(),
+            probationPeriod: probationData.probationName,
+            updatedBy: req.userId,
+            probationDays: probationData.durationOfProbation,
+            dateOfProbationEnd: newDate.format("YYYY-MM-DD"),
+          },
+          {
+            where: {
+              userId: existUser.id,
+            },
+          }
+        );
+        await db.Confirmationinitiated.update(
+          {
+            status: 2,
+            updatedBy: req.userId,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+            },
+          }
+        );
+
+        await db.Confirmationaudittrail.create({
+          confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+          createdBy: req.userId,
+          status: 1,
+          level: confirmationData.level,
+          message: `Extended by level ${confirmationData.level}`,
+          confirmationAction: 2,
+        });
+
+        let extendBulkArray = [
+          {
+            confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+            confirmationFormGroupId: 4,
+            confirmatoinformfieldsAutoId: 1,
+            employeeId: confirmationData.employeeId,
+            level: confirmationData.level,
+            values: result.noticePeriodId,
+            createdBy: req.userId,
+            updatedBy: req.userId,
+          },
+        ];
+
+        extendBulkArray.push({
+          confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+          confirmationFormGroupId: 4,
+          confirmatoinformfieldsAutoId: 2,
+          employeeId: confirmationData.employeeId,
+          level: confirmationData.level,
+          values: result.recommendation,
+          createdBy: req.userId,
+          updatedBy: req.userId,
+        });
+
+        let profilePicture = "";
+        if (result.attachment) {
+          profilePicture = await helper.fileUpload(
+            result.attachment,
+            `extend_attachemnt_${existUser.id}`,
+            `uploads/${existUser.empCode}`
+          );
+        } else {
+          profilePicture = "";
+        }
+
+        extendBulkArray.push({
+          confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+          confirmationFormGroupId: 4,
+          confirmatoinformfieldsAutoId: 3,
+          employeeId: confirmationData.employeeId,
+          level: confirmationData.level,
+          values: profilePicture,
+          createdBy: req.userId,
+          updatedBy: req.userId,
+        });
+        await db.Confirmationformfilledvalues.update(
+          {
+            usedInForm: 0,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+              level: confirmationData.level,
+            },
+          }
+        );
+        await db.Confirmationformfilledvalues.bulkCreate(extendBulkArray);
+
+        await db.Confirmationowners.update(
+          {
+            canTakeAction: 0,
+            canTakeActionExtend: 0,
+            isCompleted: 1,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: result.confirmationinitiatedAutoId,
+              level: confirmationData.level,
+            },
+          }
+        );
+
+        return respHelper(res, {
+          status: 200,
+          data: {},
+          msg: constant.CONFIRMATION.FORM_SUBMISSION,
+        });
+      } else {
+        return respHelper(res, {
+          status: 400,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+  async confirmatonFormdetailsFilled(req, res) {
+    try {
+      const confirsmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+        },
+        include: {
+          model: db.Confirmationowners,
+          attributes: [
+            "employeeId",
+            "canTakeAction",
+            "level",
+            "confirmationFormGroupId",
+          ],
+          where: {
+            employeeId: req.userId,
+          },
+        },
+      });
+      let formsFields = [];
+
+      if (confirsmationData) {
+        formsFields = await db.Confirmationformfilledvalues.findAll({
+          where: {
+            level: req.params?.level,
+            usedInForm: 1,
+            confirmationinitiatedAutoId: req.params.confirmationinitiatedAutoId,
+          },
+          include: {
+            model: db.Confirmatoinformfields,
+            include: {
+              model: db.Confirmatoinformfieldsoptions,
+              attributes: ["value", "label"],
+            },
+          },
+        });
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: formsFields,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  ///CONFIRMATION///
 }
 
 export default new UserController();
