@@ -114,6 +114,23 @@ import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 //CONFIRMATION
+///Payrol//////
+import SalaryComponentMapping from "../api/model/SalaryComponentElementMapping.js";
+import SalaryStructure  from "../api/model/SalaryStructures.js";
+import SalaryComponentElement from "../api/model/SalaryComponentElement.js";
+import SalaryStructureComponentMapping from "../api/model/SalaryStructureComponentMapping.js";
+import EarningArears from "../api/model/EarningsArears.js";
+import LopDeductions from "../api/model/LopDeductions.js";
+import TDSDeductions from "../api/model/tdsDeductions.js";
+import SalaryRegister from "../api/model/SalaryRegister.js";
+import ExcludedPayroll from "../api/model/ExcludedPayroll.js";
+import ExtraDeductions from "../api/model/ExtraDeductions.js";
+import PayProcessDetail from "../api/model/payProcessDetails.js";
+import PayProcessMaster from "../api/model/payProcessMaster.js";
+import PayProcessFlowMaster from "../api/model/PayProcessFlowMaster.js";
+import PayProcessStatusMaster from "../api/model/PayProcessStatusMaster.js";
+import PayMonthlyElements from "../api/model/payMonthlyElements.js";
+////////////////////PAyroll////////////
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -300,6 +317,25 @@ db.Confirmationpolicyworkflow = Confirmationpolicyworkflow(
   Sequelize
 );
 //CONFIRMATION
+
+//Payroll///////////
+db.salarycomponentmapping=SalaryComponentMapping(sequelize,Sequelize);
+db.salaryStructure = SalaryStructure(sequelize,Sequelize);
+db.salarycomponentelement= SalaryComponentElement(sequelize,Sequelize);
+db.salarystructurecomponentmapping= SalaryStructureComponentMapping(sequelize,Sequelize)
+db.earningsArears = EarningArears(sequelize,Sequelize);
+db.tdsDeductions =TDSDeductions(sequelize,Sequelize);
+db.lopDeductions = LopDeductions(sequelize,Sequelize);
+db.salaryRegister=SalaryRegister(sequelize,Sequelize);
+db.excludedPayroll=ExcludedPayroll(sequelize,Sequelize);
+db.extraDeduction = ExtraDeductions(sequelize,Sequelize);
+db.payProcessDetails = PayProcessDetail(sequelize,Sequelize);
+db.payProcessMaster = PayProcessMaster(sequelize,Sequelize);
+db.payProcessFlowMaster =PayProcessFlowMaster(sequelize,Sequelize);
+db.payStatusMaster =PayProcessStatusMaster(sequelize,Sequelize);
+db.payMonthlyElements = PayMonthlyElements(sequelize,Sequelize);
+//////////////////Payroll///////////////////
+
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1063,5 +1099,78 @@ db.employeeMaster.hasOne(db.Confimationpolicy, {
   sourceKey: "confimationPolicyAutoId",
 });
 //CONFIRAMTION
+
+////Payroll/////////
+db.salaryStructure.hasMany(db.salarystructurecomponentmapping, {
+  foreignKey: "salaryStructureAutoId",
+  sourceKey: "salaryStructureAutoId",
+  as:"structureMappingDetails"
+});
+
+db.salarystructurecomponentmapping.hasMany(db.salarycomponentmapping, {
+  foreignKey: "salaryStructurecomponentmappingAutoId",
+  as:"componentMappedDetails"
+});
+
+
+// In salaryComponent model
+db.salarystructurecomponentmapping.hasOne(db.salaryComponent, {
+  foreignKey: 'salaryComponentAutoId',
+  sourceKey: "salaryComponentAutoId",
+  as: 'componentDetails',
+});
+
+db.salarycomponentmapping.belongsTo(db.salarycomponentelement, {
+  foreignKey: 'salaryComponentElementAutoId',
+  as: 'componentElementDetails', // This should match your query
+});
+
+db.salaryStructure.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "salaryStructureCreater",
+});
+
+
+db.salaryStructure.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "updatedBy",
+  as: "salaryStructureUpdater",
+});
+
+
+db.employeeMaster.hasOne(db.jobDetails,{
+
+  foreignKey:"userId",
+  sourceKey:"id",
+  as:"employeeJobDetails"
+});
+
+db.employeeMaster.hasOne(db.payPackage, {
+  foreignKey: "EmployeeId",
+  sourceKey: "id",
+  as:"packageDetails"
+});
+
+
+db.employeeMaster.hasOne(db.salaryRegister, {
+  foreignKey: "EmployeeId",
+  sourceKey: "id",
+  as:"salaryRegisterDetails"
+});
+
+db.employeeMaster.hasMany(db.excludedPayroll, {
+  foreignKey: "EmployeeId",
+  sourceKey: "id",
+  as:"excludedEmployeeDetails"
+});
+
+db.payPackage.hasMany(db.payElements, {
+  foreignKey: "payPackageAutoId",
+  sourceKey: "payPackageAutoId",
+  as:"empPayElements"
+});
+
+/////////////////////////////Payroll///////////////////////////
 
 export default db;

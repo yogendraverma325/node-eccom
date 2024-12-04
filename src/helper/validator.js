@@ -1189,6 +1189,185 @@ const requestForProbationExtendvalidationSchema = Joi.object({
   attachment: Joi.string().allow("").optional(),
 });
 ///Confirmation
+//Payroll///////
+const salaryStructureListSchema = Joi.object({
+  structureType: Joi.string().valid("LIST", "SINGLE").required(),
+  salaryStructureAutoId: Joi.number().integer().required(),
+});
+
+const salaryStructureCreateSchema = Joi.object({
+  hasAnnuallyProration: Joi.number().integer().required(),
+  hasMonthlyProration: Joi.number().integer().required(),
+  hasVariable: Joi.number().integer().required(),
+  salaryStructureAutoId: Joi.number().integer().required(),
+  salaryStructureName: Joi.string().required(),
+  salaryStructureDes: Joi.string().allow(null, ""),
+  createdAt: Joi.date().allow(null),
+  createdBy: Joi.string().required(),
+  updatedBy: Joi.string().required(),
+  updatedAt: Joi.date().allow(null),
+  isActive: Joi.boolean().required(),
+  structureMappingDetails: Joi.array()
+    .items(
+      Joi.object({
+        salaryComponentAutoId: Joi.number().integer().required(),
+        salaryComponentElementAutoId: Joi.number().integer().required(),
+        // salaryStructureAutoId: Joi.number().integer().required(),
+        elementValue: Joi.alternatives()
+          .try(Joi.string(), Joi.number().integer())
+          .required(),
+        //elementValue: Joi.number().required().valid(1,2)
+      })
+    )
+    .required(),
+});
+
+const earningArrearsSchema = Joi.object({
+  earningArrearAutoId: Joi.number().integer().positive().optional(), // Auto-incremented, typically not included in user input
+  EmployeeId: Joi.number().integer().positive().required(), // Required as it links to an employee
+  arrearMonth: Joi.string().max(45).required(), // String with a maximum length
+  arrearPayMonth: Joi.string().max(45).required(),
+  arearDays: Joi.number().integer().positive().required(),
+  arearType: Joi.string()
+    .allow(null)
+    .max(45)
+    .optional()
+    .valid("New Joinee", "LOP", "Increment"), // Optional, can be null
+  hasPF: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
+  computeESIC: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
+  isDeleteArrear: Joi.string()
+    .allow(null)
+    .max(45)
+    .optional()
+    .valid("Yes", "No"),
+  lopDate: Joi.date().allow(null).optional(),
+  createdBy: Joi.number().integer().positive().allow(null).optional(),
+  createdAt: Joi.date().allow(null).optional(),
+  updatedBy: Joi.number().integer().positive().allow(null).optional(),
+  updatedAt: Joi.date().allow(null).optional(),
+  isActive: Joi.boolean().default(false).optional(), // Defaults to false if not provided
+});
+
+const payPackangeSchema = Joi.object({
+  "Email/Employee ID": Joi.number().required(),
+  Name: Joi.string().required(),
+  "Salary Structure": Joi.string().required(),
+  "Pay Cycle Code": Joi.string().allow(null, ""),
+  Currency: Joi.string().allow(null, ""),
+  CTC: Joi.number().required(),
+  "Effective Date": Joi.string().required(),
+}).unknown();
+
+async function createDynamicPayPackageSchema(structureDetails, employee) {
+  let dynamicArray = [];
+  for (const salaryComponent of structureDetails) {
+    dynamicArray.push(
+      salaryComponent[
+        "structureMappingDetails.componentDetails.salaryComponentAlias"
+      ]
+        ? salaryComponent[
+            "structureMappingDetails.componentDetails.salaryComponentAlias"
+          ]
+        : salaryComponent[
+            "structureMappingDetails.componentDetails.salaryComponentCode"
+          ]
+    );
+  }
+  const dynamicFields = {};
+  dynamicArray.forEach((field) => {
+    dynamicFields[field] = Joi.number().required();
+  });
+  const { error } = await payPackangeSchema
+    .keys(dynamicFields)
+    .validate(employee);
+  return error;
+}
+
+const tdsDeductionsSchema = Joi.object({
+  EmployeeId: Joi.number().integer().positive().required(),
+  tdsMonth: Joi.string().max(255).required(),
+  tdsAmount: Joi.number().precision(2).positive().required(),
+  createdBy: Joi.number().integer().positive().optional().allow(null),
+  createdAt: Joi.date().optional().allow(null),
+  updatedBy: Joi.number().integer().positive().optional().allow(null),
+  updatedAt: Joi.date().optional().allow(null),
+  isActive: Joi.boolean().optional(), // Defaults to false (0)
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+});
+
+const lopValidateSchama = Joi.object({
+  lopAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+  EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+  lopMonth: Joi.string().max(255).required(),
+  lopDays: Joi.number().integer().min(0).required(), // Leave days must be non-negative.
+  createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+  updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+  isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+  empCode: Joi.number().required(), // Employee ID is required.
+});
+
+const employeesForPayrollProcess = Joi.object({
+  departmentId: Joi.string().required(), // Auto-incremented primary key, not required in most cases.
+  paymonth: Joi.string().required(),
+});
+
+const extraDeductionSchema = Joi.object({
+  "Email/Employee ID": Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Email/Employee ID"),
+  "Advance Category": Joi.string()
+    .required()
+    .label("Advance Category"),
+  "Advance Name": Joi.string()
+    .required()
+    .label("Advance Name"),
+  "Total Amount/Percent/Hours/Days": Joi.number()
+    .positive()
+    .required()
+    .label("Total Amount/Percent/Hours/Days"),
+  "Start Month": Joi.string()
+    .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+    .required()
+    .label("Start Month"),
+    "End Month": Joi.string()
+    .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+    .label("End Month"),
+  "Number Of Deductions": Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .label("Number Of Deductions"),
+    "Status (Open/Completed)": Joi.number()
+    .integer()
+    .positive()
+    .allow(null,)
+    .valid('Open','Completed')
+    .label("Status (Open/Completed)"),
+    "Reason for status change": Joi.string()
+    .allow(null,'')
+    .label("Reason for status change"),
+});
+
+
+const payMonthYearCheck = Joi.object({
+  pay_month: Joi.number()
+    .min(1)
+    .max(12)
+    .required()
+    .custom((value, helpers) => {
+      const formattedValue = value < 10 ? `0${value}` : `${value}`;
+      return formattedValue;
+    }, 'format single-digit month as two digits'),
+  pay_year: Joi.number().required(),
+  companyId: Joi.number().required(),
+});
+/////////////Payroll///////////////
 
 export default {
   loginSchema,
@@ -1241,4 +1420,15 @@ export default {
   actionPaymentSchema,
   blockLoginSchema,
   requestForProbationExtendvalidationSchema,
+  ///Payroll/
+  salaryStructureListSchema,
+  salaryStructureCreateSchema,
+  createDynamicPayPackageSchema,
+  earningArrearsSchema,
+  tdsDeductionsSchema,
+  lopValidateSchama,
+  employeesForPayrollProcess,
+  extraDeductionSchema,
+  payMonthYearCheck
+///////////Payroll//////////////
 };
