@@ -95,6 +95,9 @@ export default function getAllListeners(eventEmitter) {
   eventEmitter.on("newJoinEmployeeMail", async (input) => {
     await newJoinEmployeeMail(input);
   });
+  eventEmitter.on("selfReviewConfirnation", async (input) => {
+    await selfReviewConfirnation(input);
+  });
 }
 
 async function regularizationRequestMail(input) {
@@ -432,3 +435,20 @@ async function newJoinEmployeeMail(input) {
     logger.error(error);
   }
 }
+
+///confitmatoion
+async function selfReviewConfirnation(input) {
+  try {
+    const userData = JSON.parse(input);
+    console.log("userData", userData);
+    await helper.mailService({
+      to: "yogendra.verma@teamcomputers.com",
+      subject: `Confirmation`,
+      html: await emailTemplate.selfReviewConfirnation(userData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+///confitmatoion

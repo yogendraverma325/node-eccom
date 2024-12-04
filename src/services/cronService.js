@@ -6,8 +6,9 @@ cron.schedule("30 1 * * *", async () => {
   await attendanceController.attedanceCron();
 });
 
-cron.schedule("*/5 * * * * *", async () => {
-  //await cronController.generateConfirmation();
+cron.schedule("0 2 * * *", async () => {
+  await cronController.checkSLA();
+  await cronController.generateConfirmation();
 });
 
 cron.schedule("* * * * *", async () => {

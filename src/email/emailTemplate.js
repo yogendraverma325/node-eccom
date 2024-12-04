@@ -3230,7 +3230,6 @@ const paymentDetailsAdminApprovedMail = async (data) => {
 </html>`;
 };
 
-
 const passwordExpiryNotification = async (data) => {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -3627,6 +3626,97 @@ const newJoinEmployeeMail = async (data) => {
 </body>
 </html>`;
 };
+const selfReviewConfirnation = async (data) => {
+  const dateOfProbationEnd = data?.dateOfProbationEnd;
+
+  // Calculate the difference in days
+  const today = moment();
+  const endDate = moment(dateOfProbationEnd, "YYYY-MM-DD");
+  const daysDifference = endDate.diff(today, "days"); // Difference in days
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                 <tr>
+                                  <td
+                                    colspan="2"
+                                    style="
+                                      padding-bottom: 20px;
+                                      text-align: left;
+                                      border-bottom: 1px solid #eee;
+                                      width: 100%;
+                                    "
+                                    valign="middle"
+                                  >
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      alt="Logo"
+                                    />
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                      alt="Logo"
+                                      style="float: right"
+                                    />
+                                  </td>
+                                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody>
+                <tr>
+                 <td><p><span>Hi </span>${data?.employee?.name}<span>,<br></span></p></td>
+                </tr>
+                <tr>
+                 <td style="line-height:22px;padding-bottom:15px;padding-top:5px"><p>${data?.employee?.name} (${data?.employee?.empCode}), ${data?.employee?.designationmaster?.name} is completing probation in Number Of ${daysDifference} day/s and is pending for your action.</p><p><br></p>
+                <p>
+                        <a
+                          href='${process.env.CLIENT_URL}#/TaskBox?selectedTab=4'
+                          style="
+                            padding: 5px 10px;
+                            background: #0173c5;
+                            color: #fff;
+                            text-decoration: none;
+                            border-radius: 2px;
+                            font-size: 14px;
+                            display: inline-block;
+                          "
+                          target="_blank"
+                          >Click Here</a
+                        >
+                        to act on task.<br />
+                      </p>
+                 </td>
+                </tr>
+                <tr>
+                 <td style="text-align:left;border-bottom:1px solid #eee;padding-top:15px;padding-bottom:25px;line-height:22px"><p>Regards,<br>
+                   HR Team,<br>
+                   Company Name</p></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="background-color:#fff;width:100%">
+             <td valign="middle" style="padding:18px 0;color:#ffffff;padding-left:25px;text-align:left">#*Unsubscribe*#</td>
+             <td valign="middle" style="padding:18px 0;color:#ffffff;padding-right:25px;text-align:right;font-size:12px"><a href="https://us-east-2.protection.sophos.com?d=darwinbox.in&amp;u=aHR0cHM6Ly90cmFja2luZy5kYXJ3aW5ib3guaW4vbHMvY2xpY2s_dXBuPXUwMDEuaW1teXVELTJGNmtKSFR6d1FKVTlrRXBha0RqaGxCZjNSTGFINGRJMmlBMjZBeVlQWmxWY2lzZlIybFVZazU2c0djWWhETGcxUGdiQnpYMmFIRFJPSlgwV0pEYTVsSEZYNEMtMkZOLTJGci0yQnNNWmE5dGVrbXpBM2hIRURQLTJGMWFQVXNLenkyb2VMMTBFWjQ3eVlWaFQtMkZoc2N0VTlwRVFKSTk3Z2VOLTJCNlVLVldSVzQzV2FFSzVRT3c4ZGY0SEw4ak96RDkyQk9adHJ6VFdRaGlWMXU5YTBqWndRSlVnLTNELTNEMmJXWV9INEh5MjdPTzNwR3paN3VISVhDRmNUYVJjVU5jbzNvaTl5VE1haVB5WUZiWEZ4cGN0QjYwckFRWlVLYlgxS3lzLTJCSTdnQUE2SEhYM0ppaXBHcHg1RTVIVDdQdUE5dEplZ0ZZS1RDZWpXdzI1VjlUOWIyY1FudGw1SUc2TzF5TnJ4YWVpZXc4R0pRYVRUUUYwRC0yRmJRakxWaDNrODdMSEEydEZIUW5FUURUaE5CWVRJQVN1aTJ4LTJCelpiUFFCTXlnUDlELTJGaUFjSFk5eHNPZVhqbmlwYTV6VG1rTVhzY2tPNnV5d29DMUZvWTZyLTJGay0zRA==&amp;i=NjFkODdmZTM1OWYzNGUxMDE2OTMwYzk2&amp;t=Tkg5YnlvTTlXdDR0ZU1taEkyT0N6UnhwQ0dkdk9XK0UwWmdxNG1UTXlMND0=&amp;h=68486334c5a54ddb9151da7035979a89&amp;s=AVNPUEhUT0NFTkNSWVBUSVYesNOW7kGOxqpUy7qQL6d_4nh6Nn1efO2SbyTtO4TQiOwEKp0hREIIdWu7wfNnkt4-dcOFneTIFyRgSul7Y5uW3QrJjOINZ9zZOHS1WkwDoA" style="text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://us-east-2.protection.sophos.com?d%3Ddarwinbox.in%26u%3DaHR0cHM6Ly90cmFja2luZy5kYXJ3aW5ib3guaW4vbHMvY2xpY2s_dXBuPXUwMDEuaW1teXVELTJGNmtKSFR6d1FKVTlrRXBha0RqaGxCZjNSTGFINGRJMmlBMjZBeVlQWmxWY2lzZlIybFVZazU2c0djWWhETGcxUGdiQnpYMmFIRFJPSlgwV0pEYTVsSEZYNEMtMkZOLTJGci0yQnNNWmE5dGVrbXpBM2hIRURQLTJGMWFQVXNLenkyb2VMMTBFWjQ3eVlWaFQtMkZoc2N0VTlwRVFKSTk3Z2VOLTJCNlVLVldSVzQzV2FFSzVRT3c4ZGY0SEw4ak96RDkyQk9adHJ6VFdRaGlWMXU5YTBqWndRSlVnLTNELTNEMmJXWV9INEh5MjdPTzNwR3paN3VISVhDRmNUYVJjVU5jbzNvaTl5VE1haVB5WUZiWEZ4cGN0QjYwckFRWlVLYlgxS3lzLTJCSTdnQUE2SEhYM0ppaXBHcHg1RTVIVDdQdUE5dEplZ0ZZS1RDZWpXdzI1VjlUOWIyY1FudGw1SUc2TzF5TnJ4YWVpZXc4R0pRYVRUUUYwRC0yRmJRakxWaDNrODdMSEEydEZIUW5FUURUaE5CWVRJQVN1aTJ4LTJCelpiUFFCTXlnUDlELTJGaUFjSFk5eHNPZVhqbmlwYTV6VG1rTVhzY2tPNnV5d29DMUZvWTZyLTJGay0zRA%3D%3D%26i%3DNjFkODdmZTM1OWYzNGUxMDE2OTMwYzk2%26t%3DTkg5YnlvTTlXdDR0ZU1taEkyT0N6UnhwQ0dkdk9XK0UwWmdxNG1UTXlMND0%3D%26h%3D68486334c5a54ddb9151da7035979a89%26s%3DAVNPUEhUT0NFTkNSWVBUSVYesNOW7kGOxqpUy7qQL6d_4nh6Nn1efO2SbyTtO4TQiOwEKp0hREIIdWu7wfNnkt4-dcOFneTIFyRgSul7Y5uW3QrJjOINZ9zZOHS1WkwDoA&amp;source=gmail&amp;ust=1733296148871000&amp;usg=AOvVaw0K6Te3Zox9CB7-nY8998Hq"><span style="color:#ccc">Powered By :</span> Darwinbox</a></td>
+            </tr>
+           </tbody>
+</body>
+</html>`;
+};
 export default {
   regularizationRequestMail,
   resetPasswordMail,
@@ -3651,4 +3741,5 @@ export default {
   passwordExpiryNotification,
   postPasswordExpiryNotification,
   newJoinEmployeeMail,
+  selfReviewConfirnation,
 };
