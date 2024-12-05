@@ -12,7 +12,7 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING
         },
         payPackageEffectiveDate: {
-            type: Sequelize.DATE
+            type: Sequelize.DATEONLY
         },
         payPackageMonthlyCTC: {
             type: Sequelize.DECIMAL(10, 2)

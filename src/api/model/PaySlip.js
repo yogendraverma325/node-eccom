@@ -47,6 +47,10 @@ export default (sequelize, Sequelize) => {
         paySlipTDS: {
             type: Sequelize.DECIMAL(10, 2)
         },
+        paySlipStatus: {
+            type:  Sequelize.INTEGER,
+            default:0,
+        },
         createdBy: {
             type: Sequelize.INTEGER
         },

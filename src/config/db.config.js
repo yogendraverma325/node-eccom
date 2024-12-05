@@ -122,8 +122,6 @@ import SalaryStructureComponentMapping from "../api/model/SalaryStructureCompone
 import EarningArears from "../api/model/EarningsArears.js";
 import LopDeductions from "../api/model/LopDeductions.js";
 import TDSDeductions from "../api/model/tdsDeductions.js";
-import SalaryRegister from "../api/model/SalaryRegister.js";
-import ExcludedPayroll from "../api/model/ExcludedPayroll.js";
 import ExtraDeductions from "../api/model/ExtraDeductions.js";
 import PayProcessDetail from "../api/model/payProcessDetails.js";
 import PayProcessMaster from "../api/model/payProcessMaster.js";
@@ -326,8 +324,6 @@ db.salarystructurecomponentmapping= SalaryStructureComponentMapping(sequelize,Se
 db.earningsArears = EarningArears(sequelize,Sequelize);
 db.tdsDeductions =TDSDeductions(sequelize,Sequelize);
 db.lopDeductions = LopDeductions(sequelize,Sequelize);
-db.salaryRegister=SalaryRegister(sequelize,Sequelize);
-db.excludedPayroll=ExcludedPayroll(sequelize,Sequelize);
 db.extraDeduction = ExtraDeductions(sequelize,Sequelize);
 db.payProcessDetails = PayProcessDetail(sequelize,Sequelize);
 db.payProcessMaster = PayProcessMaster(sequelize,Sequelize);
@@ -1150,19 +1146,6 @@ db.employeeMaster.hasOne(db.payPackage, {
   foreignKey: "EmployeeId",
   sourceKey: "id",
   as:"packageDetails"
-});
-
-
-db.employeeMaster.hasOne(db.salaryRegister, {
-  foreignKey: "EmployeeId",
-  sourceKey: "id",
-  as:"salaryRegisterDetails"
-});
-
-db.employeeMaster.hasMany(db.excludedPayroll, {
-  foreignKey: "EmployeeId",
-  sourceKey: "id",
-  as:"excludedEmployeeDetails"
 });
 
 db.payPackage.hasMany(db.payElements, {

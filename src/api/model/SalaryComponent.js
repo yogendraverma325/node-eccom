@@ -23,6 +23,9 @@ export default (sequelize, Sequelize) => {
         salaryComponentDependent: {
             type: Sequelize.STRING,
         },
+        salaryComponentEarningType:{
+            type: Sequelize.STRING,
+        },
         createdAt: {
             type: Sequelize.DATE
         },
@@ -37,6 +40,18 @@ export default (sequelize, Sequelize) => {
         },
         isActive: {
             type: Sequelize.BOOLEAN
+        },
+        isDefault: {
+            type: Sequelize.INTEGER
+        },
+        compulsoryComponent:{
+            type: Sequelize.INTEGER  
+        },
+        salaryComponentAlias:{
+            type:Sequelize.STRING,
+        },
+        includeInPackage:{
+            type: Sequelize.INTEGER  
         }
     })
     return salaryComponent

@@ -994,7 +994,7 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id,e.name FROM tara_hrms_live.employee e LEFT JOIN tara_hrms_live.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara_hrms_live.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
   
       let newProcess = await db.payProcessMaster.create(
@@ -1700,10 +1700,13 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let employeeForProcessingQuery = `SELECT e.id AS EmployeeId FROM tara_hrms_live.employee e JOIN tara_hrms_live.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')})`;
+
+      console.log(value)
+
+      let employeeForProcessingQuery = `SELECT e.id AS EmployeeId FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')})`;
       let employeeForProcessing  = await db.sequelize.query(employeeForProcessingQuery);
       const employeeIds = employeeForProcessing[0].map(employee => employee.EmployeeId);
-      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara_hrms_live.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`
+      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`
       let employeeProcessCount  = await db.sequelize.query(countsForProcessing);
       return respHelper(res, {
         status: 200,
@@ -1912,7 +1915,7 @@ class PaymentController {
       }
   
       let workingDaysOfMonth = paymentHelper.getDaysInCurrentMonth({year:value.paymonth.split("-")[0],month:value.paymonth.split("-")[1]});
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara_hrms_live.employee e LEFT JOIN tara_hrms_live.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara_hrms_live.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalLopAmount = 0,
         totalLOPDays = 0;
@@ -1974,7 +1977,7 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara_hrms_live.employee e LEFT JOIN tara_hrms_live.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara_hrms_live.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalTdsAmount = 0,
         totalLOPDays = 0;
@@ -2019,11 +2022,11 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara_hrms_live.employee e LEFT JOIN tara_hrms_live.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara_hrms_live.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalExtraDeductionsAmount = 0;
       let employeeIds = result[0].map((employee) => employee.id);
-      let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara_hrms_live.extradeductions where EmployeeId in(${employeeIds.join(
+      let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${employeeIds.join(
         ","
       )}) GROUP BY empCode`;
       let extraDeductions = await db.sequelize.query(allDeductionQuery);
