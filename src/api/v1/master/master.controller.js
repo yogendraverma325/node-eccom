@@ -413,8 +413,8 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
 
       const costCenterData = await db.costCenterMaster.findAndCountAll({
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       return respHelper(res, {
