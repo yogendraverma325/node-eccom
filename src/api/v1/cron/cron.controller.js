@@ -8,6 +8,8 @@ import logger from "../../../helper/logger.js";
 import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
 import emailTemplate from "../../../email/emailTemplate.js";
+import html_to_pdf from "html-pdf-node";
+
 class CronController {
   async updateAttendance() {
     const existEmployees = await db.employeeMaster.findAll({
@@ -628,7 +630,12 @@ class CronController {
   }
 
   ///CONFIRMATION
-  async generateConfirmation() {
+  async generateConfirmation(req, res) {
+    return respHelper(res, {
+      status: 200,
+      data: {},
+    });
+    return;
     const confimationData = await db.jobDetails.findAll({
       where: {
         dateOfProbationEnd: {

@@ -1,7 +1,7 @@
 import helper from "./helper.js";
 import logger from "./logger.js";
 import emailTemplate from "../email/emailTemplate.js";
-
+import html_to_pdf from "html-pdf-node";
 export default function getAllListeners(eventEmitter) {
   eventEmitter.on("regularizeRequestMail", async (input) => {
     await regularizationRequestMail(input);
@@ -459,18 +459,28 @@ async function selfReviewConfirnation(input) {
 async function confirmationLetter(input) {
   try {
     const inpputData = JSON.parse(input);
-    let html = await emailTemplate.confirmationEmail(
+    let letter = await emailTemplate.confirmationEmailLetter(
       inpputData?.EMP_DATA_SELF,
       inpputData?.confirmationData,
       inpputData?.signatureAuthority
     );
+
+    let body = await emailTemplate.confirmationEmailBody(
+      inpputData?.EMP_DATA_SELF,
+      inpputData?.confirmationData,
+      inpputData?.signatureAuthority
+    );
+    let options = { format: "A4" };
+    let file = { content: letter };
+
+    let pdfBuffer = await html_to_pdf.generatePdf(file, options);
     await helper.mailService({
       to: inpputData?.EMP_DATA_SELF?.email,
       subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
-      html: html,
+      html: body,
       attachments: [
         {
-          content: html,
+          content: pdfBuffer,
           filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
         },
       ],

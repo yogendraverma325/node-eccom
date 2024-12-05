@@ -3717,18 +3717,209 @@ const selfReviewConfirnation = async (data) => {
 </body>
 </html>`;
 };
-const confirmationEmail = async (
+const confirmationEmailLetter = async (
   data,
   confiramtionData,
   signatureAuthority
 ) => {
-  return `<html>
-    <body>
-      <h1>Confirmation Letter</h1>
-      <p>Dear User,</p>
-      <p>Your confirmation is approved.</p>
-    </body>
-  </html>`;
+  return `
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+  <style>
+    .bodySection {
+      display: flex;
+      flex-direction: column;
+    }
+    .letterHeader {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-evenly;
+      padding: 20;
+    }
+    .siteUrl {
+      align-self: flex-end;
+    }
+    .logoIMage {
+      align-self: center;
+    }
+    .letterBody {
+      display: flex;
+      flex-direction: column;
+      padding: 20px !important;
+    }
+    .dateSerial {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    .subject {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .subjectText {
+      border-bottom: 2px solid black; /* Adjust thickness and color as needed */
+      padding-bottom: 5px; /* Optional: To create space between text and underline */
+    }
+     .address, .numberCin, .siteUrl {
+    font-size: 15px;
+}
+    .footerSections{
+       
+    }
+  </style>
+  <body class="bodySection">
+    <div class="letterHeader">
+          <img
+          src="${process.env.PROXY_URL}/api/uploads/assets/letter_header.png"
+          alt="Logo"
+          />
+    </div>
+
+    <div class="letterBody">
+      <div class="dateSerial">
+        <p><strong>NO:HRM/${moment().format("YYYY")}</strong></p>
+        <p>Date:${moment().format("DD-MM-YYYY")}</p>
+      </div>
+
+      <div class="candidateDetailsSectoin">
+        <p>To,</p>
+        <p>Name: <strong>${data?.name}</strong></p>
+        <p>TMC: <strong>${data?.empCode}</strong></p>
+        <p>Designation: <strong>${data?.designationmaster?.name}</strong></p>
+        <p>SBU: <strong>${data?.sbumaster?.sbuname}</strong></p>
+        <p>Location: <strong>${
+          data?.companylocationmaster?.address1
+        }</strong></p>
+      </div>
+      <div class="subject">
+        <h4 class="subjectText">Subject: Confirmation Letter</h4>
+      </div>
+
+      <div class="title">
+        <p><strong>Dear ${data?.name}</strong>,</p>
+      </div>
+
+      <div class="contentSection">
+        <p>
+          Consequent to the review of your performance during your probation, we
+          are happy to inform you that your services are being confirmed as
+          <strong>${data?.designationmaster?.name}</strong> with effect from
+          <strong>${moment(confiramtionData?.updatedAt).format(
+            "MM-DD-YYYY"
+          )}</strong>.
+        </p>
+
+        <p>
+          All the other terms and conditions as per your appointment letter will
+          remain the same as communicated in writing by the HR and/or as
+          detailed in your appointment letter. Except for policy-related
+          changes, in which case the terms as per the latest policy announcement
+          on the company portal shall be valid.
+        </p>
+
+        <p>
+          We look forward to your valuable contribution and wish you all the
+          very best for a rewarding career with the organization.
+        </p>
+        <p>For Team Computers Private Limited</p>
+      </div>
+      <div class="signatureSection">
+              <img
+             class="signature"
+              src="${process.env.PROXY_URL}/api/${
+    signatureAuthority?.signature
+  }"
+              alt="signature"
+              height="90"
+              />
+       <h4>${signatureAuthority?.employee?.name}</h4>
+        <h4>${signatureAuthority?.employee?.designationmaster?.name}</h4>
+      </div>
+    </div>
+    <div class="footerSections">
+    <img
+          src="${process.env.PROXY_URL}/api/uploads/assets/letter_footer.png"
+          alt="Logo"
+          style="float:right"
+          />
+
+    </div>
+  </body>
+</html>
+`;
+};
+const confirmationEmailBody = async (
+  data,
+  confiramtionData,
+  signatureAuthority
+) => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Team Computers</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff">
+   <table style="border-collapse:collapse;line-height:100%!important;width:100%!important;font-family:sans-serif" border="0" cellpadding="0" cellspacing="0" align="center">
+   <tbody>
+    <tr>
+     <td style="padding-top:20px;padding-bottom:20px">
+      <table style="border-collapse:collapse;max-width:635px;min-width:550px;width:auto;margin:0 auto;border:0.5px solid #eee" align="center">
+       <tbody>
+        <tr>
+         <td>
+          <table style="border-collapse:collapse;margin:0 auto;width:100%" align="center">
+           <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                <tr>
+                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
+                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <div style="line-height:1;line-height:1;line-height:1.8">
+               <p style="font-weight: bold">Hi ${data?.name},</p>
+               <p><br></p>
+               <p>We have received inputs from your Reviewer .</p>
+               <p>
+               <p><a href="${process.env.CLIENT_URL}#/TaskBox?selectedTab=4&selectedMode=assignedToMe">Click Here</a> to view the status. <br></p>
+               <p><br></p>
+               <p>Regards,</p>
+               <p>HR Team<br></p>
+               <p>${data?.companymaster?.companyName}<br></p>
+              </div>
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody></tbody>
+              </table></td>
+            </tr>
+            
+           </tbody>
+          </table></td>
+        </tr>
+       </tbody>
+      </table></td>
+    </tr>
+   </tbody>
+  </table>
+  
+  </body>
+</html>`;
 };
 export default {
   regularizationRequestMail,
@@ -3755,5 +3946,6 @@ export default {
   postPasswordExpiryNotification,
   newJoinEmployeeMail,
   selfReviewConfirnation,
-  confirmationEmail,
+  confirmationEmailLetter,
+  confirmationEmailBody,
 };
