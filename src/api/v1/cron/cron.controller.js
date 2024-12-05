@@ -631,6 +631,9 @@ class CronController {
 
   ///CONFIRMATION
   async generateConfirmation(req, res) {
+    res.send("<h1>Hello</h1>");
+
+    return;
     return respHelper(res, {
       status: 200,
       data: {},
@@ -852,6 +855,21 @@ class CronController {
       });
 
       if (levelownerData) {
+        let ESCALTERDATA = await helper.getEmpProfile(
+          singleRecords?.employee?.managerData?.id
+        ); // ESCLATER DATA
+        let EMP_DATA = await helper.getEmpProfile(
+          singleRecords?.confirmationinitiated?.employee?.id
+        ); // EMP DATA
+
+        eventEmitter.emit(
+          "confirmationSLABreachEmailBody",
+          JSON.stringify({
+            ESCALTERDATA: ESCALTERDATA,
+            EMP_DATA: EMP_DATA,
+          })
+        );
+
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId:
             singleRecords.confirmationinitiatedAutoId,

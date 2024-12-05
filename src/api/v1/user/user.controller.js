@@ -4149,12 +4149,45 @@ class UserController {
             EMP_DATA_SELF
           ); // SELF Manager
 
+          const confirmationPolicyData = await db.Confimationpolicy.findOne({
+            where: {
+              confimationPolicyAutoId:
+                employeeData?.employee?.confimationPolicyAutoId,
+            },
+            attributes: [
+              "confiramtionEmailCC",
+              "confiramtionRequestEmailCC",
+              "extendEmailCC",
+            ],
+          });
+          let cc_arrays = [];
+          if (confirmationPolicyData) {
+            let holdRowCCData =
+              confirmationPolicyData?.dataValues?.confiramtionEmailCC.split(
+                ","
+              );
+            if (holdRowCCData.length > 0) {
+              for (const single_cc_array of holdRowCCData) {
+                if (single_cc_array == "MANAGER") {
+                  cc_arrays.push(
+                    EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
+                  );
+                } else if (single_cc_array == "BUHR") {
+                  cc_arrays.push(
+                    EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
+                  );
+                }
+              }
+            }
+          }
+
           eventEmitter.emit(
             "confirmationLetter",
             JSON.stringify({
               EMP_DATA_SELF: EMP_DATA_SELF,
               confirmationData: confirmationData,
               signatureAuthority: signatureAuthority,
+              cc: cc_arrays.join(","),
             })
           );
         }
@@ -4258,7 +4291,13 @@ class UserController {
           id: result.employeeId,
           isActive: 1,
         },
-        attributes: ["name", "empCode", "profileImage", "id"],
+        attributes: [
+          "name",
+          "empCode",
+          "profileImage",
+          "id",
+          "confimationPolicyAutoId",
+        ],
         include: {
           model: db.jobDetails,
         },
@@ -4388,6 +4427,46 @@ class UserController {
               level: confirmationData.level,
             },
           }
+        );
+
+        const confirmationPolicyData = await db.Confimationpolicy.findOne({
+          where: {
+            confimationPolicyAutoId: existUser?.confimationPolicyAutoId,
+          },
+          attributes: [
+            "confiramtionEmailCC",
+            "confiramtionRequestEmailCC",
+            "extendEmailCC",
+          ],
+        });
+        let cc_arrays = [];
+        let EMP_DATA_SELF = await helper.getEmpProfile(existUser?.id); // SELF DATA
+        let ACTION_TAKER = await helper.getEmpProfile(req.userId); // Action Taker
+        if (confirmationPolicyData) {
+          let holdRowCCData =
+            confirmationPolicyData?.dataValues?.extendEmailCC.split(",");
+          if (holdRowCCData.length > 0) {
+            for (const single_cc_array of holdRowCCData) {
+              if (single_cc_array == "MANAGER") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
+                );
+              } else if (single_cc_array == "BUHR") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
+                );
+              }
+            }
+          }
+        }
+
+        eventEmitter.emit(
+          "confirmatonExtend",
+          JSON.stringify({
+            EMP_DATA_SELF: EMP_DATA_SELF,
+            ACTION_TAKER: ACTION_TAKER,
+            cc: cc_arrays,
+          })
         );
 
         return respHelper(res, {

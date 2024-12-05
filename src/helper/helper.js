@@ -140,7 +140,9 @@ const mailService = async (data) => {
 
     body.personalizations[0].cc = [];
     body.personalizations[0].cc = new pepipost.EmailStruct();
-    body.personalizations[0].cc = mergeEmail(data.cc ? data.cc.split(",") : []);
+    body.personalizations[0].cc = mergeEmail(
+      data.cc ? (testMail ? testMailIDs : data.cc.split(",")) : []
+    );
 
     body.personalizations[0].bcc = [];
     body.personalizations[0].bcc = new pepipost.EmailStruct();
@@ -381,7 +383,7 @@ const getEmpProfile = async (EMP_ID) => {
       {
         model: db.employeeMaster,
         required: false,
-        attributes: ["id", "name", "profileImage"],
+        attributes: ["id", "name", "profileImage", "email"],
         as: "managerData",
         include: [
           {
@@ -477,12 +479,12 @@ const getEmpProfile = async (EMP_ID) => {
       include: [
         {
           model: db.employeeMaster,
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "email"],
           as: "buHeadData",
         },
         {
           model: db.employeeMaster,
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "email"],
           as: "buhrData",
         },
       ],

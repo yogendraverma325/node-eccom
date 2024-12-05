@@ -102,6 +102,12 @@ export default function getAllListeners(eventEmitter) {
   eventEmitter.on("confirmationLetter", async (input) => {
     await confirmationLetter(input);
   });
+  eventEmitter.on("confirmatonExtend", async (input) => {
+    await confirmatonExtend(input);
+  });
+  eventEmitter.on("confirmationSLABreachEmailBody", async (input) => {
+    await confirmationSLABreachEmailBody(input);
+  });
   //confirmation
 }
 
@@ -478,12 +484,40 @@ async function confirmationLetter(input) {
       to: inpputData?.EMP_DATA_SELF?.email,
       subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
       html: body,
+      cc: inpputData?.cc,
       attachments: [
         {
           content: pdfBuffer,
           filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
         },
       ],
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmatonExtend(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    await helper.mailService({
+      to: inpputData?.EMP_DATA_SELF?.email,
+      subject: `Confirmation Extension`,
+      cc: inpputData?.cc,
+      html: await emailTemplate.confirmationExtendEmailBody(inpputData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmationSLABreachEmailBody(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    await helper.mailService({
+      to: inpputData?.ESCALTERDATA?.email,
+      subject: `Confirmation SLA Breach`,
+      html: await emailTemplate.confirmationSLABreachEmailBody(inpputData),
     });
   } catch (error) {
     console.log(error);
