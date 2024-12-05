@@ -3936,7 +3936,7 @@ class UserController {
               { model: db.designationMaster, attributes: ['designationId', 'name', 'code' ] }, 
               { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] }
             ],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.DepartmentEmploymentHistory, as: 'departmentHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3944,17 +3944,17 @@ class UserController {
               { model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] },
               { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode' ] }
             ],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.CostCenterEmploymentHistory, as: 'costCenterHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
             include: [{ model: db.costCenterMaster, attributes: ['costCenterId', 'costCenterName', 'costCenterCode' ] }],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.JobLevelEmploymentHistory, as: 'jobLevelHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
             include: [{ model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode' ] }],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.OfficeLocationEmploymentHistory, as: 'officeLocationHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3965,28 +3965,28 @@ class UserController {
                 { model: db.cityMaster, attributes: ['cityId', 'cityName', 'cityCode'] },
               ] 
             }],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.EmployeeTypeEmploymentHistory, as: 'employeeTypeHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
             include: [{ model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] } ],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.managerHistory, as: 'managerHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
             include: [{ model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ] }],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           }
         ],
         order: [
           ["designationHistories", "id", "ASC"], // Sorting for designationHistory
           ["departmentHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["costCenterHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["jobLevelHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["employeeTypeHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["officeLocationHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["managerHistories", "id", "ASC"], // Sorting for departmentHistory
+          ["costCenterHistories", "id", "ASC"], // Sorting for costCenterHistory
+          ["jobLevelHistories", "id", "ASC"], // Sorting for jobLevelHistory
+          ["employeeTypeHistories", "id", "ASC"], // Sorting for employeeTypeHistory
+          ["officeLocationHistories", "id", "ASC"], // Sorting for officeLocationHistory
+          ["managerHistories", "id", "ASC"], // Sorting for managerHistory
       ]
       });
 
