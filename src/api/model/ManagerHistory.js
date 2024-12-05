@@ -20,6 +20,12 @@ export default (sequelize, Sequelize) => {
     needAttendanceCron: {
       type: Sequelize.INTEGER,
     },
+    sourceName: {
+      type: Sequelize.STRING
+    },
+    status: {
+      type: Sequelize.INTEGER
+    },
     createdAt: {
       type: Sequelize.DATE,
     },
