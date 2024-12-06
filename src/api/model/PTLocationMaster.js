@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
         stateId: {
             type: Sequelize.INTEGER,
         },
+        frequencyType:{
+            type: Sequelize.INTEGER, // 0=> monthly 1=>yearly
+        },
         createdAt: {
             type: Sequelize.DATE
         },

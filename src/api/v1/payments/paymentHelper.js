@@ -145,7 +145,7 @@ function getPercentagePart(total, percentage) {
   return (total * (percentage / 100)).toFixed(2);
 }
 
-function query(caseId, data, data2) {
+async function query(caseId, data, data2) {
   switch (caseId) {
     case 1:
       return `SELECT p.includeInPackage ,p.empName as "Employee Name", COALESCE(p.lopDays, 0) as "LOP Days", p.arrearMonth as "Arrears Month", COALESCE(p.arrearDays, 0) as "Arrears Days", p.tdsMonth as "TDS Month", COALESCE(p.tdsAmount, 0) as "TDS Amount", p.payPackageMonthlyCTC as "Net Pay", p.payElementAmount as "Element Amount", p.elementMonthlyAmount as "Monthly Element Amount", p.extraDeductionCategories as "Advance Name", COALESCE(p.totalExtraDeduction, 0) as "Advance Amount", e.empCode as "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END as "Element Name" FROM tara.paymonthlyelement p JOIN tara.employee e ON p.empId = e.id WHERE p.payMonth = '2024-09' and empId in(${data2});`;

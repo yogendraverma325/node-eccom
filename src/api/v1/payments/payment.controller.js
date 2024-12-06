@@ -1055,7 +1055,7 @@ class PaymentController {
     const employeeIds = result[0].map((item) => item.EmployeeId);
     const totalWorkingDays =paymentHelper.getDaysInCurrentMonth({year:result[0][0].payMonth.split("-")[0],month:result[0][0].payMonth.split("-")[1]});
     const salaryRegisterArray=[],errorProcessed=[];
-    let employees=employeeIds;//[484,560];//employeeIds
+    let employees=[484,560];//employeeIds
     for (const employee of employees) {  
 
     const queryForEmployeePayDetails = await paymentHelper.query(11,employee,{payMonth:result[0][0].payMonth});
