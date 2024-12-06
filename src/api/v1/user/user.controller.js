@@ -4148,62 +4148,62 @@ class UserController {
           await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
         }
       } else {
-        const confirmationData = await db.Confirmationinitiated.findOne({
-          where: {
-            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-          },
-        });
-        if (confirmationData) {
-          let EMP_DATA_SELF = await helper.getEmpProfile(
-            confirmationData?.employeeId
-          ); // SELF Manager
-          let signatureAuthority = await helper.getSigningAuthorityDate(
-            "CONFIRMATION",
-            EMP_DATA_SELF
-          ); // SELF Manager
+        // const confirmationData = await db.Confirmationinitiated.findOne({
+        //   where: {
+        //     confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+        //   },
+        // });
+        // if (confirmationData) {
+        //   let EMP_DATA_SELF = await helper.getEmpProfile(
+        //     confirmationData?.employeeId
+        //   ); // SELF Manager
+        //   let signatureAuthority = await helper.getSigningAuthorityDate(
+        //     "CONFIRMATION",
+        //     EMP_DATA_SELF
+        //   ); // SELF Manager
 
-          const confirmationPolicyData = await db.Confimationpolicy.findOne({
-            where: {
-              confimationPolicyAutoId:
-                employeeData?.employee?.confimationPolicyAutoId,
-            },
-            attributes: [
-              "confiramtionEmailCC",
-              "confiramtionRequestEmailCC",
-              "extendEmailCC",
-            ],
-          });
-          let cc_arrays = [];
-          if (confirmationPolicyData) {
-            let holdRowCCData =
-              confirmationPolicyData?.dataValues?.confiramtionEmailCC.split(
-                ","
-              );
-            if (holdRowCCData.length > 0) {
-              for (const single_cc_array of holdRowCCData) {
-                if (single_cc_array == "MANAGER") {
-                  cc_arrays.push(
-                    EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
-                  );
-                } else if (single_cc_array == "BUHR") {
-                  cc_arrays.push(
-                    EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
-                  );
-                }
-              }
-            }
-          }
+        //   const confirmationPolicyData = await db.Confimationpolicy.findOne({
+        //     where: {
+        //       confimationPolicyAutoId:
+        //         employeeData?.employee?.confimationPolicyAutoId,
+        //     },
+        //     attributes: [
+        //       "confiramtionEmailCC",
+        //       "confiramtionRequestEmailCC",
+        //       "extendEmailCC",
+        //     ],
+        //   });
+        //   let cc_arrays = [];
+        //   if (confirmationPolicyData) {
+        //     let holdRowCCData =
+        //       confirmationPolicyData?.dataValues?.confiramtionEmailCC.split(
+        //         ","
+        //       );
+        //     if (holdRowCCData.length > 0) {
+        //       for (const single_cc_array of holdRowCCData) {
+        //         if (single_cc_array == "MANAGER") {
+        //           cc_arrays.push(
+        //             EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
+        //           );
+        //         } else if (single_cc_array == "BUHR") {
+        //           cc_arrays.push(
+        //             EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
+        //           );
+        //         }
+        //       }
+        //     }
+        //   }
 
-          eventEmitter.emit(
-            "confirmationLetter",
-            JSON.stringify({
-              EMP_DATA_SELF: EMP_DATA_SELF,
-              confirmationData: confirmationData,
-              signatureAuthority: signatureAuthority,
-              cc: cc_arrays.join(","),
-            })
-          );
-        }
+        //   eventEmitter.emit(
+        //     "confirmationLetter",
+        //     JSON.stringify({
+        //       EMP_DATA_SELF: EMP_DATA_SELF,
+        //       confirmationData: confirmationData,
+        //       signatureAuthority: signatureAuthority,
+        //       cc: cc_arrays.join(","),
+        //     })
+        //   );
+        // }
         await db.Confirmationinitiated.update(
           {
             level: 0,
@@ -4217,16 +4217,16 @@ class UserController {
           }
         );
 
-        await db.jobDetails.update(
-          {
-            dateOfProbationEnd: null,
-          },
-          {
-            where: {
-              userId: req.query.employeeId,
-            },
-          }
-        );
+        // await db.jobDetails.update(
+        //   {
+        //     dateOfProbationEnd: null,
+        //   },
+        //   {
+        //     where: {
+        //       userId: req.query.employeeId,
+        //     },
+        //   }
+        // );
       }
     }
 
@@ -4274,7 +4274,7 @@ class UserController {
             model: db.Confirmatoinformfields,
             where: {},
             include: {
-              model: db.Confirmatoinformfieldsoptions,
+              model: db.Confirmatoinformfieldsoptions.scope("latest"),
               attributes: ["value", "label"],
             },
           },
@@ -4311,15 +4311,24 @@ class UserController {
           "id",
           "confimationPolicyAutoId",
         ],
-        include: {
-          model: db.jobDetails,
-        },
+        include: [
+          {
+            model: db.jobDetails,
+          },
+          {
+            model: db.Confimationpolicy,
+            require: true,
+            where: {
+              isActive: 1,
+            },
+          },
+        ],
       });
       const probationData = await db.probationMaster.findOne({
         where: {
           probationId: result.noticePeriodId,
         },
-        attributes: [("probationId", "probationName")],
+        attributes: [("probationId", "probationName", "durationOfProbation")],
       });
       const confirmationData = await db.Confirmationinitiated.findOne({
         where: {
@@ -4329,11 +4338,26 @@ class UserController {
         },
       });
       if (existUser && probationData && confirmationData) {
+        if (
+          confirmationData.confirmationExtentionCount ===
+          confirmationData.confirmationExtentionCountAllowed
+        ) {
+          return respHelper(res, {
+            status: 400,
+            data: {},
+            msg: constant.CONFIRMATION.EXTEND_PERMISSOIN_BREACH,
+          });
+        }
         const originalDate = moment(
           existUser.employeejobdetail.dateOfProbationEnd
         );
-        // Add 5 days
-        const newDate = originalDate.add(5, "days");
+        // Add  days
+        const newDate = originalDate.add(
+          probationData.durationOfProbation,
+          "days"
+        );
+
+        let ACTION_TAKER = await helper.getEmpProfile(req.userId); // Action Taker
         await db.jobDetails.update(
           {
             probationId: result.noticePeriodId,
@@ -4349,10 +4373,13 @@ class UserController {
             },
           }
         );
+
         await db.Confirmationinitiated.update(
           {
             status: 2,
             updatedBy: req.userId,
+            confirmationExtentionCount:
+              parseInt(confirmationData.confirmationExtentionCount) + 1,
           },
           {
             where: {
@@ -4366,7 +4393,7 @@ class UserController {
           createdBy: req.userId,
           status: 1,
           level: confirmationData.level,
-          message: `Extended by level ${confirmationData.level}`,
+          message: `Extended by level ${confirmationData.level} - ${ACTION_TAKER?.name} (${ACTION_TAKER?.empCode})`,
           confirmationAction: 2,
         });
 
@@ -4454,7 +4481,7 @@ class UserController {
         });
         let cc_arrays = [];
         let EMP_DATA_SELF = await helper.getEmpProfile(existUser?.id); // SELF DATA
-        let ACTION_TAKER = await helper.getEmpProfile(req.userId); // Action Taker
+
         if (confirmationPolicyData) {
           let holdRowCCData =
             confirmationPolicyData?.dataValues?.extendEmailCC.split(",");

@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
     generateOnBeforeDays: {
       type: Sequelize.INTEGER,
     },
+    regenerateOnBeforeExtentioEndDays: {
+      type: Sequelize.INTEGER,
+    },
     confirmationExtention: {
       type: Sequelize.INTEGER,
     },

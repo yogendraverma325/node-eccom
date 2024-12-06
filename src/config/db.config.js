@@ -1051,6 +1051,11 @@ db.Signingauthority.hasOne(db.employeeMaster, {
   foreignKey: "id",
   sourceKey: "authorityUser",
 });
+
+db.Confimationpolicy.hasMany(db.Confirmationpolicyworkflow, {
+  foreignKey: "confimationPolicyAutoId",
+  sourceKey: "confimationPolicyAutoId",
+});
 //CONFIRAMTION
 
 export default db;

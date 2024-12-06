@@ -83,9 +83,7 @@ export default (sequelize, Sequelize) => {
     npsNumber: {
       type: Sequelize.STRING,
     },
-    dateOfProbationEnd: {
-      type: Sequelize.DATE,
-    },
+
     createdBy: {
       type: Sequelize.INTEGER,
     },

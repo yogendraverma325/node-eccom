@@ -630,11 +630,11 @@ class CronController {
   }
 
   ///CONFIRMATION
-  async generateConfirmation(req, res) {
+  async generateConfirmation() {
     const confimationData = await db.jobDetails.findAll({
       where: {
         dateOfProbationEnd: {
-          [Op.gt]: db.sequelize.literal(
+          [Op.lte]: db.sequelize.literal(
             `DATE_SUB(CURDATE(), INTERVAL (SELECT generateOnBeforeDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
           ),
         },
@@ -650,14 +650,14 @@ class CronController {
           "manager",
           "empCode",
         ],
-        require: true,
+        required: true,
         where: {
           isActive: 1,
         },
         include: [
           {
             model: db.Confimationpolicy,
-            require: true,
+            required: true,
             where: {
               isActive: 1,
             },
@@ -701,6 +701,10 @@ class CronController {
             dueDate: Singleconfimation?.dateOfProbationEnd,
             createdBy: 1,
             status: 0,
+            confirmationExtentionCount: 0,
+            confirmationExtentionCountAllowed:
+              Singleconfimation?.employee?.confimationpolicy
+                ?.confirmationExtention,
           });
           await db.Confirmationaudittrail.create({
             confirmationinitiatedAutoId:
@@ -938,6 +942,47 @@ class CronController {
         );
       }
     }
+  }
+  async checkExtentionEnd(req, res) {
+    let extentionEndList = await db.Confirmationinitiated.findAll({
+      where: {
+        status: 2,
+        onHold: 0,
+      },
+      include: {
+        model: db.employeeMaster,
+        required: true,
+        attributes: ["id", "name", "confimationPolicyAutoId"],
+        include: [
+          {
+            model: db.Confimationpolicy,
+            required: true,
+            where: {
+              isActive: 1,
+            },
+            include: {
+              model: db.Confirmationpolicyworkflow,
+            },
+          },
+          {
+            model: db.jobDetails,
+            attributes: ["jobId", "dateOfJoining", "dateOfProbationEnd"],
+            required: true,
+            where: {
+              dateOfProbationEnd: {
+                [Op.lte]: db.sequelize.literal(
+                  `DATE_SUB(CURDATE(), INTERVAL (SELECT regenerateOnBeforeExtentioEndDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
+                ),
+              },
+            },
+          },
+        ],
+      },
+    });
+    return respHelper(res, {
+      status: 200,
+      data: extentionEndList,
+    });
   }
   ///CONFIRMATION
 }
