@@ -417,6 +417,91 @@ class CommonController {
         }
     }
 
+    async createBank(req, res) {
+        try {
+            const result = await validator.bankMasterSchema.validateAsync(req.body);
+            let model = db.bankMaster;
+            let query = { bandIfsc: result.bankIfsc };
+            let moduleName = "Bank";
+            let response = await service.create(model, result, query, moduleName);
+            return respHelper(res, response);
+
+        } catch (error) {
+            logger.error(error);
+            if (error.isJoi === true) {
+                return respHelper(res, {
+                    status: 422,
+                    msg: error.details[0].message,
+                });
+            }
+            return respHelper(res, {
+                status: 500,
+            });
+        }
+    }
+
+    async bankList(req, res) {
+        try {
+            let model = db.bankMaster;
+            let page = parseInt(req.query.page) || 1;
+            let search = req.query.search || '';
+            let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+        
+            let query = {
+                isActive: 1,
+                ...(search && { 'bankName': { [Op.like]: `%${search}%` } })
+        }
+             
+        let aggregate = {
+            where: query,
+            attributes: [
+                [
+                  db.sequelize.fn("DISTINCT", db.sequelize.col("bankName")),
+                  "bankName",
+                ],
+                "bankId",
+              ],
+            order: [["bankId", "DESC"]],
+            limit: pageLimit,
+            offset: (page - 1) * pageLimit
+        }
+
+
+            let response = await service.aggregate(model, aggregate);
+            let count = await service.count(model, query);
+            let obj = { 'rows': response.data, 'count': count };
+            return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+        } catch (error) {
+            console.log("error",error)
+            logger.error(error);
+            return respHelper(res, {
+                status: 500,
+            });
+        }
+    }
+
+    async changeStatusOfBank(req, res) {
+        try {
+            let model = db.bankMaster;
+            let query = { bankId: req.params.id };
+            let response = await service.changeStatus(model, query);
+            return respHelper(res, response);
+
+        } catch (error) {
+            logger.error(error);
+            if (error.isJoi === true) {
+                return respHelper(res, {
+                    status: 422,
+                    msg: error.details[0].message,
+                });
+            }
+            return respHelper(res, {
+                status: 500,
+            });
+        }
+    }
+
     // close class
 }
 

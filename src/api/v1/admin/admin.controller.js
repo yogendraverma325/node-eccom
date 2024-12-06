@@ -298,22 +298,27 @@ class AdminController {
         });
         if (!recordsExistForDate) {
           const userData = await db.employeeMaster.findOne({
-            attributes: ['id', 'manager', 'createdAt'],
+            attributes: ["id", "manager", "createdAt"],
             where: {
               id: iterator.user,
             },
           });
 
-          const currentManagerOfTheEmployeeExist = await db.managerHistory.findOne({ where: { employeeId: iterator.user, }, });
+          const currentManagerOfTheEmployeeExist =
+            await db.managerHistory.findOne({
+              where: { employeeId: iterator.user },
+            });
           if (!currentManagerOfTheEmployeeExist) {
             await db.managerHistory.create({
               employeeId: iterator.user,
               managerId: userData.manager,
-              fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
+              fromDate: moment(
+                userData.createdAt,
+                "YYYY-MM-DD HH:mm:ss"
+              ).format("YYYY-MM-DD"),
               needAttendanceCron: 0,
               createdBy: 1,
-            }
-            );
+            });
           }
           let createHistory = {
             employeeId: iterator.user,
@@ -432,7 +437,7 @@ class AdminController {
           }
         } else {
           result.role_id = 3;
-          result.offRoleCTC = (result.offRoleCTC) ? result.offRoleCTC : 0;
+          result.offRoleCTC = result.offRoleCTC ? result.offRoleCTC : 0;
 
           const createdUser = await db.employeeStagingMaster.create(result);
 
@@ -584,39 +589,39 @@ class AdminController {
         where: Object.assign(
           search
             ? {
-              [Op.or]: [
-                {
-                  name: {
-                    [Op.like]: `%${search}%`,
+                [Op.or]: [
+                  {
+                    name: {
+                      [Op.like]: `%${search}%`,
+                    },
                   },
-                },
-                {
-                  email: {
-                    [Op.like]: `%${search}%`,
+                  {
+                    email: {
+                      [Op.like]: `%${search}%`,
+                    },
                   },
-                },
-              ],
-              [Op.and]: [
-                {
-                  isActive:
-                    usersData.role_id == 1 || usersData.role_id == 2
-                      ? [1, 0]
-                      : [1],
-                },
-              ],
-              [Op.and]: activeQuery,
-            }
+                ],
+                [Op.and]: [
+                  {
+                    isActive:
+                      usersData.role_id == 1 || usersData.role_id == 2
+                        ? [1, 0]
+                        : [1],
+                  },
+                ],
+                [Op.and]: activeQuery,
+              }
             : {
-              [Op.and]: [
-                {
-                  isActive:
-                    usersData.role_id == 1 || usersData.role_id == 2
-                      ? [1, 0]
-                      : [1],
-                },
-              ],
-              [Op.and]: activeQuery,
-            }
+                [Op.and]: [
+                  {
+                    isActive:
+                      usersData.role_id == 1 || usersData.role_id == 2
+                        ? [1, 0]
+                        : [1],
+                  },
+                ],
+                [Op.and]: activeQuery,
+              }
         ),
         attributes: [
           "id",
@@ -768,9 +773,9 @@ class AdminController {
           if (existUser) {
             if (
               existUser.personalEmail ===
-              employeeOnboardingDetails.personalEmail ||
+                employeeOnboardingDetails.personalEmail ||
               existUser.personalMobileNumber ===
-              employeeOnboardingDetails.personalMobileNumber
+                employeeOnboardingDetails.personalMobileNumber
             ) {
               return respHelper(res, {
                 status: 400,
@@ -862,8 +867,11 @@ class AdminController {
                   recruiterName: employeeOnboardingDetails.recruiterName,
                   noticePeriodAutoId:
                     employeeOnboardingDetails.noticePeriodAutoId,
-                  passwordExpiryDate: moment().add(parseInt(process.env.PASSWORD_EXPIRY_LIMIT), 'days'),
-                  createdBy: req.userId
+                  passwordExpiryDate: moment().add(
+                    parseInt(process.env.PASSWORD_EXPIRY_LIMIT),
+                    "days"
+                  ),
+                  createdBy: req.userId,
                 };
 
                 const createdUser = await db.employeeMaster.create(newEmployee);
@@ -892,7 +900,7 @@ class AdminController {
                   backgroundVerification:
                     employeeOnboardingDetails.backgroundVerification,
                   createdBy: req.userId,
-                  createdAt: moment()
+                  createdAt: moment(),
                 };
 
                 const createdUserBioDetails =
@@ -904,19 +912,27 @@ class AdminController {
                 });
 
                 // get new customer name details
-                let customerName = '';
-                if(employeeOnboardingDetails.newCustomerNameId) {
-                  let getNewCustomerDetails = await db.newCustomerNameMaster.findOne({
-                    where: { newCustomerNameId: employeeOnboardingDetails.newCustomerNameId },
-                    attributes: ['newCustomerName']
-                  });
-                  if(getNewCustomerDetails) {
+                let customerName = "";
+                if (employeeOnboardingDetails.newCustomerNameId) {
+                  let getNewCustomerDetails =
+                    await db.newCustomerNameMaster.findOne({
+                      where: {
+                        newCustomerNameId:
+                          employeeOnboardingDetails.newCustomerNameId,
+                      },
+                      attributes: ["newCustomerName"],
+                    });
+                  if (getNewCustomerDetails) {
                     customerName = getNewCustomerDetails.newCustomerName;
                   }
                 }
 
                 // fetch bandId and gradeId based on job level
-                const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({ where: { 'jobLevelId': employeeOnboardingDetails.jobLevelId }, attributes: ['bandId', 'gradeId'] });
+                const getJobLevelMappingDetails =
+                  await db.jobLevelMapping.findOne({
+                    where: { jobLevelId: employeeOnboardingDetails.jobLevelId },
+                    attributes: ["bandId", "gradeId"],
+                  });
 
                 let newEmployeeJobDetails = {
                   userId: createdUser.id,
@@ -930,7 +946,7 @@ class AdminController {
                   bandId: getJobLevelMappingDetails?.bandId,
                   gradeId: getJobLevelMappingDetails?.gradeId,
                   createdBy: req.userId,
-                  createdAt: moment()
+                  createdAt: moment(),
                 };
 
                 const createdUserJobDetails = await db.jobDetails.create(
@@ -938,20 +954,23 @@ class AdminController {
                 );
 
                 if (employeeOnboardingDetails.employeeType == 3) {
-                  let get_bank_details = await db.bankMaster.findOne({ where: { 'bankName': employeeOnboardingDetails.paymentBankName }, attributes: ["bankId"] });
+                  let get_bank_details = await db.bankMaster.findOne({
+                    where: {
+                      bankName: employeeOnboardingDetails.paymentBankName,
+                    },
+                    attributes: ["bankId"],
+                  });
 
                   let newEmployeePaymentDetails = {
                     userId: createdUser.id,
                     paymentAccountNumber:
                       employeeOnboardingDetails.paymentAccountNumber,
-                    paymentBankName:
-                      employeeOnboardingDetails.paymentBankName,
-                    paymentBankIfsc:
-                      employeeOnboardingDetails.paymentBankIfsc,
+                    paymentBankName: employeeOnboardingDetails.paymentBankName,
+                    paymentBankIfsc: employeeOnboardingDetails.paymentBankIfsc,
                     status: "approved",
-                    bankId: (get_bank_details) ? get_bank_details.bankId : "",
+                    bankId: get_bank_details ? get_bank_details.bankId : "",
                     createdBy: req.userId,
-                    createdAt: moment()
+                    createdAt: moment(),
                   };
 
                   const createdUserPaymentDetails =
@@ -973,7 +992,6 @@ class AdminController {
                     id: selectedUsers[i],
                   },
                 });
-                
               } else {
                 return respHelper(res, {
                   status: 403,
@@ -1196,44 +1214,85 @@ class AdminController {
         where: condition,
         attributes: attributes,
         include: [
-          { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
-          { model: db.shiftMaster, attributes: ['shiftId', 'shiftName'] },
-          { model: db.attendancePolicymaster, attributes: ['attendancePolicyId', 'policyName'] },
-          { model: db.weekOffMaster, attributes: ['weekOffId', 'weekOffName'] },
-          { model: db.employeeMaster, attributes: ['id', 'name', 'empCode'] },
-          { model: db.designationMaster, attributes: ['designationId', 'name', 'code'] },
+          { model: db.companyMaster, attributes: ["companyId", "companyName"] },
+          { model: db.shiftMaster, attributes: ["shiftId", "shiftName"] },
+          {
+            model: db.attendancePolicymaster,
+            attributes: ["attendancePolicyId", "policyName"],
+          },
+          { model: db.weekOffMaster, attributes: ["weekOffId", "weekOffName"] },
+          { model: db.employeeMaster, attributes: ["id", "name", "empCode"] },
+          {
+            model: db.designationMaster,
+            attributes: ["designationId", "name", "code"],
+          },
 
-          { model: db.buMaster, attributes: ['buId', 'buName'] },
-          { model: db.sbuMaster, attributes: ['sbuId', 'sbuName'] },
-          { model: db.departmentMaster, attributes: ['departmentId', 'departmentName'] },
-          { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName'] },
-          { model: db.employeeMaster, attributes: ['id', 'name'], as: 'buhrData' },
-          { model: db.employeeMaster, attributes: ['id', 'name'], as: 'buHeadData' },
-          { model: db.companyLocationMaster, attributes: ["companyLocationId", "address1", "companyLocationCode"], include: [{ model: db.cityMaster, attributes: ['cityName'] } ] },
-          { model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] },
-          { model: db.probationMaster, attributes: ['probationId', 'probationName'] },
-          { model: db.newCustomerNameMaster, attributes: ['newCustomerNameId', 'newCustomerName'] },
-          { model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName'] },
-          { model: db.degreeMaster, attributes: ['degreeId', 'degreeName'] },
-        ]
+          { model: db.buMaster, attributes: ["buId", "buName"] },
+          { model: db.sbuMaster, attributes: ["sbuId", "sbuName"] },
+          {
+            model: db.departmentMaster,
+            attributes: ["departmentId", "departmentName"],
+          },
+          {
+            model: db.functionalAreaMaster,
+            attributes: ["functionalAreaId", "functionalAreaName"],
+          },
+          {
+            model: db.employeeMaster,
+            attributes: ["id", "name"],
+            as: "buhrData",
+          },
+          {
+            model: db.employeeMaster,
+            attributes: ["id", "name"],
+            as: "buHeadData",
+          },
+          {
+            model: db.companyLocationMaster,
+            attributes: [
+              "companyLocationId",
+              "address1",
+              "companyLocationCode",
+            ],
+            include: [{ model: db.cityMaster, attributes: ["cityName"] }],
+          },
+          {
+            model: db.employeeTypeMaster,
+            attributes: ["empTypeId", "emptypename"],
+          },
+          {
+            model: db.probationMaster,
+            attributes: ["probationId", "probationName"],
+          },
+          {
+            model: db.newCustomerNameMaster,
+            attributes: ["newCustomerNameId", "newCustomerName"],
+          },
+          {
+            model: db.jobLevelMaster,
+            attributes: ["jobLevelId", "jobLevelName"],
+          },
+          { model: db.degreeMaster, attributes: ["degreeId", "degreeName"] },
+        ],
       });
       if (result) {
         let noticePeriodData = [];
         let bankData = [];
         let bankIfscData = [];
 
-        if(result.employeeType === 3) {
-          bankData = await db.bankMaster.findAll(
-            {
-              attributes: [
-                [db.Sequelize.fn("MIN", db.Sequelize.col("bankId")), "bankId"],
-                "bankName"
-              ],
-              group: ["bankName"]
-            }
-          );
-          
-          bankIfscData = await db.bankMaster.findAll({ where: { "bankName": result.paymentBankName }, attributes: ["bankIfsc"] });
+        if (result.employeeType === 3) {
+          bankData = await db.bankMaster.findAll({
+            attributes: [
+              [db.Sequelize.fn("MIN", db.Sequelize.col("bankId")), "bankId"],
+              "bankName",
+            ],
+            group: ["bankName"],
+          });
+
+          bankIfscData = await db.bankMaster.findAll({
+            where: { bankName: result.paymentBankName },
+            attributes: ["bankIfsc"],
+          });
         }
 
         let allDetails = { result, noticePeriodData, bankData, bankIfscData };
@@ -1243,7 +1302,6 @@ class AdminController {
           msg: constant.DATA_FETCHED,
           data: allDetails,
         });
-
       } else {
         return respHelper(res, {
           status: 400,
@@ -1327,36 +1385,73 @@ class AdminController {
 
   async blockLogin(req, res) {
     try {
-
-      const result = await validator.blockLoginSchema.validateAsync(req.body)
+      const result = await validator.blockLoginSchema.validateAsync(req.body);
 
       const existUser = await db.employeeMaster.findOne({
         where: {
           empCode: result.employeeCode,
           isActive: 1,
-        }
-      })
+        },
+      });
 
       if (!existUser) {
         return respHelper(res, {
           status: 404,
-          msg: constant.USER_NOT_EXIST
+          msg: constant.USER_NOT_EXIST,
         });
       }
 
-      await db.employeeMaster.update({
-        isLoginActive: !existUser.dataValues.isLoginActive
-      }, {
-        where: {
-          id: existUser.dataValues.id
+      await db.employeeMaster.update(
+        {
+          isLoginActive: !existUser.dataValues.isLoginActive,
+        },
+        {
+          where: {
+            id: existUser.dataValues.id,
+          },
         }
-      })
+      );
 
       return respHelper(res, {
         status: 200,
-        msg: constant.LOGIN_STATUS.replace("<status>", `${!existUser.dataValues.isLoginActive ? "Enabled" : "Disabled"}`)
+        msg: constant.LOGIN_STATUS.replace(
+          "<status>",
+          `${!existUser.dataValues.isLoginActive ? "Enabled" : "Disabled"}`
+        ),
       });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
 
+  async addBank(req, res) {
+    try {
+      const { bankName, bankIfsc } = req.body;
+      const isExists = await db.bankMaster({
+        bankName: bankName,
+        bankIfsc: bankIfsc,
+      });
+      if (isExists) {
+        return respHelper(res, {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Bank Details"),
+        });
+      } else {
+        await db.bankMaster.create({
+          ...req.body,
+          isActive:1,
+          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          createdBy: req.userId,
+        });
+
+        return respHelper(res, {
+          status: 200,
+          msg: "Added successfully.",
+        });
+      }
     } catch (error) {
       console.log(error);
       return respHelper(res, {
