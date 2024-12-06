@@ -631,14 +631,6 @@ class CronController {
 
   ///CONFIRMATION
   async generateConfirmation(req, res) {
-    res.send("<h1>Hello</h1>");
-
-    return;
-    return respHelper(res, {
-      status: 200,
-      data: {},
-    });
-    return;
     const confimationData = await db.jobDetails.findAll({
       where: {
         dateOfProbationEnd: {
@@ -679,12 +671,6 @@ class CronController {
       },
     });
 
-    // for (const Singleconfimation of confimationData) {
-    //   eventEmitter.emit(
-    //     "selfReviewConfirnation",
-    //     JSON.stringify(Singleconfimation)
-    //   );
-    // }
     for (const Singleconfimation of confimationData) {
       let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
         where: {
@@ -760,6 +746,22 @@ class CronController {
           } else if (respfrom?.levelData?.ownerRole == "BUHR") {
             ownerId = EMP_DATA_SELF?.buHRId;
           }
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+            eventEmitter.emit(
+              "selfReviewConfirnation",
+              JSON.stringify(Singleconfimation)
+            );
+          } else {
+            let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
+
+            eventEmitter.emit(
+              "confirmationWorkflowNextLevel",
+              JSON.stringify({
+                ESCALTERDATA: ESCALTERDATA,
+                EMP_DATA: EMP_DATA_SELF,
+              })
+            );
+          }
           await db.Confirmationowners.create({
             confirmationinitiatedAutoId:
               createdData.confirmationinitiatedAutoId,
@@ -804,7 +806,7 @@ class CronController {
       }
     }
   }
-  async checkSLA() {
+  async checkSLAOfConfirmation() {
     let givenTimeExpiredRecordsFromLevel = await db.Confirmationowners.findAll({
       where: {
         slaEndDate: {
@@ -839,6 +841,7 @@ class CronController {
           },
           where: {
             status: 0,
+            onHold: 0,
           },
         },
       ],
@@ -893,6 +896,47 @@ class CronController {
         message: `not Completed by level ${singleRecords.level} ${singleRecords?.employee?.name} (${singleRecords?.employee?.empCode}) , escalated to  ${singleRecords?.employee?.managerData?.name} (${singleRecords?.employee?.managerData?.empCode})`,
         confirmationAction: 0,
       });
+    }
+  }
+  async checkConfirmatonHold() {
+    let givenTimeExpiredRecordsFromLevel =
+      await db.Confirmationinitiated.findAll({
+        where: {
+          dueDate: {
+            [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+          },
+          status: 0,
+          onHold: 0,
+        },
+      });
+    for (const element of givenTimeExpiredRecordsFromLevel) {
+      let empAndPolicyData = await db.employeeMaster.findOne({
+        where: {
+          id: element.employeeId,
+        },
+        include: {
+          model: db.Confimationpolicy,
+          required: true,
+          where: {
+            isActive: 1,
+          },
+        },
+      });
+      if (empAndPolicyData) {
+        await db.Confirmationinitiated.update(
+          {
+            onHold: 1,
+            holdEndDate: moment()
+              .add(empAndPolicyData?.confimationpolicy.holdDays, "days")
+              .format("YYYY-MM-DD"),
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: element?.confirmationinitiatedAutoId,
+            },
+          }
+        );
+      }
     }
   }
   ///CONFIRMATION

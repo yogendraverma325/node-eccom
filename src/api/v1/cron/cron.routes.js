@@ -9,5 +9,6 @@ export default Express.Router()
   .get("/newJoinEmployee", cronController.newJoinEmployee)
   //CONFIRMATION
   .get("/generateConfirmation", cronController.generateConfirmation)
-  .get("/checkSLA", cronController.checkSLA);
+  .get("/checkSLAOfConfirmation", cronController.checkSLAOfConfirmation)
+  .get("/checkConfirmatonHold", cronController.checkConfirmatonHold);
 //CONFIRMATION

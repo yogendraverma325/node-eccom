@@ -17,6 +17,13 @@ export default (sequelize, Sequelize) => {
     dueDate: {
       type: Sequelize.DATE,
     },
+    onHold: {
+      type: Sequelize.INTEGER,
+    },
+    holdEndDate: {
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
     status: {
       type: Sequelize.INTEGER,
     },

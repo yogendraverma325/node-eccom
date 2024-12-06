@@ -4099,6 +4099,19 @@ class UserController {
         } else if (respfrom?.levelData?.ownerRole == "BUHR") {
           ownerId = EMP_DATA_SELF?.buHRId;
         }
+        if (respfrom?.levelData?.ownerRole == "SELF") {
+        } else {
+          let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
+
+          eventEmitter.emit(
+            "confirmationWorkflowNextLevel",
+            JSON.stringify({
+              ESCALTERDATA: ESCALTERDATA,
+              EMP_DATA: EMP_DATA_SELF,
+            })
+          );
+        }
+
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
           employeeId: ownerId,

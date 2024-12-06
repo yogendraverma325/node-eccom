@@ -108,6 +108,9 @@ export default function getAllListeners(eventEmitter) {
   eventEmitter.on("confirmationSLABreachEmailBody", async (input) => {
     await confirmationSLABreachEmailBody(input);
   });
+  eventEmitter.on("confirmationWorkflowNextLevel", async (input) => {
+    await confirmationWorkflowNextLevel(input);
+  });
   //confirmation
 }
 
@@ -516,8 +519,21 @@ async function confirmationSLABreachEmailBody(input) {
     const inpputData = JSON.parse(input);
     await helper.mailService({
       to: inpputData?.ESCALTERDATA?.email,
-      subject: `Confirmation SLA Breach`,
+      subject: `Confirmation task of ${inpputData?.EMP_DATA?.name}(${inpputData?.EMP_DATA?.empCode}) escalated to you`,
       html: await emailTemplate.confirmationSLABreachEmailBody(inpputData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmationWorkflowNextLevel(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    await helper.mailService({
+      to: inpputData?.ESCALTERDATA?.email,
+      subject: `Confirmation Workflow Approval Required`,
+      html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
     });
   } catch (error) {
     console.log(error);
