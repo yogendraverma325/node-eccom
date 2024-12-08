@@ -1093,5 +1093,50 @@ db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
   sourceKey: "companyId",
 });
 
+// START EMPLOYMENT HISTORY
+
+db.DesignationEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: 'designationHistoryCreatedBy'
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: 'departmentHistoryCreatedBy'
+});
+
+db.CostCenterEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: 'costCenterHistoryCreatedBy'
+});
+
+db.JobLevelEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: 'jobLevelHistoryCreatedBy'
+});
+
+db.OfficeLocationEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: 'officeLocationHistoryCreatedBy'
+});
+
+db.EmployeeTypeEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: 'employeeTypeHistoryCreatedBy'
+});
+
+db.managerHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "managerHistoryCreatedBy",
+});
+
+// END EMPLOYMENT HISTORY
 
 export default db;

@@ -3931,10 +3931,11 @@ class UserController {
         where: { id: userId },
         attributes: ['id'],
         include: [
-          { model: db.DesignationEmploymentHistory, as: 'designationHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
+          { model: db.DesignationEmploymentHistory, as: 'designationHistories', attributes: { exclude: ['createdBy', 'updatedAt', 'updatedBy']}, 
             include: [
               { model: db.designationMaster, attributes: ['designationId', 'name', 'code' ] }, 
-              { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] }
+              { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] },
+              { model: db.employeeMaster, as: 'designationHistoryCreatedBy', attributes: ['id', 'name'] }
             ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
@@ -3942,39 +3943,55 @@ class UserController {
           { model: db.DepartmentEmploymentHistory, as: 'departmentHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
             include: [
               { model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] },
-              { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode' ] }
+              { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode' ] },
+              { model: db.employeeMaster, as: 'departmentHistoryCreatedBy', attributes: ['id', 'name'] }
             ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.CostCenterEmploymentHistory, as: 'costCenterHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
-            include: [{ model: db.costCenterMaster, attributes: ['costCenterId', 'costCenterName', 'costCenterCode' ] }],
+            include: [
+              { model: db.costCenterMaster, attributes: ['costCenterId', 'costCenterName', 'costCenterCode' ] },
+              { model: db.employeeMaster, as: 'costCenterHistoryCreatedBy', attributes: ['id', 'name'] },
+            ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.JobLevelEmploymentHistory, as: 'jobLevelHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
-            include: [{ model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode' ] }],
+            include: [
+              { model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode' ] },
+              { model: db.employeeMaster, as: 'jobLevelHistoryCreatedBy', attributes: ['id', 'name'] }
+            ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.OfficeLocationEmploymentHistory, as: 'officeLocationHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
-            include: [{ model: db.companyLocationMaster, attributes: ['companyLocationCode', 'address1'], 
-              include: [
-                { model: db.countryMaster, attributes: ['countryId', 'countryName', 'countryCode'] },
-                { model: db.stateMaster, attributes: ['stateId', 'stateName', 'stateCode'] },
-                { model: db.cityMaster, attributes: ['cityId', 'cityName', 'cityCode'] },
-              ] 
-            }],
+            include: [
+                { model: db.companyLocationMaster, attributes: ['companyLocationCode', 'address1'], 
+                include: [
+                  { model: db.countryMaster, attributes: ['countryId', 'countryName', 'countryCode'] },
+                  { model: db.stateMaster, attributes: ['stateId', 'stateName', 'stateCode'] },
+                  { model: db.cityMaster, attributes: ['cityId', 'cityName', 'cityCode'] },
+                ] 
+              },
+              { model: db.employeeMaster, as: 'officeLocationHistoryCreatedBy', attributes: ['id', 'name'] }
+            ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.EmployeeTypeEmploymentHistory, as: 'employeeTypeHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
-            include: [{ model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] } ],
+            include: [
+              { model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] },
+              { model: db.employeeMaster, as: 'employeeTypeHistoryCreatedBy', attributes: ['id', 'name'] },
+            ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
           { model: db.managerHistory, as: 'managerHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
-            include: [{ model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ] }],
+            include: [
+              { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ] },
+              { model: db.employeeMaster, as: 'managerHistoryCreatedBy', attributes: ['id', 'name'] }
+            ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           }
