@@ -6,6 +6,10 @@ import xlsx from "json-as-xlsx";
 import fs from "fs";
 import logger from "../../../helper/logger.js";
 import helper from "../../../helper/helper.js";
+import respHelper from "../../../helper/respHelper.js";
+import emailTemplate from "../../../email/emailTemplate.js";
+import html_to_pdf from "html-pdf-node";
+
 class CronController {
   async updateAttendance() {
     const existEmployees = await db.employeeMaster.findAll({
@@ -622,7 +626,7 @@ class CronController {
     const confimationData = await db.jobDetails.findAll({
       where: {
         dateOfProbationEnd: {
-          [Op.gt]: db.sequelize.literal(
+          [Op.lte]: db.sequelize.literal(
             `DATE_SUB(CURDATE(), INTERVAL (SELECT generateOnBeforeDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
           ),
         },
@@ -638,14 +642,14 @@ class CronController {
           "manager",
           "empCode",
         ],
-        require: true,
+        required: true,
         where: {
           isActive: 1,
         },
         include: [
           {
             model: db.Confimationpolicy,
-            require: true,
+            required: true,
             where: {
               isActive: 1,
             },
@@ -659,12 +663,6 @@ class CronController {
       },
     });
 
-    // for (const Singleconfimation of confimationData) {
-    //   eventEmitter.emit(
-    //     "selfReviewConfirnation",
-    //     JSON.stringify(Singleconfimation)
-    //   );
-    // }
     for (const Singleconfimation of confimationData) {
       let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
         where: {
@@ -695,6 +693,10 @@ class CronController {
             dueDate: Singleconfimation?.dateOfProbationEnd,
             createdBy: 1,
             status: 0,
+            confirmationExtentionCount: 0,
+            confirmationExtentionCountAllowed:
+              Singleconfimation?.employee?.confimationpolicy
+                ?.confirmationExtention,
           });
           await db.Confirmationaudittrail.create({
             confirmationinitiatedAutoId:
@@ -740,6 +742,22 @@ class CronController {
           } else if (respfrom?.levelData?.ownerRole == "BUHR") {
             ownerId = EMP_DATA_SELF?.buHRId;
           }
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+            eventEmitter.emit(
+              "selfReviewConfirnation",
+              JSON.stringify(Singleconfimation)
+            );
+          } else {
+            let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
+
+            eventEmitter.emit(
+              "confirmationWorkflowNextLevel",
+              JSON.stringify({
+                ESCALTERDATA: ESCALTERDATA,
+                EMP_DATA: EMP_DATA_SELF,
+              })
+            );
+          }
           await db.Confirmationowners.create({
             confirmationinitiatedAutoId:
               createdData.confirmationinitiatedAutoId,
@@ -784,7 +802,7 @@ class CronController {
       }
     }
   }
-  async checkSLA() {
+  async checkSLAOfConfirmation() {
     let givenTimeExpiredRecordsFromLevel = await db.Confirmationowners.findAll({
       where: {
         slaEndDate: {
@@ -819,6 +837,7 @@ class CronController {
           },
           where: {
             status: 0,
+            onHold: 0,
           },
         },
       ],
@@ -835,6 +854,21 @@ class CronController {
       });
 
       if (levelownerData) {
+        let ESCALTERDATA = await helper.getEmpProfile(
+          singleRecords?.employee?.managerData?.id
+        ); // ESCLATER DATA
+        let EMP_DATA = await helper.getEmpProfile(
+          singleRecords?.confirmationinitiated?.employee?.id
+        ); // EMP DATA
+
+        eventEmitter.emit(
+          "confirmationSLABreachEmailBody",
+          JSON.stringify({
+            ESCALTERDATA: ESCALTERDATA,
+            EMP_DATA: EMP_DATA,
+          })
+        );
+
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId:
             singleRecords.confirmationinitiatedAutoId,
@@ -858,6 +892,280 @@ class CronController {
         message: `not Completed by level ${singleRecords.level} ${singleRecords?.employee?.name} (${singleRecords?.employee?.empCode}) , escalated to  ${singleRecords?.employee?.managerData?.name} (${singleRecords?.employee?.managerData?.empCode})`,
         confirmationAction: 0,
       });
+    }
+  }
+  async checkConfirmatonHold() {
+    let givenTimeExpiredRecordsFromLevel =
+      await db.Confirmationinitiated.findAll({
+        where: {
+          dueDate: {
+            [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+          },
+          status: 0,
+          onHold: 0,
+        },
+      });
+    for (const element of givenTimeExpiredRecordsFromLevel) {
+      let empAndPolicyData = await db.employeeMaster.findOne({
+        where: {
+          id: element.employeeId,
+        },
+        include: {
+          model: db.Confimationpolicy,
+          required: true,
+          where: {
+            isActive: 1,
+          },
+        },
+      });
+      if (empAndPolicyData) {
+        await db.Confirmationinitiated.update(
+          {
+            onHold: 1,
+            holdEndDate: moment()
+              .add(empAndPolicyData?.confimationpolicy.holdDays, "days")
+              .format("YYYY-MM-DD"),
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: element?.confirmationinitiatedAutoId,
+            },
+          }
+        );
+      }
+    }
+  }
+  async checkExtentionEnd() {
+    let extentionEndList = await db.Confirmationinitiated.findAll({
+      where: {
+        status: 2,
+        onHold: 0,
+      },
+      include: {
+        model: db.employeeMaster,
+        required: true,
+        attributes: ["id", "name", "confimationPolicyAutoId"],
+        include: [
+          {
+            model: db.Confimationpolicy,
+            required: true,
+            where: {
+              isActive: 1,
+            },
+            include: {
+              model: db.Confirmationpolicyworkflow,
+              required: true,
+            },
+          },
+          {
+            model: db.jobDetails,
+            attributes: ["jobId", "dateOfJoining", "dateOfProbationEnd"],
+            required: true,
+            where: {
+              dateOfProbationEnd: {
+                [Op.lte]: db.sequelize.literal(
+                  `DATE_SUB(CURDATE(), INTERVAL (SELECT regenerateOnBeforeExtentioEndDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
+                ),
+              },
+            },
+          },
+        ],
+      },
+    });
+    for (const singleextentionEndList of extentionEndList) {
+      let workflows =
+        singleextentionEndList?.employee?.confimationpolicy
+          ?.confimationpolicyworkflows;
+      let actualWorkFlow = workflows.find(
+        (workflow) => workflow.level === singleextentionEndList.level
+      );
+      if (actualWorkFlow) {
+        let lastOwner = await db.Confirmationowners.findOne({
+          where: {
+            confirmationinitiatedAutoId:
+              singleextentionEndList.confirmationinitiatedAutoId,
+            level: singleextentionEndList.level,
+          },
+        });
+
+        await db.Confirmationinitiated.update(
+          {
+            status: 0,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                singleextentionEndList.confirmationinitiatedAutoId,
+            },
+          }
+        );
+
+        let EMP_DATA_SELF = await db.employeeMaster.findOne({
+          where: {
+            id: singleextentionEndList.employeeId,
+          },
+        });
+
+        let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
+
+        eventEmitter.emit(
+          "confirmationWorkflowNextLevel",
+          JSON.stringify({
+            ESCALTERDATA: ESCALTERDATA,
+            EMP_DATA: EMP_DATA_SELF,
+          })
+        );
+
+        await db.Confirmationaudittrail.create({
+          confirmationinitiatedAutoId:
+            singleextentionEndList.confirmationinitiatedAutoId,
+          createdBy: 1,
+          status: 1,
+          level: singleextentionEndList.level,
+          message: `Confirmation Re-Initiated for approval at ${ESCALTERDATA.name} (${ESCALTERDATA.empCode})`,
+          confirmationAction: 0,
+        });
+
+        await db.Confirmationowners.update(
+          {
+            canTakeAction: actualWorkFlow?.isEnable == 1 ? 1 : 0,
+            canTakeActionExtend: actualWorkFlow?.isEnable == 1 ? 1 : 0,
+            isCompleted: 0,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                singleextentionEndList.confirmationinitiatedAutoId,
+              level: singleextentionEndList.level,
+            },
+          }
+        );
+      }
+    }
+  }
+  async generatConfiramtionletter() {
+    let whoseConfirmationDateIsTodayList =
+      await db.Confirmationinitiated.findAll({
+        where: {
+          status: 1,
+        },
+        include: {
+          model: db.employeeMaster,
+          required: true,
+          attributes: ["id", "name", "confimationPolicyAutoId"],
+          include: [
+            {
+              model: db.jobDetails,
+              attributes: [
+                "jobId",
+                "dateOfJoining",
+                "dateOfProbationEnd",
+                "confirmationDate",
+              ],
+              required: true,
+              where: {
+                dateOfProbationEnd: {
+                  [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+                },
+                confirmationDate: {
+                  [Op.is]: null, // This checks if the column `confirmationDate` is null
+                },
+              },
+            },
+          ],
+        },
+      });
+    for (const SingleConfirmationDateIsTodayList of whoseConfirmationDateIsTodayList) {
+      const confirmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId:
+            SingleConfirmationDateIsTodayList?.confirmationinitiatedAutoId,
+        },
+      });
+      if (confirmationData) {
+        await db.jobDetails.update(
+          {
+            confirmationDate:
+              SingleConfirmationDateIsTodayList?.employee?.employeejobdetail
+                ?.dateOfProbationEnd,
+          },
+          {
+            where: {
+              userId: SingleConfirmationDateIsTodayList?.employeeId,
+            },
+          }
+        );
+
+        const employeeData = await db.jobDetails.findOne({
+          where: {
+            userId: SingleConfirmationDateIsTodayList?.employeeId,
+          },
+          attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
+          include: {
+            model: db.employeeMaster,
+            attributes: ["id", "name", "confimationPolicyAutoId"],
+            require: true,
+            where: {
+              isActive: 1,
+            },
+            include: {
+              model: db.Confimationpolicy,
+              require: true,
+              where: {
+                isActive: 1,
+              },
+            },
+          },
+        });
+
+        let EMP_DATA_SELF = await helper.getEmpProfile(
+          SingleConfirmationDateIsTodayList?.employeeId
+        ); // SELF Manager
+        let signatureAuthority = await helper.getSigningAuthorityDate(
+          "CONFIRMATION",
+          EMP_DATA_SELF
+        ); // SELF Manager
+
+        const confirmationPolicyData = await db.Confimationpolicy.findOne({
+          where: {
+            confimationPolicyAutoId:
+              employeeData?.employee?.confimationPolicyAutoId,
+          },
+          attributes: [
+            "confiramtionEmailCC",
+            "confiramtionRequestEmailCC",
+            "extendEmailCC",
+          ],
+        });
+        let cc_arrays = [];
+        if (confirmationPolicyData) {
+          let holdRowCCData =
+            confirmationPolicyData?.dataValues?.confiramtionEmailCC.split(",");
+          if (holdRowCCData.length > 0) {
+            for (const single_cc_array of holdRowCCData) {
+              if (single_cc_array == "MANAGER") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
+                );
+              } else if (single_cc_array == "BUHR") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
+                );
+              }
+            }
+          }
+        }
+
+        eventEmitter.emit(
+          "confirmationLetter",
+          JSON.stringify({
+            EMP_DATA_SELF: EMP_DATA_SELF,
+            confirmationData: confirmationData,
+            signatureAuthority: signatureAuthority,
+            cc: cc_arrays.join(","),
+          })
+        );
+      }
     }
   }
   ///CONFIRMATION

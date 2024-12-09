@@ -119,6 +119,7 @@ import Confirmationaudittrail from "../api/model/ConfirmationAudit.js";
 import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
+import Signingauthority from "../api/model/signingAuthority.js";
 //CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -305,6 +306,7 @@ db.Confirmationpolicyworkflow = Confirmationpolicyworkflow(
   sequelize,
   Sequelize
 );
+db.Signingauthority = Signingauthority(sequelize, Sequelize);
 //CONFIRMATION
 
 db.DesignationEmploymentHistory = DesignationEmploymentHistory(
@@ -1087,6 +1089,15 @@ db.Confirmationinitiated.hasMany(db.Confirmationaudittrail, {
   foreignKey: "confirmationinitiatedAutoId",
 });
 db.employeeMaster.hasOne(db.Confimationpolicy, {
+  foreignKey: "confimationPolicyAutoId",
+  sourceKey: "confimationPolicyAutoId",
+});
+db.Signingauthority.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "authorityUser",
+});
+
+db.Confimationpolicy.hasMany(db.Confirmationpolicyworkflow, {
   foreignKey: "confimationPolicyAutoId",
   sourceKey: "confimationPolicyAutoId",
 });

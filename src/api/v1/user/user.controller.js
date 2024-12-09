@@ -4009,16 +4009,38 @@ class UserController {
         include: [
           {
             model: db.employeeMaster,
-            attributes: ["id", "empCode", "name"],
-            include: {
-              model: db.jobDetails,
-              attributes: [
-                "dateOfJoining",
-                "dateOfProbationEnd",
-                "probationPeriod",
-                "probationDays",
-              ],
-            },
+            attributes: ["id", "empCode", "name", "email"],
+            include: [
+              {
+                model: db.jobDetails,
+                attributes: [
+                  "dateOfJoining",
+                  "dateOfProbationEnd",
+                  "probationPeriod",
+                  "confirmationDate",
+                  "probationDays",
+                ],
+              },
+              {
+                model: db.companyLocationMaster,
+                required: false,
+                attributes: ["address1", "address2"],
+              },
+              {
+                model: db.designationMaster,
+                required: true,
+                attributes: ["designationId", "name"],
+              },
+              {
+                model: db.departmentMaster,
+                required: true,
+                attributes: [
+                  "departmentId",
+                  "departmentCode",
+                  "departmentName",
+                ],
+              },
+            ],
           },
           {
             model: db.Confirmationowners,
@@ -4054,215 +4076,224 @@ class UserController {
     }
   }
   async confirmatonFormSubmission(req, res) {
-    // try {
-    const cantakeAction = await db.Confirmationinitiated.findOne({
-      where: {
-        confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-        level: parseInt(req.query.level),
-        status: 0,
-      },
-      include: [
-        {
-          model: db.Confirmationowners,
-          attributes: [
-            "employeeId",
-            "canTakeAction",
-            "level",
-            "canTakeActionExtend",
-          ],
-          where: {
-            employeeId: req.userId,
-            canTakeAction: 1,
-            slaEndDate: {
-              [Op.gte]: moment().format("YYYY-MM-DD"), // today's date in YYYY-MM-DD format
-            },
-          },
-        },
-      ],
-    });
-    if (!cantakeAction) {
-      return respHelper(res, {
-        status: 400,
-        msg: constant.CONFIRMATION.CANT_TAKE_ACTION,
-      });
-    }
-
-    for (const element of req.body) {
-      await db.Confirmationformfilledvalues.update(
-        {
-          values: element.confirmatoinformfieldsValues,
-          updatedBy: req.userId,
-        },
-        {
-          where: {
-            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-            confirmationFormGroupId: element.confirmationFormGroupId,
-            level: parseInt(req.query.level),
-            confirmatoinformfieldsAutoId: element.confirmatoinformfieldsAutoId,
-          },
-        }
-      );
-    }
-
-    const employeeData = await db.jobDetails.findOne({
-      where: {
-        userId: req.query.employeeId,
-      },
-      attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
-      include: {
-        model: db.employeeMaster,
-        attributes: ["id", "name", "confimationPolicyAutoId"],
-        require: true,
+    try {
+      const cantakeAction = await db.Confirmationinitiated.findOne({
         where: {
-          isActive: 1,
-        },
-        include: {
-          model: db.Confimationpolicy,
-          require: true,
-          where: {
-            isActive: 1,
-          },
-        },
-      },
-    });
-
-    if (employeeData) {
-      let level = parseInt(req.query.level);
-      let respfrom = await helper.generateFieldsForgivenLevel(
-        employeeData?.employee?.confimationPolicyAutoId,
-        level + 1
-      );
-
-      await db.Confirmationowners.update(
-        {
-          canTakeAction: 0,
-          canTakeActionExtend: 0,
-          isCompleted: 1,
-        },
-        {
-          where: {
-            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-            level: req.query.level,
-          },
-        }
-      );
-
-      await db.Confirmationaudittrail.create({
-        confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-        createdBy: 1,
-        status: 1,
-        level: level,
-        message: `Completed by level ${level}`,
-        confirmationAction: 1,
-      });
-
-      if (respfrom.levelFound) {
-        await db.Confirmationinitiated.update(
-          {
-            level: respfrom.level,
-          },
-          {
-            where: {
-              confirmationinitiatedAutoId:
-                req.query.confirmationinitiatedAutoId,
-            },
-          }
-        );
-        let EMP_DATA_SELF = await helper.getEmpProfile(req.query.employeeId); // SELF Manager
-        // if (respfrom.level == 1) {
-        let ownerId = 0;
-        if (respfrom?.levelData?.ownerRole == "SELF") {
-          ownerId = req.query.employeeId;
-        } else if (respfrom?.levelData?.ownerRole == "MANAGER") {
-          ownerId = EMP_DATA_SELF?.managerData?.id;
-        } else if (respfrom?.levelData?.ownerRole == "L2_MANAGER") {
-          let MANAAGER_MANAGER = await helper.getEmpProfile(
-            EMP_DATA_SELF?.managerData?.id
-          ); // MANAGER KA MANAGER
-          ownerId = MANAAGER_MANAGER?.managerData?.id;
-        } else if (respfrom?.levelData?.ownerRole == "ADMIN") {
-          let admin = await db.employeeMaster.findOne({
-            where: {
-              role_id: 2,
-              isActive: 1,
-            },
-          });
-          ownerId = admin?.id;
-        } else if (respfrom?.levelData?.ownerRole == "BUHR") {
-          ownerId = EMP_DATA_SELF?.buHRId;
-        }
-        await db.Confirmationowners.create({
           confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-          employeeId: ownerId,
-          level: respfrom.level,
-          canTakeAction: 1,
-          canTakeActionExtend: respfrom?.levelData?.ownerRole == "SELF" ? 0 : 1,
-          confirmationFormGroupId: respfrom?.levelData?.confirmationFormGroupId,
-          slaEndDate: moment()
-            .add(respfrom?.levelData?.maxCompletionDay, "days")
-            .format("YYYY-MM-DD"),
-          createdBy: 1,
-        });
-        const formFields = await db.Confirmatoinformfields.findAll({
-          where: {
-            confirmationFormGroupId:
-              respfrom?.levelData?.confirmationFormGroupId,
-            // level: respfrom.level,
-          },
-        });
-        let bulkArray = [];
-        for (const formField of formFields) {
-          bulkArray.push({
-            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
-            confirmationFormGroupId: formField.confirmationFormGroupId,
-            confirmatoinformfieldsAutoId:
-              formField.confirmatoinformfieldsAutoId,
-            employeeId: req.query.employeeId,
-            values: "",
-            level: respfrom.level,
-            createdBy: 1,
-          });
-        }
-        if (bulkArray.length > 0) {
-          await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
-        }
-      } else {
-        await db.Confirmationinitiated.update(
+          level: parseInt(req.query.level),
+          status: 0,
+        },
+        include: [
           {
-            level: 0,
-            status: 1,
+            model: db.Confirmationowners,
+            attributes: [
+              "employeeId",
+              "canTakeAction",
+              "level",
+              "canTakeActionExtend",
+            ],
+            where: {
+              employeeId: req.userId,
+              canTakeAction: 1,
+              slaEndDate: {
+                [Op.gte]: moment().format("YYYY-MM-DD"), // today's date in YYYY-MM-DD format
+              },
+            },
+          },
+        ],
+      });
+      if (!cantakeAction) {
+        return respHelper(res, {
+          status: 400,
+          msg: constant.CONFIRMATION.CANT_TAKE_ACTION,
+        });
+      }
+
+      for (const element of req.body) {
+        await db.Confirmationformfilledvalues.update(
+          {
+            values: element.confirmatoinformfieldsValues,
+            updatedBy: req.userId,
           },
           {
             where: {
               confirmationinitiatedAutoId:
                 req.query.confirmationinitiatedAutoId,
-            },
-          }
-        );
-
-        await db.jobDetails.update(
-          {
-            dateOfProbationEnd: null,
-          },
-          {
-            where: {
-              userId: req.query.employeeId,
+              confirmationFormGroupId: element.confirmationFormGroupId,
+              level: parseInt(req.query.level),
+              confirmatoinformfieldsAutoId:
+                element.confirmatoinformfieldsAutoId,
             },
           }
         );
       }
-    }
 
-    return respHelper(res, {
-      status: 200,
-      msg: constant.CONFIRMATION.FORM_SUBMISSION,
-    });
-    // } catch (error) {
-    //   return respHelper(res, {
-    //     status: 500,
-    //     msg: "Internal server error",
-    //   });
-    // }
+      const employeeData = await db.jobDetails.findOne({
+        where: {
+          userId: req.query.employeeId,
+        },
+        attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
+        include: {
+          model: db.employeeMaster,
+          attributes: ["id", "name", "confimationPolicyAutoId"],
+          require: true,
+          where: {
+            isActive: 1,
+          },
+          include: {
+            model: db.Confimationpolicy,
+            require: true,
+            where: {
+              isActive: 1,
+            },
+          },
+        },
+      });
+
+      if (employeeData) {
+        let level = parseInt(req.query.level);
+        let respfrom = await helper.generateFieldsForgivenLevel(
+          employeeData?.employee?.confimationPolicyAutoId,
+          level + 1
+        );
+
+        await db.Confirmationowners.update(
+          {
+            canTakeAction: 0,
+            canTakeActionExtend: 0,
+            isCompleted: 1,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                req.query.confirmationinitiatedAutoId,
+              level: req.query.level,
+            },
+          }
+        );
+        let completedByusers = await helper.getEmpProfile(req.userId); //completedByusers data
+
+        await db.Confirmationaudittrail.create({
+          confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+          createdBy: 1,
+          status: 1,
+          level: level,
+          message: `Completed by level ${level} ,${completedByusers?.name} (${completedByusers?.empCode})`,
+          confirmationAction: 1,
+        });
+
+        if (respfrom.levelFound) {
+          await db.Confirmationinitiated.update(
+            {
+              level: respfrom.level,
+            },
+            {
+              where: {
+                confirmationinitiatedAutoId:
+                  req.query.confirmationinitiatedAutoId,
+              },
+            }
+          );
+          let EMP_DATA_SELF = await helper.getEmpProfile(req.query.employeeId); // SELF Manager
+          // if (respfrom.level == 1) {
+          let ownerId = 0;
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+            ownerId = req.query.employeeId;
+          } else if (respfrom?.levelData?.ownerRole == "MANAGER") {
+            ownerId = EMP_DATA_SELF?.managerData?.id;
+          } else if (respfrom?.levelData?.ownerRole == "L2_MANAGER") {
+            let MANAAGER_MANAGER = await helper.getEmpProfile(
+              EMP_DATA_SELF?.managerData?.id
+            ); // MANAGER KA MANAGER
+            ownerId = MANAAGER_MANAGER?.managerData?.id;
+          } else if (respfrom?.levelData?.ownerRole == "ADMIN") {
+            let admin = await db.employeeMaster.findOne({
+              where: {
+                role_id: 2,
+                isActive: 1,
+              },
+            });
+            ownerId = admin?.id;
+          } else if (respfrom?.levelData?.ownerRole == "BUHR") {
+            ownerId = EMP_DATA_SELF?.buHRId;
+          }
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+          } else {
+            let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
+
+            eventEmitter.emit(
+              "confirmationWorkflowNextLevel",
+              JSON.stringify({
+                ESCALTERDATA: ESCALTERDATA,
+                EMP_DATA: EMP_DATA_SELF,
+              })
+            );
+          }
+
+          await db.Confirmationowners.create({
+            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+            employeeId: ownerId,
+            level: respfrom.level,
+            canTakeAction: 1,
+            canTakeActionExtend:
+              respfrom?.levelData?.ownerRole == "SELF" ? 0 : 1,
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            slaEndDate: moment()
+              .add(respfrom?.levelData?.maxCompletionDay, "days")
+              .format("YYYY-MM-DD"),
+            createdBy: 1,
+          });
+          const formFields = await db.Confirmatoinformfields.findAll({
+            where: {
+              confirmationFormGroupId:
+                respfrom?.levelData?.confirmationFormGroupId,
+              // level: respfrom.level,
+            },
+          });
+          let bulkArray = [];
+          for (const formField of formFields) {
+            bulkArray.push({
+              confirmationinitiatedAutoId:
+                req.query.confirmationinitiatedAutoId,
+              confirmationFormGroupId: formField.confirmationFormGroupId,
+              confirmatoinformfieldsAutoId:
+                formField.confirmatoinformfieldsAutoId,
+              employeeId: req.query.employeeId,
+              values: "",
+              level: respfrom.level,
+              createdBy: 1,
+            });
+          }
+          if (bulkArray.length > 0) {
+            await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
+          }
+        } else {
+          await db.Confirmationinitiated.update(
+            {
+              level: 0,
+              status: 1,
+            },
+            {
+              where: {
+                confirmationinitiatedAutoId:
+                  req.query.confirmationinitiatedAutoId,
+              },
+            }
+          );
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        msg: constant.CONFIRMATION.FORM_SUBMISSION,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
   }
   async confirmatonFormdetails(req, res) {
     try {
@@ -4297,7 +4328,7 @@ class UserController {
             model: db.Confirmatoinformfields,
             where: {},
             include: {
-              model: db.Confirmatoinformfieldsoptions,
+              model: db.Confirmatoinformfieldsoptions.scope("latest"),
               attributes: ["value", "label"],
             },
           },
@@ -4327,16 +4358,31 @@ class UserController {
           id: result.employeeId,
           isActive: 1,
         },
-        attributes: ["name", "empCode", "profileImage", "id"],
-        include: {
-          model: db.jobDetails,
-        },
+        attributes: [
+          "name",
+          "empCode",
+          "profileImage",
+          "id",
+          "confimationPolicyAutoId",
+        ],
+        include: [
+          {
+            model: db.jobDetails,
+          },
+          {
+            model: db.Confimationpolicy,
+            require: true,
+            where: {
+              isActive: 1,
+            },
+          },
+        ],
       });
       const probationData = await db.probationMaster.findOne({
         where: {
           probationId: result.noticePeriodId,
         },
-        attributes: [("probationId", "probationName")],
+        attributes: [("probationId", "probationName", "durationOfProbation")],
       });
       const confirmationData = await db.Confirmationinitiated.findOne({
         where: {
@@ -4346,11 +4392,26 @@ class UserController {
         },
       });
       if (existUser && probationData && confirmationData) {
+        if (
+          confirmationData.confirmationExtentionCount ===
+          confirmationData.confirmationExtentionCountAllowed
+        ) {
+          return respHelper(res, {
+            status: 400,
+            data: {},
+            msg: constant.CONFIRMATION.EXTEND_PERMISSOIN_BREACH,
+          });
+        }
         const originalDate = moment(
           existUser.employeejobdetail.dateOfProbationEnd
         );
-        // Add 5 days
-        const newDate = originalDate.add(5, "days");
+        // Add  days
+        const newDate = originalDate.add(
+          probationData.durationOfProbation,
+          "days"
+        );
+
+        let ACTION_TAKER = await helper.getEmpProfile(req.userId); // Action Taker
         await db.jobDetails.update(
           {
             probationId: result.noticePeriodId,
@@ -4366,10 +4427,13 @@ class UserController {
             },
           }
         );
+
         await db.Confirmationinitiated.update(
           {
             status: 2,
             updatedBy: req.userId,
+            confirmationExtentionCount:
+              parseInt(confirmationData.confirmationExtentionCount) + 1,
           },
           {
             where: {
@@ -4383,7 +4447,7 @@ class UserController {
           createdBy: req.userId,
           status: 1,
           level: confirmationData.level,
-          message: `Extended by level ${confirmationData.level}`,
+          message: `Extended by level ${confirmationData.level} - ${ACTION_TAKER?.name} (${ACTION_TAKER?.empCode})`,
           confirmationAction: 2,
         });
 
@@ -4457,6 +4521,46 @@ class UserController {
               level: confirmationData.level,
             },
           }
+        );
+
+        const confirmationPolicyData = await db.Confimationpolicy.findOne({
+          where: {
+            confimationPolicyAutoId: existUser?.confimationPolicyAutoId,
+          },
+          attributes: [
+            "confiramtionEmailCC",
+            "confiramtionRequestEmailCC",
+            "extendEmailCC",
+          ],
+        });
+        let cc_arrays = [];
+        let EMP_DATA_SELF = await helper.getEmpProfile(existUser?.id); // SELF DATA
+
+        if (confirmationPolicyData) {
+          let holdRowCCData =
+            confirmationPolicyData?.dataValues?.extendEmailCC.split(",");
+          if (holdRowCCData.length > 0) {
+            for (const single_cc_array of holdRowCCData) {
+              if (single_cc_array == "MANAGER") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
+                );
+              } else if (single_cc_array == "BUHR") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
+                );
+              }
+            }
+          }
+        }
+
+        eventEmitter.emit(
+          "confirmatonExtend",
+          JSON.stringify({
+            EMP_DATA_SELF: EMP_DATA_SELF,
+            ACTION_TAKER: ACTION_TAKER,
+            cc: cc_arrays,
+          })
         );
 
         return respHelper(res, {

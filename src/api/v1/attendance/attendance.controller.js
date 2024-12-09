@@ -242,6 +242,7 @@ class AttendanceController {
             msg: message.PUNCH_IN_SUCCESS,
           });
         } else {
+          console.log("here");
           await db.attendanceMaster.update(
             {
               attendancePunchOutTime: currentDate.format("HH:mm:ss"),
@@ -1241,6 +1242,7 @@ class AttendanceController {
                 "halfDayFor",
                 "reason",
                 "leaveAutoId",
+                "createdAt",
               ],
               where: {
                 status: ["pending", "approved"],

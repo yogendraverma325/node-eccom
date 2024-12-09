@@ -30,5 +30,8 @@ export default (sequelize, Sequelize) => {
       },
     }
   );
+  Confirmatoinformfieldsoptions.addScope("latest", {
+    order: [["createdAt", "DESC"]],
+  });
   return Confirmatoinformfieldsoptions;
 };

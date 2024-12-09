@@ -85,6 +85,8 @@ const message = {
   CONFIRMATION: {
     FORM_SUBMISSION: "Form  Submitted",
     CANT_TAKE_ACTION: "You can't not take action on this currently",
+    EXTEND_PERMISSOIN_BREACH:
+      "This profile has reached to maximum number of extention",
   },
 };
 
