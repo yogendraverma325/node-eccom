@@ -3917,16 +3917,38 @@ class UserController {
         include: [
           {
             model: db.employeeMaster,
-            attributes: ["id", "empCode", "name"],
-            include: {
-              model: db.jobDetails,
-              attributes: [
-                "dateOfJoining",
-                "dateOfProbationEnd",
-                "probationPeriod",
-                "probationDays",
-              ],
-            },
+            attributes: ["id", "empCode", "name", "email"],
+            include: [
+              {
+                model: db.jobDetails,
+                attributes: [
+                  "dateOfJoining",
+                  "dateOfProbationEnd",
+                  "probationPeriod",
+                  "confirmationDate",
+                  "probationDays",
+                ],
+              },
+              {
+                model: db.companyLocationMaster,
+                required: false,
+                attributes: ["address1", "address2"],
+              },
+              {
+                model: db.designationMaster,
+                required: true,
+                attributes: ["designationId", "name"],
+              },
+              {
+                model: db.departmentMaster,
+                required: true,
+                attributes: [
+                  "departmentId",
+                  "departmentCode",
+                  "departmentName",
+                ],
+              },
+            ],
           },
           {
             model: db.Confirmationowners,
