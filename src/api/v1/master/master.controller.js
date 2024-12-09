@@ -414,8 +414,8 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
 
       const costCenterData = await db.costCenterMaster.findAndCountAll({
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       return respHelper(res, {
@@ -1314,9 +1314,18 @@ class MasterController {
   async probation(req, res) {
     try {
       let query = { isActive: 1 };
+      let queryFormat = req.query;
+      console.log("queryFormat", queryFormat);
       const probationData = await db.probationMaster.findAll({
-        where: query,
-        attributes: ["probationId", "probationName"],
+        where: queryFormat
+          ? { ...query, ...{ showInProbationExtension: "Yes" } }
+          : query,
+        attributes: queryFormat
+          ? [
+              ["probationId", "value"],
+              ["probationName", "label"],
+            ]
+          : [("probationId", "probationName")],
       });
 
       return respHelper(res, {

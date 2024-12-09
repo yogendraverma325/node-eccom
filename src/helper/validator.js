@@ -167,7 +167,7 @@ const updateBiographicalDetailsSchema = Joi.object({
   offRoleCTC: Joi.number().allow(null).label("Off Role CTC"),
   highestQualification: Joi.number().allow(null).label("Highest Qualification"),
   ESICPFDeduction: Joi.string().allow(null).label("ESIC/PF Deduction"),
-  fatherName: Joi.string().trim().allow(null).label("Father Name")
+  fatherName: Joi.string().trim().allow(null).label("Father Name"),
 });
 
 const addFamilyDetailsSchema = Joi.object({
@@ -440,7 +440,7 @@ const addJobDetailsSchema = Joi.object({
   customerName: Joi.string().allow(null).label("Customer Name").optional(),
   projectCode: Joi.string().trim().allow(null).label("Project Code"),
   customerCode: Joi.string().trim().allow(null).label("Customer Code"),
-  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due")
+  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due"),
 });
 
 const updateManagerSchema = Joi.array()
@@ -1180,6 +1180,64 @@ const blockLoginSchema = Joi.object({
   employeeCode: Joi.string().trim().required().label("Employee Code"),
 });
 
+///Confirmation
+const requestForProbationExtendvalidationSchema = Joi.object({
+  employeeId: Joi.number().label("Employee ID"),
+  noticePeriodId: Joi.number().required().label("Notice Peroid"),
+  confirmationinitiatedAutoId: Joi.number().required().label("Confirmation ID"),
+  recommendation: Joi.number().required().label("Recommendation"),
+  attachment: Joi.string().allow("").optional(),
+});
+///Confirmation
+const addDesignationEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  designation_id: Joi.number().required().label("Designation"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  isPromotion: Joi.number().required().label("Promotion").optional(),
+});
+
+const addDepartmentEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  buId: Joi.number().required().label("Business Unit"),
+  sbuId: Joi.number().required().label("Sub Business Unit"),
+  buHRId: Joi.number().required().label("Business Unit HR"),
+  buHeadId: Joi.number().required().label("Business Unit Head"),
+  departmentId: Joi.number().required().label("Department"),
+  functionalAreaId: Joi.number().required().label("Functional Area"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+});
+
+const addCostCenterEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  costId: Joi.number().required().label("Cost Center"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+});
+
+const addCompanyLocationEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  companyLocationId: Joi.number().required().label("Company Location"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+});
+
+const addJobLevelEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  jobLevelId: Joi.number().required().label("Job Level"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  isPromotion: Joi.number().required().label("Promotion").optional(),
+});
+
+const addEmployeeTypeEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  employeeType: Joi.number().required().label("Employee Type"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+});
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1230,4 +1288,11 @@ export default {
   requestForPaymentApprovalSchema,
   actionPaymentSchema,
   blockLoginSchema,
+  requestForProbationExtendvalidationSchema,
+  addDesignationEmploymentSchema,
+  addDepartmentEmploymentSchema,
+  addCostCenterEmploymentSchema,
+  addCompanyLocationEmploymentSchema,
+  addJobLevelEmploymentSchema,
+  addEmployeeTypeEmploymentSchema,
 };

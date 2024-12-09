@@ -3230,7 +3230,6 @@ const paymentDetailsAdminApprovedMail = async (data) => {
 </html>`;
 };
 
-
 const passwordExpiryNotification = async (data) => {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -3627,6 +3626,494 @@ const newJoinEmployeeMail = async (data) => {
 </body>
 </html>`;
 };
+const selfReviewConfirnation = async (data) => {
+  const dateOfProbationEnd = data?.dateOfProbationEnd;
+
+  // Calculate the difference in days
+  const today = moment();
+  const endDate = moment(dateOfProbationEnd, "YYYY-MM-DD");
+  const daysDifference = endDate.diff(today, "days"); // Difference in days
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                 <tr>
+                                  <td
+                                    colspan="2"
+                                    style="
+                                      padding-bottom: 20px;
+                                      text-align: left;
+                                      border-bottom: 1px solid #eee;
+                                      width: 100%;
+                                    "
+                                    valign="middle"
+                                  >
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      alt="Logo"
+                                    />
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                      alt="Logo"
+                                      style="float: right"
+                                    />
+                                  </td>
+                                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody>
+                <tr>
+                 <td><p><span>Hi </span>${data?.employee?.name}<span>,<br></span></p></td>
+                </tr>
+                <tr>
+                 <td style="line-height:22px;padding-bottom:15px;padding-top:5px"><p>${data?.employee?.name} (${data?.employee?.empCode}), ${data?.employee?.designationmaster?.name} is completing probation in Number Of ${daysDifference} day/s and is pending for your action.</p><p><br></p>
+                <p>
+                        <a
+                          href='${process.env.CLIENT_URL}#/TaskBox?selectedTab=4'
+                          style="
+                            padding: 5px 10px;
+                            background: #0173c5;
+                            color: #fff;
+                            text-decoration: none;
+                            border-radius: 2px;
+                            font-size: 14px;
+                            display: inline-block;
+                          "
+                          target="_blank"
+                          >Click Here</a
+                        >
+                        to act on task.<br />
+                      </p>
+                 </td>
+                </tr>
+                <tr>
+                 <td style="text-align:left;border-bottom:1px solid #eee;padding-top:15px;padding-bottom:25px;line-height:22px"><p>Regards,<br>
+                   HR Team,<br>
+                   Company Name</p></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="background-color:#fff;width:100%">
+             <td valign="middle" style="padding:18px 0;color:#ffffff;padding-left:25px;text-align:left">#*Unsubscribe*#</td>
+             <td valign="middle" style="padding:18px 0;color:#ffffff;padding-right:25px;text-align:right;font-size:12px"><a href="https://us-east-2.protection.sophos.com?d=darwinbox.in&amp;u=aHR0cHM6Ly90cmFja2luZy5kYXJ3aW5ib3guaW4vbHMvY2xpY2s_dXBuPXUwMDEuaW1teXVELTJGNmtKSFR6d1FKVTlrRXBha0RqaGxCZjNSTGFINGRJMmlBMjZBeVlQWmxWY2lzZlIybFVZazU2c0djWWhETGcxUGdiQnpYMmFIRFJPSlgwV0pEYTVsSEZYNEMtMkZOLTJGci0yQnNNWmE5dGVrbXpBM2hIRURQLTJGMWFQVXNLenkyb2VMMTBFWjQ3eVlWaFQtMkZoc2N0VTlwRVFKSTk3Z2VOLTJCNlVLVldSVzQzV2FFSzVRT3c4ZGY0SEw4ak96RDkyQk9adHJ6VFdRaGlWMXU5YTBqWndRSlVnLTNELTNEMmJXWV9INEh5MjdPTzNwR3paN3VISVhDRmNUYVJjVU5jbzNvaTl5VE1haVB5WUZiWEZ4cGN0QjYwckFRWlVLYlgxS3lzLTJCSTdnQUE2SEhYM0ppaXBHcHg1RTVIVDdQdUE5dEplZ0ZZS1RDZWpXdzI1VjlUOWIyY1FudGw1SUc2TzF5TnJ4YWVpZXc4R0pRYVRUUUYwRC0yRmJRakxWaDNrODdMSEEydEZIUW5FUURUaE5CWVRJQVN1aTJ4LTJCelpiUFFCTXlnUDlELTJGaUFjSFk5eHNPZVhqbmlwYTV6VG1rTVhzY2tPNnV5d29DMUZvWTZyLTJGay0zRA==&amp;i=NjFkODdmZTM1OWYzNGUxMDE2OTMwYzk2&amp;t=Tkg5YnlvTTlXdDR0ZU1taEkyT0N6UnhwQ0dkdk9XK0UwWmdxNG1UTXlMND0=&amp;h=68486334c5a54ddb9151da7035979a89&amp;s=AVNPUEhUT0NFTkNSWVBUSVYesNOW7kGOxqpUy7qQL6d_4nh6Nn1efO2SbyTtO4TQiOwEKp0hREIIdWu7wfNnkt4-dcOFneTIFyRgSul7Y5uW3QrJjOINZ9zZOHS1WkwDoA" style="text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://us-east-2.protection.sophos.com?d%3Ddarwinbox.in%26u%3DaHR0cHM6Ly90cmFja2luZy5kYXJ3aW5ib3guaW4vbHMvY2xpY2s_dXBuPXUwMDEuaW1teXVELTJGNmtKSFR6d1FKVTlrRXBha0RqaGxCZjNSTGFINGRJMmlBMjZBeVlQWmxWY2lzZlIybFVZazU2c0djWWhETGcxUGdiQnpYMmFIRFJPSlgwV0pEYTVsSEZYNEMtMkZOLTJGci0yQnNNWmE5dGVrbXpBM2hIRURQLTJGMWFQVXNLenkyb2VMMTBFWjQ3eVlWaFQtMkZoc2N0VTlwRVFKSTk3Z2VOLTJCNlVLVldSVzQzV2FFSzVRT3c4ZGY0SEw4ak96RDkyQk9adHJ6VFdRaGlWMXU5YTBqWndRSlVnLTNELTNEMmJXWV9INEh5MjdPTzNwR3paN3VISVhDRmNUYVJjVU5jbzNvaTl5VE1haVB5WUZiWEZ4cGN0QjYwckFRWlVLYlgxS3lzLTJCSTdnQUE2SEhYM0ppaXBHcHg1RTVIVDdQdUE5dEplZ0ZZS1RDZWpXdzI1VjlUOWIyY1FudGw1SUc2TzF5TnJ4YWVpZXc4R0pRYVRUUUYwRC0yRmJRakxWaDNrODdMSEEydEZIUW5FUURUaE5CWVRJQVN1aTJ4LTJCelpiUFFCTXlnUDlELTJGaUFjSFk5eHNPZVhqbmlwYTV6VG1rTVhzY2tPNnV5d29DMUZvWTZyLTJGay0zRA%3D%3D%26i%3DNjFkODdmZTM1OWYzNGUxMDE2OTMwYzk2%26t%3DTkg5YnlvTTlXdDR0ZU1taEkyT0N6UnhwQ0dkdk9XK0UwWmdxNG1UTXlMND0%3D%26h%3D68486334c5a54ddb9151da7035979a89%26s%3DAVNPUEhUT0NFTkNSWVBUSVYesNOW7kGOxqpUy7qQL6d_4nh6Nn1efO2SbyTtO4TQiOwEKp0hREIIdWu7wfNnkt4-dcOFneTIFyRgSul7Y5uW3QrJjOINZ9zZOHS1WkwDoA&amp;source=gmail&amp;ust=1733296148871000&amp;usg=AOvVaw0K6Te3Zox9CB7-nY8998Hq"><span style="color:#ccc">Powered By :</span> Darwinbox</a></td>
+            </tr>
+           </tbody>
+</body>
+</html>`;
+};
+const confirmationEmailLetter = async (
+  data,
+  confiramtionData,
+  signatureAuthority
+) => {
+  return `
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+  <style>
+    .bodySection {
+      display: flex;
+      flex-direction: column;
+    }
+    .letterHeader {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-evenly;
+      padding: 20;
+    }
+    .siteUrl {
+      align-self: flex-end;
+    }
+    .logoIMage {
+      align-self: center;
+    }
+    .letterBody {
+      display: flex;
+      flex-direction: column;
+      padding: 20px !important;
+    }
+    .dateSerial {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    .subject {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .subjectText {
+      border-bottom: 2px solid black; /* Adjust thickness and color as needed */
+      padding-bottom: 5px; /* Optional: To create space between text and underline */
+    }
+     .address, .numberCin, .siteUrl {
+    font-size: 15px;
+}
+    .footerSections{
+       
+    }
+  </style>
+  <body class="bodySection">
+    <div class="letterHeader">
+          <img
+          src="${process.env.PROXY_URL}/api/uploads/assets/letter_header.png"
+          alt="Logo"
+          />
+    </div>
+
+    <div class="letterBody">
+      <div class="dateSerial">
+        <p><strong>NO:HRM/${moment().format("YYYY")}</strong></p>
+        <p>Date:${moment().format("DD-MM-YYYY")}</p>
+      </div>
+
+      <div class="candidateDetailsSectoin">
+        <p>To,</p>
+        <p>Name: <strong>${data?.name}</strong></p>
+        <p>TMC: <strong>${data?.empCode}</strong></p>
+        <p>Designation: <strong>${data?.designationmaster?.name}</strong></p>
+        <p>SBU: <strong>${data?.sbumaster?.sbuname}</strong></p>
+        <p>Location: <strong>${
+          data?.companylocationmaster?.address1
+        }</strong></p>
+      </div>
+      <div class="subject">
+        <h4 class="subjectText">Subject: Confirmation Letter</h4>
+      </div>
+
+      <div class="title">
+        <p><strong>Dear ${data?.name}</strong>,</p>
+      </div>
+
+      <div class="contentSection">
+        <p>
+          Consequent to the review of your performance during your probation, we
+          are happy to inform you that your services are being confirmed as
+          <strong>${data?.designationmaster?.name}</strong> with effect from
+          <strong>${moment(confiramtionData?.updatedAt).format(
+            "MM-DD-YYYY"
+          )}</strong>.
+        </p>
+
+        <p>
+          All the other terms and conditions as per your appointment letter will
+          remain the same as communicated in writing by the HR and/or as
+          detailed in your appointment letter. Except for policy-related
+          changes, in which case the terms as per the latest policy announcement
+          on the company portal shall be valid.
+        </p>
+
+        <p>
+          We look forward to your valuable contribution and wish you all the
+          very best for a rewarding career with the organization.
+        </p>
+        <p>For Team Computers Private Limited</p>
+      </div>
+      <div class="signatureSection">
+              <img
+             class="signature"
+              src="${process.env.PROXY_URL}/api/${
+    signatureAuthority?.signature
+  }"
+              alt="signature"
+              height="90"
+              />
+       <h4>${signatureAuthority?.employee?.name}</h4>
+        <h4>${signatureAuthority?.employee?.designationmaster?.name}</h4>
+      </div>
+    </div>
+    <div class="footerSections">
+    <img
+          src="${process.env.PROXY_URL}/api/uploads/assets/letter_footer.png"
+          alt="Logo"
+          style="float:right"
+          />
+
+    </div>
+  </body>
+</html>
+`;
+};
+const confirmationEmailBody = async (
+  data,
+  confiramtionData,
+  signatureAuthority
+) => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Team Computers</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff">
+   <table style="border-collapse:collapse;line-height:100%!important;width:100%!important;font-family:sans-serif" border="0" cellpadding="0" cellspacing="0" align="center">
+   <tbody>
+    <tr>
+     <td style="padding-top:20px;padding-bottom:20px">
+      <table style="border-collapse:collapse;max-width:635px;min-width:550px;width:auto;margin:0 auto;border:0.5px solid #eee" align="center">
+       <tbody>
+        <tr>
+         <td>
+          <table style="border-collapse:collapse;margin:0 auto;width:100%" align="center">
+           <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                <tr>
+                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
+                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <div style="line-height:1;line-height:1;line-height:1.8">
+               <p style="font-weight: bold">Hi ${data?.name},</p>
+               <p><br></p>
+               <p>We have received inputs from your Reviewer .</p>
+               <p>
+               <p><a href="${process.env.CLIENT_URL}#/TaskBox?selectedTab=4&selectedMode=assignedToMe">Click Here</a> to view the status. <br></p>
+               <p><br></p>
+               <p>Regards,</p>
+               <p>HR Team<br></p>
+               <p>${data?.companymaster?.companyName}<br></p>
+              </div>
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody></tbody>
+              </table></td>
+            </tr>
+            
+           </tbody>
+          </table></td>
+        </tr>
+       </tbody>
+      </table></td>
+    </tr>
+   </tbody>
+  </table>
+  
+  </body>
+</html>`;
+};
+const confirmationExtendEmailBody = async (data) => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Team Computers</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff">
+   <table style="border-collapse:collapse;line-height:100%!important;width:100%!important;font-family:sans-serif" border="0" cellpadding="0" cellspacing="0" align="center">
+   <tbody>
+    <tr>
+     <td style="padding-top:20px;padding-bottom:20px">
+      <table style="border-collapse:collapse;max-width:635px;min-width:550px;width:auto;margin:0 auto;border:0.5px solid #eee" align="center">
+       <tbody>
+        <tr>
+         <td>
+          <table style="border-collapse:collapse;margin:0 auto;width:100%" align="center">
+           <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                <tr>
+                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
+                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <div style="line-height:1;line-height:1;line-height:1.8">
+               <p style="font-weight: bold">Hi ${data?.EMP_DATA_SELF?.name},</p>
+               <p><br></p>
+               <p>We have received inputs from ${data?.ACTION_TAKER?.name} (${data?.ACTION_TAKER?.empCode}) & your probation period has been extended.</p>
+               <p>
+               <p><a href="${process.env.CLIENT_URL}#/TaskBox?selectedTab=4&selectedMode=assignedToMe">Click Here</a> to view the status. <br></p>
+               <p><br></p>
+               <p>Regards,</p>
+               <p>HR Team<br></p>
+               <p>${data?.EMP_DATA_SELF?.companymaster?.companyName}<br></p>
+              </div>
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody></tbody>
+              </table></td>
+            </tr>
+            
+           </tbody>
+          </table></td>
+        </tr>
+       </tbody>
+      </table></td>
+    </tr>
+   </tbody>
+  </table>
+  
+  </body>
+</html>`;
+};
+const confirmationSLABreachEmailBody = async (data) => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Team Computers</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff">
+   <table style="border-collapse:collapse;line-height:100%!important;width:100%!important;font-family:sans-serif" border="0" cellpadding="0" cellspacing="0" align="center">
+   <tbody>
+    <tr>
+     <td style="padding-top:20px;padding-bottom:20px">
+      <table style="border-collapse:collapse;max-width:635px;min-width:550px;width:auto;margin:0 auto;border:0.5px solid #eee" align="center">
+       <tbody>
+        <tr>
+         <td>
+          <table style="border-collapse:collapse;margin:0 auto;width:100%" align="center">
+           <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                <tr>
+                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
+                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <div style="line-height:1;line-height:1;line-height:1.8">
+               <p style="font-weight: bold">Hi ${data?.ESCALTERDATA?.name},</p>
+               <p><br></p>
+               <p>${data?.EMP_DATA?.name} (${data?.EMP_DATA?.empCode}) is pending for confirmation and is currently awaiting Stage inputs.Due to breach in SLA, this task is now escalated to you.</p>
+               <p>
+               <p><a href="${process.env.CLIENT_URL}#/TaskBox?selectedTab=4&selectedMode=assignedToMe">Click Here</a> to view the status. <br></p>
+               <p><br></p>
+               <p>Regards,</p>
+               <p>HR Team<br></p>
+               <p>${data?.ESCALTERDATA?.companymaster?.companyName}<br></p>
+              </div>
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody></tbody>
+              </table></td>
+            </tr>
+            
+           </tbody>
+          </table></td>
+        </tr>
+       </tbody>
+      </table></td>
+    </tr>
+   </tbody>
+  </table>
+  
+  </body>
+</html>`;
+};
+const confirmationWorkFlownextLevel = async (data) => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Team Computers</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff">
+   <table style="border-collapse:collapse;line-height:100%!important;width:100%!important;font-family:sans-serif" border="0" cellpadding="0" cellspacing="0" align="center">
+   <tbody>
+    <tr>
+     <td style="padding-top:20px;padding-bottom:20px">
+      <table style="border-collapse:collapse;max-width:635px;min-width:550px;width:auto;margin:0 auto;border:0.5px solid #eee" align="center">
+       <tbody>
+        <tr>
+         <td>
+          <table style="border-collapse:collapse;margin:0 auto;width:100%" align="center">
+           <tbody>
+            <tr style="background:#fff">
+             <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+              <table style="width:100%">
+               <tbody>
+                <tr>
+                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
+                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                </tr>
+               </tbody>
+              </table></td>
+            </tr>
+            <tr style="min-height:300px;background:#fff">
+             <td colspan="2" style="padding:20px" valign="top">
+              <div style="line-height:1;line-height:1;line-height:1.8">
+               <p style="font-weight: bold">Hi ${data?.ESCALTERDATA?.name},</p>
+               <p><br></p>
+               <p>This is to inform you that the confirmation workflow for ${data?.EMP_DATA?.name} (${data?.EMP_DATA?.empCode}) 
+               is awaiting your review and approval..</p>
+               <p>
+               <p><a href="${process.env.CLIENT_URL}#/TaskBox?selectedTab=4&selectedMode=assignedToMe">Click Here</a> to view the status. <br></p>
+               <p><br></p>
+               <p>Regards,</p>
+               <p>HR Team<br></p>
+               <p>${data?.ESCALTERDATA?.companymaster?.companyName}<br></p>
+              </div>
+              <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+               <tbody></tbody>
+              </table></td>
+            </tr>
+            
+           </tbody>
+          </table></td>
+        </tr>
+       </tbody>
+      </table></td>
+    </tr>
+   </tbody>
+  </table>
+  
+  </body>
+</html>`;
+};
 export default {
   regularizationRequestMail,
   resetPasswordMail,
@@ -3651,4 +4138,10 @@ export default {
   passwordExpiryNotification,
   postPasswordExpiryNotification,
   newJoinEmployeeMail,
+  selfReviewConfirnation,
+  confirmationEmailLetter,
+  confirmationEmailBody,
+  confirmationExtendEmailBody,
+  confirmationSLABreachEmailBody,
+  confirmationWorkFlownextLevel,
 };

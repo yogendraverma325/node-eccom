@@ -1,36 +1,30 @@
 export default (sequelize, Sequelize) => {
-  const managerHistory = sequelize.define("managerhistory", {
-    id: {
+  const Confirmationaudittrail = sequelize.define("confirmationaudittrail", {
+    confirmationaudittrailAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    employeeId: {
+    confirmationinitiatedAutoId: {
       type: Sequelize.INTEGER,
-    },
-    managerId: {
-      type: Sequelize.INTEGER,
-    },
-    fromDate: {
-      type: Sequelize.DATE,
-    },
-    toDate: {
-      type: Sequelize.DATE,
-    },
-    needAttendanceCron: {
-      type: Sequelize.INTEGER,
-    },
-    sourceName: {
-      type: Sequelize.STRING
     },
     status: {
-      type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
-    createdAt: {
-      type: Sequelize.DATE,
+    level: {
+      type: Sequelize.INTEGER,
+    },
+    confirmationAction: {
+      type: Sequelize.INTEGER,
+    },
+    message: {
+      type: Sequelize.STRING,
     },
     createdBy: {
       type: Sequelize.INTEGER,
+    },
+    createdAt: {
+      type: Sequelize.DATE,
     },
     updatedBy: {
       type: Sequelize.INTEGER,
@@ -39,5 +33,5 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  return managerHistory;
+  return Confirmationaudittrail;
 };

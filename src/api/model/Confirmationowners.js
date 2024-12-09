@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
-  const managerHistory = sequelize.define("managerhistory", {
-    id: {
+  const Confirmationowners = sequelize.define("confirmationowners", {
+    confirmationownersAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -8,29 +8,32 @@ export default (sequelize, Sequelize) => {
     employeeId: {
       type: Sequelize.INTEGER,
     },
-    managerId: {
+    canTakeAction: {
       type: Sequelize.INTEGER,
     },
-    fromDate: {
-      type: Sequelize.DATE,
-    },
-    toDate: {
-      type: Sequelize.DATE,
-    },
-    needAttendanceCron: {
+    canTakeActionExtend: {
       type: Sequelize.INTEGER,
     },
-    sourceName: {
-      type: Sequelize.STRING
+    level: {
+      type: Sequelize.INTEGER,
     },
-    status: {
-      type: Sequelize.INTEGER
+    confirmationFormGroupId: {
+      type: Sequelize.INTEGER,
     },
-    createdAt: {
+    confirmationinitiatedAutoId: {
+      type: Sequelize.INTEGER,
+    },
+    slaEndDate: {
       type: Sequelize.DATE,
+    },
+    isCompleted: {
+      type: Sequelize.INTEGER,
     },
     createdBy: {
       type: Sequelize.INTEGER,
+    },
+    createdAt: {
+      type: Sequelize.DATE,
     },
     updatedBy: {
       type: Sequelize.INTEGER,
@@ -39,5 +42,5 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  return managerHistory;
+  return Confirmationowners;
 };

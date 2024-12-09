@@ -119,10 +119,6 @@ class AttendanceController {
           msg: message.ATTENDANCE_POLICY_DID_NOT_MAP,
         });
       }
-      console.log(
-        " existEmployee.companyLocationId",
-        existEmployee.companyLocationId
-      );
 
       if (existEmployee.shiftsmaster.isOverNight == 0) {
         const checkAttendance = await db.attendanceMaster.findOne({
@@ -134,45 +130,69 @@ class AttendanceController {
         });
 
         if (!checkAttendance) {
-          let shiftStartTime = moment(
-            existEmployee.shiftsmaster.shiftStartTime,
-            "HH:mm"
-          ); // set shift start time
+          const givenShiftTime = moment(
+            `${currentDate.format("YYYY-MM-DD")} ${
+              existEmployee.shiftsmaster.shiftStartTime
+            }`,
+            "YYYY-MM-DD HH:mm:ss"
+          );
+          const acutalShiftTime = moment(
+            `${currentDate.format("YYYY-MM-DD")} ${
+              existEmployee.shiftsmaster.shiftStartTime
+            }`,
+            "YYYY-MM-DD HH:mm:ss"
+          );
 
-          shiftStartTime.subtract(
+          acutalShiftTime.subtract(
             existEmployee.attendancePolicymaster.allowBufferTime == 1
               ? existEmployee.attendancePolicymaster.bufferTimePre
               : 0,
             "minutes"
           ); // Add buffer time  to the selected time if buffer allow
 
-          const finalShiftStartTime = shiftStartTime.format("HH:mm");
-          const finalShiftStartTimeFormat = shiftStartTime.format("hh:mm A");
-
-          if (currentDate.format("HH:mm") < finalShiftStartTime) {
-            let shiftEndTime = moment(
-              existEmployee.shiftsmaster.shiftEndTime,
+          if (
+            acutalShiftTime.format("YYYY-MM-DD") <
+            givenShiftTime.format("YYYY-MM-DD")
+          ) {
+          } else {
+            let shiftStartTime = moment(
+              existEmployee.shiftsmaster.shiftStartTime,
               "HH:mm"
             ); // set shift start time
-
-            shiftEndTime.subtract(
+            shiftStartTime.subtract(
               existEmployee.attendancePolicymaster.allowBufferTime == 1
-                ? existEmployee.attendancePolicymaster.bufferTimePost
+                ? existEmployee.attendancePolicymaster.bufferTimePre
                 : 0,
               "minutes"
             ); // Add buffer time  to the selected time if buffer allow
 
-            const finalShiftEndTime = shiftEndTime.format("HH:mm");
-            const finalShiftEndimeFormat = shiftEndTime.format("hh:mm A");
-            // campare shift time and current time inclu
-            return respHelper(res, {
-              status: 400,
-              msg: `Your shift time starts from ${currentDate.format(
-                "DD-MM-YYYY"
-              )} at ${finalShiftStartTimeFormat} and end on ${currentDate.format(
-                "DD-MM-YYYY"
-              )} at ${finalShiftEndimeFormat}`,
-            });
+            const finalShiftStartTime = shiftStartTime.format("HH:mm");
+            const finalShiftStartTimeFormat = shiftStartTime.format("hh:mm A");
+            if (currentDate.format("HH:mm") < finalShiftStartTime) {
+              let shiftEndTime = moment(
+                existEmployee.shiftsmaster.shiftEndTime,
+                "HH:mm"
+              ); // set shift start time
+
+              shiftEndTime.subtract(
+                existEmployee.attendancePolicymaster.allowBufferTime == 1
+                  ? existEmployee.attendancePolicymaster.bufferTimePost
+                  : 0,
+                "minutes"
+              ); // Add buffer time  to the selected time if buffer allow
+
+              const finalShiftEndTime = shiftEndTime.format("HH:mm");
+              const finalShiftEndimeFormat = shiftEndTime.format("hh:mm A");
+              // campare shift time and current time inclu
+              return respHelper(res, {
+                status: 400,
+                msg: `Your shift time starts from ${currentDate.format(
+                  "DD-MM-YYYY"
+                )} at ${finalShiftStartTimeFormat} and end on ${currentDate.format(
+                  "DD-MM-YYYY"
+                )} at ${finalShiftEndimeFormat}`,
+              });
+            }
           }
 
           let graceTime = moment(
@@ -188,10 +208,7 @@ class AttendanceController {
           ); // Add buffer time  to the selected time if buffer allow
 
           const withGraceTime = graceTime.format("HH:mm");
-          console.log(
-            "existEmployee.companyLocationId",
-            existEmployee.companyLocationId
-          );
+
           let creationObject = {
             attendanceDate: currentDate.format("YYYY-MM-DD"),
             employeeId: req.userId,
@@ -225,6 +242,7 @@ class AttendanceController {
             msg: message.PUNCH_IN_SUCCESS,
           });
         } else {
+          console.log("here");
           await db.attendanceMaster.update(
             {
               attendancePunchOutTime: currentDate.format("HH:mm:ss"),
@@ -1224,6 +1242,7 @@ class AttendanceController {
                 "halfDayFor",
                 "reason",
                 "leaveAutoId",
+                "createdAt",
               ],
               where: {
                 status: ["pending", "approved"],

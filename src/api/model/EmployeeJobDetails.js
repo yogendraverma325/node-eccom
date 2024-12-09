@@ -15,7 +15,7 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING,
     },
     probationId: {
-      type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
     probationDays: {
       type: Sequelize.INTEGER,
@@ -84,13 +84,13 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING,
     },
     projectCode: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
     },
     customerCode: {
-        type: Sequelize.STRING
+      type: Sequelize.STRING,
     },
     nextAppraisalDue: {
-        type: Sequelize.STRING
+      type: Sequelize.STRING,
     },
     createdAt: {
       type: Sequelize.DATE,
@@ -106,6 +106,15 @@ export default (sequelize, Sequelize) => {
     },
     isActive: {
       type: Sequelize.BOOLEAN,
+    },
+    dateOfProbationEnd: {
+      type: Sequelize.DATE,
+    },
+    confirmationDate: {
+      type: Sequelize.DATE,
+    },
+    confirmationGenerated: {
+      type: Sequelize.INTEGER,
     },
   });
   return employeeJobDetails;

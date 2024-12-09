@@ -177,4 +177,34 @@ export default Express.Router()
     "/onboardEmployee/:id",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.getOnboardEmployeeDetails
-  );
+  )
+  .post(
+    "/addDesignationEmployment",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.addDesignationEmployment
+  )
+  .post(
+    "/addDepartmentEmployment",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.addDepartmentEmployment
+  )
+  .post(
+    "/addCostCenterEmployment",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.addCostCenterEmployment
+  )
+  .post(
+    "/addCompanyLocationEmployment",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.addCompanyLocationEmployment
+  )
+  .post(
+    "/addJobLevelEmployment",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.addJobLevelEmployment
+  )
+  .post(
+    "/addEmployeeTypeEmployment",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.addEmployeeTypeEmployment
+  )

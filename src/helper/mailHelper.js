@@ -1,7 +1,7 @@
 import helper from "./helper.js";
 import logger from "./logger.js";
 import emailTemplate from "../email/emailTemplate.js";
-
+import html_to_pdf from "html-pdf-node";
 export default function getAllListeners(eventEmitter) {
   eventEmitter.on("regularizeRequestMail", async (input) => {
     await regularizationRequestMail(input);
@@ -95,6 +95,23 @@ export default function getAllListeners(eventEmitter) {
   eventEmitter.on("newJoinEmployeeMail", async (input) => {
     await newJoinEmployeeMail(input);
   });
+  //confirmation
+  eventEmitter.on("selfReviewConfirnation", async (input) => {
+    await selfReviewConfirnation(input);
+  });
+  eventEmitter.on("confirmationLetter", async (input) => {
+    await confirmationLetter(input);
+  });
+  eventEmitter.on("confirmatonExtend", async (input) => {
+    await confirmatonExtend(input);
+  });
+  eventEmitter.on("confirmationSLABreachEmailBody", async (input) => {
+    await confirmationSLABreachEmailBody(input);
+  });
+  eventEmitter.on("confirmationWorkflowNextLevel", async (input) => {
+    await confirmationWorkflowNextLevel(input);
+  });
+  //confirmation
 }
 
 async function regularizationRequestMail(input) {
@@ -432,3 +449,95 @@ async function newJoinEmployeeMail(input) {
     logger.error(error);
   }
 }
+
+///confitmatoion
+async function selfReviewConfirnation(input) {
+  try {
+    const userData = JSON.parse(input);
+    console.log("userData", userData);
+    await helper.mailService({
+      to: "yogendra.verma@teamcomputers.com",
+      subject: `Confirmation`,
+      html: await emailTemplate.selfReviewConfirnation(userData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmationLetter(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    let letter = await emailTemplate.confirmationEmailLetter(
+      inpputData?.EMP_DATA_SELF,
+      inpputData?.confirmationData,
+      inpputData?.signatureAuthority
+    );
+
+    let body = await emailTemplate.confirmationEmailBody(
+      inpputData?.EMP_DATA_SELF,
+      inpputData?.confirmationData,
+      inpputData?.signatureAuthority
+    );
+    let options = { format: "A4" };
+    let file = { content: letter };
+
+    let pdfBuffer = await html_to_pdf.generatePdf(file, options);
+    await helper.mailService({
+      to: inpputData?.EMP_DATA_SELF?.email,
+      subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
+      html: body,
+      cc: inpputData?.cc,
+      attachments: [
+        {
+          content: pdfBuffer,
+          filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+        },
+      ],
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmatonExtend(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    await helper.mailService({
+      to: inpputData?.EMP_DATA_SELF?.email,
+      subject: `Confirmation Extension`,
+      cc: inpputData?.cc,
+      html: await emailTemplate.confirmationExtendEmailBody(inpputData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmationSLABreachEmailBody(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    await helper.mailService({
+      to: inpputData?.ESCALTERDATA?.email,
+      subject: `Confirmation task of ${inpputData?.EMP_DATA?.name}(${inpputData?.EMP_DATA?.empCode}) escalated to you`,
+      html: await emailTemplate.confirmationSLABreachEmailBody(inpputData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+async function confirmationWorkflowNextLevel(input) {
+  try {
+    const inpputData = JSON.parse(input);
+    await helper.mailService({
+      to: inpputData?.ESCALTERDATA?.email,
+      subject: `Confirmation Workflow Approval Required`,
+      html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
+    });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+///confitmatoion
