@@ -152,7 +152,7 @@ const mailService = async (data) => {
 
     body.personalizations[0].cc = [];
     body.personalizations[0].cc = new pepipost.EmailStruct();
-    body.personalizations[0].cc = mergeEmail(data.cc ? data.cc.split(",") : []);
+    body.personalizations[0].cc = mergeEmail(data.cc ? data.cc: []);
 
     body.personalizations[0].bcc = [];
     body.personalizations[0].bcc = new pepipost.EmailStruct();
