@@ -9,8 +9,9 @@ import bcrypt from "bcrypt";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
-import path from 'path';
-
+import AdmZip from "adm-zip";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const maritalStatusOptions = {
   Married: 1,
@@ -21,9 +22,7 @@ const maritalStatusOptions = {
   Others: 6,
 };
 
-
 class MasterController {
-
   async onboardingEmployeeImport(req, res) {
     const transaction = await db.sequelize.transaction(); // Start the transaction
     try {
@@ -36,7 +35,10 @@ class MasterController {
       } else {
         // Ensure the uploaded file has an extension
         const originalPath = req.file.path;
-        const newPath = path.join(path.dirname(originalPath), `${path.basename(originalPath)}_${moment().format("YYYY-mm-dd")}.xlsx`);
+        const newPath = path.join(
+          path.dirname(originalPath),
+          `${path.basename(originalPath)}_${moment().format("YYYY-mm-dd")}.xlsx`
+        );
 
         // Rename the file with .xlsx extension
         fs.renameSync(originalPath, newPath);
@@ -97,7 +99,10 @@ class MasterController {
               const isValidNewCustomerName = await validateNewCustomerName(
                 obj.newCustomerName
               );
-              const isValidJobLevel = await validateJobLevel(isValidCompany, obj.jobLevel);
+              const isValidJobLevel = await validateJobLevel(
+                isValidCompany,
+                obj.jobLevel
+              );
               const isValidDegree = await validateDegree(
                 obj.highestQualification
               );
@@ -105,10 +110,8 @@ class MasterController {
               let isValidBank = { status: true, message: "", data: {} };
               let isValidIFSC = { status: true, message: "", data: {} };
 
-              if(isValidEmployeeType.data.empTypeId === 3) {
-                isValidBank = await validateBank(
-                  obj.paymentBankName
-                );
+              if (isValidEmployeeType.data.empTypeId === 3) {
+                isValidBank = await validateBank(obj.paymentBankName);
                 isValidIFSC = await validateBankIfsc(
                   obj.paymentBankName,
                   obj.paymentBankIfsc
@@ -203,8 +206,14 @@ class MasterController {
                   ESICPFDeduction: obj.ESICPFDeduction,
                   fatherName: obj.fatherName,
                   paymentAccountNumber: obj.paymentAccountNumber,
-                  paymentBankName: (isValidEmployeeType.data.empTypeId === 3) ? isValidBank.data?.bankName : "",
-                  paymentBankIfsc: (isValidEmployeeType.data.empTypeId === 3) ? isValidIFSC.data?.bankIfsc : "",
+                  paymentBankName:
+                    isValidEmployeeType.data.empTypeId === 3
+                      ? isValidBank.data?.bankName
+                      : "",
+                  paymentBankIfsc:
+                    isValidEmployeeType.data.empTypeId === 3
+                      ? isValidIFSC.data?.bankIfsc
+                      : "",
                 };
 
                 newEmployee.role_id = 3;
@@ -263,7 +272,10 @@ class MasterController {
 
         return respHelper(res, {
           status: 200,
-          msg: (failureData.length > 0) ? "File upload was not successful. Please check your file and try again." : "File Uploaded Successfully",
+          msg:
+            failureData.length > 0
+              ? "File upload was not successful. Please check your file and try again."
+              : "File Uploaded Successfully",
           data: {
             successData,
             failureData,
@@ -279,6 +291,186 @@ class MasterController {
     }
   }
 
+  // async documentImport(req, res) {
+  //   try {
+  //     if (!req.file) {
+  //       return respHelper(res, {
+  //         status: 400,
+  //         msg: "File is required!",
+  //       });
+  //     }
+  //     else{
+
+  //     }
+  //   } catch (error) {
+  //     await transaction.rollback(); // Rollback the transaction in case of an error
+  //     console.log(error);
+  //     return respHelper(res, {
+  //       status: 500,
+  //     });
+  //   }
+  // }
+
+  // async documentImport(req, res) {
+  //   let transaction;
+  //   try {
+  //     if (!req.file) {
+  //       return respHelper(res, {
+  //         status: 400,
+  //         msg: "File is required!",
+  //       });
+  //     }
+
+  //     const zipFilePath = req.file.path; // Path to the uploaded ZIP file
+  //     console.log("zipFilePath", zipFilePath);
+
+  //     const extractTo = path.join(__dirname, "extracted"); // Directory to extract files
+
+  //     // Ensure the extraction directory exists
+  //     if (!fs.existsSync(extractTo)) {
+  //       fs.mkdirSync(extractTo, { recursive: true });
+  //     }
+
+  //     // Extract the ZIP file
+  //     const zip = new AdmZip(zipFilePath);
+  //     zip.extractAllTo(extractTo, true);
+
+  //     // Get the list of extracted files
+  //     const extractedFiles = fs.readdirSync(extractTo);
+  //     // Initialize transaction if required
+  //     transaction = await db.sequelize.transaction();
+
+  //     // Process each file
+  //     for (const file of extractedFiles) {
+  //       const empCode = path.parse(file).name; // Extract empCode from file name (e.g., 'TRE-1967.pdf')
+  //       const filePath = path.join(extractTo, file);
+  //       console.log("empCode", empCode);
+  //       console.log("filePath", filePath);
+
+  //       // Find employee by empCode
+  //       const employee = await db.employeeMaster.findOne({
+  //         where: { empCode },
+  //         transaction,
+  //       });
+
+  //       if (employee) {
+  //         console.log("i am in if");
+  //         // Update the employee record with the file path
+  //         // await db.employee.update(
+  //         //   { documentPath: filePath }, // Assuming you have a `documentPath` field
+  //         //   { where: { empCode }, transaction }
+  //         // );
+  //       } else {
+  //         console.warn(`Employee with empCode ${empCode} not found.`);
+  //       }
+  //     }
+
+  //     // Commit the transaction
+  //     await transaction.commit();
+
+  //     // Optional: Clean up the uploaded ZIP file
+  //     fs.unlinkSync(zipFilePath);
+
+  //     return respHelper(res, {
+  //       status: 200,
+  //       msg: "ZIP file processed successfully and database updated",
+  //       filesProcessed: extractedFiles.length,
+  //     });
+  //   } catch (error) {
+  //     if (transaction) await transaction.rollback(); // Rollback the transaction in case of an error
+  //     console.error(error);
+  //     return respHelper(res, {
+  //       status: 500,
+  //       msg: "Failed to process the ZIP file",
+  //     });
+  //   }
+  // }
+
+  async documentImport(req, res) {
+    let transaction;
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+    try {
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      }
+
+      const zipFilePath = req.file.path; // Path to the uploaded ZIP file
+      console.log("zipFilePath", zipFilePath);
+
+      const extractTo = path.join(__dirname, "../../../../uploads/extracted"); // Directory to extract files
+
+      // Ensure the extraction directory exists
+      if (!fs.existsSync(extractTo)) {
+        fs.mkdirSync(extractTo, { recursive: true });
+      }
+
+      // Extract the ZIP file
+      const zip = new AdmZip(zipFilePath);
+      zip.extractAllTo(extractTo, true);
+
+      // Get the list of extracted files
+      const extractedFiles = fs.readdirSync(extractTo);
+
+      // Initialize transaction if required
+      transaction = await db.sequelize.transaction();
+
+      // Process each file
+      for (const file of extractedFiles) {
+        console.log("file>>>>>>>>>>",file)
+        const empCode = path.parse(file).name.split("__")[0]; //path.parse(file).name; // Extract empCode from file name (e.g., 'TRE-1967.pdf')
+        const filePath = path.join(extractTo, file);
+        console.log("empCode", empCode);
+        console.log("filePath", filePath);
+        // Find employee by empCode
+        const employee = await db.employeeMaster.findOne({
+          where: { empCode:empCode },
+          transaction,
+        });
+
+        if (employee) {
+          console.log("i am in if");
+          console.log("i am want to upload single single file to upload")
+          const d = Math.floor(Date.now() / 1000);
+          var paymentAttachment = await helper.fileUpload(
+            file,// here i want single file name which is coming from
+            `insurance_card${d}`,
+            `uploads/${empCode}`
+          );
+
+          // Update the employee record with the file path
+          // await db.employee.update(
+          //   { documentPath: filePath }, // Assuming you have a `documentPath` field
+          //   { where: { empCode }, transaction }
+          // );
+        } else {
+          console.warn(`Employee with empCode ${empCode} not found.`);
+        }
+      }
+
+      // Commit the transaction
+      await transaction.commit();
+
+      // Optional: Clean up the uploaded ZIP file
+      fs.unlinkSync(zipFilePath);
+
+      return respHelper(res, {
+        status: 200,
+        msg: "ZIP file processed successfully and database updated",
+        filesProcessed: extractedFiles.length,
+      });
+    } catch (error) {
+      if (transaction) await transaction.rollback(); // Rollback the transaction in case of an error
+      console.error(error);
+      return respHelper(res, {
+        status: 500,
+        msg: "Failed to process the ZIP file",
+      });
+    }
+  }
 }
 
 const createObj = (obj) => {
@@ -378,7 +570,7 @@ const createObj = (obj) => {
       obj.Bank_IFSC_Number == "" ||
       obj.Bank_IFSC_Number == undefined
         ? null
-        : obj.Bank_IFSC_Number
+        : obj.Bank_IFSC_Number,
   };
 };
 
@@ -484,8 +676,8 @@ const handleErrors = (error) => {
       ? error.details.find((d) => d.context.key === "probation")?.message
       : null,
     jobLevel: error
-    ? error.details.find((d) => d.context.key === "jobLevel")?.message
-    : null,
+      ? error.details.find((d) => d.context.key === "jobLevel")?.message
+      : null,
     newCustomerName: error
       ? error.details.find((d) => d.context.key === "newCustomerName")?.message
       : null,
@@ -770,7 +962,7 @@ const validateJobLevel = async (isValidCompany, name) => {
   let isVerify = await db.jobLevelMapping.findOne({
     where: { companyId: isValidCompany.data.companyId },
     attributes: ["jobLevelId"],
-    include: [{ model: db.jobLevelMaster, where: { 'jobLevelName': name }}]
+    include: [{ model: db.jobLevelMaster, where: { jobLevelName: name } }],
   });
   if (isVerify) {
     return { status: true, message: "", data: isVerify };

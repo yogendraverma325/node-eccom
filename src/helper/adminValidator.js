@@ -16,7 +16,7 @@ const jobLevelMasterSchema = Joi.object({
 
 const bankMasterSchema = Joi.object({
   bankName: Joi.string().trim().required().label("Bank Name"),
-  bandIfsc: Joi.string().trim().required().label("Bank IFSC"),
+  bankIfsc: Joi.string().trim().required().label("Bank IFSC"),
 });
 
 export default {
