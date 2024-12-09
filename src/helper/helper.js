@@ -341,6 +341,14 @@ const getEmpProfile = async (EMP_ID) => {
         attributes: ["salutationId", "salutation"],
       },
       {
+        model: db.jobDetails,
+        attributes: [
+          "dateOfProbationEnd",
+          "confirmationDate",
+          "confirmationGenerated",
+        ],
+      },
+      {
         model: db.functionalAreaMaster,
         required: true,
         attributes: [

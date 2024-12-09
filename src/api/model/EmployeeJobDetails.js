@@ -99,6 +99,9 @@ export default (sequelize, Sequelize) => {
     dateOfProbationEnd: {
       type: Sequelize.DATE,
     },
+    confirmationDate: {
+      type: Sequelize.DATE,
+    },
     confirmationGenerated: {
       type: Sequelize.INTEGER,
     },
