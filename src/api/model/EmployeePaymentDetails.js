@@ -47,6 +47,9 @@ export default (sequelize, Sequelize) => {
         status: {
             type: Sequelize.STRING
         },
+        requrestTriggred:{
+            type: Sequelize.DATE
+        },
         createdAt: {
             type: Sequelize.DATE
         },

@@ -1,3 +1,8 @@
+//------------------------------------------2024-12-04-----------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `requrestTriggred` DATETIME NULL DEFAULT NULL AFTER `comment`;
+
 //------------------------------------------2024-11-28------------------------------------------------//
 
 UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5154');
