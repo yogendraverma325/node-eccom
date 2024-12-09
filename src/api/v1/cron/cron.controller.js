@@ -569,8 +569,8 @@ class CronController {
                   row.employeebiographicaldetail.mobileAccess === true
                     ? "Yes"
                     : row.employeebiographicaldetail.mobileAccess === false
-                    ? "No"
-                    : "-",
+                      ? "No"
+                      : "-",
               },
               {
                 label: "Blood_Group",
