@@ -1,3 +1,8 @@
+//-----------------------------------------2024-12-09------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
+ADD COLUMN `dateOfProbationEnd` DATE NULL DEFAULT NULL AFTER `projectCode`;
+
 //------------------------------------------2024-12-04-----------------------------------------------//
 
 ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
