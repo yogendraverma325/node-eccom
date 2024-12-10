@@ -394,7 +394,7 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: element.dataValues.passwordExpiryDate,
+            passwordExpiryDate: moment(element.dataValues.passwordExpiryDate).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment(element.dataValues.passwordExpiryDate).diff(
               moment(),
@@ -438,7 +438,7 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: element.dataValues.passwordExpiryDate,
+            passwordExpiryDate: moment(element.dataValues.passwordExpiryDate).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment().diff(
               moment(element.dataValues.passwordExpiryDate),
