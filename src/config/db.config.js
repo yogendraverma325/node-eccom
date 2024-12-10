@@ -1137,6 +1137,28 @@ db.managerHistory.hasOne(db.employeeMaster, {
   as: "managerHistoryCreatedBy",
 });
 
+db.DepartmentEmploymentHistory.hasOne(db.buMaster, {
+  foreignKey: "buId",
+  sourceKey: "buId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.sbuMaster, {
+  foreignKey: "sbuId",
+  sourceKey: "sbuId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHRId",
+  as: 'departmentBUHR'
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHeadId",
+  as: 'departmentBUHead'
+});
+
 // END EMPLOYMENT HISTORY
 
 export default db;

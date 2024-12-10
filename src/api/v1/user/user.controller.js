@@ -3944,7 +3944,11 @@ class UserController {
             include: [
               { model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] },
               { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode' ] },
-              { model: db.employeeMaster, as: 'departmentHistoryCreatedBy', attributes: ['id', 'name'] }
+              { model: db.employeeMaster, as: 'departmentHistoryCreatedBy', attributes: ['id', 'name'] },
+              { model: db.buMaster, attributes: ['buId', 'buName'] },
+              { model: db.sbuMaster, attributes: ['sbuId', 'sbuName'] },
+              { model: db.employeeMaster, as: 'departmentBUHR', attributes: ['id', 'name'] },
+              { model: db.employeeMaster, as: 'departmentBUHead', attributes: ['id', 'name'] }
             ],
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
