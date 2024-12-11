@@ -2026,9 +2026,11 @@ class PaymentController {
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalExtraDeductionsAmount = 0;
       let employeeIds = result[0].map((employee) => employee.id);
-      let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${employeeIds.join(
-        ","
-      )}) GROUP BY empCode`;
+      // let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${employeeIds.join(
+      //   ","
+      // )}) GROUP BY empCode`;
+
+      let allDeductionQuery= `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${value.departmentId.split(',')}) and startMonth ="${value.paymonth}" GROUP BY empCode`;
       let extraDeductions = await db.sequelize.query(allDeductionQuery);
       console.log(extraDeductions[0]);
       for (const extraDeductionSingleDetails of extraDeductions[0]) {
@@ -2055,7 +2057,6 @@ class PaymentController {
     try {
       let { processId } = req.body;
       let returnArray = [];
-
       const queryForProcessedEmploye = paymentHelper.query(17, processId, null);
       const processedEmployee = await db.sequelize.query(queryForProcessedEmploye);
       const employeeIds = processedEmployee[0].map((item) => item.empId);

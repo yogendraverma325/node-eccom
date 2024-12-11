@@ -300,7 +300,7 @@ function getPayComponentObject(
 }
 
 export default {
-  payAfterLOPDeductions,
+  payAfterLOPDeductions,  
   payAfterTDSDeductions,
   payAfterStandardDeductions,
   standardDeductions,
