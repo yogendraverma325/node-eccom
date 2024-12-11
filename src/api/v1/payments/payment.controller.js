@@ -153,7 +153,6 @@ import { parse } from "dotenv";
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class PaymentController {
-
   async payElements(req, res) {
     try {
       const user = req.query.user;
@@ -985,18 +984,19 @@ class PaymentController {
 
   async initiateSalary(req, res) {
     try {
-      const { error,value } = await validator.employeesForPayrollProcess.validate(
-        req.body
-      );
+      const { error, value } =
+        await validator.employeesForPayrollProcess.validate(req.body);
       if (error) {
         return respHelper(res, {
           status: 400,
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+        ","
+      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
-  
+
       let newProcess = await db.payProcessMaster.create(
         {
           name: "Initial Process",
@@ -1006,8 +1006,8 @@ class PaymentController {
           createdBy: req.userData.id,
           createdAt: new Date(),
           isActive: 1,
-          processFlowId:1,
-          companyId:1,
+          processFlowId: 1,
+          companyId: 1,
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );
@@ -1022,14 +1022,17 @@ class PaymentController {
         payRemark: "Salary Initiated",
         salaryMonth: newProcess.dataValues.payMonth,
       }));
-      await db.payProcessDetails.bulkCreate(updatedArray).then((resp)=>{
-        processSalary({ processId:newProcess.dataValues.payProcessMasterAutoId,req});
+      await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
+        processSalary({
+          processId: newProcess.dataValues.payProcessMasterAutoId,
+          req,
+        });
       });
       return respHelper(res, {
         status: 200,
-        msg:"Successfully Initiated Salary Process",
+        msg: "Successfully Initiated Salary Process",
         data: {
-          proceessId:newProcess.dataValues.payProcessMasterAutoId,
+          proceessId: newProcess.dataValues.payProcessMasterAutoId,
         },
       });
     } catch (error) {
@@ -1040,7 +1043,7 @@ class PaymentController {
     }
   }
 
-  async processSalaryAPI(req,res) {
+  async processSalaryAPI(req, res) {
     let { processId } = req.body;
     var errorArray = [];
     let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payProcessDetails pd JOIN  payProcessMaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
@@ -1053,20 +1056,184 @@ class PaymentController {
       });
     }
     const employeeIds = result[0].map((item) => item.EmployeeId);
-    const totalWorkingDays =paymentHelper.getDaysInCurrentMonth({year:result[0][0].payMonth.split("-")[0],month:result[0][0].payMonth.split("-")[1]});
-    const salaryRegisterArray=[],errorProcessed=[];
-    let employees=employeeIds;//[484,560];//employeeIds
-    for (const employee of employees) {  
+    const totalWorkingDays = paymentHelper.getDaysInCurrentMonth({
+      year: result[0][0].payMonth.split("-")[0],
+      month: result[0][0].payMonth.split("-")[1],
+    });
+    const salaryRegisterArray = [],
+      errorProcessed = [];
+    let employees = [484, 560]; //employeeIds
+    for (const employee of employees) {
+      const queryForEmployeePayDetails = await paymentHelper.query(
+        11,
+        employee,
+        { payMonth: result[0][0].payMonth }
+      );
+      const employeeDetailsComponentWise = await db.sequelize.query(
+        queryForEmployeePayDetails
+      );
+      const queryForExtraDeductions = await paymentHelper.query(
+        14,
+        employee,
+        result[0][0].payMonth
+      );
+      const extraDeductonsDetails = await db.sequelize.query(
+        queryForExtraDeductions
+      );
 
-    const queryForEmployeePayDetails = await paymentHelper.query(11,employee,{payMonth:result[0][0].payMonth});
-    const employeeDetailsComponentWise = await db.sequelize.query(queryForEmployeePayDetails);
-    const queryForExtraDeductions  = await paymentHelper.query(14,employee,result[0][0].payMonth);
-    const extraDeductonsDetails = await db.sequelize.query(queryForExtraDeductions);
+      const lopMonthWiseCalculation =
+        employeeDetailsComponentWise.length > 0
+          ? employeeDetailsComponentWise[0][0].payPackageMonthlyCTC
+            ? (
+                (employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+                  totalWorkingDays) *
+                employeeDetailsComponentWise[0][0].lopDays
+              ).toFixed(2)
+            : "0.00"
+          : "0.00";
 
-    if(!employeeDetailsComponentWise[0][0].payPackageAutoId)
-      {
-           await db.payProcessDetails.update(
-        { payStatus: 2, payRemark: 'Pay Package Not Assigned.' },
+      const deductionOfLopMonthAmount = Math.max(
+        0,
+        parseFloat(employeeDetailsComponentWise[0][0].payPackageMonthlyCTC) -
+          lopMonthWiseCalculation
+      );
+      const currentMonth = new Date().toLocaleString("default", { month: "short" }).toLowerCase(); 
+      const ptDynamicAttribute = [currentMonth, "ptAmount"];
+      const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+
+      
+      const ptDeducationDetails = await db.employeeMaster.findOne({
+        attributes: ["id", "empCode"],
+        where: { id: employee },
+        raw: true,
+        nest:true,
+        include: [
+          {
+            model: db.ptLocationMaster,
+            attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+            include: [
+              {
+                model: db.ptMapping,
+                attributes: ["ptmappingId", "minValue", "maxValue", ptDynamicAttribute,],
+                required: false,
+                where: {
+                  [Op.and]: [
+                    { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+                    { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+                  ],
+                },
+              },
+            ],
+          },
+        ]
+      });
+
+      const lwfDeducationDetails = await db.employeeMaster.findOne({
+        attributes: ["id", "empCode"],
+        where: { id: employee },
+        raw: true,
+        nest:true,
+        include: [
+          {
+            model: db.lwfDesignationMaster,
+            attributes: ["lwfDesignationId"],
+            include: [
+              {
+                model: db.lwfMapping,
+                attributes: ["lwfmappingId", lwfDynamicAttribute,],
+              },
+            ],
+          },
+        ]
+      });
+
+
+      const ptAmount1 = ptDeducationDetails ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount: 0;
+      const lwfAmount1 = lwfDeducationDetails ? lwfDeducationDetails?.lwfdesignationmaster?.lwfmapping?.lwfAmount: 0;
+
+      if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+        await db.payProcessDetails.update(
+          { payStatus: 2, payRemark: "Pay Package Not Assigned." },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
+
+        continue;
+      }
+      const queryForAffetElementCounts = await paymentHelper.query(
+        13,
+        employee,
+        null
+      );
+      const affectComponentCounts = await db.sequelize.query(
+        queryForAffetElementCounts
+      );
+      const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
+        ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+            totalWorkingDays) *
+            employeeDetailsComponentWise[0][0].lopDays) /
+          affectComponentCounts[0][0].lopAffectCount
+        : 0;
+
+      for (const employeeComponentWiseDetails of employeeDetailsComponentWise[0]) {
+        const queryForComponentConfiguration = await paymentHelper.query(
+          12,
+          employeeComponentWiseDetails.salaryComponentAutoId,
+          null
+        );
+        const componentConfiguration = await db.sequelize.query(
+          queryForComponentConfiguration
+        );
+        employeeComponentWiseDetails["elementMonthlyAmount"] =
+          paymentHelper.getElementValue(
+            "Affect Loss Of Pay",
+            componentConfiguration[0]
+          ) == 1
+            ? parseFloat(
+                employeeComponentWiseDetails.payElementAmount - lopSingleUnit
+              ).toFixed(2)
+            : employeeComponentWiseDetails.payElementAmount;
+        employeeComponentWiseDetails["totalExtraDeduction"] =
+          extraDeductonsDetails[0][0].totalDeduction
+            ? extraDeductonsDetails[0][0].totalDeduction
+            : 0;
+        employeeComponentWiseDetails["extraDeductionCategories"] =
+          extraDeductonsDetails[0][0].deductionCategories
+            ? extraDeductonsDetails[0][0].deductionCategories
+            : "";
+        employeeComponentWiseDetails["createdAt"] = new Date();
+        employeeComponentWiseDetails["createdBy"] = req.userData.id;
+        employeeComponentWiseDetails["payMonth"] = result[0][0].payMonth;
+        employeeComponentWiseDetails["ptAmount"] = ptAmount1;
+        employeeComponentWiseDetails["lwfAmount"] = lwfAmount1
+console.log("ptAmount1",ptAmount1)
+console.log("lwfAmount>>>",lwfAmount1)
+
+    console.log("employeeComponentWiseDetails",employeeComponentWiseDetails)
+    
+    
+        salaryRegisterArray.push(employeeComponentWiseDetails);
+        
+        let existDetails = await db.payMonthlyElements.findOne({
+          where: {
+            empId: employee,
+            salaryComponentAutoId:
+              employeeComponentWiseDetails.salaryComponentAutoId,
+            payMonth: result[0][0].payMonth,
+          },
+          raw: true,
+        });
+        console.log(existDetails);
+        if (!existDetails) {
+          await db.payMonthlyElements.create(employeeComponentWiseDetails);
+        }
+      }
+      await db.payProcessDetails.update(
+        { payStatus: 2, payRemark: "Salary Processed." },
         {
           where: {
             EmployeeId: employee,
@@ -1074,38 +1241,7 @@ class PaymentController {
           },
         }
       );
-  
-      continue
-      }
-    const queryForAffetElementCounts  = await paymentHelper.query(13,employee,null);
-    const affectComponentCounts = await db.sequelize.query(queryForAffetElementCounts);
-    const lopSingleUnit= employeeDetailsComponentWise[0][0].lopDays?((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC/totalWorkingDays)*employeeDetailsComponentWise[0][0].lopDays)/affectComponentCounts[0][0].lopAffectCount:0;
-      
-    for (const employeeComponentWiseDetails of employeeDetailsComponentWise[0]) {       
-      const queryForComponentConfiguration= await paymentHelper.query(12,employeeComponentWiseDetails.salaryComponentAutoId,null);
-      const componentConfiguration = await db.sequelize.query(queryForComponentConfiguration);
-      employeeComponentWiseDetails['elementMonthlyAmount']=paymentHelper.getElementValue('Affect Loss Of Pay',componentConfiguration[0])==1?parseFloat(employeeComponentWiseDetails.payElementAmount-lopSingleUnit).toFixed(2):employeeComponentWiseDetails.payElementAmount;
-      employeeComponentWiseDetails['totalExtraDeduction']=extraDeductonsDetails[0][0].totalDeduction?extraDeductonsDetails[0][0].totalDeduction:0;
-      employeeComponentWiseDetails['extraDeductionCategories']=extraDeductonsDetails[0][0].deductionCategories?extraDeductonsDetails[0][0].deductionCategories:'';
-      employeeComponentWiseDetails['createdAt']=new Date();
-      employeeComponentWiseDetails['createdBy']=req.userData.id;
-      employeeComponentWiseDetails['payMonth']=result[0][0].payMonth;
-      salaryRegisterArray.push(employeeComponentWiseDetails);
-      let existDetails=await db.payMonthlyElements.findOne({where:{empId:employee,salaryComponentAutoId:employeeComponentWiseDetails.salaryComponentAutoId, payMonth:result[0][0].payMonth},raw:true});
-      console.log(existDetails);
-      if(!existDetails)
-      {await db.payMonthlyElements.create(employeeComponentWiseDetails);} 
-    }
-    await db.payProcessDetails.update(
-      { payStatus: 2, payRemark: 'Salary Processed.' },
-      {
-        where: {
-          EmployeeId: employee,
-          proceessId: processId,
-        },
-      }
-    );
-     await delay(5000);
+      await delay(5000);
     }
 
     db.payProcessMaster.update(
@@ -1282,7 +1418,6 @@ class PaymentController {
   //     },
   //   });
   // }
-
 
   //////////////////////////////UPLOAD SECTION///////////////////////////////////
   async arrearsUpload(req, res) {
@@ -1641,8 +1776,7 @@ class PaymentController {
       });
     }
   }
-//////////////////////////////UPLOAD SECTION///////////////////////////////////
-
+  //////////////////////////////UPLOAD SECTION///////////////////////////////////
 
   async getCompanyList(req, res) {
     try {
@@ -1691,9 +1825,8 @@ class PaymentController {
 
   async employeesCountForProcess(req, res) {
     try {
-      const { error ,value} = await validator.employeesForPayrollProcess.validate(
-        req.body
-      );
+      const { error, value } =
+        await validator.employeesForPayrollProcess.validate(req.body);
       if (error) {
         return respHelper(res, {
           status: 400,
@@ -1701,21 +1834,30 @@ class PaymentController {
         });
       }
 
-      console.log(value)
+      console.log(value);
 
-      let employeeForProcessingQuery = `SELECT e.id AS EmployeeId FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')})`;
-      let employeeForProcessing  = await db.sequelize.query(employeeForProcessingQuery);
-      const employeeIds = employeeForProcessing[0].map(employee => employee.EmployeeId);
-      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`
-      let employeeProcessCount  = await db.sequelize.query(countsForProcessing);
+      let employeeForProcessingQuery = `SELECT e.id AS EmployeeId FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+        ","
+      )})`;
+      let employeeForProcessing = await db.sequelize.query(
+        employeeForProcessingQuery
+      );
+      const employeeIds = employeeForProcessing[0].map(
+        (employee) => employee.EmployeeId
+      );
+      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
+      let employeeProcessCount = await db.sequelize.query(countsForProcessing);
       return respHelper(res, {
         status: 200,
-        data:{
+        data: {
           processed: employeeProcessCount[0][0].processed,
-          inProcess:employeeProcessCount[0][0].inProcess,
-          totalEmployee:employeeIds.length,
-          available:employeeIds.length-(employeeProcessCount[0][0].processed+employeeProcessCount[0][0].inProcess)
-        }
+          inProcess: employeeProcessCount[0][0].inProcess,
+          totalEmployee: employeeIds.length,
+          available:
+            employeeIds.length -
+            (employeeProcessCount[0][0].processed +
+              employeeProcessCount[0][0].inProcess),
+        },
       });
     } catch (error) {
       console.log(error);
@@ -1839,9 +1981,11 @@ class PaymentController {
         attributes: ["id"],
       });
 
-      let alreadyProcessed = await db.salaryRegister.findAll({
-        where: { processingStatus: 2, EmployeeId: { [Op.in]: employeeIds } },
-      }); //1-In-Process/2-Processed/3-Failed
+      let alreadyProcessed = []
+      // await db.salaryRegister.findAll({
+      //   where: { processingStatus: 2, EmployeeId: { [Op.in]: employeeIds } },
+      // }); 
+      //1-In-Process/2-Processed/3-Failed
       let excludeFromCurrentProcess = await db.employeeMaster.findAll({
         where: queryForExcludeFromCurrentProcess,
         attributes: ["id"],
@@ -1904,18 +2048,22 @@ class PaymentController {
 
   async lopSyncing(req, res) {
     try {
-      const { error,value } = await validator.employeesForPayrollProcess.validate(
-        req.body
-      );
+      const { error, value } =
+        await validator.employeesForPayrollProcess.validate(req.body);
       if (error) {
         return respHelper(res, {
           status: 400,
           msg: error.details[0],
         });
       }
-  
-      let workingDaysOfMonth = paymentHelper.getDaysInCurrentMonth({year:value.paymonth.split("-")[0],month:value.paymonth.split("-")[1]});
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+
+      let workingDaysOfMonth = paymentHelper.getDaysInCurrentMonth({
+        year: value.paymonth.split("-")[0],
+        month: value.paymonth.split("-")[1],
+      });
+      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+        ","
+      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalLopAmount = 0,
         totalLOPDays = 0;
@@ -1938,7 +2086,7 @@ class PaymentController {
           raw: true,
         });
 
-        console.log(workingDaysOfMonth)
+        console.log(workingDaysOfMonth);
 
         let lopAmount =
           (payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
@@ -1946,13 +2094,11 @@ class PaymentController {
         totalLopAmount = lopAmount + totalLopAmount;
         totalLOPDays = lopSingleDetails.lopDays + totalLOPDays;
 
-
         console.log(lopAmount);
       }
       return respHelper(res, {
         status: 200,
-        data:
-         {
+        data: {
           impactedEmployee: lopDeductions.length,
           lopAmount: totalLopAmount.toFixed(2),
           totalLOPDays: totalLOPDays,
@@ -1968,16 +2114,17 @@ class PaymentController {
 
   async tdsSyncing(req, res) {
     try {
-      const { error,value } = await validator.employeesForPayrollProcess.validate(
-        req.body
-      );
+      const { error, value } =
+        await validator.employeesForPayrollProcess.validate(req.body);
       if (error) {
         return respHelper(res, {
           status: 400,
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+        ","
+      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalTdsAmount = 0,
         totalLOPDays = 0;
@@ -2013,38 +2160,54 @@ class PaymentController {
 
   async extraDeductionSyncing(req, res) {
     try {
-      const { error,value } = await validator.employeesForPayrollProcess.validate(
-        req.body
-      );
+      const { error, value } =
+        await validator.employeesForPayrollProcess.validate(req.body);
       if (error) {
         return respHelper(res, {
           status: 400,
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(',')}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+        ","
+      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalExtraDeductionsAmount = 0;
-      let employeeIds = result[0].map((employee) => employee.id);
-      // let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${employeeIds.join(
-      //   ","
-      // )}) GROUP BY empCode`;
+      let employeeIds =result[0].length>0? result[0].map((employee) => employee.id):[];
+      let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${employeeIds.join(
+        ","
+      )}) GROUP BY empCode`;
 
-      let allDeductionQuery= `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${value.departmentId.split(',')}) and startMonth ="${value.paymonth}" GROUP BY empCode`;
-      let extraDeductions = await db.sequelize.query(allDeductionQuery);
-      console.log(extraDeductions[0]);
-      for (const extraDeductionSingleDetails of extraDeductions[0]) {
-        totalExtraDeductionsAmount += parseFloat(
-          extraDeductionSingleDetails.TotalDeductionAmount || 0
-        );
+      console.log("Deduction Query ::"+allDeductionQuery);
+
+      if(employeeIds.length>0)
+      {
+        let extraDeductions = await db.sequelize.query(allDeductionQuery);
+        console.log(extraDeductions[0]);
+        for (const extraDeductionSingleDetails of extraDeductions[0]) {
+          totalExtraDeductionsAmount += parseFloat(
+            extraDeductionSingleDetails.TotalDeductionAmount || 0
+          );
+        }
+        return respHelper(res, {
+          status: 200,
+          data: {
+            impactedEmployee: extraDeductions[0].length,
+            extraDeductionAmount: totalExtraDeductionsAmount.toFixed(2),
+          },
+        });
       }
-      return respHelper(res, {
-        status: 200,
-        data: {
-          impactedEmployee: extraDeductions[0].length,
-          extraDeductionAmount: totalExtraDeductionsAmount.toFixed(2),
-        },
-      });
+      else
+      {
+        return respHelper(res, {
+          status: 200,
+          data: {
+            impactedEmployee: 0,
+            extraDeductionAmount: 0,
+          },
+        });
+      }
+      
     } catch (error) {
       console.log(error);
       return respHelper(res, {
@@ -2059,9 +2222,17 @@ class PaymentController {
       let returnArray = [];
       const queryForProcessedEmploye = paymentHelper.query(17, processId, null);
       const processedEmployee = await db.sequelize.query(queryForProcessedEmploye);
+
+      console.log(processedEmployee);
+    
       const employeeIds = processedEmployee[0].map((item) => item.empId);
-      const query = paymentHelper.query(1, processedEmployee[0][0]['payMonth'], employeeIds);
+      const query = await   paymentHelper.query(
+        1,
+        processedEmployee[0][0]["payMonth"],
+        employeeIds
+      );
       const result = await db.sequelize.query(query);
+      console.log("result",result[0])
       const processedData = groupByEmployeeId(result[0]);
       return respHelper(res, {
         status: 200,
@@ -2094,13 +2265,13 @@ class PaymentController {
   //         let totalWorkingDays =paymentHelper.getDaysInCurrentMonth({month:payMonthlyElement.payMonth.split("-")[1],year:payMonthlyElement.payMonth.split("-")[0]});
   //         let paySlipDuration= `01/${parseInt(currentMonth)+1}/${currentYear}-${totalWorkingDays}/${parseInt(currentMonth)+1}/${currentYear}`;
   //         let paySlipAutoId=isExistPaySlip?isExistPaySlip.paySlipAutoId:null;
-          
+
   //         if(!isExistPaySlip)
   //         {
   //           let customeDeduction=[];
-  //           let totalPayslipDeductons=parseFloat(payMonthlyElement.totalExtraDeduction)+parseFloat(payMonthlyElement.totalComponentDeductions);  
+  //           let totalPayslipDeductons=parseFloat(payMonthlyElement.totalExtraDeduction)+parseFloat(payMonthlyElement.totalComponentDeductions);
 
-  //           let PaySlipNetPay = parseFloat(payMonthlyElement.paySlipGrossEarning)-(parseFloat(payMonthlyElement.tdsAmount)+parseFloat(payMonthlyElement.totalExtraDeduction))    
+  //           let PaySlipNetPay = parseFloat(payMonthlyElement.paySlipGrossEarning)-(parseFloat(payMonthlyElement.tdsAmount)+parseFloat(payMonthlyElement.totalExtraDeduction))
   //           isExistPaySlip= await db.paySlips.create({
   //             EmployeeId:payMonthlyElement.empId,
   //             paySlipMonth:payMonthlyElement.payMonth.split("-")[1],
@@ -2124,7 +2295,6 @@ class PaymentController {
 
   //           console.log(isExistPaySlip);
   //           paySlipAutoId=isExistPaySlip.dataValues.paySlipAutoId?isExistPaySlip.dataValues.paySlipAutoId:paySlipAutoId;
-
 
   //           if(payMonthlyElement.tdsAmount>0)
   //           {
@@ -2163,7 +2333,6 @@ class PaymentController {
   //           salaryComponentAutoId:payMonthlyElement.salaryComponentAutoId
   //         },raw:true});
 
-
   //         if(!isExistPayElement)
   //         {
   //           await db.paySlipComponent.create({
@@ -2177,21 +2346,17 @@ class PaymentController {
   //             createdAt:new Date()
   //           });
 
-
   //         }
 
   //       }
   //     }
-  //     else  
+  //     else
   //     {
   //       return respHelper(res, {
   //         status: 400,
   //         msg: "Porcess is not ready for salary generation",
   //       });
   //     }
-
-
-
 
   //     return respHelper(res, {
   //       status: 200,
@@ -2201,7 +2366,6 @@ class PaymentController {
   //     console.log(e);
   //   }
   // }
-
 
   async processedEmployeeList(req, res) {
     try {
@@ -2318,12 +2482,12 @@ class PaymentController {
         });
       }
       let paymonth = value.pay_year + "-" + value.pay_month;
-      const queryForMappedEmployeeList = paymentHelper.query(
+      const queryForMappedEmployeeList = await paymentHelper.query(
         4,
-        [1, 2, 3, 4, 5, 6, 7,8],
+        [1, 2, 3, 4, 5, 6, 7, 8],
         { paymonth: paymonth, companyId: value.companyId }
       );
-
+  
       const pendingProcessList = await db.sequelize.query(
         queryForMappedEmployeeList
       );
@@ -2347,7 +2511,7 @@ class PaymentController {
           msg: "Pay Month Not Available",
         });
       }
-      const queryForMappedEmployeeList = paymentHelper.query(
+      const queryForMappedEmployeeList = await paymentHelper.query(
         5,
         processId,
         null
@@ -2355,7 +2519,7 @@ class PaymentController {
       const pendingProcessList = await db.sequelize.query(
         queryForMappedEmployeeList
       );
-      const querForAvailableSatusList = paymentHelper.query(
+      const querForAvailableSatusList = await paymentHelper.query(
         7,
         pendingProcessList[0][0].currentstatus,
         null
@@ -2378,7 +2542,7 @@ class PaymentController {
     try {
       let { processId, currentStatusId, nextStatusId } = req.body;
 
-      const queryForMappedEmployeeList = paymentHelper.query(
+      const queryForMappedEmployeeList = await paymentHelper.query(
         6,
         currentStatusId,
         nextStatusId
@@ -2395,11 +2559,11 @@ class PaymentController {
         });
       }
 
+      if ((nextStatusId = 7)) {
 
-      if(nextStatusId=7)
-      {
-        generatePaySlip({ processId:processId,req});
+         await generatePaySlip({ processId: processId, req });
       }
+      
 
       await db.payProcessMaster.update(
         {
@@ -2429,18 +2593,22 @@ class PaymentController {
         });
       }
       let stepperDataQuery = null;
-      const queryForProcessStatus = paymentHelper.query(9, processId, null);
+      const queryForProcessStatus = await paymentHelper.query(9, processId, null);
       const currentProcessStatus = await db.sequelize.query(
         queryForProcessStatus
       );
-      if ([1,2].includes(currentProcessStatus[0][0].currentStatusId)) {
-        stepperDataQuery = paymentHelper.query(8, processId, null);
+      if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
+        stepperDataQuery = await paymentHelper.query(8, processId, null);
       } else if (currentProcessStatus[0][0].currentStatusId == 3) {
-        stepperDataQuery = paymentHelper.query(10, processId, null);
-      }
-      else if([6,7,8].includes(currentProcessStatus[0][0].currentStatusId))
-      {
-        stepperDataQuery = paymentHelper.query(18, processId, {paymonth:"2024-09",month:9,year:2024});
+        stepperDataQuery = await paymentHelper.query(10, processId, null);
+      } else if (
+        [6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)
+      ) {
+        stepperDataQuery = await paymentHelper.query(18, processId, {
+          paymonth: "2024-09",
+          month: 9,
+          year: 2024,
+        });
       }
       const stepperData = await db.sequelize.query(stepperDataQuery);
       return respHelper(res, {
@@ -2455,36 +2623,40 @@ class PaymentController {
       console.log(e);
     }
   }
-
 }
 
 const groupByEmployeeId = (data) => {
   const groupedData = {};
 
-  data.forEach(item => {
-      const employeeId = item["Employee Id"];
-      
-      if (!groupedData[employeeId]) {
-          groupedData[employeeId] = { 
-              "Employee Id": employeeId,
-              "Employee Name": item["Employee Name"],
-              "LOP Days": item["LOP Days"],
-              "Arrears Month": item["Arrears Month"],
-              "Arrears Days": item["Arrears Days"],
-              "TDS Month": item["TDS Month"],
-              "TDS Amount": item["TDS Amount"],
-              "Net Pay": item["Net Pay"],
-              "Advance Name": item["Advance Name"],
-              "Advance Amount": item["Advance Amount"],
-          };
-      }
-      
-      Object.assign(groupedData[employeeId],{[item["Element Name"]]:item["Element Amount"]});
-      if(item['includeInPackage']==1)
-      {
-        Object.assign(groupedData[employeeId],{[item["Element Name"]+" Monthly"]:item["Monthly Element Amount"]});
-      }
-    
+  data.forEach((item) => {
+    const employeeId = item["Employee Id"];
+
+    if (!groupedData[employeeId]) {
+      groupedData[employeeId] = {
+        "Employee Id": employeeId,
+        "Employee Name": item["Employee Name"],
+        "LOP Days": item["LOP Days"],
+        "Arrears Month": item["Arrears Month"],
+        "Arrears Days": item["Arrears Days"],
+        "TDS Month": item["TDS Month"],
+        "TDS Amount": item["TDS Amount"],
+        "Net Pay": item["Net Pay"],
+        "Advance Name": item["Advance Name"],
+        "Advance Amount": item["Advance Amount"],
+        "PT Amount": item["PT AMOUNT"],
+        "LWF Amount": item["LWF AMOUNT"]
+
+      };
+    }
+
+    Object.assign(groupedData[employeeId], {
+      [item["Element Name"]]: item["Element Amount"],
+    });
+    if (item["includeInPackage"] == 1) {
+      Object.assign(groupedData[employeeId], {
+        [item["Element Name"] + " Monthly"]: item["Monthly Element Amount"],
+      });
+    }
   });
 
   return Object.values(groupedData); // Convert the grouped data object back to an array
@@ -2498,9 +2670,8 @@ function formatDate(year, month, day) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-
 async function processSalary(data) {
-  let { processId ,req} = data;
+  let { processId, req } = data;
   var errorArray = [];
   let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payProcessDetails pd JOIN  payProcessMaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
   const result = await db.sequelize.query(queryForAllExecutableEmployee);
@@ -2512,23 +2683,181 @@ async function processSalary(data) {
   //   });
   // }
 
-  if(result[0].length>0)
-  {
+  if (result[0].length > 0) {
     const employeeIds = result[0].map((item) => item.EmployeeId);
-    const totalWorkingDays =paymentHelper.getDaysInCurrentMonth({year:result[0][0].payMonth.split("-")[0],month:result[0][0].payMonth.split("-")[1]});
-    const salaryRegisterArray=[],errorProcessed=[];
-    let employees=employeeIds;//[484,560];//employeeIds
-    for (const employee of employees) {  
-  
-    const queryForEmployeePayDetails = await paymentHelper.query(11,employee,{payMonth:result[0][0].payMonth});
-    const employeeDetailsComponentWise = await db.sequelize.query(queryForEmployeePayDetails);
-    const queryForExtraDeductions  = await paymentHelper.query(14,employee,result[0][0].payMonth);
-    const extraDeductonsDetails = await db.sequelize.query(queryForExtraDeductions);
-  
-    if(!employeeDetailsComponentWise[0][0].payPackageAutoId)
-      {
-           await db.payProcessDetails.update(
-        { payStatus: 2, payRemark: 'Pay Package Not Assigned.' },
+    const totalWorkingDays = paymentHelper.getDaysInCurrentMonth({
+      year: result[0][0].payMonth.split("-")[0],
+      month: result[0][0].payMonth.split("-")[1],
+    });
+    const salaryRegisterArray = [],
+      errorProcessed = [];
+    let employees = employeeIds; //[484,560];//employeeIds
+    for (const employee of employees) {
+      const queryForEmployeePayDetails = await paymentHelper.query(
+        11,
+        employee,
+        { payMonth: result[0][0].payMonth }
+      );
+      const employeeDetailsComponentWise = await db.sequelize.query(
+        queryForEmployeePayDetails
+      );
+      const queryForExtraDeductions = await paymentHelper.query(
+        14,
+        employee,
+        result[0][0].payMonth
+      );
+      const extraDeductonsDetails = await db.sequelize.query(
+        queryForExtraDeductions
+      );
+     
+      //pt and lwf deduction
+      const lopMonthWiseCalculation =
+      employeeDetailsComponentWise.length > 0
+        ? employeeDetailsComponentWise[0][0].payPackageMonthlyCTC
+          ? (
+              (employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+                totalWorkingDays) *
+              employeeDetailsComponentWise[0][0].lopDays
+            ).toFixed(2)
+          : "0.00"
+        : "0.00";
+
+    const deductionOfLopMonthAmount = Math.max(
+      0,
+      parseFloat(employeeDetailsComponentWise[0][0].payPackageMonthlyCTC) -
+        lopMonthWiseCalculation
+    );
+    const currentMonth = new Date().toLocaleString("default", { month: "short" }).toLowerCase(); 
+    const ptDynamicAttribute = [currentMonth, "ptAmount"];
+    const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+
+    
+    const ptDeducationDetails = await db.employeeMaster.findOne({
+      attributes: ["id", "empCode"],
+      where: { id: employee },
+      raw: true,
+      nest:true,
+      include: [
+        {
+          model: db.ptLocationMaster,
+          attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+          include: [
+            {
+              model: db.ptMapping,
+              attributes: ["ptmappingId", "minValue", "maxValue", ptDynamicAttribute,],
+              required: false,
+              where: {
+                [Op.and]: [
+                  { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+                  { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+                ],
+              },
+            },
+          ],
+        },
+      ]
+    });
+
+    const lwfDeducationDetails = await db.employeeMaster.findOne({
+      attributes: ["id", "empCode"],
+      where: { id: employee },
+      raw: true,
+      nest:true,
+      include: [
+        {
+          model: db.lwfDesignationMaster,
+          attributes: ["lwfDesignationId"],
+          include: [
+            {
+              model: db.lwfMapping,
+              attributes: ["lwfmappingId", lwfDynamicAttribute,],
+            },
+          ],
+        },
+      ]
+    });
+
+
+    const ptAmount1 = ptDeducationDetails ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount: 0;
+    const lwfAmount1 = lwfDeducationDetails ? lwfDeducationDetails?.lwfdesignationmaster?.lwfmapping?.lwfAmount: 0;
+      //>>>>>>>>>>>>
+
+      if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+        await db.payProcessDetails.update(
+          { payStatus: 2, payRemark: "Pay Package Not Assigned." },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
+
+        continue;
+      }
+      const queryForAffetElementCounts = await paymentHelper.query(
+        13,
+        employee,
+        null
+      );
+      const affectComponentCounts = await db.sequelize.query(
+        queryForAffetElementCounts
+      );
+      const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
+        ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+            totalWorkingDays) *
+            employeeDetailsComponentWise[0][0].lopDays) /
+          affectComponentCounts[0][0].lopAffectCount
+        : 0;
+
+      for (const employeeComponentWiseDetails of employeeDetailsComponentWise[0]) {
+        const queryForComponentConfiguration = await paymentHelper.query(
+          12,
+          employeeComponentWiseDetails.salaryComponentAutoId,
+          null
+        );
+        const componentConfiguration = await db.sequelize.query(
+          queryForComponentConfiguration
+        );
+        employeeComponentWiseDetails["elementMonthlyAmount"] =
+          paymentHelper.getElementValue(
+            "Affect Loss Of Pay",
+            componentConfiguration[0]
+          ) == 1
+            ? parseFloat(
+                employeeComponentWiseDetails.payElementAmount - lopSingleUnit
+              ).toFixed(2)
+            : employeeComponentWiseDetails.payElementAmount;
+        employeeComponentWiseDetails["totalExtraDeduction"] =
+          extraDeductonsDetails[0][0].totalDeduction
+            ? extraDeductonsDetails[0][0].totalDeduction
+            : 0;
+        employeeComponentWiseDetails["extraDeductionCategories"] =
+          extraDeductonsDetails[0][0].deductionCategories
+            ? extraDeductonsDetails[0][0].deductionCategories
+            : "";
+        employeeComponentWiseDetails["createdAt"] = new Date();
+        employeeComponentWiseDetails["createdBy"] = req.userData.id;
+        employeeComponentWiseDetails["payMonth"] = result[0][0].payMonth;
+        employeeComponentWiseDetails["ptAmount"] = ptAmount1;
+        employeeComponentWiseDetails["lwfAmount"] = lwfAmount1
+        salaryRegisterArray.push(employeeComponentWiseDetails);
+        let existDetails = await db.payMonthlyElements.findOne({
+          where: {
+            empId: employee,
+            salaryComponentAutoId:
+              employeeComponentWiseDetails.salaryComponentAutoId,
+            payMonth: result[0][0].payMonth,
+          },
+          raw: true,
+        });
+        console.log(existDetails);
+        if (!existDetails) {
+          await db.payMonthlyElements.create(employeeComponentWiseDetails);
+        }
+      }
+      await db.payProcessDetails.update(
+        { payStatus: 2, payRemark: "Salary Processed." },
         {
           where: {
             EmployeeId: employee,
@@ -2536,47 +2865,14 @@ async function processSalary(data) {
           },
         }
       );
-  
-      continue
-      }
-    const queryForAffetElementCounts  = await paymentHelper.query(13,employee,null);
-    const affectComponentCounts = await db.sequelize.query(queryForAffetElementCounts);
-    const lopSingleUnit= employeeDetailsComponentWise[0][0].lopDays?((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC/totalWorkingDays)*employeeDetailsComponentWise[0][0].lopDays)/affectComponentCounts[0][0].lopAffectCount:0;
-      
-    for (const employeeComponentWiseDetails of employeeDetailsComponentWise[0]) {       
-      const queryForComponentConfiguration= await paymentHelper.query(12,employeeComponentWiseDetails.salaryComponentAutoId,null);
-      const componentConfiguration = await db.sequelize.query(queryForComponentConfiguration);
-      employeeComponentWiseDetails['elementMonthlyAmount']=paymentHelper.getElementValue('Affect Loss Of Pay',componentConfiguration[0])==1?parseFloat(employeeComponentWiseDetails.payElementAmount-lopSingleUnit).toFixed(2):employeeComponentWiseDetails.payElementAmount;
-      employeeComponentWiseDetails['totalExtraDeduction']=extraDeductonsDetails[0][0].totalDeduction?extraDeductonsDetails[0][0].totalDeduction:0;
-      employeeComponentWiseDetails['extraDeductionCategories']=extraDeductonsDetails[0][0].deductionCategories?extraDeductonsDetails[0][0].deductionCategories:'';
-      employeeComponentWiseDetails['createdAt']=new Date();
-      employeeComponentWiseDetails['createdBy']=req.userData.id;
-      employeeComponentWiseDetails['payMonth']=result[0][0].payMonth;
-      salaryRegisterArray.push(employeeComponentWiseDetails);
-      let existDetails=await db.payMonthlyElements.findOne({where:{empId:employee,salaryComponentAutoId:employeeComponentWiseDetails.salaryComponentAutoId, payMonth:result[0][0].payMonth},raw:true});
-      console.log(existDetails);
-      if(!existDetails)
-      {await db.payMonthlyElements.create(employeeComponentWiseDetails);} 
+      await delay(1000);
     }
-    await db.payProcessDetails.update(
-      { payStatus: 2, payRemark: 'Salary Processed.' },
-      {
-        where: {
-          EmployeeId: employee,
-          proceessId: processId,
-        },
-      }
-    );
-     await delay(1000);
-    }
-  
+
     db.payProcessMaster.update(
       { processFlowId: 4 },
       { where: { payProcessMasterAutoId: processId } }
     );
-  }
-  else
-  {
+  } else {
     console.log("NO Data For Processing >>>>>>>>>");
   }
 
@@ -2587,118 +2883,171 @@ async function processSalary(data) {
   // });
 }
 
-
 async function generatePaySlip(data) {
+  console.log("generate pay slip")
   try {
-    let { processId ,req} = data;
-    let queryForCurrentProcessStatus = await paymentHelper.query(15,processId,null);
-    let currentProcessStatus = await db.sequelize.query(queryForCurrentProcessStatus);
-    if(currentProcessStatus[0][0].currentstatus==6)
-    {
-      let queryForPayMonthlyElementsForSalarySlip = await paymentHelper.query(16,currentProcessStatus[0][0].payMonth,null);
-      let payElements = await db.sequelize.query(queryForPayMonthlyElementsForSalarySlip);
+    let { processId, req } = data;
+    let queryForCurrentProcessStatus = await paymentHelper.query(
+      15,
+      processId,
+      null
+    );
+    let currentProcessStatus = await db.sequelize.query(
+      queryForCurrentProcessStatus
+    );
+    if (currentProcessStatus[0][0].currentstatus == 6) {
+      let queryForPayMonthlyElementsForSalarySlip = await paymentHelper.query(
+        16,
+        currentProcessStatus[0][0].payMonth,
+        null
+      );
+      let payElements = await db.sequelize.query(
+        queryForPayMonthlyElementsForSalarySlip
+      );
+      console.log("payElementspayElements",payElements[0])
+      
       for (const payMonthlyElement of payElements[0]) {
-        let isExistPaySlip = await db.paySlips.findOne({where:{
-          EmployeeId:payMonthlyElement.empId,
-          paySlipMonth:payMonthlyElement.payMonth.split("-")[1],
-          paySlipYear:payMonthlyElement.payMonth.split("-")[0]
-        },raw:true});
-        let currentMonth=payMonthlyElement.payMonth.split("-")[1];
-        let currentYear=payMonthlyElement.payMonth.split("-")[0];
-        let totalWorkingDays =paymentHelper.getDaysInCurrentMonth({month:payMonthlyElement.payMonth.split("-")[1],year:payMonthlyElement.payMonth.split("-")[0]});
-        let paySlipDuration= `01/${parseInt(currentMonth)+1}/${currentYear}-${totalWorkingDays}/${parseInt(currentMonth)+1}/${currentYear}`;
-        let paySlipAutoId=isExistPaySlip?isExistPaySlip.paySlipAutoId:null;
-        
-        if(!isExistPaySlip)
-        {
-          let customeDeduction=[];
-          let totalPayslipDeductons=parseFloat(payMonthlyElement.totalExtraDeduction)+parseFloat(payMonthlyElement.totalComponentDeductions);  
+        let isExistPaySlip = await db.paySlips.findOne({
+          where: {
+            EmployeeId: payMonthlyElement.empId,
+            paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
+            paySlipYear: payMonthlyElement.payMonth.split("-")[0],
+          },
+          raw: true,
+        });
+        let currentMonth = payMonthlyElement.payMonth.split("-")[1];
+        let currentYear = payMonthlyElement.payMonth.split("-")[0];
+        let totalWorkingDays = paymentHelper.getDaysInCurrentMonth({
+          month: payMonthlyElement.payMonth.split("-")[1],
+          year: payMonthlyElement.payMonth.split("-")[0],
+        });
+        let paySlipDuration = `01/${
+          parseInt(currentMonth) + 1
+        }/${currentYear}-${totalWorkingDays}/${
+          parseInt(currentMonth) + 1
+        }/${currentYear}`;
+        let paySlipAutoId = isExistPaySlip
+          ? isExistPaySlip.paySlipAutoId
+          : null;
 
-          let PaySlipNetPay = parseFloat(payMonthlyElement.paySlipGrossEarning)-(parseFloat(payMonthlyElement.tdsAmount)+parseFloat(payMonthlyElement.totalExtraDeduction))    
-          isExistPaySlip= await db.paySlips.create({
-            EmployeeId:payMonthlyElement.empId,
-            paySlipMonth:payMonthlyElement.payMonth.split("-")[1],
-            paySlipYear:payMonthlyElement.payMonth.split("-")[0],
-            paySlipFinancialYear:'2024-25',
-            paySlipDuration:paySlipDuration,
-            paySlipTotalDays:totalWorkingDays,
-            paySlipWorkingDays:totalWorkingDays-payMonthlyElement.lopDays,
-            paySlipAbsentDays:payMonthlyElement.lopDays,
-            paySlipArrearDays:payMonthlyElement.arrearDays,
-            paySlipGrossEarning:payMonthlyElement.paySlipGrossEarning,
-            paySlipTotalPay:payMonthlyElement.paySlipTotalPay,
-            paySlipNetPay:PaySlipNetPay,
-            paySlipTotalDeduction:totalPayslipDeductons,
-            paySlipTDS:payMonthlyElement.tdsAmount,
-            createdBy:req.userData.id,
-            isActive:1,
-            paySlipStatus:0,
-            createdAt:new Date(),
+        if (!isExistPaySlip) {
+          let customeDeduction = [];
+          let totalPayslipDeductons =
+            parseFloat(payMonthlyElement.totalExtraDeduction) +
+            parseFloat(payMonthlyElement.totalComponentDeductions);
+
+          let PaySlipNetPay =
+            parseFloat(payMonthlyElement.paySlipGrossEarning) -
+            (parseFloat(payMonthlyElement.tdsAmount) +
+              parseFloat(payMonthlyElement.totalExtraDeduction) + parseFloat(payMonthlyElement.ptAmount) + parseFloat(payMonthlyElement.lwfAmount));
+          isExistPaySlip = await db.paySlips.create({
+            EmployeeId: payMonthlyElement.empId,
+            paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
+            paySlipYear: payMonthlyElement.payMonth.split("-")[0],
+            paySlipFinancialYear: "2024-25",
+            paySlipDuration: paySlipDuration,
+            paySlipTotalDays: totalWorkingDays,
+            paySlipWorkingDays: totalWorkingDays - payMonthlyElement.lopDays,
+            paySlipAbsentDays: payMonthlyElement.lopDays,
+            paySlipArrearDays: payMonthlyElement.arrearDays,
+            paySlipGrossEarning: payMonthlyElement.paySlipGrossEarning,
+            paySlipTotalPay: payMonthlyElement.paySlipTotalPay,
+            paySlipNetPay: PaySlipNetPay,
+            paySlipTotalDeduction: totalPayslipDeductons,
+            paySlipTDS: payMonthlyElement.tdsAmount,
+            createdBy: req.userData.id,
+            isActive: 1,
+            paySlipStatus: 0,
+            createdAt: new Date(),
           });
-          paySlipAutoId=isExistPaySlip.dataValues.paySlipAutoId?isExistPaySlip.dataValues.paySlipAutoId:paySlipAutoId;
-          if(payMonthlyElement.tdsAmount>0)
-          {
+          paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
+            ? isExistPaySlip.dataValues.paySlipAutoId
+            : paySlipAutoId;
+          if (payMonthlyElement.tdsAmount > 0) {
             customeDeduction.push({
-              EmployeeId:payMonthlyElement.empId,
-              paySlipAutoId:paySlipAutoId,
-              salaryComponentAutoId:0,
-              paySlipComponentName:"TDS",
-              paySlipComponentAmount:payMonthlyElement.tdsAmount,
-              paySlipComponentType:'Deduction',
-              createdBy:req.userData.id,
-              createdAt:new Date()
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "TDS",
+              paySlipComponentAmount: payMonthlyElement.tdsAmount,
+              paySlipComponentType: "Deduction",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
             });
           }
 
-          if(payMonthlyElement.totalExtraDeduction>0)
-            {
-              customeDeduction.push({
-                EmployeeId:payMonthlyElement.empId,
-                paySlipAutoId:paySlipAutoId,
-                salaryComponentAutoId:0,
-                paySlipComponentName:"Extra Deduction",
-                paySlipComponentAmount:payMonthlyElement.totalExtraDeduction,
-                paySlipComponentType:'Deduction',
-                createdBy:req.userData.id,
-                createdAt:new Date()
-              });
-            }
+          if (payMonthlyElement.totalExtraDeduction > 0) {
+            customeDeduction.push({
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "Extra Deduction",
+              paySlipComponentAmount: payMonthlyElement.totalExtraDeduction,
+              paySlipComponentType: "Deduction",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
+            });
+          }
 
-            await db.paySlipComponent.bulkCreate(customeDeduction);
+          if (payMonthlyElement.ptAmount > 0) {
+            customeDeduction.push({
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "Professional Tax",
+              paySlipComponentAmount: payMonthlyElement.ptAmount,
+              paySlipComponentType: "Deduction",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
+            });
+          }
 
+          if (payMonthlyElement.lwfAmount > 0) {
+            customeDeduction.push({
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "Lwf Tax",
+              paySlipComponentAmount: payMonthlyElement.lwfAmount,
+              paySlipComponentType: "Deduction",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
+            });
+          }
+          console.log("payMonthlyElement",payMonthlyElement)
+
+          await db.paySlipComponent.bulkCreate(customeDeduction);
         }
-        let isExistPayElement = await db.paySlipComponent.findOne({where:{
-          EmployeeId:payMonthlyElement.empId,
-          paySlipAutoId:paySlipAutoId,
-          salaryComponentAutoId:payMonthlyElement.salaryComponentAutoId
-        },raw:true});
+  
+        let isExistPayElement = await db.paySlipComponent.findOne({
+          where: {
+            EmployeeId: payMonthlyElement.empId,
+            paySlipAutoId: paySlipAutoId,
+            salaryComponentAutoId: payMonthlyElement.salaryComponentAutoId,
+          },
+          raw: true,
+        });
 
-
-        if(!isExistPayElement)
-        {
+        if (!isExistPayElement) {
           await db.paySlipComponent.create({
-            EmployeeId:payMonthlyElement.empId,
-            paySlipAutoId:paySlipAutoId,
-            salaryComponentAutoId:payMonthlyElement.salaryComponentAutoId,
-            paySlipComponentName:payMonthlyElement.paySlipComponentName,
-            paySlipComponentAmount:payMonthlyElement.elementMonthlyAmount,
-            paySlipComponentType:payMonthlyElement.salaryComponentEarningType,
-            createdBy:req.userData.id,
-            createdAt:new Date()
+            EmployeeId: payMonthlyElement.empId,
+            paySlipAutoId: paySlipAutoId,
+            salaryComponentAutoId: payMonthlyElement.salaryComponentAutoId,
+            paySlipComponentName: payMonthlyElement.paySlipComponentName,
+            paySlipComponentAmount: payMonthlyElement.elementMonthlyAmount,
+            paySlipComponentType: payMonthlyElement.salaryComponentEarningType,
+            createdBy: req.userData.id,
+            createdAt: new Date(),
           });
-
-
         }
         await delay(500);
       }
-    }
-    else  
-    {
-      console.log("Porcess is not ready for salary generation")
+    } else {
+      console.log("Porcess is not ready for salary generation");
     }
   } catch (e) {
     console.log(e);
   }
 }
 
-export default new PaymentController()
+export default new PaymentController();

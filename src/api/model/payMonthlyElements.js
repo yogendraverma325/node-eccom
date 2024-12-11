@@ -89,6 +89,14 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING(50),
             allowNull: true
           },
+          ptAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
+          lwfAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
           createdAt: {
             type: Sequelize.DATE,
             allowNull: true

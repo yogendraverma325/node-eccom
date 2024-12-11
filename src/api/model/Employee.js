@@ -229,9 +229,20 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: 1,
     },
+    ptLocationId:{
+      type: Sequelize.INTEGER,
+      //defaultValue: 0,
+    },
+    lwfDesignationId:{
+      type: Sequelize.INTEGER,
+    },
     passwordExpiryDate: {
       type: Sequelize.DATE,
     },
+    payrollInclude:{
+      type: Sequelize.INTEGER,
+      defaultValue:0
+    }
   });
   return employeeMaster;
 };
