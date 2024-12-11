@@ -569,8 +569,8 @@ class CronController {
                   row.employeebiographicaldetail.mobileAccess === true
                     ? "Yes"
                     : row.employeebiographicaldetail.mobileAccess === false
-                      ? "No"
-                      : "-",
+                    ? "No"
+                    : "-",
               },
               {
                 label: "Blood_Group",
@@ -626,7 +626,7 @@ class CronController {
     const confimationData = await db.jobDetails.findAll({
       where: {
         dateOfProbationEnd: {
-          [Op.lte]: db.sequelize.literal(
+          [Op.gte]: db.sequelize.literal(
             `DATE_SUB(CURDATE(), INTERVAL (SELECT generateOnBeforeDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
           ),
         },
