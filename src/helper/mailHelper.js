@@ -424,18 +424,9 @@ async function paymentDetailsAdminApproval(input) {
     console.log(error);
     logger.error(error);
   }
-  try {
-    const userData = JSON.parse(input);
-    await helper.mailService({
-      to: userData.email,
-      subject: `Action Required: Your Password Has Expired`,
-      html: await emailTemplate.postPasswordExpiryNotification(userData),
-    });
-  } catch (error) {
-    console.log(error);
-    logger.error(error);
-  }
 }
+
+
 async function newJoinEmployeeMail(input) {
   try {
     const userData = JSON.parse(input);
