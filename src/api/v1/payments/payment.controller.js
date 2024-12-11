@@ -3121,7 +3121,7 @@ async function generatePaySlip(data) {
             parseFloat(payMonthlyElement.totalComponentDeductions);
 
           let PaySlipNetPay =
-            parseFloat(payMonthlyElement.paySlipGrossEarning) -
+            parseFloat(parseFloat(payMonthlyElement.paySlipGrossEarning) + parseFloat(payMonthlyElement.extraPaymentAmount)) -
             (parseFloat(payMonthlyElement.tdsAmount) +
               parseFloat(payMonthlyElement.totalExtraDeduction) +
               parseFloat(payMonthlyElement.ptAmount) +
