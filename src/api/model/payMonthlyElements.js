@@ -97,6 +97,10 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.DECIMAL(10, 2),
             allowNull: true
           },
+          extraPaymentAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
           createdAt: {
             type: Sequelize.DATE,
             allowNull: true

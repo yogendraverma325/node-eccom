@@ -1298,6 +1298,22 @@ const tdsDeductionsSchema = Joi.object({
   .label("Employee Code"),
 });
 
+const extraPayment = Joi.object({
+  EmployeeId: Joi.number().integer().positive().required(),
+  paymentMonth: Joi.string().max(255).required(),
+  category: Joi.string().max(255).required(),
+  paymentAmount: Joi.number().precision(2).positive().required(),
+  createdBy: Joi.number().integer().positive().optional().allow(null),
+  createdAt: Joi.date().optional().allow(null),
+  updatedBy: Joi.number().integer().positive().optional().allow(null),
+  updatedAt: Joi.date().optional().allow(null),
+  isActive: Joi.boolean().optional(), // Defaults to false (0)
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+});
+
 const lopValidateSchama = Joi.object({
   lopAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
   EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
@@ -1429,6 +1445,7 @@ export default {
   lopValidateSchama,
   employeesForPayrollProcess,
   extraDeductionSchema,
-  payMonthYearCheck
+  payMonthYearCheck,
+  extraPayment
 ///////////Payroll//////////////
 };

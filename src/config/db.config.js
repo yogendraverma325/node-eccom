@@ -130,7 +130,7 @@ import PayProcessStatusMaster from "../api/model/PayProcessStatusMaster.js";
 import PayMonthlyElements from "../api/model/payMonthlyElements.js";
 import PtMapping from "../api/model/PtMapping.js";
 import LwfMapping from "../api/model/lwfMapping.js";
-
+import ExtraPayment from "../api/model/ExtraPayment.js";
 ////////////////////PAyroll////////////
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -335,6 +335,7 @@ db.payStatusMaster =PayProcessStatusMaster(sequelize,Sequelize);
 db.payMonthlyElements = PayMonthlyElements(sequelize,Sequelize);
 db.ptMapping = PtMapping(sequelize,Sequelize)
 db.lwfMapping = LwfMapping(sequelize,Sequelize)
+db.extraPayment = ExtraPayment(sequelize,Sequelize)
 //////////////////Payroll///////////////////
 
 

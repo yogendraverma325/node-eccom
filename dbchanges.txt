@@ -1,6 +1,9 @@
 //------------------------------------------2024-12-10--------------------------------------------------//
 
 ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `extraPaymentAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `lwfAmount`;
+
+ALTER TABLE `tara`.`paymonthlyelement` 
 ADD COLUMN `lwfAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `ptAmount`;
 
 ALTER TABLE `tara`.`employee` 

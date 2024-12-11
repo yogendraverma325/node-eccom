@@ -48,5 +48,7 @@ export default Express
     .post("/getWipProcessList",authentication.authenticate,paymentController.getWipProcessList)
     .post("/getNextAvailableStatuses",authentication.authenticate,paymentController.getNextAvailableStatuses)
     .post("/updateNextStatus",authentication.authenticate,paymentController.updateNextStatus)
-    .post("/getProcessDetails",authentication.authenticate,paymentController.getProcessDetails);
+    .post("/getProcessDetails",authentication.authenticate,paymentController.getProcessDetails)
+    .post("/extraPaymentUpload", upload.single('excelFile'), authentication.authenticate, paymentController.extraPaymentUpload)
+    .post("/currentonthExtraPaymentSyncing",authentication.authenticate,paymentController.extraPaymentSyncing);
 
