@@ -67,6 +67,10 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       default: null,
     },
+    payMonth: {
+      type: Sequelize.STRING,
+      default: null,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
       allowNull: true,
