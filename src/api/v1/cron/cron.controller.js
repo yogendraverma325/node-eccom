@@ -618,6 +618,8 @@ class CronController {
     }
   }
 
+  // START EMPLOYMENT DETAILS
+
   async updateDesignation() {
     const docs = await db.DesignationEmploymentHistory.findAll({
       raw: true,
@@ -1050,6 +1052,8 @@ class CronController {
     }
 
   }
+
+  // END EMPLOYMENT DETAILS
 
 }
 
