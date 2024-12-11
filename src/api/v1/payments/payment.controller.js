@@ -1021,6 +1021,7 @@ class PaymentController {
         isActive: 1,
         payRemark: "Salary Initiated",
         salaryMonth: newProcess.dataValues.payMonth,
+        payMonth: newProcess.dataValues.payMonth,
       }));
       await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
         processSalary({
@@ -1541,7 +1542,7 @@ class PaymentController {
         let tdsDeductions = {
           EmployeeId: employeeDetais.id,
           tdsAmount: employeeTds["TDS Deductions"],
-          tdsMonth: employeeTds["TDS Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
+          tdsMonth: employeeTds["TDS Month (YYYY-MM)"],
           empCode: employeeTds["Email/Employee ID"],
         };
         const { error } = await validator.tdsDeductionsSchema.validate(
@@ -2364,9 +2365,7 @@ class PaymentController {
       let { processId } = req.body;
       let returnArray = [];
       const queryForProcessedEmploye = await paymentHelper.query(17, processId, null);
-      const processedEmployee = await db.sequelize.query(
-        queryForProcessedEmploye
-      );
+      const processedEmployee = await db.sequelize.query(queryForProcessedEmploye);
 
       console.log(processedEmployee);
 
@@ -2528,7 +2527,7 @@ class PaymentController {
         });
       }
       const employeeIds = processedEmployees.map((item) => item.EmployeeId);
-      const query = paymentHelper.query(2, employeeIds, 0);
+      const query = await paymentHelper.query(2, employeeIds, 0);
       const result = await db.sequelize.query(query);
       return respHelper(res, {
         status: 200,
@@ -2553,7 +2552,7 @@ class PaymentController {
 
       let employees = empIds.split(",");
 
-      const queryEmloyeeAlreadyReleased = paymentHelper.query(2, employees, 1);
+      const queryEmloyeeAlreadyReleased = await paymentHelper.query(2, employees, 1);
       const resultAlreadyReleased = await db.sequelize.query(
         queryEmloyeeAlreadyReleased
       );
@@ -2594,7 +2593,7 @@ class PaymentController {
           msg: "Salary Structure Details Not Found.",
         });
       }
-      const queryForMappedEmployeeList = paymentHelper.query(
+      const queryForMappedEmployeeList = await paymentHelper.query(
         3,
         salaryStructureAutoId,
         null
@@ -2629,7 +2628,7 @@ class PaymentController {
       let paymonth = value.pay_year + "-" + value.pay_month;
       const queryForMappedEmployeeList = await paymentHelper.query(
         4,
-        [1, 2, 3, 4, 5, 6, 7, 8],
+        [1, 2, 3, 4, 5, 6, 7, 8,9],
         { paymonth: paymonth, companyId: value.companyId }
       );
 
@@ -2704,9 +2703,18 @@ class PaymentController {
         });
       }
 
-      if ((nextStatusId = 7)) {
-        await generatePaySlip({ processId: processId, req });
+
+      console.log("nextStatusId ::: ",nextStatusId);
+
+      if ((nextStatusId == 7)) {
+
+         await generatePaySlip({ processId: processId, req });
       }
+
+      if ((nextStatusId == 8)) {
+
+        await releasePaySlip({ processId: processId, req });
+     }
 
       await db.payProcessMaster.update(
         {
@@ -2744,6 +2752,7 @@ class PaymentController {
       const currentProcessStatus = await db.sequelize.query(
         queryForProcessStatus
       );
+
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
       } else if (currentProcessStatus[0][0].currentStatusId == 3) {
@@ -2752,10 +2761,12 @@ class PaymentController {
         [6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)
       ) {
         stepperDataQuery = await paymentHelper.query(18, processId, {
-          paymonth: "2024-09",
-          month: 9,
-          year: 2024,
+          paymonth: currentProcessStatus[0][0].payMonth,
+          month: currentProcessStatus[0][0].payMonth.split("-")[1],
+          year: currentProcessStatus[0][0].payMonth.split("-")[0],
         });
+
+        console.log(stepperDataQuery);
       }
       const stepperData = await db.sequelize.query(stepperDataQuery);
       return respHelper(res, {
@@ -2830,6 +2841,8 @@ async function processSalary(data) {
   //     msg: "No data to process.",
   //   });
   // }
+
+  console.log(result);
 
   if (result[0].length > 0) {
     const employeeIds = result[0].map((item) => item.EmployeeId);
@@ -3007,7 +3020,7 @@ async function processSalary(data) {
             : "";
         employeeComponentWiseDetails["createdAt"] = new Date();
         employeeComponentWiseDetails["createdBy"] = req.userData.id;
-        employeeComponentWiseDetails["payMonth"] = result[0][0].payMonth;
+        employeeComponentWiseDetails["payMonth"] = result[0][0].salaryMonth;
         employeeComponentWiseDetails["ptAmount"] = ptAmount1;
         employeeComponentWiseDetails["lwfAmount"] = lwfAmount1;
         employeeComponentWiseDetails["extraPaymentAmount"] = extraPaymentAmount1;
@@ -3218,6 +3231,27 @@ async function generatePaySlip(data) {
     } else {
       console.log("Porcess is not ready for salary generation");
     }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function releasePaySlip(data) {
+  try 
+  {
+    let { processId, req } = data;
+    let employeeIds =[];
+    let currentProcess= await db.payProcessMaster.findOne({where:{payProcessMasterAutoId:processId},raw:true});
+    if(currentProcess)
+    {
+      let employeeForReleasePaySlip = await db.payProcessDetails.findAll({where:{proceessId:processId,payMonth:currentProcess.payMonth,payStatus:2},raw:true,attributes:['EmployeeId']});
+      console.log(employeeForReleasePaySlip);
+      for (const employee of employeeForReleasePaySlip) {
+        employeeIds.push(employee.EmployeeId);
+      }
+      await db.paySlips.update({paySlipStatus:1},{where:{EmployeeId:{[Op.in]:employeeIds}}});
+    }
+ 
   } catch (e) {
     console.log(e);
   }
