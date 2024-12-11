@@ -3937,7 +3937,7 @@ class UserController {
               { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] },
               { model: db.employeeMaster, as: 'designationHistoryCreatedBy', attributes: ['id', 'name'] }
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
           },
           { model: db.DepartmentEmploymentHistory, as: 'departmentHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3950,7 +3950,7 @@ class UserController {
               { model: db.employeeMaster, as: 'departmentBUHR', attributes: ['id', 'name'] },
               { model: db.employeeMaster, as: 'departmentBUHead', attributes: ['id', 'name'] }
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
           },
           { model: db.CostCenterEmploymentHistory, as: 'costCenterHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3958,7 +3958,7 @@ class UserController {
               { model: db.costCenterMaster, attributes: ['costCenterId', 'costCenterName', 'costCenterCode' ] },
               { model: db.employeeMaster, as: 'costCenterHistoryCreatedBy', attributes: ['id', 'name'] },
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
           },
           { model: db.JobLevelEmploymentHistory, as: 'jobLevelHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3966,7 +3966,7 @@ class UserController {
               { model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode' ] },
               { model: db.employeeMaster, as: 'jobLevelHistoryCreatedBy', attributes: ['id', 'name'] }
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
           },
           { model: db.OfficeLocationEmploymentHistory, as: 'officeLocationHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3980,7 +3980,7 @@ class UserController {
               },
               { model: db.employeeMaster, as: 'officeLocationHistoryCreatedBy', attributes: ['id', 'name'] }
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
           },
           { model: db.EmployeeTypeEmploymentHistory, as: 'employeeTypeHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
@@ -3988,7 +3988,7 @@ class UserController {
               { model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] },
               { model: db.employeeMaster, as: 'employeeTypeHistoryCreatedBy', attributes: ['id', 'name'] },
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
           },
           { model: db.managerHistory, as: 'managerHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
@@ -3996,9 +3996,10 @@ class UserController {
               { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ] },
               { model: db.employeeMaster, as: 'managerHistoryCreatedBy', attributes: ['id', 'name'] }
             ],
-            where: { needAttendanceCron: 0, employeeId: userId },
+            where: { employeeId: userId },
             required: false
-          }
+          },
+          { model: db.companyMaster, attributes: ['companyId', 'companyName'] }
         ],
         order: [
           ["designationHistories", "id", "ASC"], // Sorting for designationHistory

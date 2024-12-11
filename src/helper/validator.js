@@ -447,6 +447,7 @@ const updateManagerSchema = Joi.array()
       user: Joi.number().required().label("User"),
       manager: Joi.number().required().label("Manager"),
       date: Joi.string().label("Date").required(),
+      id: Joi.number().allow(null)
     })
   )
   .messages({
@@ -1220,7 +1221,7 @@ const addJobLevelEmploymentSchema = Joi.object({
   companyId: Joi.number().required().label("Company"),
   jobLevelId: Joi.number().required().label("Job Level"),
   fromDate: Joi.string().trim().required().label("From Date"),  
-  isPromotion: Joi.number().required().label("Promotion").optional(),
+  isPromotion: Joi.boolean().required().label("Promotion").optional(),
   id: Joi.number().allow(null)
 });
 
