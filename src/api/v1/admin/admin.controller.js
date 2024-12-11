@@ -288,51 +288,86 @@ class AdminController {
       }
       let error = false;
       for (const iterator of result) {
-        const recordsExistForDate = await db.managerHistory.findOne({
-          raw: true,
-          where: {
-            fromDate: iterator.date,
-            needAttendanceCron: 1,
-            employeeId: iterator.user,
-          },
-        });
-        if (!recordsExistForDate) {
-          const userData = await db.employeeMaster.findOne({
-            attributes: ["id", "manager", "createdAt"],
+        let metaData = {
+          employeeId: iterator.user,
+          managerId: iterator.manager,
+          fromDate: iterator.date
+            ? iterator.date
+            : moment().add(1, "day").format("YYYY-MM-DD"),
+          toDate: null,
+        };
+
+        if (iterator.id) {
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.managerHistory.update(metaData, {
+            where: { id: iterator.id },
+          });
+          const recordsExistForDate = await db.managerHistory.findOne({
+            raw: true,
             where: {
-              id: iterator.user,
+              employeeId: iterator.user,
             },
+            order: [["createdAt", "desc"]],
+            limit: 1,
+            offset: 1,
           });
 
-          const currentManagerOfTheEmployeeExist =
-            await db.managerHistory.findOne({
-              where: { employeeId: iterator.user },
-            });
-          if (!currentManagerOfTheEmployeeExist) {
-            await db.managerHistory.create({
-              employeeId: iterator.user,
-              managerId: userData.manager,
-              fromDate: moment(
-                userData.createdAt,
-                "YYYY-MM-DD HH:mm:ss"
-              ).format("YYYY-MM-DD"),
-              needAttendanceCron: 0,
-              createdBy: 1,
-            });
+          if (recordsExistForDate) {
+            await db.managerHistory.update(
+              {
+                toDate: moment(result.fromDate)
+                  .subtract(1, "day")
+                  .format("YYYY-MM-DD"),
+              },
+              { where: { id: recordsExistForDate.id } }
+            );
           }
-          let createHistory = {
-            employeeId: iterator.user,
-            managerId: iterator.manager,
-            fromDate: iterator.date
-              ? iterator.date
-              : moment().add(1, "day").format("YYYY-MM-DD"),
-            toDate: null,
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Updated",
+          });
+        } else {
+          metaData = {
+            ...metaData,
             createdBy: req.userId,
             createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
           };
-          await db.managerHistory.create(createHistory);
-        } else {
-          error = true;
+          const recordsExistForDate = await db.managerHistory.findOne({
+            raw: true,
+            where: {
+              fromDate: iterator.date,
+              needAttendanceCron: 1,
+              employeeId: iterator.user,
+            },
+          });
+          if (!recordsExistForDate) {
+            // const userData = await db.employeeMaster.findOne({
+            //   attributes: ['id', 'manager', 'createdAt'],
+            //   where: {
+            //     id: iterator.user,
+            //   },
+            // });
+
+            // const currentManagerOfTheEmployeeExist = await db.managerHistory.findOne({ where: { employeeId: iterator.user, }, });
+            // if (!currentManagerOfTheEmployeeExist) {
+            //   await db.managerHistory.create({
+            //     employeeId: iterator.user,
+            //     managerId: userData.manager,
+            //     fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
+            //     needAttendanceCron: 0,
+            //     createdBy: 1,
+            //   }
+            //   );
+            // }
+
+            await db.managerHistory.create(metaData);
+          } else {
+            error = true;
+          }
         }
       }
 
@@ -1442,7 +1477,7 @@ class AdminController {
       } else {
         await db.bankMaster.create({
           ...req.body,
-          isActive:1,
+          isActive: 1,
           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
           createdBy: req.userId,
         });
@@ -1462,73 +1497,91 @@ class AdminController {
 
   async addDesignationEmployment(req, res) {
     try {
-      const result = await validator.addDesignationEmploymentSchema.validateAsync(
-        req.body
-      );
+      const result =
+        await validator.addDesignationEmploymentSchema.validateAsync(req.body);
 
       let error = false;
+      let metaData = {
+        employeeId: result.userId,
+        companyId: result.companyId,
+        designation_id: result.designation_id,
+        fromDate: result.fromDate
+          ? result.fromDate
+          : moment().add(1, "day").format("YYYY-MM-DD"),
+        toDate: null,
+        isPromotion: result.isPromotion,
+      };
 
-      const recordsExistForDate = await db.DesignationEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-        },
-      });
-
-      if (!recordsExistForDate) {
-        const userData = await db.employeeMaster.findOne({
-          attributes: ['id', 'companyId', 'designation_id', 'createdAt'],
-          where: {
-            id: result.userId,
-          },
+      if (result.id) {
+        metaData = {
+          ...metaData,
+          updatedBy: req.userId,
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+        await db.DesignationEmploymentHistory.update(metaData, {
+          where: { id: result.id },
         });
 
-        const currentDesignationOfTheEmployeeExist = await db.DesignationEmploymentHistory.findOne({ where: { employeeId: result.userId, }, });
-        if (!currentDesignationOfTheEmployeeExist) {
-
-          await db.DesignationEmploymentHistory.create({
-            employeeId: result.userId,
-            companyId: userData.companyId,
-            designation_id: userData.designation_id,
-            fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
-            needAttendanceCron: 0,
-            createdBy: 1
+        const recordsExistForDate =
+          await db.DesignationEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              employeeId: result.userId,
+            },
+            order: [["createdAt", "desc"]],
+            limit: 1,
+            offset: 1,
           });
 
+        if (recordsExistForDate) {
+          await db.DesignationEmploymentHistory.update(
+            {
+              toDate: moment(result.fromDate)
+                .subtract(1, "day")
+                .format("YYYY-MM-DD"),
+            },
+            { where: { id: recordsExistForDate.id } }
+          );
         }
 
-        let createHistory = {
-          employeeId: result.userId,
-          companyId: result.companyId,
-          designation_id: result.designation_id,
-          fromDate: result.fromDate
-            ? result.fromDate
-            : moment().add(1, "day").format("YYYY-MM-DD"),
-          toDate: null,
-          isPromotion: result.isPromotion,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-        };
-
-        await db.DesignationEmploymentHistory.create(createHistory);
-      } else {
-        error = true;
-      }
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: "Record Already Exist for the selected date",
-        });
-      } else {
         return respHelper(res, {
           status: 200,
-          msg: "Record Added",
+          msg: "Record Updated",
         });
-      }
+      } else {
+        metaData = {
+          ...metaData,
+          createdBy: req.userId,
+          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+        const recordsExistForDate =
+          await db.DesignationEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              fromDate: result.fromDate,
+              needAttendanceCron: 1,
+              employeeId: result.userId,
+            },
+          });
 
+        if (!recordsExistForDate) {
+          await db.DesignationEmploymentHistory.create(metaData);
+        } else {
+          error = true;
+        }
+
+        if (error) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Record Already Exist for the selected date",
+          });
+        } else {
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Added",
+          });
+        }
+      }
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -1545,84 +1598,96 @@ class AdminController {
 
   async addDepartmentEmployment(req, res) {
     try {
-      const result = await validator.addDepartmentEmploymentSchema.validateAsync(
-        req.body
-      );
+      const result =
+        await validator.addDepartmentEmploymentSchema.validateAsync(req.body);
 
-      let error = false;
+      let metaData = {
+        employeeId: result.userId,
+        companyId: result.companyId,
+        buId: result.buId,
+        sbuId: result.sbuId,
+        buHRId: result.buHRId,
+        buHeadId: result.buHeadId,
+        departmentId: result.departmentId,
+        functionalAreaId: result.functionalAreaId,
+        fromDate: result.fromDate
+          ? result.fromDate
+          : moment().add(1, "day").format("YYYY-MM-DD"),
+        toDate: null,
+      };
 
-      const recordsExistForDate = await db.DepartmentEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-        },
-      });
-
-      if (!recordsExistForDate) {
-        const userData = await db.employeeMaster.findOne({
-          attributes: ['id', 'companyId', 'buId', 'sbuId', 'buHeadId', 'buHRId', 'departmentId', 'functionalAreaId', 'createdAt'],
-          where: {
-            id: result.userId,
-          },
+      if (result.id) {
+        metaData = {
+          ...metaData,
+          updatedBy: req.userId,
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+        await db.DepartmentEmploymentHistory.update(metaData, {
+          where: { id: result.id },
         });
 
-        const currentDataOfTheEmployeeExist = await db.DepartmentEmploymentHistory.findOne({ where: { employeeId: result.userId, }, });
-        if (!currentDataOfTheEmployeeExist) {
+        const recordsExistForDate =
+          await db.DepartmentEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              employeeId: result.userId,
+            },
+            order: [["createdAt", "desc"]],
+            limit: 1,
+            offset: 1,
+          });
 
-          await db.DepartmentEmploymentHistory.create({
-            employeeId: result.userId,
-            companyId: userData.companyId,
-            buId: userData.buId,
-            sbuId: userData.sbuId,
-            buHRId: userData.buHRId,
-            buHeadId: userData.buHeadId,
-            departmentId: userData.departmentId,
-            functionalAreaId: userData.functionalAreaId,
-            fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
-            needAttendanceCron: 0,
-            createdBy: 1
-          }
+        if (recordsExistForDate) {
+          await db.DepartmentEmploymentHistory.update(
+            {
+              toDate: moment(result.fromDate)
+                .subtract(1, "day")
+                .format("YYYY-MM-DD"),
+            },
+            { where: { id: recordsExistForDate.id } }
           );
-
         }
 
-        let createHistory = {
-          employeeId: result.userId,
-          companyId: result.companyId,
-          buId: result.buId,
-          sbuId: result.sbuId,
-          buHRId: result.buHRId,
-          buHeadId: result.buHeadId,
-          departmentId: result.departmentId,
-          functionalAreaId: result.functionalAreaId,
-          fromDate: result.fromDate
-            ? result.fromDate
-            : moment().add(1, "day").format("YYYY-MM-DD"),
-          toDate: null,
-          isPromotion: result.isPromotion,
+        return respHelper(res, {
+          status: 200,
+          msg: "Record Updated",
+        });
+      } else {
+        metaData = {
+          ...metaData,
           createdBy: req.userId,
           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
+        let error = false;
 
-        await db.DepartmentEmploymentHistory.create(createHistory);
-      } else {
-        error = true;
+        const recordsExistForDate =
+          await db.DepartmentEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              fromDate: result.fromDate,
+              needAttendanceCron: 1,
+              employeeId: result.userId,
+            },
+          });
+
+        if (!recordsExistForDate) {
+          await db.DepartmentEmploymentHistory.create(metaData);
+        } else {
+          error = true;
+        }
+
+        if (error) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Record Already Exist for the selected date",
+          });
+        } else {
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Added",
+          });
+        }
       }
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: "Record Already Exist for the selected date",
-        });
-      } else {
-        return respHelper(res, {
-          status: 200,
-          msg: "Record Added",
-        });
-      }
-
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -1639,72 +1704,92 @@ class AdminController {
 
   async addCostCenterEmployment(req, res) {
     try {
-      const result = await validator.addCostCenterEmploymentSchema.validateAsync(
-        req.body
-      );
-      let error = false;
+      const result =
+        await validator.addCostCenterEmploymentSchema.validateAsync(req.body);
 
-      const recordsExistForDate = await db.CostCenterEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-        },
-      });
+      let metaData = {
+        employeeId: result.userId,
+        companyId: result.companyId,
+        costId: result.costId,
+        fromDate: result.fromDate
+          ? result.fromDate
+          : moment().add(1, "day").format("YYYY-MM-DD"),
+        toDate: null,
+      };
 
-      if (!recordsExistForDate) {
-        const userData = await db.employeeMaster.findOne({
-          attributes: ['id', 'companyId', 'costId', 'createdAt'],
-          where: {
-            id: result.userId,
-          },
+      if (result.id) {
+        metaData = {
+          ...metaData,
+          updatedBy: req.userId,
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+
+        await db.CostCenterEmploymentHistory.update(metaData, {
+          where: { id: result.id },
         });
 
-        const currentDataOfTheEmployeeExist = await db.CostCenterEmploymentHistory.findOne({ where: { employeeId: result.userId, }, });
-        if (!currentDataOfTheEmployeeExist) {
-          
-          await db.CostCenterEmploymentHistory.create({
-            employeeId: result.userId,
-            companyId: userData.companyId,
-            costId: userData.costId,
-            fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
-            needAttendanceCron: 0,
-            createdBy: 1
+        const recordsExistForDate =
+          await db.CostCenterEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              employeeId: result.userId,
+            },
+            order: [["createdAt", "desc"]],
+            limit: 1,
+            offset: 1,
           });
 
+        if (recordsExistForDate) {
+          await db.CostCenterEmploymentHistory.update(
+            {
+              toDate: moment(result.fromDate)
+                .subtract(1, "day")
+                .format("YYYY-MM-DD"),
+            },
+            { where: { id: recordsExistForDate.id } }
+          );
         }
 
-        let createHistory = {
-          employeeId: result.userId,
-          companyId: result.companyId,
-          costId: result.costId,
-          fromDate: result.fromDate
-            ? result.fromDate
-            : moment().add(1, "day").format("YYYY-MM-DD"),
-          toDate: null,
-          isPromotion: result.isPromotion,
+        return respHelper(res, {
+          status: 200,
+          msg: "Record Updated",
+        });
+      } else {
+        metaData = {
+          ...metaData,
           createdBy: req.userId,
           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
+        let error = false;
 
-        await db.CostCenterEmploymentHistory.create(createHistory);
-      } else {
-        error = true;
+        const recordsExistForDate =
+          await db.CostCenterEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              fromDate: result.fromDate,
+              needAttendanceCron: 1,
+              employeeId: result.userId,
+            },
+          });
+
+        if (!recordsExistForDate) {
+          await db.CostCenterEmploymentHistory.create(metaData);
+        } else {
+          error = true;
+        }
+
+        if (error) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Record Already Exist for the selected date",
+          });
+        } else {
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Added",
+          });
+        }
       }
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: "Record Already Exist for the selected date",
-        });
-      } else {
-        return respHelper(res, {
-          status: 200,
-          msg: "Record Added",
-        });
-      }
-
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -1721,71 +1806,91 @@ class AdminController {
 
   async addCompanyLocationEmployment(req, res) {
     try {
-      const result = await validator.addCompanyLocationEmploymentSchema.validateAsync(
-        req.body
-      );
+      const result =
+        await validator.addCompanyLocationEmploymentSchema.validateAsync(
+          req.body
+        );
 
-      let error = false;
-      const recordsExistForDate = await db.OfficeLocationEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-        },
-      });
+      let metaData = {
+        employeeId: result.userId,
+        companyId: result.companyId,
+        companyLocationId: result.companyLocationId,
+        fromDate: result.fromDate
+          ? result.fromDate
+          : moment().add(1, "day").format("YYYY-MM-DD"),
+        toDate: null,
+      };
 
-      if (!recordsExistForDate) {
-        const userData = await db.employeeMaster.findOne({
-          attributes: ['id', 'companyId', 'companyLocationId', 'createdAt'],
-          where: {
-            id: result.userId,
-          },
+      if (result.id) {
+        metaData = {
+          ...metaData,
+          updatedBy: req.userId,
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+        await db.OfficeLocationEmploymentHistory.update(metaData, {
+          where: { id: result.id },
         });
-
-        const currentDataOfTheEmployeeExist = await db.OfficeLocationEmploymentHistory.findOne({ where: { employeeId: result.userId, }, });
-        if (!currentDataOfTheEmployeeExist) {
-
-          await db.OfficeLocationEmploymentHistory.create({
-            employeeId: result.userId,
-            companyId: userData.companyId,
-            companyLocationId: userData.companyLocationId,
-            fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
-            needAttendanceCron: 0,
-            createdBy: 1
+        const recordsExistForDate =
+          await db.OfficeLocationEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              employeeId: result.userId,
+            },
+            order: [["createdAt", "desc"]],
+            limit: 1,
+            offset: 1,
           });
 
+        if (recordsExistForDate) {
+          await db.OfficeLocationEmploymentHistory.update(
+            {
+              toDate: moment(result.fromDate)
+                .subtract(1, "day")
+                .format("YYYY-MM-DD"),
+            },
+            { where: { id: recordsExistForDate.id } }
+          );
         }
-        let createHistory = {
-          employeeId: result.userId,
-          companyId: result.companyId,
-          companyLocationId: result.companyLocationId,
-          fromDate: result.fromDate
-            ? result.fromDate
-            : moment().add(1, "day").format("YYYY-MM-DD"),
-          toDate: null,
-          isPromotion: result.isPromotion,
+
+        return respHelper(res, {
+          status: 200,
+          msg: "Record Updated",
+        });
+      } else {
+        metaData = {
+          ...metaData,
           createdBy: req.userId,
           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
+        let error = false;
+        const recordsExistForDate =
+          await db.OfficeLocationEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              fromDate: result.fromDate,
+              needAttendanceCron: 1,
+              employeeId: result.userId,
+            },
+          });
 
-        await db.OfficeLocationEmploymentHistory.create(createHistory);
-      } else {
-        error = true;
+        if (!recordsExistForDate) {
+          await db.OfficeLocationEmploymentHistory.create(metaData);
+        } else {
+          error = true;
+        }
+
+        if (error) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Record Already Exist for the selected date",
+          });
+        } else {
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Added",
+          });
+        }
       }
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: "Record Already Exist for the selected date",
-        });
-      } else {
-        return respHelper(res, {
-          status: 200,
-          msg: "Record Added",
-        });
-      }
-
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -1806,76 +1911,93 @@ class AdminController {
         req.body
       );
 
-      let error = false;
-      const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-        },
+      // fetch bandId and gradeId based on job level
+      const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({
+        where: { jobLevelId: result.jobLevelId },
+        attributes: ["bandId", "gradeId"],
       });
 
-      if (!recordsExistForDate) {
+      let metaData = {
+        employeeId: result.userId,
+        companyId: result.companyId,
+        bandId: getJobLevelMappingDetails.bandId,
+        gradeId: getJobLevelMappingDetails.gradeId,
+        jobLevelId: result.jobLevelId,
+        fromDate: result.fromDate
+          ? result.fromDate
+          : moment().add(1, "day").format("YYYY-MM-DD"),
+        toDate: null,
+        isPromotion: result.isPromotion,
+      };
 
-        const userData = await db.jobDetails.findOne({
-          attributes: ['jobLevelId', 'bandId', 'gradeId', 'jobLevelId', 'createdAt'],
+      if (result.id) {
+        metaData = {
+          ...metaData,
+          updatedBy: req.userId,
+          updatedAt: null,
+        };
+        await db.JobLevelEmploymentHistory.update(metaData, {
+          where: { id: result.id },
+        });
+        const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
+          raw: true,
           where: {
-            userId: result.userId,
+            employeeId: result.userId,
           },
+          order: [["createdAt", "desc"]],
+          limit: 1,
+          offset: 1,
         });
 
-        const currentDataOfTheEmployeeExist = await db.JobLevelEmploymentHistory.findOne({ where: { employeeId: result.userId, }, });
-        if (!currentDataOfTheEmployeeExist) {
-
-          await db.JobLevelEmploymentHistory.create({
-            employeeId: result.userId,
-            companyId: result.companyId,
-            bandId: userData.bandId,
-            gradeId: userData.gradeId,
-            jobLevelId: userData.jobLevelId,
-            fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
-            needAttendanceCron: 0,
-            createdBy: 1
-          });
-
+        if (recordsExistForDate) {
+          await db.JobLevelEmploymentHistory.update(
+            {
+              toDate: moment(result.fromDate)
+                .subtract(1, "day")
+                .format("YYYY-MM-DD"),
+            },
+            { where: { id: recordsExistForDate.id } }
+          );
         }
 
-        // fetch bandId and gradeId based on job level
-        const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({ where: { 'jobLevelId': result.jobLevelId }, attributes: ['bandId', 'gradeId'] });
-
-        let createHistory = {
-          employeeId: result.userId,
-          companyId: result.companyId,
-          bandId: getJobLevelMappingDetails.bandId,
-          gradeId: getJobLevelMappingDetails.gradeId,
-          jobLevelId: result.jobLevelId,
-          fromDate: result.fromDate
-            ? result.fromDate
-            : moment().add(1, "day").format("YYYY-MM-DD"),
-          toDate: null,
-          isPromotion: result.isPromotion,
+        return respHelper(res, {
+          status: 200,
+          msg: "Record Updated",
+        });
+      } else {
+        metaData = {
+          ...metaData,
           createdBy: req.userId,
           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
-
-        await db.JobLevelEmploymentHistory.create(createHistory);
-      } else {
-        error = true;
-      }
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: "Record Already Exist for the selected date",
+        let error = false;
+        const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+          },
         });
-      } else {
-        return respHelper(res, {
-          status: 200,
-          msg: "Record Added",
-        });
-      }
 
+        if (!recordsExistForDate) {
+          await db.JobLevelEmploymentHistory.create(metaData);
+        } else {
+          error = true;
+        }
+
+        if (error) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Record Already Exist for the selected date",
+          });
+        } else {
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Added",
+          });
+        }
+      }
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -1889,75 +2011,92 @@ class AdminController {
       });
     }
   }
-  
+
   async addEmployeeTypeEmployment(req, res) {
     try {
-      const result = await validator.addEmployeeTypeEmploymentSchema.validateAsync(
-        req.body
-      );
+      const result =
+        await validator.addEmployeeTypeEmploymentSchema.validateAsync(req.body);
 
-      let error = false;
-      const recordsExistForDate = await db.EmployeeTypeEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-        },
-      });
+      let metaData = {
+        employeeId: result.userId,
+        companyId: result.companyId,
+        employeeType: result.employeeType,
+        fromDate: result.fromDate
+          ? result.fromDate
+          : moment().add(1, "day").format("YYYY-MM-DD"),
+        toDate: null,
+      };
 
-      if (!recordsExistForDate) {
-        const userData = await db.employeeMaster.findOne({
-          attributes: ['id', 'companyId', 'employeeType', 'createdAt'],
-          where: {
-            id: result.userId,
-          },
+      if (result.id) {
+        metaData = {
+          ...metaData,
+          updatedBy: req.userId,
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+        await db.EmployeeTypeEmploymentHistory.update(metaData, {
+          where: { id: result.id },
         });
-
-        const currentDataOfTheEmployeeExist = await db.EmployeeTypeEmploymentHistory.findOne({ where: { employeeId: result.userId, }, });
-        if (!currentDataOfTheEmployeeExist) {
-
-          await db.EmployeeTypeEmploymentHistory.create({
-            employeeId: result.userId,
-            companyId: userData.companyId,
-            employeeType: userData.employeeType,
-            fromDate: moment(userData.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD"),
-            needAttendanceCron: 0,
-            createdBy: 1
+        const recordsExistForDate =
+          await db.EmployeeTypeEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              employeeId: result.userId,
+            },
+            order: [["createdAt", "desc"]],
+            limit: 1,
+            offset: 1,
           });
 
+        if (recordsExistForDate) {
+          await db.EmployeeTypeEmploymentHistory.update(
+            {
+              toDate: moment(result.fromDate)
+                .subtract(1, "day")
+                .format("YYYY-MM-DD"),
+            },
+            { where: { id: recordsExistForDate.id } }
+          );
         }
-        let createHistory = {
-          employeeId: result.userId,
-          companyId: result.companyId,
-          employeeType: result.employeeType,
-          fromDate: result.fromDate
-            ? result.fromDate
-            : moment().add(1, "day").format("YYYY-MM-DD"),
-          toDate: null,
-          isPromotion: result.isPromotion,
+
+        return respHelper(res, {
+          status: 200,
+          msg: "Record Updated",
+        });
+      } else {
+        metaData = {
+          ...metaData,
           createdBy: req.userId,
           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
+        let error = false;
+        const recordsExistForDate =
+          await db.EmployeeTypeEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              fromDate: result.fromDate,
+              needAttendanceCron: 1,
+              employeeId: result.userId,
+            },
+          });
 
-        await db.EmployeeTypeEmploymentHistory.create(createHistory);
-      } else {
-        error = true;
+        if (!recordsExistForDate) {
+          await db.EmployeeTypeEmploymentHistory.create(metaData);
+        } else {
+          error = true;
+        }
+
+        if (error) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Record Already Exist for the selected date",
+          });
+        } else {
+          return respHelper(res, {
+            status: 200,
+            msg: "Record Added",
+          });
+        }
       }
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: "Record Already Exist for the selected date",
-        });
-      } else {
-        return respHelper(res, {
-          status: 200,
-          msg: "Record Added",
-        });
-      }
-      
-
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -1971,7 +2110,6 @@ class AdminController {
       });
     }
   }
-
 }
 
 export default new AdminController();
