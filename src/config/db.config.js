@@ -128,6 +128,9 @@ import PayProcessMaster from "../api/model/payProcessMaster.js";
 import PayProcessFlowMaster from "../api/model/PayProcessFlowMaster.js";
 import PayProcessStatusMaster from "../api/model/PayProcessStatusMaster.js";
 import PayMonthlyElements from "../api/model/payMonthlyElements.js";
+import PtMapping from "../api/model/PtMapping.js";
+import LwfMapping from "../api/model/lwfMapping.js";
+
 ////////////////////PAyroll////////////
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -330,6 +333,8 @@ db.payProcessMaster = PayProcessMaster(sequelize,Sequelize);
 db.payProcessFlowMaster =PayProcessFlowMaster(sequelize,Sequelize);
 db.payStatusMaster =PayProcessStatusMaster(sequelize,Sequelize);
 db.payMonthlyElements = PayMonthlyElements(sequelize,Sequelize);
+db.ptMapping = PtMapping(sequelize,Sequelize)
+db.lwfMapping = LwfMapping(sequelize,Sequelize)
 //////////////////Payroll///////////////////
 
 
@@ -1152,6 +1157,27 @@ db.payPackage.hasMany(db.payElements, {
   foreignKey: "payPackageAutoId",
   sourceKey: "payPackageAutoId",
   as:"empPayElements"
+});
+
+db.employeeMaster.hasOne(db.ptLocationMaster, {
+  foreignKey: "ptLocationId",
+  sourceKey: "ptLocationId",
+});
+
+db.employeeMaster.hasOne(db.lwfDesignationMaster, {
+  foreignKey: "lwfDesignationId",
+  sourceKey: "lwfDesignationId",
+});
+
+
+db.ptLocationMaster.hasOne(db.ptMapping, {
+  foreignKey: "ptLocationId",
+  sourceKey: "ptLocationId",
+});
+
+db.lwfDesignationMaster.hasOne(db.lwfMapping, {
+  foreignKey: "lwfDesignationId",
+  sourceKey: "lwfDesignationId",
 });
 
 /////////////////////////////Payroll///////////////////////////

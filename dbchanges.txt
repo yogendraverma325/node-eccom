@@ -1,3 +1,43 @@
+//------------------------------------------2024-12-10--------------------------------------------------//
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `lwfAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `ptAmount`;
+
+ALTER TABLE `tara`.`employee` 
+ADD COLUMN `lwfDesignationId` INT NULL DEFAULT NULL AFTER `ptLocationId`;
+
+CREATE TABLE `tara`.`lwfmapping` (
+  `lwfMappingId` INT NOT NULL AUTO_INCREMENT,
+  `lwfDesignationId` INT NULL,
+  `contributorType` VARCHAR(150) NULL DEFAULT NULL,
+  `stateId` INT NULL,
+  `apr` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `may` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jun` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jul` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `aug` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `sep` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `oct` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `nov` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `dec` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jan` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `feb` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `mar` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` INT NULL DEFAULT '1',
+  PRIMARY KEY (`lwfMappingId`));
+
+
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `ptAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `payMonth`;
+
+ALTER TABLE `tara`.`employee` 
+ADD COLUMN `ptLocationId` INT NULL DEFAULT NULL AFTER `confimationPolicyAutoId`;
+
 //------------------------------------------2024-12-05------------------------------------------------//
 
 ALTER TABLE `tara`.`ptmapping` 
