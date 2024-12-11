@@ -973,7 +973,7 @@ class CronController {
           },
           {
             where: {
-              id: element.employeeId,
+              userId: element.employeeId,
             },
           }
         );
