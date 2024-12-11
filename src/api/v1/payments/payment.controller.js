@@ -3200,6 +3200,19 @@ async function generatePaySlip(data) {
               createdAt: new Date(),
             });
           }
+
+          if (payMonthlyElement.extraPaymentAmount > 0) {
+            customeDeduction.push({
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "Extra Payment",
+              paySlipComponentAmount: payMonthlyElement.extraPaymentAmount,
+              paySlipComponentType: "Earning",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
+            });
+          }
           console.log("payMonthlyElement", payMonthlyElement);
 
           await db.paySlipComponent.bulkCreate(customeDeduction);
