@@ -3385,7 +3385,7 @@ class AttendanceController {
           } : {}, {
             isActive: 1
           }),
-          attributes: ['id', 'empCode', 'name']
+          attributes: ['id', 'empCode', 'name', 'profileImage']
         }],
         limit,
         offset
