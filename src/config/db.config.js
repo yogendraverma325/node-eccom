@@ -1174,8 +1174,8 @@ db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
 });
 
 db.employeeMaster.hasMany(db.managerHistory, {
-  foreignKey: "managerId",
-  sourceKey: "manager",
+  foreignKey: "employeeId",
+  sourceKey: "id",
   as: "managerHistories",
 });
 

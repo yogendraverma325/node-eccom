@@ -4827,7 +4827,7 @@ class UserController {
                 attributes: ["id", "name"],
               },
             ],
-            where: { employeeId: userId },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false,
           },
           { model: db.companyMaster, attributes: ["companyId", "companyName"] },
