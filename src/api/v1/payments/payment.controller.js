@@ -2829,6 +2829,7 @@ const groupByEmployeeId = (data) => {
     const employeeId = item["Employee Id"];
 
     if (!groupedData[employeeId]) {
+      let payableNetSalary = item["Net Pay"] + item["EXTRA PAYMENT AMOUNT"] - item["TDS Amount"] - item["PT AMOUNT"] - item["LWF AMOUNT"]
       groupedData[employeeId] = {
         "Employee Id": employeeId,
         "Employee Name": item["Employee Name"],
@@ -3159,8 +3160,8 @@ async function generatePaySlip(data) {
             parseFloat(payMonthlyElement.totalExtraDeduction) +
             parseFloat(payMonthlyElement.totalComponentDeductions);
 
-          let PaySlipNetPay =
-            parseFloat(parseFloat(payMonthlyElement.paySlipGrossEarning) + parseFloat(payMonthlyElement.extraPaymentAmount)) -
+          let PaySlipNetPay =parseFloat(payMonthlyElement.paySlipGrossEarning) + parseFloat(payMonthlyElement.extraPaymentAmount);
+          PaySlipNetPay= PaySlipNetPay-
             (parseFloat(payMonthlyElement.tdsAmount) +
               parseFloat(payMonthlyElement.totalExtraDeduction) +
               parseFloat(payMonthlyElement.ptAmount) +
@@ -3178,8 +3179,8 @@ async function generatePaySlip(data) {
             paySlipGrossEarning: payMonthlyElement.paySlipGrossEarning,
             paySlipTotalPay: payMonthlyElement.paySlipTotalPay,
             paySlipNetPay: PaySlipNetPay,
-            paySlipTotalDeduction: totalPayslipDeductons,
-            paySlipTDS: payMonthlyElement.tdsAmount,
+            paySlipTotalDeduction: totalPayslipDeductons?totalPayslipDeductons:0,
+            paySlipTDS: payMonthlyElement.tdsAmount?payMonthlyElement.tdsAmount:0,
             createdBy: req.userData.id,
             isActive: 1,
             paySlipStatus: 0,
