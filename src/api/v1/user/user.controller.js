@@ -4238,7 +4238,7 @@ class UserController {
             where: {
               confirmationFormGroupId:
                 respfrom?.levelData?.confirmationFormGroupId,
-              // level: respfrom.level,
+              level: respfrom.level,
             },
           });
           let bulkArray = [];
@@ -4637,9 +4637,7 @@ class UserController {
           {
             model: db.DesignationEmploymentHistory,
             as: "designationHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
+            attributes: { exclude: ["createdBy", "updatedAt", "updatedBy"] },
             include: [
               {
                 model: db.designationMaster,
@@ -4649,8 +4647,13 @@ class UserController {
                 model: db.companyMaster,
                 attributes: ["companyId", "companyName", "companyCode"],
               },
+              {
+                model: db.employeeMaster,
+                as: "designationHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { employeeId: userId },
             required: false,
           },
           {
@@ -4676,8 +4679,25 @@ class UserController {
                   "functionalAreaCode",
                 ],
               },
+              {
+                model: db.employeeMaster,
+                as: "departmentHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
+              { model: db.buMaster, attributes: ["buId", "buName"] },
+              { model: db.sbuMaster, attributes: ["sbuId", "sbuName"] },
+              {
+                model: db.employeeMaster,
+                as: "departmentBUHR",
+                attributes: ["id", "name"],
+              },
+              {
+                model: db.employeeMaster,
+                as: "departmentBUHead",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { employeeId: userId },
             required: false,
           },
           {
@@ -4695,8 +4715,13 @@ class UserController {
                   "costCenterCode",
                 ],
               },
+              {
+                model: db.employeeMaster,
+                as: "costCenterHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { employeeId: userId },
             required: false,
           },
           {
@@ -4710,8 +4735,13 @@ class UserController {
                 model: db.jobLevelMaster,
                 attributes: ["jobLevelId", "jobLevelName", "jobLevelCode"],
               },
+              {
+                model: db.employeeMaster,
+                as: "jobLevelHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { employeeId: userId },
             required: false,
           },
           {
@@ -4739,8 +4769,13 @@ class UserController {
                   },
                 ],
               },
+              {
+                model: db.employeeMaster,
+                as: "officeLocationHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { employeeId: userId },
             required: false,
           },
           {
@@ -4754,8 +4789,13 @@ class UserController {
                 model: db.employeeTypeMaster,
                 attributes: ["empTypeId", "emptypename"],
               },
+              {
+                model: db.employeeMaster,
+                as: "employeeTypeHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { employeeId: userId },
             required: false,
           },
           {
@@ -4770,19 +4810,25 @@ class UserController {
                 as: "managerHistoryDate",
                 attributes: ["id", "name", "empCode"],
               },
+              {
+                model: db.employeeMaster,
+                as: "managerHistoryCreatedBy",
+                attributes: ["id", "name"],
+              },
             ],
-            where: { needAttendanceCron: 0 },
+            where: { needAttendanceCron: 0, employeeId: userId },
             required: false,
           },
+          { model: db.companyMaster, attributes: ["companyId", "companyName"] },
         ],
         order: [
           ["designationHistories", "id", "ASC"], // Sorting for designationHistory
           ["departmentHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["costCenterHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["jobLevelHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["employeeTypeHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["officeLocationHistories", "id", "ASC"], // Sorting for departmentHistory
-          ["managerHistories", "id", "ASC"], // Sorting for departmentHistory
+          ["costCenterHistories", "id", "ASC"], // Sorting for costCenterHistory
+          ["jobLevelHistories", "id", "ASC"], // Sorting for jobLevelHistory
+          ["employeeTypeHistories", "id", "ASC"], // Sorting for employeeTypeHistory
+          ["officeLocationHistories", "id", "ASC"], // Sorting for officeLocationHistory
+          ["managerHistories", "id", "ASC"], // Sorting for managerHistory
         ],
       });
 

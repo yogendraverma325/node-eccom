@@ -1174,8 +1174,8 @@ db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
 });
 
 db.employeeMaster.hasMany(db.managerHistory, {
-  foreignKey: "managerId",
-  sourceKey: "manager",
+  foreignKey: "employeeId",
+  sourceKey: "id",
   as: "managerHistories",
 });
 
@@ -1183,5 +1183,73 @@ db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
   foreignKey: "companyId",
   sourceKey: "companyId",
 });
+
+// START EMPLOYMENT HISTORY
+
+db.DesignationEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "designationHistoryCreatedBy",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "departmentHistoryCreatedBy",
+});
+
+db.CostCenterEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "costCenterHistoryCreatedBy",
+});
+
+db.JobLevelEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "jobLevelHistoryCreatedBy",
+});
+
+db.OfficeLocationEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "officeLocationHistoryCreatedBy",
+});
+
+db.EmployeeTypeEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "employeeTypeHistoryCreatedBy",
+});
+
+db.managerHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "managerHistoryCreatedBy",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.buMaster, {
+  foreignKey: "buId",
+  sourceKey: "buId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.sbuMaster, {
+  foreignKey: "sbuId",
+  sourceKey: "sbuId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHRId",
+  as: "departmentBUHR",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHeadId",
+  as: "departmentBUHead",
+});
+
+// END EMPLOYMENT HISTORY
 
 export default db;

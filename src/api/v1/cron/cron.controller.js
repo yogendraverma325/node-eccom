@@ -394,7 +394,9 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: element.dataValues.passwordExpiryDate,
+            passwordExpiryDate: moment(
+              element.dataValues.passwordExpiryDate
+            ).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment(element.dataValues.passwordExpiryDate).diff(
               moment(),
@@ -438,7 +440,9 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: element.dataValues.passwordExpiryDate,
+            passwordExpiryDate: moment(
+              element.dataValues.passwordExpiryDate
+            ).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment().diff(
               moment(element.dataValues.passwordExpiryDate),
@@ -626,7 +630,7 @@ class CronController {
     const confimationData = await db.jobDetails.findAll({
       where: {
         dateOfProbationEnd: {
-          [Op.lte]: db.sequelize.literal(
+          [Op.gte]: db.sequelize.literal(
             `DATE_SUB(CURDATE(), INTERVAL (SELECT generateOnBeforeDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
           ),
         },
@@ -777,7 +781,7 @@ class CronController {
             where: {
               confirmationFormGroupId:
                 respfrom?.levelData?.confirmationFormGroupId,
-              //level: respfrom.level,
+              level: respfrom.level,
             },
           });
           let bulkArray = [];
@@ -1533,7 +1537,7 @@ class CronController {
           },
           {
             where: {
-              id: element.employeeId,
+              userId: element.employeeId,
             },
           }
         );

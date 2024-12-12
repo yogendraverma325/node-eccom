@@ -232,9 +232,9 @@ export default (sequelize, Sequelize) => {
     passwordExpiryDate: {
       type: Sequelize.DATE,
     },
-    insuranceCardImg:{
-      type: Sequelize.STRING,
-    }
+    // insuranceCardImg:{
+    //   type: Sequelize.STRING,
+    // }
   });
   return employeeMaster;
 };

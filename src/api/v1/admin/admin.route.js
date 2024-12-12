@@ -178,6 +178,7 @@ export default Express.Router()
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.getOnboardEmployeeDetails
   )
+  // EMPLOYMENT START ROUTES
   .post(
     "/addDesignationEmployment",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
@@ -208,3 +209,4 @@ export default Express.Router()
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addEmployeeTypeEmployment
   )
+  // EMPLOYMENT END ROUTES
