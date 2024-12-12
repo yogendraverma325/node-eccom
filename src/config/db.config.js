@@ -1250,6 +1250,13 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   as: "departmentBUHead",
 });
 
+// Join for Attendance history with Employee details
+db.attendanceHistory.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'employeeId'
+})
+// Join for Attendance history with Employee details
+
 // END EMPLOYMENT HISTORY
 
 export default db;

@@ -37,6 +37,9 @@ export default (sequelize, Sequelize) => {
     },
     updatedAt: {
       type: Sequelize.DATE,
+    },
+    isApproved: {
+      type: Sequelize.BOOLEAN
     }
   });
   return attendanceHistory;
