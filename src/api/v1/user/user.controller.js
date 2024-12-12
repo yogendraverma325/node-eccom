@@ -3839,13 +3839,6 @@ class UserController {
           });
         }
       } else {
-        const base64Image = result.paymentAttachment;
-        const folderImagePath = isSameDetails.paymentAttachment;
-
-        let imageResult = await helper.compareImages(
-          base64Image.split(",")[1],
-          folderImagePath
-        );
         const d = Math.floor(Date.now() / 1000);
         if (result.paymentAttachment) {
           var paymentAttachment = await helper.fileUpload(
@@ -3853,10 +3846,6 @@ class UserController {
             `paymentDetails${d}`,
             `uploads/${existUser.empCode}`
           );
-          return respHelper(res, {
-            status: 200,
-            msg: constant.PAYMENT_REQUEST_FOR_APPROVAL,
-          });
         }
         const objForApproval = {
           userId: req.userId,
