@@ -1553,10 +1553,10 @@ class PaymentController {
             error: error.details[0].message,
             empId: tdsDeductions.EmployeeId,
           });
-          return respHelper(res, {
-            status: 400,
-            msg: error.details[0],
-          });
+          // return respHelper(res, {
+          //   status: 400,
+          //   msg: error.details[0],
+          // });
         } else {
           let existTDSDetails = await db.tdsDeductions.findOne({
             where: {
@@ -2781,6 +2781,45 @@ class PaymentController {
       console.log(e);
     }
   }
+
+  async buList(req, res) {
+    try {
+      const companyId = req.query.companyId;
+      let query = {
+        companyId: companyId,
+        ...(req.userData.role_id == 4 && { buHrId: req.userId }),
+      };
+      let subQuery = { isActive: 1 };
+      const buData = await db.buMapping.findAll({
+        where: query,
+        include: [
+          {
+            model: db.buMaster,
+            where: subQuery,
+            attributes: ["buId", "buName", "buCode"],
+          },
+        ],
+      });
+  
+      // Extract only the relevant fields
+      const responseData = buData.map((item) => ({
+        buId: item.bumaster.buId,
+        buName: item.bumaster.buName,
+        buCode: item.bumaster.buCode,
+      }));
+  
+      return respHelper(res, {
+        status: 200,
+        data: responseData,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        message: "An error occurred while fetching BU data.",
+      });
+    }
+  }
+  
 }
 
 const groupByEmployeeId = (data) => {
