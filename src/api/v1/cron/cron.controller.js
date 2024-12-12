@@ -394,7 +394,9 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: moment(element.dataValues.passwordExpiryDate).format("DD-MM-YYYY"),
+            passwordExpiryDate: moment(
+              element.dataValues.passwordExpiryDate
+            ).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment(element.dataValues.passwordExpiryDate).diff(
               moment(),
@@ -438,7 +440,9 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: moment(element.dataValues.passwordExpiryDate).format("DD-MM-YYYY"),
+            passwordExpiryDate: moment(
+              element.dataValues.passwordExpiryDate
+            ).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment().diff(
               moment(element.dataValues.passwordExpiryDate),
@@ -777,7 +781,7 @@ class CronController {
             where: {
               confirmationFormGroupId:
                 respfrom?.levelData?.confirmationFormGroupId,
-                level: respfrom.level,
+              level: respfrom.level,
             },
           });
           let bulkArray = [];
@@ -1533,7 +1537,7 @@ class CronController {
           },
           {
             where: {
-              id: element.employeeId,
+              userId: element.employeeId,
             },
           }
         );
