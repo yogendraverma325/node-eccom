@@ -1278,7 +1278,6 @@ const compareImages = async function (base64Image, folderImagePath) {
   try {
     // Decode the base64 image into a buffer
     if (base64Image == null || folderImagePath == null) {
-      console.log("Images are different");
       return false;
     } else {
       const base64Buffer = Buffer.from(base64Image, "base64");
