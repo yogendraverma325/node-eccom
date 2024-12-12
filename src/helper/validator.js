@@ -1302,7 +1302,7 @@ const extraPayment = Joi.object({
   EmployeeId: Joi.number().integer().positive().required(),
   paymentMonth: Joi.string().max(255).required(),
   category: Joi.string().max(255).required(),
-  paymentAmount: Joi.number().precision(2).positive().required(),
+  paymentAmount: Joi.number().precision(2).positive().required().label("Extra Payment Amount"),
   createdBy: Joi.number().integer().positive().optional().allow(null),
   createdAt: Joi.date().optional().allow(null),
   updatedBy: Joi.number().integer().positive().optional().allow(null),
