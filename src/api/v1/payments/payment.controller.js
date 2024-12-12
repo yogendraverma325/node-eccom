@@ -1625,6 +1625,16 @@ class PaymentController {
           attributes: ["empCode", "id"],
         });
 
+        if(!employeeDetais)
+        {
+          errorArray.push({
+            index:errorArray.length,
+            errorDetails: 'Employee not exist.',
+            employeeID: employeeExtraPayment["Email/Employee ID"],
+          });
+          continue
+        }
+
         let extraPayment = {
           EmployeeId: employeeDetais.id,
           paymentAmount: employeeExtraPayment["Amount"],
@@ -1636,12 +1646,9 @@ class PaymentController {
         const { error } = await validator.extraPayment.validate(extraPayment);
         if (error) {
           errorArray.push({
+            index:errorArray.length+1,
             error: error.details[0].message,
-            empId: extraPayment.EmployeeId,
-          });
-          return respHelper(res, {
-            status: 400,
-            msg: error.details[0],
+            employeeID: employeeExtraPayment["Email/Employee ID"],
           });
         } else {
           let existTDSDetails = await db.extraPayment.findOne({
@@ -1676,6 +1683,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
+        msg:"Extra Payment Uploaded"
       });
     } catch (error) {
       console.log(error);
@@ -1949,6 +1957,7 @@ class PaymentController {
       );
       let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
+      console.log(countsForProcessing);
       return respHelper(res, {
         status: 200,
         data: {
@@ -2376,6 +2385,7 @@ class PaymentController {
         employeeIds
       );
       const result = await db.sequelize.query(query);
+      console.log(query);
       console.log("result", result[0]);
       const processedData = groupByEmployeeId(result[0]);
       return respHelper(res, {
