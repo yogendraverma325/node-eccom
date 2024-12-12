@@ -35,3 +35,15 @@ export default Express
     .patch("/bank/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfBank)
     .put("/bank/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateBank)
 
+    // department master routes created by jay
+    .post("/department", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createDepartment)
+    .get("/department-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.departmentList)
+    .put("/department/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateDepartment)
+    .patch("/department/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfDepartment)
+
+    // functional area master routes created by jay
+    .post("/functionaArea", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createFunctionalArea)
+    .get("/functionaArea-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalAreaList)
+    .put("/functionaArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateFunctionalArea)
+    .patch("/functionaArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfFunctionalArea)
+

@@ -5,7 +5,7 @@ import xlsx from "json-as-xlsx";
 import fs from "fs";
 import client from "../../../config/redisDb.config.js";
 import pkg from "xlsx";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";

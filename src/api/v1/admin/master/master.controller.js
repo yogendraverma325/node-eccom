@@ -528,7 +528,7 @@ class CommonController {
       const result = await validator.bankMasterSchema.validateAsync(req.body);
       let model = db.bankMaster;
       let query = { bankId: req.params.id };
-      let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+      let response = await service.update(model, { ...result, ...{ updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"), updatedBy: req.userId } }, query);
       return respHelper(res, response);
     } catch (error) {
       logger.error(error);
@@ -563,6 +563,217 @@ class CommonController {
       });
     }
   }
+
+  /**
+     * CRUD of Department Master Created by Jay
+     * 
+    */
+
+  async createDepartment(req, res) {
+    try {
+      const result = await validator.departmentMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.user }
+      let model = db.departmentMaster;
+      let query = { 'departmentName': result.departmentName, 'departmentCode': result.departmentCode };
+      let moduleName = "Department";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async departmentList(req, res) {
+    try {
+      let model = db.departmentMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'departmentName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: ['departmentId', 'departmentName', 'departmentCode', 'createdAt', 'isActive'],
+        order: [["departmentId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateDepartment(req, res) {
+    try {
+      const result = await validator.departmentMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.user, updatedAt: moment() };
+      let model = db.departmentMaster;
+      let query = { departmentId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfDepartment(req, res) {
+    try {
+      let model = db.departmentMaster;
+      let query = { departmentId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of Functional Area Master Created by Jay
+   * 
+  */
+
+  async createFunctionalArea(req, res) {
+    try {
+      const result = await validator.jobLevelMasterSchema.validateAsync(req.body);
+      let model = db.jobLevelMaster;
+      let query = { 'jobLevelName': result.jobLevelName, 'jobLevelCode': result.jobLevelCode };
+      let moduleName = "Job Level";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async functionalAreaList(req, res) {
+    try {
+      let model = db.jobLevelMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'jobLevelName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode', 'createdAt', 'isActive'],
+        order: [["jobLevelId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateFunctionalArea(req, res) {
+    try {
+      const result = await validator.jobLevelMasterSchema.validateAsync(req.body);
+      let model = db.jobLevelMaster;
+      let query = { jobLevelId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfFunctionalArea(req, res) {
+    try {
+      let model = db.jobLevelMaster;
+      let query = { jobLevelId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  // End master apis creation by jay
+
 
   // close class
 }

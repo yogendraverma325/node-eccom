@@ -3,7 +3,7 @@ import db from "../../../config/db.config.js";
 import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
 import constant from "../../../constant/messages.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import moment from "moment";
 import axios from "axios";
 import FormData from "form-data";
