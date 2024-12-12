@@ -40,7 +40,16 @@ export default (sequelize, Sequelize) => {
     },
     isApproved: {
       type: Sequelize.BOOLEAN
-    }
+    },
+    locationType: {
+      type: Sequelize.STRING,
+    },
+    userRemark: {
+      type: Sequelize.STRING,
+    },
+    managerRemark: {
+      type: Sequelize.STRING,
+    },
   });
   return attendanceHistory;
 };
