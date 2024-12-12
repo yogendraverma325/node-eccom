@@ -2851,7 +2851,7 @@ const groupByEmployeeId = (data) => {
         "TDS Month": item["TDS Month"],
         "TDS Amount": item["TDS Amount"],
         "Net Pay": item["Net Pay"],
-        "Monthly Pay": payableAmount != "N/A"?payableAmount.toFixed(2):0.0,
+        "Monthly Pay": payableAmount != "N/A"?payableAmount.toFixed(2):"0.0",
         "Advance Name": item["Advance Name"],
         "Advance Amount": item["Advance Amount"],
         "PT Amount": item["PT AMOUNT"],
