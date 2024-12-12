@@ -528,7 +528,6 @@ class CommonController {
       const result = await validator.bankMasterSchema.validateAsync(req.body);
       let model = db.bankMaster;
       let query = { bankId: req.params.id };
-      console.log("")
       let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
       return respHelper(res, response);
     } catch (error) {
