@@ -301,7 +301,7 @@ class AdminController {
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
           }
           await db.managerHistory.update(metaData, { where: { 'id': iterator.id } });
           const recordsExistForDate = await db.managerHistory.findOne({
@@ -1411,6 +1411,19 @@ class AdminController {
       }
 
       if (result.id) {
+        const verifyData = await db.DesignationEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            id: result.id,
+          }
+        });
+
+        if(verifyData) {
+          if(verifyData.designation_id != result.designation_id) {
+            metaData["oldDesignationId"] = verifyData.designation_id;
+          }
+        }
+
         metaData = {
           ...metaData,
           updatedBy: req.userId,
@@ -1515,6 +1528,19 @@ class AdminController {
       };
 
       if (result.id) {
+        const verifyData = await db.DepartmentEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            id: result.id,
+          }
+        });
+
+        if(verifyData) {
+          if(verifyData.departmentId != result.departmentId) {
+            metaData["oldDepartmentId"] = verifyData.departmentId;
+          }
+        }
+
         metaData = {
           ...metaData,
           updatedBy: req.userId,
@@ -1619,6 +1645,19 @@ class AdminController {
       }
 
       if (result.id) {
+        const verifyData = await db.CostCenterEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            id: result.id,
+          }
+        });
+
+        if(verifyData) {
+          if(verifyData.costId != result.costId) {
+            metaData["oldCostId"] = verifyData.costId;
+          }
+        }
+
         metaData = {
           ...metaData,
           updatedBy: req.userId,
@@ -1718,6 +1757,19 @@ class AdminController {
       }
 
       if (result.id) {
+        const verifyData = await db.OfficeLocationEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            id: result.id,
+          }
+        });
+
+        if(verifyData) {
+          if(verifyData.companyLocationId != result.companyLocationId) {
+            metaData["oldCompanyLocationId"] = verifyData.companyLocationId;
+          }
+        }
+
         metaData = {
           ...metaData,
           updatedBy: req.userId,
@@ -1823,6 +1875,19 @@ class AdminController {
       };
 
       if (result.id) {
+        const verifyData = await db.JobLevelEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            id: result.id,
+          }
+        });
+
+        if(verifyData) {
+          if(verifyData.jobLevelId != result.jobLevelId) {
+            metaData["oldJobLevelId"] = verifyData.jobLevelId;
+          }
+        }
+
         metaData = {
           ...metaData,
           updatedBy: req.userId,
@@ -1927,6 +1992,19 @@ class AdminController {
       }
 
       if (result.id) {
+        const verifyData = await db.EmployeeTypeEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            id: result.id,
+          }
+        });
+
+        if(verifyData) {
+          if(verifyData.employeeType != result.employeeType) {
+            metaData["oldEmployeeType"] = verifyData.employeeType;
+          }
+        }
+
         metaData = {
           ...metaData,
           updatedBy: req.userId,

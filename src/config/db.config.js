@@ -1064,7 +1064,7 @@ db.DepartmentEmploymentHistory.hasOne(db.functionalAreaMaster, {
 
 db.CostCenterEmploymentHistory.hasOne(db.costCenterMaster, {
   foreignKey: "costCenterId",
-  sourceKey: "costId",
+  sourceKey: "costId"
 });
 
 db.JobLevelEmploymentHistory.hasOne(db.jobLevelMaster, {
@@ -1083,8 +1083,8 @@ db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
 });
 
 db.employeeMaster.hasMany(db.managerHistory, {
-  foreignKey: "managerId",
-  sourceKey: "manager",
+  foreignKey: "employeeId",
+  sourceKey: "id",
   as: 'managerHistories'
 });
 
@@ -1158,6 +1158,49 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   sourceKey: "buHeadId",
   as: 'departmentBUHead'
 });
+
+db.DesignationEmploymentHistory.hasOne(db.designationMaster, {
+  foreignKey: "designationId",
+  sourceKey: "oldDesignationId",
+  as: 'designationChangesFrom'
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.departmentMaster, {
+  foreignKey: "departmentId",
+  sourceKey: "oldDepartmentId",
+  as: 'departmentChangesFrom'
+});
+
+db.CostCenterEmploymentHistory.hasOne(db.costCenterMaster, {
+  foreignKey: "costCenterId",
+  sourceKey: "oldCostId",
+  as: 'costChangesFrom'
+});
+
+db.JobLevelEmploymentHistory.hasOne(db.jobLevelMaster, {
+  foreignKey: "jobLevelId",
+  sourceKey: "oldJobLevelId",
+  as: 'jobLevelChangesFrom'
+});
+
+db.OfficeLocationEmploymentHistory.hasOne(db.companyLocationMaster, {
+  foreignKey: "companyLocationId",
+  sourceKey: "oldCompanyLocationId",
+  as: 'officeLocationChangesFrom'
+});
+
+db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
+  foreignKey: "empTypeId",
+  sourceKey: "oldEmployeeType",
+  as: 'employeeTypeChangesFrom'
+});
+
+db.managerHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "oldManagerId",
+  as: 'managerChangesFrom'
+});
+
 
 // END EMPLOYMENT HISTORY
 

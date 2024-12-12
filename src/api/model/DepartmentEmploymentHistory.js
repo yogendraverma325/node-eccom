@@ -29,6 +29,9 @@ export default (sequelize, Sequelize) => {
       functionalAreaId: {
         type: Sequelize.INTEGER,
       },
+      oldDepartmentId: {
+        type: Sequelize.INTEGER
+      },
       fromDate: {
         type: Sequelize.DATE,
       },

@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
     managerId: {
       type: Sequelize.INTEGER,
     },
+    oldManagerId: {
+      type: Sequelize.INTEGER,
+    },
     fromDate: {
       type: Sequelize.DATE,
     },
