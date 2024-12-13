@@ -307,5 +307,10 @@ export default Express.Router()
     "/confirmatonFormdetailsFilled/:confirmationinitiatedAutoId/:level",
     authentication.authenticate,
     userController.confirmatonFormdetailsFilled
+  )
+  ///CONFIRMATION///
+  .get(
+    "/getEmploymentDetails",
+    authentication.authenticate,
+    userController.getEmploymentDetails
   );
-///CONFIRMATION///

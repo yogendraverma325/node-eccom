@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
-  const Confimationpolicy = sequelize.define("confimationpolicy", {
-    confimationPolicyAutoId: {
+  const Signingauthority = sequelize.define("signingauthority", {
+    signingauthorityId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -8,25 +8,19 @@ export default (sequelize, Sequelize) => {
     name: {
       type: Sequelize.STRING,
     },
-    generateOnBeforeDays: {
-      type: Sequelize.INTEGER,
-    },
-    regenerateOnBeforeExtentioEndDays: {
-      type: Sequelize.INTEGER,
-    },
-    confirmationExtention: {
-      type: Sequelize.INTEGER,
-    },
-    confirmationAssignmentAutoId: {
+    companyIds: {
       type: Sequelize.STRING,
     },
-    holdDays: {
+    authorityUser: {
       type: Sequelize.INTEGER,
     },
-    isActive: {
-      type: Sequelize.INTEGER,
-      defaultValue: 1,
+    signature: {
+      type: Sequelize.STRING,
     },
+    authorityFor: {
+      type: Sequelize.STRING,
+    },
+
     createdBy: {
       type: Sequelize.INTEGER,
     },
@@ -40,5 +34,5 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  return Confimationpolicy;
+  return Signingauthority;
 };

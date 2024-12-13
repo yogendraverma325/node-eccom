@@ -167,7 +167,7 @@ const updateBiographicalDetailsSchema = Joi.object({
   offRoleCTC: Joi.number().allow(null).label("Off Role CTC"),
   highestQualification: Joi.number().allow(null).label("Highest Qualification"),
   ESICPFDeduction: Joi.string().allow(null).label("ESIC/PF Deduction"),
-  fatherName: Joi.string().trim().allow(null).label("Father Name")
+  fatherName: Joi.string().trim().allow(null).label("Father Name"),
 });
 
 const addFamilyDetailsSchema = Joi.object({
@@ -440,7 +440,7 @@ const addJobDetailsSchema = Joi.object({
   customerName: Joi.string().allow(null).label("Customer Name").optional(),
   projectCode: Joi.string().trim().allow(null).label("Project Code"),
   customerCode: Joi.string().trim().allow(null).label("Customer Code"),
-  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due")
+  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due"),
 });
 
 const updateManagerSchema = Joi.array()
@@ -450,6 +450,7 @@ const updateManagerSchema = Joi.array()
       user: Joi.number().required().label("User"),
       manager: Joi.number().required().label("Manager"),
       date: Joi.string().label("Date").required(),
+      id: Joi.number().allow(null),
     })
   )
   .messages({
@@ -1384,6 +1385,74 @@ const payMonthYearCheck = Joi.object({
   companyId: Joi.number().required(),
 });
 /////////////Payroll///////////////
+const addDesignationEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  designation_id: Joi.number().required().label("Designation"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  isPromotion: Joi.boolean().required().label("Promotion").optional(),
+  id: Joi.number().allow(null),
+});
+
+const addDepartmentEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  buId: Joi.number().required().label("Business Unit"),
+  sbuId: Joi.number().required().label("Sub Business Unit"),
+  buHRId: Joi.number().required().label("Business Unit HR"),
+  buHeadId: Joi.number().required().label("Business Unit Head"),
+  departmentId: Joi.number().required().label("Department"),
+  functionalAreaId: Joi.number().required().label("Functional Area"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  id: Joi.number().allow(null),
+});
+
+const addCostCenterEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  costId: Joi.number().required().label("Cost Center"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  id: Joi.number().allow(null),
+});
+
+const addCompanyLocationEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  companyLocationId: Joi.number().required().label("Company Location"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  id: Joi.number().allow(null),
+});
+
+const addJobLevelEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  jobLevelId: Joi.number().required().label("Job Level"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  isPromotion: Joi.boolean().required().label("Promotion").optional(),
+  id: Joi.number().allow(null),
+});
+
+const addEmployeeTypeEmploymentSchema = Joi.object({
+  userId: Joi.number().required().label("User ID"),
+  companyId: Joi.number().required().label("Company"),
+  employeeType: Joi.number().required().label("Employee Type"),
+  fromDate: Joi.string().trim().required().label("From Date"),
+  id: Joi.number().allow(null),
+});
+
+// Attendance Approval Validations
+const attendanceApprovalSchema = Joi.object({
+  attendanceAutoId: Joi.array().items(Joi.number().required()).label("Attendance").messages({
+    "array.includesRequiredUnknowns":
+      "Please select atleast one attendance record",
+  }),
+  status: Joi.boolean().valid(0, 1).label("Status").messages({
+    "any.only":
+      "Status must be boolean",
+  }),
+  remark: Joi.string().max(50).optional().allow("").label("Remark")
+})
+// Attendance Approval Validations
 
 export default {
   loginSchema,
@@ -1446,6 +1515,13 @@ export default {
   employeesForPayrollProcess,
   extraDeductionSchema,
   payMonthYearCheck,
-  extraPayment
+  extraPayment,
 ///////////Payroll//////////////
+  addDesignationEmploymentSchema,
+  addDepartmentEmploymentSchema,
+  addCostCenterEmploymentSchema,
+  addCompanyLocationEmploymentSchema,
+  addJobLevelEmploymentSchema,
+  addEmployeeTypeEmploymentSchema,
+  attendanceApprovalSchema
 };

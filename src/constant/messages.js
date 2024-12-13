@@ -1,7 +1,7 @@
 const message = {
   SOMETHING_WENT_WRONG: "Something Went Wrong",
   INTERNAL_SERVER_ERROR: "Internal Server Error",
-  TOO_MANY_REQUESTS: "Too Many Requests",
+  TOO_MANY_REQUESTS: "Requests Limit Exceed",
   BAD_REQUEST: "Bad request",
   UNAUTHORIZED_ACCESS: "Unauthorized Access",
   NOT_FOUND: "Not Found",
@@ -85,6 +85,8 @@ const message = {
   CONFIRMATION: {
     FORM_SUBMISSION: "Form  Submitted",
     CANT_TAKE_ACTION: "You can't not take action on this currently",
+    EXTEND_PERMISSOIN_BREACH:
+      "This profile has reached to maximum number of extention",
   },
 };
 

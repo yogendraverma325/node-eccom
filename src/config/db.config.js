@@ -102,6 +102,12 @@ import EmployeeLeaveHeader from "../api/model/EmployeeLeaveHeader.js";
 import JobLevelMapping from "../api/model/JobLevelMapping.js";
 import offRoleCtc from "../api/model/offRoleCtc.js";
 import EmployeePaymentDetailsHistory from "../api/model/EmployeePaymentDetailsHistory.js";
+import DesignationEmploymentHistory from "../api/model/DesignationEmploymentHistory.js";
+import DepartmentEmploymentHistory from "../api/model/DepartmentEmploymentHistory.js";
+import CostCenterEmploymentHistory from "../api/model/CostCenterEmploymentHistory.js";
+import JobLevelEmploymentHistory from "../api/model/JobLevelEmploymentHistory.js";
+import OfficeLocationEmploymentHistory from "../api/model/OfficeLocationEmploymentHistory.js";
+import EmployeeTypeEmploymentHistory from "../api/model/EmployeeTypeEmploymentHistory.js";
 
 //CONFIRMATION
 import Confirmationinitiated from "../api/model/ConfirmationInitiated.js";
@@ -113,6 +119,7 @@ import Confirmationaudittrail from "../api/model/ConfirmationAudit.js";
 import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
+import Signingauthority from "../api/model/signingAuthority.js";
 //CONFIRMATION
 ///Payrol//////
 import SalaryComponentMapping from "../api/model/SalaryComponentElementMapping.js";
@@ -317,6 +324,7 @@ db.Confirmationpolicyworkflow = Confirmationpolicyworkflow(
   sequelize,
   Sequelize
 );
+db.Signingauthority = Signingauthority(sequelize, Sequelize);
 //CONFIRMATION
 
 //Payroll///////////
@@ -338,6 +346,27 @@ db.lwfMapping = LwfMapping(sequelize,Sequelize)
 db.extraPayment = ExtraPayment(sequelize,Sequelize)
 //////////////////Payroll///////////////////
 
+db.DesignationEmploymentHistory = DesignationEmploymentHistory(
+  sequelize,
+  Sequelize
+);
+db.DepartmentEmploymentHistory = DepartmentEmploymentHistory(
+  sequelize,
+  Sequelize
+);
+db.CostCenterEmploymentHistory = CostCenterEmploymentHistory(
+  sequelize,
+  Sequelize
+);
+db.JobLevelEmploymentHistory = JobLevelEmploymentHistory(sequelize, Sequelize);
+db.OfficeLocationEmploymentHistory = OfficeLocationEmploymentHistory(
+  sequelize,
+  Sequelize
+);
+db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
+  sequelize,
+  Sequelize
+);
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1100,7 +1129,172 @@ db.employeeMaster.hasOne(db.Confimationpolicy, {
   foreignKey: "confimationPolicyAutoId",
   sourceKey: "confimationPolicyAutoId",
 });
+db.Signingauthority.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "authorityUser",
+});
+
+db.Confimationpolicy.hasMany(db.Confirmationpolicyworkflow, {
+  foreignKey: "confimationPolicyAutoId",
+  sourceKey: "confimationPolicyAutoId",
+});
 //CONFIRAMTION
+db.employeeMaster.hasMany(db.DesignationEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "designationHistories",
+});
+
+db.employeeMaster.hasMany(db.DepartmentEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "departmentHistories",
+});
+
+db.employeeMaster.hasMany(db.CostCenterEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "costCenterHistories",
+});
+
+db.employeeMaster.hasMany(db.JobLevelEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "jobLevelHistories",
+});
+
+db.employeeMaster.hasMany(db.OfficeLocationEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "officeLocationHistories",
+});
+
+db.employeeMaster.hasMany(db.EmployeeTypeEmploymentHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "employeeTypeHistories",
+});
+
+db.DesignationEmploymentHistory.hasOne(db.designationMaster, {
+  foreignKey: "designationId",
+  sourceKey: "designation_id",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.departmentMaster, {
+  foreignKey: "departmentId",
+  sourceKey: "departmentId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.functionalAreaMaster, {
+  foreignKey: "functionalAreaId",
+  sourceKey: "functionalAreaId",
+});
+
+db.CostCenterEmploymentHistory.hasOne(db.costCenterMaster, {
+  foreignKey: "costCenterId",
+  sourceKey: "costId",
+});
+
+db.JobLevelEmploymentHistory.hasOne(db.jobLevelMaster, {
+  foreignKey: "jobLevelId",
+  sourceKey: "jobLevelId",
+});
+
+db.OfficeLocationEmploymentHistory.hasOne(db.companyLocationMaster, {
+  foreignKey: "companyLocationId",
+  sourceKey: "companyLocationId",
+});
+
+db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
+  foreignKey: "empTypeId",
+  sourceKey: "employeeType",
+});
+
+db.employeeMaster.hasMany(db.managerHistory, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+  as: "managerHistories",
+});
+
+db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
+});
+
+// START EMPLOYMENT HISTORY
+
+db.DesignationEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "designationHistoryCreatedBy",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "departmentHistoryCreatedBy",
+});
+
+db.CostCenterEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "costCenterHistoryCreatedBy",
+});
+
+db.JobLevelEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "jobLevelHistoryCreatedBy",
+});
+
+db.OfficeLocationEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "officeLocationHistoryCreatedBy",
+});
+
+db.EmployeeTypeEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "employeeTypeHistoryCreatedBy",
+});
+
+db.managerHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "createdBy",
+  as: "managerHistoryCreatedBy",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.buMaster, {
+  foreignKey: "buId",
+  sourceKey: "buId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.sbuMaster, {
+  foreignKey: "sbuId",
+  sourceKey: "sbuId",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHRId",
+  as: "departmentBUHR",
+});
+
+db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHeadId",
+  as: "departmentBUHead",
+});
+
+// Join for Attendance history with Employee details
+db.attendanceHistory.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'employeeId'
+})
+// Join for Attendance history with Employee details
+
+// END EMPLOYMENT HISTORY
 
 ////Payroll/////////
 db.salaryStructure.hasMany(db.salarystructurecomponentmapping, {

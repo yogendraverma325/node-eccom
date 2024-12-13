@@ -239,10 +239,16 @@ export default (sequelize, Sequelize) => {
     passwordExpiryDate: {
       type: Sequelize.DATE,
     },
+<<<<<<< HEAD
     payrollInclude:{
       type: Sequelize.INTEGER,
       defaultValue:0
     }
+=======
+    // insuranceCardImg:{
+    //   type: Sequelize.STRING,
+    // }
+>>>>>>> main_dev
   });
   return employeeMaster;
 };

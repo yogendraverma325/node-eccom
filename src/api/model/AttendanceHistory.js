@@ -37,7 +37,19 @@ export default (sequelize, Sequelize) => {
     },
     updatedAt: {
       type: Sequelize.DATE,
-    }
+    },
+    isApproved: {
+      type: Sequelize.BOOLEAN
+    },
+    locationType: {
+      type: Sequelize.STRING,
+    },
+    userRemark: {
+      type: Sequelize.STRING,
+    },
+    managerRemark: {
+      type: Sequelize.STRING,
+    },
   });
   return attendanceHistory;
 };

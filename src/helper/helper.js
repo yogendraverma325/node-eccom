@@ -9,7 +9,7 @@ import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
-import { createCanvas, loadImage } from "canvas";
+// import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
   let pattern = /desktop/i;
@@ -128,21 +128,11 @@ const mailService = async (data) => {
     body.personalizations[0] = new pepipost.Personalizations();
 
     console.log("Mail is Sending On --->>", data.to);
-    if (
-      data.attachments &&
-      data.attachments.length >= 1 &&
-      data.attachments != undefined
-    ) {
-      let attach = Buffer.from(data.attachments, "binary").toString("base64");
-      body.personalizations[0].attachments = [];
-      let attachment = data.attachments.map((attc) => {
-        return {
-          content: Buffer.from(attc.content, "binary").toString("base64"),
-          name: attc.filename,
-        };
-      });
-      body.personalizations[0].attachments[0] = new pepipost.Attachments();
-      body.personalizations[0].attachments = attachment;
+    if (data.attachments && data.attachments.length >= 1) {
+      body.personalizations[0].attachments = data.attachments.map((attc) => ({
+        content: Buffer.from(attc.content, "binary").toString("base64"),
+        name: attc.filename,
+      }));
     }
     body.personalizations[0].To = [];
     body.personalizations[0].To = new pepipost.EmailStruct();
@@ -152,7 +142,9 @@ const mailService = async (data) => {
 
     body.personalizations[0].cc = [];
     body.personalizations[0].cc = new pepipost.EmailStruct();
-    body.personalizations[0].cc = mergeEmail(data.cc ? data.cc.split(",") : []);
+    body.personalizations[0].cc = mergeEmail(
+      data.cc ? (testMail ? testMailIDs : data.cc.split(",")) : []
+    );
 
     body.personalizations[0].bcc = [];
     body.personalizations[0].bcc = new pepipost.EmailStruct();
@@ -351,6 +343,14 @@ const getEmpProfile = async (EMP_ID) => {
         attributes: ["salutationId", "salutation"],
       },
       {
+        model: db.jobDetails,
+        attributes: [
+          "dateOfProbationEnd",
+          "confirmationDate",
+          "confirmationGenerated",
+        ],
+      },
+      {
         model: db.functionalAreaMaster,
         required: true,
         attributes: [
@@ -393,7 +393,7 @@ const getEmpProfile = async (EMP_ID) => {
       {
         model: db.employeeMaster,
         required: false,
-        attributes: ["id", "name", "profileImage"],
+        attributes: ["id", "name", "profileImage", "email"],
         as: "managerData",
         include: [
           {
@@ -489,12 +489,12 @@ const getEmpProfile = async (EMP_ID) => {
       include: [
         {
           model: db.employeeMaster,
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "email"],
           as: "buHeadData",
         },
         {
           model: db.employeeMaster,
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "email"],
           as: "buhrData",
         },
       ],
@@ -1267,6 +1267,61 @@ const generateOTP = async function (length) {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+const generateSHA512Hash = async function (input) {
+  const hash = crypto.createHash("sha512");
+  hash.update(input);
+  return hash.digest("hex"); // Output the hash in hexadecimal format
+};
+
+const compareImages = async function (base64Image, folderImagePath) {
+  try {
+    // Decode the base64 image into a buffer
+    if (base64Image == null || folderImagePath == null) {
+      return false;
+    } else {
+      const base64Buffer = Buffer.from(base64Image, "base64");
+
+      // Load the base64 image and the folder image into canvases
+      const img1 = await loadImage(base64Buffer);
+      const img2 = await loadImage(folderImagePath);
+
+      const canvas1 = createCanvas(img1.width, img1.height);
+      const canvas2 = createCanvas(img2.width, img2.height);
+
+      const ctx1 = canvas1.getContext("2d");
+      const ctx2 = canvas2.getContext("2d");
+
+      ctx1.drawImage(img1, 0, 0);
+      ctx2.drawImage(img2, 0, 0);
+
+      // Get image data for comparison
+      const data1 = ctx1.getImageData(0, 0, img1.width, img1.height).data;
+      const data2 = ctx2.getImageData(0, 0, img2.width, img2.height).data;
+
+      // Compare pixel by pixel
+      let isIdentical = true;
+      for (let i = 0; i < data1.length; i++) {
+        if (data1[i] !== data2[i]) {
+          isIdentical = false;
+          break;
+        }
+      }
+
+      if (isIdentical) {
+        console.log("Images are identical");
+        return true;
+      } else {
+        console.log("Images are different");
+        return false;
+      }
+    }
+  } catch (error) {
+    console.error("Error comparing images:", error);
+    return false;
+  }
+};
+///CONFIRMATION
 const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
   console.log("inputLevel", inputLevel);
   let levelData = null;
@@ -1315,60 +1370,38 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
   return { levelData: levelData, level: level, levelFound: levelFound };
 };
 
-const generateSHA512Hash = async function (input) {
-  const hash = crypto.createHash("sha512");
-  hash.update(input);
-  return hash.digest("hex"); // Output the hash in hexadecimal format
+const getSigningAuthorityDate = async (SIGN_FOR, dataForWhereCondition) => {
+  const SigningauthorityData = await db.Signingauthority.findOne({
+    where: {
+      authorityFor: SIGN_FOR,
+      companyIds: {
+        [Op.or]: [
+          { [Op.like]: `${dataForWhereCondition.companyId},%` },
+          { [Op.like]: `%,${dataForWhereCondition.companyId},%` },
+          { [Op.like]: `%,${dataForWhereCondition.companyId}` },
+          { [Op.eq]: `${dataForWhereCondition.companyId}` },
+        ],
+      },
+    },
+    include: [
+      {
+        model: db.employeeMaster,
+        attributes: ["id", "name"],
+        where: {
+          isActive: 1,
+        },
+        include: {
+          model: db.designationMaster,
+          required: false,
+          attributes: ["designationId", "name"],
+        },
+      },
+    ],
+  });
+
+  return SigningauthorityData;
 };
-
-const compareImages = async function (base64Image, folderImagePath) {
-  try {
-    // Decode the base64 image into a buffer
-    if (base64Image == null || folderImagePath == null) {
-      console.log("Images are different");
-      return false;
-    } else {
-      const base64Buffer = Buffer.from(base64Image, "base64");
-
-      // Load the base64 image and the folder image into canvases
-      const img1 = await loadImage(base64Buffer);
-      const img2 = await loadImage(folderImagePath);
-
-      const canvas1 = createCanvas(img1.width, img1.height);
-      const canvas2 = createCanvas(img2.width, img2.height);
-
-      const ctx1 = canvas1.getContext("2d");
-      const ctx2 = canvas2.getContext("2d");
-
-      ctx1.drawImage(img1, 0, 0);
-      ctx2.drawImage(img2, 0, 0);
-
-      // Get image data for comparison
-      const data1 = ctx1.getImageData(0, 0, img1.width, img1.height).data;
-      const data2 = ctx2.getImageData(0, 0, img2.width, img2.height).data;
-
-      // Compare pixel by pixel
-      let isIdentical = true;
-      for (let i = 0; i < data1.length; i++) {
-        if (data1[i] !== data2[i]) {
-          isIdentical = false;
-          break;
-        }
-      }
-
-      if (isIdentical) {
-        console.log("Images are identical");
-        return true;
-      } else {
-        console.log("Images are different");
-        return false;
-      }
-    }
-  } catch (error) {
-    console.error("Error comparing images:", error);
-    return false;
-  }
-};
+///CONFIRMATION
 
 export default {
   generateJwtToken,
@@ -1396,5 +1429,8 @@ export default {
   isDayWorkingForReport,
   generateSHA512Hash,
   compareImages,
+  //CONFIRMAITON
   generateFieldsForgivenLevel,
+  getSigningAuthorityDate,
+  //CONFIRMAITON
 };

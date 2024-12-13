@@ -78,6 +78,22 @@ ADD COLUMN `ptCategoryId` INT NULL DEFAULT NULL AFTER `isActive`,
 ADD COLUMN `ptCategoryName` VARCHAR(255) NULL DEFAULT NULL AFTER `ptCategoryId`,
 ADD COLUMN `frequencyType` INT NULL DEFAULT NULL AFTER `ptCategoryName`;
 
+// --------------------------------------- 2024-12-12 -----------------------------------------------//
+ALTER TABLE `tara_hrms_live`.`attendancehistory` 
+ADD COLUMN `locationType` VARCHAR(45) NULL DEFAULT NULL AFTER `isApproved`,
+ADD COLUMN `userRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `locationType`,
+ADD COLUMN `managerRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `userRemark`;
+
+
+//-----------------------------------------2024-12-09------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
+ADD COLUMN `dateOfProbationEnd` DATE NULL DEFAULT NULL AFTER `projectCode`;
+
+//------------------------------------------2024-12-04-----------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `requrestTriggred` DATETIME NULL DEFAULT NULL AFTER `comment`;
 
 //------------------------------------------2024-11-28------------------------------------------------//
 
@@ -1030,6 +1046,40 @@ CREATE TABLE `tara`.`joblevelmapping` (
   `isActive` TINYINT NULL DEFAULT NULL,
   PRIMARY KEY (`jobLevelMappingId`),
   UNIQUE INDEX `jobLevelMappingId_UNIQUE` (`jobLevelMappingId` ASC) VISIBLE);
+
+
+jay prakash singh (28-11-2024)
+
+ALTER TABLE tara_hrms_live.employeejobdetails 
+ADD COLUMN projectCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN customerCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
+
+ALTER TABLE tara_hrms_live.employeejobdetailshistory 
+ADD COLUMN projectCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN customerCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
+
+
+  CREATE TABLE `tara_hrms_live`.`departmentemploymenthistory` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `employeeId` INT NULL,
+  `companyId` INT NULL,
+  `buId` INT NULL,
+  `sbuId` INT NULL,
+  `buHeadId` INT NULL,
+  `buHRId` INT NULL,
+  `designation_id` INT NULL,
+  `functionalAreaId` INT NULL,
+  `fromDate` DATE NULL,
+  `toDate` DATE NULL DEFAULT NULL,
+  `isPromotion` TINYINT(1) NULL DEFAULT NULL,
+  `createdAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL,
+  `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updatedBy` INT NULL DEFAULT NULL,
+  PRIMARY KEY (`id`));
+
 
 
 
