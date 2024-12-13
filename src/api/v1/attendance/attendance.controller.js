@@ -6,9 +6,7 @@ import validator from "../../../helper/validator.js";
 import helper from "../../../helper/helper.js";
 import eventEmitter from "../../../services/eventService.js";
 import { Op } from "sequelize";
-import fs from "fs";
-import { cwd } from "process";
-import client from "../../../config/redisDb.config.js";
+
 var _this = null;
 class AttendanceController {
   constructor() {
@@ -129,14 +127,12 @@ class AttendanceController {
 
         if (!checkAttendance) {
           const givenShiftTime = moment(
-            `${currentDate.format("YYYY-MM-DD")} ${
-              existEmployee.shiftsmaster.shiftStartTime
+            `${currentDate.format("YYYY-MM-DD")} ${existEmployee.shiftsmaster.shiftStartTime
             }`,
             "YYYY-MM-DD HH:mm:ss"
           );
           const acutalShiftTime = moment(
-            `${currentDate.format("YYYY-MM-DD")} ${
-              existEmployee.shiftsmaster.shiftStartTime
+            `${currentDate.format("YYYY-MM-DD")} ${existEmployee.shiftsmaster.shiftStartTime
             }`,
             "YYYY-MM-DD HH:mm:ss"
           );
@@ -3367,6 +3363,78 @@ class AttendanceController {
     //   data: existEmployees,
     // });
   }
+
+  // Attendance Approval Functionality
+  async pendingAttendanceList(req, res) {
+    try {
+
+      const limit = req.query.limit * 1 || 10;
+      const pageNo = req.query.page * 1 || 1;
+      const offset = (pageNo - 1) * limit;
+
+      const attendanceList = await db.attendanceHistory.findAndCountAll({
+        where: {
+          isApproved: false
+        },
+        order: [['date', 'DESC']],
+        include: [{
+          model: db.employeeMaster,
+          required: true,
+          where: Object.assign((!['ADMIN', 'HR_OPS'].includes(req.userRole)) ? {
+            manager: req.userId
+          } : {}, {
+            isActive: 1
+          }),
+          attributes: ['id', 'empCode', 'name', 'profileImage']
+        }],
+        limit,
+        offset
+      })
+
+      return respHelper(res, {
+        status: 200,
+        data: attendanceList
+      })
+
+    } catch (error) {
+      console.log(error)
+      return respHelper(res, {
+        status: 500
+      })
+    }
+  }
+
+  async attendanceApproval(req, res) {
+    try {
+
+      const result = await validator.attendanceApprovalSchema.validateAsync(req.body)
+      const attendanceData = await db.attendanceHistory.findAll({
+        where: {
+          attendanceHistoryId: {
+            [Op.in]: result.attendanceAutoId
+          }
+        }
+      })
+
+      return respHelper(res, {
+        status: 200,
+        data: attendanceData
+      })
+
+    } catch (error) {
+      console.log(error)
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500
+      })
+    }
+  }
+  // Attendance Approval Functionality
 }
 
 export default new AttendanceController();

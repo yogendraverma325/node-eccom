@@ -1254,6 +1254,12 @@ db.EmployeeLeaveHeader.hasOne(db.employeeLeaveTransactions,{
    foreignKey:"employeeleaveheaderID",
    sourceKey:"employeeleaveheaderID"
 })
+// Join for Attendance history with Employee details
+db.attendanceHistory.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'employeeId'
+})
+// Join for Attendance history with Employee details
 
 // END EMPLOYMENT HISTORY
 
