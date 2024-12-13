@@ -994,7 +994,7 @@ class PaymentController {
       }
       let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
         ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${value.paymonth}';`;
       const result = await db.sequelize.query(allEmployeeQuery);
 
       let newProcess = await db.payProcessMaster.create(
@@ -2270,7 +2270,7 @@ class PaymentController {
       });
       let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
         ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${value.paymonth}';`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalLopAmount = 0,
         totalLOPDays = 0;
@@ -2331,7 +2331,7 @@ class PaymentController {
       }
       let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
         ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${value.paymonth}';`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalTdsAmount = 0,
         totalLOPDays = 0;
@@ -2377,7 +2377,7 @@ class PaymentController {
       }
       let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
         ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${value.paymonth}';`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totaPaymentAmount = 0,
         totalLOPDays = 0;
@@ -2422,7 +2422,7 @@ class PaymentController {
       }
       let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
         ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL;`;
+      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${value.paymonth}';`;
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalExtraDeductionsAmount = 0;
       let employeeIds =
