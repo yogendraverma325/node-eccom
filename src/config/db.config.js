@@ -1250,6 +1250,11 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   as: "departmentBUHead",
 });
 
+db.EmployeeLeaveHeader.hasOne(db.employeeLeaveTransactions,{
+   foreignKey:"employeeleaveheaderID",
+   sourceKey:"employeeleaveheaderID"
+})
+
 // END EMPLOYMENT HISTORY
 
 export default db;

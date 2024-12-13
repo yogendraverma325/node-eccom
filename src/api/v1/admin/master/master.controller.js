@@ -448,7 +448,7 @@ class CommonController {
       const result = await validator.bankMasterSchema.validateAsync(req.body);
       let model = db.bankMaster;
       let query = { bankIfsc: result.bankIfsc };
-      let moduleName = "Bank";
+      let moduleName = "Bank Ifsc";
       let response = await service.create(
         model,
         {
@@ -483,10 +483,19 @@ class CommonController {
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
+      // let query = {
+      //   // isActive: 1,
+      //   ...(search && { bankName: { [Op.like]: `%${search}%` } }),
+      // };
       let query = {
         // isActive: 1,
-        ...(search && { bankName: { [Op.like]: `%${search}%` } }),
-      };
+        ...(search && {
+            [Op.or]: [
+                { bankName: { [Op.like]: `%${search}%` } },
+                { bankIfsc: { [Op.like]: `%${search}%` } }
+            ]
+        }),
+    };
 
       let aggregate = {
         where: query,

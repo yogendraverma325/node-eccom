@@ -2691,6 +2691,10 @@ class UserController {
           },
           include: [
             {
+              model: db.employeeLeaveTransactions,
+              attributes:["employeeleavetransactionsId","appliedOn","appliedFor"]
+            },
+            {
               model: db.employeeMaster,
               attributes: ["id", "name", "empCode"],
               where: { ...(search && { name: { [Op.like]: `%${search}%` } }) },
