@@ -1058,7 +1058,7 @@ class PaymentController {
       });
     }
     const employeeIds = result[0].map((item) => item.EmployeeId);
-    const totalWorkingDays = paymentHelper.getDaysInCurrentMonth({
+    const totalWorkingDays = await paymentHelper.getDaysInCurrentMonth({
       year: result[0][0].payMonth.split("-")[0],
       month: result[0][0].payMonth.split("-")[1],
     });
@@ -1136,15 +1136,37 @@ class PaymentController {
         ],
       });
 
-      const lwfDeducationDetails = await db.employeeMaster.findOne({
-        attributes: ["id", "empCode"],
-        where: { id: employee },
+      // const lwfDeducationDetails = await db.employeeMaster.findOne({
+      //   attributes: ["id", "empCode"],
+      //   where: { id: employee },
+      //   raw: true,
+      //   nest: true,
+      //   include: [
+      //     {
+      //       model: db.lwfDesignationMaster,
+      //       attributes: ["lwfDesignationId"],
+      //       include: [
+      //         {
+      //           model: db.lwfMapping,
+      //           attributes: ["lwfmappingId", lwfDynamicAttribute],
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // });
+      
+      const lwfDeducationDetails = await db.jobDetails.findOne({
+        attributes: ["jobId","lwfApplicable"],
+        where: { 
+          userId: employee
+        },
         raw: true,
         nest: true,
         include: [
           {
             model: db.lwfDesignationMaster,
             attributes: ["lwfDesignationId"],
+            as: "lwfDesignationName",
             include: [
               {
                 model: db.lwfMapping,
@@ -1166,24 +1188,51 @@ class PaymentController {
         ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
         : 0;
       const lwfAmount1 = lwfDeducationDetails
-        ? lwfDeducationDetails?.lwfdesignationmaster?.lwfmapping?.lwfAmount
+        ? lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
         : 0;
       const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
         : 0;
-      if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
-        await db.payProcessDetails.update(
-          { payStatus: 2, payRemark: "Pay Package Not Assigned." },
-          {
-            where: {
-              EmployeeId: employee,
-              proceessId: processId,
-            },
-          }
-        );
+  
+        if(lwfDeducationDetails.lwfApplicable == 1 && !lwfDeducationDetails.lwfDesignationName.lwfmapping.lwfAmount ){
+          await db.payProcessDetails.update(
+            { payStatus: 3, payRemark: "Error with lwf calculating" },
+            {
+              where: {
+                EmployeeId: employee,
+                proceessId: processId,
+              },
+            }
+          );
+  
+          continue;
+        }
+        if(!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+          await db.payProcessDetails.update(
+            { payStatus: 3, payRemark: "Pay Package Not Assigned." },
+            {
+              where: {
+                EmployeeId: employee,
+                proceessId: processId,
+              },
+            }
+          );
+  
+          continue;
+        }
+      // if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+      //   await db.payProcessDetails.update(
+      //     { payStatus: 2, payRemark: "Pay Package Not Assigned." },
+      //     {
+      //       where: {
+      //         EmployeeId: employee,
+      //         proceessId: processId,
+      //       },
+      //     }
+      //   );
 
-        continue;
-      }
+      //   continue;
+      // }
       const queryForAffetElementCounts = await paymentHelper.query(
         13,
         employee,
@@ -2168,7 +2217,7 @@ class PaymentController {
         });
       }
 
-      let workingDaysOfMonth = paymentHelper.getDaysInCurrentMonth({
+      let workingDaysOfMonth = await paymentHelper.getDaysInCurrentMonth({
         year: value.paymonth.split("-")[0],
         month: value.paymonth.split("-")[1],
       });
@@ -2898,7 +2947,7 @@ async function processSalary(data) {
 
   if (result[0].length > 0) {
     const employeeIds = result[0].map((item) => item.EmployeeId);
-    const totalWorkingDays = paymentHelper.getDaysInCurrentMonth({
+    const totalWorkingDays = await paymentHelper.getDaysInCurrentMonth({
       year: result[0][0].payMonth.split("-")[0],
       month: result[0][0].payMonth.split("-")[1],
     });
@@ -2977,15 +3026,18 @@ async function processSalary(data) {
         ],
       });
 
-      const lwfDeducationDetails = await db.employeeMaster.findOne({
-        attributes: ["id", "empCode"],
-        where: { id: employee },
+      const lwfDeducationDetails = await db.jobDetails.findOne({
+        attributes: ["jobId","lwfApplicable"],
+        where: { 
+          userId: employee
+        },
         raw: true,
         nest: true,
         include: [
           {
             model: db.lwfDesignationMaster,
             attributes: ["lwfDesignationId"],
+            as: "lwfDesignationName",
             include: [
               {
                 model: db.lwfMapping,
@@ -2995,6 +3047,24 @@ async function processSalary(data) {
           },
         ],
       });
+      // const lwfDeducationDetails = await db.employeeMaster.findOne({
+      //   attributes: ["id", "empCode"],
+      //   where: { id: employee },
+      //   raw: true,
+      //   nest: true,
+      //   include: [
+      //     {
+      //       model: db.lwfDesignationMaster,
+      //       attributes: ["lwfDesignationId"],
+      //       include: [
+      //         {
+      //           model: db.lwfMapping,
+      //           attributes: ["lwfmappingId", lwfDynamicAttribute],
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // });
       console.log("result[0][0].payMonth", result[0][0].payMonth);
       const extraPaymentAmount = await db.extraPayment.findOne({
         where: {
@@ -3007,14 +3077,30 @@ async function processSalary(data) {
       const ptAmount1 = ptDeducationDetails
         ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
         : 0;
+      // const lwfAmount1 = lwfDeducationDetails
+      //   ? lwfDeducationDetails?.lwfdesignationmaster?.lwfmapping?.lwfAmount
+      //   : 0;
       const lwfAmount1 = lwfDeducationDetails
-        ? lwfDeducationDetails?.lwfdesignationmaster?.lwfmapping?.lwfAmount
-        : 0;
+      ? lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
+      : 0;
 
         const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
         : 0;
       //>>>>>>>>>>>>
+      if(lwfDeducationDetails.lwfApplicable == 1 && !lwfDeducationDetails.lwfDesignationName.lwfmapping.lwfAmount ){
+        await db.payProcessDetails.update(
+          { payStatus: 3, payRemark: "Error with lwf calculating" },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
+
+        continue;
+      }
 
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
@@ -3153,7 +3239,7 @@ async function generatePaySlip(data) {
         });
         let currentMonth = payMonthlyElement.payMonth.split("-")[1];
         let currentYear = payMonthlyElement.payMonth.split("-")[0];
-        let totalWorkingDays = paymentHelper.getDaysInCurrentMonth({
+        let totalWorkingDays = await paymentHelper.getDaysInCurrentMonth({
           month: payMonthlyElement.payMonth.split("-")[1],
           year: payMonthlyElement.payMonth.split("-")[0],
         });

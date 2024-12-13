@@ -125,7 +125,7 @@ const standardDeductions = async function (data) {
   return deductionsMap;
 };
 
-const getDaysInCurrentMonth = (data) => {
+const getDaysInCurrentMonth =  async function(data) {
   const currentYear = data.year;
   const currentMonth = data.month;
   // Get the total number of days in the current month
