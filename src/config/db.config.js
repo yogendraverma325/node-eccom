@@ -1181,6 +1181,11 @@ db.lwfDesignationMaster.hasOne(db.lwfMapping, {
   sourceKey: "lwfDesignationId",
 });
 
+db.paymentDetails.hasOne(db.ptLocationMaster, {
+  foreignKey: "ptLocationId",
+  sourceKey: "ptLocationId",
+});
+
 /////////////////////////////Payroll///////////////////////////
 
 export default db;

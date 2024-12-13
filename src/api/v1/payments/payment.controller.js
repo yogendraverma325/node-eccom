@@ -1105,9 +1105,39 @@ class PaymentController {
       const ptDynamicAttribute = [currentMonth, "ptAmount"];
       const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
 
-      const ptDeducationDetails = await db.employeeMaster.findOne({
-        attributes: ["id", "empCode"],
-        where: { id: employee },
+      // const ptDeducationDetails = await db.employeeMaster.findOne({
+      //   attributes: ["id", "empCode"],
+      //   where: { id: employee },
+      //   raw: true,
+      //   nest: true,
+      //   include: [
+      //     {
+      //       model: db.ptLocationMaster,
+      //       attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+      //       include: [
+      //         {
+      //           model: db.ptMapping,
+      //           attributes: [
+      //             "ptmappingId",
+      //             "minValue",
+      //             "maxValue",
+      //             ptDynamicAttribute,
+      //           ],
+      //           required: false,
+      //           where: {
+      //             [Op.and]: [
+      //               { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+      //               { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+      //             ],
+      //           },
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // });
+      const ptDeducationDetails = await db.paymentDetails.findOne({
+        attributes: ["paymentId","userId","ptLocationId","ptApplicability"],
+        where: { userId: employee },
         raw: true,
         nest: true,
         include: [
@@ -1136,6 +1166,9 @@ class PaymentController {
         ],
       });
 
+      console.log("ptDeducationDetailsptDeducationDetails",ptDeducationDetails);
+      console.log("ptDeducationDetails",ptDeducationDetails.ptApplicability)
+      //console.log("applicability>>>>>>",!ptDeducationDetails.ptApplicability.ptlocationmaster.ptMapping)
       // const lwfDeducationDetails = await db.employeeMaster.findOne({
       //   attributes: ["id", "empCode"],
       //   where: { id: employee },
@@ -1197,6 +1230,20 @@ class PaymentController {
         if(lwfDeducationDetails.lwfApplicable == 1 && !lwfDeducationDetails.lwfDesignationName.lwfmapping.lwfAmount ){
           await db.payProcessDetails.update(
             { payStatus: 3, payRemark: "Error with lwf calculating" },
+            {
+              where: {
+                EmployeeId: employee,
+                proceessId: processId,
+              },
+            }
+          );
+  
+          continue;
+        }
+
+        if(ptDeducationDetails.ptApplicability == 1 && !ptDeducationDetails.ptlocationmaster.ptMapping.ptAmount){
+          await db.payProcessDetails.update(
+            { payStatus: 3, payRemark: "Error with PT calculating" },
             {
               where: {
                 EmployeeId: employee,
@@ -1300,7 +1347,7 @@ class PaymentController {
       await db.payProcessDetails.update(
         { payStatus: 2, payRemark: "Salary Processed." },
         {
-          where: {
+          where: {  
             EmployeeId: employee,
             proceessId: processId,
           },
@@ -2995,9 +3042,9 @@ async function processSalary(data) {
       const ptDynamicAttribute = [currentMonth, "ptAmount"];
       const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
 
-      const ptDeducationDetails = await db.employeeMaster.findOne({
-        attributes: ["id", "empCode"],
-        where: { id: employee },
+      const ptDeducationDetails = await db.paymentDetails.findOne({
+        attributes: ["paymentId","userId","ptLocationId","ptApplicability"],
+        where: { userId: employee },
         raw: true,
         nest: true,
         include: [
@@ -3026,6 +3073,37 @@ async function processSalary(data) {
         ],
       });
 
+      // const ptDeducationDetails = await db.employeeMaster.findOne({
+      //   attributes: ["id", "empCode"],
+      //   where: { id: employee },
+      //   raw: true,
+      //   nest: true,
+      //   include: [
+      //     {
+      //       model: db.ptLocationMaster,
+      //       attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+      //       include: [
+      //         {
+      //           model: db.ptMapping,
+      //           attributes: [
+      //             "ptmappingId",
+      //             "minValue",
+      //             "maxValue",
+      //             ptDynamicAttribute,
+      //           ],
+      //           required: false,
+      //           where: {
+      //             [Op.and]: [
+      //               { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+      //               { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+      //             ],
+      //           },
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // });
+
       const lwfDeducationDetails = await db.jobDetails.findOne({
         attributes: ["jobId","lwfApplicable"],
         where: { 
@@ -3047,6 +3125,7 @@ async function processSalary(data) {
           },
         ],
       });
+
       // const lwfDeducationDetails = await db.employeeMaster.findOne({
       //   attributes: ["id", "empCode"],
       //   where: { id: employee },
@@ -3088,6 +3167,21 @@ async function processSalary(data) {
         ? extraPaymentAmount?.paymentAmount
         : 0;
       //>>>>>>>>>>>>
+      console.log("ptDeducationDetails",ptDeducationDetails)
+      if(ptDeducationDetails.ptApplicability == 1 && !ptDeducationDetails.ptlocationmaster.ptMapping.ptAmount){
+        await db.payProcessDetails.update(
+          { payStatus: 3, payRemark: "Error with PT calculating" },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
+
+        continue;
+      }
+     
       if(lwfDeducationDetails.lwfApplicable == 1 && !lwfDeducationDetails.lwfDesignationName.lwfmapping.lwfAmount ){
         await db.payProcessDetails.update(
           { payStatus: 3, payRemark: "Error with lwf calculating" },
@@ -3102,6 +3196,9 @@ async function processSalary(data) {
         continue;
       }
 
+  
+
+      
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
           { payStatus: 2, payRemark: "Pay Package Not Assigned." },
