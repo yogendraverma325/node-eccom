@@ -4005,7 +4005,9 @@ class UserController {
           },
           { model: db.managerHistory, as: 'managerHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
             include: [
-              { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ] },
+              { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ],
+                include: [{ model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] }]
+              },
               { model: db.employeeMaster, as: 'managerHistoryCreatedBy', attributes: ['id', 'name'] },
               { model: db.employeeMaster, as: 'managerChangesFrom', attributes: ['id', 'name', 'empCode' ] },
             ],
