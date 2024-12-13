@@ -1166,9 +1166,7 @@ class PaymentController {
         ],
       });
 
-      console.log("ptDeducationDetailsptDeducationDetails",ptDeducationDetails);
-      console.log("ptDeducationDetails",ptDeducationDetails.ptApplicability)
-      //console.log("applicability>>>>>>",!ptDeducationDetails.ptApplicability.ptlocationmaster.ptMapping)
+     
       // const lwfDeducationDetails = await db.employeeMaster.findOne({
       //   attributes: ["id", "empCode"],
       //   where: { id: employee },
@@ -3167,7 +3165,6 @@ async function processSalary(data) {
         ? extraPaymentAmount?.paymentAmount
         : 0;
       //>>>>>>>>>>>>
-      console.log("ptDeducationDetails",ptDeducationDetails)
       if(ptDeducationDetails.ptApplicability == 1 && !ptDeducationDetails.ptlocationmaster.ptMapping.ptAmount){
         await db.payProcessDetails.update(
           { payStatus: 3, payRemark: "Error with PT calculating" },
@@ -3195,8 +3192,6 @@ async function processSalary(data) {
 
         continue;
       }
-
-  
 
       
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
