@@ -4211,13 +4211,13 @@ class UserController {
           } else {
             let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 
-            eventEmitter.emit(
-              "confirmationWorkflowNextLevel",
-              JSON.stringify({
-                ESCALTERDATA: ESCALTERDATA,
-                EMP_DATA: EMP_DATA_SELF,
-              })
-            );
+            // eventEmitter.emit(
+            //   "confirmationWorkflowNextLevel",
+            //   JSON.stringify({
+            //     ESCALTERDATA: ESCALTERDATA,
+            //     EMP_DATA: EMP_DATA_SELF,
+            //   })
+            // );
           }
            ///ADMIN VIEW
            await db.Confirmationowners.create({
