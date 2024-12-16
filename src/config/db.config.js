@@ -1249,11 +1249,6 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   sourceKey: "buHeadId",
   as: "departmentBUHead",
 });
-
-db.EmployeeLeaveHeader.hasOne(db.employeeLeaveTransactions,{
-   foreignKey:"employeeleaveheaderID",
-   sourceKey:"employeeleaveheaderID"
-})
 // Join for Attendance history with Employee details
 db.attendanceHistory.hasOne(db.employeeMaster, {
   foreignKey: 'id',

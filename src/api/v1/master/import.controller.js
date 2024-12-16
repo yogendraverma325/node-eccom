@@ -300,53 +300,88 @@ class MasterController {
           msg: "File is required!",
         });
       }
-  
+
       const zipFilePath = req.file.path;
-      
+
       transaction = await db.sequelize.transaction();
-  
+
       const zip = new AdmZip(zipFilePath);
       const zipEntries = zip.getEntries();
-      let empNotFound = []
+      let empNotFound = [];
 
       for (const zipEntry of zipEntries) {
-        if (zipEntry.isDirectory) continue; 
-  
+        if (zipEntry.isDirectory) continue;
+
         const fileName = zipEntry.entryName;
         const empCode = path.parse(fileName).name.split("__")[0];
         const fileExtension = path.extname(fileName);
-  
+
         const employee = await db.employeeMaster.findOne({
           where: { empCode },
           transaction,
         });
-  
+
         if (employee) {
-  
-          const fileBuffer = zipEntry.getData(); 
-          const mimeType = `application/${fileExtension.replace(".", "")}`; 
-          const base64String = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
-  
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
           const d = Math.floor(Date.now() / 1000);
           const uniqueFileName = `insurance_card_${d}`;
-  
+
           const imageUrl = await helper.fileUpload(
             base64String,
             uniqueFileName,
             `uploads/${empCode}`
           );
-            
-          await db.employeeMaster.update(
-            { insuranceCardImg: imageUrl },
-            { where: { empCode }, transaction }
-          );
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 6 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 6,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 6,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 6,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
         } else {
-          empNotFound.push({empCode:empCode,error:`Employee with empCode ${empCode} not found.`})
+          empNotFound.push({
+            empCode: empCode,
+            error: `Employee with empCode ${empCode} not found.`,
+          });
           console.warn(`Employee with empCode ${empCode} not found.`);
         }
       }
-  
-      await transaction.commit();  
+
+      await transaction.commit();
       fs.unlinkSync(zipFilePath);
 
       if (empNotFound.length > 0) {
@@ -357,7 +392,7 @@ class MasterController {
             sheet: "Employee",
             columns: [
               { label: "Employee Code", value: "empCode" },
-              { label: "Error", value: "error" }
+              { label: "Error", value: "error" },
             ],
             content: empNotFound,
           },
@@ -383,7 +418,7 @@ class MasterController {
       return respHelper(res, {
         status: 200,
         msg: "ZIP file processed successfully and database updated",
-        data: empNotFound
+        data: empNotFound,
       });
     } catch (error) {
       if (transaction) await transaction.rollback();
@@ -394,8 +429,6 @@ class MasterController {
       });
     }
   }
-  
-  
 }
 
 const createObj = (obj) => {
