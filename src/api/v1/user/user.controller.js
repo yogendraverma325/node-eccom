@@ -4085,9 +4085,9 @@ class UserController {
             where: {
               employeeId: req.userId,
               canTakeAction: 1,
-              slaEndDate: {
-                [Op.gte]: moment().format("YYYY-MM-DD"), // today's date in YYYY-MM-DD format
-              },
+              // slaEndDate: {
+              //   [Op.gte]: moment().format("YYYY-MM-DD"), // today's date in YYYY-MM-DD format
+              // },
             },
           },
         ],
@@ -4219,6 +4219,19 @@ class UserController {
               })
             );
           }
+           ///ADMIN VIEW
+           await db.Confirmationowners.create({
+            confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
+            employeeId: 1982,
+            level: respfrom.level,
+            canTakeAction: 1,
+            canTakeActionExtend: 1,
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            slaEndDate: null,
+            createdBy: 1,
+          });
+          ///ADMIN VIEW
 
           await db.Confirmationowners.create({
             confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
@@ -4396,10 +4409,17 @@ class UserController {
           existUser.employeejobdetail.dateOfProbationEnd
         );
         // Add  days
-        const newDate = originalDate.add(
-          probationData.durationOfProbation,
-          "days"
-        );
+        const newDate = originalDate
+          .clone()
+          .add(probationData.durationOfProbation, "days");
+
+        // Subtract days to calculate extension date
+        const extenionDate = newDate
+          .clone()
+          .subtract(
+            existUser?.confimationpolicy?.regenerateOnBeforeExtentioEndDays,
+            "days"
+          );
 
         let ACTION_TAKER = await helper.getEmpProfile(req.userId); // Action Taker
         await db.jobDetails.update(
@@ -4410,6 +4430,7 @@ class UserController {
             updatedBy: req.userId,
             probationDays: probationData.durationOfProbation,
             dateOfProbationEnd: newDate.format("YYYY-MM-DD"),
+            dateOfProbationTriggerDate: extenionDate.format("YYYY-MM-DD"),
           },
           {
             where: {
@@ -4544,14 +4565,14 @@ class UserController {
           }
         }
 
-        eventEmitter.emit(
-          "confirmatonExtend",
-          JSON.stringify({
-            EMP_DATA_SELF: EMP_DATA_SELF,
-            ACTION_TAKER: ACTION_TAKER,
-            cc: cc_arrays,
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmatonExtend",
+        //   JSON.stringify({
+        //     EMP_DATA_SELF: EMP_DATA_SELF,
+        //     ACTION_TAKER: ACTION_TAKER,
+        //     cc: cc_arrays,
+        //   })
+        // );
 
         return respHelper(res, {
           status: 200,

@@ -629,10 +629,8 @@ class CronController {
   async generateConfirmation() {
     const confimationData = await db.jobDetails.findAll({
       where: {
-        dateOfProbationEnd: {
-          [Op.gte]: db.sequelize.literal(
-            `DATE_SUB(CURDATE(), INTERVAL (SELECT generateOnBeforeDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
-          ),
+        dateOfProbationTriggerDate: {
+          [Op.eq]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
         },
         confirmationGenerated: 0,
       },
@@ -747,21 +745,35 @@ class CronController {
             ownerId = EMP_DATA_SELF?.buHRId;
           }
           if (respfrom?.levelData?.ownerRole == "SELF") {
-            eventEmitter.emit(
-              "selfReviewConfirnation",
-              JSON.stringify(Singleconfimation)
-            );
+            // eventEmitter.emit(
+            //   "selfReviewConfirnation",
+            //   JSON.stringify(Singleconfimation)
+            // );
           } else {
             let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 
-            eventEmitter.emit(
-              "confirmationWorkflowNextLevel",
-              JSON.stringify({
-                ESCALTERDATA: ESCALTERDATA,
-                EMP_DATA: EMP_DATA_SELF,
-              })
-            );
+            // eventEmitter.emit(
+            //   "confirmationWorkflowNextLevel",
+            //   JSON.stringify({
+            //     ESCALTERDATA: ESCALTERDATA,
+            //     EMP_DATA: EMP_DATA_SELF,
+            //   })
+            // );
           }
+           ///ADMIN VIEW
+           await db.Confirmationowners.create({
+            confirmationinitiatedAutoId:
+              createdData.confirmationinitiatedAutoId,
+            employeeId: 1982,
+            level: respfrom.level,
+            canTakeAction: 1,
+            canTakeActionExtend: 1,
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            slaEndDate: null,
+            createdBy: 1,
+          });
+          ///ADMIN VIEW
           await db.Confirmationowners.create({
             confirmationinitiatedAutoId:
               createdData.confirmationinitiatedAutoId,
@@ -865,13 +877,13 @@ class CronController {
           singleRecords?.confirmationinitiated?.employee?.id
         ); // EMP DATA
 
-        eventEmitter.emit(
-          "confirmationSLABreachEmailBody",
-          JSON.stringify({
-            ESCALTERDATA: ESCALTERDATA,
-            EMP_DATA: EMP_DATA,
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationSLABreachEmailBody",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA,
+        //   })
+        // );
 
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId:
@@ -966,10 +978,8 @@ class CronController {
             attributes: ["jobId", "dateOfJoining", "dateOfProbationEnd"],
             required: true,
             where: {
-              dateOfProbationEnd: {
-                [Op.lte]: db.sequelize.literal(
-                  `DATE_SUB(CURDATE(), INTERVAL (SELECT regenerateOnBeforeExtentioEndDays FROM confimationpolicy WHERE confimationpolicy.confimationPolicyAutoId = employee.confimationPolicyAutoId) DAY)`
-                ),
+              dateOfProbationTriggerDate: {
+                [Op.eq]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
               },
             },
           },
@@ -1012,13 +1022,13 @@ class CronController {
 
         let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
 
-        eventEmitter.emit(
-          "confirmationWorkflowNextLevel",
-          JSON.stringify({
-            ESCALTERDATA: ESCALTERDATA,
-            EMP_DATA: EMP_DATA_SELF,
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationWorkflowNextLevel",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA_SELF,
+        //   })
+        // );
 
         await db.Confirmationaudittrail.create({
           confirmationinitiatedAutoId:
@@ -1160,15 +1170,15 @@ class CronController {
           }
         }
 
-        eventEmitter.emit(
-          "confirmationLetter",
-          JSON.stringify({
-            EMP_DATA_SELF: EMP_DATA_SELF,
-            confirmationData: confirmationData,
-            signatureAuthority: signatureAuthority,
-            cc: cc_arrays.join(","),
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationLetter",
+        //   JSON.stringify({
+        //     EMP_DATA_SELF: EMP_DATA_SELF,
+        //     confirmationData: confirmationData,
+        //     signatureAuthority: signatureAuthority,
+        //     cc: cc_arrays.join(","),
+        //   })
+        // );
       }
     }
   }

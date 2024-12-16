@@ -116,6 +116,9 @@ export default (sequelize, Sequelize) => {
     confirmationGenerated: {
       type: Sequelize.INTEGER,
     },
+    dateOfProbationTriggerDate: {
+      type: Sequelize.DATE,
+    },
   });
   return employeeJobDetails;
 };
