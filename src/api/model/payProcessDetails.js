@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-  const payProcessDetails = sequelize.define("payProcessDetails", {
+  const payProcessDetails = sequelize.define("payprocessdetails", {
     payProcessDetailAutoId: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
