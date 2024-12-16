@@ -4014,7 +4014,8 @@ class UserController {
             where: { needAttendanceCron: 0, employeeId: userId },
             required: false
           },
-          { model: db.companyMaster, attributes: ['companyId', 'companyName'] }
+          { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
+          { model: db.jobDetails, attributes: ['jobId', 'userId', 'dateOfJoining'] }
         ],
         order: [
           ["designationHistories", "id", "ASC"], // Sorting for designationHistory
