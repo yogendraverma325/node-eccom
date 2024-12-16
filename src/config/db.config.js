@@ -1354,15 +1354,15 @@ db.payPackage.hasMany(db.payElements, {
   as:"empPayElements"
 });
 
-db.employeeMaster.hasOne(db.ptLocationMaster, {
-  foreignKey: "ptLocationId",
-  sourceKey: "ptLocationId",
-});
+// db.employeeMaster.hasOne(db.ptLocationMaster, {
+//   foreignKey: "ptLocationId",
+//   sourceKey: "ptLocationId",
+// });
 
-db.employeeMaster.hasOne(db.lwfDesignationMaster, {
-  foreignKey: "lwfDesignationId",
-  sourceKey: "lwfDesignationId",
-});
+// db.employeeMaster.hasOne(db.lwfDesignationMaster, {
+//   foreignKey: "lwfDesignationId",
+//   sourceKey: "lwfDesignationId",
+// });
 
 
 db.ptLocationMaster.hasOne(db.ptMapping, {
