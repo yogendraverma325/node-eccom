@@ -1424,18 +1424,18 @@ class AdminController {
         error = true;
       } else {
         if (result.id) {
-          const verifyData = await db.DesignationEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              id: result.id,
-            }
-          });
+          // const verifyData = await db.DesignationEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
   
-          if(verifyData) {
-            if(verifyData.designation_id != result.designation_id) {
-              metaData["oldDesignationId"] = verifyData.designation_id;
-            }
-          }
+          // if(verifyData) {
+          //   if(verifyData.designation_id != result.designation_id) {
+          //     metaData["oldDesignationId"] = verifyData.designation_id;
+          //   }
+          // }
   
           metaData = {
             ...metaData,
@@ -1542,18 +1542,18 @@ class AdminController {
         error = true;
       } else {
         if (result.id) {
-          const verifyData = await db.DepartmentEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              id: result.id,
-            }
-          });
+          // const verifyData = await db.DepartmentEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
   
-          if(verifyData) {
-            if(verifyData.departmentId != result.departmentId) {
-              metaData["oldDepartmentId"] = verifyData.departmentId;
-            }
-          }
+          // if(verifyData) {
+          //   if(verifyData.departmentId != result.departmentId) {
+          //     metaData["oldDepartmentId"] = verifyData.departmentId;
+          //   }
+          // }
   
           metaData = {
             ...metaData,
@@ -1660,18 +1660,18 @@ class AdminController {
         error = true;
       } else {
         if (result.id) {
-          const verifyData = await db.CostCenterEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              id: result.id,
-            }
-          });
+          // const verifyData = await db.CostCenterEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
   
-          if(verifyData) {
-            if(verifyData.costId != result.costId) {
-              metaData["oldCostId"] = verifyData.costId;
-            }
-          }
+          // if(verifyData) {
+          //   if(verifyData.costId != result.costId) {
+          //     metaData["oldCostId"] = verifyData.costId;
+          //   }
+          // }
   
           metaData = {
             ...metaData,
@@ -1773,18 +1773,18 @@ class AdminController {
         error = true;
       } else {
         if (result.id) {
-          const verifyData = await db.OfficeLocationEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              id: result.id,
-            }
-          });
+          // const verifyData = await db.OfficeLocationEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
   
-          if(verifyData) {
-            if(verifyData.companyLocationId != result.companyLocationId) {
-              metaData["oldCompanyLocationId"] = verifyData.companyLocationId;
-            }
-          }
+          // if(verifyData) {
+          //   if(verifyData.companyLocationId != result.companyLocationId) {
+          //     metaData["oldCompanyLocationId"] = verifyData.companyLocationId;
+          //   }
+          // }
   
           metaData = {
             ...metaData,
@@ -1892,18 +1892,18 @@ class AdminController {
         error = true;
       } else {
         if (result.id) {
-          const verifyData = await db.JobLevelEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              id: result.id,
-            }
-          });
+          // const verifyData = await db.JobLevelEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
   
-          if(verifyData) {
-            if(verifyData.jobLevelId != result.jobLevelId) {
-              metaData["oldJobLevelId"] = verifyData.jobLevelId;
-            }
-          }
+          // if(verifyData) {
+          //   if(verifyData.jobLevelId != result.jobLevelId) {
+          //     metaData["oldJobLevelId"] = verifyData.jobLevelId;
+          //   }
+          // }
   
           metaData = {
             ...metaData,
@@ -2010,18 +2010,18 @@ class AdminController {
         error = true;
       } else {
         if (result.id) {
-          const verifyData = await db.EmployeeTypeEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              id: result.id,
-            }
-          });
+          // const verifyData = await db.EmployeeTypeEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
   
-          if(verifyData) {
-            if(verifyData.employeeType != result.employeeType) {
-              metaData["oldEmployeeType"] = verifyData.employeeType;
-            }
-          }
+          // if(verifyData) {
+          //   if(verifyData.employeeType != result.employeeType) {
+          //     metaData["oldEmployeeType"] = verifyData.employeeType;
+          //   }
+          // }
   
           metaData = {
             ...metaData,
