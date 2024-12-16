@@ -624,39 +624,39 @@ class AdminController {
         where: Object.assign(
           search
             ? {
-                [Op.or]: [
-                  {
-                    name: {
-                      [Op.like]: `%${search}%`,
-                    },
+              [Op.or]: [
+                {
+                  name: {
+                    [Op.like]: `%${search}%`,
                   },
-                  {
-                    email: {
-                      [Op.like]: `%${search}%`,
-                    },
+                },
+                {
+                  email: {
+                    [Op.like]: `%${search}%`,
                   },
-                ],
-                [Op.and]: [
-                  {
-                    isActive:
-                      usersData.role_id == 1 || usersData.role_id == 2
-                        ? [1, 0]
-                        : [1],
-                  },
-                ],
-                [Op.and]: activeQuery,
-              }
+                },
+              ],
+              [Op.and]: [
+                {
+                  isActive:
+                    usersData.role_id == 1 || usersData.role_id == 2
+                      ? [1, 0]
+                      : [1],
+                },
+              ],
+              [Op.and]: activeQuery,
+            }
             : {
-                [Op.and]: [
-                  {
-                    isActive:
-                      usersData.role_id == 1 || usersData.role_id == 2
-                        ? [1, 0]
-                        : [1],
-                  },
-                ],
-                [Op.and]: activeQuery,
-              }
+              [Op.and]: [
+                {
+                  isActive:
+                    usersData.role_id == 1 || usersData.role_id == 2
+                      ? [1, 0]
+                      : [1],
+                },
+              ],
+              [Op.and]: activeQuery,
+            }
         ),
         attributes: [
           "id",
@@ -808,9 +808,9 @@ class AdminController {
           if (existUser) {
             if (
               existUser.personalEmail ===
-                employeeOnboardingDetails.personalEmail ||
+              employeeOnboardingDetails.personalEmail ||
               existUser.personalMobileNumber ===
-                employeeOnboardingDetails.personalMobileNumber
+              employeeOnboardingDetails.personalMobileNumber
             ) {
               return respHelper(res, {
                 status: 400,
@@ -2152,8 +2152,62 @@ class AdminController {
       });
     }
   }
-
   // END EMPLOYMENT DETAILS
+
+  // Attendance Approval API
+  async requiredAttendanceApproval(req, res) {
+    try {
+
+      const result = await validator.blockLoginSchema.validateAsync(req.body)
+
+      const existUser = await db.employeeMaster.findOne({
+        where: {
+          empCode: result.employeeCode,
+          isActive: 1
+        }
+      })
+
+      if (!existUser) {
+        return respHelper(res, {
+          status: 404,
+          msg: constant.USER_NOT_EXIST,
+        });
+      }
+
+      await db.employeeMaster.update(
+        {
+          requiredAttendanceApproval: !existUser.dataValues.requiredAttendanceApproval,
+        },
+        {
+          where: {
+            id: existUser.dataValues.id,
+          },
+        }
+      );
+
+      return respHelper(res, {
+        status: 200,
+        msg: constant.ATTENDANCE_APPROVAL_STATUS.replace(
+          "<status>",
+          `${!existUser.dataValues.requiredAttendanceApproval ? "Enabled" : "Disabled"}`
+        ),
+      });
+
+    } catch (error) {
+      console.log("error", error);
+      if (error.isJoi) {
+        return respHelper(res, {
+          msg: error.details[0].message,
+          status: 422,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+
 }
 
 export default new AdminController();

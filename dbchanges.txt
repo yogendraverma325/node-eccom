@@ -1,9 +1,14 @@
 // --------------------------------------- 2024-12-12 -----------------------------------------------//
 ALTER TABLE `tara_hrms_live`.`attendancehistory` 
+ADD COLUMN `isApproved` TINYINT(1) NULL DEFAULT 0 AFTER `updatedAt`;
+
+ALTER TABLE `tara_hrms_live`.`attendancehistory` 
 ADD COLUMN `locationType` VARCHAR(45) NULL DEFAULT NULL AFTER `isApproved`,
 ADD COLUMN `userRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `locationType`,
 ADD COLUMN `managerRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `userRemark`;
 
+ALTER TABLE `tara_hrms_live`.`employee` 
+ADD COLUMN `requiredAttendanceApproval` TINYINT(1) NULL DEFAULT 0 AFTER `confimationPolicyAutoId`;
 
 //-----------------------------------------2024-12-09------------------------------------------------//
 
