@@ -1055,7 +1055,7 @@ class PaymentController {
   async processSalaryAPI(req, res) {
     let { processId } = req.body;
     var errorArray = [];
-    let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payProcessDetails pd JOIN  payProcessMaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
+    let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
     const result = await db.sequelize.query(queryForAllExecutableEmployee);
     if (result[0].length == 0) {
       return respHelper(res, {
@@ -2991,7 +2991,7 @@ function formatDate(year, month, day) {
 async function processSalary(data) {
   let { processId, req } = data;
   var errorArray = [];
-  let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payProcessDetails pd JOIN  payProcessMaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
+  let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
   const result = await db.sequelize.query(queryForAllExecutableEmployee);
   // if (result[0].length == 0) {
   //   return respHelper(res, {

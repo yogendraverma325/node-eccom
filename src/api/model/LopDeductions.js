@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-  const lopDeductions = sequelize.define("lopDeductions", {
+  const lopDeductions = sequelize.define("lopdeductions", {
     lopAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
