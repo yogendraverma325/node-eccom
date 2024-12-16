@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-  const tdsDeductions = sequelize.define("tdsDeductions", {
+  const tdsDeductions = sequelize.define("tdsdeductions", {
     tdsDeductionAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
