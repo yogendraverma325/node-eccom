@@ -992,9 +992,16 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+      // let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+      //   ","
+      // )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${value.paymonth}';`;
+      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.buId IN (${value.departmentId.split(
         ","
       )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${value.paymonth}';`;
+      console.log("value.departmentId",value.departmentId);
+      console.log("vvalue.paymonth",value.paymonth)
+
+      
       const result = await db.sequelize.query(allEmployeeQuery);
 
       let newProcess = await db.payProcessMaster.create(
@@ -2038,20 +2045,26 @@ class PaymentController {
         });
       }
 
-      console.log(value);
+      //console.log(value);
 
-      let employeeForProcessingQuery = `SELECT e.id AS EmployeeId FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
+      let employeeForProcessingQuery = `SELECT e.id AS EmployeeId FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.buId IN (${value.departmentId.split(
         ","
       )})`;
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
+      if(employeeForProcessing[0][0].length > 0){
+        return respHelper(res, {
+          status: 400,
+          data: [],
+          msg: "Data not available.",
+        });
+      }
       const employeeIds = employeeForProcessing[0].map(
         (employee) => employee.EmployeeId
       );
       let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
-      console.log(countsForProcessing);
       return respHelper(res, {
         status: 200,
         data: {
@@ -3318,7 +3331,7 @@ async function generatePaySlip(data) {
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
-      console.log("payElementspayElements", payElements[0]);
+      //console.log("payElementspayElements", payElements[0]);
 
       for (const payMonthlyElement of payElements[0]) {
         let isExistPaySlip = await db.paySlips.findOne({
