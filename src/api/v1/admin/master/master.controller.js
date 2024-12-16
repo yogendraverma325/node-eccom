@@ -571,8 +571,9 @@ class CommonController {
 
   async createDepartment(req, res) {
     try {
-      const result = await validator.departmentMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.user }
+      let result = await validator.departmentMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 };
+
       let model = db.departmentMaster;
       let query = { 'departmentName': result.departmentName, 'departmentCode': result.departmentCode };
       let moduleName = "Department";
@@ -627,7 +628,7 @@ class CommonController {
 
   async updateDepartment(req, res) {
     try {
-      const result = await validator.departmentMasterSchema.validateAsync(req.body);
+      let result = await validator.departmentMasterSchema.validateAsync(req.body);
       result = { ...result, updatedBy: req.user, updatedAt: moment() };
       let model = db.departmentMaster;
       let query = { departmentId: req.params.id };
@@ -676,10 +677,11 @@ class CommonController {
 
   async createFunctionalArea(req, res) {
     try {
-      const result = await validator.jobLevelMasterSchema.validateAsync(req.body);
-      let model = db.jobLevelMaster;
-      let query = { 'jobLevelName': result.jobLevelName, 'jobLevelCode': result.jobLevelCode };
-      let moduleName = "Job Level";
+      let result = await validator.functionalAreaMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1, parentFunctionalAreaId: 0 };
+      let model = db.functionalAreaMaster;
+      let query = { 'functionalAreaName': result.functionalAreaName, 'functionalAreaCode': result.functionalAreaCode };
+      let moduleName = "Functional Area";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
 
@@ -699,19 +701,19 @@ class CommonController {
 
   async functionalAreaList(req, res) {
     try {
-      let model = db.jobLevelMaster;
+      let model = db.functionalAreaMaster;
       let page = parseInt(req.query.page) || 1;
       let search = req.query.search || '';
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'jobLevelName': { [Op.like]: `%${search}%` } })
+        ...(search && { 'functionalAreaName': { [Op.like]: `%${search}%` } })
       };
 
       let aggregate = {
         where: query,
-        attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode', 'createdAt', 'isActive'],
-        order: [["jobLevelId", "DESC"]],
+        attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode', 'createdAt', 'isActive'],
+        order: [["functionalAreaId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit
       }
@@ -731,9 +733,10 @@ class CommonController {
 
   async updateFunctionalArea(req, res) {
     try {
-      const result = await validator.jobLevelMasterSchema.validateAsync(req.body);
-      let model = db.jobLevelMaster;
-      let query = { jobLevelId: req.params.id };
+      let result = await validator.functionalAreaMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.user, updatedAt: moment() };
+      let model = db.functionalAreaMaster;
+      let query = { functionalAreaId: req.params.id };
       let response = await service.update(model, result, query);
       return respHelper(res, response);
 
@@ -753,8 +756,8 @@ class CommonController {
 
   async changeStatusOfFunctionalArea(req, res) {
     try {
-      let model = db.jobLevelMaster;
-      let query = { jobLevelId: req.params.id };
+      let model = db.functionalAreaMaster;
+      let query = { functionalAreaId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
 

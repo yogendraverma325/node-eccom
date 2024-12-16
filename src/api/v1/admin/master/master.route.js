@@ -42,8 +42,8 @@ export default Express
     .patch("/department/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfDepartment)
 
     // functional area master routes created by jay
-    .post("/functionaArea", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createFunctionalArea)
-    .get("/functionaArea-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalAreaList)
-    .put("/functionaArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateFunctionalArea)
-    .patch("/functionaArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfFunctionalArea)
+    .post("/functionalArea", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createFunctionalArea)
+    .get("/functionalArea-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalAreaList)
+    .put("/functionalArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateFunctionalArea)
+    .patch("/functionalArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfFunctionalArea)
 
