@@ -4660,21 +4660,6 @@ class UserController {
             as: "designationHistories",
             attributes: { exclude: ["createdBy", "updatedAt", "updatedBy"] },
             include: [
-<<<<<<< HEAD
-              {
-                model: db.designationMaster,
-                attributes: ["designationId", "name", "code"],
-              },
-              {
-                model: db.companyMaster,
-                attributes: ["companyId", "companyName", "companyCode"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "designationHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-=======
               { model: db.designationMaster, attributes: ['designationId', 'name', 'code' ] }, 
               { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] },
               { model: db.employeeMaster, as: 'designationHistoryCreatedBy', attributes: ['id', 'name'] },
@@ -4732,7 +4717,6 @@ class UserController {
               //       { model: db.cityMaster, attributes: ['cityId', 'cityName', 'cityCode'] },
               //     ] 
               // }, 
->>>>>>> jay_employment_details
             ],
             where: { employeeId: userId },
             required: false,
@@ -4744,45 +4728,9 @@ class UserController {
               exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
             },
             include: [
-<<<<<<< HEAD
-              {
-                model: db.departmentMaster,
-                attributes: [
-                  "departmentId",
-                  "departmentName",
-                  "departmentCode",
-                ],
-              },
-              {
-                model: db.functionalAreaMaster,
-                attributes: [
-                  "functionalAreaId",
-                  "functionalAreaName",
-                  "functionalAreaCode",
-                ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "departmentHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-              { model: db.buMaster, attributes: ["buId", "buName"] },
-              { model: db.sbuMaster, attributes: ["sbuId", "sbuName"] },
-              {
-                model: db.employeeMaster,
-                as: "departmentBUHR",
-                attributes: ["id", "name"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "departmentBUHead",
-                attributes: ["id", "name"],
-              },
-=======
               { model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] },
               { model: db.employeeMaster, as: 'employeeTypeHistoryCreatedBy', attributes: ['id', 'name'] },
               // { model: db.employeeTypeMaster, as: 'employeeTypeChangesFrom', attributes: ['empTypeId', 'emptypename'] },
->>>>>>> jay_employment_details
             ],
             where: { employeeId: userId },
             required: false,
@@ -4794,121 +4742,6 @@ class UserController {
               exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
             },
             include: [
-<<<<<<< HEAD
-              {
-                model: db.costCenterMaster,
-                attributes: [
-                  "costCenterId",
-                  "costCenterName",
-                  "costCenterCode",
-                ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "costCenterHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.JobLevelEmploymentHistory,
-            as: "jobLevelHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.jobLevelMaster,
-                attributes: ["jobLevelId", "jobLevelName", "jobLevelCode"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "jobLevelHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.OfficeLocationEmploymentHistory,
-            as: "officeLocationHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.companyLocationMaster,
-                attributes: ["companyLocationCode", "address1"],
-                include: [
-                  {
-                    model: db.countryMaster,
-                    attributes: ["countryId", "countryName", "countryCode"],
-                  },
-                  {
-                    model: db.stateMaster,
-                    attributes: ["stateId", "stateName", "stateCode"],
-                  },
-                  {
-                    model: db.cityMaster,
-                    attributes: ["cityId", "cityName", "cityCode"],
-                  },
-                ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "officeLocationHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.EmployeeTypeEmploymentHistory,
-            as: "employeeTypeHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.employeeTypeMaster,
-                attributes: ["empTypeId", "emptypename"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "employeeTypeHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.managerHistory,
-            as: "managerHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.employeeMaster,
-                as: "managerHistoryDate",
-                attributes: ["id", "name", "empCode"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "managerHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { needAttendanceCron: 0, employeeId: userId },
-            required: false,
-          },
-          { model: db.companyMaster, attributes: ["companyId", "companyName"] },
-=======
               { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ],
                 include: [{ model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] }]
               },
@@ -4920,7 +4753,6 @@ class UserController {
           },
           { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
           { model: db.jobDetails, attributes: ['jobId', 'userId', 'dateOfJoining'] }
->>>>>>> jay_employment_details
         ],
         order: [
           ["designationHistories", "id", "ASC"], // Sorting for designationHistory
