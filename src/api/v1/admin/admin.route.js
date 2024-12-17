@@ -209,4 +209,9 @@ export default Express.Router()
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addEmployeeTypeEmployment
   )
-  // EMPLOYMENT END ROUTES
+
+  .post("/requiredAttendanceApproval",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    adminController.requiredAttendanceApproval
+  )
+// EMPLOYMENT END ROUTES

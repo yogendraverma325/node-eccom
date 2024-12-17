@@ -503,6 +503,22 @@ class UserController {
         ],
         group: ["batch_id"],
       });
+      const pendingAttendanceCount = await db.attendanceHistory.count({
+        where: {
+          attendanceStatus: 'pending'
+        },
+        order: [['date', 'DESC']],
+        include: [{
+          model: db.employeeMaster,
+          required: true,
+          where: Object.assign((!['ADMIN', 'HR_OPS'].includes(req.userRole)) ? {
+            manager: req.userId
+          } : {}, {
+            isActive: 1
+          }),
+          attributes: ['id', 'empCode', 'name', 'profileImage']
+        }]
+      })
 
       const countLeaveAssgined = await db.employeeLeaveTransactions.findAll({
         where: {
@@ -557,6 +573,10 @@ class UserController {
               raisedByMe: pendingAttCount,
               assignedToMe: assignedAttCount,
             },
+            pendingAttendance: {
+              raisedByMe: 0,
+              assignedToMe: pendingAttendanceCount,
+            },
             seperationCount: {
               raisedByMe: 0,
               assignedToMe: pendingSeperationCount,
@@ -567,11 +587,13 @@ class UserController {
               leaveData: countLeavePending.length,
               attedanceData: pendingAttCount,
               seperationCount: 0,
+              pendingAttendanceCount: 0
             },
             assignedToMe: {
               leaveData: countLeaveAssgined.length,
               attedanceData: assignedAttCount,
               seperationCount: pendingSeperationCount,
+              pendingAttendanceCount
             },
           },
         },
@@ -843,10 +865,10 @@ class UserController {
         finalStatus: 2,
         empAttachment: result.attachment
           ? await helper.fileUpload(
-              result.attachment,
-              `separation_attachment_${d}`,
-              `uploads/${existUser.dataValues.empCode}`
-            )
+            result.attachment,
+            `separation_attachment_${d}`,
+            `uploads/${existUser.dataValues.empCode}`
+          )
           : null,
         empSubmissionDate: moment(),
         createdDt: moment(),
@@ -1039,10 +1061,10 @@ class UserController {
           l1Remark: result.l1Remark,
           l1Attachment: result.attachment
             ? await helper.fileUpload(
-                result.attachment,
-                `separation_attachment_${d}`,
-                `uploads/${separationData.dataValues.employee.empCode}`
-              )
+              result.attachment,
+              `separation_attachment_${d}`,
+              `uploads/${separationData.dataValues.employee.empCode}`
+            )
             : null,
           l1SubmissionDate: moment(),
           pendingAt: separationData.dataValues.employee.buHRId,
@@ -2100,10 +2122,10 @@ class UserController {
           l2Remark: result.l2Remark,
           l2Attachment: result.attachment
             ? await helper.fileUpload(
-                result.attachment,
-                `separation_attachment_${d}`,
-                `uploads/${separationData.dataValues.employee.empCode}`
-              )
+              result.attachment,
+              `separation_attachment_${d}`,
+              `uploads/${separationData.dataValues.employee.empCode}`
+            )
             : null,
           l2SubmissionDate: moment(),
           l2RequestStatus: "Approved",
@@ -2566,10 +2588,10 @@ class UserController {
             regularizeStatus: { [Op.ne]: "Pending" },
             ...(fromDate &&
               extendedToDate && {
-                createdAt: {
-                  [db.Sequelize.Op.between]: [fromDate, extendedToDate],
-                },
-              }),
+              createdAt: {
+                [db.Sequelize.Op.between]: [fromDate, extendedToDate],
+              },
+            }),
           },
           include: [
             {
@@ -2589,11 +2611,11 @@ class UserController {
                     ...(search && { name: { [Op.like]: `%${search}%` } }),
                     ...(type === "all"
                       ? {
-                          [Op.or]: [
-                            //{ id: req.userId },
-                            { manager: req.userId },
-                          ],
-                        }
+                        [Op.or]: [
+                          //{ id: req.userId },
+                          { manager: req.userId },
+                        ],
+                      }
                       : { id: req.userId }),
                   },
                   include: [
@@ -2667,27 +2689,27 @@ class UserController {
               : { source: { [Op.ne]: "system_generated" } }),
             ...(fromDate &&
               toDate && {
-                appliedFor: {
-                  [db.Sequelize.Op.between]: [fromDate, toDate],
-                },
-              }),
+              appliedFor: {
+                [db.Sequelize.Op.between]: [fromDate, toDate],
+              },
+            }),
             ...(type === "all" && isSystemGenerated == 0
               ? {
-                  [Op.or]: [
-                    {
-                      pendingAt: req.userId,
-                      source: { [Op.ne]: "system_generated" },
-                    },
-                  ],
-                }
+                [Op.or]: [
+                  {
+                    pendingAt: req.userId,
+                    source: { [Op.ne]: "system_generated" },
+                  },
+                ],
+              }
               : type === "all" && isSystemGenerated == 1
-              ? {
+                ? {
                   [Op.or]: [
                     { employeeId: req.userId },
                     { pendingAt: req.userId, source: "system_generated" },
                   ],
                 }
-              : { employeeId: req.userId }), // Default case for non-"all" types
+                : { employeeId: req.userId }), // Default case for non-"all" types
           },
           include: [
             {
@@ -2736,6 +2758,47 @@ class UserController {
     }
   }
 
+  // Pending Attendance Task History
+  async taskHistoryAttendanceApproval(req, res) {
+    try {
+
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+
+      const { count, rows: pendingAttendanceData } = await db.attendanceHistory.findAndCountAll({
+        where: {
+          attendanceStatus: 'approved',
+          updatedBy: req.query.user || req.userId
+        },
+        include: [{
+          model: db.employeeMaster,
+          attributes: ['id', 'empCode', 'name']
+        }, {
+          model: db.employeeMaster,
+          attributes: ['id', 'empCode', 'name'],
+          as: 'attendanceApprover'
+        }],
+        limit,
+        offset
+      })
+
+      return respHelper(res, {
+        status: 200,
+        data: {
+          totalRecords: count,
+          totalPages: Math.ceil(count / limit),
+          currentPage: pageNo,
+          pendingAttendanceData,
+        }
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+  // Pending Attendance Task History
   async separationTaskForm(req, res) {
     try {
       const user = req.query.user || req.userId;

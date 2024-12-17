@@ -224,6 +224,12 @@ export default Express.Router()
     userController.taskHistoryLeave
   )
   .get(
+    "/taskHistoryAttendanceApproval",
+    authentication.authenticate,
+    userController.taskHistoryAttendanceApproval
+  )
+
+  .get(
     "/separationTaskForm/:id",
     authentication.authenticate,
     userController.separationTaskForm

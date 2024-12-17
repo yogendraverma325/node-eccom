@@ -80,6 +80,7 @@ const message = {
   TASK_SUBMITTED: "Task Submitted",
   LOGIN_BLOCKED: "Your login has been disabled.",
   LOGIN_STATUS: "Login <status>",
+  ATTENDANCE_APPROVAL_STATUS: "Attendance Approval <status>",
   PASSWORD_EXPIRED:
     "Your Password has been expired. Kindly reset your password and login again.",
   CONFIRMATION: {
@@ -88,6 +89,7 @@ const message = {
     EXTEND_PERMISSOIN_BREACH:
       "This profile has reached to maximum number of extention",
   },
+  ATTENDANCE_APPROVAL: 'Attendance <status>'
 };
 
 export default message;

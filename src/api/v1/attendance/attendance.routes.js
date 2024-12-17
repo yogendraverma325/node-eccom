@@ -13,4 +13,4 @@ export default Express
   .post("/attedanceCronForEMP", attendanceController.attedanceCronForEMP)
   .get("/attendenceDetails", attendanceController.attendenceDetails)
   .get("/pendingAttendance", attendanceController.pendingAttendanceList)
-  // .post("/attendanceApproval",attendanceController.attendanceApproval)
+  .post("/attendanceApproval",attendanceController.attendanceApproval)
