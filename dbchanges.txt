@@ -1000,6 +1000,10 @@ ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
   `updatedBy` INT NULL DEFAULT NULL,
   PRIMARY KEY (`id`));
 
+  ALTER TABLE `tara_hrms_live`.`designationemploymenthistory` 
+  ADD COLUMN `oldDesignationId` INT NULL DEFAULT NULL AFTER `designation_id`;
+
+
 
 
 

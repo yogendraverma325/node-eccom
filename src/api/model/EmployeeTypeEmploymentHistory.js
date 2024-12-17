@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
       employeeType: {
         type: Sequelize.INTEGER,
       },
+      oldEmployeeType: {
+        type: Sequelize.INTEGER
+      },
       needAttendanceCron: {
         type: Sequelize.INTEGER,
       },
