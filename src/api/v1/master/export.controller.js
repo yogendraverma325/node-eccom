@@ -1694,7 +1694,7 @@ class MasterController {
           }
 
           if (
-            currentDay.isSameOrAfter(
+            currentDay.isAfter(
               moment(employeeRecord.dateOfexit).format("YYYY-MM-DD")
             )
           ) {
