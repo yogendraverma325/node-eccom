@@ -7,3 +7,4 @@ const upload = multer({ dest: 'uploads/excel/' });
 export default Express
     .Router()
     .post("/onboardingEmployee", upload.single('excelFile'), masterImportController.onboardingEmployeeImport)
+    .post("/documentImport", upload.single('file'), masterImportController.documentImport)

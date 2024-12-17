@@ -133,7 +133,7 @@ export default Express.Router()
   )
   .put(
     "/updatePolicyOfEMP",
-    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN", 'USER'),
     adminController.updatePolicyOfEMP
   )
   .put(
@@ -209,4 +209,4 @@ export default Express.Router()
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     adminController.addEmployeeTypeEmployment
   )
-  // EMPLOYMENT END ROUTES
+// EMPLOYMENT END ROUTES

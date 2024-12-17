@@ -6,6 +6,14 @@ cron.schedule("30 1 * * *", async () => {
   await attendanceController.attedanceCron();
 });
 
+cron.schedule("0 2 * * *", async () => {
+  await cronController.generateConfirmation();
+  await cronController.checkSLAOfConfirmation();
+  await cronController.checkConfirmatonHold();
+  await cronController.checkExtentionEnd();
+  await cronController.generatConfiramtionletter();
+});
+
 cron.schedule("* * * * *", async () => {
   await cronController.updateManager();
   await cronController.updatePolicy();
@@ -28,16 +36,16 @@ cron.schedule("50 7 * * *", async () => {
 });
 
 cron.schedule("0 0 * * *", async () => {
-  await cronController.blockAccess()
+  await cronController.blockAccess();
 });
 
-cron.schedule("0 10,11 * * *", async () => {
+cron.schedule("0 11,12,13,14 * * *", async () => {
   cronController.newJoinEmployee();
 });
 
 cron.schedule("0 7 * * *", async () => {
-  await cronController.prePasswordExpiryNotification()
-  await cronController.postPasswordExpiryNotification()
-})
+  await cronController.prePasswordExpiryNotification();
+  await cronController.postPasswordExpiryNotification();
+});
 
 export default cron;

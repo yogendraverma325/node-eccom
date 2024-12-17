@@ -438,6 +438,9 @@ const addJobDetailsSchema = Joi.object({
   jobLevelId: Joi.number().allow(null).label("Job Level").optional(),
   residentEng: Joi.boolean().allow(null).label("Resident Engineer").optional(),
   customerName: Joi.string().allow(null).label("Customer Name").optional(),
+  projectCode: Joi.string().trim().allow(null).label("Project Code"),
+  customerCode: Joi.string().trim().allow(null).label("Customer Code"),
+  nextAppraisalDue: Joi.string().trim().allow(null).label("Next Appraisal Due"),
 });
 
 const updateManagerSchema = Joi.array()
@@ -447,7 +450,7 @@ const updateManagerSchema = Joi.array()
       user: Joi.number().required().label("User"),
       manager: Joi.number().required().label("Manager"),
       date: Joi.string().label("Date").required(),
-      id: Joi.number().allow(null)
+      id: Joi.number().allow(null),
     })
   )
   .messages({
@@ -1178,13 +1181,22 @@ const blockLoginSchema = Joi.object({
   employeeCode: Joi.string().trim().required().label("Employee Code"),
 });
 
+///Confirmation
+const requestForProbationExtendvalidationSchema = Joi.object({
+  employeeId: Joi.number().label("Employee ID"),
+  noticePeriodId: Joi.number().required().label("Notice Peroid"),
+  confirmationinitiatedAutoId: Joi.number().required().label("Confirmation ID"),
+  recommendation: Joi.number().required().label("Recommendation"),
+  attachment: Joi.string().allow("").optional(),
+});
+///Confirmation
 const addDesignationEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
   companyId: Joi.number().required().label("Company"),
   designation_id: Joi.number().required().label("Designation"),
-  fromDate: Joi.string().trim().required().label("From Date"),  
+  fromDate: Joi.string().trim().required().label("From Date"),
   isPromotion: Joi.boolean().required().label("Promotion").optional(),
-  id: Joi.number().allow(null)
+  id: Joi.number().allow(null),
 });
 
 const addDepartmentEmploymentSchema = Joi.object({
@@ -1197,7 +1209,7 @@ const addDepartmentEmploymentSchema = Joi.object({
   departmentId: Joi.number().required().label("Department"),
   functionalAreaId: Joi.number().required().label("Functional Area"),
   fromDate: Joi.string().trim().required().label("From Date"),
-  id: Joi.number().allow(null)
+  id: Joi.number().allow(null),
 });
 
 const addCostCenterEmploymentSchema = Joi.object({
@@ -1205,7 +1217,7 @@ const addCostCenterEmploymentSchema = Joi.object({
   companyId: Joi.number().required().label("Company"),
   costId: Joi.number().required().label("Cost Center"),
   fromDate: Joi.string().trim().required().label("From Date"),
-  id: Joi.number().allow(null)
+  id: Joi.number().allow(null),
 });
 
 const addCompanyLocationEmploymentSchema = Joi.object({
@@ -1213,16 +1225,16 @@ const addCompanyLocationEmploymentSchema = Joi.object({
   companyId: Joi.number().required().label("Company"),
   companyLocationId: Joi.number().required().label("Company Location"),
   fromDate: Joi.string().trim().required().label("From Date"),
-  id: Joi.number().allow(null)
+  id: Joi.number().allow(null),
 });
 
 const addJobLevelEmploymentSchema = Joi.object({
   userId: Joi.number().required().label("User ID"),
   companyId: Joi.number().required().label("Company"),
   jobLevelId: Joi.number().required().label("Job Level"),
-  fromDate: Joi.string().trim().required().label("From Date"),  
+  fromDate: Joi.string().trim().required().label("From Date"),
   isPromotion: Joi.boolean().required().label("Promotion").optional(),
-  id: Joi.number().allow(null)
+  id: Joi.number().allow(null),
 });
 
 const addEmployeeTypeEmploymentSchema = Joi.object({
@@ -1230,7 +1242,7 @@ const addEmployeeTypeEmploymentSchema = Joi.object({
   companyId: Joi.number().required().label("Company"),
   employeeType: Joi.number().required().label("Employee Type"),
   fromDate: Joi.string().trim().required().label("From Date"),
-  id: Joi.number().allow(null)
+  id: Joi.number().allow(null),
 });
 
 export default {
@@ -1283,10 +1295,11 @@ export default {
   requestForPaymentApprovalSchema,
   actionPaymentSchema,
   blockLoginSchema,
+  requestForProbationExtendvalidationSchema,
   addDesignationEmploymentSchema,
   addDepartmentEmploymentSchema,
   addCostCenterEmploymentSchema,
   addCompanyLocationEmploymentSchema,
   addJobLevelEmploymentSchema,
-  addEmployeeTypeEmploymentSchema
+  addEmployeeTypeEmploymentSchema,
 };

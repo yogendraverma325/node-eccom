@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
-    const employeePaymentDetails = sequelize.define("employeepaymentdetails", {
-        paymentId: {
+    const employeePaymentDetailsHistory = sequelize.define("employeepaymentdetailshistory", {
+        id: {
             type: Sequelize.INTEGER,
             primaryKey: true,
             autoIncrement: true
@@ -46,9 +46,6 @@ export default (sequelize, Sequelize) => {
         },
         status: {
             type: Sequelize.STRING
-        },
-        requrestTriggred:{
-            type: Sequelize.DATE
         },
         createdAt: {
             type: Sequelize.DATE
@@ -97,5 +94,5 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING
         }
     })
-    return employeePaymentDetails
+    return employeePaymentDetailsHistory
 }

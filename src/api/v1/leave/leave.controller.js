@@ -71,6 +71,7 @@ class LeaveController {
           query === "raisedByMe"
             ? {
               employeeId: req.userId,
+              source: { [Op.ne]: "system_generated" },
               status: "pending"
             }
             : {
@@ -109,6 +110,7 @@ class LeaveController {
   async updateLeaveRequest(req, res) {
     try {
       const result = await validator.updateLeaveRequest.validateAsync(req.body);
+
       let leaveIds = result.employeeLeaveTransactionsIds.split(",");
       let countLeave = await db.EmployeeLeaveHeader.count({
         where: {
@@ -780,6 +782,7 @@ class LeaveController {
   async revokeLeaveRequest(req, res) {
     try {
       const result = await validator.revoekLeaveRequest.validateAsync(req.body);
+
       let leaveIds = result.employeeLeaveTransactionsIds.split(",");
       let countLeave = await db.EmployeeLeaveHeader.count({
         where: {

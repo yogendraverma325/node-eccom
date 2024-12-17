@@ -1,11 +1,14 @@
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
-
 import xlsx from "json-as-xlsx";
 import fs from "fs";
 import logger from "../../../helper/logger.js";
+import helper from "../../../helper/helper.js";
+import respHelper from "../../../helper/respHelper.js";
+import emailTemplate from "../../../email/emailTemplate.js";
+import html_to_pdf from "html-pdf-node";
 
 class CronController {
   async updateAttendance() {
@@ -391,7 +394,9 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: element.dataValues.passwordExpiryDate,
+            passwordExpiryDate: moment(
+              element.dataValues.passwordExpiryDate
+            ).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment(element.dataValues.passwordExpiryDate).diff(
               moment(),
@@ -435,7 +440,9 @@ class CronController {
           JSON.stringify({
             name: element.dataValues.name,
             email: element.dataValues.email,
-            passwordExpiryDate: element.dataValues.passwordExpiryDate,
+            passwordExpiryDate: moment(
+              element.dataValues.passwordExpiryDate
+            ).format("DD-MM-YYYY"),
             companyName: element.dataValues.companymaster.companyName,
             daysLeft: moment().diff(
               moment(element.dataValues.passwordExpiryDate),
@@ -618,31 +625,590 @@ class CronController {
     }
   }
 
-  // START EMPLOYMENT DETAILS
+  ///CONFIRMATION
+  async generateConfirmation() {
+    const confimationData = await db.jobDetails.findAll({
+      where: {
+        dateOfProbationTriggerDate: {
+          [Op.eq]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+        },
+        confirmationGenerated: 0,
+      },
+      attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
+      include: {
+        model: db.employeeMaster,
+        attributes: [
+          "id",
+          "name",
+          "confimationPolicyAutoId",
+          "manager",
+          "empCode",
+        ],
+        required: true,
+        where: {
+          isActive: 1,
+        },
+        include: [
+          {
+            model: db.Confimationpolicy,
+            required: true,
+            where: {
+              isActive: 1,
+            },
+          },
+          {
+            model: db.designationMaster,
+            required: true,
+            attributes: ["designationId", "name"],
+          },
+        ],
+      },
+    });
 
+    for (const Singleconfimation of confimationData) {
+      let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
+        where: {
+          confirmationAssignmentAutoId:
+            Singleconfimation?.employee?.confimationpolicy?.confirmationAssignmentAutoId.split(
+              ","
+            ),
+          jobLevelId: {
+            [Op.or]: [
+              { [Op.like]: `${Singleconfimation.jobLevelId},%` },
+              { [Op.like]: `%,${Singleconfimation.jobLevelId},%` },
+              { [Op.like]: `%,${Singleconfimation.jobLevelId}` },
+              { [Op.eq]: `${Singleconfimation.jobLevelId}` },
+            ],
+          },
+        },
+      });
+      if (checkJobLevelAssignmnet) {
+        let respfrom = await helper.generateFieldsForgivenLevel(
+          Singleconfimation?.employee?.confimationPolicyAutoId,
+          1
+        );
+        if (respfrom.levelFound) {
+          const createdData = await db.Confirmationinitiated.create({
+            employeeId: Singleconfimation?.userId,
+            level: respfrom.level,
+            triggerDate: moment().format("YYYY-MM-DD"),
+            dueDate: Singleconfimation?.dateOfProbationEnd,
+            createdBy: 1,
+            status: 0,
+            confirmationExtentionCount: 0,
+            confirmationExtentionCountAllowed:
+              Singleconfimation?.employee?.confimationpolicy
+                ?.confirmationExtention,
+          });
+          await db.Confirmationaudittrail.create({
+            confirmationinitiatedAutoId:
+              createdData.confirmationinitiatedAutoId,
+            createdBy: 1,
+            status: 1,
+            level: 0,
+            message: "Confirmation Initiated",
+            confirmationAction: 0,
+          });
+          await db.jobDetails.update(
+            {
+              confirmationGenerated: 1,
+            },
+            {
+              where: {
+                userId: Singleconfimation.userId,
+              },
+            }
+          );
+          let EMP_DATA_SELF = await helper.getEmpProfile(
+            Singleconfimation?.userId
+          ); // SELF Manager
+          // if (respfrom.level == 1) {
+          let ownerId = 0;
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+            ownerId = Singleconfimation?.userId;
+          } else if (respfrom?.levelData?.ownerRole == "MANAGER") {
+            ownerId = EMP_DATA_SELF?.managerData?.id;
+          } else if (respfrom?.levelData?.ownerRole == "L2_MANAGER") {
+            let EMP_DATA = await helper.getEmpProfile(
+              EMP_DATA_SELF?.managerData?.id
+            ); // L2 Manager
+            ownerId = EMP_DATA?.id;
+          } else if (respfrom?.levelData?.ownerRole == "ADMIN") {
+            let admin = await db.employeeMaster.findOne({
+              where: {
+                role_id: 2,
+                isActive: 1,
+              },
+            });
+            ownerId = admin?.id;
+          } else if (respfrom?.levelData?.ownerRole == "BUHR") {
+            ownerId = EMP_DATA_SELF?.buHRId;
+          }
+          if (respfrom?.levelData?.ownerRole == "SELF") {
+            // eventEmitter.emit(
+            //   "selfReviewConfirnation",
+            //   JSON.stringify(Singleconfimation)
+            // );
+          } else {
+            let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
+
+            // eventEmitter.emit(
+            //   "confirmationWorkflowNextLevel",
+            //   JSON.stringify({
+            //     ESCALTERDATA: ESCALTERDATA,
+            //     EMP_DATA: EMP_DATA_SELF,
+            //   })
+            // );
+          }
+           ///ADMIN VIEW
+           await db.Confirmationowners.create({
+            confirmationinitiatedAutoId:
+              createdData.confirmationinitiatedAutoId,
+            employeeId: 1982,
+            level: respfrom.level,
+            canTakeAction: 1,
+            canTakeActionExtend: 1,
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            slaEndDate: null,
+            createdBy: 1,
+          });
+          ///ADMIN VIEW
+          await db.Confirmationowners.create({
+            confirmationinitiatedAutoId:
+              createdData.confirmationinitiatedAutoId,
+            employeeId: ownerId,
+            level: respfrom.level,
+            canTakeAction: 1,
+            canTakeActionExtend:
+              respfrom?.levelData?.ownerRole == "SELF" ? 0 : 1,
+            confirmationFormGroupId:
+              respfrom?.levelData?.confirmationFormGroupId,
+            slaEndDate: moment()
+              .add(respfrom?.levelData?.maxCompletionDay, "days")
+              .format("YYYY-MM-DD"),
+            createdBy: 1,
+          });
+          const formFields = await db.Confirmatoinformfields.findAll({
+            where: {
+              confirmationFormGroupId:
+                respfrom?.levelData?.confirmationFormGroupId,
+              level: respfrom.level,
+            },
+          });
+          let bulkArray = [];
+          for (const formField of formFields) {
+            bulkArray.push({
+              confirmationinitiatedAutoId:
+                createdData.confirmationinitiatedAutoId,
+              confirmationFormGroupId: formField.confirmationFormGroupId,
+              confirmatoinformfieldsAutoId:
+                formField.confirmatoinformfieldsAutoId,
+              employeeId: ownerId,
+              values: "",
+              level: respfrom.level,
+              createdBy: 1,
+            });
+          }
+          if (bulkArray.length > 0) {
+            await db.Confirmationformfilledvalues.bulkCreate(bulkArray);
+          }
+          // }
+        }
+      }
+    }
+  }
+  async checkSLAOfConfirmation() {
+    let givenTimeExpiredRecordsFromLevel = await db.Confirmationowners.findAll({
+      where: {
+        slaEndDate: {
+          [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+        },
+        isCompleted: 0,
+      },
+      include: [
+        {
+          model: db.employeeMaster,
+          attributes: ["empCode", "name", "id"],
+          where: {
+            isActive: 1,
+          },
+          include: {
+            model: db.employeeMaster,
+            required: true,
+            attributes: ["id", "name", "empCode"],
+            as: "managerData",
+            where: {
+              isActive: 1,
+            },
+          },
+        },
+        {
+          model: db.Confirmationinitiated,
+          include: {
+            model: db.employeeMaster,
+            where: {
+              isActive: 1,
+            },
+          },
+          where: {
+            status: 0,
+            onHold: 0,
+          },
+        },
+      ],
+    });
+    for (const singleRecords of givenTimeExpiredRecordsFromLevel) {
+      let levelownerData = await db.Confirmationpolicyworkflow.findOne({
+        where: {
+          confimationPolicyAutoId:
+            singleRecords?.confirmationinitiated?.employee
+              ?.confimationPolicyAutoId,
+          isEnable: 1,
+          level: singleRecords?.level,
+        },
+      });
+
+      if (levelownerData) {
+        let ESCALTERDATA = await helper.getEmpProfile(
+          singleRecords?.employee?.managerData?.id
+        ); // ESCLATER DATA
+        let EMP_DATA = await helper.getEmpProfile(
+          singleRecords?.confirmationinitiated?.employee?.id
+        ); // EMP DATA
+
+        // eventEmitter.emit(
+        //   "confirmationSLABreachEmailBody",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA,
+        //   })
+        // );
+
+        await db.Confirmationowners.create({
+          confirmationinitiatedAutoId:
+            singleRecords.confirmationinitiatedAutoId,
+          employeeId: singleRecords?.employee?.managerData?.id,
+          level: singleRecords?.level,
+          canTakeAction: singleRecords?.canTakeAction,
+          canTakeActionExtend: singleRecords?.canTakeActionExtend,
+          confirmationFormGroupId: singleRecords?.confirmationFormGroupId,
+          slaEndDate: moment()
+            .add(levelownerData.maxCompletionDay, "days")
+            .format("YYYY-MM-DD"),
+          createdBy: 1,
+        });
+      }
+
+      await db.Confirmationaudittrail.create({
+        confirmationinitiatedAutoId: singleRecords.confirmationinitiatedAutoId,
+        createdBy: 1,
+        status: 1,
+        level: singleRecords.level,
+        message: `not Completed by level ${singleRecords.level} ${singleRecords?.employee?.name} (${singleRecords?.employee?.empCode}) , escalated to  ${singleRecords?.employee?.managerData?.name} (${singleRecords?.employee?.managerData?.empCode})`,
+        confirmationAction: 0,
+      });
+    }
+  }
+  async checkConfirmatonHold() {
+    let givenTimeExpiredRecordsFromLevel =
+      await db.Confirmationinitiated.findAll({
+        where: {
+          dueDate: {
+            [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+          },
+          status: 0,
+          onHold: 0,
+        },
+      });
+    for (const element of givenTimeExpiredRecordsFromLevel) {
+      let empAndPolicyData = await db.employeeMaster.findOne({
+        where: {
+          id: element.employeeId,
+        },
+        include: {
+          model: db.Confimationpolicy,
+          required: true,
+          where: {
+            isActive: 1,
+          },
+        },
+      });
+      if (empAndPolicyData) {
+        await db.Confirmationinitiated.update(
+          {
+            onHold: 1,
+            holdEndDate: moment()
+              .add(empAndPolicyData?.confimationpolicy.holdDays, "days")
+              .format("YYYY-MM-DD"),
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId: element?.confirmationinitiatedAutoId,
+            },
+          }
+        );
+      }
+    }
+  }
+  async checkExtentionEnd() {
+    let extentionEndList = await db.Confirmationinitiated.findAll({
+      where: {
+        status: 2,
+        onHold: 0,
+      },
+      include: {
+        model: db.employeeMaster,
+        required: true,
+        attributes: ["id", "name", "confimationPolicyAutoId"],
+        include: [
+          {
+            model: db.Confimationpolicy,
+            required: true,
+            where: {
+              isActive: 1,
+            },
+            include: {
+              model: db.Confirmationpolicyworkflow,
+              required: true,
+            },
+          },
+          {
+            model: db.jobDetails,
+            attributes: ["jobId", "dateOfJoining", "dateOfProbationEnd"],
+            required: true,
+            where: {
+              dateOfProbationTriggerDate: {
+                [Op.eq]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+              },
+            },
+          },
+        ],
+      },
+    });
+    for (const singleextentionEndList of extentionEndList) {
+      let workflows =
+        singleextentionEndList?.employee?.confimationpolicy
+          ?.confimationpolicyworkflows;
+      let actualWorkFlow = workflows.find(
+        (workflow) => workflow.level === singleextentionEndList.level
+      );
+      if (actualWorkFlow) {
+        let lastOwner = await db.Confirmationowners.findOne({
+          where: {
+            confirmationinitiatedAutoId:
+              singleextentionEndList.confirmationinitiatedAutoId,
+            level: singleextentionEndList.level,
+          },
+        });
+
+        await db.Confirmationinitiated.update(
+          {
+            status: 0,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                singleextentionEndList.confirmationinitiatedAutoId,
+            },
+          }
+        );
+
+        let EMP_DATA_SELF = await db.employeeMaster.findOne({
+          where: {
+            id: singleextentionEndList.employeeId,
+          },
+        });
+
+        let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
+
+        // eventEmitter.emit(
+        //   "confirmationWorkflowNextLevel",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA_SELF,
+        //   })
+        // );
+
+        await db.Confirmationaudittrail.create({
+          confirmationinitiatedAutoId:
+            singleextentionEndList.confirmationinitiatedAutoId,
+          createdBy: 1,
+          status: 1,
+          level: singleextentionEndList.level,
+          message: `Confirmation Re-Initiated for approval at ${ESCALTERDATA.name} (${ESCALTERDATA.empCode})`,
+          confirmationAction: 0,
+        });
+
+        await db.Confirmationowners.update(
+          {
+            canTakeAction: actualWorkFlow?.isEnable == 1 ? 1 : 0,
+            canTakeActionExtend: actualWorkFlow?.isEnable == 1 ? 1 : 0,
+            isCompleted: 0,
+          },
+          {
+            where: {
+              confirmationinitiatedAutoId:
+                singleextentionEndList.confirmationinitiatedAutoId,
+              level: singleextentionEndList.level,
+            },
+          }
+        );
+      }
+    }
+  }
+  async generatConfiramtionletter() {
+    let whoseConfirmationDateIsTodayList =
+      await db.Confirmationinitiated.findAll({
+        where: {
+          status: 1,
+        },
+        include: {
+          model: db.employeeMaster,
+          required: true,
+          attributes: ["id", "name", "confimationPolicyAutoId"],
+          include: [
+            {
+              model: db.jobDetails,
+              attributes: [
+                "jobId",
+                "dateOfJoining",
+                "dateOfProbationEnd",
+                "confirmationDate",
+              ],
+              required: true,
+              where: {
+                dateOfProbationEnd: {
+                  [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+                },
+                confirmationDate: {
+                  [Op.is]: null, // This checks if the column `confirmationDate` is null
+                },
+              },
+            },
+          ],
+        },
+      });
+    for (const SingleConfirmationDateIsTodayList of whoseConfirmationDateIsTodayList) {
+      const confirmationData = await db.Confirmationinitiated.findOne({
+        where: {
+          confirmationinitiatedAutoId:
+            SingleConfirmationDateIsTodayList?.confirmationinitiatedAutoId,
+        },
+      });
+      if (confirmationData) {
+        await db.jobDetails.update(
+          {
+            confirmationDate:
+              SingleConfirmationDateIsTodayList?.employee?.employeejobdetail
+                ?.dateOfProbationEnd,
+          },
+          {
+            where: {
+              userId: SingleConfirmationDateIsTodayList?.employeeId,
+            },
+          }
+        );
+
+        const employeeData = await db.jobDetails.findOne({
+          where: {
+            userId: SingleConfirmationDateIsTodayList?.employeeId,
+          },
+          attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
+          include: {
+            model: db.employeeMaster,
+            attributes: ["id", "name", "confimationPolicyAutoId"],
+            require: true,
+            where: {
+              isActive: 1,
+            },
+            include: {
+              model: db.Confimationpolicy,
+              require: true,
+              where: {
+                isActive: 1,
+              },
+            },
+          },
+        });
+
+        let EMP_DATA_SELF = await helper.getEmpProfile(
+          SingleConfirmationDateIsTodayList?.employeeId
+        ); // SELF Manager
+        let signatureAuthority = await helper.getSigningAuthorityDate(
+          "CONFIRMATION",
+          EMP_DATA_SELF
+        ); // SELF Manager
+
+        const confirmationPolicyData = await db.Confimationpolicy.findOne({
+          where: {
+            confimationPolicyAutoId:
+              employeeData?.employee?.confimationPolicyAutoId,
+          },
+          attributes: [
+            "confiramtionEmailCC",
+            "confiramtionRequestEmailCC",
+            "extendEmailCC",
+          ],
+        });
+        let cc_arrays = [];
+        if (confirmationPolicyData) {
+          let holdRowCCData =
+            confirmationPolicyData?.dataValues?.confiramtionEmailCC.split(",");
+          if (holdRowCCData.length > 0) {
+            for (const single_cc_array of holdRowCCData) {
+              if (single_cc_array == "MANAGER") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues.managerData?.dataValues?.email
+                );
+              } else if (single_cc_array == "BUHR") {
+                cc_arrays.push(
+                  EMP_DATA_SELF?.dataValues?.buhrData?.dataValues?.email
+                );
+              }
+            }
+          }
+        }
+
+        // eventEmitter.emit(
+        //   "confirmationLetter",
+        //   JSON.stringify({
+        //     EMP_DATA_SELF: EMP_DATA_SELF,
+        //     confirmationData: confirmationData,
+        //     signatureAuthority: signatureAuthority,
+        //     cc: cc_arrays.join(","),
+        //   })
+        // );
+      }
+    }
+  }
+  ///CONFIRMATION
   async updateDesignation() {
     const docs = await db.DesignationEmploymentHistory.findAll({
       raw: true,
       where: {
         fromDate: moment().format("YYYY-MM-DD"),
-        needAttendanceCron: 1
+        needAttendanceCron: 1,
       },
     });
 
     if (docs.length > 0) {
       for (const element of docs) {
-        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+        let lastDayDate = moment(element.fromDate)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
 
-        const currentDataOfTheEmployee = await db.DesignationEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            needAttendanceCron: 0,
-            toDate: {
-              [Op.eq]: null,
+        const currentDataOfTheEmployee =
+          await db.DesignationEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              needAttendanceCron: 0,
+              toDate: {
+                [Op.eq]: null,
+              },
+              employeeId: element.employeeId,
             },
-            employeeId: element.employeeId,
-          },
-        });
+          });
 
         if (currentDataOfTheEmployee) {
           //MARKING LAST DESIGNATION WITH LAST DATE
@@ -688,7 +1254,6 @@ class CronController {
         );
       }
     }
-
   }
 
   async updateDepartment() {
@@ -696,24 +1261,27 @@ class CronController {
       raw: true,
       where: {
         fromDate: moment().format("YYYY-MM-DD"),
-        needAttendanceCron: 1
+        needAttendanceCron: 1,
       },
     });
 
     if (docs.length > 0) {
       for (const element of docs) {
-        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+        let lastDayDate = moment(element.fromDate)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
 
-        const currentDataOfTheEmployee = await db.DepartmentEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            needAttendanceCron: 0,
-            toDate: {
-              [Op.eq]: null,
+        const currentDataOfTheEmployee =
+          await db.DepartmentEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              needAttendanceCron: 0,
+              toDate: {
+                [Op.eq]: null,
+              },
+              employeeId: element.employeeId,
             },
-            employeeId: element.employeeId,
-          },
-        });
+          });
 
         if (currentDataOfTheEmployee) {
           //MARKING LAST DEPARTMENT WITH LAST DATE
@@ -754,7 +1322,7 @@ class CronController {
             buHRId: element.buHRId,
             buHeadId: element.buHeadId,
             departmentId: element.departmentId,
-            functionalAreaId: element.functionalAreaId
+            functionalAreaId: element.functionalAreaId,
           },
           {
             where: {
@@ -764,7 +1332,6 @@ class CronController {
         );
       }
     }
-
   }
 
   async updateCostCenter() {
@@ -772,24 +1339,27 @@ class CronController {
       raw: true,
       where: {
         fromDate: moment().format("YYYY-MM-DD"),
-        needAttendanceCron: 1
+        needAttendanceCron: 1,
       },
     });
 
     if (docs.length > 0) {
       for (const element of docs) {
-        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+        let lastDayDate = moment(element.fromDate)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
 
-        const currentDataOfTheEmployee = await db.CostCenterEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            needAttendanceCron: 0,
-            toDate: {
-              [Op.eq]: null,
+        const currentDataOfTheEmployee =
+          await db.CostCenterEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              needAttendanceCron: 0,
+              toDate: {
+                [Op.eq]: null,
+              },
+              employeeId: element.employeeId,
             },
-            employeeId: element.employeeId,
-          },
-        });
+          });
 
         if (currentDataOfTheEmployee) {
           //MARKING LAST COST CENTER WITH LAST DATE
@@ -825,7 +1395,7 @@ class CronController {
 
         let updateDone = await db.employeeMaster.update(
           {
-            costId: element.costId
+            costId: element.costId,
           },
           {
             where: {
@@ -835,7 +1405,6 @@ class CronController {
         );
       }
     }
-
   }
 
   async updateCompanyLocation() {
@@ -843,24 +1412,27 @@ class CronController {
       raw: true,
       where: {
         fromDate: moment().format("YYYY-MM-DD"),
-        needAttendanceCron: 1
+        needAttendanceCron: 1,
       },
     });
 
     if (docs.length > 0) {
       for (const element of docs) {
-        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+        let lastDayDate = moment(element.fromDate)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
 
-        const currentDataOfTheEmployee = await db.OfficeLocationEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            needAttendanceCron: 0,
-            toDate: {
-              [Op.eq]: null,
+        const currentDataOfTheEmployee =
+          await db.OfficeLocationEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              needAttendanceCron: 0,
+              toDate: {
+                [Op.eq]: null,
+              },
+              employeeId: element.employeeId,
             },
-            employeeId: element.employeeId,
-          },
-        });
+          });
 
         if (currentDataOfTheEmployee) {
           //MARKING LAST COMPANY LOCATION WITH LAST DATE
@@ -896,7 +1468,7 @@ class CronController {
 
         let updateDone = await db.employeeMaster.update(
           {
-            companyLocationId: element.companyLocationId
+            companyLocationId: element.companyLocationId,
           },
           {
             where: {
@@ -906,7 +1478,6 @@ class CronController {
         );
       }
     }
-
   }
 
   async updateJobLevel() {
@@ -914,24 +1485,27 @@ class CronController {
       raw: true,
       where: {
         fromDate: moment().format("YYYY-MM-DD"),
-        needAttendanceCron: 1
+        needAttendanceCron: 1,
       },
     });
 
     if (docs.length > 0) {
       for (const element of docs) {
-        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+        let lastDayDate = moment(element.fromDate)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
 
-        const currentDataOfTheEmployee = await db.JobLevelEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            needAttendanceCron: 0,
-            toDate: {
-              [Op.eq]: null,
+        const currentDataOfTheEmployee =
+          await db.JobLevelEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              needAttendanceCron: 0,
+              toDate: {
+                [Op.eq]: null,
+              },
+              employeeId: element.employeeId,
             },
-            employeeId: element.employeeId,
-          },
-        });
+          });
 
         if (currentDataOfTheEmployee) {
           //MARKING LAST JOB LEVEL WITH LAST DATE
@@ -969,7 +1543,7 @@ class CronController {
           {
             bandId: element.bandId,
             gradeId: element.gradeId,
-            jobLevelId: element.jobLevelId          
+            jobLevelId: element.jobLevelId,
           },
           {
             where: {
@@ -979,7 +1553,6 @@ class CronController {
         );
       }
     }
-
   }
 
   async updateEmployeeType() {
@@ -987,24 +1560,27 @@ class CronController {
       raw: true,
       where: {
         fromDate: moment().format("YYYY-MM-DD"),
-        needAttendanceCron: 1
+        needAttendanceCron: 1,
       },
     });
 
     if (docs.length > 0) {
       for (const element of docs) {
-        let lastDayDate = moment(element.fromDate).subtract(1, 'day').format("YYYY-MM-DD");
+        let lastDayDate = moment(element.fromDate)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
 
-        const currentDataOfTheEmployee = await db.EmployeeTypeEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            needAttendanceCron: 0,
-            toDate: {
-              [Op.eq]: null,
+        const currentDataOfTheEmployee =
+          await db.EmployeeTypeEmploymentHistory.findOne({
+            raw: true,
+            where: {
+              needAttendanceCron: 0,
+              toDate: {
+                [Op.eq]: null,
+              },
+              employeeId: element.employeeId,
             },
-            employeeId: element.employeeId,
-          },
-        });
+          });
 
         if (currentDataOfTheEmployee) {
           //MARKING LAST EMPLOYEE TYPE WITH LAST DATE
@@ -1040,7 +1616,7 @@ class CronController {
 
         let updateDone = await db.employeeMaster.update(
           {
-            employeeType: element.employeeType
+            employeeType: element.employeeType,
           },
           {
             where: {
@@ -1050,11 +1626,7 @@ class CronController {
         );
       }
     }
-
   }
-
-  // END EMPLOYMENT DETAILS
-
 }
 
 export default new CronController();
