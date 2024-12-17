@@ -301,17 +301,9 @@ class AdminController {
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-<<<<<<< HEAD
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-          };
-          await db.managerHistory.update(metaData, {
-            where: { id: iterator.id },
-          });
-=======
             updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
           }
           await db.managerHistory.update(metaData, { where: { 'id': iterator.id } });
->>>>>>> jay_employment_details
           const recordsExistForDate = await db.managerHistory.findOne({
             raw: true,
             where: {
@@ -1520,32 +1512,6 @@ class AdminController {
         isPromotion: result.isPromotion,
       };
 
-<<<<<<< HEAD
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.DesignationEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.DesignationEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
-=======
       const recordsExistForDate = await db.DesignationEmploymentHistory.findOne({
         raw: true,
         where: {
@@ -1555,7 +1521,6 @@ class AdminController {
           ...(result.id && { [Op.not]: { 'id': result.id } })
         },
       });
->>>>>>> jay_employment_details
 
       if (recordsExistForDate) {
         error = true;
@@ -1669,32 +1634,6 @@ class AdminController {
         toDate: null,
       };
 
-<<<<<<< HEAD
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.DepartmentEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.DepartmentEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
-=======
       const recordsExistForDate = await db.DepartmentEmploymentHistory.findOne({
         raw: true,
         where: {
@@ -1704,7 +1643,6 @@ class AdminController {
           ...(result.id && { [Op.not]: { 'id': result.id } })
         },
       });
->>>>>>> jay_employment_details
 
       if (recordsExistForDate) {
         error = true;
@@ -1818,32 +1756,6 @@ class AdminController {
         toDate: null,
       };
 
-<<<<<<< HEAD
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.CostCenterEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.CostCenterEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
-=======
       const recordsExistForDate = await db.CostCenterEmploymentHistory.findOne({
         raw: true,
         where: {
@@ -1853,7 +1765,6 @@ class AdminController {
           ...(result.id && { [Op.not]: { 'id': result.id } })
         },
       });
->>>>>>> jay_employment_details
 
       if (recordsExistForDate) {
         error = true;
@@ -1964,32 +1875,6 @@ class AdminController {
         toDate: null,
       };
 
-<<<<<<< HEAD
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.OfficeLocationEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.OfficeLocationEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
-=======
       const recordsExistForDate = await db.OfficeLocationEmploymentHistory.findOne({
         raw: true,
         where: {
@@ -1999,7 +1884,6 @@ class AdminController {
           ...(result.id && { [Op.not]: { 'id': result.id }})
         },
       });
->>>>>>> jay_employment_details
 
       if (recordsExistForDate) {
         error = true;
@@ -2118,31 +2002,6 @@ class AdminController {
         isPromotion: result.isPromotion,
       };
 
-<<<<<<< HEAD
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.JobLevelEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            fromDate: result.fromDate,
-            needAttendanceCron: 0,
-            employeeId: result.userId,
-          },
-        });
-=======
       const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
         raw: true,
         where: {
@@ -2152,7 +2011,6 @@ class AdminController {
           ...(result.id && { [Op.not]: { 'id': result.id }})
         },
       });
->>>>>>> jay_employment_details
 
       if (recordsExistForDate) {
         error = true;
@@ -2265,32 +2123,6 @@ class AdminController {
         toDate: null,
       };
 
-<<<<<<< HEAD
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.EmployeeTypeEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.EmployeeTypeEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
-=======
       const recordsExistForDate = await db.EmployeeTypeEmploymentHistory.findOne({
         raw: true,
         where: {
@@ -2300,7 +2132,6 @@ class AdminController {
           ...(result.id && { [Op.not]: { 'id': result.id } })
         },
       });
->>>>>>> jay_employment_details
 
       if (recordsExistForDate) {
         error = true;
