@@ -10,6 +10,7 @@ import moment from "moment";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
 import AdmZip from "adm-zip";
+// import AdmZip from "adm-zip";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -300,53 +301,351 @@ class MasterController {
           msg: "File is required!",
         });
       }
-  
+
       const zipFilePath = req.file.path;
-      
+
       transaction = await db.sequelize.transaction();
-  
+
       const zip = new AdmZip(zipFilePath);
       const zipEntries = zip.getEntries();
-      let empNotFound = []
+      let empNotFound = [];
 
       for (const zipEntry of zipEntries) {
-        if (zipEntry.isDirectory) continue; 
-  
+        if (zipEntry.isDirectory) continue;
+
         const fileName = zipEntry.entryName;
         const empCode = path.parse(fileName).name.split("__")[0];
         const fileExtension = path.extname(fileName);
-  
+
         const employee = await db.employeeMaster.findOne({
           where: { empCode },
           transaction,
         });
-  
-        if (employee) {
-  
-          const fileBuffer = zipEntry.getData(); 
-          const mimeType = `application/${fileExtension.replace(".", "")}`; 
-          const base64String = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
-  
+
+
+        if (employee && req.body.documentType == 1) {
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
           const d = Math.floor(Date.now() / 1000);
-          const uniqueFileName = `insurance_card_${d}`;
-  
+          const uniqueFileName = `confirmation_letter_${d}`;
+
           const imageUrl = await helper.fileUpload(
             base64String,
             uniqueFileName,
             `uploads/${empCode}`
           );
-            
-          await db.employeeMaster.update(
-            { insuranceCardImg: imageUrl },
-            { where: { empCode }, transaction }
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 1 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 1,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 1,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 1,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
+        } 
+        if (employee && req.body.documentType == 2) {
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
+          const d = Math.floor(Date.now() / 1000);
+          const uniqueFileName = `confirmation_letter_${d}`;
+
+          const imageUrl = await helper.fileUpload(
+            base64String,
+            uniqueFileName,
+            `uploads/${empCode}`
           );
-        } else {
-          empNotFound.push({empCode:empCode,error:`Employee with empCode ${empCode} not found.`})
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 2 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 2,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 2,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 2,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
+        } 
+        if (employee && req.body.documentType == 3) {
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
+          const d = Math.floor(Date.now() / 1000);
+          const uniqueFileName = `confirmation_letter_${d}`;
+
+          const imageUrl = await helper.fileUpload(
+            base64String,
+            uniqueFileName,
+            `uploads/${empCode}`
+          );
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 3 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 3,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 3,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 3,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
+        } 
+        if (employee && req.body.documentType == 4) {
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
+          const d = Math.floor(Date.now() / 1000);
+          const uniqueFileName = `bgv_card_${d}`;
+
+          const imageUrl = await helper.fileUpload(
+            base64String,
+            uniqueFileName,
+            `uploads/${empCode}`
+          );
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 4 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 4,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 4,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 4,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
+        } 
+        if (employee && req.body.documentType == 5) {
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
+          const d = Math.floor(Date.now() / 1000);
+          const uniqueFileName = `bgv_card_${d}`;
+
+          const imageUrl = await helper.fileUpload(
+            base64String,
+            uniqueFileName,
+            `uploads/${empCode}`
+          );
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 5 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 5,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 5,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 5,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
+        } 
+        if (employee && req.body.documentType == 6) {
+          const fileBuffer = zipEntry.getData();
+          const mimeType = `application/${fileExtension.replace(".", "")}`;
+          const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+            "base64"
+          )}`;
+
+          const d = Math.floor(Date.now() / 1000);
+          const uniqueFileName = `insurance_card_${d}`;
+
+          const imageUrl = await helper.fileUpload(
+            base64String,
+            uniqueFileName,
+            `uploads/${empCode}`
+          );
+          const existingDocument = await db.hrLetters.findOne({
+            attributes: ["letterId", "userId", "documentType"],
+            where: { userId: employee.id, documentType: 6 },
+            transaction,
+          });
+
+          if (existingDocument) {
+            // Update the existing document
+            await db.hrLetters.update(
+              {
+                documentType: 6,
+                documentImage: imageUrl,
+                updatedBy: req.userId,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }, // Update only the required field
+              {
+                where: {
+                  userId: employee.id,
+                  documentType: 6,
+                },
+                transaction,
+              }
+            );
+          } else {
+            // Create a new document record
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: 6,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+          }
+        } 
+       
+        else {
+          empNotFound.push({
+            empCode: empCode,
+            error: `Employee with empCode ${empCode} not found.`,
+          });
           console.warn(`Employee with empCode ${empCode} not found.`);
         }
       }
-  
-      await transaction.commit();  
+
+      await transaction.commit();
       fs.unlinkSync(zipFilePath);
 
       if (empNotFound.length > 0) {
@@ -357,7 +656,7 @@ class MasterController {
             sheet: "Employee",
             columns: [
               { label: "Employee Code", value: "empCode" },
-              { label: "Error", value: "error" }
+              { label: "Error", value: "error" },
             ],
             content: empNotFound,
           },
@@ -383,7 +682,7 @@ class MasterController {
       return respHelper(res, {
         status: 200,
         msg: "ZIP file processed successfully and database updated",
-        data: empNotFound
+        data: empNotFound,
       });
     } catch (error) {
       if (transaction) await transaction.rollback();
@@ -394,8 +693,6 @@ class MasterController {
       });
     }
   }
-  
-  
 }
 
 const createObj = (obj) => {

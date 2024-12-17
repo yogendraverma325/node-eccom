@@ -760,8 +760,9 @@ class CronController {
             //   })
             // );
           }
-           ///ADMIN VIEW
-           await db.Confirmationowners.create({
+
+          ///ADMIN VIEW
+          await db.Confirmationowners.create({
             confirmationinitiatedAutoId:
               createdData.confirmationinitiatedAutoId,
             employeeId: 1982,

@@ -23,6 +23,12 @@ export default (sequelize, Sequelize) => {
     isActive: {
       type: Sequelize.BOOLEAN,
     },
+    //RITAK WORK
+    createdBy: {
+     type: Sequelize.INTEGER,
+   },
+
+    //RITAK WORK
   });
   return holidayMaster;
 };

@@ -503,6 +503,22 @@ class UserController {
         ],
         group: ["batch_id"],
       });
+      const pendingAttendanceCount = await db.attendanceHistory.count({
+        where: {
+          attendanceStatus: 'pending'
+        },
+        order: [['date', 'DESC']],
+        include: [{
+          model: db.employeeMaster,
+          required: true,
+          where: Object.assign((!['ADMIN', 'HR_OPS'].includes(req.userRole)) ? {
+            manager: req.userId
+          } : {}, {
+            isActive: 1
+          }),
+          attributes: ['id', 'empCode', 'name', 'profileImage']
+        }]
+      })
 
       const countLeaveAssgined = await db.employeeLeaveTransactions.findAll({
         where: {
@@ -557,6 +573,10 @@ class UserController {
               raisedByMe: pendingAttCount,
               assignedToMe: assignedAttCount,
             },
+            pendingAttendance: {
+              raisedByMe: 0,
+              assignedToMe: pendingAttendanceCount,
+            },
             seperationCount: {
               raisedByMe: 0,
               assignedToMe: pendingSeperationCount,
@@ -567,11 +587,13 @@ class UserController {
               leaveData: countLeavePending.length,
               attedanceData: pendingAttCount,
               seperationCount: 0,
+              pendingAttendanceCount: 0
             },
             assignedToMe: {
               leaveData: countLeaveAssgined.length,
               attedanceData: assignedAttCount,
               seperationCount: pendingSeperationCount,
+              pendingAttendanceCount
             },
           },
         },
@@ -843,10 +865,10 @@ class UserController {
         finalStatus: 2,
         empAttachment: result.attachment
           ? await helper.fileUpload(
-              result.attachment,
-              `separation_attachment_${d}`,
-              `uploads/${existUser.dataValues.empCode}`
-            )
+            result.attachment,
+            `separation_attachment_${d}`,
+            `uploads/${existUser.dataValues.empCode}`
+          )
           : null,
         empSubmissionDate: moment(),
         createdDt: moment(),
@@ -1039,10 +1061,10 @@ class UserController {
           l1Remark: result.l1Remark,
           l1Attachment: result.attachment
             ? await helper.fileUpload(
-                result.attachment,
-                `separation_attachment_${d}`,
-                `uploads/${separationData.dataValues.employee.empCode}`
-              )
+              result.attachment,
+              `separation_attachment_${d}`,
+              `uploads/${separationData.dataValues.employee.empCode}`
+            )
             : null,
           l1SubmissionDate: moment(),
           pendingAt: separationData.dataValues.employee.buHRId,
@@ -2100,10 +2122,10 @@ class UserController {
           l2Remark: result.l2Remark,
           l2Attachment: result.attachment
             ? await helper.fileUpload(
-                result.attachment,
-                `separation_attachment_${d}`,
-                `uploads/${separationData.dataValues.employee.empCode}`
-              )
+              result.attachment,
+              `separation_attachment_${d}`,
+              `uploads/${separationData.dataValues.employee.empCode}`
+            )
             : null,
           l2SubmissionDate: moment(),
           l2RequestStatus: "Approved",
@@ -2566,10 +2588,10 @@ class UserController {
             regularizeStatus: { [Op.ne]: "Pending" },
             ...(fromDate &&
               extendedToDate && {
-                createdAt: {
-                  [db.Sequelize.Op.between]: [fromDate, extendedToDate],
-                },
-              }),
+              createdAt: {
+                [db.Sequelize.Op.between]: [fromDate, extendedToDate],
+              },
+            }),
           },
           include: [
             {
@@ -2589,11 +2611,11 @@ class UserController {
                     ...(search && { name: { [Op.like]: `%${search}%` } }),
                     ...(type === "all"
                       ? {
-                          [Op.or]: [
-                            //{ id: req.userId },
-                            { manager: req.userId },
-                          ],
-                        }
+                        [Op.or]: [
+                          //{ id: req.userId },
+                          { manager: req.userId },
+                        ],
+                      }
                       : { id: req.userId }),
                   },
                   include: [
@@ -2667,27 +2689,27 @@ class UserController {
               : { source: { [Op.ne]: "system_generated" } }),
             ...(fromDate &&
               toDate && {
-                appliedFor: {
-                  [db.Sequelize.Op.between]: [fromDate, toDate],
-                },
-              }),
+              appliedFor: {
+                [db.Sequelize.Op.between]: [fromDate, toDate],
+              },
+            }),
             ...(type === "all" && isSystemGenerated == 0
               ? {
-                  [Op.or]: [
-                    {
-                      pendingAt: req.userId,
-                      source: { [Op.ne]: "system_generated" },
-                    },
-                  ],
-                }
+                [Op.or]: [
+                  {
+                    pendingAt: req.userId,
+                    source: { [Op.ne]: "system_generated" },
+                  },
+                ],
+              }
               : type === "all" && isSystemGenerated == 1
-              ? {
+                ? {
                   [Op.or]: [
                     { employeeId: req.userId },
                     { pendingAt: req.userId, source: "system_generated" },
                   ],
                 }
-              : { employeeId: req.userId }), // Default case for non-"all" types
+                : { employeeId: req.userId }), // Default case for non-"all" types
           },
           include: [
             {
@@ -2736,6 +2758,47 @@ class UserController {
     }
   }
 
+  // Pending Attendance Task History
+  async taskHistoryAttendanceApproval(req, res) {
+    try {
+
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+
+      const { count, rows: pendingAttendanceData } = await db.attendanceHistory.findAndCountAll({
+        where: {
+          attendanceStatus: 'approved',
+          updatedBy: req.query.user || req.userId
+        },
+        include: [{
+          model: db.employeeMaster,
+          attributes: ['id', 'empCode', 'name']
+        }, {
+          model: db.employeeMaster,
+          attributes: ['id', 'empCode', 'name'],
+          as: 'attendanceApprover'
+        }],
+        limit,
+        offset
+      })
+
+      return respHelper(res, {
+        status: 200,
+        data: {
+          totalRecords: count,
+          totalPages: Math.ceil(count / limit),
+          currentPage: pageNo,
+          pendingAttendanceData,
+        }
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+  // Pending Attendance Task History
   async separationTaskForm(req, res) {
     try {
       const user = req.query.user || req.userId;
@@ -4219,8 +4282,8 @@ class UserController {
             //   })
             // );
           }
-           ///ADMIN VIEW
-           await db.Confirmationowners.create({
+          ///ADMIN VIEW
+          await db.Confirmationowners.create({
             confirmationinitiatedAutoId: req.query.confirmationinitiatedAutoId,
             employeeId: 1982,
             level: respfrom.level,
@@ -4647,20 +4710,17 @@ class UserController {
     }
   }
   ///CONFIRMATION///
+
   async getEmploymentDetails(req, res) {
     try {
       let userId = req.query.user;
 
-      let employmentDetails = await db.employeeMaster.findOne({
+      let employmentDetails = await db.employeeMaster.findOne({ 
         where: { id: userId },
-        attributes: ["id"],
+        attributes: ['id'],
         include: [
-          {
-            model: db.DesignationEmploymentHistory,
-            as: "designationHistories",
-            attributes: { exclude: ["createdBy", "updatedAt", "updatedBy"] },
+          { model: db.DesignationEmploymentHistory, as: 'designationHistories', attributes: { exclude: ['createdBy', 'updatedAt', 'updatedBy']}, 
             include: [
-<<<<<<< HEAD
               { model: db.designationMaster, attributes: ['designationId', 'name', 'code' ] }, 
               { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] },
               { model: db.employeeMaster, as: 'designationHistoryCreatedBy', attributes: ['id', 'name'] },
@@ -4718,83 +4778,21 @@ class UserController {
               //       { model: db.cityMaster, attributes: ['cityId', 'cityName', 'cityCode'] },
               //     ] 
               // }, 
-=======
-              {
-                model: db.designationMaster,
-                attributes: ["designationId", "name", "code"],
-              },
-              {
-                model: db.companyMaster,
-                attributes: ["companyId", "companyName", "companyCode"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "designationHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
->>>>>>> fdd1696a68877d1ac5fd6f8cf7a8617b1e9ce539
             ],
             where: { employeeId: userId },
-            required: false,
+            required: false
           },
-          {
-            model: db.DepartmentEmploymentHistory,
-            as: "departmentHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
+          { model: db.EmployeeTypeEmploymentHistory, as: 'employeeTypeHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
             include: [
-<<<<<<< HEAD
               { model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] },
               { model: db.employeeMaster, as: 'employeeTypeHistoryCreatedBy', attributes: ['id', 'name'] },
               // { model: db.employeeTypeMaster, as: 'employeeTypeChangesFrom', attributes: ['empTypeId', 'emptypename'] },
-=======
-              {
-                model: db.departmentMaster,
-                attributes: [
-                  "departmentId",
-                  "departmentName",
-                  "departmentCode",
-                ],
-              },
-              {
-                model: db.functionalAreaMaster,
-                attributes: [
-                  "functionalAreaId",
-                  "functionalAreaName",
-                  "functionalAreaCode",
-                ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "departmentHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-              { model: db.buMaster, attributes: ["buId", "buName"] },
-              { model: db.sbuMaster, attributes: ["sbuId", "sbuName"] },
-              {
-                model: db.employeeMaster,
-                as: "departmentBUHR",
-                attributes: ["id", "name"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "departmentBUHead",
-                attributes: ["id", "name"],
-              },
->>>>>>> fdd1696a68877d1ac5fd6f8cf7a8617b1e9ce539
             ],
             where: { employeeId: userId },
-            required: false,
+            required: false
           },
-          {
-            model: db.CostCenterEmploymentHistory,
-            as: "costCenterHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
+          { model: db.managerHistory, as: 'managerHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
             include: [
-<<<<<<< HEAD
               { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ],
                 include: [{ model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] }]
               },
@@ -4806,121 +4804,6 @@ class UserController {
           },
           { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
           { model: db.jobDetails, attributes: ['jobId', 'userId', 'dateOfJoining'] }
-=======
-              {
-                model: db.costCenterMaster,
-                attributes: [
-                  "costCenterId",
-                  "costCenterName",
-                  "costCenterCode",
-                ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "costCenterHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.JobLevelEmploymentHistory,
-            as: "jobLevelHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.jobLevelMaster,
-                attributes: ["jobLevelId", "jobLevelName", "jobLevelCode"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "jobLevelHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.OfficeLocationEmploymentHistory,
-            as: "officeLocationHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.companyLocationMaster,
-                attributes: ["companyLocationCode", "address1"],
-                include: [
-                  {
-                    model: db.countryMaster,
-                    attributes: ["countryId", "countryName", "countryCode"],
-                  },
-                  {
-                    model: db.stateMaster,
-                    attributes: ["stateId", "stateName", "stateCode"],
-                  },
-                  {
-                    model: db.cityMaster,
-                    attributes: ["cityId", "cityName", "cityCode"],
-                  },
-                ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "officeLocationHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.EmployeeTypeEmploymentHistory,
-            as: "employeeTypeHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.employeeTypeMaster,
-                attributes: ["empTypeId", "emptypename"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "employeeTypeHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { employeeId: userId },
-            required: false,
-          },
-          {
-            model: db.managerHistory,
-            as: "managerHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
-            include: [
-              {
-                model: db.employeeMaster,
-                as: "managerHistoryDate",
-                attributes: ["id", "name", "empCode"],
-              },
-              {
-                model: db.employeeMaster,
-                as: "managerHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
-            ],
-            where: { needAttendanceCron: 0, employeeId: userId },
-            required: false,
-          },
-          { model: db.companyMaster, attributes: ["companyId", "companyName"] },
->>>>>>> fdd1696a68877d1ac5fd6f8cf7a8617b1e9ce539
         ],
         order: [
           ["designationHistories", "id", "ASC"], // Sorting for designationHistory
@@ -4930,16 +4813,17 @@ class UserController {
           ["employeeTypeHistories", "id", "ASC"], // Sorting for employeeTypeHistory
           ["officeLocationHistories", "id", "ASC"], // Sorting for officeLocationHistory
           ["managerHistories", "id", "ASC"], // Sorting for managerHistory
-        ],
+      ]
       });
 
-      if (employmentDetails) {
-        return respHelper(res, {
-          status: 200,
-          msg: constant.DATA_FETCHED,
-          data: employmentDetails,
-        });
-      } else {
+      if(employmentDetails) {
+          return respHelper(res, {
+            status: 200,
+            msg: constant.DATA_FETCHED,
+            data: employmentDetails
+          });
+      }
+      else {
         return respHelper(res, {
           status: 400,
           msg: constant.BAD_REQUEST,
@@ -4952,6 +4836,7 @@ class UserController {
       });
     }
   }
+
 }
 
 export default new UserController();

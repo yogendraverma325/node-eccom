@@ -26,6 +26,9 @@ export default (sequelize, Sequelize) => {
     location: {
       type: Sequelize.STRING,
     },
+    device: {
+      type: Sequelize.STRING,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
     },
@@ -37,7 +40,31 @@ export default (sequelize, Sequelize) => {
     },
     updatedAt: {
       type: Sequelize.DATE,
-    }
+    },
+    attendanceStatus: {
+      type: Sequelize.STRING
+    },
+    locationType: {
+      type: Sequelize.STRING,
+    },
+    userRemark: {
+      type: Sequelize.STRING,
+    },
+    approverRemark: {
+      type: Sequelize.STRING,
+    },
+    shiftId: {
+      type: Sequelize.INTEGER,
+    },
+    attendancePolicyId: {
+      type: Sequelize.INTEGER,
+    },
+    weekOffId: {
+      type: Sequelize.INTEGER,
+    },
+    companyLocationId: {
+      type: Sequelize.INTEGER,
+    },
   });
   return attendanceHistory;
 };

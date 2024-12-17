@@ -1176,7 +1176,7 @@ db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
 db.employeeMaster.hasMany(db.managerHistory, {
   foreignKey: "employeeId",
   sourceKey: "id",
-  as: "managerHistories",
+  as: 'managerHistories'
 });
 
 db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
@@ -1249,7 +1249,38 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   sourceKey: "buHeadId",
   as: "departmentBUHead",
 });
+// Join for Attendance history with Employee details
+db.attendanceHistory.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'employeeId'
+})
 
+db.attendanceHistory.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'updatedBy',
+  as: 'attendanceApprover'
+})
+
+db.attendanceHistory.hasOne(db.shiftMaster, {
+  foreignKey: 'shiftId',
+  sourceKey: 'shiftId'
+})
+
+db.attendanceHistory.hasOne(db.weekOffMaster, {
+  foreignKey: 'weekOffId',
+  sourceKey: 'weekOffId'
+})
+
+db.attendanceHistory.hasOne(db.attendancePolicymaster, {
+  foreignKey: 'attendancePolicyId',
+  sourceKey: 'attendancePolicyId'
+})
+
+db.attendanceHistory.hasOne(db.companyLocationMaster, {
+  foreignKey: 'companyLocationId',
+  sourceKey: 'companyLocationId'
+})
+// Join for Attendance history with Employee details
 // db.DesignationEmploymentHistory.hasOne(db.designationMaster, {
 //   foreignKey: "designationId",
 //   sourceKey: "oldDesignationId",

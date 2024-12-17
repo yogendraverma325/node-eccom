@@ -1245,6 +1245,20 @@ const addEmployeeTypeEmploymentSchema = Joi.object({
   id: Joi.number().allow(null),
 });
 
+// Attendance Approval Validations
+const attendanceApprovalSchema = Joi.object({
+  attendanceAutoId: Joi.array().items(Joi.number().required()).label("Attendance").messages({
+    "array.includesRequiredUnknowns":
+      "Please select atleast one attendance record",
+  }),
+  status: Joi.boolean().valid(0, 1).label("Status").messages({
+    "any.only":
+      "Status must be boolean",
+  }),
+  remark: Joi.string().max(50).optional().allow("").label("Remark")
+})
+// Attendance Approval Validations
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1302,4 +1316,5 @@ export default {
   addCompanyLocationEmploymentSchema,
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
+  attendanceApprovalSchema
 };

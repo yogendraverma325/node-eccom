@@ -11,4 +11,6 @@ export default Express
   .put("/revokeRegularizeRequest", attendanceController.revokeRegularizeRequest)
   .post("/attedanceCron", attendanceController.attedanceCron)
   .post("/attedanceCronForEMP", attendanceController.attedanceCronForEMP)
-  .get("/attendenceDetails", attendanceController.attendenceDetails);
+  .get("/attendenceDetails", attendanceController.attendenceDetails)
+  .get("/pendingAttendance", attendanceController.pendingAttendanceList)
+  .post("/attendanceApproval",attendanceController.attendanceApproval)
