@@ -22,7 +22,13 @@ export default (sequelize, Sequelize) => {
         },
         isActive: {
             type: Sequelize.BOOLEAN
-        }
+        },
+        //RITAK WORK
+        code: {
+        type: Sequelize.STRING,
+        },
+
+        //RITAK WORK
     })
     return sbuMaster
 }
