@@ -15,9 +15,10 @@ class CommonController {
 
   async createCompanyType(req, res) {
     try {
-      const result = await validator.companyTypeMasterSchema.validateAsync(
+      let result = await validator.companyTypeMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, createdBy: req.userId, isActive: 1 }
       let model = db.companyTypeMaster;
       let query = { typeName: result.typeName };
       let moduleName = "Company Type";
@@ -89,9 +90,10 @@ class CommonController {
 
   async updateCompanyType(req, res) {
     try {
-      const result = await validator.companyTypeMasterSchema.validateAsync(
+      let result = await validator.companyTypeMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.companyTypeMaster;
       let query = { companyTypeId: req.params.id };
       let response = await service.update(model, result, query);
@@ -158,7 +160,8 @@ class CommonController {
 
   async createBand(req, res) {
     try {
-      const result = await validator.bandMasterSchema.validateAsync(req.body);
+      let result = await validator.bandMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 }
       let model = db.bandMaster;
       let query = { bandCode: result.bandCode };
       let moduleName = "Band";
@@ -230,7 +233,8 @@ class CommonController {
 
   async updateBand(req, res) {
     try {
-      const result = await validator.bandMasterSchema.validateAsync(req.body);
+      let result = await validator.bandMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.bandMaster;
       let query = { bandId: req.params.id };
       let response = await service.update(model, result, query);
@@ -297,9 +301,10 @@ class CommonController {
 
   async createJobLevel(req, res) {
     try {
-      const result = await validator.jobLevelMasterSchema.validateAsync(
+      let result = await validator.jobLevelMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, createdBy: req.userId, isActive: 1 }
       let model = db.jobLevelMaster;
       let query = {
         jobLevelName: result.jobLevelName,
@@ -380,9 +385,10 @@ class CommonController {
 
   async updateJobLevel(req, res) {
     try {
-      const result = await validator.jobLevelMasterSchema.validateAsync(
+      let result = await validator.jobLevelMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.jobLevelMaster;
       let query = { jobLevelId: req.params.id };
       let response = await service.update(model, result, query);
@@ -629,7 +635,7 @@ class CommonController {
   async updateDepartment(req, res) {
     try {
       let result = await validator.departmentMasterSchema.validateAsync(req.body);
-      result = { ...result, updatedBy: req.user, updatedAt: moment() };
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.departmentMaster;
       let query = { departmentId: req.params.id };
       let response = await service.update(model, result, query);
@@ -734,7 +740,7 @@ class CommonController {
   async updateFunctionalArea(req, res) {
     try {
       let result = await validator.functionalAreaMasterSchema.validateAsync(req.body);
-      result = { ...result, updatedBy: req.user, updatedAt: moment() };
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.functionalAreaMaster;
       let query = { functionalAreaId: req.params.id };
       let response = await service.update(model, result, query);
