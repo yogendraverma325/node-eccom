@@ -572,7 +572,7 @@ class CommonController {
   async createDepartment(req, res) {
     try {
       let result = await validator.departmentMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1 };
+      result = { ...result, parentDepartmentId: 0, createdBy: req.userId, isActive: 1 };
 
       let model = db.departmentMaster;
       let query = { 'departmentName': result.departmentName, 'departmentCode': result.departmentCode };
