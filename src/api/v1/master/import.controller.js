@@ -5,11 +5,11 @@ import xlsx from "json-as-xlsx";
 import fs from "fs";
 import client from "../../../config/redisDb.config.js";
 import pkg from "xlsx";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
-import AdmZip from "adm-zip";
+// import AdmZip from "adm-zip";
 import path from "path";
 import { fileURLToPath } from "url";
 

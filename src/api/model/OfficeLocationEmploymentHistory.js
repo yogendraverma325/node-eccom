@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
       companyLocationId: {
         type: Sequelize.INTEGER,
       },
+      oldCompanyLocationId: {
+        type: Sequelize.INTEGER
+      },
       needAttendanceCron: {
         type: Sequelize.INTEGER,
       },
