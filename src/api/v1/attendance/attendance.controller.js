@@ -806,8 +806,7 @@ class AttendanceController {
           employeeId: req.userId,
           toDate: result.fromDate,
           fromDate: result.fromDate,
-          source: "system_generated",
-          status: 'pending'
+          source: "system_generated"
         }
       })
 
