@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-    const PayMonthlyElement  = sequelize.define("PayMonthlyElement", {
+    const PayMonthlyElement  = sequelize.define("paymonthlyelement", {
         payMonthlyElementAutoId: {
             type: Sequelize.INTEGER,
             primaryKey: true,

@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-  const earningArrears = sequelize.define("earningArrears", {
+  const earningArrears = sequelize.define("earningarrears", {
     earningArrearAutoId: {
       type: Sequelize.INTEGER,
       primaryKey: true,

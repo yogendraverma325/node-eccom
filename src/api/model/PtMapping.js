@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-    const ptMapping = sequelize.define("ptMapping", {
+    const ptMapping = sequelize.define("ptmapping", {
         ptmappingId: {
             type: Sequelize.INTEGER,
             primaryKey: true,
