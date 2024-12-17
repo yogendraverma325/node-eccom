@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
+import AdmZip from "adm-zip";
 // import AdmZip from "adm-zip";
 import path from "path";
 import { fileURLToPath } from "url";
