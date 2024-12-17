@@ -35,3 +35,51 @@ export default Express
     .patch("/bank/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfBank)
     .put("/bank/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateBank)
 
+
+    //RITAK WORK
+  // Bu master
+   .post("/bu", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createBu)
+   .get("/bu-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.buList)
+   .patch("/bu/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfBu)
+   .put("/bu/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateBu)
+
+
+   // Sbu master
+   .post("/sbu", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createSbu)
+   .get("/sbu-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.sbuList)
+   .patch("/sbu/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfSbu)
+   .put("/sbu/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateSbu)
+
+
+   // Designation master
+   .post("/designation", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createDesignation)
+   .get("/designation-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.designationList)
+   .patch("/designation/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfDesignation)
+   .put("/designation/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateDesignation)
+
+
+   // Grade master
+   .post("/grade", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createGrade)
+   .get("/grade-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.gradeList)
+   .patch("/grade/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfGrade)
+   .put("/grade/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateGrade)
+   
+    // Degree master
+    .post("/degree", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createDegree)
+    .get("/degree-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.degreeList)
+    .patch("/degree/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfDegree)
+    .put("/degree/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateDegree)
+     
+   // Holiday master
+   .post("/holiday", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createHoliday)
+   .get("/holiday-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.holidayList)
+   .patch("/holiday/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfHoliday)
+   .put("/holiday/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateHoliday)
+    // New Customer Name master
+ .post("/newcustomername", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createNewCustomer)
+ .get("/newcustomername-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.NewCustomerList)
+ .patch("/newcustomername/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfNewCustomer)
+ .put("/newcustomername/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateNewCustomer)
+  //RITAK WORK
+
+
