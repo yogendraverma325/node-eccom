@@ -1256,11 +1256,17 @@ db.attendanceHistory.hasOne(db.employeeMaster, {
   sourceKey: 'employeeId'
 })
 
+db.attendanceHistory.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'updatedBy',
+  as: 'attendanceApprover'
+})
 
 db.attendanceHistory.hasOne(db.shiftMaster, {
   foreignKey: 'shiftId',
   sourceKey: 'shiftId'
 })
+
 db.attendanceHistory.hasOne(db.weekOffMaster, {
   foreignKey: 'weekOffId',
   sourceKey: 'weekOffId'
@@ -1270,11 +1276,11 @@ db.attendanceHistory.hasOne(db.attendancePolicymaster, {
   foreignKey: 'attendancePolicyId',
   sourceKey: 'attendancePolicyId'
 })
+
 db.attendanceHistory.hasOne(db.companyLocationMaster, {
   foreignKey: 'companyLocationId',
   sourceKey: 'companyLocationId'
 })
-
 // Join for Attendance history with Employee details
 
 // END EMPLOYMENT HISTORY
