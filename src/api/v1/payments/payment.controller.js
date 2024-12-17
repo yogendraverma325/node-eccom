@@ -998,9 +998,6 @@ class PaymentController {
       let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.buId IN (${value.departmentId.split(
         ","
       )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${value.paymonth}';`;
-      console.log("value.departmentId",value.departmentId);
-      console.log("vvalue.paymonth",value.paymonth)
-
       
       const result = await db.sequelize.query(allEmployeeQuery);
 
@@ -2053,7 +2050,7 @@ class PaymentController {
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
-      if(employeeForProcessing[0][0].length > 0){
+      if(!employeeForProcessing || employeeForProcessing[0][0].length > 0){
         return respHelper(res, {
           status: 400,
           data: [],
