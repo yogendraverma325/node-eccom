@@ -31,6 +31,19 @@ const functionalAreaMasterSchema = Joi.object({
   functionalAreaCode: Joi.string().trim().required().label("Department Code")
 });
 
+const weekoffMasterSchema = Joi.object({
+  weekOffName: Joi.string().trim().required().label("Week Off Name"),
+  nonWorkingDays: Joi.string().trim().required().label("Non Working Days")
+});
+
+const shiftMasterSchema = Joi.object({
+  shiftName: Joi.string().trim().required().label("Shift Name"),
+  shiftStartTime: Joi.string().trim().required().label("Shift Start Time"),
+  shiftEndTime: Joi.string().trim().required().label("Shift End Time"),
+  shiftRemark: Joi.string().trim().required().label("Shift Remark"),
+  isOverNight: Joi.number().required().label("Is Over Night")
+});
+
 // End schema by jay
 
 export default {
@@ -40,6 +53,8 @@ export default {
   bankMasterSchema,
   // jay start
   departmentMasterSchema,
-  functionalAreaMasterSchema
+  functionalAreaMasterSchema,
+  weekoffMasterSchema,
+  shiftMasterSchema
   // jay end
 };

@@ -781,6 +781,216 @@ class CommonController {
     }
   }
 
+  /**
+   * CRUD of Week Off Master Created by Jay
+   * 
+  */
+
+  async createWeekoff(req, res) {
+    try {
+      let result = await validator.weekoffMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 };
+      let model = db.weekOffMaster;
+      let query = { 'weekOffName': result.weekOffName };
+      let moduleName = "Week Off";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async weekoffList(req, res) {
+    try {
+      let model = db.weekOffMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'weekOffName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: ['weekOffId', 'weekOffName', 'nonWorkingDays', 'createdAt', 'isActive'],
+        order: [["weekOffId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateWeekoff(req, res) {
+    try {
+      let result = await validator.weekoffMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.weekOffMaster;
+      let query = { weekOffId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfWeekoff(req, res) {
+    try {
+      let model = db.weekOffMaster;
+      let query = { weekOffId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of Shift Master Created by Jay
+   * 
+  */
+
+  async createShift(req, res) {
+    try {
+      let result = await validator.shiftMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 };
+      let model = db.shiftMaster;
+      let query = { 'shiftName': result.shiftName };
+      let moduleName = "Shift Name";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async shiftList(req, res) {
+    try {
+      let model = db.shiftMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'shiftName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: ['shiftId', 'shiftName', 'shiftStartTime', 'shiftEndTime', 'shiftRemark', 'isOverNight', 'createdAt', 'isActive'],
+        order: [["shiftId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateShift(req, res) {
+    try {
+      let result = await validator.shiftMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.shiftMaster;
+      let query = { shiftId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfShift(req, res) {
+    try {
+      let model = db.shiftMaster;
+      let query = { shiftId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
   // End master apis creation by jay
 
 

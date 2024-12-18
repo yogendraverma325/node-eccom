@@ -47,3 +47,17 @@ export default Express
     .put("/functionalArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateFunctionalArea)
     .patch("/functionalArea/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfFunctionalArea)
 
+    // week off master routes created by jay
+    .post("/weekoff", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createWeekoff)
+    .get("/weekoff-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.weekoffList)
+    .put("/weekoff/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateWeekoff)
+    .patch("/weekoff/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfWeekoff)
+
+    // shift master routes created by jay
+    .post("/shift", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createShift)
+    .get("/shift-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.shiftList)
+    .put("/shift/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateShift)
+    .patch("/shift/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfShift)
+
+    
+
