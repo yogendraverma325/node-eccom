@@ -9,21 +9,19 @@ import axios from "axios";
 import FormData from "form-data";
 
 class AuthController {
-
   async login(req, res) {
     try {
-
       const result = await validator.loginSchema.validateAsync(req.body);
 
-      let dataRes = null
+      let dataRes = null;
       if (parseInt(process.env.TEST) === 0) {
         const formData = new FormData();
         formData.append("uname", result.tmc);
         formData.append("pass", result.password);
         dataRes = await axios({
-          method: 'post',
-          url: 'https://wap.teamcomputers.com/emaauth/api/AD/Validatelogin',
-          data: formData
+          method: "post",
+          url: "https://wap.teamcomputers.com/emaauth/api/AD/Validatelogin",
+          data: formData,
         });
       }
 
@@ -32,12 +30,12 @@ class AuthController {
         include: [
           {
             model: db.roleMaster,
-            attributes: ['role_id', 'name']
+            attributes: ["role_id", "name"],
           },
           {
             model: db.designationMaster,
             attributes: ["designationId", "name"],
-          }
+          },
         ],
       });
 
@@ -55,14 +53,20 @@ class AuthController {
         });
       }
 
-      if (existUser.dataValues.wrongPasswordCount === parseInt(process.env.WRONG_PASSWORD_LIMIT)) {
+      if (
+        existUser.dataValues.wrongPasswordCount ===
+        parseInt(process.env.WRONG_PASSWORD_LIMIT)
+      ) {
         return respHelper(res, {
           status: 404,
           msg: constant.ACCOUNT_LOCKED,
         });
       }
 
-      if (existUser.dataValues.passwordExpiryDate && moment().isSameOrAfter(existUser.dataValues.passwordExpiryDate)) {
+      if (
+        existUser.dataValues.passwordExpiryDate &&
+        moment().isSameOrAfter(existUser.dataValues.passwordExpiryDate)
+      ) {
         return respHelper(res, {
           status: 400,
           msg: constant.PASSWORD_EXPIRED,
@@ -70,7 +74,6 @@ class AuthController {
       }
 
       if (!dataRes?.data?.status) {
-
         const comparePass = await bcrypt.compare(
           result.password,
           existUser.password
@@ -79,17 +82,29 @@ class AuthController {
         if (!comparePass) {
           await db.employeeMaster.update(
             Object.assign(
-              { wrongPasswordCount: existUser.dataValues.wrongPasswordCount + 1 },
-              (existUser.dataValues.wrongPasswordCount === 2) ? {
-                accountRecoveryTime: moment().add(parseInt(process.env.ACCOUNT_RECOVERY_TIME), 'minutes')
-              } : null
-            ), {
-            where: {
-              id: existUser.dataValues.id
+              {
+                wrongPasswordCount: existUser.dataValues.wrongPasswordCount + 1,
+              },
+              existUser.dataValues.wrongPasswordCount === 2
+                ? {
+                    accountRecoveryTime: moment().add(
+                      parseInt(process.env.ACCOUNT_RECOVERY_TIME),
+                      "minutes"
+                    ),
+                  }
+                : null
+            ),
+            {
+              where: {
+                id: existUser.dataValues.id,
+              },
             }
-          })
+          );
 
-          if (existUser.dataValues.wrongPasswordCount === (parseInt(process.env.WRONG_PASSWORD_LIMIT) - 1)) {
+          if (
+            existUser.dataValues.wrongPasswordCount ===
+            parseInt(process.env.WRONG_PASSWORD_LIMIT) - 1
+          ) {
             return respHelper(res, {
               status: 404,
               msg: constant.REACHED_WRONG_PASSWORD_LIMIT,
@@ -103,15 +118,14 @@ class AuthController {
         }
       }
 
-      const loggedInUser = await validateUser(req, existUser)
+      const loggedInUser = await validateUser(req, existUser);
 
       return respHelper(res, {
         status: 200,
         msg: constant.LOGIN_SUCCESS,
         token: loggedInUser.token,
-        data: loggedInUser.userData
+        data: loggedInUser.userData,
       });
-
     } catch (error) {
       console.log(error);
       if (error.isJoi === true) {
@@ -137,7 +151,7 @@ class AuthController {
           {
             model: db.designationMaster,
             attributes: ["designationId", "name"],
-          }
+          },
         ],
       });
 
@@ -151,8 +165,8 @@ class AuthController {
       if (existUser.dataValues.accountRecoveryTime) {
         return respHelper(res, {
           status: 404,
-          msg: constant.ACCOUNT_LOCKED
-        })
+          msg: constant.ACCOUNT_LOCKED,
+        });
       }
 
       if (!existUser.dataValues.isLoginActive) {
@@ -162,15 +176,14 @@ class AuthController {
         });
       }
 
-      const loggedInUser = await validateUser(req, existUser)
+      const loggedInUser = await validateUser(req, existUser);
 
       return respHelper(res, {
         status: 200,
         msg: constant.LOGIN_SUCCESS,
         token: loggedInUser.token,
-        data: loggedInUser.userData
+        data: loggedInUser.userData,
       });
-
     } catch (error) {
       return respHelper(res, {
         status: 500,
@@ -181,8 +194,8 @@ class AuthController {
   async testapi(req, res) {
     try {
       const regularizeData = await db.regularizationMaster.findAndCountAll({
-        attributes: ['regularizeId', 'regularizePunchInDate', 'createdBy']
-      })
+        attributes: ["regularizeId", "regularizePunchInDate", "createdBy"],
+      });
       // console.log(regularizeData.dataValues.createdBy)
       for (const element of regularizeData.rows) {
         // console.log(`${element.dataValues.regularizePunchInDate} - ${element.dataValues.createdBy}`)
@@ -190,25 +203,28 @@ class AuthController {
         const attendanceData = await db.attendanceMaster.findOne({
           where: {
             employeeId: element.dataValues.createdBy,
-            attendanceDate: element.dataValues.regularizePunchInDate
+            attendanceDate: element.dataValues.regularizePunchInDate,
           },
-          attribute: ['attendanceAutoId']
-        })
+          attribute: ["attendanceAutoId"],
+        });
 
-        console.log(attendanceData.dataValues.attendanceAutoId)
+        console.log(attendanceData.dataValues.attendanceAutoId);
 
-        await db.regularizationMaster.update({
-          attendanceAutoId: attendanceData.dataValues.attendanceAutoId
-        }, {
-          where: {
-            regularizeId: element.dataValues.regularizeId
+        await db.regularizationMaster.update(
+          {
+            attendanceAutoId: attendanceData.dataValues.attendanceAutoId,
+          },
+          {
+            where: {
+              regularizeId: element.dataValues.regularizeId,
+            },
           }
-        })
+        );
       }
 
       return respHelper(res, {
         status: 200,
-        data: regularizeData
+        data: regularizeData,
       });
     } catch (error) {
       return respHelper(res, {
@@ -228,9 +244,9 @@ const validateUser = async (req, existUser) => {
 
   await db.loginDetails.create({
     employeeId: existUser.dataValues.id,
-    loginIP: req.headers['x-real-ip'] || await helper.ip(req._remoteAddress),
+    loginIP: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
     loginDevice: req.headers.source ? req.headers.source : null,
-    createdDt: moment()
+    createdDt: moment(),
   });
 
   const payload = {
@@ -238,7 +254,7 @@ const validateUser = async (req, existUser) => {
       id: existUser.id,
       name: existUser.name,
       role: existUser.role.name,
-      device: req.headers.source ? req.headers.source : null
+      device: req.headers.source ? req.headers.source : null,
     },
   };
 
@@ -251,9 +267,9 @@ const validateUser = async (req, existUser) => {
       tokens: {
         accessToken: token,
         refreshToken: token,
-      }
-    }
-  }
-}
+      },
+    },
+  };
+};
 
 export default new AuthController();

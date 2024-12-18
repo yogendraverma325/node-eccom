@@ -426,7 +426,6 @@ async function paymentDetailsAdminApproval(input) {
   }
 }
 
-
 async function newJoinEmployeeMail(input) {
   try {
     const userData = JSON.parse(input);

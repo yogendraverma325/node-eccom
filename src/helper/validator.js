@@ -70,7 +70,7 @@ const regularizeRequest = Joi.object({
 
 const approveRegularizationRequestSchema = Joi.object({
   status: Joi.number().valid(0, 1),
-  regularizeId: Joi.number(),
+  regularizeId: Joi.string(),
   remark: Joi.string()
     .trim()
     .max(100)
@@ -1247,16 +1247,18 @@ const addEmployeeTypeEmploymentSchema = Joi.object({
 
 // Attendance Approval Validations
 const attendanceApprovalSchema = Joi.object({
-  attendanceAutoId: Joi.array().items(Joi.number().required()).label("Attendance").messages({
-    "array.includesRequiredUnknowns":
-      "Please select atleast one attendance record",
-  }),
+  attendanceAutoId: Joi.array()
+    .items(Joi.number().required())
+    .label("Attendance")
+    .messages({
+      "array.includesRequiredUnknowns":
+        "Please select atleast one attendance record",
+    }),
   status: Joi.boolean().valid(0, 1).label("Status").messages({
-    "any.only":
-      "Status must be boolean",
+    "any.only": "Status must be boolean",
   }),
-  remark: Joi.string().max(50).optional().allow("").label("Remark")
-})
+  remark: Joi.string().max(50).optional().allow("").label("Remark"),
+});
 // Attendance Approval Validations
 
 export default {
@@ -1316,5 +1318,5 @@ export default {
   addCompanyLocationEmploymentSchema,
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
-  attendanceApprovalSchema
+  attendanceApprovalSchema,
 };
