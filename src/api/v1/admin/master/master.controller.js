@@ -492,12 +492,12 @@ class CommonController {
       let query = {
         // isActive: 1,
         ...(search && {
-            [Op.or]: [
-                { bankName: { [Op.like]: `%${search}%` } },
-                { bankIfsc: { [Op.like]: `%${search}%` } }
-            ]
+          [Op.or]: [
+            { bankName: { [Op.like]: `%${search}%` } },
+            { bankIfsc: { [Op.like]: `%${search}%` } },
+          ],
         }),
-    };
+      };
 
       let aggregate = {
         where: query,
