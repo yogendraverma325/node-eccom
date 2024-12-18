@@ -1249,16 +1249,6 @@ const earningArrearsSchema = Joi.object({
   isActive: Joi.boolean().default(false).optional(), // Defaults to false if not provided
 });
 
-const payPackangeSchema = Joi.object({
-  "Email/Employee ID": Joi.number().required(),
-  Name: Joi.string().required(),
-  "Salary Structure": Joi.string().required(),
-  "Pay Cycle Code": Joi.string().allow(null, ""),
-  Currency: Joi.string().allow(null, ""),
-  CTC: Joi.number().required(),
-  "Effective Date": Joi.string().required(),
-}).unknown();
-
 async function createDynamicPayPackageSchema(structureDetails, employee) {
   let dynamicArray = [];
   for (const salaryComponent of structureDetails) {
@@ -1274,13 +1264,27 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
           ]
     );
   }
-  const dynamicFields = {};
+  const dynamicFields = {
+    "Email/Employee ID":Joi.number().required(),
+    "Name":Joi.string().allow(null,''),
+    "Effective Date":Joi.string().required(),
+    "Event":Joi.string().required(),
+    "Salary Structure":Joi.string().required(),
+    "CTC":Joi.number().required(),
+  };
   dynamicArray.forEach((field) => {
-    dynamicFields[field] = Joi.number().required();
+    dynamicFields[field] = Joi.number()
+      .min(0) // Allows 0 and any positive number
+      .messages({
+        "number.base": `"${field}" must be a valid number`,
+        "number.min": `"${field}" must be 0 or greater`,
+        "any.required": `"${field}" is required`,
+      });
   });
-  const { error } = await payPackangeSchema
-    .keys(dynamicFields)
-    .validate(employee);
+  const payPackangeSchema = Joi.object(dynamicFields).unknown(false);
+  const { error ,value} = await payPackangeSchema.validate(employee);
+  console.log(value);
+  console.log(error);
   return error;
 }
 
