@@ -1380,6 +1380,16 @@ db.paymentDetails.hasOne(db.ptLocationMaster, {
   sourceKey: "ptLocationId",
 });
 
+db.salaryComponent.hasOne(db.salarystructurecomponentmapping, {
+  foreignKey: "salaryComponentAutoId",
+  sourceKey: "salaryComponentAutoId",
+});
 /////////////////////////////Payroll///////////////////////////
+db.salarystructurecomponentmapping.hasOne(db.salarycomponentmapping, {
+  foreignKey: "salaryStructurecomponentmappingAutoId",
+  sourceKey: "salaryStructurecomponentmappingAutoId",
+});
+
+
 
 export default db;
