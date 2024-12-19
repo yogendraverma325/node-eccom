@@ -301,9 +301,11 @@ class AdminController {
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.managerHistory.update(metaData, { where: { 'id': iterator.id } });
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.managerHistory.update(metaData, {
+            where: { id: iterator.id },
+          });
           const recordsExistForDate = await db.managerHistory.findOne({
             raw: true,
             where: {
@@ -622,39 +624,39 @@ class AdminController {
         where: Object.assign(
           search
             ? {
-              [Op.or]: [
-                {
-                  name: {
-                    [Op.like]: `%${search}%`,
+                [Op.or]: [
+                  {
+                    name: {
+                      [Op.like]: `%${search}%`,
+                    },
                   },
-                },
-                {
-                  email: {
-                    [Op.like]: `%${search}%`,
+                  {
+                    email: {
+                      [Op.like]: `%${search}%`,
+                    },
                   },
-                },
-              ],
-              [Op.and]: [
-                {
-                  isActive:
-                    usersData.role_id == 1 || usersData.role_id == 2
-                      ? [1, 0]
-                      : [1],
-                },
-              ],
-              [Op.and]: activeQuery,
-            }
+                ],
+                [Op.and]: [
+                  {
+                    isActive:
+                      usersData.role_id == 1 || usersData.role_id == 2
+                        ? [1, 0]
+                        : [1],
+                  },
+                ],
+                [Op.and]: activeQuery,
+              }
             : {
-              [Op.and]: [
-                {
-                  isActive:
-                    usersData.role_id == 1 || usersData.role_id == 2
-                      ? [1, 0]
-                      : [1],
-                },
-              ],
-              [Op.and]: activeQuery,
-            }
+                [Op.and]: [
+                  {
+                    isActive:
+                      usersData.role_id == 1 || usersData.role_id == 2
+                        ? [1, 0]
+                        : [1],
+                  },
+                ],
+                [Op.and]: activeQuery,
+              }
         ),
         attributes: [
           "id",
@@ -806,9 +808,9 @@ class AdminController {
           if (existUser) {
             if (
               existUser.personalEmail ===
-              employeeOnboardingDetails.personalEmail ||
+                employeeOnboardingDetails.personalEmail ||
               existUser.personalMobileNumber ===
-              employeeOnboardingDetails.personalMobileNumber
+                employeeOnboardingDetails.personalMobileNumber
             ) {
               return respHelper(res, {
                 status: 400,
@@ -1512,15 +1514,17 @@ class AdminController {
         isPromotion: result.isPromotion,
       };
 
-      const recordsExistForDate = await db.DesignationEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-          ...(result.id && { [Op.not]: { 'id': result.id } })
-        },
-      });
+      const recordsExistForDate = await db.DesignationEmploymentHistory.findOne(
+        {
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+            ...(result.id && { [Op.not]: { id: result.id } }),
+          },
+        }
+      );
 
       if (recordsExistForDate) {
         error = true;
@@ -1532,26 +1536,27 @@ class AdminController {
           //     id: result.id,
           //   }
           // });
-  
+
           // if(verifyData) {
           //   if(verifyData.designation_id != result.designation_id) {
           //     metaData["oldDesignationId"] = verifyData.designation_id;
           //   }
           // }
-  
+
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.DesignationEmploymentHistory.update(metaData, { where: { 'id': result.id } });
-        }
-        else {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.DesignationEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
+        } else {
           metaData = {
             ...metaData,
             createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
           await db.DesignationEmploymentHistory.create(metaData);
         }
       }
@@ -1640,7 +1645,7 @@ class AdminController {
           fromDate: result.fromDate,
           needAttendanceCron: 1,
           employeeId: result.userId,
-          ...(result.id && { [Op.not]: { 'id': result.id } })
+          ...(result.id && { [Op.not]: { id: result.id } }),
         },
       });
 
@@ -1654,26 +1659,27 @@ class AdminController {
           //     id: result.id,
           //   }
           // });
-  
+
           // if(verifyData) {
           //   if(verifyData.departmentId != result.departmentId) {
           //     metaData["oldDepartmentId"] = verifyData.departmentId;
           //   }
           // }
-  
+
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.DepartmentEmploymentHistory.update(metaData, { where: { 'id': result.id } });
-        }
-        else {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.DepartmentEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
+        } else {
           metaData = {
             ...metaData,
             createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
           await db.DepartmentEmploymentHistory.create(metaData);
         }
       }
@@ -1762,7 +1768,7 @@ class AdminController {
           fromDate: result.fromDate,
           needAttendanceCron: 1,
           employeeId: result.userId,
-          ...(result.id && { [Op.not]: { 'id': result.id } })
+          ...(result.id && { [Op.not]: { id: result.id } }),
         },
       });
 
@@ -1776,26 +1782,27 @@ class AdminController {
           //     id: result.id,
           //   }
           // });
-  
+
           // if(verifyData) {
           //   if(verifyData.costId != result.costId) {
           //     metaData["oldCostId"] = verifyData.costId;
           //   }
           // }
-  
+
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.CostCenterEmploymentHistory.update(metaData, { where: { 'id': result.id } });
-        }
-        else {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.CostCenterEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
+        } else {
           metaData = {
             ...metaData,
             createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
           await db.CostCenterEmploymentHistory.create(metaData);
         }
       }
@@ -1875,15 +1882,16 @@ class AdminController {
         toDate: null,
       };
 
-      const recordsExistForDate = await db.OfficeLocationEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-          ...(result.id && { [Op.not]: { 'id': result.id }})
-        },
-      });
+      const recordsExistForDate =
+        await db.OfficeLocationEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+            ...(result.id && { [Op.not]: { id: result.id } }),
+          },
+        });
 
       if (recordsExistForDate) {
         error = true;
@@ -1895,26 +1903,27 @@ class AdminController {
           //     id: result.id,
           //   }
           // });
-  
+
           // if(verifyData) {
           //   if(verifyData.companyLocationId != result.companyLocationId) {
           //     metaData["oldCompanyLocationId"] = verifyData.companyLocationId;
           //   }
           // }
-  
+
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.OfficeLocationEmploymentHistory.update(metaData, { where: { 'id': result.id } });
-        }
-        else {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.OfficeLocationEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
+        } else {
           metaData = {
             ...metaData,
             createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
           await db.OfficeLocationEmploymentHistory.create(metaData);
         }
       }
@@ -2008,7 +2017,7 @@ class AdminController {
           fromDate: result.fromDate,
           needAttendanceCron: 1,
           employeeId: result.userId,
-          ...(result.id && { [Op.not]: { 'id': result.id }})
+          ...(result.id && { [Op.not]: { id: result.id } }),
         },
       });
 
@@ -2022,26 +2031,27 @@ class AdminController {
           //     id: result.id,
           //   }
           // });
-  
+
           // if(verifyData) {
           //   if(verifyData.jobLevelId != result.jobLevelId) {
           //     metaData["oldJobLevelId"] = verifyData.jobLevelId;
           //   }
           // }
-  
+
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.JobLevelEmploymentHistory.update(metaData, { where: { 'id': result.id } });
-        }
-        else {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.JobLevelEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
+        } else {
           metaData = {
             ...metaData,
             createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
           await db.JobLevelEmploymentHistory.create(metaData);
         }
       }
@@ -2123,15 +2133,16 @@ class AdminController {
         toDate: null,
       };
 
-      const recordsExistForDate = await db.EmployeeTypeEmploymentHistory.findOne({
-        raw: true,
-        where: {
-          fromDate: result.fromDate,
-          needAttendanceCron: 1,
-          employeeId: result.userId,
-          ...(result.id && { [Op.not]: { 'id': result.id } })
-        },
-      });
+      const recordsExistForDate =
+        await db.EmployeeTypeEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+            ...(result.id && { [Op.not]: { id: result.id } }),
+          },
+        });
 
       if (recordsExistForDate) {
         error = true;
@@ -2143,26 +2154,27 @@ class AdminController {
           //     id: result.id,
           //   }
           // });
-  
+
           // if(verifyData) {
           //   if(verifyData.employeeType != result.employeeType) {
           //     metaData["oldEmployeeType"] = verifyData.employeeType;
           //   }
           // }
-  
+
           metaData = {
             ...metaData,
             updatedBy: req.userId,
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
-          await db.EmployeeTypeEmploymentHistory.update(metaData, { where: { 'id': result.id } });
-        }
-        else {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.EmployeeTypeEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
+        } else {
           metaData = {
             ...metaData,
             createdBy: req.userId,
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
-          }
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
           await db.EmployeeTypeEmploymentHistory.create(metaData);
         }
       }
@@ -2223,20 +2235,20 @@ class AdminController {
       });
     }
   }
+
   // END EMPLOYMENT DETAILS
 
   // Attendance Approval API
   async requiredAttendanceApproval(req, res) {
     try {
-
-      const result = await validator.blockLoginSchema.validateAsync(req.body)
+      const result = await validator.blockLoginSchema.validateAsync(req.body);
 
       const existUser = await db.employeeMaster.findOne({
         where: {
           empCode: result.employeeCode,
-          isActive: 1
-        }
-      })
+          isActive: 1,
+        },
+      });
 
       if (!existUser) {
         return respHelper(res, {
@@ -2247,7 +2259,8 @@ class AdminController {
 
       await db.employeeMaster.update(
         {
-          requiredAttendanceApproval: !existUser.dataValues.requiredAttendanceApproval,
+          requiredAttendanceApproval:
+            !existUser.dataValues.requiredAttendanceApproval,
         },
         {
           where: {
@@ -2260,10 +2273,13 @@ class AdminController {
         status: 200,
         msg: constant.ATTENDANCE_APPROVAL_STATUS.replace(
           "<status>",
-          `${!existUser.dataValues.requiredAttendanceApproval ? "Enabled" : "Disabled"}`
+          `${
+            !existUser.dataValues.requiredAttendanceApproval
+              ? "Enabled"
+              : "Disabled"
+          }`
         ),
       });
-
     } catch (error) {
       console.log("error", error);
       if (error.isJoi) {
@@ -2277,8 +2293,6 @@ class AdminController {
       });
     }
   }
-
-
 }
 
 export default new AdminController();

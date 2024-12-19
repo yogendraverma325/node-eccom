@@ -4714,14 +4714,11 @@ class UserController {
     try {
       let userId = req.query.user;
 
-      let employmentDetails = await db.employeeMaster.findOne({
+      let employmentDetails = await db.employeeMaster.findOne({ 
         where: { id: userId },
-        attributes: ["id"],
+        attributes: ['id'],
         include: [
-          {
-            model: db.DesignationEmploymentHistory,
-            as: "designationHistories",
-            attributes: { exclude: ["createdBy", "updatedAt", "updatedBy"] },
+          { model: db.DesignationEmploymentHistory, as: 'designationHistories', attributes: { exclude: ['createdBy', 'updatedAt', 'updatedBy']}, 
             include: [
               { model: db.designationMaster, attributes: ['designationId', 'name', 'code' ] }, 
               { model: db.companyMaster, attributes: ['companyId', 'companyName', 'companyCode'] },
@@ -4782,28 +4779,18 @@ class UserController {
               // }, 
             ],
             where: { employeeId: userId },
-            required: false,
+            required: false
           },
-          {
-            model: db.DepartmentEmploymentHistory,
-            as: "departmentHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
+          { model: db.EmployeeTypeEmploymentHistory, as: 'employeeTypeHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy']}, 
             include: [
               { model: db.employeeTypeMaster, attributes: ['empTypeId', 'emptypename'] },
               { model: db.employeeMaster, as: 'employeeTypeHistoryCreatedBy', attributes: ['id', 'name'] },
               // { model: db.employeeTypeMaster, as: 'employeeTypeChangesFrom', attributes: ['empTypeId', 'emptypename'] },
             ],
             where: { employeeId: userId },
-            required: false,
+            required: false
           },
-          {
-            model: db.CostCenterEmploymentHistory,
-            as: "costCenterHistories",
-            attributes: {
-              exclude: ["createdAt", "createdBy", "updatedAt", "updatedBy"],
-            },
+          { model: db.managerHistory, as: 'managerHistories', attributes: { exclude: ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'] }, 
             include: [
               { model: db.employeeMaster, as: 'managerHistoryDate', attributes: ['id', 'name', 'empCode' ],
                 include: [{ model: db.departmentMaster, attributes: ['departmentId', 'departmentName', 'departmentCode' ] }]
@@ -4825,16 +4812,17 @@ class UserController {
           ["employeeTypeHistories", "id", "ASC"], // Sorting for employeeTypeHistory
           ["officeLocationHistories", "id", "ASC"], // Sorting for officeLocationHistory
           ["managerHistories", "id", "ASC"], // Sorting for managerHistory
-        ],
+      ]
       });
 
-      if (employmentDetails) {
-        return respHelper(res, {
-          status: 200,
-          msg: constant.DATA_FETCHED,
-          data: employmentDetails,
-        });
-      } else {
+      if(employmentDetails) {
+          return respHelper(res, {
+            status: 200,
+            msg: constant.DATA_FETCHED,
+            data: employmentDetails
+          });
+      }
+      else {
         return respHelper(res, {
           status: 400,
           msg: constant.BAD_REQUEST,
@@ -4847,6 +4835,7 @@ class UserController {
       });
     }
   }
+
 }
 
 export default new UserController();
