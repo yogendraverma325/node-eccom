@@ -51,6 +51,8 @@ export default Express
     .post("/getProcessDetails",authentication.authenticate,paymentController.getProcessDetails)
     .post("/extraPaymentUpload", upload.single('excelFile'), authentication.authenticate, paymentController.extraPaymentUpload)
     .post("/currentonthExtraPaymentSyncing",authentication.authenticate,paymentController.extraPaymentSyncing)
-    .get("/buList",authentication.authenticate,paymentController.buList);
+    .get("/buList",authentication.authenticate,paymentController.buList)
+    .get("/salaryComponentList",authentication.authenticate,paymentController.salaryComponentList);
+
 
 

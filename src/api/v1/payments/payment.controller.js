@@ -1216,36 +1216,6 @@ class PaymentController {
       const ptDynamicAttribute = [currentMonth, "ptAmount"];
       const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
 
-      // const ptDeducationDetails = await db.employeeMaster.findOne({
-      //   attributes: ["id", "empCode"],
-      //   where: { id: employee },
-      //   raw: true,
-      //   nest: true,
-      //   include: [
-      //     {
-      //       model: db.ptLocationMaster,
-      //       attributes: ["ptLocationId", "ptLocationCode", "stateId"],
-      //       include: [
-      //         {
-      //           model: db.ptMapping,
-      //           attributes: [
-      //             "ptmappingId",
-      //             "minValue",
-      //             "maxValue",
-      //             ptDynamicAttribute,
-      //           ],
-      //           required: false,
-      //           where: {
-      //             [Op.and]: [
-      //               { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
-      //               { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
-      //             ],
-      //           },
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // });
       const ptDeducationDetails = await db.paymentDetails.findOne({
         attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
         where: { userId: employee },
@@ -1276,26 +1246,6 @@ class PaymentController {
           },
         ],
       });
-
-      // const lwfDeducationDetails = await db.employeeMaster.findOne({
-      //   attributes: ["id", "empCode"],
-      //   where: { id: employee },
-      //   raw: true,
-      //   nest: true,
-      //   include: [
-      //     {
-      //       model: db.lwfDesignationMaster,
-      //       attributes: ["lwfDesignationId"],
-      //       include: [
-      //         {
-      //           model: db.lwfMapping,
-      //           attributes: ["lwfmappingId", lwfDynamicAttribute],
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // });
-
       const lwfDeducationDetails = await db.jobDetails.findOne({
         attributes: ["jobId", "lwfApplicable"],
         where: {
@@ -1325,12 +1275,20 @@ class PaymentController {
         raw: true,
       });
 
-      const ptAmount1 = ptDeducationDetails
-        ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
-        : 0;
-      const lwfAmount1 = lwfDeducationDetails
-        ? lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
-        : 0;
+      // const ptAmount1 = ptDeducationDetails
+      //   ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
+      //   : 0;
+      const ptAmount1 =
+        ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
+          ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
+          : 0;
+      // const lwfAmount1 = lwfDeducationDetails
+      //   ? lwfDeducationDetails.lwfApplicable == 1?.lwfDesignationName?.lwfmapping?.lwfAmount
+      //   : 0;
+      const lwfAmount1 =
+        lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
+          ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
+          : 0;
       const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
         : 0;
@@ -1381,19 +1339,7 @@ class PaymentController {
 
         continue;
       }
-      // if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
-      //   await db.payProcessDetails.update(
-      //     { payStatus: 2, payRemark: "Pay Package Not Assigned." },
-      //     {
-      //       where: {
-      //         EmployeeId: employee,
-      //         proceessId: processId,
-      //       },
-      //     }
-      //   );
 
-      //   continue;
-      // }
       const queryForAffetElementCounts = await paymentHelper.query(
         13,
         employee,
@@ -1476,6 +1422,36 @@ class PaymentController {
       { where: { payProcessMasterAutoId: processId } }
     );
     // //////////////////////Creating a Salary Run Process///////////////////////
+    let stepperDataQuery = null;
+    const queryForProcessStatus = await paymentHelper.query(9, processId, null);
+    const currentProcessStatus = await db.sequelize.query(
+      queryForProcessStatus
+    );
+
+    if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
+      stepperDataQuery = await paymentHelper.query(8, processId, null);
+      //processSalary(processId,req);
+    } else if (currentProcessStatus[0][0].currentStatusId == 3) {
+      stepperDataQuery = await paymentHelper.query(10, processId, null);
+    } else if ([6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)) {
+      stepperDataQuery = await paymentHelper.query(18, processId, {
+        paymonth: currentProcessStatus[0][0].payMonth,
+        month: currentProcessStatus[0][0].payMonth.split("-")[1],
+        year: currentProcessStatus[0][0].payMonth.split("-")[0],
+      });
+
+      console.log(stepperDataQuery);
+    }
+    const stepperData = await db.sequelize.query(stepperDataQuery);
+    return respHelper(res, {
+      status: 200,
+      data: {
+        currentStatusId: currentProcessStatus[0][0].currentStatusId,
+        stepperData: stepperData[0],
+      },
+      msg: "Status List Fetched Successfully",
+    });
+    return;
     return respHelper(res, {
       status: 200,
       data: salaryRegisterArray,
@@ -1801,6 +1777,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
+        msg: "TDS Uploaded Successfully.",
       });
     } catch (error) {
       console.log(error);
@@ -1893,7 +1870,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
-        msg: "Extra Payment Uploaded",
+        msg: "Extra Payment Uploaded Successfully",
       });
     } catch (error) {
       console.log(error);
@@ -1982,6 +1959,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
+        msg: "Lop Uploaded Successfully.",
       });
     } catch (error) {
       console.log(error);
@@ -2088,6 +2066,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
+        msg: "Extra Deduction Uploaded Successfully.",
       });
     } catch (error) {
       console.log(error);
@@ -2827,36 +2806,79 @@ class PaymentController {
   async getMappedEmployeeWithSalaryStructure(req, res) {
     try {
       let { salaryStructureAutoId } = req.body;
+      let getEmp = await db.payPackage.findAll({
+        where: {
+          salaryStructureAutoId: salaryStructureAutoId,
+        },
+        include: [
+          {
+            model: db.employeeMaster,
+            attributes: ["id", "empCode", "name", "buId", "designation_id"],
+            include: [
+              {
+                model: db.buMaster,
+                attributes: ["buId", "buName"],
+                required: false,
+              },
+              {
+                model: db.designationMaster,
+                attributes: ["name"],
+                required: false,
+              },
+            ],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
 
-      console.log(salaryStructureAutoId);
+      let formattedResponse = getEmp.map((item) => ({
+        StructureName: item.payPackageSalaryStructure,
+        EmployeeId: item.employee.empCode,
+        EmployeeName: item.employee.name,
+        BuName: item.employee.bumaster?.buName || "",
+        DesignationName: item.employee.designationmaster?.name || "",
+      }));
 
-      if (!salaryStructureAutoId) {
-        return respHelper(res, {
-          status: 400,
-          data: [],
-          msg: "Salary Structure Details Not Found.",
-        });
-      }
-      const queryForMappedEmployeeList = await paymentHelper.query(
-        3,
-        salaryStructureAutoId,
-        null
-      );
-      const resultMappedEmployeesList = await db.sequelize.query(
-        queryForMappedEmployeeList
-      );
-
-      console.log(queryForMappedEmployeeList);
       return respHelper(res, {
         status: 200,
-        data: resultMappedEmployeesList[0],
+        data: formattedResponse,
         msg: "Employee List Fetched Successfully",
       });
     } catch (e) {
       console.log(e);
     }
   }
+  // "StructureName": "NEW SALARY STRUCTURE",
+  // "id": 1098,
+  // "EmployeeId": "15538",
+  // "EmployeeName": "Prince",
+  // "BuName": "Integrating Services",
+  // "DesignationName": "Head IT"
+  // console.log(salaryStructureAutoId);
 
+  // if (!salaryStructureAutoId) {
+  //   return respHelper(res, {
+  //     status: 400,
+  //     data: [],
+  //     msg: "Salary Structure Details Not Found.",
+  //   });
+  // }
+  // const queryForMappedEmployeeList = await paymentHelper.query(
+  //   3,
+  //   salaryStructureAutoId,
+  //   null
+  // );
+  // const resultMappedEmployeesList = await db.sequelize.query(
+  //   queryForMappedEmployeeList
+  // );
+
+  // console.log(queryForMappedEmployeeList);
+  // return respHelper(res, {
+  //   status: 200,
+  //   data: resultMappedEmployeesList[0],
+  //   msg: "Employee List Fetched Successfully",
+  // });
   async getWipProcessList(req, res) {
     try {
       const { error, value } = await validator.payMonthYearCheck.validate(
@@ -2996,6 +3018,7 @@ class PaymentController {
 
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
+        //processSalary(processId,req);
       } else if (currentProcessStatus[0][0].currentStatusId == 3) {
         stepperDataQuery = await paymentHelper.query(10, processId, null);
       } else if (
@@ -3054,6 +3077,45 @@ class PaymentController {
         data: responseData,
       });
     } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        message: "An error occurred while fetching BU data.",
+      });
+    }
+  }
+
+  async salaryComponentList(req, res) {
+    try {
+      const { salalryStructureAutoId } = req.query;
+      const getComponentAutoIds =
+        await db.salarystructurecomponentmapping.findAll({
+          attributes: ["salaryComponentAutoId", "salaryStructureAutoId"],
+          where: {
+            salaryStructureAutoId: {
+              [Op.not]: salalryStructureAutoId, // Exclude records with this value
+            },
+          },
+          include: [
+            {
+              model: db.salaryComponent,
+              attributes: [
+                "salaryComponentCode",
+                "salaryComponentAlias",
+                "salaryComponentEarningType",
+              ],
+              as: "componentDetails",
+            },
+          ],
+        });
+      return respHelper(res, {
+        status: 200,
+        data: {
+          getComponentAutoIds: getComponentAutoIds,
+        },
+        msg: "List Fetched Successfully",
+      });
+    } catch (error) {
+      console.log(">>", error);
       return respHelper(res, {
         status: 500,
         message: "An error occurred while fetching BU data.",
@@ -3185,7 +3247,6 @@ async function processSalary(data) {
         .toLowerCase();
       const ptDynamicAttribute = [currentMonth, "ptAmount"];
       const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
-
       const ptDeducationDetails = await db.paymentDetails.findOne({
         attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
         where: { userId: employee },
@@ -3216,38 +3277,6 @@ async function processSalary(data) {
           },
         ],
       });
-
-      // const ptDeducationDetails = await db.employeeMaster.findOne({
-      //   attributes: ["id", "empCode"],
-      //   where: { id: employee },
-      //   raw: true,
-      //   nest: true,
-      //   include: [
-      //     {
-      //       model: db.ptLocationMaster,
-      //       attributes: ["ptLocationId", "ptLocationCode", "stateId"],
-      //       include: [
-      //         {
-      //           model: db.ptMapping,
-      //           attributes: [
-      //             "ptmappingId",
-      //             "minValue",
-      //             "maxValue",
-      //             ptDynamicAttribute,
-      //           ],
-      //           required: false,
-      //           where: {
-      //             [Op.and]: [
-      //               { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
-      //               { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
-      //             ],
-      //           },
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // });
-
       const lwfDeducationDetails = await db.jobDetails.findOne({
         attributes: ["jobId", "lwfApplicable"],
         where: {
@@ -3269,26 +3298,6 @@ async function processSalary(data) {
           },
         ],
       });
-
-      // const lwfDeducationDetails = await db.employeeMaster.findOne({
-      //   attributes: ["id", "empCode"],
-      //   where: { id: employee },
-      //   raw: true,
-      //   nest: true,
-      //   include: [
-      //     {
-      //       model: db.lwfDesignationMaster,
-      //       attributes: ["lwfDesignationId"],
-      //       include: [
-      //         {
-      //           model: db.lwfMapping,
-      //           attributes: ["lwfmappingId", lwfDynamicAttribute],
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // });
-      console.log("result[0][0].payMonth", result[0][0].payMonth);
       const extraPaymentAmount = await db.extraPayment.findOne({
         where: {
           EmployeeId: employee,
@@ -3296,21 +3305,25 @@ async function processSalary(data) {
         },
         raw: true,
       });
-
-      const ptAmount1 = ptDeducationDetails
-        ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
-        : 0;
-      // const lwfAmount1 = lwfDeducationDetails
-      //   ? lwfDeducationDetails?.lwfdesignationmaster?.lwfmapping?.lwfAmount
+      // const ptAmount1 = ptDeducationDetails
+      //   ? ptDeducationDetails.lwfApplicable?.ptlocationmaster?.ptMapping?.ptAmount
       //   : 0;
-      const lwfAmount1 = lwfDeducationDetails
-        ? lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
-        : 0;
+      const ptAmount1 =
+        ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
+          ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
+          : 0;
+
+      // const lwfAmount1 = lwfDeducationDetails
+      //   ? lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
+      //   : 0;
+      const lwfAmount1 =
+        lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
+          ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
+          : 0;
 
       const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
         : 0;
-      //>>>>>>>>>>>>
       if (
         ptDeducationDetails &&
         ptDeducationDetails.ptApplicability == 1 &&
@@ -3440,6 +3453,8 @@ async function processSalary(data) {
       { processFlowId: 4 },
       { where: { payProcessMasterAutoId: processId } }
     );
+
+    //here need to add response
   } else {
     console.log("NO Data For Processing >>>>>>>>>");
   }

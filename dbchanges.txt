@@ -1,3 +1,7 @@
+//------------------------------------------2024-12-19--------------------------------------------------//
+ALTER TABLE `tara`.`paypackage` 
+ADD COLUMN `salaryStructureAutoId` INT NULL DEFAULT '0' AFTER `isActive`;
+
 //------------------------------------------2024-12-10--------------------------------------------------//
 
 ALTER TABLE `tara`.`paymonthlyelement` 
