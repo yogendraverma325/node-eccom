@@ -1348,6 +1348,11 @@ db.employeeMaster.hasOne(db.payPackage, {
   as:"packageDetails"
 });
 
+db.payPackage.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "EmployeeId"
+});
+
 db.payPackage.hasMany(db.payElements, {
   foreignKey: "payPackageAutoId",
   sourceKey: "payPackageAutoId",

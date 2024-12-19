@@ -156,7 +156,11 @@ class PaymentController {
   async payElements(req, res) {
     try {
       const user = req.query.user;
-      const payPackageDetails = await db.payPackage.findOne({where:{EmployeeId:req.userId},raw:true,attributes:['salaryStructureAutoId']});
+      const payPackageDetails = await db.payPackage.findOne({
+        where: { EmployeeId: req.userId },
+        raw: true,
+        attributes: ["salaryStructureAutoId"],
+      });
       const payElementsData = await db.payElements.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
@@ -187,24 +191,24 @@ class PaymentController {
             },
             order: ["includeInPackage", "DESC"],
             as: "salarycomponent",
-            include:[
+            include: [
               {
                 model: db.salarystructurecomponentmapping,
-                where:{
-                  salaryStructureAutoId:payPackageDetails.salaryStructureAutoId
+                where: {
+                  salaryStructureAutoId:
+                    payPackageDetails.salaryStructureAutoId,
                 },
-                attributes:['salaryStructurecomponentmappingAutoId'],
-                include:[
+                attributes: ["salaryStructurecomponentmappingAutoId"],
+                include: [
                   {
-                    model:db.salarycomponentmapping,
-                    where:{
-                      salaryComponentElementAutoId:21
-                    }
-
-                  }
-                ]
-              }
-            ]
+                    model: db.salarycomponentmapping,
+                    where: {
+                      salaryComponentElementAutoId: 21,
+                    },
+                  },
+                ],
+              },
+            ],
           },
         ],
       });
@@ -330,11 +334,13 @@ class PaymentController {
   async ctcProration(req, res) {
     try {
       const payPackageAutoId = req.query.payPackageAutoId;
-      const payPackageDetails = await db.payPackage.findOne({where:{payPackageAutoId:payPackageAutoId},raw:true,attributes:['salaryStructureAutoId']});
+      const payPackageDetails = await db.payPackage.findOne({
+        where: { payPackageAutoId: payPackageAutoId },
+        raw: true,
+        attributes: ["salaryStructureAutoId"],
+      });
 
       console.log(payPackageDetails.salaryStructureAutoId);
-
-
 
       const payElements = await db.payElements.findAll({
         where: {
@@ -354,31 +360,31 @@ class PaymentController {
                 "salaryComponentType",
                 "salaryComponentRemark",
                 "salaryComponentCalculation",
-                "salaryComponentDependent"
+                "salaryComponentDependent",
               ],
             },
             where: {
               salaryComponentEarningType: { [Op.ne]: ["Deduction"] },
             },
             as: "salarycomponent",
-            include:[
+            include: [
               {
                 model: db.salarystructurecomponentmapping,
-                where:{
-                  salaryStructureAutoId:payPackageDetails.salaryStructureAutoId
+                where: {
+                  salaryStructureAutoId:
+                    payPackageDetails.salaryStructureAutoId,
                 },
-                attributes:['salaryStructurecomponentmappingAutoId'],
-                include:[
+                attributes: ["salaryStructurecomponentmappingAutoId"],
+                include: [
                   {
-                    model:db.salarycomponentmapping,
-                    where:{
-                      salaryComponentElementAutoId:21
-                    }
-
-                  }
-                ]
-              }
-            ]
+                    model: db.salarycomponentmapping,
+                    where: {
+                      salaryComponentElementAutoId: 21,
+                    },
+                  },
+                ],
+              },
+            ],
           },
         ],
         attributes: {
@@ -396,8 +402,6 @@ class PaymentController {
         status: 200,
         data: payElements,
       });
-   
-   
     } catch (error) {
       console.log(error);
       return respHelper(res, {
@@ -820,28 +824,26 @@ class PaymentController {
       var Employees = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
-  
-  
-      
-      if(!isNaN(Employees[0]['Effective Date']))
-      {
-          console.log(paymentHelper.getFromattedDate(Employees[0]['Effective Date']));
+
+      if (!isNaN(Employees[0]["Effective Date"])) {
+        console.log(
+          paymentHelper.getFromattedDate(Employees[0]["Effective Date"])
+        );
       }
 
-      
-  
       // return;
       // // const Employees = pkg.utils.sheet_to_json(workbookEmployee.Sheets[sheetNameEmployee], { raw: false });
 
       // // console.log(Employees);
-    
+
       let errorArray = [],
         successArray = [];
       for (const employee of Employees) {
-
-        employee['Effective Date']=!isNaN(Employees[0]['Effective Date'])?paymentHelper.getFromattedDate(employee['Effective Date']):Employees[0]['Effective Date'];
-        console.log(employee['Effective Date']);
-        console.log(employee['Salary Structure']);
+        employee["Effective Date"] = !isNaN(Employees[0]["Effective Date"])
+          ? paymentHelper.getFromattedDate(employee["Effective Date"])
+          : Employees[0]["Effective Date"];
+        console.log(employee["Effective Date"]);
+        console.log(employee["Salary Structure"]);
 
         let employeeDetails = await db.employeeMaster.findOne({
           where: {
@@ -864,9 +866,6 @@ class PaymentController {
           });
           continue;
         }
-        
-
-        
 
         let structureDetails = await db.salaryStructure.findAll({
           where: {
@@ -898,25 +897,21 @@ class PaymentController {
           ],
         });
 
-
-        if(structureDetails.length==0)
-        {
+        if (structureDetails.length == 0) {
           return respHelper(res, {
             status: 500,
-            msg:"Structure not found."
+            msg: "Structure not found.",
           });
         }
 
         // console.log(structureDetails[0].salaryStructureAutoId);
 
-        // return 
+        // return
 
         const error = await validator.createDynamicPayPackageSchema(
           structureDetails,
           employee
         );
-
-      
 
         if (error) {
           console.log(
@@ -995,10 +990,12 @@ class PaymentController {
                 payPackageFinancialYear: "2024-25",
                 payPackageEffectiveDate: formatDate(year, month, day), //new Date(year, month - 1, day),
                 payPackageMonthlyCTC: employee["CTC"],
-                payPackageSalaryStructure:structureDetails[0].salaryStructureName,// employee["Salary Structure"],
+                payPackageSalaryStructure:
+                  structureDetails[0].salaryStructureName, // employee["Salary Structure"],
                 payPackageTotalCTC: employee["CTC"],
                 payPackageType: "Monthly",
-                salaryStructureAutoId:structureDetails[0].salaryStructureAutoId,
+                salaryStructureAutoId:
+                  structureDetails[0].salaryStructureAutoId,
                 createdBy: req.userData.id,
                 createdAt: new Date(),
                 isActive: 1,
@@ -1065,9 +1062,12 @@ class PaymentController {
         }
       }
       return respHelper(res, {
-        status: 200,//successArray.length>0?200:400,
+        status: 200, //successArray.length>0?200:400,
         data: { successArray, errorArray },
-        msg:successArray.length>0?"Package mapped with "+successArray.length+" employees":"Unable to map package",
+        msg:
+          successArray.length > 0
+            ? "Package mapped with " + successArray.length + " employees"
+            : "Unable to map package",
       });
     } catch (error) {
       console.log(error);
@@ -2057,7 +2057,6 @@ class PaymentController {
         status: 200,
         data: { errorArray, successArray },
         msg: "Extra Deduction Uploaded Successfully.",
-
       });
     } catch (error) {
       console.log(error);
@@ -2797,36 +2796,79 @@ class PaymentController {
   async getMappedEmployeeWithSalaryStructure(req, res) {
     try {
       let { salaryStructureAutoId } = req.body;
+      let getEmp = await db.payPackage.findAll({
+        where: {
+          salaryStructureAutoId: salaryStructureAutoId,
+        },
+        include: [
+          {
+            model: db.employeeMaster,
+            attributes: ["id", "empCode", "name", "buId", "designation_id"],
+            include: [
+              {
+                model: db.buMaster,
+                attributes: ["buId", "buName"],
+                required: false,
+              },
+              {
+                model: db.designationMaster,
+                attributes: ["name"],
+                required: false,
+              },
+            ],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
 
-      console.log(salaryStructureAutoId);
+      let formattedResponse = getEmp.map((item) => ({
+        StructureName: item.payPackageSalaryStructure,
+        EmployeeId: item.employee.empCode,
+        EmployeeName: item.employee.name,
+        BuName: item.employee.bumaster?.buName || "",
+        DesignationName: item.employee.designationmaster?.name || "",
+      }));
 
-      if (!salaryStructureAutoId) {
-        return respHelper(res, {
-          status: 400,
-          data: [],
-          msg: "Salary Structure Details Not Found.",
-        });
-      }
-      const queryForMappedEmployeeList = await paymentHelper.query(
-        3,
-        salaryStructureAutoId,
-        null
-      );
-      const resultMappedEmployeesList = await db.sequelize.query(
-        queryForMappedEmployeeList
-      );
-
-      console.log(queryForMappedEmployeeList);
       return respHelper(res, {
         status: 200,
-        data: resultMappedEmployeesList[0],
+        data: formattedResponse,
         msg: "Employee List Fetched Successfully",
       });
     } catch (e) {
       console.log(e);
     }
   }
+  // "StructureName": "NEW SALARY STRUCTURE",
+  // "id": 1098,
+  // "EmployeeId": "15538",
+  // "EmployeeName": "Prince",
+  // "BuName": "Integrating Services",
+  // "DesignationName": "Head IT"
+  // console.log(salaryStructureAutoId);
 
+  // if (!salaryStructureAutoId) {
+  //   return respHelper(res, {
+  //     status: 400,
+  //     data: [],
+  //     msg: "Salary Structure Details Not Found.",
+  //   });
+  // }
+  // const queryForMappedEmployeeList = await paymentHelper.query(
+  //   3,
+  //   salaryStructureAutoId,
+  //   null
+  // );
+  // const resultMappedEmployeesList = await db.sequelize.query(
+  //   queryForMappedEmployeeList
+  // );
+
+  // console.log(queryForMappedEmployeeList);
+  // return respHelper(res, {
+  //   status: 200,
+  //   data: resultMappedEmployeesList[0],
+  //   msg: "Employee List Fetched Successfully",
+  // });
   async getWipProcessList(req, res) {
     try {
       const { error, value } = await validator.payMonthYearCheck.validate(
@@ -3032,9 +3074,43 @@ class PaymentController {
     }
   }
 
-  async reInitiateSalary(req, res) {
+  async salaryComponentList(req, res) {
     try {
-    } catch (error) {}
+      const { salalryStructureAutoId } = req.query;
+      const getComponentAutoIds =
+        await db.salarystructurecomponentmapping.findAll({
+          attributes: ["salaryComponentAutoId", "salaryStructureAutoId"],
+          where: {
+            salaryStructureAutoId: {
+              [Op.not]: salalryStructureAutoId, // Exclude records with this value
+            },
+          },
+          include: [
+            {
+              model: db.salaryComponent,
+              attributes: [
+                "salaryComponentCode",
+                "salaryComponentAlias",
+                "salaryComponentEarningType",
+              ],
+              as: "componentDetails",
+            },
+          ],
+        });
+      return respHelper(res, {
+        status: 200,
+        data: {
+          getComponentAutoIds: getComponentAutoIds,
+        },
+        msg: "List Fetched Successfully",
+      });
+    } catch (error) {
+      console.log(">>", error);
+      return respHelper(res, {
+        status: 500,
+        message: "An error occurred while fetching BU data.",
+      });
+    }
   }
 }
 
@@ -3540,7 +3616,6 @@ async function generatePaySlip(data) {
           await db.paySlipComponent.bulkCreate(customeDeduction);
         }
 
-        
         let isExistPayElement = await db.paySlipComponent.findOne({
           where: {
             EmployeeId: payMonthlyElement.empId,
