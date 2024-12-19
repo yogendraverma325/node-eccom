@@ -1949,7 +1949,7 @@ class MasterController {
             as: "managerData",
           },
           { model: db.buMaster, attributes: ["buName"], required: false },
-          { model: db.sbuMaster, attributes: ["sbuname"], required: false },
+          { model: db.sbuMaster, attributes: ["sbuname","code"], required: false },
           {
             model: db.companyLocationMaster,
             attributes: ["address1", "companyLocationCode", "isHeadquarter"],
@@ -2032,13 +2032,36 @@ class MasterController {
               },
             ],
           },
+          {
+            model: db.separationMaster,
+            include: [
+              {
+                model: db.separationReason,
+                as: "empReasonofResignation",
+                attributes: ["separationReason"],
+              },
+              {
+                model: db.separationReason,
+                as: "l1ReasonofResignation",
+                attributes: ["separationReason"],
+              },
+              {
+                model: db.separationReason,
+                attributes: ["separationReason"],
+                as: "l2ReasonofSeparation",
+              },
+              {
+                model: db.separationType,
+                as:"l2Separationtype"
+              }
+            ],
+          },
         ],
       });
 
       const arr = [];
       for (let i = 0; i < employeeData.length; i++) {
         const ele = employeeData[i];
-
         let headAndHrData = {};
         if (ele.dataValues.buId && ele.dataValues.companyId) {
           headAndHrData =
@@ -2096,7 +2119,9 @@ class MasterController {
           department_code:
             ele.dataValues.departmentmaster?.departmentCode || "",
           bu_name: ele.dataValues.bumaster?.buName || "",
-          sub_bu_name: ele.dataValues.sbumaster?.dataValues.sbuname || "",
+          sbu_name: ele.dataValues.sbumaster?.dataValues.sbuname || "",
+          sbu_code: ele.dataValues.sbumaster?.dataValues.code || "",
+
           grade: ele.employeejobdetail?.grademaster?.gradeName || "",
           band: ele.employeejobdetail?.bandmaster?.bandDesc || "",
           jobLevel: ele.employeejobdetail?.joblevelmaster?.jobLevelName || "",
@@ -2244,15 +2269,17 @@ class MasterController {
             ele.companylocationmaster?.dataValues?.companyLocationCode || "",
 
           date_of_confirmation: "",
-          date_of_resignation: "",
-          exit_date: "",
-          exit_type: "",
-          exit_reason: "",
-          final_separation_type: "",
-          admin_exit_reason: "",
+          date_of_resignation: ele.separationmaster
+            ? moment(ele.separationmaster.resignationDate).format("DD-MM-YYYY")
+            : "",
+          // exit_date: ele.separationmaster
+          // ?ele.separationmaster.l2LastWorkingDay? moment(ele.separationmaster.l2LastWorkingDay).format("DD-MM-YYYY")
+          // : "":"",
+          exit_type: ele.separationmaster?.l2Separationtype?.separationTypeName || "",
+        //  exit_reason: ele.separationmaster?.empReasonofResignation?.separationReason || "",
+          admin_exit_reason: ele.separationmaster?.l2ReasonofSeparation?.separationReason || "",
           // customer_code:"",
           project_code: ele.employeejobdetail?.projectCode || "",
-          sbu_name: "",
           customer_code: ele.employeejobdetail?.dataValues?.customerName
             ? (ele.employeejobdetail.dataValues.customerName.match(/(C\d+)/) ||
                 [])[1] || ""
@@ -2293,7 +2320,7 @@ class MasterController {
       }
 
       if (arr.length > 0) {
-        const timestamp = Date.now();
+        const timestamp = moment().format("h:mm A");
 
         const data = [
           {
@@ -2329,7 +2356,8 @@ class MasterController {
 
               { label: "Department", value: "department_name" },
               { label: "Department Code", value: "department_code" },
-              { label: "Sub BU Name", value: "sub_bu_name" },
+              { label: "Sbu Name", value: "sbu_name" },
+              { label: "Sbu Code", value: "sbu_code" },
               { label: "Grade", value: "grade" },
               { label: "Band", value: "band" },
               { label: "Job Level", value: "jobLevel" },
@@ -2386,13 +2414,9 @@ class MasterController {
               { label: "Work Area Code", value: "work_area_code" },
               { label: "Date Of Confirmation", value: "date_of_confirmation" },
               { label: "Date Of Resignation", value: "date_of_resignation" },
-              { label: "Exit Date", value: "exit_date" },
+              // { label: "Exit Date", value: "exit_date" },
               { label: "Exit Type", value: "exit_type" },
-              { label: "Exit Reason", value: "exit_reason" },
-              {
-                label: "Final Separation Type",
-                value: "final_separation_type",
-              },
+              // { label: "Exit Reason", value: "exit_reason" },
               { label: "Admin Exit Reason", value: "admin_exit_reason" },
               { label: "Customer Code", value: "customer_code" },
               { label: "Project Code", value: "project_code" },
