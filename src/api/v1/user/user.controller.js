@@ -2768,7 +2768,9 @@ class UserController {
 
       const { count, rows: pendingAttendanceData } = await db.attendanceHistory.findAndCountAll({
         where: {
-          attendanceStatus: 'approved',
+          attendanceStatus: {
+            [Op.ne]: ['pending']
+          },
           updatedBy: req.query.user || req.userId
         },
         include: [{

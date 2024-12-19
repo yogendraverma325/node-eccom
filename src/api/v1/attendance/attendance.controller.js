@@ -300,6 +300,7 @@ class AttendanceController {
             status: (!attendanceHistoryData) ? "Punch In" : "Punch Out",
             employeeId: req.userId,
             location: result.location,
+            locationType: result.locationType,
             lat: result.latitude,
             userRemark: result.remark != '' ? result.remark : null,
             attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval ? 'approved' : 'pending',
@@ -453,10 +454,7 @@ class AttendanceController {
               attendanceShiftId: existEmployee.shiftsmaster.shiftId,
               attendancePunchInTime: currentDate.format("HH:mm:ss"),
               attendanceStatus: "Punch In",
-              attendanceLateBy: await helper.calculateLateBy(
-                currentDate.format("HH:mm:ss"),
-                withGraceTime
-              ),
+              attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
               attendancePresentStatus: "present",
               attendancePunchInRemark: result.remark,
               attendancePunchInLocationType: result.locationType,
@@ -595,8 +593,7 @@ class AttendanceController {
 
             graceTime.add(
               existEmployee.attendancePolicymaster.allowBufferTime == 1
-                ? existEmployee.attendancePolicymaster.graceTimeClockIn
-                : 0,
+                ? existEmployee.attendancePolicymaster.graceTimeClockIn : 0,
               "minutes"
             );
             const withGraceTime = graceTime.format("HH:mm:ss");
@@ -2575,8 +2572,8 @@ class AttendanceController {
         id: empId,
       },
     });
-    console.log("EMPID", empId);
-    console.log("EMPID weekoff", singleEmp);
+    // console.log("EMPID", empId);
+    // console.log("EMPID weekoff", singleEmp);
     let presentStatus = null;
 
     if (
@@ -2764,7 +2761,7 @@ class AttendanceController {
         );
       }
     } else {
-      console.log("attendance create");
+      // console.log("attendance create");
       await db.attendanceMaster.create({
         attendanceDate: moment().subtract(1, "day").format("YYYY-MM-DD"),
         attandanceShiftStartDate: moment()
@@ -2887,8 +2884,8 @@ class AttendanceController {
   async attedanceCronManual(attendanceAutoId, date) {
     try {
       let lastDayDate = moment(date).format("YYYY-MM-DD");
-      console.log("date", date);
-      console.log("attendanceAutoId", attendanceAutoId);
+      //console.log("date", date);
+      //console.log("attendanceAutoId", attendanceAutoId);
       let lastDayDateAnotherFormat = moment(date).format("DD-MM-YYYY");
       let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
       let dayCode = parseInt(moment(date).format("d")) + 1;
@@ -3039,7 +3036,7 @@ class AttendanceController {
                 // Calculate the total minutes
                 let totalMinutesLateMinutes =
                   time.hours() * 60 + time.minutes() + time.seconds() / 60;
-                console.log("totalMinutesLateMinutes", totalMinutesLateMinutes);
+                //console.log("totalMinutesLateMinutes", totalMinutesLateMinutes);
                 if (totalMinutesLateMinutes > 0) {
                   totalMinutesLateMinutes =
                     totalMinutesLateMinutes +
@@ -3579,6 +3576,8 @@ class AttendanceController {
 
       if (!result.status) {
         await db.attendanceHistory.update({
+          updatedAt: moment(),
+          updatedBy: req.userId,
           attendanceStatus: 'rejected',
           approverRemark: result.remark != "" ? result.remark : null
         }, {
@@ -3616,7 +3615,8 @@ class AttendanceController {
         },
         {
           model: db.weekOffMaster
-        }]
+        }],
+        order: [['attendanceHistoryId', 'ASC']]
       })
 
       for (const element of attendanceHistoryData) {
@@ -3627,6 +3627,9 @@ class AttendanceController {
             employeeId: element.dataValues.employeeId
           }
         })
+
+        const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
+        const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
 
         if (!attendanceData) {
           let graceTime = moment(
@@ -3641,8 +3644,6 @@ class AttendanceController {
             "minutes"
           );
           const withGraceTime = graceTime.format("HH:mm:ss");
-          const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
-          const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
 
           let creationObject = {
             attendanceDate: currentDate.format("YYYY-MM-DD"),
@@ -3668,10 +3669,12 @@ class AttendanceController {
 
           const createdAttendanceData = await db.attendanceMaster.create(creationObject)
 
-          _this.attedanceCronManual(
-            createdAttendanceData.dataValues.attendanceAutoId,
-            createdAttendanceData.dataValues.attendanceDate
-          );
+          if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
+            _this.attedanceCronManual(
+              createdAttendanceData.dataValues.attendanceAutoId,
+              createdAttendanceData.dataValues.attendanceDate
+            );
+          }
 
           await db.attendanceHistory.update({
             attendanceStatus: 'approved',
@@ -3682,10 +3685,8 @@ class AttendanceController {
               attendanceHistoryId: element.dataValues.attendanceHistoryId
             }
           })
-        } else if (attendanceData && element.dataValues.status === 'Punch Out') {
-          const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
-          const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
-
+        } else if (attendanceData && currentDate.isAfter(moment(`${attendanceData.dataValues.attendanceDate} ${attendanceData.dataValues.attendancePunchInTime}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'))) {
+          console.log("jab incoming record punch in time se baad ka hai")
           const updateObject = {
             attendancePunchOutTime: currentDate.format("HH:mm:ss"),
             attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
@@ -3733,12 +3734,15 @@ class AttendanceController {
             },
           })
 
-          _this.attedanceCronManual(
-            createdAttendanceData.dataValues.attendanceAutoId,
-            createdAttendanceData.dataValues.attendanceDate
-          );
+          if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
+            _this.attedanceCronManual(
+              createdAttendanceData.dataValues.attendanceAutoId,
+              createdAttendanceData.dataValues.attendanceDate
+            );
+          }
 
-        } else if (attendanceData && element.dataValues.status === 'Punch In') {
+        } else if (attendanceData && currentDate.isBefore(moment(`${attendanceData.dataValues.attendanceDate} ${attendanceData.dataValues.attendancePunchInTime}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'))) {
+          console.log("jab incoming record punch in time se pahle ka hai")
           let graceTime = moment(
             element.shiftsmaster.shiftStartTime,
             "HH:mm"
@@ -3751,8 +3755,6 @@ class AttendanceController {
             "minutes"
           );
           const withGraceTime = graceTime.format("HH:mm:ss");
-          const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
-          const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
 
           await db.attendanceMaster.update({
             attendanceDate: currentDate.format("YYYY-MM-DD"),
@@ -3783,15 +3785,31 @@ class AttendanceController {
             }
           );
 
-          await db.attendanceHistory.update({
-            attendanceStatus: 'approved',
-            updatedBy: req.userId,
-            updatedAt: moment()
-          }, {
-            where: {
-              attendanceHistoryId: element.dataValues.attendanceHistoryId
-            }
-          })
+          // await db.attendanceHistory.update({
+          //   attendanceStatus: 'approved',
+          //   updatedBy: req.userId,
+          //   updatedAt: moment()
+          // }, {
+          //   where: {
+          //     attendanceHistoryId: element.dataValues.attendanceHistoryId
+          //   }
+          // })
+
+          // will enable this
+
+          if (
+            !attendanceData.dataValues.attendanceShiftEndDate &&
+            moment(
+              `${attendanceData.dataValues.attendanceShiftEndDate} ${attendanceData.dataValues.attendancePunchOutTime}`,
+              'YYYY-MM-DD HH:mm:ss')
+              .format('YYYY-MM-DD HH:mm:ss')
+          ) {
+
+
+            console.log("hjhgjhfbjf", "dbfdbdb")
+          }
+
+
 
           const createdAttendanceData = await db.attendanceMaster.findOne({
             where: {
@@ -3800,10 +3818,12 @@ class AttendanceController {
             },
           })
 
-          _this.attedanceCronManual(
-            createdAttendanceData.dataValues.attendanceAutoId,
-            createdAttendanceData.dataValues.attendanceDate
-          );
+          if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
+            _this.attedanceCronManual(
+              createdAttendanceData.dataValues.attendanceAutoId,
+              createdAttendanceData.dataValues.attendanceDate
+            );
+          }
         }
       }
       return respHelper(res, {
