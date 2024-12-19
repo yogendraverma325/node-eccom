@@ -1088,6 +1088,489 @@ class CommonController {
     }
   }
 
+  /**
+   * CRUD of Attendance Policy Master Created by Jay
+   * 
+  */
+
+  async createAttendancePolicy(req, res) {
+    try {
+      let result = await validator.attendancePolicyMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
+      let model = db.attendancePolicymaster;
+      let query = { 'policyName': result.policyName };
+      let moduleName = "Attendance Policy Name";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async attendancePolicyList(req, res) {
+    try {
+      let model = db.attendancePolicymaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'policyName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+        },
+        order: [["attendancePolicyId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateAttendancePolicy(req, res) {
+    try {
+      let result = await validator.attendancePolicyMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.attendancePolicymaster;
+      let query = { attendancePolicyId: req.params.id };
+
+      let verifyQuery = {
+        [Op.not]: { attendancePolicyId: req.params.id },
+        policyName: result.policyName
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Policy Name') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfAttendancePolicy(req, res) {
+    try {
+      let model = db.attendancePolicymaster;
+      let query = { attendancePolicyId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of Leave Master Created by Jay
+   * 
+  */
+
+  async createLeave(req, res) {
+    try {
+      let result = await validator.leaveMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
+      let model = db.leaveMaster;
+      let query = { 'leaveName': result.leaveName, 'leaveCode': result.leaveCode };
+      let moduleName = "Leave";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async leaveList(req, res) {
+    try {
+      let model = db.leaveMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'leaveName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+        },
+        order: [["leaveId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateLeave(req, res) {
+    try {
+      let result = await validator.leaveMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.leaveMaster;
+      let query = { leaveId: req.params.id };
+
+      let verifyQuery = {
+        [Op.not]: { leaveId: req.params.id },
+        'leaveName': result.leaveName, 
+        'leaveCode': result.leaveCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Leave') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfLeave(req, res) {
+    try {
+      let model = db.leaveMaster;
+      let query = { leaveId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of Notice Period Master Created by Jay
+   * 
+  */
+
+  async createNoticePeriod(req, res) {
+    try {
+      let result = await validator.noticePeriodMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1, createdDt: moment().format("YYYY-MM-DD") };
+      let model = db.noticePeriodMaster;
+      let query = { [Op.or]: [ { 'noticePeriodName': result.noticePeriodName }, { 'noticePeriodCode': result.noticePeriodCode } ] };
+      let moduleName = "Notice Period";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async noticePeriodList(req, res) {
+    try {
+      let model = db.noticePeriodMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'noticePeriodName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+        },
+        order: [["noticePeriodAutoId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateNoticePeriod(req, res) {
+    try {
+      let result = await validator.noticePeriodMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedDt: moment().format("YYYY-MM-DD") };
+      let model = db.noticePeriodMaster;
+      let query = { noticePeriodAutoId: req.params.id };
+
+      let verifyQuery = {
+        [Op.not]: { noticePeriodAutoId: req.params.id },
+        'noticePeriodName': result.noticePeriodName, 
+        'noticePeriodCode': result.noticePeriodCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Notice Period') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfNoticePeriod(req, res) {
+    try {
+      let model = db.noticePeriodMaster;
+      let query = { noticePeriodAutoId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of PT Location Master Created by Jay
+   * 
+  */
+
+  async createPtLocation(req, res) {
+    try {
+      let result = await validator.ptLocationMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1, createdDt: moment() };
+      let model = db.ptLocationMaster;
+      let query = { [Op.or]: [ { 'ptLocationName': result.ptLocationName }, { 'ptLocationCode': result.ptLocationCode } ] };
+      let moduleName = "PT Location";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async ptLocationList(req, res) {
+    try {
+      let model = db.ptLocationMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || '';
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { 'ptLocationName': { [Op.like]: `%${search}%` } })
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+        },
+        order: [["ptLocationId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      }
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { 'rows': response.data, 'count': count };
+      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updatePtLocation(req, res) {
+    try {
+      let result = await validator.ptLocationMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedDt: moment().format("YYYY-MM-DD") };
+      let model = db.ptLocationMaster;
+      let query = { ptLocationId: req.params.id };
+
+      let verifyQuery = {
+        [Op.not]: { ptLocationId: req.params.id },
+        'ptLocationName': result.ptLocationName, 
+        'ptLocationCode': result.ptLocationCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'PT Location') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfPtLocation(req, res) {
+    try {
+      let model = db.ptLocationMaster;
+      let query = { ptLocationId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
   // End master apis creation by jay
 
 
