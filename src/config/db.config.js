@@ -1323,7 +1323,18 @@ db.attendanceHistory.hasOne(db.companyLocationMaster, {
 //   as: 'managerChangesFrom'
 // });
 
-
 // END EMPLOYMENT HISTORY
+
+// config pt state and pt location by jay
+
+db.paymentDetails.hasOne(db.stateMaster, {
+  foreignKey: "stateId",
+  sourceKey: "ptStateId"
+});
+
+db.paymentDetails.hasOne(db.ptLocationMaster, {
+  foreignKey: "ptLocationId",
+  sourceKey: "ptLocationId"
+});
 
 export default db;
