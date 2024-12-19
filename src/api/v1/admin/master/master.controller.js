@@ -6,6 +6,7 @@ import service from "./master.service.js";
 import Pagination from "../../../../helper/pagination.js";
 import { Op } from "sequelize";
 import moment from "moment";
+import constant from "../../../../constant/messages.js";
 
 class CommonController {
   /**
@@ -96,8 +97,21 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.companyTypeMaster;
       let query = { companyTypeId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { companyTypeId: req.params.id },
+        typeName: result.typeName
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Company Type') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -237,8 +251,22 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.bandMaster;
       let query = { bandId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { bandId: req.params.id },
+        bandCode: result.bandCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Band Code') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -391,8 +419,23 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.jobLevelMaster;
       let query = { jobLevelId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { jobLevelId: req.params.id },
+        jobLevelName: result.jobLevelName,
+        jobLevelCode: result.jobLevelCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Job Level') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -638,8 +681,22 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.departmentMaster;
       let query = { departmentId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { departmentId: req.params.id },
+        'departmentName': result.departmentName,
+        'departmentCode': result.departmentCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Department Name') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
 
     } catch (error) {
       logger.error(error);
@@ -743,8 +800,22 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.functionalAreaMaster;
       let query = { functionalAreaId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { functionalAreaId: req.params.id },
+        'functionalAreaName': result.functionalAreaName,
+        'functionalAreaCode': result.functionalAreaCode
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Functional Area') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
 
     } catch (error) {
       logger.error(error);
@@ -789,7 +860,7 @@ class CommonController {
   async createWeekoff(req, res) {
     try {
       let result = await validator.weekoffMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1 };
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
       let model = db.weekOffMaster;
       let query = { 'weekOffName': result.weekOffName };
       let moduleName = "Week Off";
@@ -848,8 +919,21 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.weekOffMaster;
       let query = { weekOffId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { weekOffId: req.params.id },
+        weekOffName: result.weekOffName
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Week Off Name') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
 
     } catch (error) {
       logger.error(error);
@@ -894,7 +978,7 @@ class CommonController {
   async createShift(req, res) {
     try {
       let result = await validator.shiftMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1 };
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
       let model = db.shiftMaster;
       let query = { 'shiftName': result.shiftName };
       let moduleName = "Shift Name";
@@ -953,8 +1037,21 @@ class CommonController {
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.shiftMaster;
       let query = { shiftId: req.params.id };
-      let response = await service.update(model, result, query);
-      return respHelper(res, response);
+
+      let verifyQuery = {
+        [Op.not]: { shiftId: req.params.id },
+        shiftName: result.shiftName
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if(isVerify.status == 200) {
+        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Shift Name') };
+        return respHelper(res, response);
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
 
     } catch (error) {
       logger.error(error);

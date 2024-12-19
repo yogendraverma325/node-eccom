@@ -33,7 +33,7 @@ const functionalAreaMasterSchema = Joi.object({
 
 const weekoffMasterSchema = Joi.object({
   weekOffName: Joi.string().trim().required().label("Week Off Name"),
-  nonWorkingDays: Joi.string().trim().required().label("Non Working Days")
+  nonWorkingDays: Joi.string().trim().allow(null).label("Non Working Days")
 });
 
 const shiftMasterSchema = Joi.object({
