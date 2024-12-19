@@ -265,7 +265,6 @@ class AttendanceController {
                 attendancePunchOutLocationType: result.locationType,
                 attendanceStatus: "Punch Out",
                 attendancePunchOutRemark: result.remark,
-                attendanceLocationType: result.locationType,
                 attendanceWorkingTime: await helper.timeDifference(
                   `${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
                   `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
@@ -380,7 +379,6 @@ class AttendanceController {
                   attendancePunchOutLocationType: result.locationType,
                   attendanceStatus: "Punch Out",
                   attendancePunchOutRemark: result.remark,
-                  attendanceLocationType: result.locationType,
                   attendanceWorkingTime: await helper.timeDifference(
                     `${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
                     `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
@@ -531,7 +529,6 @@ class AttendanceController {
                   attendancePunchOutLocationType: result.locationType,
                   attendanceStatus: "Punch Out",
                   attendancePunchOutRemark: result.remark,
-                  attendanceLocationType: result.locationType,
                   attendanceWorkingTime: await helper.timeDifference(
                     `${yerterdayDate.format("YYYY-MM-DD")} ${lastDayAttendace.attendancePunchInTime
                     }`,
@@ -3686,14 +3683,13 @@ class AttendanceController {
             }
           })
         } else if (attendanceData && currentDate.isAfter(moment(`${attendanceData.dataValues.attendanceDate} ${attendanceData.dataValues.attendancePunchInTime}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'))) {
-          console.log("jab incoming record punch in time se baad ka hai")
+
           const updateObject = {
             attendancePunchOutTime: currentDate.format("HH:mm:ss"),
             attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
             attendancePunchOutLocationType: element.locationType,
             attendanceStatus: "Punch Out",
             attendancePunchOutRemark: element.userRemark,
-            attendanceLocationType: element.locationType,
             attendanceWorkingTime: await helper.timeDifference(
               `${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
               `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
@@ -3727,6 +3723,10 @@ class AttendanceController {
             }
           })
 
+          // if (attendanceData && currentDate.isAfter(moment(`${attendanceData.dataValues.attendanceDate} ${attendanceData.dataValues.attendancePunchInTime}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'))) {
+
+          // }
+
           const createdAttendanceData = await db.attendanceMaster.findOne({
             where: {
               attendanceDate: currentDate.format("YYYY-MM-DD"),
@@ -3742,7 +3742,6 @@ class AttendanceController {
           }
 
         } else if (attendanceData && currentDate.isBefore(moment(`${attendanceData.dataValues.attendanceDate} ${attendanceData.dataValues.attendancePunchInTime}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'))) {
-          console.log("jab incoming record punch in time se pahle ka hai")
           let graceTime = moment(
             element.shiftsmaster.shiftStartTime,
             "HH:mm"
@@ -3785,31 +3784,82 @@ class AttendanceController {
             }
           );
 
-          // await db.attendanceHistory.update({
-          //   attendanceStatus: 'approved',
-          //   updatedBy: req.userId,
-          //   updatedAt: moment()
-          // }, {
-          //   where: {
-          //     attendanceHistoryId: element.dataValues.attendanceHistoryId
-          //   }
-          // })
+          await db.attendanceHistory.update({
+            attendanceStatus: 'approved',
+            updatedBy: req.userId,
+            updatedAt: moment()
+          }, {
+            where: {
+              attendanceHistoryId: element.dataValues.attendanceHistoryId
+            }
+          })
 
-          // will enable this
+          if (!attendanceData.dataValues.attendanceShiftEndDate) {
+            const updateObject = {
+              attendancePunchOutTime: attendanceData.dataValues.attendancePunchInTime,
+              attendanceShiftEndDate: attendanceData.dataValues.attandanceShiftStartDate,
+              attendancePunchOutLocationType: attendanceData.dataValues.attendancePunchInLocationType,
+              attendanceStatus: "Punch Out",
+              attendancePunchOutRemark: attendanceData.dataValues.attendancePunchInRemark,
+              attendanceWorkingTime: await helper.timeDifference(
+                `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                  "HH:mm:ss"
+                )}`,
+                `${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`
+              ),
+              attendancePunchOutLocation: attendanceData.dataValues.attendancePunchInLocation,
+              attendancePunchOutLatitude: attendanceData.dataValues.attendancePunchInLatitude,
+              attendancePunchOutLongitude: attendanceData.dataValues.attendancePunchInLongitude,
+              punchOutSource: attendanceData.dataValues.punchInSource,
+              updatedBy: element.dataValues.employeeId,
+            }
 
-          if (
-            !attendanceData.dataValues.attendanceShiftEndDate &&
-            moment(
+            await db.attendanceMaster.update(
+              updateObject,
+              {
+                where: {
+                  attendanceDate: currentDate.format("YYYY-MM-DD"),
+                  employeeId: element.dataValues.employeeId,
+                },
+              }
+            );
+
+          } else if (
+            currentDate.isAfter(moment(
               `${attendanceData.dataValues.attendanceShiftEndDate} ${attendanceData.dataValues.attendancePunchOutTime}`,
               'YYYY-MM-DD HH:mm:ss')
-              .format('YYYY-MM-DD HH:mm:ss')
+              .format('YYYY-MM-DD HH:mm:ss'))
           ) {
 
+            const updateObject = {
+              attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+              attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+              attendancePunchOutLocationType: element.locationType,
+              attendanceStatus: "Punch Out",
+              attendancePunchOutRemark: element.userRemark,
+              attendanceWorkingTime: await helper.timeDifference(
+                `${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
+                `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                  "HH:mm:ss"
+                )}`
+              ),
+              attendancePunchOutLocation: element.location,
+              attendancePunchOutLatitude: element.lat,
+              attendancePunchOutLongitude: element.long,
+              punchOutSource: element.device,
+              updatedBy: element.dataValues.employeeId,
+            }
 
-            console.log("hjhgjhfbjf", "dbfdbdb")
+            await db.attendanceMaster.update(
+              updateObject,
+              {
+                where: {
+                  attendanceDate: currentDate.format("YYYY-MM-DD"),
+                  employeeId: element.dataValues.employeeId,
+                },
+              }
+            );
           }
-
-
 
           const createdAttendanceData = await db.attendanceMaster.findOne({
             where: {
