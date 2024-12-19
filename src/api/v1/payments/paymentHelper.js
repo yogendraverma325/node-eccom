@@ -145,6 +145,19 @@ function getPercentagePart(total, percentage) {
   return (total * (percentage / 100)).toFixed(2);
 }
 
+
+function getFromattedDate(dateInIntger)
+{
+  const formattedDate = new Date((dateInIntger - 25569) * 86400 * 1000); // Convert Excel serial to JS Date
+  // Extract day, month, and year
+  const day = String(formattedDate.getDate()).padStart(2, '0'); // Pad single-digit days
+  const month = String(formattedDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const year = formattedDate.getFullYear();
+
+  const date = `${day}-${month}-${year}`; // Format as DD-MM-YYYY
+  console.log(date);
+  return date;
+}
 // async function query(caseId, data, data2) {
 //   switch (caseId) {
 //     case 1:
@@ -368,5 +381,6 @@ export default {
   query,
   getPaySlipObject,
   getPayComponentObject,
-  getElementValue
+  getElementValue,
+  getFromattedDate
 };

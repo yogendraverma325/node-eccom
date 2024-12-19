@@ -40,6 +40,9 @@ export default (sequelize, Sequelize) => {
         },
         isActive: {
             type: Sequelize.BOOLEAN
+        },
+        salaryStructureAutoId:{
+            type: Sequelize.INTEGER 
         }
     })
     return payPackage
