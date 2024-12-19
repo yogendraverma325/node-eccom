@@ -1009,6 +1009,10 @@ ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
   ALTER TABLE `tara_hrms_live`.`designationemploymenthistory` 
   ADD COLUMN `oldDesignationId` INT NULL DEFAULT NULL AFTER `designation_id`;
 
+  ALTER TABLE `tara_hrms_live`.`ptlocationmaster` 
+  ADD COLUMN `frequency` VARCHAR(45) NULL DEFAULT 'Monthly' AFTER `stateId`;
+
+
 
 
 
