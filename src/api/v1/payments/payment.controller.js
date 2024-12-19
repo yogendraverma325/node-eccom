@@ -955,17 +955,15 @@ class PaymentController {
                 "structureMappingDetails.componentDetails.salaryComponentCode"
               ];
 
-          if (includeInPackage == 1 && employee[componentName] && !includedComponent.includes(employee[componentName])) {
+          if (includeInPackage == 1 && employee[componentName] && !includedComponent.includes(componentName)) {
             ctcFromComponent = ctcFromComponent + employee[componentName];
-            includedComponent.push(employee[componentName]);
+            includedComponent.push(componentName);
           }
         }
         // console.log(
         //   employee["Name"] + "--" + employee["CTC"],
         //   ctcFromComponent
         // );
-         //return
- 
         if (employee["CTC"] == ctcFromComponent) {
           ////////////////Match the ctc///////
           //console.log('CTC Matched',employee['Name']);
