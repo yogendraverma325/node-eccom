@@ -2896,6 +2896,8 @@ class PaymentController {
         { paymonth: paymonth, companyId: value.companyId }
       );
 
+
+      console.log(queryForMappedEmployeeList);
       const pendingProcessList = await db.sequelize.query(
         queryForMappedEmployeeList
       );
