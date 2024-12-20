@@ -817,8 +817,11 @@ class AttendanceController {
           toDate: result.fromDate,
           fromDate: result.fromDate,
           source: "system_generated",
-        },
-      });
+          status: {
+            [Op.in]: ['approved', 'pending']
+          }
+        }
+      })
 
       if (empLeaveHeader) {
         await db.EmployeeLeaveHeader.update(
