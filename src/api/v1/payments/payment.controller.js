@@ -2154,7 +2154,7 @@ class PaymentController {
       const employeeIds = employeeForProcessing[0].map(
         (employee) => employee.EmployeeId
       );
-      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
+      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 9 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 9 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
      
       return respHelper(res, {
@@ -2992,7 +2992,7 @@ class PaymentController {
       const currentProcessStatus = await db.sequelize.query(
         queryForProcessStatus
       );
-
+console.log("currentProcessStatus",currentProcessStatus)
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
         //processSalary(processId,req);
