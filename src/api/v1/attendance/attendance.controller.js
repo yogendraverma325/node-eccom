@@ -625,7 +625,10 @@ class AttendanceController {
           employeeId: req.userId,
           toDate: result.fromDate,
           fromDate: result.fromDate,
-          source: "system_generated"
+          source: "system_generated",
+          status: {
+            [Op.in]: ['approved', 'pending']
+          }
         }
       })
 
