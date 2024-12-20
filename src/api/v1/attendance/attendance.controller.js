@@ -3580,7 +3580,7 @@ class AttendanceController {
         },
         include: [{
           model: db.employeeMaster,
-          attributes: ['empCode', 'name'],
+          attributes: ['empCode', 'firstName'],
         },
         {
           model: db.shiftMaster,
@@ -3666,12 +3666,12 @@ class AttendanceController {
               }
             })
 
-            successRecords.push(`${element.dataValues.employee.empCode} Punch In Data Updated for ${element.dataValues.date}`)
+            successRecords.push(`Punch In Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
 
           } else if (element.dataValues.status == 'Punch Out') {
 
             if (!attendanceData) {
-              failedRecords.push(`${element.dataValues.employee.empCode} Punch In Data Not Available for ${element.dataValues.date}`)
+              failedRecords.push(`Punch In Data Not Available for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
               continue
             }
 
@@ -3705,8 +3705,7 @@ class AttendanceController {
                 }
               );
 
-              successRecords.push(`${element.dataValues.employee.empCode} Punch Out Data Updated for ${element.dataValues.date}`)
-              
+              successRecords.push(`Punch Out Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
             } else if (
               attendanceData && currentDate.isAfter(moment(
                 `${attendanceData.dataValues.attendanceShiftEndDate} ${attendanceData.dataValues.attendancePunchOutTime}`,
@@ -3743,7 +3742,7 @@ class AttendanceController {
                 }
               );
 
-              successRecords.push(`${element.dataValues.employee.empCode} Punch Out Data Updated for ${element.dataValues.date}`)
+              successRecords.push(`Punch Out Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
             }
 
             await db.attendanceHistory.update({
@@ -3783,7 +3782,7 @@ class AttendanceController {
             }
           })
 
-          successRecords.push(`${element.dataValues.employee.empCode} Attendance Data Rejected for ${element.dataValues.date}`)
+          successRecords.push(`Attendance Data Rejected for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
         }
       }
 
