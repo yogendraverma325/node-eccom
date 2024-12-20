@@ -878,14 +878,13 @@ class PaymentController {
               ],
               as: "structureMappingDetails",
               include: [
-                
                 {
                   model: db.salaryComponent,
                   attributes: [
                     "salaryComponentCode",
                     "salaryComponentAlias",
                     "includeInPackage",
-                    "salaryComponentEarningType"
+                    "salaryComponentEarningType",
                   ],
                   as: "componentDetails",
                 },
@@ -3112,7 +3111,7 @@ class PaymentController {
   //         raw: true,
   //         nest: true,
   //       });
-     
+
   //       const arr = await Promise.all(
   //       getComponentAutoIds.map(async (item) => ({
   //         salaryComponentValue:
@@ -3189,58 +3188,53 @@ class PaymentController {
           msg: "Sample Sheet Not Available",
         });
       }
-      const getColumns =
-        await db.exportSheetMapping.findAll({
-          attributes:["columnName"],
-          where: { 
-            isActive:1,
-            exportSheetAutoId: exportSheetAutoId 
-          },
-          raw: true,
-          nest: true
-        });
-     
-        if (getColumns.length > 0) {
-          const timestamp = moment().format("HH:mm");
-  
-          const headers = [
-            ...getColumns.map((item) => item.columnName),
-          ];
-  
-          const columns = headers.map((value) => ({
-            label: value,
-            value: value,
-          }));
-  
-          const data = [
-            {
-              sheet: "Salary Component",
-              columns: columns,
-              content: [],
-            },
-          ];
-          const settings = {
-            fileName: `Component_${timestamp}`,
-            extraLength: 3,
-            writeOptions: {
-              type: "buffer",
-              bookType: "xlsx",
-            },
-          };
-  
-          const report = xlsx(data, settings);
-          res.setHeader(
-            "Content-Disposition",
-            `attachment; filename=Sample_sheet_${timestamp}.xlsx`
-          );
-          res.end(report);
-        } else {
-          res.status(404).json({
-            message: "No active columns found for the given sheet",
-          });
-        }
+      const getColumns = await db.exportSheetMapping.findAll({
+        attributes: ["columnName"],
+        where: {
+          isActive: 1,
+          exportSheetAutoId: exportSheetAutoId,
+        },
+        raw: true,
+        nest: true,
+      });
 
-      
+      if (getColumns.length > 0) {
+        const timestamp = moment().format("HH:mm");
+
+        const headers = [...getColumns.map((item) => item.columnName)];
+
+        const columns = headers.map((value) => ({
+          label: value,
+          value: value,
+        }));
+
+        const data = [
+          {
+            sheet: "Salary Component",
+            columns: columns,
+            content: [],
+          },
+        ];
+        const settings = {
+          fileName: `Component_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=Sample_sheet_${timestamp}.xlsx`
+        );
+        res.end(report);
+      } else {
+        res.status(404).json({
+          message: "No active columns found for the given sheet",
+        });
+      }
     } catch (error) {
       console.log("error", error);
       return respHelper(res, {
@@ -3369,6 +3363,7 @@ async function processSalary(data) {
         parseFloat(employeeDetailsComponentWise[0][0].payPackageMonthlyCTC) -
           lopMonthWiseCalculation
       );
+      console.log("deductionOfLopMonthAmount",deductionOfLopMonthAmount)
       const currentMonth = new Date()
         .toLocaleString("default", { month: "short" })
         .toLowerCase();
