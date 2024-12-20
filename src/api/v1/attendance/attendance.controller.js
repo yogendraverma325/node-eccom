@@ -3519,45 +3519,40 @@ class AttendanceController {
   // Attendance Approval Functionality
   async pendingAttendanceList(req, res) {
     try {
+
       const limit = req.query.limit * 1 || 10;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
 
       const attendanceList = await db.attendanceHistory.findAndCountAll({
         where: {
-          attendanceStatus: "pending",
+          attendanceStatus: 'pending'
         },
-        order: [["date", "DESC"]],
-        include: [
-          {
-            model: db.employeeMaster,
-            required: true,
-            where: Object.assign(
-              !["ADMIN", "HR_OPS"].includes(req.userRole)
-                ? {
-                  manager: req.userId,
-                }
-                : {},
-              {
-                isActive: 1,
-              }
-            ),
-            attributes: ["id", "empCode", "name", "profileImage"],
-          },
-        ],
+        order: [['date', 'DESC']],
+        include: [{
+          model: db.employeeMaster,
+          required: true,
+          where: Object.assign((!['ADMIN', 'HR_OPS'].includes(req.userRole)) ? {
+            manager: req.userId
+          } : {}, {
+            isActive: 1
+          }),
+          attributes: ['id', 'empCode', 'name', 'profileImage']
+        }],
         limit,
-        offset,
-      });
+        offset
+      })
 
       return respHelper(res, {
         status: 200,
-        data: attendanceList,
-      });
+        data: attendanceList
+      })
+
     } catch (error) {
-      console.log(error);
+      console.log(error)
       return respHelper(res, {
-        status: 500,
-      });
+        status: 500
+      })
     }
   }
 
@@ -3570,28 +3565,27 @@ class AttendanceController {
       const attendanceHistoryData = await db.attendanceHistory.findAll({
         where: {
           attendanceHistoryId: {
-            [Op.in]: result.attendanceAutoId,
-          },
+            [Op.in]: result.attendanceAutoId
+          }
         },
-        include: [
-          {
-            model: db.employeeMaster,
-            attributes: ["empCode", "name"],
-          },
-          {
-            model: db.shiftMaster,
-          },
-          {
-            model: db.attendancePolicymaster,
-          },
-          {
-            model: db.companyLocationMaster,
-          },
-          {
-            model: db.weekOffMaster,
-          },
-        ],
-      });
+        include: [{
+          model: db.employeeMaster,
+          attributes: ['empCode', 'name'],
+        },
+        {
+          model: db.shiftMaster,
+        },
+        {
+          model: db.attendancePolicymaster
+        },
+        {
+          model: db.companyLocationMaster
+        },
+        {
+          model: db.weekOffMaster
+        }],
+        order: [['attendanceHistoryId', 'ASC']]
+      })
 
       for (const element of attendanceHistoryData) {
 
@@ -3818,7 +3812,7 @@ class AttendanceController {
       })
 
     } catch (error) {
-      console.log(error);
+      console.log(error)
       if (error.isJoi === true) {
         return respHelper(res, {
           status: 422,
@@ -3826,8 +3820,8 @@ class AttendanceController {
         });
       }
       return respHelper(res, {
-        status: 500,
-      });
+        status: 500
+      })
     }
   }
   // Attendance Approval Functionality
