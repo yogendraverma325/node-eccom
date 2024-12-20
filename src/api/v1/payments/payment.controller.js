@@ -911,7 +911,12 @@ class PaymentController {
           ],
         });
 
+
+
+        
    
+
+        
 
 
         if (structureDetails.length == 0) {
@@ -966,6 +971,8 @@ class PaymentController {
         //   employee["Name"] + "--" + employee["CTC"],
         //   ctcFromComponent
         // );
+
+        
         if (employee["CTC"] == ctcFromComponent) {
           ////////////////Match the ctc///////
           //console.log('CTC Matched',employee['Name']);
@@ -982,10 +989,6 @@ class PaymentController {
             new Date(existingPackage.payPackageEffectiveDate) >=
               new Date(year, month - 1, day)
           ) {
-            // console.log(
-            //   "Current Effective-Date can not be greater/ equal than last effective date ",
-            //   employee["Name"]
-            // );
             errorArray.push({
               index: errorArray.length + 1,
               employeeID: employee["Email/Employee ID"],
@@ -1038,7 +1041,7 @@ class PaymentController {
                 exisingPayElement.length == 0 &&
                 employee[componentName] > 0
               ) {
-                let insertedNewElement = await db.payElements.create({
+                  await db.payElements.create({
                   EmployeeId: employeeDetails.id,
                   salaryComponentAutoId:
                     salaryComponent[
@@ -2870,6 +2873,8 @@ class PaymentController {
         { paymonth: paymonth, companyId: value.companyId }
       );
 
+
+      console.log(queryForMappedEmployeeList);
       const pendingProcessList = await db.sequelize.query(
         queryForMappedEmployeeList
       );
