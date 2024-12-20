@@ -1213,11 +1213,9 @@ const salaryStructureCreateSchema = Joi.object({
       Joi.object({
         salaryComponentAutoId: Joi.number().integer().required(),
         salaryComponentElementAutoId: Joi.number().integer().required(),
-        // salaryStructureAutoId: Joi.number().integer().required(),
         elementValue: Joi.alternatives()
           .try(Joi.string(), Joi.number().integer())
           .required(),
-        //elementValue: Joi.number().required().valid(1,2)
       })
     )
     .required(),
