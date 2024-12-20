@@ -745,12 +745,30 @@ class CronController {
             ownerId = EMP_DATA_SELF?.buHRId;
           }
           if (respfrom?.levelData?.ownerRole == "SELF") {
+            await db.Confirmationaudittrail.create({
+              confirmationinitiatedAutoId:
+                createdData.confirmationinitiatedAutoId,
+              createdBy: 1,
+              status: 0,
+              level: 0,
+              message: `Pending for Confirmation By ${Singleconfimation?.employee?.name} (${Singleconfimation?.employee?.empCode})`,
+              confirmationAction: 0,
+            });
             // eventEmitter.emit(
             //   "selfReviewConfirnation",
             //   JSON.stringify(Singleconfimation)
             // );
           } else {
             let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
+            await db.Confirmationaudittrail.create({
+              confirmationinitiatedAutoId:
+                createdData.confirmationinitiatedAutoId,
+              createdBy: 1,
+              status: 0,
+              level: 0,
+              message: `Pending for Confirmation By ${ESCALTERDATA?.name} (${ESCALTERDATA?.empCode})`,
+              confirmationAction: 0,
+            });
 
             // eventEmitter.emit(
             //   "confirmationWorkflowNextLevel",
@@ -904,7 +922,7 @@ class CronController {
       await db.Confirmationaudittrail.create({
         confirmationinitiatedAutoId: singleRecords.confirmationinitiatedAutoId,
         createdBy: 1,
-        status: 1,
+        status: 0,
         level: singleRecords.level,
         message: `not Completed by level ${singleRecords.level} ${singleRecords?.employee?.name} (${singleRecords?.employee?.empCode}) , escalated to  ${singleRecords?.employee?.managerData?.name} (${singleRecords?.employee?.managerData?.empCode})`,
         confirmationAction: 0,
