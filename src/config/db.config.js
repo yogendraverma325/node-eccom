@@ -138,6 +138,10 @@ import PayMonthlyElements from "../api/model/payMonthlyElements.js";
 import PtMapping from "../api/model/PtMapping.js";
 import LwfMapping from "../api/model/lwfMapping.js";
 import ExtraPayment from "../api/model/ExtraPayment.js";
+import ExportSheetMaster from '../api/model/exportSheetMaster.js'
+import ExportSheetMapping from '../api/model/exportSheetMapping.js'
+
+
 ////////////////////PAyroll////////////
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -344,6 +348,9 @@ db.payMonthlyElements = PayMonthlyElements(sequelize,Sequelize);
 db.ptMapping = PtMapping(sequelize,Sequelize)
 db.lwfMapping = LwfMapping(sequelize,Sequelize)
 db.extraPayment = ExtraPayment(sequelize,Sequelize)
+db.exportSheetMaster = ExportSheetMaster(sequelize,Sequelize)
+db.exportSheetMapping = ExportSheetMapping(sequelize,Sequelize)
+
 //////////////////Payroll///////////////////
 
 db.DesignationEmploymentHistory = DesignationEmploymentHistory(
@@ -1395,6 +1402,9 @@ db.salarystructurecomponentmapping.hasOne(db.salarycomponentmapping, {
   sourceKey: "salaryStructurecomponentmappingAutoId",
 });
 
-
+db.exportSheetMapping.hasMany(db.exportSheetMaster, {
+  foreignKey: "exportSheetAutoId",
+  sourceKey: "exportSheetAutoId"
+});
 
 export default db;

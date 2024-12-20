@@ -150,6 +150,9 @@ import paymentHelper from "./paymentHelper.js";
 import helper from "../../../helper/helper.js";
 import Sequelize from "sequelize";
 import { parse } from "dotenv";
+import xlsx from "json-as-xlsx";
+import moment from "moment";
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class PaymentController {
@@ -2143,6 +2146,7 @@ class PaymentController {
       );
       let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 7 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 7 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
+     
       return respHelper(res, {
         status: 200,
         data: {
@@ -2839,36 +2843,7 @@ class PaymentController {
       console.log(e);
     }
   }
-  // "StructureName": "NEW SALARY STRUCTURE",
-  // "id": 1098,
-  // "EmployeeId": "15538",
-  // "EmployeeName": "Prince",
-  // "BuName": "Integrating Services",
-  // "DesignationName": "Head IT"
-  // console.log(salaryStructureAutoId);
 
-  // if (!salaryStructureAutoId) {
-  //   return respHelper(res, {
-  //     status: 400,
-  //     data: [],
-  //     msg: "Salary Structure Details Not Found.",
-  //   });
-  // }
-  // const queryForMappedEmployeeList = await paymentHelper.query(
-  //   3,
-  //   salaryStructureAutoId,
-  //   null
-  // );
-  // const resultMappedEmployeesList = await db.sequelize.query(
-  //   queryForMappedEmployeeList
-  // );
-
-  // console.log(queryForMappedEmployeeList);
-  // return respHelper(res, {
-  //   status: 200,
-  //   data: resultMappedEmployeesList[0],
-  //   msg: "Employee List Fetched Successfully",
-  // });
   async getWipProcessList(req, res) {
     try {
       const { error, value } = await validator.payMonthYearCheck.validate(
@@ -3105,10 +3080,164 @@ class PaymentController {
         msg: "List Fetched Successfully",
       });
     } catch (error) {
-      console.log(">>", error);
       return respHelper(res, {
         status: 500,
         message: "An error occurred while fetching BU data.",
+      });
+    }
+  }
+
+  // async exportSalaryComponent(req, res) {
+  //   try {
+  //     const { salalryStructureAutoId } = req.query;
+  //     const getComponentAutoIds =
+  //       await db.salarystructurecomponentmapping.findAll({
+  //         attributes: ["salaryComponentAutoId"],
+  //         where: { salaryStructureAutoId: salalryStructureAutoId },
+  //         include: [
+  //           {
+  //             model: db.salaryComponent,
+  //             attributes: ["salaryComponentCode", "salaryComponentAlias"],
+  //             as: "componentDetails",
+  //           },
+  //         ],
+  //         raw: true,
+  //         nest: true,
+  //       });
+     
+  //       const arr = await Promise.all(
+  //       getComponentAutoIds.map(async (item) => ({
+  //         salaryComponentValue:
+  //           item.componentDetails.salaryComponentAlias?.trim() ||
+  //           item.componentDetails.salaryComponentCode,
+  //       }))
+  //     );
+
+  //     if (arr.length > 0) {
+  //       const timestamp = moment().format("HH:mm");
+
+  //       const staticFields = [
+  //         "Email/Employee ID",
+  //         "CTC",
+  //         "Effective Date",
+  //         "Salary Structure",
+  //         "Event",
+  //       ];
+
+  //       const headers = [
+  //         ...staticFields,
+  //         ...arr.map((item) => item.salaryComponentValue),
+  //       ];
+
+  //       const columns = headers.map((value) => ({
+  //         label: value,
+  //         value: value,
+  //       }));
+
+  //       const data = [
+  //         {
+  //           sheet: "Salary Component",
+  //           columns: columns,
+  //           content: [],
+  //         },
+  //       ];
+  //       const settings = {
+  //         fileName: `Component_${timestamp}`,
+  //         extraLength: 3,
+  //         writeOptions: {
+  //           type: "buffer",
+  //           bookType: "xlsx",
+  //         },
+  //       };
+
+  //       const report = xlsx(data, settings);
+  //       res.setHeader(
+  //         "Content-Disposition",
+  //         `attachment; filename=Component_${timestamp}.xlsx`
+  //       );
+  //       res.end(report);
+  //     } else {
+  //       res.status(404).json({
+  //         message: "Data not found",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.log("error", error);
+  //     return respHelper(res, {
+  //       status: 500,
+  //       message: "An error occurred while fetching data",
+  //     });
+  //   }
+  // }
+
+  async exportSample(req, res) {
+    try {
+      const { exportSheetAutoId } = req.query;
+
+      if (!exportSheetAutoId) {
+        return respHelper(res, {
+          status: 400,
+          data: [],
+          msg: "Sample Sheet Not Available",
+        });
+      }
+      const getColumns =
+        await db.exportSheetMapping.findAll({
+          attributes:["columnName"],
+          where: { 
+            isActive:1,
+            exportSheetAutoId: exportSheetAutoId 
+          },
+          raw: true,
+          nest: true
+        });
+     
+        if (getColumns.length > 0) {
+          const timestamp = moment().format("HH:mm");
+  
+          const headers = [
+            ...getColumns.map((item) => item.columnName),
+          ];
+  
+          const columns = headers.map((value) => ({
+            label: value,
+            value: value,
+          }));
+  
+          const data = [
+            {
+              sheet: "Salary Component",
+              columns: columns,
+              content: [],
+            },
+          ];
+          const settings = {
+            fileName: `Component_${timestamp}`,
+            extraLength: 3,
+            writeOptions: {
+              type: "buffer",
+              bookType: "xlsx",
+            },
+          };
+  
+          const report = xlsx(data, settings);
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=Sample_sheet_${timestamp}.xlsx`
+          );
+          res.end(report);
+        } else {
+          res.status(404).json({
+            message: "No active columns found for the given sheet",
+          });
+        }
+
+      
+    } catch (error) {
+      console.log("error", error);
+      return respHelper(res, {
+        status: 500,
+        message: "An error occurred while fetching data",
       });
     }
   }
