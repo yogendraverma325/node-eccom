@@ -1265,7 +1265,7 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
   const dynamicFields = {
     "Email/Employee ID":Joi.number().required(),
     "Name":Joi.string().allow(null,''),
-    "Effective Date":Joi.string().required(),
+    "Effective Date": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Event":Joi.string().allow('',null),
     "Salary Structure":Joi.string().required(),
     "CTC":Joi.number().required(),

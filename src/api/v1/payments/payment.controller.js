@@ -833,35 +833,9 @@ class PaymentController {
           paymentHelper.getFromattedDate(Employees[0]["Effective Date"])
         );
       }
-
       let errorArray = [],
         successArray = [];
       for (const employee of Employees) {
-        employee["Effective Date"] = !isNaN(Employees[0]["Effective Date"])
-          ? paymentHelper.getFromattedDate(employee["Effective Date"])
-          : Employees[0]["Effective Date"];
-        let employeeDetails = await db.employeeMaster.findOne({
-          where: {
-            empCode: employee["Email/Employee ID"],
-          },
-          raw: true,
-          attributes: ["id", "name"],
-        });
-
-        if (!employeeDetails) {
-          console.log(
-            "Empoyee not found" +
-              " for empId : " +
-              employee["Email/Employee ID"]
-          );
-          errorArray.push({
-            index: errorArray.length + 1,
-            employeeID: employee["Email/Employee ID"],
-            errorDetails: "Empoyee not found",
-          });
-          continue;
-        }
-
         let structureDetails = await db.salaryStructure.findAll({
           where: {
             salaryStructureName: employee["Salary Structure"],
@@ -911,26 +885,7 @@ class PaymentController {
             },
           ],
         });
-
-
-
-        
-   
-
-        
-
-
-        if (structureDetails.length == 0) {
-          return respHelper(res, {
-            status: 500,
-            msg: "Structure not found.",
-          });
-        }
-
-        // console.log(structureDetails[0].salaryStructureAutoId);
-
-        // return
-
+ 
         const error = await validator.createDynamicPayPackageSchema(
           structureDetails,
           employee
@@ -944,8 +899,35 @@ class PaymentController {
           });
           continue;
         }
+ 
+        let employeeDetails = await db.employeeMaster.findOne({
+          where: {
+            empCode: employee["Email/Employee ID"],
+          },
+          raw: true,
+          attributes: ["id", "name"],
+        });
 
-        // return;
+        if (!employeeDetails) {
+          console.log(
+            "Empoyee not found" +
+              " for empId : " +
+              employee["Email/Employee ID"]
+          );
+          errorArray.push({
+            index: errorArray.length + 1,
+            employeeID: employee["Email/Employee ID"],
+            errorDetails: "Empoyee not found",
+          });
+          continue;
+        }
+
+        if (structureDetails.length == 0) {
+          return respHelper(res, {
+            status: 500,
+            msg: "Structure not found.",
+          });
+        }
         //////////////Pay-Package Uploading///////////
         var ctcFromComponent = 0;
         let includedComponent=[];
@@ -982,6 +964,9 @@ class PaymentController {
             order: [["payPackageAutoId", "DESC"]],
             raw: true,
           });
+          employee["Effective Date"] = !isNaN(Employees[0]["Effective Date"])
+          ? paymentHelper.getFromattedDate(employee["Effective Date"])
+          : Employees[0]["Effective Date"];
           const [day, month, year] = employee["Effective Date"]
             .split("-")
             .map(Number);
