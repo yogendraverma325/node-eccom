@@ -30,9 +30,19 @@ cron.schedule("* * * * *", async () => {
 });
 
 cron.schedule("50 7 * * *", async () => {
-  //console.log("cron is running in very seconds");
-  // cronController.EarnedLeaveCreditCron();
+  console.log("cron is running in very seconds");
+   //cronController.EarnedLeaveCreditCron();
 });
+
+//cron.schedule("*/10 * * * * *", async () => {
+  //console.log("cron is running in seconds");
+   //cronController.EarnedLeaveCreditCron();
+//});
+
+// cron.schedule("*/10 * * * * *", async () => {
+//   console.log("cron is running in seconds>>>>");
+//    cronController.onBoardLeaveMapping();
+// });
 
 cron.schedule("0 0 * * *", async () => {
   //await cronController.blockAccess();
