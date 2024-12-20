@@ -3656,6 +3656,7 @@ class AttendanceController {
             }
 
             await db.attendanceHistory.update({
+              approverRemark: result.remark != "" ? result.remark : null,
               attendanceStatus: 'approved',
               updatedBy: req.userId,
               updatedAt: moment()
@@ -3666,10 +3667,12 @@ class AttendanceController {
             })
 
             successRecords.push(`${element.dataValues.employee.empCode} Punch In Data Updated for ${element.dataValues.date}`)
+
           } else if (element.dataValues.status == 'Punch Out') {
 
             if (!attendanceData) {
               failedRecords.push(`${element.dataValues.employee.empCode} Punch In Data Not Available for ${element.dataValues.date}`)
+              continue
             }
 
             if (attendanceData && !attendanceData.dataValues.attendanceShiftEndDate) {
@@ -3702,32 +3705,8 @@ class AttendanceController {
                 }
               );
 
-              await db.attendanceHistory.update({
-                attendanceStatus: 'approved',
-                updatedBy: req.userId,
-                updatedAt: moment()
-              }, {
-                where: {
-                  attendanceHistoryId: element.dataValues.attendanceHistoryId
-                }
-              })
-
-              const createdAttendanceData = await db.attendanceMaster.findOne({
-                where: {
-                  attendanceDate: currentDate.format("YYYY-MM-DD"),
-                  employeeId: element.dataValues.employeeId,
-                },
-              })
-
-              if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
-                _this.attedanceCronManual(
-                  createdAttendanceData.dataValues.attendanceAutoId,
-                  createdAttendanceData.dataValues.attendanceDate
-                );
-              }
-
               successRecords.push(`${element.dataValues.employee.empCode} Punch Out Data Updated for ${element.dataValues.date}`)
-
+              
             } else if (
               attendanceData && currentDate.isAfter(moment(
                 `${attendanceData.dataValues.attendanceShiftEndDate} ${attendanceData.dataValues.attendancePunchOutTime}`,
@@ -3764,33 +3743,32 @@ class AttendanceController {
                 }
               );
 
-              await db.attendanceHistory.update({
-                attendanceStatus: 'approved',
-                updatedBy: req.userId,
-                updatedAt: moment()
-              }, {
-                where: {
-                  attendanceHistoryId: element.dataValues.attendanceHistoryId
-                }
-              })
-
-              const createdAttendanceData = await db.attendanceMaster.findOne({
-                where: {
-                  attendanceDate: currentDate.format("YYYY-MM-DD"),
-                  employeeId: element.dataValues.employeeId,
-                },
-              })
-
-              if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
-                _this.attedanceCronManual(
-                  createdAttendanceData.dataValues.attendanceAutoId,
-                  createdAttendanceData.dataValues.attendanceDate
-                );
-              }
-
               successRecords.push(`${element.dataValues.employee.empCode} Punch Out Data Updated for ${element.dataValues.date}`)
-            } else {
-              failedRecords.push(`${element.dataValues.employee.empCode} Punch Out Data Already Updated for ${element.dataValues.date}`)
+            }
+
+            await db.attendanceHistory.update({
+              approverRemark: result.remark != "" ? result.remark : null,
+              attendanceStatus: 'approved',
+              updatedBy: req.userId,
+              updatedAt: moment()
+            }, {
+              where: {
+                attendanceHistoryId: element.dataValues.attendanceHistoryId
+              }
+            })
+
+            const createdAttendanceData = await db.attendanceMaster.findOne({
+              where: {
+                attendanceDate: currentDate.format("YYYY-MM-DD"),
+                employeeId: element.dataValues.employeeId,
+              },
+            })
+
+            if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
+              _this.attedanceCronManual(
+                createdAttendanceData.dataValues.attendanceAutoId,
+                createdAttendanceData.dataValues.attendanceDate
+              );
             }
           }
         } else {
@@ -3808,6 +3786,10 @@ class AttendanceController {
           successRecords.push(`${element.dataValues.employee.empCode} Attendance Data Rejected for ${element.dataValues.date}`)
         }
       }
+
+      successRecords = [...new Set(successRecords)];
+      failedRecords = [...new Set(failedRecords)];
+
       return respHelper(res, {
         status: 200,
         msg: message.ATTENDANCE_APPROVAL.replace('<status>', (result.status) ? 'Approved' : 'Rejected'),
@@ -3817,6 +3799,7 @@ class AttendanceController {
           } : {},
           (failedRecords.length > 0) ? {
             failedRecords
+
           } : {}
         )
       })
