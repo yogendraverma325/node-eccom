@@ -905,19 +905,9 @@ class PaymentController {
                   },
                 },
               ],
-      
-       
             },
           ],
         });
-
-
-
-        
-   
-
-        
-
 
         if (structureDetails.length == 0) {
           return respHelper(res, {
@@ -947,9 +937,19 @@ class PaymentController {
         // return;
         //////////////Pay-Package Uploading///////////
         var ctcFromComponent = 0;
-        let includedComponent=[];
+        let includedComponent = [];
         for (const element of structureDetails) {
-          let includeInPackage=['OTC','Earning','Balancing'].includes(element['structureMappingDetails.componentDetails.salaryComponentEarningType']) && element['structureMappingDetails.salarycomponentmapping.elementValue']==0?1:0;
+          let includeInPackage =
+            ["OTC", "Earning", "Balancing"].includes(
+              element[
+                "structureMappingDetails.componentDetails.salaryComponentEarningType"
+              ]
+            ) &&
+            element[
+              "structureMappingDetails.salarycomponentmapping.elementValue"
+            ] == 0
+              ? 1
+              : 0;
           //let includeOTNOT=['OTC','Earning','Balancing'].includes(element['structureMappingDetails.componentDetails.salaryComponentEarningType']) && element['structureMappingDetails.salarycomponentmapping.elementValue']==0?"Will Include":"Will Not Include";
           // console.log(element['structureMappingDetails.componentDetails.salaryComponentCode']+"  ::: "+includeOTNOT);//[0]['structureMappingDetails.salarycomponentmapping.elementValue']);
           let componentName = element[
@@ -962,7 +962,11 @@ class PaymentController {
                 "structureMappingDetails.componentDetails.salaryComponentCode"
               ];
 
-          if (includeInPackage == 1 && employee[componentName] && !includedComponent.includes(componentName)) {
+          if (
+            includeInPackage == 1 &&
+            employee[componentName] &&
+            !includedComponent.includes(componentName)
+          ) {
             ctcFromComponent = ctcFromComponent + employee[componentName];
             includedComponent.push(componentName);
           }
@@ -972,7 +976,6 @@ class PaymentController {
         //   ctcFromComponent
         // );
 
-        
         if (employee["CTC"] == ctcFromComponent) {
           ////////////////Match the ctc///////
           //console.log('CTC Matched',employee['Name']);
@@ -1041,7 +1044,7 @@ class PaymentController {
                 exisingPayElement.length == 0 &&
                 employee[componentName] > 0
               ) {
-                  await db.payElements.create({
+                await db.payElements.create({
                   EmployeeId: employeeDetails.id,
                   salaryComponentAutoId:
                     salaryComponent[
@@ -2144,7 +2147,10 @@ class PaymentController {
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
-      if (!employeeForProcessing[0][0] || employeeForProcessing[0][0].length > 0) {
+      if (
+        !employeeForProcessing[0][0] ||
+        employeeForProcessing[0][0].length > 0
+      ) {
         return respHelper(res, {
           status: 400,
           data: [],
@@ -2154,9 +2160,75 @@ class PaymentController {
       const employeeIds = employeeForProcessing[0].map(
         (employee) => employee.EmployeeId
       );
+     
       let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 9 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 9 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
-     
+      //============
+      const processedQueryJson = `
+      SELECT 
+        e.empCode, 
+        e.name, 
+        SUM(CASE WHEN p.payStatus = 9 THEN 1 ELSE 0 END) AS processed
+      FROM tara.payprocessdetails p
+      JOIN tara.employee e ON e.id = p.EmployeeId
+      WHERE p.payMonth = '${value.paymonth}' AND p.EmployeeId IN (${employeeIds})
+      GROUP BY e.empCode, e.name
+      HAVING processed = 1;
+    `;
+
+      const [processedJson] = await db.sequelize.query(processedQueryJson, {
+        raw: true,
+      });
+      console.log("processedJson", processedJson);
+      //=================
+      const inProcessQueryJson = `
+          SELECT 
+            e.empCode, 
+            e.name, 
+            SUM(CASE WHEN p.payStatus != 9 THEN 1 ELSE 0 END) AS inProcess
+          FROM tara.payprocessdetails p
+          JOIN tara.employee e ON e.id = p.EmployeeId
+          WHERE p.payMonth = '${
+            value.paymonth
+          }' AND p.EmployeeId IN (${employeeIds.join(",")})
+          GROUP BY e.empCode, e.name
+          HAVING inProcess = 1;
+`;
+      const [inProcessJson] = await db.sequelize.query(inProcessQueryJson, {
+        raw: true,
+      });
+      console.log("inProcessJson", inProcessJson);
+      //==================
+
+      //============================================
+      const totalEmployeeQueryJson = `
+          SELECT 
+            e.empCode, 
+            e.name, 
+            COUNT(p.EmployeeId) AS totalEmployee
+          FROM tara.payprocessdetails p
+          JOIN tara.employee e ON e.id = p.EmployeeId
+          WHERE p.payMonth = '${value.paymonth}' AND p.EmployeeId IN (${employeeIds.join(",")})
+          GROUP BY e.empCode, e.name;
+        `;
+
+      const [totalEmployeesJson] = await db.sequelize.query(totalEmployeeQueryJson, { raw: true });
+console.log("totalEmployees", totalEmployeesJson);
+      //============================================
+      const availableQueryJson = `
+      SELECT 
+        e.empCode, 
+        e.name, 
+        COUNT(DISTINCT p.EmployeeId) - COUNT(p.payStatus) AS available
+      FROM tara.payprocessdetails p
+      JOIN tara.employee e ON e.id = p.EmployeeId
+      WHERE p.payMonth = '${value.paymonth}' AND p.EmployeeId IN (${employeeIds.join(",")})
+      GROUP BY e.empCode, e.name;
+    `;
+
+    const [availableJson] = await db.sequelize.query(availableQueryJson, { raw: true });
+console.log("availableJson", availableJson);
+      //==============================================================================================
       return respHelper(res, {
         status: 200,
         data: {
@@ -2167,6 +2239,10 @@ class PaymentController {
             employeeIds.length -
             (employeeProcessCount[0][0].processed +
               employeeProcessCount[0][0].inProcess),
+          processedJson: processedJson,
+          inProcessJson: inProcessJson,
+          totalEmployeesJson:totalEmployeesJson,
+          availableJson:availableJson
         },
       });
     } catch (error) {
@@ -2873,7 +2949,6 @@ class PaymentController {
         { paymonth: paymonth, companyId: value.companyId }
       );
 
-
       console.log(queryForMappedEmployeeList);
       const pendingProcessList = await db.sequelize.query(
         queryForMappedEmployeeList
@@ -2992,7 +3067,7 @@ class PaymentController {
       const currentProcessStatus = await db.sequelize.query(
         queryForProcessStatus
       );
-console.log("currentProcessStatus",currentProcessStatus)
+      console.log("currentProcessStatus", currentProcessStatus);
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
         //processSalary(processId,req);
@@ -3368,7 +3443,7 @@ async function processSalary(data) {
         parseFloat(employeeDetailsComponentWise[0][0].payPackageMonthlyCTC) -
           lopMonthWiseCalculation
       );
-      console.log("deductionOfLopMonthAmount",deductionOfLopMonthAmount)
+      console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
       const currentMonth = new Date()
         .toLocaleString("default", { month: "short" })
         .toLowerCase();
