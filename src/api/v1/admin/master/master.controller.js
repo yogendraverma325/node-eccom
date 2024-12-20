@@ -1573,6 +1573,74 @@ class CommonController {
 
   // End master apis creation by jay
 
+  // Start Master Mapping APIs by Jay
+
+  async jobLevelMappingList(req, res) {
+    try {
+      let model = db.jobLevelMapping;
+      let query = { 'jobLevelId': req.params.id };
+
+      let aggregate = {
+        where: query,
+        attributes: ["jobLevelMappingId"],
+        order: [["jobLevelMappingId", "DESC"]],
+        include: [
+          { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
+          { model: db.bandMaster, attributes: ['bandId', 'bandCode'] },
+          { model: db.gradeMaster, attributes: ['gradeId', 'gradeName', 'gradeCode'] },
+          { model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode'] }
+        ]
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async jobLevelMapping(req, res) {
+    try {
+      let result = await validator.jobLevelMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() }
+      let model = db.jobLevelMapping;
+      let query = {
+        companyId: result.companyId,
+        bandId: result.bandId,
+        gradeId: result.gradeId,
+        jobLevelId: result.jobLevelId
+      };
+      let moduleName = "Job Level Mapping";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  // End Master Mapping APIs by Jay
 
   // close class
 }

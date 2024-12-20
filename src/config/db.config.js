@@ -1250,6 +1250,21 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   as: "departmentBUHead",
 });
 
+db.jobLevelMapping.hasOne(db.bandMaster, {
+  foreignKey: "bandId",
+  sourceKey: "bandId",
+});
+
+db.jobLevelMapping.hasOne(db.gradeMaster, {
+  foreignKey: "gradeId",
+  sourceKey: "gradeId",
+});
+
+db.jobLevelMapping.hasOne(db.companyMaster, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
+});
+
 // END EMPLOYMENT HISTORY
 
 export default db;

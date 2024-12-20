@@ -29,6 +29,11 @@ export default Express
     .patch("/job-level/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfJobLevel)
     .delete("/job-level/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.deleteOfJobLevel)
 
+    // job level mapping routes
+    .get("/job-level-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMappingList)
+    .post("/job-level-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMapping)
+    
+
     // Bank master 
     .post("/bank", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createBank)
     .get("/bank-list", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.bankList)

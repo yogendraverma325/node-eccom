@@ -95,6 +95,13 @@ const ptLocationMasterSchema = Joi.object({
   frequency: Joi.string().required().label("Frequency")
 });
 
+const jobLevelMappingSchema = Joi.object({
+  companyId: Joi.number().required().label("Company Name"),
+  bandId: Joi.number().required().label("Band Name"),
+  gradeId: Joi.number().required().label("Grade Name"),
+  jobLevelId: Joi.number().required().label("Job Level Name"),
+});
+
 // End schema by jay
 
 export default {
@@ -110,6 +117,7 @@ export default {
   attendancePolicyMasterSchema,
   leaveMasterSchema,
   noticePeriodMasterSchema,
-  ptLocationMasterSchema
+  ptLocationMasterSchema,
+  jobLevelMappingSchema
   // jay end
 };

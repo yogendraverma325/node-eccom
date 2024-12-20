@@ -360,8 +360,8 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
 
       const bandData = await db.bandMaster.findAndCountAll({
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       return respHelper(res, {
@@ -470,8 +470,8 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
 
       const gradeData = await db.gradeMaster.findAndCountAll({
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       return respHelper(res, {
