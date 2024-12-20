@@ -52,7 +52,12 @@ export default Express
     .post("/extraPaymentUpload", upload.single('excelFile'), authentication.authenticate, paymentController.extraPaymentUpload)
     .post("/currentonthExtraPaymentSyncing",authentication.authenticate,paymentController.extraPaymentSyncing)
     .get("/buList",authentication.authenticate,paymentController.buList)
-    .get("/salaryComponentList",authentication.authenticate,paymentController.salaryComponentList);
+    .get("/salaryComponentList",authentication.authenticate,paymentController.salaryComponentList)
+    // .get("/exportSalaryComponent",paymentController.exportSalaryComponent)
+    .get("/exportSample",paymentController.exportSample);
+
+
+    
 
 
 
