@@ -834,20 +834,12 @@ class PaymentController {
         );
       }
 
-      // return;
-      // // const Employees = pkg.utils.sheet_to_json(workbookEmployee.Sheets[sheetNameEmployee], { raw: false });
-
-      // // console.log(Employees);
-
       let errorArray = [],
         successArray = [];
       for (const employee of Employees) {
         employee["Effective Date"] = !isNaN(Employees[0]["Effective Date"])
           ? paymentHelper.getFromattedDate(employee["Effective Date"])
           : Employees[0]["Effective Date"];
-        console.log(employee["Effective Date"]);
-        console.log(employee["Salary Structure"]);
-
         let employeeDetails = await db.employeeMaster.findOne({
           where: {
             empCode: employee["Email/Employee ID"],
@@ -886,19 +878,42 @@ class PaymentController {
               ],
               as: "structureMappingDetails",
               include: [
+                
                 {
                   model: db.salaryComponent,
                   attributes: [
                     "salaryComponentCode",
                     "salaryComponentAlias",
                     "includeInPackage",
+                    "salaryComponentEarningType"
                   ],
                   as: "componentDetails",
                 },
+                {
+                  model: db.salarycomponentmapping,
+                  where: {
+                    salaryComponentElementAutoId: 21,
+                  },
+
+                  attributes: {
+                    exclude: [
+                      "createdAt",
+                      "createdBy",
+                      "updatedBy",
+                      "updatedAt",
+                      "isActive",
+                    ],
+                  },
+                },
               ],
+      
+       
             },
           ],
         });
+
+   
+
 
         if (structureDetails.length == 0) {
           return respHelper(res, {
@@ -917,13 +932,6 @@ class PaymentController {
         );
 
         if (error) {
-          console.log(
-            error.details[0].message +
-              " for empId : " +
-              employee["Email/Employee ID"] +
-              " --- " +
-              employee["Effective Date"]
-          );
           errorArray.push({
             index: errorArray.length + 1,
             employeeID: employee["Email/Employee ID"],
@@ -935,7 +943,11 @@ class PaymentController {
         // return;
         //////////////Pay-Package Uploading///////////
         var ctcFromComponent = 0;
+        let includedComponent=[];
         for (const element of structureDetails) {
+          let includeInPackage=['OTC','Earning','Balancing'].includes(element['structureMappingDetails.componentDetails.salaryComponentEarningType']) && element['structureMappingDetails.salarycomponentmapping.elementValue']==0?1:0;
+          //let includeOTNOT=['OTC','Earning','Balancing'].includes(element['structureMappingDetails.componentDetails.salaryComponentEarningType']) && element['structureMappingDetails.salarycomponentmapping.elementValue']==0?"Will Include":"Will Not Include";
+          // console.log(element['structureMappingDetails.componentDetails.salaryComponentCode']+"  ::: "+includeOTNOT);//[0]['structureMappingDetails.salarycomponentmapping.elementValue']);
           let componentName = element[
             "structureMappingDetails.componentDetails.salaryComponentAlias"
           ]
@@ -945,20 +957,16 @@ class PaymentController {
             : element[
                 "structureMappingDetails.componentDetails.salaryComponentCode"
               ];
-          let includeInPackage =
-            element[
-              "structureMappingDetails.componentDetails.includeInPackage"
-            ];
-          if (includeInPackage == 1 && employee[componentName]) {
+
+          if (includeInPackage == 1 && employee[componentName] && !includedComponent.includes(componentName)) {
             ctcFromComponent = ctcFromComponent + employee[componentName];
-            console.log(employee);
-            console.log(componentName);
+            includedComponent.push(componentName);
           }
         }
-        console.log(
-          employee["Name"] + "--" + employee["CTC"],
-          ctcFromComponent
-        );
+        // console.log(
+        //   employee["Name"] + "--" + employee["CTC"],
+        //   ctcFromComponent
+        // );
         if (employee["CTC"] == ctcFromComponent) {
           ////////////////Match the ctc///////
           //console.log('CTC Matched',employee['Name']);
@@ -2134,7 +2142,7 @@ class PaymentController {
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
-      if (!employeeForProcessing || employeeForProcessing[0][0].length > 0) {
+      if (!employeeForProcessing[0][0] || employeeForProcessing[0][0].length > 0) {
         return respHelper(res, {
           status: 400,
           data: [],
