@@ -2781,6 +2781,7 @@ class UserController {
           attributes: ['id', 'empCode', 'name'],
           as: 'attendanceApprover'
         }],
+        order: [['updatedAt', 'DESC']],
         limit,
         offset
       })
