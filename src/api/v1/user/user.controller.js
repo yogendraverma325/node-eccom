@@ -2801,6 +2801,47 @@ class UserController {
       });
     }
   }
+
+  async taskHistoryAttendanceApprovalSelf(req, res) {
+    try {
+
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+
+      const { count, rows: pendingAttendanceData } = await db.attendanceHistory.findAndCountAll({
+        where: {
+          employeeId: req.userId
+        },
+        include: [{
+          model: db.employeeMaster,
+          attributes: ['id', 'empCode', 'name']
+        }, {
+          model: db.employeeMaster,
+          attributes: ['id', 'empCode', 'name'],
+          as: 'attendanceApprover'
+        }],
+        order: [['date', 'DESC']],
+        limit,
+        offset
+      })
+
+      return respHelper(res, {
+        status: 200,
+        data: {
+          totalRecords: count,
+          totalPages: Math.ceil(count / limit),
+          currentPage: pageNo,
+          pendingAttendanceData,
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      })
+    }
+  }
   // Pending Attendance Task History
   async separationTaskForm(req, res) {
     try {

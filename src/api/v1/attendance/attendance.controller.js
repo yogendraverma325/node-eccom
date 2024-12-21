@@ -2852,6 +2852,13 @@ class AttendanceController {
         },
       });
 
+      attendanceData = await db.attendanceHistory.findOne({
+        where: {
+          employeeId: req.userId,
+          date: moment().format("YYYY-MM-DD"),
+        },
+      });
+
       if (!attendanceData) {
         return respHelper(res, {
           status: 200,
