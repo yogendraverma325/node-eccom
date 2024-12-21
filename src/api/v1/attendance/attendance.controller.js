@@ -256,7 +256,7 @@ class AttendanceController {
 
           return respHelper(res, {
             status: 200,
-            msg: message.PUNCH_IN_SUCCESS,
+            msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
           });
         } else {
           console.log("here");
@@ -321,7 +321,7 @@ class AttendanceController {
 
           return respHelper(res, {
             status: 200,
-            msg: message.PUNCH_OUT_SUCCESS,
+            msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
           });
         }
       } else {
@@ -438,7 +438,7 @@ class AttendanceController {
 
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_OUT_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           } else {
             let graceTime = moment(
@@ -516,7 +516,7 @@ class AttendanceController {
 
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_IN_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           }
         } else {
@@ -599,7 +599,7 @@ class AttendanceController {
 
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_OUT_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           } else {
             let graceTime = moment(
@@ -678,7 +678,7 @@ class AttendanceController {
 
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_IN_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           }
         }
