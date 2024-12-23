@@ -3334,9 +3334,10 @@ class PaymentController {
 
       if (getColumns.length > 0) {
         const timestamp = moment().format("HH:mm");
-        let mergeColumns = [...getColumns, ...arr];
-        const headers = [...mergeColumns.map((item) => item.columnName)];
 
+        let mergeColumns = [...getColumns, ...arr];
+      
+        const headers = [...mergeColumns.map((item) => item.columnName)];
         const columns = headers.map((value) => ({
           label: value,
           value: value,
