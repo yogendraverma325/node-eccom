@@ -950,10 +950,10 @@ class PaymentController {
             includedComponent.push(componentName);
           }
         }
-        // console.log(
-        //   employee["Name"] + "--" + employee["CTC"],
-        //   ctcFromComponent
-        // );
+        console.log(
+          employee["Name"] + "--" + employee["CTC"],
+          ctcFromComponent
+        );
 
         
         if (employee["CTC"] == ctcFromComponent) {
@@ -2942,7 +2942,7 @@ class PaymentController {
       }
 
       if (nextStatusId == 8) {
-        await releasePaySlip({ processId: processId, req });
+        await releasePaySlip({ processId: processId, req ,nextStatusId});
       }
 
       await db.payProcessMaster.update(
@@ -3592,12 +3592,6 @@ async function processSalary(data) {
   } else {
     console.log("NO Data For Processing >>>>>>>>>");
   }
-
-  // //////////////////////Creating a Salary Run Process///////////////////////
-  // return respHelper(res, {
-  //   status: 200,
-  //   data: salaryRegisterArray,
-  // });
 }
 
 async function generatePaySlip(data) {
@@ -3652,7 +3646,6 @@ async function generatePaySlip(data) {
           let totalPayslipDeductons =
             parseFloat(payMonthlyElement.totalExtraDeduction) +
             parseFloat(payMonthlyElement.totalComponentDeductions);
-
           let PaySlipNetPay =
             parseFloat(payMonthlyElement.paySlipGrossEarning) +
             parseFloat(payMonthlyElement.extraPaymentAmount);
@@ -3687,11 +3680,6 @@ async function generatePaySlip(data) {
             createdAt: new Date(),
             payMonth:payMonthlyElement.payMonth
           });
-
-          console.log(isExistPaySlip);
-          console.log(payMonthlyElement.payMonth);
-
-
           paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
             ? isExistPaySlip.dataValues.paySlipAutoId
             : paySlipAutoId;
