@@ -3456,7 +3456,7 @@ async function processSalary(data) {
         !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
       ) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with PT calculating" },
+          { payStatus: 101, payRemark: "Error with PT calculating" },
           {
             where: {
               EmployeeId: employee,
@@ -3474,7 +3474,7 @@ async function processSalary(data) {
         !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
       ) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with lwf calculating" },
+          { payStatus: 101, payRemark: "Error with lwf calculating" },
           {
             where: {
               EmployeeId: employee,
@@ -3488,7 +3488,7 @@ async function processSalary(data) {
 
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Pay Package Not Assigned." },
+          { payStatus: 101, payRemark: "Pay Package Not Assigned." },
           {
             where: {
               EmployeeId: employee,
@@ -3639,9 +3639,9 @@ async function generatePaySlip(data) {
           year: payMonthlyElement.payMonth.split("-")[0],
         });
         let paySlipDuration = `01/${
-          parseInt(currentMonth) + 1
+          parseInt(currentMonth) 
         }/${currentYear}-${totalWorkingDays}/${
-          parseInt(currentMonth) + 1
+          parseInt(currentMonth) 
         }/${currentYear}`;
         let paySlipAutoId = isExistPaySlip
           ? isExistPaySlip.paySlipAutoId
