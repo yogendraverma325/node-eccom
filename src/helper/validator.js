@@ -1265,7 +1265,7 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
   const dynamicFields = {
     "Email/Employee ID":Joi.number().required(),
     "Name":Joi.string().allow(null,''),
-    "Effective Date":Joi.string().required(),
+    "Effective Date": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Event":Joi.string().allow('',null),
     "Salary Structure":Joi.string().required(),
     "CTC":Joi.number().required(),
@@ -1331,8 +1331,9 @@ const lopValidateSchama = Joi.object({
 });
 
 const employeesForPayrollProcess = Joi.object({
-  departmentId: Joi.string().required(), // Auto-incremented primary key, not required in most cases.
+  departmentId: Joi.string().allow("",null), // Auto-incremented primary key, not required in most cases.
   paymonth: Joi.string().required(),
+  processingType:Joi.number().required().valid(0,1),
 });
 
 const extraDeductionSchema = Joi.object({
