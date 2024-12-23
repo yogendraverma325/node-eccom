@@ -2837,7 +2837,10 @@ class UserController {
       })
 
       pendingAttendanceData.map(record => {
-        if (!record.dataValues.attendanceApprover) {
+        if (!record.dataValues.attendanceApprover && record.dataValues.attendanceStatus === 'pending') {
+          record.dataValues.attendanceApprover = { name: 'Pending for Approval' };
+        }
+        if (!record.dataValues.attendanceApprover && record.dataValues.attendanceStatus === 'approved') {
           record.dataValues.attendanceApprover = { name: 'Auto Approved' };
         }
         return record;
