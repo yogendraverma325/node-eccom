@@ -116,6 +116,10 @@ export default (sequelize, Sequelize) => {
           updatedBy: {
             type: Sequelize.INTEGER,
             allowNull: true
+          },
+          payMonth:{
+            type: Sequelize.STRING,
+            allowNull: true
           }
     });
     return PayMonthlyElement ;
