@@ -950,10 +950,10 @@ class PaymentController {
             includedComponent.push(componentName);
           }
         }
-        // console.log(
-        //   employee["Name"] + "--" + employee["CTC"],
-        //   ctcFromComponent
-        // );
+        console.log(
+          employee["Name"] + "--" + employee["CTC"],
+          ctcFromComponent
+        );
 
         
         if (employee["CTC"] == ctcFromComponent) {
@@ -2942,7 +2942,7 @@ class PaymentController {
       }
 
       if (nextStatusId == 8) {
-        await releasePaySlip({ processId: processId, req });
+        await releasePaySlip({ processId: processId, req ,nextStatusId});
       }
 
       await db.payProcessMaster.update(
@@ -3456,7 +3456,7 @@ async function processSalary(data) {
         !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
       ) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with PT calculating" },
+          { payStatus: 101, payRemark: "Error with PT calculating" },
           {
             where: {
               EmployeeId: employee,
@@ -3474,7 +3474,7 @@ async function processSalary(data) {
         !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
       ) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with lwf calculating" },
+          { payStatus: 101, payRemark: "Error with lwf calculating" },
           {
             where: {
               EmployeeId: employee,
@@ -3488,7 +3488,7 @@ async function processSalary(data) {
 
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Pay Package Not Assigned." },
+          { payStatus: 101, payRemark: "Pay Package Not Assigned." },
           {
             where: {
               EmployeeId: employee,
@@ -3592,12 +3592,6 @@ async function processSalary(data) {
   } else {
     console.log("NO Data For Processing >>>>>>>>>");
   }
-
-  // //////////////////////Creating a Salary Run Process///////////////////////
-  // return respHelper(res, {
-  //   status: 200,
-  //   data: salaryRegisterArray,
-  // });
 }
 
 async function generatePaySlip(data) {
@@ -3652,7 +3646,6 @@ async function generatePaySlip(data) {
           let totalPayslipDeductons =
             parseFloat(payMonthlyElement.totalExtraDeduction) +
             parseFloat(payMonthlyElement.totalComponentDeductions);
-
           let PaySlipNetPay =
             parseFloat(payMonthlyElement.paySlipGrossEarning) +
             parseFloat(payMonthlyElement.extraPaymentAmount);
@@ -3687,11 +3680,6 @@ async function generatePaySlip(data) {
             createdAt: new Date(),
             payMonth:payMonthlyElement.payMonth
           });
-
-          console.log(isExistPaySlip);
-          console.log(payMonthlyElement.payMonth);
-
-
           paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
             ? isExistPaySlip.dataValues.paySlipAutoId
             : paySlipAutoId;
