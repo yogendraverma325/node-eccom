@@ -1265,6 +1265,26 @@ db.jobLevelMapping.hasOne(db.companyMaster, {
   sourceKey: "companyId",
 });
 
+db.departmentMapping.hasOne(db.sbuMapping, {
+  foreignKey: "sbuMappingId",
+  sourceKey: "sbuMappingId",
+});
+
+db.sbuMapping.hasOne(db.buMapping, {
+  foreignKey: "buMappingId",
+  sourceKey: "buMappingId",
+});
+
+db.buMapping.hasOne(db.companyMaster, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
+});
+
+db.functionalAreaMapping.hasOne(db.departmentMapping, {
+  foreignKey: "departmentMappingId",
+  sourceKey: "departmentMappingId",
+});
+
 // END EMPLOYMENT HISTORY
 
 export default db;

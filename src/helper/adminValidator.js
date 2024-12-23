@@ -64,21 +64,26 @@ const attendancePolicyMasterSchema = Joi.object({
   leaveDeductPolicyWorkDurationHalfDayTime: Joi.number().required().label("Leave Deduct Policy Work Duration Half Day Time"),
   leaveDeductPolicyWorkDurationFullDayTime: Joi.number().required().label("Leave Deduct Policy Work Duration Full Day Time"),
   leaveDeductPolicyWorkDurationLeaveType: Joi.number().required().label("Leave Deduct Policy Work Duration Leave Type"),
+  attendancePolicyId: Joi.number().allow(null),
+  isActive: Joi.boolean().allow(null)
 });
 
 const leaveMasterSchema = Joi.object({
   leaveName: Joi.string().trim().required().label("Leave Name"),
   leaveCode: Joi.string().trim().required().label("Leave Code"),
-  defaultLeaveCount: Joi.number().allow(null).label("Default Leave Count"),
-  iterationDistribution: Joi.number().allow(null).label("Iteration Distribution"),
-  canCarryForwardAhead: Joi.number().allow(null).label("Can Carry Forward Ahead"),
-  systemGenerated: Joi.number().allow(null).label("System Generated"),
-  creditDayOfMonth: Joi.number().allow(null).label("Credit Day Of Month"),
-  canTakeHalfDay: Joi.number().allow(null).label("Can Take Hal fDay"),
-  minConsecutiveDay: Joi.number().allow(null).label("Min Consecutive Day"),
-  maxConsecutiveDay: Joi.number().allow(null).label("Max Consecutive Day"),
-  attachmentRequired: Joi.number().allow(null).label("Attachment Required"),
-  messageRequired: Joi.number().allow(null).label("Message Required")
+  defaultLeaveCount: Joi.string().allow(null).label("Default Leave Count"),
+  iterationDistribution: Joi.string().allow(null).label("Iteration Distribution"),
+  canCarryForwardAhead: Joi.boolean().allow(null).label("Can Carry Forward Ahead"),
+  systemGenerated: Joi.boolean().allow(null).label("System Generated"),
+  creditDayOfMonth: Joi.string().allow(null).label("Credit Day Of Month"),
+  canTakeHalfDay: Joi.boolean().allow(null).label("Can Take Hal fDay"),
+  minConsecutiveDay: Joi.string().allow(null).label("Min Consecutive Day"),
+  maxConsecutiveDay: Joi.string().allow(null).label("Max Consecutive Day"),
+  attachmentRequired: Joi.boolean().allow(null).label("Attachment Required"),
+  attachmentRequiredafterdays: Joi.string().allow(null).label("Attachment Required After Days"),
+  messageRequired: Joi.boolean().allow(null).label("Message Required"),
+  leaveId: Joi.number().allow(null),
+  isActive: Joi.number().allow(null)
 });
 
 const noticePeriodMasterSchema = Joi.object({
@@ -102,6 +107,21 @@ const jobLevelMappingSchema = Joi.object({
   jobLevelId: Joi.number().required().label("Job Level Name"),
 });
 
+const departmentMappingSchema = Joi.object({
+  companyId: Joi.number().required().label("Company Name"),
+  buId: Joi.number().required().label("Business Unit"),
+  sbuMappingId: Joi.number().required().label("Sub Business Unit"),
+  departmentId: Joi.number().required().label("Department Name"),
+});
+
+const functionalAreaMappingSchema = Joi.object({
+  companyId: Joi.number().required().label("Company Name"),
+  buId: Joi.number().required().label("Business Unit"),
+  sbuMappingId: Joi.number().required().label("Sub Business Unit"),
+  departmentMappingId: Joi.number().required().label("Department Name"),
+  functionalAreaId: Joi.number().required().label("Functional Area Name"),
+});
+
 // End schema by jay
 
 export default {
@@ -118,6 +138,8 @@ export default {
   leaveMasterSchema,
   noticePeriodMasterSchema,
   ptLocationMasterSchema,
-  jobLevelMappingSchema
+  jobLevelMappingSchema,
+  departmentMappingSchema,
+  functionalAreaMappingSchema
   // jay end
 };

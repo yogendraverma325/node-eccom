@@ -1619,11 +1619,158 @@ class CommonController {
       let model = db.jobLevelMapping;
       let query = {
         companyId: result.companyId,
-        bandId: result.bandId,
-        gradeId: result.gradeId,
+        // bandId: result.bandId,
+        // gradeId: result.gradeId,
         jobLevelId: result.jobLevelId
       };
       let moduleName = "Job Level Mapping";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async departmentMappingList(req, res) {
+    try {
+      let model = db.departmentMapping;
+      let query = { 'departmentId': req.params.id };
+
+      let aggregate = {
+        where: query,
+        attributes: ["departmentMappingId"],
+        order: [["departmentMappingId", "DESC"]],
+        include: [
+          { model: db.departmentMaster, attributes: ['departmentId', 'departmentName'] },
+          { model: db.sbuMapping, attributes: ['sbuMappingId'], 
+            include: [ 
+              { model: db.sbuMaster, attributes: ['sbuId', 'sbuName'] },
+              { model: db.buMapping, attributes: ['buMappingId'], 
+                include: [
+                  { model: db.buMaster, attributes: ['buId', 'buName'] },
+                  { model: db.companyMaster, attributes: ['companyId', 'companyName'] }
+                ]
+              },
+            ] 
+          },
+        ]
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async departmentMapping(req, res) {
+    try {
+      let result = await validator.departmentMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() }
+      let model = db.departmentMapping;
+      let query = {
+        departmentId: result.departmentId,
+        sbuMappingId: result.sbuMappingId
+      };
+      let moduleName = "Department Mapping";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async functionalMappingList(req, res) {
+    try {
+      let model = db.functionalAreaMapping;
+      let query = { 'functionalAreaId': req.params.id };
+
+      let aggregate = {
+        where: query,
+        attributes: ["functionalAreaMappingId"],
+        order: [["functionalAreaMappingId", "DESC"]],
+        include: [
+          { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName'] },
+          { model: db.departmentMapping, attributes: ['departmentMappingId'],
+            include: [
+              { model: db.sbuMapping, attributes: ['sbuMappingId'], 
+                include: [ 
+                  { model: db.sbuMaster, attributes: ['sbuId', 'sbuName'] },
+                  { model: db.buMapping, attributes: ['buMappingId'], 
+                    include: [
+                      { model: db.buMaster, attributes: ['buId', 'buName'] },
+                      { model: db.companyMaster, attributes: ['companyId', 'companyName'] }
+                    ]
+                  },
+                ] 
+              },
+              { model: db.departmentMaster, attributes: ['departmentId', 'departmentName']}
+            ]
+          }
+        ]
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async functionalMapping(req, res) {
+    try {
+      let result = await validator.functionalAreaMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() }
+      let model = db.functionalAreaMapping;
+      let query = {
+        functionalAreaId: result.functionalAreaId,
+        departmentMappingId: result.departmentMappingId
+      };
+      let moduleName = "Functional Area Mapping";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
     } catch (error) {

@@ -27,12 +27,7 @@ export default Express
     .get("/job-level-details/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelDetails)
     .put("/job-level/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateJobLevel)
     .patch("/job-level/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfJobLevel)
-    .delete("/job-level/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.deleteOfJobLevel)
-
-    // job level mapping routes
-    .get("/job-level-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMappingList)
-    .post("/job-level-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMapping)
-    
+    .delete("/job-level/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.deleteOfJobLevel)    
 
     // Bank master 
     .post("/bank", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createBank)
@@ -88,5 +83,16 @@ export default Express
     .put("/pt-location/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updatePtLocation)
     .patch("/pt-location/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfPtLocation)
 
+    // job level mapping routes
+    .get("/job-level-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMappingList)
+    .post("/job-level-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMapping)
+
+    // department mapping routes
+    .get("/department-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.departmentMappingList)
+    .post("/department-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.departmentMapping)
+
+    // functional area mapping routes
+    .get("/functional-area-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalMappingList)
+    .post("/functional-area-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalMapping)
     
 
