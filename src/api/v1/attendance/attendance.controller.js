@@ -3171,7 +3171,7 @@ class AttendanceController {
                 }
               }
             } else {
-              presentStatus = "singlePunchAbsent";
+              presentStatus = singleEmp.attendancemaster.attendancePresentStatus;
             }
             await db.attendanceMaster.update(
               {
