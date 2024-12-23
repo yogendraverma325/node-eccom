@@ -805,7 +805,7 @@ class AttendanceController {
         attendanceAutoId: result.attendanceAutoId,
         regularizePunchInDate: result.fromDate,
         regularizePunchOutDate: result.toDate,
-        regularizeuserRemark: result.remark != "" ? result.remark : null,
+        regularizeUserRemark: result.remark != "" ? result.remark : null,
         regularizeManagerId: attendanceData.dataValues.employee.managerData.id,
         regularizePunchInTime: result.punchInTime,
         regularizePunchOutTime: result.punchOutTime,
@@ -3860,6 +3860,7 @@ class AttendanceController {
   async regularizeRequestListBulk(req, res) {
     try {
       const limit = req.query.limit * 1 || 100;
+      const search = req.query.search || null;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
 
@@ -3891,6 +3892,14 @@ class AttendanceController {
               {
                 model: db.employeeMaster,
                 attributes: ["empCode", "name"],
+                where: {
+                  ...(search && {
+                    [Op.or]: [
+                      { name: { [Op.like]: `%${search}%` } }, // Search in 'name'
+                      { empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
+                    ],
+                  }),
+                },
               },
             ],
           },
