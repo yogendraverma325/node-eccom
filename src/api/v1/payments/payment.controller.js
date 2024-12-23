@@ -1123,7 +1123,8 @@ class PaymentController {
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );
-      const updatedArray = result[0].map((item) => ({
+      console.log(newProcess)
+      const updatedArray = await result[0].map((item) => ({
         EmployeeId: item.id,
         EmployeeName: item.name,
         createdBy: req.userData.id,
@@ -1136,11 +1137,13 @@ class PaymentController {
         payMonth: newProcess.dataValues.payMonth,
       }));
       await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
+        console.log(resp);
         processSalary({
           processId: newProcess.dataValues.payProcessMasterAutoId,
           req,
         });
       });
+
 
       return respHelper(res, {
         status: 200,
@@ -3106,11 +3109,7 @@ class PaymentController {
       } else if (
         [6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)
       ) {
-        stepperDataQuery = await paymentHelper.query(18, processId, {
-          paymonth: currentProcessStatus[0][0].payMonth,
-          month: currentProcessStatus[0][0].payMonth.split("-")[1],
-          year: currentProcessStatus[0][0].payMonth.split("-")[0],
-        });
+        stepperDataQuery = await paymentHelper.query(18, processId, null);
 
         console.log(stepperDataQuery);
       }
@@ -3853,7 +3852,13 @@ async function generatePaySlip(data) {
             isActive: 1,
             paySlipStatus: 0,
             createdAt: new Date(),
+            payMonth:payMonthlyElement.payMonth
           });
+
+          console.log(isExistPaySlip);
+          console.log(payMonthlyElement.payMonth);
+
+
           paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
             ? isExistPaySlip.dataValues.paySlipAutoId
             : paySlipAutoId;
@@ -3921,10 +3926,6 @@ async function generatePaySlip(data) {
               createdAt: new Date(),
             });
           }
-          console.log("payMonthlyElement", payMonthlyElement);
-
-          console.log(customeDeduction);
-
           await db.paySlipComponent.bulkCreate(customeDeduction);
         }
 
