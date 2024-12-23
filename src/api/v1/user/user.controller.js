@@ -2826,6 +2826,13 @@ class UserController {
         offset
       })
 
+      pendingAttendanceData.map(record => {
+        if (!record.dataValues.attendanceApprover) {
+          record.dataValues.attendanceApprover = { name: 'Auto Approved' };
+        }
+        return record;
+      });
+
       return respHelper(res, {
         status: 200,
         data: {

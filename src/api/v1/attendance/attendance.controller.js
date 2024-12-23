@@ -553,7 +553,7 @@ class AttendanceController {
 
             const attendanceHistoryData = await db.attendanceHistory.findOne({
               where: {
-                date: currentDate.format("YYYY-MM-DD"),
+                date: yerterdayDate.format("YYYY-MM-DD"),
                 employeeId: req.userId,
               }
             })
@@ -624,7 +624,7 @@ class AttendanceController {
 
             const attendanceHistoryData = await db.attendanceHistory.findOne({
               where: {
-                date: currentDate.format("YYYY-MM-DD"),
+                date: yerterdayDate.format("YYYY-MM-DD"),
                 employeeId: req.userId,
               }
             })
@@ -1460,6 +1460,7 @@ class AttendanceController {
             "leaveCount",
             "fromDate",
             "toDate",
+            'createdAt',
             "managerRemark",
             "leaveAttachment",
           ],
@@ -3540,11 +3541,13 @@ class AttendanceController {
       const limit = req.query.limit * 1 || 10;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
+      const user = req.query.user;
 
       const attendanceList = await db.attendanceHistory.findAndCountAll({
-        where: {
+        where: Object.assign({
           attendanceStatus: 'pending'
         },
+          (user) ? { employeeId: user } : {}),
         order: [['date', 'DESC']],
         include: [{
           model: db.employeeMaster,
