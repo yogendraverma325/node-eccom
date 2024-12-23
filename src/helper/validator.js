@@ -1331,8 +1331,9 @@ const lopValidateSchama = Joi.object({
 });
 
 const employeesForPayrollProcess = Joi.object({
-  departmentId: Joi.string().required(), // Auto-incremented primary key, not required in most cases.
+  departmentId: Joi.string().allow("",null), // Auto-incremented primary key, not required in most cases.
   paymonth: Joi.string().required(),
+  processingType:Joi.number().required().valid(0,1),
 });
 
 const extraDeductionSchema = Joi.object({

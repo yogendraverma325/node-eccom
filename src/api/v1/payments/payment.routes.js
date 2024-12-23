@@ -54,7 +54,8 @@ export default Express
     .get("/buList",authentication.authenticate,paymentController.buList)
     .get("/salaryComponentList",authentication.authenticate,paymentController.salaryComponentList)
     // .get("/exportSalaryComponent",paymentController.exportSalaryComponent)
-    .get("/exportSample",paymentController.exportSample);
+    .get("/exportSample",paymentController.exportSample)
+    .get("/employeesListForProcessing",authentication.authenticate,paymentController.employeesListForProcessing);
 
 
     
