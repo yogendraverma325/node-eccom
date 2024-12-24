@@ -4128,13 +4128,12 @@ class UserController {
 
   ///CONFIRMATION///
   async confirmatonList(req, res) {
-    // try {
-    const limit = req.query.limit * 1 || 10;
+    try {
+    const limit = req.query.limit * 1 || 100;
     const pageNo = req.query.page * 1 || 1;
     const offset = (pageNo - 1) * limit;
-    const confirmationData = await db.Confirmationinitiated.findAndCountAll({
+    const confirmationData = await db.Confirmationinitiated.findAll({
       limit,
-      offset,
       order: [
         ["confirmationinitiatedAutoId", "DESC"], // Sorting
       ],
@@ -4204,12 +4203,12 @@ class UserController {
       status: 200,
       data: confirmationData,
     });
-    // } catch (error) {
-    //   return respHelper(res, {
-    //     status: 500,
-    //     msg: "Internal server error",
-    //   });
-    // }
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
   }
   async confirmatonFormSubmission(req, res) {
     // try {
