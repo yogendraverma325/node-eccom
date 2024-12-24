@@ -2172,7 +2172,7 @@ class PaymentController {
       const employeeIds = employeeForProcessing[0].map(
         (employee) => employee.EmployeeId
       );
-
+console.log("employeeIdss",employeeIds)
       let countsForProcessing = `SELECT SUM(CASE WHEN payStatus = 9 THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus != 9 THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
       //============
@@ -3288,7 +3288,7 @@ class PaymentController {
 
   async exportSample(req, res) {
     try {
-      const { exportSheetAutoId, salalryStructureAutoId } = req.query;
+      const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
       var arr = []
       if (!exportSheetAutoId) {
         return respHelper(res, {
@@ -3332,7 +3332,29 @@ class PaymentController {
         );
       }
 
-      if (getColumns.length > 0) {
+      if(exportSheetAutoId==8){
+        let employeeIdss = [employeeIds].join(",");
+        const inProcessQueryJson = `
+        SELECT 
+          e.empCode, 
+          e.name, 
+          SUM(CASE WHEN p.payStatus != 9 THEN 1 ELSE 0 END) AS inProcess
+        FROM tara.payprocessdetails p
+        JOIN tara.employee e ON e.id = p.EmployeeId
+        WHERE p.payMonth = '${
+          paymonth
+        }' AND p.EmployeeId IN (${employeeIdss})
+        GROUP BY e.empCode, e.name
+        HAVING inProcess = 1;
+`;
+    const [inProcessJson] = await db.sequelize.query(inProcessQueryJson, {
+      raw: true,
+    });
+    console.log("inProcessJson>>>>>>>>", inProcessJson);
+      }
+
+      return
+      if (getColumns.length > 0 && exportSheetAutoId != 0 ) {
         const timestamp = moment().format("HH:mm");
 
         let mergeColumns = [...getColumns, ...arr];
@@ -3365,7 +3387,11 @@ class PaymentController {
           `attachment; filename=Sample_sheet_${timestamp}.xlsx`
         );
         res.end(report);
-      } else {
+      } 
+      if(exportSheetAutoId == 0){
+
+      }
+      else {
         res.status(404).json({
           message: "No active columns found for the given sheet",
         });
