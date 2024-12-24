@@ -310,6 +310,16 @@ class UserController {
                 attributes: ["bankId", "bankName", "bankIfsc"],
                 as: "newBankName",
               },
+              {
+                model: db.stateMaster,
+                attributes: ["stateId", "stateName"],
+                required: false
+              },
+              {
+                model: db.ptLocationMaster,
+                attributes: ["ptLocationId", "ptLocationName"],
+                required: false
+              },
             ],
           },
           {
@@ -4788,6 +4798,7 @@ class UserController {
     }
   }
   ///CONFIRMATION///
+
   async getEmploymentDetails(req, res) {
     try {
       let userId = req.query.user;

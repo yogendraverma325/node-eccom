@@ -540,7 +540,84 @@ class MasterController {
     }
   }
 
+  async managerHistoryImport(req, res) {
+    try {
+      // Read Excel file
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      } else {
+        // Ensure the uploaded file has an extension
+        const originalPath = req.file.path;
+        const newPath = path.join(
+          path.dirname(originalPath),
+          `${path.basename(originalPath)}_${moment().format("YYYY-mm-dd")}.xlsx`
+        );
 
+        // Rename the file with .xlsx extension
+        fs.renameSync(originalPath, newPath);
+
+        // Use newPath to open the file
+        const workbookEmployee = pkg.readFile(newPath);
+
+        // const workbookEmployee = pkg.readFile(req.file.path);
+        const sheetNameEmployee = workbookEmployee.SheetNames[1];
+        const Employees = pkg.utils.sheet_to_json(
+          workbookEmployee.Sheets[sheetNameEmployee]
+        );
+        // process data in chunks
+        const chunkSize = 100;
+
+        for (let i = 0; i < Employees.length; i += chunkSize) {
+          const chunk = Employees.slice(i, i + chunkSize);
+          for (const manager of chunk) {
+            let history = {
+              id: manager.id,
+              employeeId: manager.employeeId,
+              managerId: manager.managerId,
+              oldManagerId: null,
+              fromDate: convertExcelDate(manager.fromDate),
+              toDate:
+                manager.toDate != "NULL"
+                  ? convertExcelDate(manager.toDate)
+                  : null,
+              needAttendanceCron: 1,
+              sourceName: "System",
+              status: 1,
+              createdBy: 1,
+              updatedBy: null,
+              createdAt: null,
+              updatedAt: null,
+            };
+
+            // verify employeeId and managerId in employee master table
+            let isVerify = await db.employeeMaster.findOne({
+              where: { id: manager.employeeId, id: manager.managerId },
+              attributes: ["id"],
+            });
+            if (isVerify) {
+              await db.managerHistory.create(history);
+            } else {
+              console.log("index number is not exist", history.id);
+            }
+          }
+        }
+
+        return respHelper(res, {
+          status: 200,
+          msg: "File Uploaded Successfully",
+          data: {},
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
 }
 
 const createObj = (obj) => {
