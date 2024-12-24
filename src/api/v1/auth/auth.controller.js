@@ -87,11 +87,11 @@ class AuthController {
               },
               existUser.dataValues.wrongPasswordCount === 2
                 ? {
-                    accountRecoveryTime: moment().add(
-                      parseInt(process.env.ACCOUNT_RECOVERY_TIME),
-                      "minutes"
-                    ),
-                  }
+                  accountRecoveryTime: moment().add(
+                    parseInt(process.env.ACCOUNT_RECOVERY_TIME),
+                    "minutes"
+                  ),
+                }
                 : null
             ),
             {
@@ -255,6 +255,7 @@ const validateUser = async (req, existUser) => {
       name: existUser.name,
       role: existUser.role.name,
       device: req.headers.source ? req.headers.source : null,
+      firebasetoken: req.headers.firebasetoken
     },
   };
 

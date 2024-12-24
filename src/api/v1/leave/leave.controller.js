@@ -1933,6 +1933,8 @@ class LeaveController {
       const limit = req.query.limit * 1 || 100;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
+      const search = req.query.search || null;
+
       const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({
         where: Object.assign(
           query === "raisedByMe"
@@ -1952,6 +1954,14 @@ class LeaveController {
           {
             model: db.employeeMaster,
             attributes: ["empCode", "name"],
+            where: {
+              ...(search && {
+                [Op.or]: [
+                  { name: { [Op.like]: `%${search}%` } }, // Search in 'name'
+                  { empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
+                ],
+              }),
+            },
           },
           {
             model: db.leaveMaster,

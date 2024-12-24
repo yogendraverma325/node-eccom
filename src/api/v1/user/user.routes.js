@@ -229,6 +229,8 @@ export default Express.Router()
     userController.taskHistoryAttendanceApproval
   )
 
+  .get("/taskHistoryAttendanceApprovalSelf", authentication.authenticate, userController.taskHistoryAttendanceApprovalSelf)
+
   .get(
     "/separationTaskForm/:id",
     authentication.authenticate,
@@ -319,4 +321,22 @@ export default Express.Router()
     "/getEmploymentDetails",
     authentication.authenticate,
     userController.getEmploymentDetails
+  )
+
+  //BULK ACTION TASK HISTORY
+  .get(
+    "/taskHistoryAttendanceActionByMe",
+    authentication.authenticate,
+    userController.taskHistoryAttendanceActionByMe
+  )
+  .get(
+    "/taskHistoryLeaveActionByMe",
+    authentication.authenticate,
+    userController.taskHistoryLeaveActionByMe
+  )
+  .get(
+    "/confirmatonListActionBy",
+    authentication.authenticate,
+    userController.confirmatonListActionBy
   );
+//BULK ACTION TASK HISTORY
