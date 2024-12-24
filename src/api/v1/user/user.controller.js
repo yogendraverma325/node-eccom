@@ -496,22 +496,11 @@ class UserController {
   async taskBoxCount(req, res) {
     try {
       let userid = req.userId;
-      const countLeavePending = await db.employeeLeaveTransactions.findAll({
+      const countLeavePending = await db.EmployeeLeaveHeader.count({
         where: {
           employeeId: userid,
           status: "pending",
         },
-        attributes: [
-          "batch_id",
-          [
-            db.sequelize.fn(
-              "COUNT",
-              db.sequelize.col("employeeleavetransactionsId")
-            ),
-            "count",
-          ],
-        ],
-        group: ["batch_id"],
       });
       const pendingAttendanceCount = await db.attendanceHistory.count({
         where: {
@@ -537,22 +526,11 @@ class UserController {
         ],
       });
 
-      const countLeaveAssgined = await db.employeeLeaveTransactions.findAll({
+      const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
         where: {
           pendingAt: userid,
           status: "pending",
-        },
-        attributes: [
-          "batch_id",
-          [
-            db.sequelize.fn(
-              "COUNT",
-              db.sequelize.col("employeeleavetransactionsId")
-            ),
-            "count",
-          ],
-        ],
-        group: ["batch_id"],
+        }
       });
 
       let assignedAttCount = await db.regularizationMaster.count({
@@ -583,8 +561,8 @@ class UserController {
         data: {
           web: {
             leaveData: {
-              raisedByMe: countLeavePending.length,
-              assignedToMe: countLeaveAssgined.length,
+              raisedByMe: countLeavePending,
+              assignedToMe: countLeaveAssgined
             },
             attedanceData: {
               raisedByMe: pendingAttCount,
@@ -601,13 +579,13 @@ class UserController {
           },
           mobile: {
             raisedByMe: {
-              leaveData: countLeavePending.length,
+              leaveData: countLeavePending,
               attedanceData: pendingAttCount,
               seperationCount: 0,
               pendingAttendanceCount: 0,
             },
             assignedToMe: {
-              leaveData: countLeaveAssgined.length,
+              leaveData:countLeaveAssgined,
               attedanceData: assignedAttCount,
               seperationCount: pendingSeperationCount,
               pendingAttendanceCount,
@@ -4127,82 +4105,74 @@ class UserController {
   }
 
   ///CONFIRMATION///
-  async confirmatonList(req, res) {
+   async confirmatonList(req, res) {
     try {
-    const limit = req.query.limit * 1 || 100;
-    const pageNo = req.query.page * 1 || 1;
-    const offset = (pageNo - 1) * limit;
-    const confirmationData = await db.Confirmationinitiated.findAll({
-      // limit, // Apply limit here
-      // offset, // Offset for pagination (if needed)
-      order: [
-        ["confirmationinitiatedAutoId", "DESC"], // Sorting
-      ],
-      where: {
-        status: {
-          [Op.ne]: 1,
+      const confirmationData = await db.Confirmationinitiated.findAll({
+        where: {
+           status: [0, 2],
         },
-      },
-      include: [
-        {
-          model: db.employeeMaster,
-          attributes: ["id", "empCode", "name", "email"],
-          include: [
-            {
-              model: db.jobDetails,
-              attributes: [
-                "dateOfJoining",
-                "dateOfProbationEnd",
-                "probationPeriod",
-                "confirmationDate",
-                "probationDays",
-              ],
-            },
-            {
-              model: db.companyLocationMaster,
-              required: false,
-              attributes: ["address1", "address2"],
-            },
-            {
-              model: db.designationMaster,
-              required: true,
-              attributes: ["designationId", "name"],
-            },
-            {
-              model: db.departmentMaster,
-              required: true,
-              attributes: ["departmentId", "departmentCode", "departmentName"],
-            },
-          ],
-        },
-        {
-          model: db.Confirmationowners,
-          attributes: [
-            "employeeId",
-            "canTakeAction",
-            "level",
-            "canTakeActionExtend",
-          ],
-          order: [["confirmationownersAutoId", "DESC"]],
-          limit: 1,
-          where: {
-            employeeId: req.userId,
-          },
-          include: {
+        include: [
+          {
             model: db.employeeMaster,
-            attributes: ["empCode", "name"],
+            attributes: ["id", "empCode", "name", "email"],
+            include: [
+              {
+                model: db.jobDetails,
+                attributes: [
+                  "dateOfJoining",
+                  "dateOfProbationEnd",
+                  "probationPeriod",
+                  "confirmationDate",
+                  "probationDays",
+                ],
+              },
+              {
+                model: db.companyLocationMaster,
+                required: false,
+                attributes: ["address1", "address2"],
+              },
+              {
+                model: db.designationMaster,
+                required: true,
+                attributes: ["designationId", "name"],
+              },
+              {
+                model: db.departmentMaster,
+                required: true,
+                attributes: [
+                  "departmentId",
+                  "departmentCode",
+                  "departmentName",
+                ],
+              },
+            ],
           },
-        },
-        {
-          model: db.Confirmationaudittrail,
-        },
-      ],
-    });
+          {
+            model: db.Confirmationowners,
+            attributes: [
+              "employeeId",
+              "canTakeAction",
+              "level",
+              "canTakeActionExtend",
+            ],
+            where: {
+              employeeId: req.userId,
+            },
+            include: {
+              model: db.employeeMaster,
+              attributes: ["empCode", "name"],
+            },
+          },
+          {
+            model: db.Confirmationaudittrail,
+          },
+        ],
+      });
 
-    return respHelper(res, {
-      status: 200,
-      data: confirmationData,
-    });
+      return respHelper(res, {
+        status: 200,
+        data: confirmationData,
+      });
     } catch (error) {
       return respHelper(res, {
         status: 500,
