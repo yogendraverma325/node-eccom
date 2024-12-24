@@ -896,7 +896,7 @@ class PaymentController {
           });
           continue;
         }
- 
+
         let employeeDetails = await db.employeeMaster.findOne({
           where: {
             empCode: employee["Email/Employee ID"],
@@ -1123,7 +1123,7 @@ class PaymentController {
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );
-      console.log(newProcess)
+      console.log(newProcess);
       const updatedArray = await result[0].map((item) => ({
         EmployeeId: item.id,
         EmployeeName: item.name,
@@ -1143,7 +1143,6 @@ class PaymentController {
           req,
         });
       });
-
 
       return respHelper(res, {
         status: 200,
@@ -3323,7 +3322,7 @@ class PaymentController {
             nest: true,
           });
 
-         arr = await Promise.all(
+        arr = await Promise.all(
           getComponentAutoIds.map(async (item) => ({
             columnName:
               item.componentDetails.salaryComponentAlias?.trim() ||
