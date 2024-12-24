@@ -4133,11 +4133,11 @@ class UserController {
     const pageNo = req.query.page * 1 || 1;
     const offset = (pageNo - 1) * limit;
     const confirmationData = await db.Confirmationinitiated.findAll({
-      limit,
+      // limit, // Apply limit here
+      // offset, // Offset for pagination (if needed)
       order: [
         ["confirmationinitiatedAutoId", "DESC"], // Sorting
       ],
-      subQuery: false,
       where: {
         status: {
           [Op.ne]: 1,
