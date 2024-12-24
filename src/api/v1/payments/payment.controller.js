@@ -1086,16 +1086,15 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      // let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
-      //   ","
-      // )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${value.paymonth}';`;
-      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${value.processingType==1?'buId':'empCode'} IN (${value.departmentId.split(
-        ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${
-        value.paymonth
-      }';`;
-
+      let allEmployeeQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth})
       const result = await db.sequelize.query(allEmployeeQuery);
+
+
+      // console.log(result);
+
+      // return;
+
+
 
       let newProcess = await db.payProcessMaster.create(
         {
@@ -1113,8 +1112,8 @@ class PaymentController {
       );
       console.log(newProcess)
       const updatedArray = await result[0].map((item) => ({
-        EmployeeId: item.id,
-        EmployeeName: item.name,
+        EmployeeId: item.EmployeeId,
+        EmployeeName: item.EmployeeName,
         createdBy: req.userData.id,
         createdAt: new Date(),
         proceessId: newProcess.dataValues.payProcessMasterAutoId,
@@ -2131,10 +2130,10 @@ class PaymentController {
       //   ","
       // )})`;
 
-    let employeeForProcessingQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth});
+    let employeeForProcessingQuery = await paymentHelper.query(20,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth});
     let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
-      );
+      ); 
       if (!employeeForProcessing[0][0] || employeeForProcessing[0][0].length > 0) {
         return respHelper(res, {
           status: 400,
@@ -2145,11 +2144,12 @@ class PaymentController {
       const employeeIds = employeeForProcessing[0].map(
         (employee) => employee.EmployeeId
       );
-      let countsForProcessing = `SELECT SUM(CASE WHEN payStatus in (8,9) THEN 1 ELSE 0 END) AS processed, SUM(CASE WHEN payStatus in(1,2,3,4,5,6,7) THEN 1 ELSE 0 END) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
+      let countsForProcessing = `SELECT COALESCE(SUM(CASE WHEN payStatus IN (8, 9) THEN 1 ELSE 0 END), 0)  AS processed, COALESCE(SUM(CASE WHEN payStatus in(1,2,3,4,5,6,7) THEN 1 ELSE 0 END),0) AS inProcess, COUNT(DISTINCT EmployeeId) - COUNT(payStatus) AS available, COUNT(EmployeeId) AS totalEmployee FROM tara.payprocessdetails WHERE payMonth = '${value.paymonth}' AND EmployeeId IN (${employeeIds});`;
       let employeeProcessCount = await db.sequelize.query(countsForProcessing);
       
+
       console.log(countsForProcessing);
-      console.log(employeeIds.length);
+  
 
 
       return respHelper(res, {
