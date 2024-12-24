@@ -1372,7 +1372,7 @@ class CommonController {
       let aggregate = {
         where: query,
         attributes: {
-          exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+          exclude: ["createdBy", "updatedBy", "updatedDt"],
         },
         order: [["noticePeriodAutoId", "DESC"]],
         limit: pageLimit,
@@ -1460,7 +1460,12 @@ class CommonController {
       let result = await validator.ptLocationMasterSchema.validateAsync(req.body);
       result = { ...result, createdBy: req.userId, isActive: 1, createdDt: moment() };
       let model = db.ptLocationMaster;
-      let query = { [Op.or]: [ { 'ptLocationName': result.ptLocationName }, { 'ptLocationCode': result.ptLocationCode } ] };
+      let query = { [Op.and]: [ 
+        { 'ptLocationName': result.ptLocationName },
+        { 'ptLocationCode': result.ptLocationCode },
+        { 'stateId': result.stateId },
+        { 'frequency': result.frequency }
+      ] };
       let moduleName = "PT Location";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
@@ -1493,11 +1498,12 @@ class CommonController {
       let aggregate = {
         where: query,
         attributes: {
-          exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+          exclude: ["createdBy", "updatedBy", "updatedAt"],
         },
         order: [["ptLocationId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
+        offset: (page - 1) * pageLimit,
+        include: [{ model: db.stateMaster, attributes: ['stateId', 'stateName'] }]
       }
 
       let response = await service.aggregate(model, aggregate);

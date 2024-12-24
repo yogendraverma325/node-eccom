@@ -1250,6 +1250,10 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   as: "departmentBUHead",
 });
 
+// END EMPLOYMENT HISTORY
+
+// Master config by jay
+
 db.jobLevelMapping.hasOne(db.bandMaster, {
   foreignKey: "bandId",
   sourceKey: "bandId",
@@ -1285,6 +1289,10 @@ db.functionalAreaMapping.hasOne(db.departmentMapping, {
   sourceKey: "departmentMappingId",
 });
 
-// END EMPLOYMENT HISTORY
+db.ptLocationMaster.hasOne(db.stateMaster, {
+  foreignKey: "stateId",
+  sourceKey: "stateId"
+});
+
 
 export default db;

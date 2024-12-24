@@ -89,8 +89,10 @@ const leaveMasterSchema = Joi.object({
 const noticePeriodMasterSchema = Joi.object({
   noticePeriodName: Joi.string().trim().required().label("Notice Period Name"),
   noticePeriodCode: Joi.string().trim().required().label("Notice Period Code"),
-  nPDaysAfterConfirmation: Joi.number().allow(null).label("nP Days After Confirmation"),
-  nPDaysInProbation: Joi.number().allow(null).label("nP Days In Probation")
+  nPDaysAfterConfirmation: Joi.number().required().label("nP Days After Confirmation"),
+  nPDaysInProbation: Joi.number().required().label("nP Days In Probation"),
+  noticePeriodAutoId: Joi.number().allow(null),
+  isActive: Joi.boolean().allow(null)
 });
 
 const ptLocationMasterSchema = Joi.object({
