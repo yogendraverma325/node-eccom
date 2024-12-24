@@ -1688,7 +1688,8 @@ class MasterController {
             }
           }
 
-          if (currentDay.isSameOrBefore(employeeRecord.dateOfJoining)) {
+          if (currentDay.isBefore(employeeRecord.dateOfJoining)) {
+         // if (currentDay.isSameOrBefore(employeeRecord.dateOfJoining)) {
             // if (currentDay.isBefore(today)) {
             dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
           }
