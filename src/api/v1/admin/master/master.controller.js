@@ -621,7 +621,7 @@ class CommonController {
   async createDepartment(req, res) {
     try {
       let result = await validator.departmentMasterSchema.validateAsync(req.body);
-      result = { ...result, parentDepartmentId: 0, createdBy: req.userId, isActive: 1 };
+      result = { ...result, createdBy: req.userId, isActive: 1 };
 
       let model = db.departmentMaster;
       let query = { 'departmentName': result.departmentName, 'departmentCode': result.departmentCode };
@@ -656,7 +656,7 @@ class CommonController {
 
       let aggregate = {
         where: query,
-        attributes: ['departmentId', 'departmentName', 'departmentCode', 'createdAt', 'isActive'],
+        attributes: ['departmentId', 'departmentName', 'departmentCode', 'parentDepartmentId', 'createdAt', 'isActive'],
         order: [["departmentId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit
@@ -741,7 +741,7 @@ class CommonController {
   async createFunctionalArea(req, res) {
     try {
       let result = await validator.functionalAreaMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, parentFunctionalAreaId: 0 };
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.functionalAreaMaster;
       let query = { 'functionalAreaName': result.functionalAreaName, 'functionalAreaCode': result.functionalAreaCode };
       let moduleName = "Functional Area";
@@ -775,7 +775,7 @@ class CommonController {
 
       let aggregate = {
         where: query,
-        attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode', 'createdAt', 'isActive'],
+        attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode', 'parentFunctionalAreaId', 'createdAt', 'isActive'],
         order: [["functionalAreaId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit

@@ -535,7 +535,7 @@ class MasterController {
 
   async functionalArea(req, res) {
     try {
-      let query = { departmentMappingId: req.query.departmentMappingId };
+      let query = { ...(req.query.departmentMappingId && { departmentMappingId: req.query.departmentMappingId }) };
       let subQuery = { isActive: 1 };
       const functionalAreaData = await db.functionalAreaMapping.findAll({
         where: query,

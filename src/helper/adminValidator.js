@@ -23,12 +23,14 @@ const bankMasterSchema = Joi.object({
 
 const departmentMasterSchema = Joi.object({
   departmentName: Joi.string().trim().required().label("Department Name"),
-  departmentCode: Joi.string().trim().required().label("Department Code")
+  departmentCode: Joi.string().trim().required().label("Department Code"),
+  parentDepartmentId: Joi.number().allow(0).label("Parent Department")
 });
 
 const functionalAreaMasterSchema = Joi.object({
   functionalAreaName: Joi.string().trim().required().label("Department Name"),
-  functionalAreaCode: Joi.string().trim().required().label("Department Code")
+  functionalAreaCode: Joi.string().trim().required().label("Department Code"),
+  parentFunctionalAreaId: Joi.number().allow(0).label("Parent Functional Area")
 });
 
 const weekoffMasterSchema = Joi.object({
