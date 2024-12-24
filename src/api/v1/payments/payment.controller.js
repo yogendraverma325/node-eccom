@@ -143,7 +143,7 @@ import db from "../../../config/db.config.js";
 import respHelper from "../../../helper/respHelper.js";
 import pkg from "xlsx";
 import validator from "../../../helper/validator.js";
-import { raw } from "express";
+import { query, raw } from "express";
 import message from "../../../constant/messages.js";
 import Employee from "../../model/Employee.js";
 import paymentHelper from "./paymentHelper.js";
@@ -3476,6 +3476,7 @@ class PaymentController {
 async exportSample(req, res) {
   try {
     const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
+    console.log("querey>>>>>>",req.query)
 
     // Check for required exportSheetAutoId
     if (!exportSheetAutoId) {
@@ -3523,12 +3524,14 @@ async exportSample(req, res) {
         }))
       );
     }
-
+  console.log("getColumns",getColumns)
+    console.log("arr",arr)
     // Process employee data for exportSheetAutoId conditions
     let employeeData = [];
     if (salalryStructureAutoId == 0) {
       let query = "";
       const employeeIdss = [employeeIds].join(",");
+
 
       if (exportSheetAutoId == 6) {
         query = `
@@ -3579,6 +3582,7 @@ async exportSample(req, res) {
     if (getColumns.length > 0 && salalryStructureAutoId != 0) {
       const mergeColumns = [...getColumns, ...arr];
       const headers = mergeColumns.map((item) => item.columnName);
+      console.log("headers>>>>>>>>>",headers.length)
       const columns = headers.map((value) => ({
         label: value,
         value: value,
@@ -3612,6 +3616,7 @@ async exportSample(req, res) {
       salalryStructureAutoId == 0 &&
       [6, 7, 8, 9].includes(Number(exportSheetAutoId))
     ) {
+      console.log("i am in else")
       const data = [
         {
           sheet: "Employee",
