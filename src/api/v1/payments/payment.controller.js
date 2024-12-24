@@ -961,10 +961,10 @@ class PaymentController {
             includedComponent.push(componentName);
           }
         }
-        // console.log(
-        //   employee["Name"] + "--" + employee["CTC"],
-        //   ctcFromComponent
-        // );
+        console.log(
+          employee["Name"] + "--" + employee["CTC"],
+          ctcFromComponent
+        );
 
         if (employee["CTC"] == ctcFromComponent) {
           ////////////////Match the ctc///////
@@ -1096,18 +1096,15 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      // let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.departmentId IN (${value.departmentId.split(
-      //   ","
-      // )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${value.paymonth}';`;
-      let allEmployeeQuery = `SELECT e.id,e.name FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
-        value.processingType == 1 ? "buId" : "empCode"
-      } IN (${value.departmentId.split(
-        ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL  OR ppd.payMonth != '${
-        value.paymonth
-      }';`;
-
+      let allEmployeeQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth})
       const result = await db.sequelize.query(allEmployeeQuery);
+
+
+      // console.log(result);
+
+      // return;
+
+
 
       let newProcess = await db.payProcessMaster.create(
         {
@@ -1125,8 +1122,8 @@ class PaymentController {
       );
       console.log(newProcess);
       const updatedArray = await result[0].map((item) => ({
-        EmployeeId: item.id,
-        EmployeeName: item.name,
+        EmployeeId: item.EmployeeId,
+        EmployeeName: item.EmployeeName,
         createdBy: req.userData.id,
         createdAt: new Date(),
         proceessId: newProcess.dataValues.payProcessMasterAutoId,
@@ -2471,13 +2468,15 @@ class PaymentController {
         year: value.paymonth.split("-")[0],
         month: value.paymonth.split("-")[1],
       });
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
-        value.processingType == 1 ? "buId" : "empCode"
-      } IN (${value.departmentId.split(
-        ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
-        value.paymonth
-      }';`;
+      // let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${value.processingType==1?'buId':'empCode'} IN (${value.departmentId.split(
+      //   ","
+      // )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
+      //   value.paymonth
+      // }' OR ppd.payStatus!=101;`;
+
+      let allEmployeeQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth});
+
+      console.log(allEmployeeQuery);
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalLopAmount = 0,
         totalLOPDays = 0;
@@ -2536,13 +2535,13 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
-        value.processingType == 1 ? "buId" : "empCode"
-      } IN (${value.departmentId.split(
-        ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
-        value.paymonth
-      }';`;
+      // let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${value.processingType==1?'buId':'empCode'} IN (${value.departmentId.split(
+      //   ","
+      // )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
+      //   value.paymonth
+      // }';`;
+
+      let allEmployeeQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth});
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalTdsAmount = 0,
         totalLOPDays = 0;
@@ -2586,13 +2585,12 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
-        value.processingType == 1 ? "buId" : "empCode"
-      } IN (${value.departmentId.split(
-        ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
-        value.paymonth
-      }';`;
+      // let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${value.processingType==1?'buId':'empCode'} IN (${value.departmentId.split(
+      //   ","
+      // )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
+      //   value.paymonth
+      // }';`;
+      let allEmployeeQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth});
       const result = await db.sequelize.query(allEmployeeQuery);
       var totaPaymentAmount = 0,
         totalLOPDays = 0;
@@ -2635,13 +2633,13 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-      let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
-        value.processingType == 1 ? "buId" : "empCode"
-      } IN (${value.departmentId.split(
-        ","
-      )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
-        value.paymonth
-      }';`;
+      // let allEmployeeQuery = `SELECT e.id AS id FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${value.processingType==1?'buId':'empCode'} IN (${value.departmentId.split(
+      //   ","
+      // )}) AND ppd.payProcessDetailAutoId IS NULL OR ppd.payMonth != '${
+      //   value.paymonth
+      // }';`;
+
+      let allEmployeeQuery = await paymentHelper.query(19,value.processingType,{departmentId:value.departmentId,paymonth:value.paymonth});
       const result = await db.sequelize.query(allEmployeeQuery);
       var totalExtraDeductionsAmount = 0;
       let employeeIds =
@@ -3058,10 +3056,13 @@ class PaymentController {
       if (nextStatusId == 7) {
         await generatePaySlip({ processId: processId, req });
       }
-
-      if (nextStatusId == 8) {
-        await releasePaySlip({ processId: processId, req });
+      else if (nextStatusId == 8) {
+        await releasePaySlip({ processId: processId, req ,nextStatusId});
       }
+      else{
+        await db.payProcessDetails.update({payStatus:nextStatusId},{where:{proceessId:processId}});
+      }
+
 
       await db.payProcessMaster.update(
         {
@@ -3620,7 +3621,7 @@ async function processSalary(data) {
         !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
       ) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with PT calculating" },
+          { payStatus: 101, payRemark: "Error with PT calculating" },
           {
             where: {
               EmployeeId: employee,
@@ -3638,7 +3639,7 @@ async function processSalary(data) {
         !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
       ) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with lwf calculating" },
+          { payStatus: 101, payRemark: "Error with lwf calculating" },
           {
             where: {
               EmployeeId: employee,
@@ -3652,7 +3653,7 @@ async function processSalary(data) {
 
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Pay Package Not Assigned." },
+          { payStatus: 101, payRemark: "Pay Package Not Assigned." },
           {
             where: {
               EmployeeId: employee,
@@ -3747,7 +3748,7 @@ async function processSalary(data) {
           },
         }
       );
-      await delay(1000);
+      // await delay(1000);
     }
 
     db.payProcessMaster.update(
@@ -3759,12 +3760,6 @@ async function processSalary(data) {
   } else {
     console.log("NO Data For Processing >>>>>>>>>");
   }
-
-  // //////////////////////Creating a Salary Run Process///////////////////////
-  // return respHelper(res, {
-  //   status: 200,
-  //   data: salaryRegisterArray,
-  // });
 }
 
 async function generatePaySlip(data) {
@@ -3806,9 +3801,9 @@ async function generatePaySlip(data) {
           year: payMonthlyElement.payMonth.split("-")[0],
         });
         let paySlipDuration = `01/${
-          parseInt(currentMonth) + 1
+          parseInt(currentMonth) 
         }/${currentYear}-${totalWorkingDays}/${
-          parseInt(currentMonth) + 1
+          parseInt(currentMonth) 
         }/${currentYear}`;
         let paySlipAutoId = isExistPaySlip
           ? isExistPaySlip.paySlipAutoId
@@ -3819,7 +3814,6 @@ async function generatePaySlip(data) {
           let totalPayslipDeductons =
             parseFloat(payMonthlyElement.totalExtraDeduction) +
             parseFloat(payMonthlyElement.totalComponentDeductions);
-
           let PaySlipNetPay =
             parseFloat(payMonthlyElement.paySlipGrossEarning) +
             parseFloat(payMonthlyElement.extraPaymentAmount);
@@ -3854,11 +3848,6 @@ async function generatePaySlip(data) {
             createdAt: new Date(),
             payMonth:payMonthlyElement.payMonth
           });
-
-          console.log(isExistPaySlip);
-          console.log(payMonthlyElement.payMonth);
-
-
           paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
             ? isExistPaySlip.dataValues.paySlipAutoId
             : paySlipAutoId;
@@ -3950,7 +3939,9 @@ async function generatePaySlip(data) {
             createdAt: new Date(),
           });
         }
-        await delay(500);
+        // await delay(500);
+
+        await db.payProcessDetails.update({payStatus:7},{where:{EmployeeId: payMonthlyElement.empId,proceessId:processId}});
       }
     } else {
       console.log("Porcess is not ready for salary generation");
@@ -3973,7 +3964,7 @@ async function releasePaySlip(data) {
         where: {
           proceessId: processId,
           payMonth: currentProcess.payMonth,
-          payStatus: 2,
+          payStatus: 8,
         },
         raw: true,
         attributes: ["EmployeeId"],
@@ -3986,6 +3977,7 @@ async function releasePaySlip(data) {
         { paySlipStatus: 1 },
         { where: { EmployeeId: { [Op.in]: employeeIds } } }
       );
+      await db.payProcessDetails.update({payStatus:8},{where:{proceessId:processId}});
     }
   } catch (e) {
     console.log(e);
