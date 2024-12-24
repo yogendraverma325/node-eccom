@@ -234,6 +234,7 @@ export default Express.Router()
   )
 
   // Holiday master
+  // RITAK master
   .post(
     "/holiday",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
@@ -275,6 +276,51 @@ export default Express.Router()
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     commonController.updateNewCustomer
   )
+
+  // Company Master
+  .post(
+    "/company",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createCompany
+  )
+  .get(
+    "/company-list",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.CompanyList
+  )
+  .patch(
+    "/company/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.changeStatusOfCompany
+  )
+  .put(
+    "/company/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateCompany
+  )
+
+  // cost center master
+  .post(
+    "/costcenter",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createCostCenter
+  )
+  .get(
+    "/costcenter-list",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.costCenterList
+  )
+  .patch(
+    "/costcenter/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.changeStatusOfCostCenter
+  )
+  .put(
+    "/costcenter/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateCostCenter
+  )
+
   //RITAK WORK
 
   // department master routes created by jay

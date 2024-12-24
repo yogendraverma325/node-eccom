@@ -1155,7 +1155,7 @@ db.DepartmentEmploymentHistory.hasOne(db.functionalAreaMaster, {
 
 db.CostCenterEmploymentHistory.hasOne(db.costCenterMaster, {
   foreignKey: "costCenterId",
-  sourceKey: "costId"
+  sourceKey: "costId",
 });
 
 db.JobLevelEmploymentHistory.hasOne(db.jobLevelMaster, {
@@ -1176,7 +1176,7 @@ db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
 db.employeeMaster.hasMany(db.managerHistory, {
   foreignKey: "employeeId",
   sourceKey: "id",
-  as: 'managerHistories'
+  as: "managerHistories",
 });
 
 db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
@@ -1251,35 +1251,35 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
 });
 // Join for Attendance history with Employee details
 db.attendanceHistory.hasOne(db.employeeMaster, {
-  foreignKey: 'id',
-  sourceKey: 'employeeId'
-})
+  foreignKey: "id",
+  sourceKey: "employeeId",
+});
 
 db.attendanceHistory.hasOne(db.employeeMaster, {
-  foreignKey: 'id',
-  sourceKey: 'updatedBy',
-  as: 'attendanceApprover'
-})
+  foreignKey: "id",
+  sourceKey: "updatedBy",
+  as: "attendanceApprover",
+});
 
 db.attendanceHistory.hasOne(db.shiftMaster, {
-  foreignKey: 'shiftId',
-  sourceKey: 'shiftId'
-})
+  foreignKey: "shiftId",
+  sourceKey: "shiftId",
+});
 
 db.attendanceHistory.hasOne(db.weekOffMaster, {
-  foreignKey: 'weekOffId',
-  sourceKey: 'weekOffId'
-})
+  foreignKey: "weekOffId",
+  sourceKey: "weekOffId",
+});
 
 db.attendanceHistory.hasOne(db.attendancePolicymaster, {
-  foreignKey: 'attendancePolicyId',
-  sourceKey: 'attendancePolicyId'
-})
+  foreignKey: "attendancePolicyId",
+  sourceKey: "attendancePolicyId",
+});
 
 db.attendanceHistory.hasOne(db.companyLocationMaster, {
-  foreignKey: 'companyLocationId',
-  sourceKey: 'companyLocationId'
-})
+  foreignKey: "companyLocationId",
+  sourceKey: "companyLocationId",
+});
 // Join for Attendance history with Employee details
 // db.DesignationEmploymentHistory.hasOne(db.designationMaster, {
 //   foreignKey: "designationId",
@@ -1329,12 +1329,23 @@ db.attendanceHistory.hasOne(db.companyLocationMaster, {
 
 db.paymentDetails.hasOne(db.stateMaster, {
   foreignKey: "stateId",
-  sourceKey: "ptStateId"
+  sourceKey: "ptStateId",
 });
 
 db.paymentDetails.hasOne(db.ptLocationMaster, {
   foreignKey: "ptLocationId",
-  sourceKey: "ptLocationId"
+  sourceKey: "ptLocationId",
 });
+//ritak work
+db.costCenterMaster.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "costCenterHead",
+});
+
+db.holidayMaster.hasMany(db.holidayCompanyLocationConfiguration, {
+  foreignKey: "holidayId",
+  sourceKey: "holidayId",
+});
+//ritak work
 
 export default db;

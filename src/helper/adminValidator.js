@@ -42,9 +42,11 @@ const degreeMasterSchema = Joi.object({
   degreeType: Joi.string().trim().required().label("Degree Type"),
   durationInYears: Joi.number().allow(null).label("Degree Duration In Years"),
 });
+
 const holidayMasterSchema = Joi.object({
   holidayName: Joi.string().trim().required().label("Holiday Name"),
   holidayDate: Joi.string().trim().required().label("Holiday Date"),
+  locations: Joi.array().required().label("Company Location"),
 });
 
 const newCustomerSchema = Joi.object({
@@ -65,6 +67,41 @@ const functionalAreaMasterSchema = Joi.object({
 });
 
 // End schema by jay
+//RITAK WORK
+const companySchema = Joi.object({
+  companyName: Joi.string().trim().required().label("Company Name"),
+  companyCode: Joi.string().trim().required().label("Company Code"),
+  groupId: Joi.number().integer().required().label("Group ID"),
+  currencyId: Joi.number().integer().required().label("Currency ID"),
+  timeZoneId: Joi.number().integer().required().label("Time Zone ID"),
+  finacialYearBegin: Joi.string()
+    .trim()
+    .required()
+    .label("Financial Year Start"),
+  industryId: Joi.number().integer().required().label("Industry ID"),
+  companyTypeId: Joi.number().integer().required().label("Company Type ID"),
+  dateOfIncorporation: Joi.date()
+    .iso()
+    .required()
+    .label("Date of Incorporation"),
+  panNo: Joi.string().trim().max(15).allow(null).label("PAN No"),
+  tanNo: Joi.string().trim().max(15).allow(null).label("TAN No"),
+  vatRegNo: Joi.string().trim().max(15).allow(null).label("VAT Reg No"),
+  siteUrl: Joi.string().uri().allow(null).label("Website URL"),
+  companyLogo: Joi.string().trim().allow(null).label("Company Logo"),
+  officialMail: Joi.string()
+    .email()
+    .max(50)
+    .allow(null)
+    .label("Official Email"),
+});
+
+const costCenterMasterSchema = Joi.object({
+  costCenterName: Joi.string().trim().required().label("Cost Center Name"),
+  costCenterCode: Joi.string().trim().required().label("Cost Center Code"),
+  costCenterHead: Joi.string().trim().required().label("Cost Center Head"),
+});
+// RITAK WORK
 
 export default {
   companyTypeMasterSchema,
@@ -79,6 +116,8 @@ export default {
   degreeMasterSchema,
   holidayMasterSchema,
   newCustomerSchema,
+  costCenterMasterSchema,
+  companySchema,
   //RITAK WORK
   // jay start
   departmentMasterSchema,
