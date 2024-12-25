@@ -3035,27 +3035,43 @@ class PaymentController {
         });
       }
 
-      console.log("nextStatusId ::: ", nextStatusId);
-
       if (nextStatusId == 7) {
         await generatePaySlip({ processId: processId, req });
       } else if (nextStatusId == 8) {
         await releasePaySlip({ processId: processId, req, nextStatusId });
-      } else {
+      } 
+      else {
         await db.payProcessDetails.update(
           { payStatus: nextStatusId },
           { where: { proceessId: processId } }
         );
       }
 
-      await db.payProcessMaster.update(
-        {
-          processFlowId: getNextAvaiableFlow[0][0].refferenceFlowId,
-          updatedBy: req.userData.id,
-          updatedAt: new Date(),
-        },
-        { where: { payProcessMasterAutoId: processId } }
-      );
+      if([1,2,3,4,6,7,8,9,101].includes(nextStatusId))
+      {
+        await db.payProcessMaster.update(
+          {
+            processFlowId: getNextAvaiableFlow[0][0].refferenceFlowId,
+            updatedBy: req.userData.id,
+            updatedAt: new Date(),
+          },
+          { where: { payProcessMasterAutoId: processId } }
+        );
+      }
+      else if(nextStatusId==5)
+      {
+        await db.payProcessMaster.destroy({
+          where: {
+            payProcessMasterAutoId: processId
+          }
+        });
+        await db.payProcessDetails.destroy({
+          where: {
+            proceessId: processId
+          }
+        });
+      }
+
       return respHelper(res, {
         status: 200,
         data: getNextAvaiableFlow[0],
@@ -3461,7 +3477,7 @@ class PaymentController {
 
 async exportSample(req, res) {
   try {
-    const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
+    const { exportSheetAutoId, salalryStructureAutoId, employeeIds } = req.query;
     console.log("querey>>>>>>",req.query)
 
     // Check for required exportSheetAutoId
