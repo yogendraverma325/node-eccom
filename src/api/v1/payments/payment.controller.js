@@ -3267,9 +3267,7 @@ class PaymentController {
 
       if (getColumns.length > 0) {
         const timestamp = moment().format("HH:mm");
-
         const headers = [...getColumns.map((item) => item.columnName)];
-
         const columns = headers.map((value) => ({
           label: value,
           value: value,

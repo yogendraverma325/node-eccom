@@ -125,11 +125,11 @@ const standardDeductions = async function (data) {
   return deductionsMap;
 };
 
-const getDaysInCurrentMonth =  async function(data) {
+const getDaysInCurrentMonth = async function (data) {
   const currentYear = data.year;
   const currentMonth = data.month;
   // Get the total number of days in the current month
-  const lastDayOfMonth = new Date(currentYear, currentMonth , 0); // Last day of the month
+  const lastDayOfMonth = new Date(currentYear, currentMonth, 0); // Last day of the month
   return lastDayOfMonth.getDate();
 };
 
@@ -145,13 +145,11 @@ function getPercentagePart(total, percentage) {
   return (total * (percentage / 100)).toFixed(2);
 }
 
-
-function getFromattedDate(dateInIntger)
-{
+function getFromattedDate(dateInIntger) {
   const formattedDate = new Date((dateInIntger - 25569) * 86400 * 1000); // Convert Excel serial to JS Date
   // Extract day, month, and year
-  const day = String(formattedDate.getDate()).padStart(2, '0'); // Pad single-digit days
-  const month = String(formattedDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const day = String(formattedDate.getDate()).padStart(2, "0"); // Pad single-digit days
+  const month = String(formattedDate.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
   const year = formattedDate.getFullYear();
 
   const date = `${day}-${month}-${year}`; // Format as DD-MM-YYYY
@@ -178,7 +176,7 @@ function getFromattedDate(dateInIntger)
 //     case 6:
 //       return `SELECT pf.refferenceFlowId, ps.currentRemark FROM tara.payprocessflowmaster pf INNER JOIN tara.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.nextstatus = ${data2} AND pf.currentstatus = ${data}`;
 //       break;
-    
+
 //     case 7:
 //       return `SELECT pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description FROM payprocessflowmaster pf INNER JOIN paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.currentstatus = ${data}`;
 //     break;
@@ -197,7 +195,7 @@ function getFromattedDate(dateInIntger)
 //    case 12 :
 //     return `SELECT sc.salaryComponentAutoId, scm.elementValue, sce.salaryComponentElementAutoId, sce.salaryComponentElementName FROM salarycomponent sc JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId JOIN salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sc.salaryComponentAutoId = ${data}`
 //     break;
-    
+
 //     case 13: return `SELECT COUNT(CASE WHEN scm.salaryComponentElementAutoId = 1 AND scm.elementValue = 1 THEN 1 END) AS lopAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 2 AND scm.elementValue = 1 THEN 1 END) AS arrearAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 3 AND scm.elementValue = 1 THEN 1 END) AS leaveEncashmentCount FROM paypackage pp LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId LEFT JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId WHERE pp.EmployeeId = ${data}`
 //     break;
 
@@ -237,55 +235,74 @@ async function query(caseId, data, data2) {
     case 6:
       return `SELECT pf.refferenceFlowId, ps.currentRemark FROM tara.payprocessflowmaster pf INNER JOIN tara.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.nextstatus = ${data2} AND pf.currentstatus = ${data}`;
       break;
-    
+
     case 7:
       return `SELECT pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description FROM payprocessflowmaster pf INNER JOIN paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.currentstatus = ${data}`;
-    break;
-      case 8:
-        return `SELECT ppm.payProcessMasterAutoId, COUNT(CASE WHEN ppd.payStatus = 2 THEN 1 END) AS successfullyProcessed, COUNT(CASE WHEN ppd.payStatus = 3 THEN 1 END) AS processedWithError, COUNT(CASE WHEN ppd.payStatus = 1 THEN 1 END) AS pendingForProcess, COUNT(CASE WHEN ppd.payStatus != 1 THEN 1 END) * 100.0 / COUNT(*) AS totalProcessedPercentage, COUNT(CASE WHEN ppd.payStatus IN (2, 3) THEN 1 END) AS totalProcessed FROM payprocessmaster ppm JOIN payprocessdetails ppd ON ppm.payProcessMasterAutoId = ppd.proceessId WHERE ppm.payProcessMasterAutoId = ${data} GROUP BY ppm.payProcessMasterAutoId;`
-     break;
-     case 9:
-        return `SELECT ppm.payProcessMasterAutoId AS processId,ppm.payMonth as payMonth, psm.payProcessStatusAutoId AS currentStatusId, psm.name AS statusName FROM payprocessmaster ppm JOIN payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN paystatusmaster psm ON ppfm.currentstatus = psm.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`
-     break;
-     case 10:
-      return `SELECT pm.payProcessMasterAutoId, pd.ctc, pd.lopDays, pd.totalWorkingDays, pd.tdsdeductions, pd.netPay, pd.deductionAmount, pd.arrearAmount, pd.loanAmont, pd.salaryMonth, pd.deductionName, pd.lopdeductions, pp.payPackageEffectiveDate, pe.salaryComponentAutoId, pe.payElementAmount, sc.includeInPackage, sc.includeInPackage, sc.salaryComponentEarningType FROM payprocessmaster pm JOIN payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId JOIN paypackage pp ON pd.EmployeeId = pp.EmployeeId JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE pm.payProcessMasterAutoId = 1 AND pd.payStatus = 2 AND pd.EmployeeId = 484`
       break;
-      case 11:
-        return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}`
-   break;
-   case 12 :
-    return `SELECT sc.salaryComponentAutoId, scm.elementValue, sce.salaryComponentElementAutoId, sce.salaryComponentElementName FROM salarycomponent sc JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId JOIN salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sc.salaryComponentAutoId = ${data}`
-    break;
-    
-    case 13: return `SELECT COUNT(CASE WHEN scm.salaryComponentElementAutoId = 1 AND scm.elementValue = 1 THEN 1 END) AS lopAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 2 AND scm.elementValue = 1 THEN 1 END) AS arrearAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 3 AND scm.elementValue = 1 THEN 1 END) AS leaveEncashmentCount FROM paypackage pp LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId LEFT JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId WHERE pp.EmployeeId = ${data}`
-    break;
+    case 8:
+      return `SELECT ppm.payProcessMasterAutoId, COUNT(CASE WHEN ppd.payStatus = 2 THEN 1 END) AS successfullyProcessed, COUNT(CASE WHEN ppd.payStatus = 3 THEN 1 END) AS processedWithError, COUNT(CASE WHEN ppd.payStatus = 1 THEN 1 END) AS pendingForProcess, COUNT(CASE WHEN ppd.payStatus != 1 THEN 1 END) * 100.0 / COUNT(*) AS totalProcessedPercentage, COUNT(CASE WHEN ppd.payStatus IN (2, 3) THEN 1 END) AS totalProcessed FROM payprocessmaster ppm JOIN payprocessdetails ppd ON ppm.payProcessMasterAutoId = ppd.proceessId WHERE ppm.payProcessMasterAutoId = ${data} GROUP BY ppm.payProcessMasterAutoId;`;
+      break;
+    case 9:
+      return `SELECT ppm.payProcessMasterAutoId AS processId,ppm.payMonth as payMonth, psm.payProcessStatusAutoId AS currentStatusId, psm.name AS statusName FROM payprocessmaster ppm JOIN payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN paystatusmaster psm ON ppfm.currentstatus = psm.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`;
+      break;
+    case 10:
+      return `SELECT pm.payProcessMasterAutoId, pd.ctc, pd.lopDays, pd.totalWorkingDays, pd.tdsdeductions, pd.netPay, pd.deductionAmount, pd.arrearAmount, pd.loanAmont, pd.salaryMonth, pd.deductionName, pd.lopdeductions, pp.payPackageEffectiveDate, pe.salaryComponentAutoId, pe.payElementAmount, sc.includeInPackage, sc.includeInPackage, sc.salaryComponentEarningType FROM payprocessmaster pm JOIN payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId JOIN paypackage pp ON pd.EmployeeId = pp.EmployeeId JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE pm.payProcessMasterAutoId = 1 AND pd.payStatus = 2 AND pd.EmployeeId = 484`;
+      break;
+    case 11:
+      return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}`;
+      break;
+    case 12:
+      return `SELECT sc.salaryComponentAutoId, scm.elementValue, sce.salaryComponentElementAutoId, sce.salaryComponentElementName FROM salarycomponent sc JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId JOIN salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sc.salaryComponentAutoId = ${data}`;
+      break;
 
-    case 14: return `SELECT SUM(deductionAmount) AS totalDeduction, GROUP_CONCAT(deductionCategory ORDER BY deductionCategory SEPARATOR ' | ') AS deductionCategories FROM extradeductions WHERE startMonth = '${data2}' AND EmployeeId = ${data};`
-    break;
+    case 13:
+      return `SELECT COUNT(CASE WHEN scm.salaryComponentElementAutoId = 1 AND scm.elementValue = 1 THEN 1 END) AS lopAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 2 AND scm.elementValue = 1 THEN 1 END) AS arrearAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 3 AND scm.elementValue = 1 THEN 1 END) AS leaveEncashmentCount FROM paypackage pp LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId LEFT JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId WHERE pp.EmployeeId = ${data}`;
+      break;
 
-    case 15:return `SELECT ppm.payMonth, ppm.payProcessMasterAutoId, ppfm.currentstatus, ps.name as statusName FROM tara.payprocessmaster ppm JOIN tara.payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN tara.paystatusmaster ps ON ppfm.currentstatus = ps.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`
-    break;
+    case 14:
+      return `SELECT SUM(deductionAmount) AS totalDeduction, GROUP_CONCAT(deductionCategory ORDER BY deductionCategory SEPARATOR ' | ') AS deductionCategories FROM extradeductions WHERE startMonth = '${data2}' AND EmployeeId = ${data};`;
+      break;
 
-    case 16 : return `SELECT empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType != 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) - SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId in(${data2})`;
-    break;
+    case 15:
+      return `SELECT ppm.payMonth, ppm.payProcessMasterAutoId, ppfm.currentstatus, ps.name as statusName FROM tara.payprocessmaster ppm JOIN tara.payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN tara.paystatusmaster ps ON ppfm.currentstatus = ps.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`;
+      break;
 
-    case 17: return `SELECT pm.payMonth, pd.EmployeeId as empId FROM tara.payprocessmaster pm INNER JOIN tara.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId WHERE pm.payProcessMasterAutoId = ${data} AND pd.payStatus in(2,3,4,5,6,7)`;
-    break;
+    case 16:
+      return `SELECT empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType != 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) - SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId in(${data2})`;
+      break;
+
+    case 17:
+      return `SELECT pm.payMonth, pd.EmployeeId as empId FROM tara.payprocessmaster pm INNER JOIN tara.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId WHERE pm.payProcessMasterAutoId = ${data} AND pd.payStatus in(2,3,4,5,6,7)`;
+      break;
     // case 18: return`SELECT (SELECT COUNT(*) FROM tara.payprocessdetails WHERE payMonth = '${data2.paymonth}') AS totalEmployees, (SELECT COUNT(*) FROM tara.payslip WHERE paySlipMonth = ${data2.month} AND paySlipYear = ${data2.year}) AS total_payslips, (SELECT COUNT(*) FROM tara.payslip WHERE paySlipMonth = ${data2.month} AND paySlipYear = ${data2.year} AND paySlipStatus = 1) AS paySlipReleased, COUNT(ps.paySlipAutoId) AS paySlipGenerated, ROUND((COUNT(ps.paySlipAutoId) * 100.0) / (SELECT COUNT(*) FROM tara.payprocessdetails WHERE payMonth = '${data2.paymonth}'), 2) AS paySlipPercentage FROM tara.payprocessdetails pd LEFT JOIN tara.payslip ps ON pd.EmployeeId = ps.EmployeeId WHERE pd.payMonth = '${data2.paymonth}' AND ps.paySlipMonth = ${data2.month} AND ps.paySlipYear = ${data2.year};`;
     // break;
-    case 18 :return `SELECT (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data}) AS paySlipGenerated, (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) AS totalEmployees, (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data} AND ps.paySlipStatus = 1) AS paySlipReleased, CASE WHEN (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) = 0 THEN 0 ELSE (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data}) * 100.0 / (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) END AS paySlipPercentage;`
-    break;
-
-    case 19 :return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${data==1?'buId':'empCode'} IN (${data2.departmentId}) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus = 101)));;`
-    break;
-    case 20 :return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${data==1?'buId':'empCode'} IN (${data2.departmentId});`
-    break;
-    case 21 : return `SELECT EmployeeId FROM tara.payprocessdetails  where payStatus in(1,2,3,4,5,6,7)   and payMonth='${data2}' and EmployeeId  in (${data});`
-    break;
-      case 22 : return `SELECT EmployeeId FROM tara.payprocessdetails  where payStatus in(8,9)   and payMonth='${data2}' and EmployeeId  in (${data});`
+    case 18:
+      return `SELECT (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data}) AS paySlipGenerated, (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) AS totalEmployees, (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data} AND ps.paySlipStatus = 1) AS paySlipReleased, CASE WHEN (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) = 0 THEN 0 ELSE (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data}) * 100.0 / (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) END AS paySlipPercentage;`;
       break;
-        case 23 : return `SELECT EmployeeId FROM tara.payprocessdetails where proceessId=${data};`
-        default:
+
+    case 19:
+      return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
+        data == 1 ? "buId" : "empCode"
+      } IN (${
+        data2.departmentId
+      }) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
+        data2.paymonth
+      }' OR (ppd.payStatus = 101)));;`;
+      break;
+    case 20:
+      return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
+        data == 1 ? "buId" : "empCode"
+      } IN (${data2.departmentId});`;
+      break;
+    case 21:
+      return `SELECT EmployeeId FROM tara.payprocessdetails  where payStatus in(1,2,3,4,5,6,7)   and payMonth='${data2}' and EmployeeId  in (${data});`;
+      break;
+    case 22:
+      return `SELECT EmployeeId FROM tara.payprocessdetails  where payStatus in(8,9)   and payMonth='${data2}' and EmployeeId  in (${data});`;
+      break;
+    case 23:
+      return `SELECT EmployeeId FROM tara.payprocessdetails where proceessId=${data};`;
+    default:
   }
 }
 function getPaySlipObject(processedEmployee, createdBy) {
@@ -326,9 +343,9 @@ function getPaySlipObject(processedEmployee, createdBy) {
   };
   return paySlipObject;
 }
-function getElementValue(name,data) {
+function getElementValue(name, data) {
   // console.log(data);
-  const item = data.find(item => item.salaryComponentElementName === name);
+  const item = data.find((item) => item.salaryComponentElementName === name);
   return item ? item.elementValue : null; // Return elementValue or null if not found
 }
 function getPayComponentObject(
@@ -382,19 +399,8 @@ function getPayComponentObject(
   return paySlipComponentObj;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 export default {
-  payAfterLOPDeductions,  
+  payAfterLOPDeductions,
   payAfterTDSDeductions,
   payAfterStandardDeductions,
   standardDeductions,
@@ -405,5 +411,5 @@ export default {
   getPaySlipObject,
   getPayComponentObject,
   getElementValue,
-  getFromattedDate
+  getFromattedDate,
 };
