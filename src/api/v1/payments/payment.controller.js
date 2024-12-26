@@ -1157,10 +1157,10 @@ class PaymentController {
       }));
       await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
         console.log(resp);
-        processSalary({
-          processId: newProcess.dataValues.payProcessMasterAutoId,
-          req,
-        });
+        // processSalary({
+        //   processId: newProcess.dataValues.payProcessMasterAutoId,
+        //   req,
+        // });
       });
 
       return respHelper(res, {
@@ -1183,319 +1183,282 @@ class PaymentController {
     var errorArray = [];
     let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
     const result = await db.sequelize.query(queryForAllExecutableEmployee);
-    if (result[0].length == 0) {
-      return respHelper(res, {
-        status: 400,
-        data: [],
-        msg: "No data to process.",
+    if (result[0].length > 0) {
+      const employeeIds = result[0].map((item) => item.EmployeeId);
+      const totalWorkingDays = await paymentHelper.getDaysInCurrentMonth({
+        year: result[0][0].payMonth.split("-")[0],
+        month: result[0][0].payMonth.split("-")[1],
       });
-    }
-    const employeeIds = result[0].map((item) => item.EmployeeId);
-    const totalWorkingDays = await paymentHelper.getDaysInCurrentMonth({
-      year: result[0][0].payMonth.split("-")[0],
-      month: result[0][0].payMonth.split("-")[1],
-    });
-    const salaryRegisterArray = [],
-      errorProcessed = [];
-    let employees = [484, 560]; //employeeIds
-    for (const employee of employees) {
-      const queryForEmployeePayDetails = await paymentHelper.query(
-        11,
-        employee,
-        { payMonth: result[0][0].payMonth }
-      );
-      const employeeDetailsComponentWise = await db.sequelize.query(
-        queryForEmployeePayDetails
-      );
-      const queryForExtraDeductions = await paymentHelper.query(
-        14,
-        employee,
-        result[0][0].payMonth
-      );
-      const extraDeductonsDetails = await db.sequelize.query(
-        queryForExtraDeductions
-      );
-
-      // const lopMonthWiseCalculation =
-      //   employeeDetailsComponentWise.length > 0
-      //     ? employeeDetailsComponentWise[0][0].payPackageMonthlyCTC
-      //       ? (
-      //           (employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
-      //             totalWorkingDays) *
-      //           employeeDetailsComponentWise[0][0].lopDays
-      //         ).toFixed(2)
-      //       : "0.00"
-      //     : "0.00";
-
-      // const deductionOfLopMonthAmount = Math.max(
-      //   0,
-      //   parseFloat(employeeDetailsComponentWise[0][0].payPackageMonthlyCTC) -
-      //     lopMonthWiseCalculation
-      // );
-
-      const payPackageMonthlyCTC =
-        parseFloat(
-          employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
-        ) || 0;
-
-      const lopDays =
-        parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-
-      const lopMonthWiseCalculation =
-        totalWorkingDays > 0
-          ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
-          : "0.00";
-
-      const deductionOfLopMonthAmount = Math.max(
-        0,
-        payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
-      );
-      const currentMonth = new Date()
-        .toLocaleString("default", { month: "short" })
-        .toLowerCase();
-      const ptDynamicAttribute = [currentMonth, "ptAmount"];
-      const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
-
-      const ptDeducationDetails = await db.paymentDetails.findOne({
-        attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
-        where: { userId: employee },
-        raw: true,
-        nest: true,
-        include: [
-          {
-            model: db.ptLocationMaster,
-            attributes: ["ptLocationId", "ptLocationCode", "stateId"],
-            include: [
-              {
-                model: db.ptMapping,
-                attributes: [
-                  "ptmappingId",
-                  "minValue",
-                  "maxValue",
-                  ptDynamicAttribute,
-                ],
-                required: false,
-                where: {
-                  [Op.and]: [
-                    { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
-                    { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+      const salaryRegisterArray = [],
+        errorProcessed = [];
+      let employees = employeeIds; //[484,560];//employeeIds
+      for (const employee of employees) {
+        const queryForEmployeePayDetails = await paymentHelper.query(
+          11,
+          employee,
+          { payMonth: result[0][0].payMonth }
+        );
+        const employeeDetailsComponentWise = await db.sequelize.query(
+          queryForEmployeePayDetails
+        );
+        const queryForExtraDeductions = await paymentHelper.query(
+          14,
+          employee,
+          result[0][0].payMonth
+        );
+        const extraDeductonsDetails = await db.sequelize.query(
+          queryForExtraDeductions
+        );
+        const payPackageMonthlyCTC =
+          parseFloat(
+            employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
+          ) || 0;
+  
+        const lopDays =
+          parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
+  
+        const lopMonthWiseCalculation =
+          totalWorkingDays > 0
+            ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
+            : "0.00";
+  
+        console.log("payPackageMonthlyCTC", payPackageMonthlyCTC);
+        console.log("lopMonthWiseCalculation", lopMonthWiseCalculation);
+  
+        const deductionOfLopMonthAmount = Math.max(
+          0,
+          payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
+        );
+  
+        console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
+        const currentMonth = new Date()
+          .toLocaleString("default", { month: "short" })
+          .toLowerCase();
+        const ptDynamicAttribute = [currentMonth, "ptAmount"];
+        const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+        const ptDeducationDetails = await db.paymentDetails.findOne({
+          attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
+          where: { userId: employee },
+          raw: true,
+          nest: true,
+          include: [
+            {
+              model: db.ptLocationMaster,
+              attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+              include: [
+                {
+                  model: db.ptMapping,
+                  attributes: [
+                    "ptmappingId",
+                    "minValue",
+                    "maxValue",
+                    ptDynamicAttribute,
                   ],
+                  required: false,
+                  where: {
+                    [Op.and]: [
+                      { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+                      { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+                    ],
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      });
-      const lwfDeducationDetails = await db.jobDetails.findOne({
-        attributes: ["jobId", "lwfApplicable"],
-        where: {
-          userId: employee,
-        },
-        raw: true,
-        nest: true,
-        include: [
-          {
-            model: db.lwfDesignationMaster,
-            attributes: ["lwfDesignationId"],
-            as: "lwfDesignationName",
-            include: [
-              {
-                model: db.lwfMapping,
-                attributes: ["lwfmappingId", lwfDynamicAttribute],
-              },
-            ],
-          },
-        ],
-      });
-      const extraPaymentAmount = await db.extraPayment.findOne({
-        where: {
-          EmployeeId: employee,
-          paymentMonth: result[0][0].payMonth,
-        },
-        raw: true,
-      });
-
-      // const ptAmount1 = ptDeducationDetails
-      //   ? ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
-      //   : 0;
-      const ptAmount1 =
-        ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
-          ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
-          : 0;
-      // const lwfAmount1 = lwfDeducationDetails
-      //   ? lwfDeducationDetails.lwfApplicable == 1?.lwfDesignationName?.lwfmapping?.lwfAmount
-      //   : 0;
-      const lwfAmount1 =
-        lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
-          ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
-          : 0;
-      const extraPaymentAmount1 = extraPaymentAmount
-        ? extraPaymentAmount?.paymentAmount
-        : 0;
-
-      if (
-        lwfDeducationDetails.lwfApplicable == 1 &&
-        !lwfDeducationDetails.lwfDesignationName.lwfmapping.lwfAmount
-      ) {
-        await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with lwf calculating" },
-          {
-            where: {
-              EmployeeId: employee,
-              proceessId: processId,
+              ],
             },
-          }
-        );
-
-        continue;
-      }
-
-      if (
-        ptDeducationDetails.ptApplicability == 1 &&
-        !ptDeducationDetails.ptlocationmaster.ptMapping.ptAmount
-      ) {
-        await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Error with PT calculating" },
-          {
-            where: {
-              EmployeeId: employee,
-              proceessId: processId,
-            },
-          }
-        );
-
-        continue;
-      }
-      if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
-        await db.payProcessDetails.update(
-          { payStatus: 3, payRemark: "Pay Package Not Assigned." },
-          {
-            where: {
-              EmployeeId: employee,
-              proceessId: processId,
-            },
-          }
-        );
-
-        continue;
-      }
-
-      const queryForAffetElementCounts = await paymentHelper.query(
-        13,
-        employee,
-        null
-      );
-      const affectComponentCounts = await db.sequelize.query(
-        queryForAffetElementCounts
-      );
-      const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
-        ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
-            totalWorkingDays) *
-            employeeDetailsComponentWise[0][0].lopDays) /
-          affectComponentCounts[0][0].lopAffectCount
-        : 0;
-
-      for (const employeeComponentWiseDetails of employeeDetailsComponentWise[0]) {
-        const queryForComponentConfiguration = await paymentHelper.query(
-          12,
-          employeeComponentWiseDetails.salaryComponentAutoId,
-          null
-        );
-        const componentConfiguration = await db.sequelize.query(
-          queryForComponentConfiguration
-        );
-        employeeComponentWiseDetails["elementMonthlyAmount"] =
-          paymentHelper.getElementValue(
-            "Affect Loss Of Pay",
-            componentConfiguration[0]
-          ) == 1
-            ? parseFloat(
-                employeeComponentWiseDetails.payElementAmount - lopSingleUnit
-              ).toFixed(2)
-            : employeeComponentWiseDetails.payElementAmount;
-        employeeComponentWiseDetails["totalExtraDeduction"] =
-          extraDeductonsDetails[0][0].totalDeduction
-            ? extraDeductonsDetails[0][0].totalDeduction
-            : 0;
-        employeeComponentWiseDetails["extraDeductionCategories"] =
-          extraDeductonsDetails[0][0].deductionCategories
-            ? extraDeductonsDetails[0][0].deductionCategories
-            : "";
-        employeeComponentWiseDetails["createdAt"] = new Date();
-        employeeComponentWiseDetails["createdBy"] = req.userData.id;
-        employeeComponentWiseDetails["payMonth"] = result[0][0].payMonth;
-        employeeComponentWiseDetails["ptAmount"] = ptAmount1;
-        employeeComponentWiseDetails["lwfAmount"] = lwfAmount1;
-        employeeComponentWiseDetails["extraPaymentAmount"] =
-          extraPaymentAmount1;
-
-        salaryRegisterArray.push(employeeComponentWiseDetails);
-
-        let existDetails = await db.payMonthlyElements.findOne({
+          ],
+        });
+        const lwfDeducationDetails = await db.jobDetails.findOne({
+          attributes: ["jobId", "lwfApplicable","pfApplicability","pfRestricted"],
           where: {
-            empId: employee,
-            salaryComponentAutoId:
-              employeeComponentWiseDetails.salaryComponentAutoId,
-            payMonth: result[0][0].payMonth,
+            userId: employee,
+          },
+          raw: true,
+          nest: true,
+          include: [
+            {
+              model: db.lwfDesignationMaster,
+              attributes: ["lwfDesignationId"],
+              as: "lwfDesignationName",
+              include: [
+                {
+                  model: db.lwfMapping,
+                  attributes: ["lwfmappingId", lwfDynamicAttribute],
+                },
+              ],
+            },
+          ],
+        });
+        const extraPaymentAmount = await db.extraPayment.findOne({
+          where: {
+            EmployeeId: employee,
+            paymentMonth: result[0][0].payMonth,
           },
           raw: true,
         });
-        console.log(existDetails);
-        if (!existDetails) {
-          await db.payMonthlyElements.create(employeeComponentWiseDetails);
+  
+
+        console.log("PF_APPLICABILITY :: "+lwfDeducationDetails.pfApplicability);
+        console.log("PF_RESTRICTION :: "+lwfDeducationDetails.pfRestricted);
+
+  
+        return;
+  
+        const ptAmount1 =
+          ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
+            ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
+            : 0;
+        const lwfAmount1 =
+          lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
+            ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
+            : 0;
+  
+        const extraPaymentAmount1 = extraPaymentAmount
+          ? extraPaymentAmount?.paymentAmount
+          : 0;
+        if (
+          ptDeducationDetails &&
+          ptDeducationDetails.ptApplicability == 1 &&
+          !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
+        ) {
+          await db.payProcessDetails.update(
+            { payStatus: 101, payRemark: "Error with PT calculating" },
+            {
+              where: {
+                EmployeeId: employee,
+                proceessId: processId,
+              },
+            }
+          );
+  
+          continue;
         }
+  
+        if (
+          lwfDeducationDetails &&
+          lwfDeducationDetails.lwfApplicable == 1 &&
+          !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
+        ) {
+          await db.payProcessDetails.update(
+            { payStatus: 101, payRemark: "Error with lwf calculating" },
+            {
+              where: {
+                EmployeeId: employee,
+                proceessId: processId,
+              },
+            }
+          );
+  
+          continue;
+        }
+  
+        if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+          await db.payProcessDetails.update(
+            { payStatus: 101, payRemark: "Pay Package Not Assigned." },
+            {
+              where: {
+                EmployeeId: employee,
+                proceessId: processId,
+              },
+            }
+          );
+  
+          continue;
+        }
+        const queryForAffetElementCounts = await paymentHelper.query(
+          13,
+          employee,
+          null
+        );
+        const affectComponentCounts = await db.sequelize.query(
+          queryForAffetElementCounts
+        );
+        const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
+          ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+              totalWorkingDays) *
+              employeeDetailsComponentWise[0][0].lopDays) /
+            affectComponentCounts[0][0].lopAffectCount
+          : 0;
+  
+        for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
+          const queryForComponentConfiguration = await paymentHelper.query(
+            12,
+            empCopntWiseDetl.salaryComponentAutoId,
+            null
+          );
+          const componentConfiguration = await db.sequelize.query(
+            queryForComponentConfiguration
+          );
+          let includeInPayPackage =
+            ["Earning", "Balancing", "OTC"].includes(
+              empCopntWiseDetl["salaryComponentEarningType"]
+            ) &&
+            paymentHelper.getElementValue(
+              "Exclude From Special Allowance",
+              componentConfiguration[0]
+            ) == 0
+              ? 1
+              : 0;
+  
+          empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
+          empCopntWiseDetl["elementMonthlyAmount"] =
+            paymentHelper.getElementValue(
+              "Affect Loss Of Pay",
+              componentConfiguration[0]
+            ) == 1
+              ? parseFloat(
+                  empCopntWiseDetl.payElementAmount - lopSingleUnit
+                ).toFixed(2)
+              : empCopntWiseDetl.payElementAmount;
+  
+          empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
+            .totalDeduction
+            ? extraDeductonsDetails[0][0].totalDeduction
+            : 0;
+          empCopntWiseDetl["extraDeductionCategories"] =
+            extraDeductonsDetails[0][0].deductionCategories
+              ? extraDeductonsDetails[0][0].deductionCategories
+              : "";
+          empCopntWiseDetl["createdAt"] = new Date();
+          empCopntWiseDetl["createdBy"] = req.userData.id;
+          empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
+          empCopntWiseDetl["ptAmount"] = ptAmount1;
+          empCopntWiseDetl["lwfAmount"] = lwfAmount1;
+          empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
+  
+          salaryRegisterArray.push(empCopntWiseDetl);
+          let existDetails = await db.payMonthlyElements.findOne({
+            where: {
+              empId: employee,
+              salaryComponentAutoId: empCopntWiseDetl.salaryComponentAutoId,
+              payMonth: result[0][0].payMonth,
+            },
+            raw: true,
+          });
+          console.log(existDetails);
+          if (!existDetails) {
+            await db.payMonthlyElements.create(empCopntWiseDetl);
+          }
+        }
+        // await db.payProcessDetails.update(
+        //   { payStatus: 2, payRemark: "Salary Processed." },
+        //   {
+        //     where: {
+        //       EmployeeId: employee,
+        //       proceessId: processId,
+        //     },
+        //   }
+        // );
+
       }
-      await db.payProcessDetails.update(
-        { payStatus: 2, payRemark: "Salary Processed." },
-        {
-          where: {
-            EmployeeId: employee,
-            proceessId: processId,
-          },
-        }
+  
+      db.payProcessMaster.update(
+        { processFlowId: 4 },
+        { where: { payProcessMasterAutoId: processId } }
       );
-      await delay(5000);
+  
+      //here need to add response
+    } else {
+      console.log("NO Data For Processing >>>>>>>>>");
     }
-
-    db.payProcessMaster.update(
-      { processFlowId: 4 },
-      { where: { payProcessMasterAutoId: processId } }
-    );
-    // //////////////////////Creating a Salary Run Process///////////////////////
-    let stepperDataQuery = null;
-    const queryForProcessStatus = await paymentHelper.query(9, processId, null);
-    const currentProcessStatus = await db.sequelize.query(
-      queryForProcessStatus
-    );
-
-    if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
-      stepperDataQuery = await paymentHelper.query(8, processId, null);
-      //processSalary(processId,req);
-    } else if (currentProcessStatus[0][0].currentStatusId == 3) {
-      stepperDataQuery = await paymentHelper.query(10, processId, null);
-    } else if ([6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)) {
-      stepperDataQuery = await paymentHelper.query(18, processId, {
-        paymonth: currentProcessStatus[0][0].payMonth,
-        month: currentProcessStatus[0][0].payMonth.split("-")[1],
-        year: currentProcessStatus[0][0].payMonth.split("-")[0],
-      });
-
-      console.log(stepperDataQuery);
-    }
-    const stepperData = await db.sequelize.query(stepperDataQuery);
-    return respHelper(res, {
-      status: 200,
-      data: {
-        currentStatusId: currentProcessStatus[0][0].currentStatusId,
-        stepperData: stepperData[0],
-      },
-      msg: "Status List Fetched Successfully",
-    });
-    return;
-    return respHelper(res, {
-      status: 200,
-      data: salaryRegisterArray,
-    });
   }
 
   // async processSalary(req) {
@@ -3712,6 +3675,9 @@ function formatDate(year, month, day) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+
+
+
 async function processSalary(data) {
   let { processId, req } = data;
   var errorArray = [];
@@ -3743,25 +3709,6 @@ async function processSalary(data) {
       const extraDeductonsDetails = await db.sequelize.query(
         queryForExtraDeductions
       );
-
-      //pt and lwf deduction
-      // const lopMonthWiseCalculation =
-      //   employeeDetailsComponentWise.length > 0
-      //     ? employeeDetailsComponentWise[0][0].payPackageMonthlyCTC
-      //       ? (
-      //           (employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
-      //             totalWorkingDays) *
-      //           employeeDetailsComponentWise[0][0].lopDays
-      //         ).toFixed(2)
-      //       : "0.00"
-      //     : "0.00";
-
-      // const deductionOfLopMonthAmount = Math.max(
-      //   0,
-      //   parseFloat(employeeDetailsComponentWise[0][0].payPackageMonthlyCTC) -
-      //     lopMonthWiseCalculation
-      // );
-
       const payPackageMonthlyCTC =
         parseFloat(
           employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
@@ -3847,6 +3794,10 @@ async function processSalary(data) {
         },
         raw: true,
       });
+
+
+      return;
+
       const ptAmount1 =
         ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
           ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
