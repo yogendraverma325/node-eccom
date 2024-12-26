@@ -415,7 +415,7 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
       let search = req.query.search;
       if (search) {
-        query = { ...query, costCenterName: { [Op.like]: `%${search}%` } };
+        query = { ...query, [Op.or]: [{ costCenterName: { [Op.like]: `%${search}%` } }, { costCenterCode: { [Op.like]: `%${search}%` } }] };
       }
       const costCenterData = await db.costCenterMaster.findAndCountAll({
         // limit,
