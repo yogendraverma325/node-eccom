@@ -8,6 +8,9 @@ export default (sequelize, Sequelize) => {
     weekOffName: {
       type: Sequelize.STRING(255),
     },
+    nonWorkingDays: {
+      type: Sequelize.STRING(255),
+    },
     createdAt: {
       type: Sequelize.DATE
     },

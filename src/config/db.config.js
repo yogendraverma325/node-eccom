@@ -1321,4 +1321,46 @@ db.paymentDetails.hasOne(db.ptLocationMaster, {
   sourceKey: "ptLocationId",
 });
 //JAY work
+// Master config by jay
+
+db.jobLevelMapping.hasOne(db.bandMaster, {
+  foreignKey: "bandId",
+  sourceKey: "bandId",
+});
+
+db.jobLevelMapping.hasOne(db.gradeMaster, {
+  foreignKey: "gradeId",
+  sourceKey: "gradeId",
+});
+
+db.jobLevelMapping.hasOne(db.companyMaster, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
+});
+
+db.departmentMapping.hasOne(db.sbuMapping, {
+  foreignKey: "sbuMappingId",
+  sourceKey: "sbuMappingId",
+});
+
+db.sbuMapping.hasOne(db.buMapping, {
+  foreignKey: "buMappingId",
+  sourceKey: "buMappingId",
+});
+
+db.buMapping.hasOne(db.companyMaster, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
+});
+
+db.functionalAreaMapping.hasOne(db.departmentMapping, {
+  foreignKey: "departmentMappingId",
+  sourceKey: "departmentMappingId",
+});
+
+db.ptLocationMaster.hasOne(db.stateMaster, {
+  foreignKey: "stateId",
+  sourceKey: "stateId",
+});
+
 export default db;

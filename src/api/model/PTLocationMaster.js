@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
         stateId: {
             type: Sequelize.INTEGER,
         },
+        frequency: {
+            type: Sequelize.STRING
+        },
         createdAt: {
             type: Sequelize.DATE
         },
