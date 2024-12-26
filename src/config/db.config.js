@@ -138,8 +138,8 @@ import PayMonthlyElements from "../api/model/payMonthlyElements.js";
 import PtMapping from "../api/model/PtMapping.js";
 import LwfMapping from "../api/model/lwfMapping.js";
 import ExtraPayment from "../api/model/ExtraPayment.js";
-import ExportSheetMaster from '../api/model/ExportSheetMaster.js'
-import ExportSheetMapping from '../api/model/ExportSheetMapping.js'
+import ExportSheetMaster from '../api/model/exportSheetMaster.js'
+import ExportSheetMapping from '../api/model/exportSheetMapping.js'
 
 
 ////////////////////PAyroll////////////
