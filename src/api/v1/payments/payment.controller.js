@@ -151,7 +151,7 @@ import helper from "../../../helper/helper.js";
 import Sequelize from "sequelize";
 import { parse } from "dotenv";
 import xlsx from "json-as-xlsx";
-import moment from "moment";
+//import moment, { now } from "moment";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -3475,152 +3475,198 @@ class PaymentController {
 // const moment = require("moment");
 // const xlsx = require("json-as-xlsx");
 
-async exportSample(req, res) {
-  try {
-    const { exportSheetAutoId, salalryStructureAutoId, employeeIds } = req.query;
-    console.log("querey>>>>>>",req.query)
+  async exportSample(req, res) {
+    try {
+      const { exportSheetAutoId, salalryStructureAutoId, employeeIds } = req.query;
 
-    // Check for required exportSheetAutoId
-    if (!exportSheetAutoId) {
-      return res.status(400).json({
-        status: 400,
-        data: [],
-        msg: "Sample Sheet Not Available",
-      });
-    }
+      const sheetName = {
+        "TDS Deduction Sample":1,
+        "LOP Deduction Sample":2,
+        "Extra Payment Sample":3,
+        "Standard Deduction Sample":4,
+        "Salary Structure Component":5,
+        "Processed Employee":6,
+        "In Process Employee":7,
+        "Total Employee":8,
+        "Available Employee":9
+      }
 
-    // Fetch columns for the export sheet
-    const getColumns = await db.exportSheetMapping.findAll({
-      attributes: ["columnName"],
-      where: {
-        isActive: 1,
-        exportSheetAutoId,
-      },
-      raw: true,
-      nest: true,
-    });
+      const getKeyByValue = async (value) => {
+        const result = Object.keys(sheetName).find(key => sheetName[key] == value);
+        return result;
+      };
+      
+      const sheetVal = await getKeyByValue(exportSheetAutoId); 
+      // Check for required exportSheetAutoId
+      if (!exportSheetAutoId) {
+        return res.status(400).json({
+          status: 400,
+          data: [],
+          msg: "Sample Sheet Not Available",
+        });
+      }
 
-    let arr = [];
-
-    // Fetch salary structure details if salalryStructureAutoId is provided
-    if (salalryStructureAutoId && salalryStructureAutoId != 0) {
-      const getComponentAutoIds = await db.salarystructurecomponentmapping.findAll({
-        attributes: ["salaryComponentAutoId"],
-        where: { salaryStructureAutoId: salalryStructureAutoId },
-        include: [
-          {
-            model: db.salaryComponent,
-            attributes: ["salaryComponentCode", "salaryComponentAlias"],
-            as: "componentDetails",
-          },
-        ],
+      // Fetch columns for the export sheet
+      const getColumns = await db.exportSheetMapping.findAll({
+        attributes: ["columnName"],
+        where: {
+          isActive: 1,
+          exportSheetAutoId,
+        },
         raw: true,
         nest: true,
       });
 
-      arr = await Promise.all(
-        getComponentAutoIds.map(async (item) => ({
-          columnName:
-            item.componentDetails.salaryComponentAlias?.trim() ||
-            item.componentDetails.salaryComponentCode,
-        }))
-      );
-    }
-    //console.log("getColumns",getColumns)
-    //console.log("arr",arr)
-    // Process employee data for exportSheetAutoId conditions
-    let employeeData = [];
-    if (salalryStructureAutoId == 0 && exportSheetAutoId==6) {
-      let query = "";
-      const employeeIdss = [employeeIds].join(",");
-      query = `
-      SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
+      let arr = [];
 
-      if (query) {
-        const [results] = await db.sequelize.query(query, { raw: true });
-        employeeData = results;
-      }
-    }
-
-    const timestamp = moment().format("HH:mm");
-
-    // Handle scenarios based on conditions
-    if (getColumns.length > 0 && salalryStructureAutoId != 0) {
-      const mergeColumns = [...getColumns, ...arr];
-      const headers = mergeColumns.map((item) => item.columnName);
-      console.log("headers>>>>>>>>>",headers.length)
-      const columns = headers.map((value) => ({
-        label: value,
-        value: value,
-      }));
-
-      const data = [
-        {
-          sheet: "Salary Component",
-          columns,
-          content: [],
-        },
-      ];
-
-      const settings = {
-        fileName: `Component_${timestamp}`,
-        extraLength: 3,
-        writeOptions: {
-          type: "buffer",
-          bookType: "xlsx",
-        },
-      };
-
-      const report = xlsx(data, settings);
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=Sample_sheet_${timestamp}.xlsx`
-      );
-      return res.end(report);
-    } else if (
-      getColumns.length == 0 &&
-      salalryStructureAutoId == 0 &&
-      [6, 7, 8, 9].includes(Number(exportSheetAutoId))
-    ) {
-      console.log("i am in else")
-      const data = [
-        {
-          sheet: "Employee",
-          columns: [
-            { label: "Employee Code", value: "empCode" },
-            { label: "Employee Name", value: "name" },
+      // Fetch salary structure details if salalryStructureAutoId is provided
+      if (salalryStructureAutoId && salalryStructureAutoId != 0) {
+        const getComponentAutoIds = await db.salarystructurecomponentmapping.findAll({
+          attributes: ["salaryComponentAutoId"],
+          where: { salaryStructureAutoId: salalryStructureAutoId },
+          include: [
+            {
+              model: db.salaryComponent,
+              attributes: ["salaryComponentCode", "salaryComponentAlias"],
+              as: "componentDetails",
+            },
           ],
-          content: employeeData,
-        },
-      ];
+          raw: true,
+          nest: true,
+        });
 
-      const settings = {
-        fileName: `Total_${timestamp}`,
-        extraLength: 3,
-        writeOptions: {
-          type: "buffer",
-          bookType: "xlsx",
-        },
-      };
+        arr = await Promise.all(
+          getComponentAutoIds.map(async (item) => ({
+            columnName:
+              item.componentDetails.salaryComponentAlias?.trim() ||
+              item.componentDetails.salaryComponentCode,
+          }))
+        );
+      }
+    
+      let employeeData = [];
+      if (salalryStructureAutoId == 0 && exportSheetAutoId==6) {
+        let query = "";
+        const employeeIdss = [employeeIds].join(",");
+        query = `
+        SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
 
-      const report = xlsx(data, settings);
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=Employee_Master_${timestamp}.xlsx`
-      );
-      return res.end(report);
-    } else {
-      return res.status(404).json({
-        message: "No active columns found for the given sheet",
+        if (query) {
+          const [results] = await db.sequelize.query(query, { raw: true });
+          employeeData = results;
+        }
+      }
+
+      const timestamp = Date.now();
+
+      // Handle scenarios based on conditions
+      if (getColumns.length > 0 && salalryStructureAutoId != 0) {
+        const mergeColumns = [...getColumns, ...arr];
+        const headers = mergeColumns.map((item) => item.columnName);
+        const columns = headers.map((value) => ({
+          label: value,
+          value: value,
+        }));
+
+        const data = [
+          {
+            sheet: "Salary Component",
+            columns,
+            content: [],
+          },
+        ];
+
+        const settings = {
+          fileName: `Component_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      }
+      else if(getColumns.length > 0 && salalryStructureAutoId == 0) {
+        const mergeColumns = [...getColumns, ...arr];
+        const headers = mergeColumns.map((item) => item.columnName);
+        const columns = headers.map((value) => ({
+          label: value,
+          value: value,
+        }));
+
+        const data = [
+          {
+            sheet: "Salary Component",
+            columns,
+            content: [],
+          },
+        ];
+
+        const settings = {
+          fileName: `Component_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } 
+      else if (
+        getColumns.length == 0 &&
+        salalryStructureAutoId == 0 &&
+        [6, 7, 8, 9].includes(Number(exportSheetAutoId))
+      ) {
+        const data = [
+          {
+            sheet: "Employee",
+            columns: [
+              { label: "Employee Code", value: "empCode" },
+              { label: "Employee Name", value: "name" },
+            ],
+            content: employeeData,
+          },
+        ];
+
+        const settings = {
+          fileName: `Total_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } else {
+        return res.status(404).json({
+          message: "No active columns found for the given sheet",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({
+        message: "An error occurred while fetching data",
       });
     }
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      message: "An error occurred while fetching data",
-    });
   }
-}
 
 
   async employeesListForProcessing(req, res) {
@@ -3649,6 +3695,14 @@ async exportSample(req, res) {
       return respHelper(res, {
         status: 500,
       });
+    }
+  }
+
+  async downloadPaySlip(req,res){
+    try {
+      
+    } catch (error) {
+      
     }
   }
 }
