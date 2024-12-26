@@ -564,6 +564,953 @@ class CommonController {
     }
   }
 
+
+  //RITAK WORK
+  async changeStatusOfBu(req, res) {
+   try {
+     let model = db.buMaster;
+     let query = { buId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async buList(req, res) {
+   try {
+     let model = db.buMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { buName: { [Op.like]: `%${search}%` } },
+           { buCode: { [Op.like]: `%${search}%` } },
+         ],
+       }),      };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("buName")),
+           "buName",
+         ],
+         "buId",
+         "buCode",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["buId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createBu(req, res) {
+   try {
+     const result = await validator.buMasterSchema.validateAsync(req.body);
+     let model = db.buMaster;
+     let query = { buCode: result.buCode };
+     let moduleName = "Bu";
+     let response = await service.create(
+       model,
+       {
+         ...result,
+         ...{
+           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+           createdBy: req.userId,
+           isActive:1
+         },
+       },
+       query,
+       moduleName
+     );
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateBu(req, res) {
+   try {
+     const result = await validator.buMasterSchema.validateAsync(req.body);
+     let model = db.buMaster;
+     let query = { buId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+
+
+ async changeStatusOfSbu(req, res) {
+   try {
+     let model = db.sbuMaster;
+     let query = { sbuId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async sbuList(req, res) {
+   try {
+     let model = db.sbuMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { sbuName: { [Op.like]: `%${search}%` } },
+           { code: { [Op.like]: `%${search}%` } },
+         ],
+       }),
+     };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("sbuName")),
+           "sbuName",
+         ],
+         "sbuId",
+         "code",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["sbuId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createSbu(req, res) {
+   try {
+     const result = await validator.sbuMasterSchema.validateAsync(req.body);
+     let model = db.sbuMaster;
+     let query = { code: result.code };
+     let moduleName = "Sbu";
+     let response = await service.create(
+       model,
+       {
+         ...result,
+         ...{
+           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+           createdBy: req.userId,
+           isActive:1
+         },
+       },
+       query,
+       moduleName
+     );
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateSbu(req, res) {
+   try {
+     const result = await validator.sbuMasterSchema.validateAsync(req.body);
+     let model = db.sbuMaster;
+     let query = { sbuId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async changeStatusOfDesignation(req, res) {
+   try {
+     let model = db.designationMaster;
+     let query = { designationId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async designationList(req, res) {
+   try {
+     let model = db.designationMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { name: { [Op.like]: `%${search}%` } },
+           { code: { [Op.like]: `%${search}%` } },
+         ],
+       }),
+     };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("name")),
+           "name",
+         ],
+         "designationId",
+         "code",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["designationId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createDesignation(req, res) {
+   try {
+     const result = await validator.designationMasterSchema.validateAsync(req.body);
+     let model = db.designationMaster;
+     let query = { code: result.code };
+     let moduleName = "Designation";
+     let response = await service.create(
+       model,
+       {
+         ...result,
+         ...{
+           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+           createdBy: req.userId,
+           isActive:1,
+         },
+       },
+       query,
+       moduleName
+     );
+     console.log(response,'response---')
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     console.error('Error:', error.message);
+
+
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateDesignation(req, res) {
+   try {
+     const result = await validator.designationMasterSchema.validateAsync(req.body);
+     let model = db.designationMaster;
+     let query = { designationId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+
+
+ async changeStatusOfGrade(req, res) {
+   try {
+     let model = db.gradeMaster;
+     let query = { gradeId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async gradeList(req, res) {
+   try {
+     let model = db.gradeMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { gradeName: { [Op.like]: `%${search}%` } },
+           { gradeCode: { [Op.like]: `%${search}%` } },
+         ],
+       }),
+     };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("gradeName")),
+           "gradeName",
+         ],
+         "gradeId",
+         "gradeCode",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["gradeId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createGrade(req, res) {
+   try {
+     const result = await validator.gradeMasterSchema.validateAsync(req.body);
+     let model = db.gradeMaster;
+     let query = { gradeCode: result.gradeCode };
+     let moduleName = "Grade";
+     let response = await service.create(
+       model,
+       {
+         ...result,
+         ...{
+           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+           createdBy: req.userId,
+           isActive:1,
+         },
+       },
+       query,
+       moduleName
+     );
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     console.error('Error:', error.message);
+
+
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateGrade(req, res) {
+   try {
+     const result = await validator.gradeMasterSchema.validateAsync(req.body);
+     let model = db.gradeMaster;
+     let query = { gradeId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+
+
+   async changeStatusOfDegree(req, res) {
+   try {
+     let model = db.degreeMaster;
+     let query = { degreeId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async degreeList(req, res) {
+   try {
+     let model = db.degreeMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { degreeName: { [Op.like]: `%${search}%` } },
+           { degreeCode: { [Op.like]: `%${search}%` } },
+         ],
+       }),
+     };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("degreeName")),
+           "degreeName",
+         ],
+         "degreeId",
+         "degreeCode",
+         "degreeType",
+         "durationInYears",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["degreeId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createDegree(req, res) {
+   try {
+     const result = await validator.degreeMasterSchema.validateAsync(req.body);
+     let model = db.degreeMaster;
+     let query = { degreeCode: result.degreeCode };
+     let moduleName = "Degree";
+     let response = await service.create(
+       model,
+       {
+         ...result,
+         ...{
+           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+           createdBy: req.userId,
+           isActive:1,
+         },
+       },
+       query,
+       moduleName
+     );
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     console.error('Error:', error.message);
+
+
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateDegree(req, res) {
+   try {
+     const result = await validator.degreeMasterSchema.validateAsync(req.body);
+     let model = db.degreeMaster;
+     let query = { degreeId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+
+
+ async changeStatusOfHoliday(req, res) {
+   try {
+     let model = db.holidayMaster;
+     let query = { holidayId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async holidayList(req, res) {
+   try {
+     let model = db.holidayMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { holidayName: { [Op.like]: `%${search}%` } }
+         ],
+       }),
+     };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("holidayName")),
+           "holidayName",
+         ],
+         "holidayId",
+         "holidayDate",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["holidayId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createHoliday(req, res) {
+   try {
+     const result = await validator.holidayMasterSchema.validateAsync(req.body);
+     let model = db.holidayMaster;
+     let query = { holidayDate: result.holidayDate };
+     let moduleName = "Holiday";
+     let metaData=  {
+       ...result,
+       ...{
+         holidayDate: moment(req.holidayDate).format("YYYY-MM-DD"),
+         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+         createdBy: req.userId,
+         isActive:1,
+       },
+     };
+     //console.log('metaData',metaData)
+     let response = await service.create(
+       model,
+       metaData,
+       query,
+       moduleName
+     );
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     console.error('Error:', error.message);
+
+
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateHoliday(req, res) {
+   try {
+     const result = await validator.holidayMasterSchema.validateAsync(req.body);
+     let model = db.holidayMaster;
+     let query = { holidayId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+
+
+ async changeStatusOfNewCustomer(req, res) {
+   try {
+     let model = db.newCustomerNameMaster;
+     let query = { newCustomerNameId: req.params.id };
+     let response = await service.changeStatus(model, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async NewCustomerList(req, res) {
+   try {
+     let model = db.newCustomerNameMaster;
+     let page = parseInt(req.query.page) || 1;
+     let search = req.query.search || "";
+     let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+
+     let query = {
+       // isActive: 1,
+       ...(search && {
+         [Op.or]: [
+           { newCustomerName: { [Op.like]: `%${search}%` } },
+        
+         ],
+       }),
+     };
+
+
+     let aggregate = {
+       where: query,
+       attributes: [
+         [
+           db.sequelize.fn("DISTINCT", db.sequelize.col("newCustomerName")),
+           "newCustomerName",
+         ],
+         "newCustomerNameId",
+         "isActive",
+         "createdAt",
+         "updatedAt",
+       ],
+       order: [["newCustomerNameId", "DESC"]],
+       limit: pageLimit,
+       offset: (page - 1) * pageLimit,
+     };
+
+
+     let response = await service.aggregate(model, aggregate);
+     let count = await service.count(model, query);
+     let obj = { rows: response.data, count: count };
+     return respHelper(res, {
+       status: response.status,
+       msg: response.msg,
+       data: obj,
+     });
+   } catch (error) {
+     console.log("error", error);
+     logger.error(error);
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+ async createNewCustomer(req, res) {
+   try {
+     const result = await validator.newCustomerSchema.validateAsync(req.body);
+     let model = db.newCustomerNameMaster;
+     let query = { newCustomerName: result.newCustomerName };
+     let moduleName = "New Customer";
+     let response = await service.create(
+       model,
+       {
+         ...result,
+         ...{
+           createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+           createdBy: req.userId,
+           isActive:1,
+         },
+       },
+       query,
+       moduleName
+     );
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     console.error('Error:', error.message);
+
+
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+
+
+ async updateNewCustomer(req, res) {
+   try {
+     const result = await validator.newCustomerSchema.validateAsync(req.body);
+     let model = db.newCustomerNameMaster;
+     let query = { newCustomerNameId: req.params.id };
+     console.log("")
+     let response = await service.update(model, {...result,...{updatedAt:moment().format("YYYY-MM-DD HH:mm:ss"),updatedBy:req.userId}}, query);
+     return respHelper(res, response);
+   } catch (error) {
+     logger.error(error);
+     if (error.isJoi === true) {
+       return respHelper(res, {
+         status: 422,
+         msg: error.details[0].message,
+       });
+     }
+     return respHelper(res, {
+       status: 500,
+     });
+   }
+ }
+//RITAK WORK
+
   // close class
 }
 

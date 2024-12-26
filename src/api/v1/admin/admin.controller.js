@@ -5,7 +5,7 @@ import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
 import constant from "../../../constant/messages.js";
 import eventEmitter from "../../../services/eventService.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import commonController from "../common/common.controller.js";
 import moment from "moment";
 import { Op } from "sequelize";
@@ -1514,35 +1514,50 @@ class AdminController {
         isPromotion: result.isPromotion,
       };
 
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.DesignationEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.DesignationEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
+      const recordsExistForDate = await db.DesignationEmploymentHistory.findOne(
+        {
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+            ...(result.id && { [Op.not]: { id: result.id } }),
+          },
+        }
+      );
 
-        if (!recordsExistForDate) {
-          await db.DesignationEmploymentHistory.create(metaData);
+      if (recordsExistForDate) {
+        error = true;
+      } else {
+        if (result.id) {
+          // const verifyData = await db.DesignationEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
+
+          // if(verifyData) {
+          //   if(verifyData.designation_id != result.designation_id) {
+          //     metaData["oldDesignationId"] = verifyData.designation_id;
+          //   }
+          // }
+
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.DesignationEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
         } else {
-          error = true;
+          metaData = {
+            ...metaData,
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.DesignationEmploymentHistory.create(metaData);
         }
       }
 
@@ -1624,35 +1639,48 @@ class AdminController {
         toDate: null,
       };
 
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.DepartmentEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.DepartmentEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
+      const recordsExistForDate = await db.DepartmentEmploymentHistory.findOne({
+        raw: true,
+        where: {
+          fromDate: result.fromDate,
+          needAttendanceCron: 1,
+          employeeId: result.userId,
+          ...(result.id && { [Op.not]: { id: result.id } }),
+        },
+      });
 
-        if (!recordsExistForDate) {
-          await db.DepartmentEmploymentHistory.create(metaData);
+      if (recordsExistForDate) {
+        error = true;
+      } else {
+        if (result.id) {
+          // const verifyData = await db.DepartmentEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
+
+          // if(verifyData) {
+          //   if(verifyData.departmentId != result.departmentId) {
+          //     metaData["oldDepartmentId"] = verifyData.departmentId;
+          //   }
+          // }
+
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.DepartmentEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
         } else {
-          error = true;
+          metaData = {
+            ...metaData,
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.DepartmentEmploymentHistory.create(metaData);
         }
       }
 
@@ -1734,35 +1762,48 @@ class AdminController {
         toDate: null,
       };
 
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.CostCenterEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.CostCenterEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
+      const recordsExistForDate = await db.CostCenterEmploymentHistory.findOne({
+        raw: true,
+        where: {
+          fromDate: result.fromDate,
+          needAttendanceCron: 1,
+          employeeId: result.userId,
+          ...(result.id && { [Op.not]: { id: result.id } }),
+        },
+      });
 
-        if (!recordsExistForDate) {
-          await db.CostCenterEmploymentHistory.create(metaData);
+      if (recordsExistForDate) {
+        error = true;
+      } else {
+        if (result.id) {
+          // const verifyData = await db.CostCenterEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
+
+          // if(verifyData) {
+          //   if(verifyData.costId != result.costId) {
+          //     metaData["oldCostId"] = verifyData.costId;
+          //   }
+          // }
+
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.CostCenterEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
         } else {
-          error = true;
+          metaData = {
+            ...metaData,
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.CostCenterEmploymentHistory.create(metaData);
         }
       }
 
@@ -1841,35 +1882,49 @@ class AdminController {
         toDate: null,
       };
 
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.OfficeLocationEmploymentHistory.update(metaData, {
-          where: { id: result.id },
+      const recordsExistForDate =
+        await db.OfficeLocationEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+            ...(result.id && { [Op.not]: { id: result.id } }),
+          },
         });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.OfficeLocationEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
 
-        if (!recordsExistForDate) {
-          await db.OfficeLocationEmploymentHistory.create(metaData);
+      if (recordsExistForDate) {
+        error = true;
+      } else {
+        if (result.id) {
+          // const verifyData = await db.OfficeLocationEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
+
+          // if(verifyData) {
+          //   if(verifyData.companyLocationId != result.companyLocationId) {
+          //     metaData["oldCompanyLocationId"] = verifyData.companyLocationId;
+          //   }
+          // }
+
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.OfficeLocationEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
         } else {
-          error = true;
+          metaData = {
+            ...metaData,
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.OfficeLocationEmploymentHistory.create(metaData);
         }
       }
 
@@ -1956,34 +2011,48 @@ class AdminController {
         isPromotion: result.isPromotion,
       };
 
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.JobLevelEmploymentHistory.update(metaData, {
-          where: { id: result.id },
-        });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
-          raw: true,
-          where: {
-            fromDate: result.fromDate,
-            needAttendanceCron: 0,
-            employeeId: result.userId,
-          },
-        });
+      const recordsExistForDate = await db.JobLevelEmploymentHistory.findOne({
+        raw: true,
+        where: {
+          fromDate: result.fromDate,
+          needAttendanceCron: 1,
+          employeeId: result.userId,
+          ...(result.id && { [Op.not]: { id: result.id } }),
+        },
+      });
 
-        if (!recordsExistForDate) {
-          await db.JobLevelEmploymentHistory.create(metaData);
+      if (recordsExistForDate) {
+        error = true;
+      } else {
+        if (result.id) {
+          // const verifyData = await db.JobLevelEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
+
+          // if(verifyData) {
+          //   if(verifyData.jobLevelId != result.jobLevelId) {
+          //     metaData["oldJobLevelId"] = verifyData.jobLevelId;
+          //   }
+          // }
+
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.JobLevelEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
         } else {
-          error = true;
+          metaData = {
+            ...metaData,
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.JobLevelEmploymentHistory.create(metaData);
         }
       }
 
@@ -2064,35 +2133,49 @@ class AdminController {
         toDate: null,
       };
 
-      if (result.id) {
-        metaData = {
-          ...metaData,
-          updatedBy: req.userId,
-          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        await db.EmployeeTypeEmploymentHistory.update(metaData, {
-          where: { id: result.id },
+      const recordsExistForDate =
+        await db.EmployeeTypeEmploymentHistory.findOne({
+          raw: true,
+          where: {
+            fromDate: result.fromDate,
+            needAttendanceCron: 1,
+            employeeId: result.userId,
+            ...(result.id && { [Op.not]: { id: result.id } }),
+          },
         });
-      } else {
-        metaData = {
-          ...metaData,
-          createdBy: req.userId,
-          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        const recordsExistForDate =
-          await db.EmployeeTypeEmploymentHistory.findOne({
-            raw: true,
-            where: {
-              fromDate: result.fromDate,
-              needAttendanceCron: 0,
-              employeeId: result.userId,
-            },
-          });
 
-        if (!recordsExistForDate) {
-          await db.EmployeeTypeEmploymentHistory.create(metaData);
+      if (recordsExistForDate) {
+        error = true;
+      } else {
+        if (result.id) {
+          // const verifyData = await db.EmployeeTypeEmploymentHistory.findOne({
+          //   raw: true,
+          //   where: {
+          //     id: result.id,
+          //   }
+          // });
+
+          // if(verifyData) {
+          //   if(verifyData.employeeType != result.employeeType) {
+          //     metaData["oldEmployeeType"] = verifyData.employeeType;
+          //   }
+          // }
+
+          metaData = {
+            ...metaData,
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.EmployeeTypeEmploymentHistory.update(metaData, {
+            where: { id: result.id },
+          });
         } else {
-          error = true;
+          metaData = {
+            ...metaData,
+            createdBy: req.userId,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          };
+          await db.EmployeeTypeEmploymentHistory.create(metaData);
         }
       }
 
@@ -2154,6 +2237,62 @@ class AdminController {
   }
 
   // END EMPLOYMENT DETAILS
+
+  // Attendance Approval API
+  async requiredAttendanceApproval(req, res) {
+    try {
+      const result = await validator.blockLoginSchema.validateAsync(req.body);
+
+      const existUser = await db.employeeMaster.findOne({
+        where: {
+          empCode: result.employeeCode,
+          isActive: 1,
+        },
+      });
+
+      if (!existUser) {
+        return respHelper(res, {
+          status: 404,
+          msg: constant.USER_NOT_EXIST,
+        });
+      }
+
+      await db.employeeMaster.update(
+        {
+          requiredAttendanceApproval:
+            !existUser.dataValues.requiredAttendanceApproval,
+        },
+        {
+          where: {
+            id: existUser.dataValues.id,
+          },
+        }
+      );
+
+      return respHelper(res, {
+        status: 200,
+        msg: constant.ATTENDANCE_APPROVAL_STATUS.replace(
+          "<status>",
+          `${
+            !existUser.dataValues.requiredAttendanceApproval
+              ? "Enabled"
+              : "Disabled"
+          }`
+        ),
+      });
+    } catch (error) {
+      console.log("error", error);
+      if (error.isJoi) {
+        return respHelper(res, {
+          msg: error.details[0].message,
+          status: 422,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
 }
 
 export default new AdminController();

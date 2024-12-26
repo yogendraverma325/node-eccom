@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
       costId: {
         type: Sequelize.INTEGER,
       },
+      oldCostId: {
+        type: Sequelize.INTEGER
+      },
       needAttendanceCron: {
         type: Sequelize.INTEGER,
       },

@@ -409,13 +409,18 @@ class MasterController {
 
   async costCenter(req, res) {
     try {
+      let query = { 'isActive': 1 };
       const limit = req.query.limit * 1 || 10;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
-
+      let search = req.query.search;
+      if (search) {
+        query = { ...query, costCenterName: { [Op.like]: `%${search}%` } };
+      }
       const costCenterData = await db.costCenterMaster.findAndCountAll({
         // limit,
         // offset,
+        where: query
       });
 
       return respHelper(res, {

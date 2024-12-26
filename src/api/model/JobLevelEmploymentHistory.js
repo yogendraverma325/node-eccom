@@ -20,6 +20,9 @@ export default (sequelize, Sequelize) => {
       jobLevelId: {
         type: Sequelize.INTEGER,
       },
+      oldJobLevelId: {
+        type: Sequelize.INTEGER
+      },
       needAttendanceCron: {
         type: Sequelize.INTEGER,
       },
@@ -31,6 +34,12 @@ export default (sequelize, Sequelize) => {
       },
       isPromotion: {
         type: Sequelize.BOOLEAN,
+      },
+      sourceName: {
+        type: Sequelize.STRING
+      },
+      status: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         type: Sequelize.DATE,

@@ -1,3 +1,10 @@
+// --------------------------------------- 2024-12-12 -----------------------------------------------//
+ALTER TABLE `tara_hrms_live`.`attendancehistory` 
+ADD COLUMN `locationType` VARCHAR(45) NULL DEFAULT NULL AFTER `isApproved`,
+ADD COLUMN `userRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `locationType`,
+ADD COLUMN `managerRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `userRemark`;
+
+
 //-----------------------------------------2024-12-09------------------------------------------------//
 
 ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
@@ -992,6 +999,10 @@ ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
   `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updatedBy` INT NULL DEFAULT NULL,
   PRIMARY KEY (`id`));
+
+  ALTER TABLE `tara_hrms_live`.`designationemploymenthistory` 
+  ADD COLUMN `oldDesignationId` INT NULL DEFAULT NULL AFTER `designation_id`;
+
 
 
 
