@@ -1195,11 +1195,17 @@ class MasterController {
             ],
             where: {
               // isActive: 1,
-              //id:4254,
+              //id:5074,
               ...(attendanceFor == 0 && { isActive: 0 }),
               ...(attendanceFor == 1 && { isActive: 1 }),
               ...(attendanceFor == 2 && { isActive: [0, 1] }),
               ...(search && { id: { [Op.in]: search.split(",") } }),
+              ...(fromDate && { 
+                [Op.or]: [
+                  { dateOfexit: null }, 
+                  { dateOfexit: { [Op.gte]: fromDate.format("YYYY-MM-DD") } }
+                ],
+              }),
               ...(employeeType && {
                 employeeType: { [Op.in]: employeeType.split(",") },
               }),
@@ -1263,8 +1269,105 @@ class MasterController {
         ],
       });
 
-      const employeeIds = [
+      const activeButAttendanceNotAvailable = await db.employeeMaster.findAll({
+        attributes: [
+          "id",
+          "name",
+          "empCode",
+          "weekOffId",
+          "companyLocationId",
+          "dateOfexit",
+        ],
+        where: {
+          // isActive: 1,
+          //id:5074,
+          ...(attendanceFor == 0 && { isActive: 0 }),
+          ...(attendanceFor == 1 && { isActive: 1 }),
+          ...(attendanceFor == 2 && { isActive: [0, 1] }),
+          ...(search && { id: { [Op.in]: search.split(",") } }),
+          ...(employeeType && {
+            employeeType: { [Op.in]: employeeType.split(",") },
+          }),
+          ...(fromDate && { 
+            [Op.or]: [
+              { dateOfexit: null }, 
+              { dateOfexit: { [Op.gte]: fromDate.format("YYYY-MM-DD") } }
+            ],
+          }),
+          ...(department && {
+            departmentId: { [Op.in]: department.split(",") },
+          }),
+          ...(designation && {
+            designation_id: { [Op.in]: designation.split(",") },
+          }),
+          ...(companyLocation && {
+            companyLocationId: { [Op.in]: companyLocation.split(",") },
+          }),
+          ...(areaSearch && {
+            functionalAreaId: { [Op.in]: areaSearch.split(",") },
+          }),
+          // Ensuring only records with no attendance data
+            //"$attendancemaster.employeeId$": null,
+        },
+        include: [
+          {
+            model: db.attendanceMaster,
+            attributes: [
+              "employeeId",
+              "attendanceDate",
+              "attendancePresentStatus",
+            ],
+            where: {
+              attendanceDate: {
+                [db.Sequelize.Op.between]: [
+                  fromDate.format("YYYY-MM-DD"),
+                  toDate.format("YYYY-MM-DD"),
+                ],
+              },
+            },
+            required: false,
+          },
+          {
+            model: db.jobDetails,
+            attributes: ["jobId", "dateOfJoining"],
+            where: {
+              ...(grade && { gradeId: { [Op.in]: grade.split(",") } }),
+            },
+            include: [
+              {
+                model: db.gradeMaster,
+                attributes: ["gradeName"],
+              },
+            ],
+          },
+          {
+            model: db.designationMaster,
+            attributes: ["name"],
+          },
+          {
+            model: db.departmentMaster,
+            attributes: ["departmentName", "departmentCode"],
+          },
+          {
+            model: db.functionalAreaMaster,
+            seperate: true,
+            attributes: ["functionalAreaName"],
+          },
+        ],
+      });
+      
+      const activeButAttendanceNotAvailableIds = [
+        ...new Set(activeButAttendanceNotAvailable.map((record) => record.id)),
+      ];
+
+      const employeeIdsAvailable = [
         ...new Set(attendanceData.map((record) => record.employeeId)),
+      ];
+      const employeeIds = [
+        ...new Set([
+          ...employeeIdsAvailable,
+          ...activeButAttendanceNotAvailableIds,
+        ]),
       ];
       const finalData = [];
       const today = moment().startOf("day");
@@ -1273,22 +1376,57 @@ class MasterController {
         const employeeRecords = attendanceData.filter(
           (record) => record.employeeId === employeeId
         );
+        //console.log("employeeRecords", employeeRecords);
+        let employeeRecord;
 
-        if (employeeRecords.length === 0) continue;
-
-        const employeeRecord = {
-          empId: employeeRecords[0].employee?.id || null,
-          name: employeeRecords[0].employee?.name || "Unknown",
-          empCode: employeeRecords[0].employee?.empCode || "N/A",
-          weekOffId: employeeRecords[0].employee?.weekOffId || 0,
-          companyLocationId:
-            employeeRecords[0].employee?.companyLocationId || 0,
-          dateOfJoining:
-            employeeRecords[0].employee?.employeejobdetail?.dateOfJoining ||
-            null,
-          dateOfexit: employeeRecords[0].employee?.dateOfexit || null,
-        };
-        console.log("employeeRecordemployeeRecord>>>>", employeeRecord);
+        if (employeeRecords.length === 0) {
+          const employeeData = await db.employeeMaster.findOne({
+            attributes: [
+              "id",
+              "name",
+              "empCode",
+              "weekOffId",
+              "companyLocationId",
+              "dateOfexit",
+            ],
+            where: { id: employeeId },
+            include: [
+              {
+                model: db.jobDetails,
+                attributes: ["dateOfJoining"],
+              },
+            ],
+          });
+          //console.log("employeeData>>>>>>>>", employeeData?.employeejobdetail?.dateOfJoining);
+          // Create the employeeRecord object with fetched data
+          employeeRecord = {
+            empId: employeeData?.id || null,
+            name: employeeData?.name || "Unknown",
+            empCode: employeeData?.empCode || "N/A",
+            weekOffId: employeeData?.weekOffId || 0,
+            companyLocationId: employeeData?.companyLocationId || 0,
+            dateOfJoining:
+              employeeData?.employeejobdetail?.dateOfJoining || null,
+            dateOfexit: employeeData?.dateOfexit || null,
+            type: 0,
+          };
+        } //continue;
+        else {
+          employeeRecord = {
+            empId: employeeRecords[0].employee?.id || null,
+            name: employeeRecords[0].employee?.name || "Unknown",
+            empCode: employeeRecords[0].employee?.empCode || "N/A",
+            weekOffId: employeeRecords[0].employee?.weekOffId || 0,
+            companyLocationId:
+              employeeRecords[0].employee?.companyLocationId || 0,
+            dateOfJoining:
+              employeeRecords[0].employee?.employeejobdetail?.dateOfJoining ||
+              null,
+            dateOfexit: employeeRecords[0].employee?.dateOfexit || null,
+            type: 1,
+          };
+        }
+        //console.log("employeeRecordemployeeRecord>>>>", employeeRecord);
         const dayRecords = {};
         let attendanceCount = {
           P: 0,
@@ -1436,9 +1574,15 @@ class MasterController {
                 attendanceCount.H++;
               }
             } else {
+              // here need to add record
               // If there are no attendance records, set to '-'
+              if(employeeRecord.type==0){
+                dayRecords[dayKey] = "-"; // Set to W for week off
+              }
+              else{
               dayRecords[dayKey] = "H"; // Set to H for holiday
               attendanceCount.H++;
+              }
             }
           }
           // If the day is a week off, set status to W
@@ -1543,8 +1687,13 @@ class MasterController {
                 attendanceCount.W++;
               }
             } else {
+              if(employeeRecord.type==0){
+                dayRecords[dayKey] = "-"; // Set to W for week off
+              }
+              else{
               dayRecords[dayKey] = "W"; // Set to W for week off
               attendanceCount.W++;
+              }
             }
           } else {
             // Check for approved leave first
@@ -1688,16 +1837,21 @@ class MasterController {
             }
           }
 
-          if (currentDay.isSameOrBefore(employeeRecord.dateOfJoining)) {
+          if (currentDay.isBefore(employeeRecord.dateOfJoining)) {
+            // if (currentDay.isSameOrBefore(employeeRecord.dateOfJoining)) {
             // if (currentDay.isBefore(today)) {
             dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
           }
 
           if (
-            currentDay.isSameOrAfter(
+            currentDay.isAfter(
               moment(employeeRecord.dateOfexit).format("YYYY-MM-DD")
             )
           ) {
+            dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
+          }
+
+          if(employeeRecord.type == 0){
             dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
           }
         }
@@ -1790,6 +1944,7 @@ class MasterController {
       });
     }
   }
+
 
   async employeeMasterExport(req, res) {
     try {
@@ -1949,7 +2104,11 @@ class MasterController {
             as: "managerData",
           },
           { model: db.buMaster, attributes: ["buName"], required: false },
-          { model: db.sbuMaster, attributes: ["sbuname"], required: false },
+          {
+            model: db.sbuMaster,
+            attributes: ["sbuname", "code"],
+            required: false,
+          },
           {
             model: db.companyLocationMaster,
             attributes: ["address1", "companyLocationCode", "isHeadquarter"],
@@ -2032,13 +2191,36 @@ class MasterController {
               },
             ],
           },
+          {
+            model: db.separationMaster,
+            include: [
+              {
+                model: db.separationReason,
+                as: "empReasonofResignation",
+                attributes: ["separationReason"],
+              },
+              {
+                model: db.separationReason,
+                as: "l1ReasonofResignation",
+                attributes: ["separationReason"],
+              },
+              {
+                model: db.separationReason,
+                attributes: ["separationReason"],
+                as: "l2ReasonofSeparation",
+              },
+              {
+                model: db.separationType,
+                as: "l2Separationtype",
+              },
+            ],
+          },
         ],
       });
 
       const arr = [];
       for (let i = 0; i < employeeData.length; i++) {
         const ele = employeeData[i];
-
         let headAndHrData = {};
         if (ele.dataValues.buId && ele.dataValues.companyId) {
           headAndHrData =
@@ -2096,7 +2278,9 @@ class MasterController {
           department_code:
             ele.dataValues.departmentmaster?.departmentCode || "",
           bu_name: ele.dataValues.bumaster?.buName || "",
-          sub_bu_name: ele.dataValues.sbumaster?.dataValues.sbuname || "",
+          sbu_name: ele.dataValues.sbumaster?.dataValues.sbuname || "",
+          sbu_code: ele.dataValues.sbumaster?.dataValues.code || "",
+
           grade: ele.employeejobdetail?.grademaster?.gradeName || "",
           band: ele.employeejobdetail?.bandmaster?.bandDesc || "",
           jobLevel: ele.employeejobdetail?.joblevelmaster?.jobLevelName || "",
@@ -2244,15 +2428,19 @@ class MasterController {
             ele.companylocationmaster?.dataValues?.companyLocationCode || "",
 
           date_of_confirmation: "",
-          date_of_resignation: "",
-          exit_date: "",
-          exit_type: "",
-          exit_reason: "",
-          final_separation_type: "",
-          admin_exit_reason: "",
+          date_of_resignation: ele.separationmaster
+            ? moment(ele.separationmaster.resignationDate).format("DD-MM-YYYY")
+            : "",
+          // exit_date: ele.separationmaster
+          // ?ele.separationmaster.l2LastWorkingDay? moment(ele.separationmaster.l2LastWorkingDay).format("DD-MM-YYYY")
+          // : "":"",
+          exit_type:
+            ele.separationmaster?.l2Separationtype?.separationTypeName || "",
+          //  exit_reason: ele.separationmaster?.empReasonofResignation?.separationReason || "",
+          admin_exit_reason:
+            ele.separationmaster?.l2ReasonofSeparation?.separationReason || "",
           // customer_code:"",
           project_code: ele.employeejobdetail?.projectCode || "",
-          sbu_name: "",
           customer_code: ele.employeejobdetail?.dataValues?.customerName
             ? (ele.employeejobdetail.dataValues.customerName.match(/(C\d+)/) ||
                 [])[1] || ""
@@ -2293,7 +2481,7 @@ class MasterController {
       }
 
       if (arr.length > 0) {
-        const timestamp = Date.now();
+        const timestamp = moment().format("h:mm A");
 
         const data = [
           {
@@ -2329,7 +2517,8 @@ class MasterController {
 
               { label: "Department", value: "department_name" },
               { label: "Department Code", value: "department_code" },
-              { label: "Sub BU Name", value: "sub_bu_name" },
+              { label: "Sbu Name", value: "sbu_name" },
+              { label: "Sbu Code", value: "sbu_code" },
               { label: "Grade", value: "grade" },
               { label: "Band", value: "band" },
               { label: "Job Level", value: "jobLevel" },
@@ -2386,13 +2575,9 @@ class MasterController {
               { label: "Work Area Code", value: "work_area_code" },
               { label: "Date Of Confirmation", value: "date_of_confirmation" },
               { label: "Date Of Resignation", value: "date_of_resignation" },
-              { label: "Exit Date", value: "exit_date" },
+              // { label: "Exit Date", value: "exit_date" },
               { label: "Exit Type", value: "exit_type" },
-              { label: "Exit Reason", value: "exit_reason" },
-              {
-                label: "Final Separation Type",
-                value: "final_separation_type",
-              },
+              // { label: "Exit Reason", value: "exit_reason" },
               { label: "Admin Exit Reason", value: "admin_exit_reason" },
               { label: "Customer Code", value: "customer_code" },
               { label: "Project Code", value: "project_code" },
@@ -2973,14 +3158,27 @@ class MasterController {
                 ? "N/A"
                 : ele.dataValues.separationmaster?.replacementRequired,
 
+            //need to add
+            shortFallPayoutRequired:
+              ele.dataValues.separationmaster?.shortFallPayoutRequired ==
+                null || false
+                ? "No"
+                : "Yes",
+
             shortFallPayout:
               ele.dataValues.separationmaster?.shortFallPayoutBasis || "N/A",
 
             shortFallPayoutDays:
               ele.dataValues.separationmaster?.shortFallPayoutDays || "N/A",
 
-            newCompanyName:
-              ele.dataValues.separationmaster?.empNewOrganizationName || "N/A",
+            //need to add
+            l2LastWorkingDay: ele.dataValues.separationmaster?.l2LastWorkingDay
+              ? moment(ele.dataValues.separationmaster.l2LastWorkingDay).format(
+                  "DD-MM-YYYY"
+                )
+              : "",
+            // newCompanyName:
+            //ele.dataValues.separationmaster?.empNewOrganizationName || "N/A",
 
             holdFnf:
               ele.dataValues.separationmaster?.holdFnf == null ? "No" : "Yes",
@@ -3063,18 +3261,23 @@ class MasterController {
                 value: "adminSeparationReason",
               },
               { label: "Admin Other Reason", value: "adminOtherReason" },
+              { label: "Final Last Working Day", value: "l2LastWorkingDay" },
               { label: "Date Of Approval", value: "dateOfApproval" },
               { label: "Notice Period Name", value: "noticePeriodName" },
               {
                 label: "Notice Period Duration",
                 value: "noticePeriodDuration",
               },
+              {
+                label: "short Fall Payout Required",
+                value: "shortFallPayoutRequired",
+              },
               { label: "Short Fall Payout", value: "shortFallPayout" },
               { label: "Short Fall Payout Days", value: "shortFallPayoutDays" },
 
-              { label: "New Company Name", value: "newCompanyName" },
-              { label: "New CTC", value: "newCtc" },
-              { label: "New Role", value: "newRole" },
+              // { label: "New Company Name", value: "newCompanyName" },
+              // { label: "New CTC", value: "newCtc" },
+              // { label: "New Role", value: "newRole" },
               {
                 label: "NDA Letter Confirmation",
                 value: "newLetterConfimation",
@@ -3111,6 +3314,7 @@ class MasterController {
       });
     }
   }
+
 
   async sperationApprovedHistory(req, res) {
     try {
