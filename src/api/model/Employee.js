@@ -232,6 +232,9 @@ export default (sequelize, Sequelize) => {
     passwordExpiryDate: {
       type: Sequelize.DATE,
     },
+    requiredAttendanceApproval: {
+      type: Sequelize.BOOLEAN
+    }
     // insuranceCardImg:{
     //   type: Sequelize.STRING,
     // }

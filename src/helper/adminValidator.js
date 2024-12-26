@@ -88,6 +88,19 @@ const costCenterMasterSchema = Joi.object({
 });
 
 //RITAK WORK
+// Create masters schema by jay
+
+const departmentMasterSchema = Joi.object({
+  departmentName: Joi.string().trim().required().label("Department Name"),
+  departmentCode: Joi.string().trim().required().label("Department Code"),
+});
+
+const functionalAreaMasterSchema = Joi.object({
+  functionalAreaName: Joi.string().trim().required().label("Department Name"),
+  functionalAreaCode: Joi.string().trim().required().label("Department Code"),
+});
+
+// End schema by jay
 
 export default {
   companyTypeMasterSchema,
@@ -105,4 +118,8 @@ export default {
   costCenterMasterSchema,
   companySchema,
   //RITAK WORK
+  // jay start
+  departmentMasterSchema,
+  functionalAreaMasterSchema,
+  // jay end
 };

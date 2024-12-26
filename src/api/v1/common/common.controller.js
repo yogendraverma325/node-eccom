@@ -489,7 +489,7 @@ class commonController {
       if (existPaymentDetails) {
         let obj = {
           ...result,
-          ...{ status: "pending" },
+          ...{ status: "approved" },
           ...(paymentAttachment !== "" && { paymentAttachment }),
           ...{ createdBy: existPaymentDetails.createdBy },
           ...{ createdAt: existPaymentDetails.createdAt },

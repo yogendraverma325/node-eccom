@@ -317,8 +317,8 @@ const addPaymentDetailsSchema = Joi.object({
     .allow(null)
     .optional()
     .label("Account Holder Name"),
-  ptStateId: Joi.number().integer().optional(),
-  ptLocationId: Joi.number().integer().optional(),
+  ptStateId: Joi.number().allow(null),
+  ptLocationId: Joi.number().allow(null),
   ptApplicability: Joi.boolean().optional(),
   tdsApplicability: Joi.boolean().optional(),
   itrFiling: Joi.boolean().optional(),
@@ -326,6 +326,7 @@ const addPaymentDetailsSchema = Joi.object({
     .label("Payment Attachemnt")
     .allow("")
     .optional(),
+  bankId: Joi.number().required()
 });
 
 const deleteFamilyMemberDetailsSchema = Joi.object({

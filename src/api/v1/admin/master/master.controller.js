@@ -15,9 +15,10 @@ class CommonController {
 
   async createCompanyType(req, res) {
     try {
-      const result = await validator.companyTypeMasterSchema.validateAsync(
+      let result = await validator.companyTypeMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.companyTypeMaster;
       let query = { typeName: result.typeName };
       let moduleName = "Company Type";
@@ -89,9 +90,10 @@ class CommonController {
 
   async updateCompanyType(req, res) {
     try {
-      const result = await validator.companyTypeMasterSchema.validateAsync(
+      let result = await validator.companyTypeMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.companyTypeMaster;
       let query = { companyTypeId: req.params.id };
       let response = await service.update(model, result, query);
@@ -158,7 +160,8 @@ class CommonController {
 
   async createBand(req, res) {
     try {
-      const result = await validator.bandMasterSchema.validateAsync(req.body);
+      let result = await validator.bandMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.bandMaster;
       let query = { bandCode: result.bandCode };
       let moduleName = "Band";
@@ -230,7 +233,8 @@ class CommonController {
 
   async updateBand(req, res) {
     try {
-      const result = await validator.bandMasterSchema.validateAsync(req.body);
+      let result = await validator.bandMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.bandMaster;
       let query = { bandId: req.params.id };
       let response = await service.update(model, result, query);
@@ -297,9 +301,8 @@ class CommonController {
 
   async createJobLevel(req, res) {
     try {
-      const result = await validator.jobLevelMasterSchema.validateAsync(
-        req.body
-      );
+      let result = await validator.jobLevelMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.jobLevelMaster;
       let query = {
         jobLevelName: result.jobLevelName,
@@ -380,9 +383,8 @@ class CommonController {
 
   async updateJobLevel(req, res) {
     try {
-      const result = await validator.jobLevelMasterSchema.validateAsync(
-        req.body
-      );
+      let result = await validator.jobLevelMasterSchema.validateAsync(req.body);
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.jobLevelMaster;
       let query = { jobLevelId: req.params.id };
       let response = await service.update(model, result, query);
@@ -448,7 +450,7 @@ class CommonController {
       const result = await validator.bankMasterSchema.validateAsync(req.body);
       let model = db.bankMaster;
       let query = { bankIfsc: result.bankIfsc };
-      let moduleName = "Bank";
+      let moduleName = "Bank Ifsc";
       let response = await service.create(
         model,
         {
@@ -483,9 +485,18 @@ class CommonController {
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
+      // let query = {
+      //   // isActive: 1,
+      //   ...(search && { bankName: { [Op.like]: `%${search}%` } }),
+      // };
       let query = {
         // isActive: 1,
-        ...(search && { bankName: { [Op.like]: `%${search}%` } }),
+        ...(search && {
+          [Op.or]: [
+            { bankName: { [Op.like]: `%${search}%` } },
+            { bankIfsc: { [Op.like]: `%${search}%` } },
+          ],
+        }),
       };
 
       let aggregate = {
@@ -2005,6 +2016,255 @@ class CommonController {
   }
 
   //RITWK WORK
+
+  /**
+   * CRUD of Department Master Created by Jay
+   *
+   */
+
+  async createDepartment(req, res) {
+    try {
+      let result = await validator.departmentMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        parentDepartmentId: 0,
+        createdBy: req.userId,
+        isActive: 1,
+      };
+
+      let model = db.departmentMaster;
+      let query = {
+        departmentName: result.departmentName,
+        departmentCode: result.departmentCode,
+      };
+      let moduleName = "Department";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async departmentList(req, res) {
+    try {
+      let model = db.departmentMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { departmentName: { [Op.like]: `%${search}%` } }),
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: [
+          "departmentId",
+          "departmentName",
+          "departmentCode",
+          "createdAt",
+          "isActive",
+        ],
+        order: [["departmentId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit,
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateDepartment(req, res) {
+    try {
+      let result = await validator.departmentMasterSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.departmentMaster;
+      let query = { departmentId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfDepartment(req, res) {
+    try {
+      let model = db.departmentMaster;
+      let query = { departmentId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of Functional Area Master Created by Jay
+   *
+   */
+
+  async createFunctionalArea(req, res) {
+    try {
+      let result = await validator.functionalAreaMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        parentFunctionalAreaId: 0,
+      };
+      let model = db.functionalAreaMaster;
+      let query = {
+        functionalAreaName: result.functionalAreaName,
+        functionalAreaCode: result.functionalAreaCode,
+      };
+      let moduleName = "Functional Area";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async functionalAreaList(req, res) {
+    try {
+      let model = db.functionalAreaMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { functionalAreaName: { [Op.like]: `%${search}%` } }),
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: [
+          "functionalAreaId",
+          "functionalAreaName",
+          "functionalAreaCode",
+          "createdAt",
+          "isActive",
+        ],
+        order: [["functionalAreaId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit,
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateFunctionalArea(req, res) {
+    try {
+      let result = await validator.functionalAreaMasterSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.functionalAreaMaster;
+      let query = { functionalAreaId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfFunctionalArea(req, res) {
+    try {
+      let model = db.functionalAreaMaster;
+      let query = { functionalAreaId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  // End master apis creation by jay
 
   // close class
 }

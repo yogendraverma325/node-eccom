@@ -8,3 +8,4 @@ export default Express
     .Router()
     .post("/onboardingEmployee", upload.single('excelFile'), masterImportController.onboardingEmployeeImport)
     .post("/documentImport", upload.single('file'), masterImportController.documentImport)
+    .post("/managerHistoryImport", upload.single('file'), masterImportController.managerHistoryImport)

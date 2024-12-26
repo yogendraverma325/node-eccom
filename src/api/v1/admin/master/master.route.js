@@ -318,6 +318,49 @@ export default Express.Router()
     "/costcenter/:id",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     commonController.updateCostCenter
-  );
+  )
 
+  // department master routes created by jay
+  .post(
+    "/department",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createDepartment
+  )
+  .get(
+    "/department-list",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.departmentList
+  )
+  .put(
+    "/department/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateDepartment
+  )
+  .patch(
+    "/department/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.changeStatusOfDepartment
+  )
+
+  // functional area master routes created by jay
+  .post(
+    "/functionalArea",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createFunctionalArea
+  )
+  .get(
+    "/functionalArea-list",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.functionalAreaList
+  )
+  .put(
+    "/functionalArea/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateFunctionalArea
+  )
+  .patch(
+    "/functionalArea/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.changeStatusOfFunctionalArea
+  );
 //RITAK WORK

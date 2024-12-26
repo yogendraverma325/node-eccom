@@ -878,13 +878,13 @@ class CronController {
           singleRecords?.confirmationinitiated?.employee?.id
         ); // EMP DATA
 
-        eventEmitter.emit(
-          "confirmationSLABreachEmailBody",
-          JSON.stringify({
-            ESCALTERDATA: ESCALTERDATA,
-            EMP_DATA: EMP_DATA,
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationSLABreachEmailBody",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA,
+        //   })
+        // );
 
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId:

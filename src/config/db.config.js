@@ -1249,7 +1249,6 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
   sourceKey: "buHeadId",
   as: "departmentBUHead",
 });
-
 // Join for Attendance history with Employee details
 db.attendanceHistory.hasOne(db.employeeMaster, {
   foreignKey: "id",
@@ -1311,5 +1310,15 @@ db.holidayMaster.hasMany(db.holidayCompanyLocationConfiguration, {
   sourceKey: "holidayId",
 });
 //ritak work
+//JAY work
+db.paymentDetails.hasOne(db.stateMaster, {
+  foreignKey: "stateId",
+  sourceKey: "ptStateId",
+});
 
+db.paymentDetails.hasOne(db.ptLocationMaster, {
+  foreignKey: "ptLocationId",
+  sourceKey: "ptLocationId",
+});
+//JAY work
 export default db;

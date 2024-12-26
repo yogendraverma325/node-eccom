@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
         departmentName: {
             type: Sequelize.STRING,
         },
+        parentDepartmentId: {
+            type: Sequelize.INTEGER
+        },
         createdAt: {
             type: Sequelize.DATE
         },
