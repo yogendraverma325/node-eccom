@@ -86,13 +86,17 @@ export default Express
     // job level mapping routes
     .get("/job-level-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMappingList)
     .post("/job-level-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.jobLevelMapping)
+    .put("/job-level-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateJobLevelMapping)
 
     // department mapping routes
     .get("/department-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.departmentMappingList)
     .post("/department-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.departmentMapping)
+    .put("/department-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateDepartmentMapping)
 
     // functional area mapping routes
     .get("/functional-area-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalMappingList)
     .post("/functional-area-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.functionalMapping)
+    .put("/functional-area-mapping/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateFunctionalAreaMapping)
+
     
 

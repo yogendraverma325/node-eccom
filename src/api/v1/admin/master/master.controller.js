@@ -1793,6 +1793,123 @@ class CommonController {
     }
   }
 
+  async updateJobLevelMapping(req, res) {
+    try {
+      let result = await validator.jobLevelMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() }
+      let model = db.jobLevelMapping;
+      let query = {
+        jobLevelMappingId: req.params.id
+      };
+
+      // verify if job level id have mapped with employee
+
+      let findQuery = { 'jobLevelId': result.jobLevelId };
+      let isExist = await service.details(db.jobDetails, findQuery);
+      if(isExist.status == 200) {
+        return respHelper(res, {
+          status: 422,
+          msg: "You cannot change the job level mapping because it is already assigned to an employee.",
+        });
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateDepartmentMapping(req, res) {
+    try {
+      let result = await validator.departmentMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() }
+      let model = db.departmentMapping;
+      let query = {
+        departmentMappingId: req.params.id
+      };
+
+      // verify if department id have mapped with employee
+
+      let findQuery = { 'departmentId': result.departmentId };
+      let isExist = await service.details(db.employeeMaster, findQuery);
+      if(isExist.status == 200) {
+        return respHelper(res, {
+          status: 422,
+          msg: "You cannot change the department mapping because it is already assigned to an employee.",
+        });
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateFunctionalAreaMapping(req, res) {
+    try {
+      let result = await validator.functionalAreaMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() }
+      let model = db.functionalAreaMapping;
+      let query = {
+        functionalAreaMappingId: req.params.id
+      };
+
+      // verify if department id have mapped with employee
+
+      let findQuery = { 'functionalAreaId': result.functionalAreaId };
+      let isExist = await service.details(db.employeeMaster, findQuery);
+      if(isExist.status == 200) {
+        return respHelper(res, {
+          status: 422,
+          msg: "You cannot change the functional area mapping because it is already assigned to an employee.",
+        });
+      }
+      else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
   // End Master Mapping APIs by Jay
 
   // close class
