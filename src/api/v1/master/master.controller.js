@@ -409,7 +409,7 @@ class MasterController {
 
   async costCenter(req, res) {
     try {
-      let query = { 'isActive': 1 };
+      let query = { isActive: 1 };
       const limit = req.query.limit * 1 || 10;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
@@ -420,7 +420,7 @@ class MasterController {
       const costCenterData = await db.costCenterMaster.findAndCountAll({
         // limit,
         // offset,
-        where: query
+        where: query,
       });
 
       return respHelper(res, {
@@ -682,27 +682,27 @@ class MasterController {
 
   async companyLocation(req, res) {
     try {
-      let companyId = req.query.companyId;
-      if (companyId) {
-        let query = { isActive: 1, companyId: companyId };
-        const companyLocationData = await db.companyLocationMaster.findAll({
-          where: query,
-          attributes: ["companyLocationId", "address1", "companyLocationCode"],
-          include: [{ model: db.cityMaster, attributes: ["cityName"] }],
-        });
+      const { companyId } = req.query; // Get the companyId from the query parameters
 
-        return respHelper(res, {
-          status: 200,
-          data: companyLocationData,
-        });
-      } else {
-        return respHelper(res, {
-          status: 422,
-          msg: "Please select company",
-          data: [],
-        });
+      // Define the base query
+      let query = { isActive: 1 };
+      // If companyId is provided, add it to the query filter
+      if (companyId) {
+        query.companyId = companyId;
       }
+      // Query the database for company locations, with or without companyId filter
+      const companyLocationData = await db.companyLocationMaster.findAll({
+        where: query,
+        attributes: ["companyLocationId", "address1", "companyLocationCode"],
+        include: [{ model: db.cityMaster, attributes: ["cityName"] }],
+      });
+      // Return the response with the fetched data
+      return respHelper(res, {
+        status: 200,
+        data: companyLocationData,
+      });
     } catch (error) {
+      // Log any errors and return an error response
       logger.error("Error while getting company location list", error);
       return respHelper(res, {
         status: 500,

@@ -1155,7 +1155,7 @@ db.DepartmentEmploymentHistory.hasOne(db.functionalAreaMaster, {
 
 db.CostCenterEmploymentHistory.hasOne(db.costCenterMaster, {
   foreignKey: "costCenterId",
-  sourceKey: "costId"
+  sourceKey: "costId",
 });
 
 db.JobLevelEmploymentHistory.hasOne(db.jobLevelMaster, {
@@ -1176,7 +1176,7 @@ db.EmployeeTypeEmploymentHistory.hasOne(db.employeeTypeMaster, {
 db.employeeMaster.hasMany(db.managerHistory, {
   foreignKey: "employeeId",
   sourceKey: "id",
-  as: 'managerHistories'
+  as: "managerHistories",
 });
 
 db.DesignationEmploymentHistory.hasOne(db.companyMaster, {
@@ -1252,9 +1252,9 @@ db.DepartmentEmploymentHistory.hasOne(db.employeeMaster, {
 
 // Join for Attendance history with Employee details
 db.attendanceHistory.hasOne(db.employeeMaster, {
-  foreignKey: 'id',
-  sourceKey: 'employeeId'
-})
+  foreignKey: "id",
+  sourceKey: "employeeId",
+});
 // Join for Attendance history with Employee details
 // db.DesignationEmploymentHistory.hasOne(db.designationMaster, {
 //   foreignKey: "designationId",
@@ -1298,7 +1298,18 @@ db.attendanceHistory.hasOne(db.employeeMaster, {
 //   as: 'managerChangesFrom'
 // });
 
-
 // END EMPLOYMENT HISTORY
+
+//ritak work
+db.costCenterMaster.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "costCenterHead",
+});
+
+db.holidayMaster.hasMany(db.holidayCompanyLocationConfiguration, {
+  foreignKey: "holidayId",
+  sourceKey: "holidayId",
+});
+//ritak work
 
 export default db;
