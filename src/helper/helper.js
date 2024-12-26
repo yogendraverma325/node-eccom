@@ -9,7 +9,7 @@ import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
- import { createCanvas, loadImage } from "canvas";
+//  import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
   let pattern = /desktop/i;
