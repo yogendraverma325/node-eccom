@@ -705,120 +705,184 @@ const empMarkLeaveOfGivenDate = async function (
   empData,
   attendanceandOtherData
 ) {
-  let leaveText = "";
-  let leaveType = "Half Day";
-  if (inputData.leaveCount == 1) {
-    leaveType = "Full Day";
-  }
-  if (lateCase != null && workCase == null) {
-    leaveText = `Auto-requested for Leave deduction based on late duration policy.${
-      empData.name
-    } (${empData.empCode}) has clocked in late in ${
-      attendanceandOtherData.attendancemaster.attendanceLateBy
+  const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
+    where: {
+      appliedFor: {
+        [Op.between]: [inputData.fromDate, inputData.toDate],
+      },
+      status: "approved",
+      employeeId: userId,
+    },
+  });
+  let inputs = [];
+  inputs = leaveCountForDates.filter((el) => {
+    if (el.appliedFor == inputData.appliedFor) {
+      if (el.halfDayFor == 0) {
+        return true;
+      } else {
+        if (leaveCountForDates.length == 2) {
+          return true;
+        } else if (leaveCountForDates.length == 1) {
+          if (el.halfDayFor == inputData.halfDayFor) {
+            return true;
+          } else {
+            if (el.halfDayFor == 2) {
+              inputData.isHalfDay = 1;
+              inputData.halfDayFor = 1;
+              inputData.leaveCount = 0.5;
+              return false;
+            } else {
+              inputData.isHalfDay = 1;
+              inputData.halfDayFor = 2;
+              inputData.leaveCount = 0.5;
+              return false;
+            }
+          }
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return false;
     }
+  });
+  if (inputs.length == 0) {
+    let leaveText = "";
+    let leaveType = "Half Day";
+    if (inputData.leaveCount == 1) {
+      leaveType = "Full Day";
+    }
+    if (lateCase != null && workCase == null) {
+      leaveText = `Auto-requested for Leave deduction based on late duration policy.${
+        empData.name
+      } (${empData.empCode}) has clocked in late in ${
+        attendanceandOtherData.attendancemaster.attendanceLateBy
+      }
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyLateDurationHalfDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationHalfDayTime
+      )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyLateDurationFullDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationFullDayTime
+      )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-      inputData.toDate
-    ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
-  } else if (lateCase == null && workCase != null) {
-    leaveText = `Auto-requested for Leave because of Work duration policy.${
-      empData.name
-    } (${empData.empCode}) has worked for ${
-      attendanceandOtherData.attendancemaster.attendanceWorkingTime
-    }
+        inputData.toDate
+      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+    } else if (lateCase == null && workCase != null) {
+      leaveText = `Auto-requested for Leave because of Work duration policy.${
+        empData.name
+      } (${empData.empCode}) has worked for ${
+        attendanceandOtherData.attendancemaster.attendanceWorkingTime
+      }
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyWorkDurationHalfDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationHalfDayTime
+      )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyWorkDurationFullDayTime
-    )}`;
-  } else {
-    leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationFullDayTime
+      )}`;
+    } else {
+      leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
 ${empData.name} (${empData.empCode}) has worked for ${
-      attendanceandOtherData.attendancemaster.attendanceWorkingTime
-    } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
+        attendanceandOtherData.attendancemaster.attendanceWorkingTime
+      } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyWorkDurationHalfDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationHalfDayTime
+      )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyWorkDurationFullDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationFullDayTime
+      )}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyLateDurationHalfDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationHalfDayTime
+      )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-      attendanceandOtherData.attendancePolicymaster
-        .leaveDeductPolicyLateDurationFullDayTime
-    )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationFullDayTime
+      )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-      inputData.toDate
-    ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
-  }
-  inputData.source = "system_generated";
+        inputData.toDate
+      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+    }
+    inputData.source = "system_generated";
 
-  // console.log("workCase", workCase);
-  // console.log("empData", empData);
-  // console.log("attendanceData", attendanceData);
-  if (inputData.leaveAutoId != 6) {
-    let empLeave = await empLeaveDetails(userId, inputData.leaveAutoId);
-    if (empLeave) {
-      let pendingLeaveCountList = await db.employeeLeaveTransactions.findAll({
-        where: {
-          status: "pending",
-          employeeId: userId,
-          leaveAutoId: inputData.leaveAutoId,
-        },
-      });
-      let pendingLeaveCount = 0;
+    // console.log("workCase", workCase);
+    // console.log("empData", empData);
+    // console.log("attendanceData", attendanceData);
+    if (inputData.leaveAutoId != 6) {
+      let empLeave = await empLeaveDetails(userId, inputData.leaveAutoId);
+      if (empLeave) {
+        let pendingLeaveCountList = await db.employeeLeaveTransactions.findAll({
+          where: {
+            status: "pending",
+            employeeId: userId,
+            leaveAutoId: inputData.leaveAutoId,
+          },
+        });
+        let pendingLeaveCount = 0;
 
-      pendingLeaveCountList.map((el) => {
-        pendingLeaveCount += parseFloat(el.leaveCount);
-      });
+        pendingLeaveCountList.map((el) => {
+          pendingLeaveCount += parseFloat(el.leaveCount);
+        });
 
-      if (
-        pendingLeaveCount + inputData.leaveCount >=
-        parseFloat(empLeave.availableLeave)
-      ) {
+        if (
+          pendingLeaveCount + inputData.leaveCount >=
+          parseFloat(empLeave.availableLeave)
+        ) {
+          inputData.leaveAutoId = 6;
+        }
+      } else {
         inputData.leaveAutoId = 6;
       }
     } else {
       inputData.leaveAutoId = 6;
     }
-  } else {
-    inputData.leaveAutoId = 6;
-  }
-  inputData.batch_id = batch;
-  inputData.message = leaveText;
+    inputData.batch_id = batch;
+    inputData.message = leaveText;
 
-  let headerInsert = await db.EmployeeLeaveHeader.create(inputData);
+    let headerInsert = await db.EmployeeLeaveHeader.create(inputData);
 
-  inputData.employeeleaveheaderID = headerInsert.employeeleaveheaderID;
-  await db.employeeLeaveTransactions.create(inputData); // Push data to leave transaction table for that employee
+    inputData.employeeleaveheaderID = headerInsert.employeeleaveheaderID;
+    await db.employeeLeaveTransactions.create(inputData); // Push data to leave transaction table for that employee
 
-  //start code :leave deducation code if auto approve only
-  if (inputData.status == "approved") {
-    if (inputData.leaveAutoId == 6) {
-      //IF leave type if LWP
-      const lwpLeave = await db.leaveMapping.findOne({
-        where: {
-          EmployeeId: userId,
-          leaveAutoId: inputData.leaveAutoId,
-        },
-      });
+    //start code :leave deducation code if auto approve only
+    if (inputData.status == "approved") {
+      if (inputData.leaveAutoId == 6) {
+        //IF leave type if LWP
+        const lwpLeave = await db.leaveMapping.findOne({
+          where: {
+            EmployeeId: userId,
+            leaveAutoId: inputData.leaveAutoId,
+          },
+        });
 
-      if (lwpLeave) {
+        if (lwpLeave) {
+          await db.leaveMapping.increment(
+            { utilizedThisYear: parseFloat(inputData.leaveCount) },
+            {
+              where: {
+                EmployeeId: userId,
+                leaveAutoId: inputData.leaveAutoId,
+              },
+            }
+          );
+        } else {
+          await db.leaveMapping.create({
+            EmployeeId: userId,
+            leaveAutoId: inputData.leaveAutoId,
+            availableLeave: 0,
+            utilizedThisYear: parseFloat(inputData.leaveCount),
+            creditedFromLastYear: 0,
+            annualAllotment: 0,
+            accruedThisYear: 0,
+          });
+        }
+      } else {
+        // Else leave is other than LWP
         await db.leaveMapping.increment(
           { utilizedThisYear: parseFloat(inputData.leaveCount) },
           {
@@ -828,85 +892,64 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
             },
           }
         );
-      } else {
-        await db.leaveMapping.create({
-          EmployeeId: userId,
-          leaveAutoId: inputData.leaveAutoId,
-          availableLeave: 0,
-          utilizedThisYear: parseFloat(inputData.leaveCount),
-          creditedFromLastYear: 0,
-          annualAllotment: 0,
-          accruedThisYear: 0,
-        });
+        await db.leaveMapping.increment(
+          { availableLeave: -parseFloat(inputData.leaveCount) },
+          {
+            where: {
+              EmployeeId: userId,
+              leaveAutoId: inputData.leaveAutoId,
+            },
+          }
+        );
       }
-    } else {
-      // Else leave is other than LWP
-      await db.leaveMapping.increment(
-        { utilizedThisYear: parseFloat(inputData.leaveCount) },
-        {
-          where: {
-            EmployeeId: userId,
-            leaveAutoId: inputData.leaveAutoId,
-          },
-        }
-      );
-      await db.leaveMapping.increment(
-        { availableLeave: -parseFloat(inputData.leaveCount) },
-        {
-          where: {
-            EmployeeId: userId,
-            leaveAutoId: inputData.leaveAutoId,
-          },
-        }
-      );
     }
-  }
-  //end code :leave deducation code if auto approve only
+    //end code :leave deducation code if auto approve only
 
-  const leaveDeductionData = await db.employeeMaster.findOne({
-    raw: true,
-    where: {
-      id: inputData.employeeId,
-    },
-    attributes: ["name", "email"],
-    include: [
-      {
-        model: db.shiftMaster,
-        attributes: ["shiftStartTime", "shiftEndTime"],
+    const leaveDeductionData = await db.employeeMaster.findOne({
+      raw: true,
+      where: {
+        id: inputData.employeeId,
       },
-    ],
-  });
+      attributes: ["name", "email"],
+      include: [
+        {
+          model: db.shiftMaster,
+          attributes: ["shiftStartTime", "shiftEndTime"],
+        },
+      ],
+    });
 
-  const leaveData = await db.leaveMaster.findOne({
-    raw: true,
-    where: {
-      leaveId: inputData.leaveAutoId,
-    },
-    attributes: ["leaveName"],
-  });
-  let leaveReason;
-  if (inputData.status == "approved") {
-    leaveReason = "auto-approved";
-  }
-  if (inputData.status == "pending") {
-    leaveReason = "pending at manager";
-  }
+    const leaveData = await db.leaveMaster.findOne({
+      raw: true,
+      where: {
+        leaveId: inputData.leaveAutoId,
+      },
+      attributes: ["leaveName"],
+    });
+    let leaveReason;
+    if (inputData.status == "approved") {
+      leaveReason = "auto-approved";
+    }
+    if (inputData.status == "pending") {
+      leaveReason = "pending at manager";
+    }
 
-  eventEmitter.emit(
-    "autoLeaveDeductionMail",
-    JSON.stringify({
-      email: leaveDeductionData.email,
-      name: leaveDeductionData.name,
-      date: inputData.appliedFor,
-      leaveReason,
-      shiftStartTime: leaveDeductionData["shiftsmaster.shiftStartTime"],
-      shiftEndTime: leaveDeductionData["shiftsmaster.shiftEndTime"],
-      leaveType: leaveData.leaveName,
-      leaveDuration: inputData.leaveCount === 0.5 ? "Half Day" : "Full Day",
-      punchInTime: inputData.punchInTime,
-      punchOutTime: inputData.punchOutTime,
-    })
-  );
+    eventEmitter.emit(
+      "autoLeaveDeductionMail",
+      JSON.stringify({
+        email: leaveDeductionData.email,
+        name: leaveDeductionData.name,
+        date: inputData.appliedFor,
+        leaveReason,
+        shiftStartTime: leaveDeductionData["shiftsmaster.shiftStartTime"],
+        shiftEndTime: leaveDeductionData["shiftsmaster.shiftEndTime"],
+        leaveType: leaveData.leaveName,
+        leaveDuration: inputData.leaveCount === 0.5 ? "Half Day" : "Full Day",
+        punchInTime: inputData.punchInTime,
+        punchOutTime: inputData.punchOutTime,
+      })
+    );
+  }
 
   return 1;
 };
