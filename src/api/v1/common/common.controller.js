@@ -662,6 +662,12 @@ class commonController {
             as: "holidayDetails",
             where: {
               isActive: 1,
+              [db.Sequelize.Op.and]: [
+                db.Sequelize.where(
+                  db.Sequelize.fn("YEAR", db.Sequelize.col("holidayDate")),
+                  new Date().getFullYear()
+                ),
+              ],
             },
           },
         ],
