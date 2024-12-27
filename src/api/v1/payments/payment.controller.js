@@ -1142,7 +1142,7 @@ class PaymentController {
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );
-      console.log(newProcess)
+      console.log(newProcess);
       const updatedArray = await newArray.map((item) => ({
         EmployeeId: item.EmployeeId,
         EmployeeName: item.EmployeeName,
@@ -1157,10 +1157,10 @@ class PaymentController {
       }));
       await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
         console.log(resp);
-        // processSalary({
-        //   processId: newProcess.dataValues.payProcessMasterAutoId,
-        //   req,
-        // });
+        processSalary({
+          processId: newProcess.dataValues.payProcessMasterAutoId,
+          req,
+        });
       });
 
       return respHelper(res, {
@@ -1201,6 +1201,8 @@ class PaymentController {
         const employeeDetailsComponentWise = await db.sequelize.query(
           queryForEmployeePayDetails
         );
+
+        // console.log(employeeDetailsComponentWise);
         const queryForExtraDeductions = await paymentHelper.query(
           14,
           employee,
@@ -1213,23 +1215,18 @@ class PaymentController {
           parseFloat(
             employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
           ) || 0;
-  
+
         const lopDays =
           parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-  
+
         const lopMonthWiseCalculation =
           totalWorkingDays > 0
             ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
             : "0.00";
-  
-        console.log("payPackageMonthlyCTC", payPackageMonthlyCTC);
-        console.log("lopMonthWiseCalculation", lopMonthWiseCalculation);
-  
         const deductionOfLopMonthAmount = Math.max(
           0,
           payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
         );
-  
         console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
         const currentMonth = new Date()
           .toLocaleString("default", { month: "short" })
@@ -1237,7 +1234,12 @@ class PaymentController {
         const ptDynamicAttribute = [currentMonth, "ptAmount"];
         const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
         const ptDeducationDetails = await db.paymentDetails.findOne({
-          attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
+          attributes: [
+            "paymentId",
+            "userId",
+            "ptLocationId",
+            "ptApplicability",
+          ],
           where: { userId: employee },
           raw: true,
           nest: true,
@@ -1267,7 +1269,13 @@ class PaymentController {
           ],
         });
         const lwfDeducationDetails = await db.jobDetails.findOne({
-          attributes: ["jobId", "lwfApplicable","pfApplicability","pfRestricted"],
+          attributes: [
+            "jobId",
+            "lwfApplicable",
+            "pfApplicability",
+            "pfRestricted",
+            "esicApplicable",
+          ],
           where: {
             userId: employee,
           },
@@ -1294,14 +1302,6 @@ class PaymentController {
           },
           raw: true,
         });
-  
-
-        console.log("PF_APPLICABILITY :: "+lwfDeducationDetails.pfApplicability);
-        console.log("PF_RESTRICTION :: "+lwfDeducationDetails.pfRestricted);
-
-  
-        return;
-  
         const ptAmount1 =
           ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
             ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
@@ -1310,7 +1310,7 @@ class PaymentController {
           lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
             ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
             : 0;
-  
+
         const extraPaymentAmount1 = extraPaymentAmount
           ? extraPaymentAmount?.paymentAmount
           : 0;
@@ -1328,10 +1328,9 @@ class PaymentController {
               },
             }
           );
-  
+
           continue;
         }
-  
         if (
           lwfDeducationDetails &&
           lwfDeducationDetails.lwfApplicable == 1 &&
@@ -1346,10 +1345,9 @@ class PaymentController {
               },
             }
           );
-  
+
           continue;
         }
-  
         if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
           await db.payProcessDetails.update(
             { payStatus: 101, payRemark: "Pay Package Not Assigned." },
@@ -1360,7 +1358,7 @@ class PaymentController {
               },
             }
           );
-  
+
           continue;
         }
         const queryForAffetElementCounts = await paymentHelper.query(
@@ -1377,7 +1375,6 @@ class PaymentController {
               employeeDetailsComponentWise[0][0].lopDays) /
             affectComponentCounts[0][0].lopAffectCount
           : 0;
-  
         for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
           const queryForComponentConfiguration = await paymentHelper.query(
             12,
@@ -1397,7 +1394,6 @@ class PaymentController {
             ) == 0
               ? 1
               : 0;
-  
           empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
           empCopntWiseDetl["elementMonthlyAmount"] =
             paymentHelper.getElementValue(
@@ -1408,7 +1404,6 @@ class PaymentController {
                   empCopntWiseDetl.payElementAmount - lopSingleUnit
                 ).toFixed(2)
               : empCopntWiseDetl.payElementAmount;
-  
           empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
             .totalDeduction
             ? extraDeductonsDetails[0][0].totalDeduction
@@ -1423,8 +1418,25 @@ class PaymentController {
           empCopntWiseDetl["ptAmount"] = ptAmount1;
           empCopntWiseDetl["lwfAmount"] = lwfAmount1;
           empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
-  
-          salaryRegisterArray.push(empCopntWiseDetl);
+          //////////////////////////////PF-Applicablity Keys////////////////////////
+          let pafApplicableComponet = paymentHelper.getElementValue(
+            "Affect PF",
+            componentConfiguration[0]
+          );
+          let esicApplicableComponent = paymentHelper.getElementValue(
+            "Affects ESIC",
+            componentConfiguration[0]
+          );
+          empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
+          empCopntWiseDetl["isPfApplicable"] =
+            lwfDeducationDetails.pfApplicability;
+          empCopntWiseDetl["isPfRestriction"] =
+            lwfDeducationDetails.pfRestricted;
+          empCopntWiseDetl["isEsicApplicable"] =
+            lwfDeducationDetails.esicApplicable;
+          empCopntWiseDetl["isEsicApplicableComponent"] =
+            esicApplicableComponent;
+          //////////////////////////////PF-Applicablity Keys//////////////////////////////////
           let existDetails = await db.payMonthlyElements.findOne({
             where: {
               empId: employee,
@@ -1433,29 +1445,51 @@ class PaymentController {
             },
             raw: true,
           });
-          console.log(existDetails);
           if (!existDetails) {
             await db.payMonthlyElements.create(empCopntWiseDetl);
           }
         }
-        // await db.payProcessDetails.update(
-        //   { payStatus: 2, payRemark: "Salary Processed." },
-        //   {
-        //     where: {
-        //       EmployeeId: employee,
-        //       proceessId: processId,
-        //     },
-        //   }
-        // );
 
+        let payElementComponents = await db.payMonthlyElements.findAll({
+          where: {
+            empId: employee,
+            isPfApplicableComponent: 1,
+            payMonth: result[0][0].payMonth,
+          },
+          raw: true,
+        });
+        ///////////////Calculation And Updation of PF Amount //////////////////////
+        let calculatedPF = await paymentHelper.getCalculatedPF(
+          payElementComponents
+        );
+        let getCalculatedESIC = await paymentHelper.getCalculatedESIC(
+          payElementComponents
+        );
+        await db.payMonthlyElements.update(
+          {
+            esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
+            esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
+            pfEmployeeAmount: calculatedPF,
+            pfEmployerAmount: calculatedPF,
+          },
+          { where: { empId: employee, payMonth: result[0][0].payMonth } }
+        );
+        ///////////////Calculation And Updation of ESIC Amount //////////////////////
+
+        await db.payProcessDetails.update(
+          { payStatus: 2, payRemark: "Salary Processed." },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
       }
-  
       db.payProcessMaster.update(
         { processFlowId: 4 },
         { where: { payProcessMasterAutoId: processId } }
       );
-  
-      //here need to add response
     } else {
       console.log("NO Data For Processing >>>>>>>>>");
     }
@@ -2157,7 +2191,6 @@ class PaymentController {
         (employee) => employee.EmployeeId
       );
 
-
       console.log(employeeIds);
 
       let processingCounts = await availableEmployeeForProcessing(
@@ -2167,12 +2200,12 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: {
-          processed:processingCounts.processedEmployees.length,
-          inProcess:  processingCounts.inProcessedEployees.length,
+          processed: processingCounts.processedEmployees.length,
+          inProcess: processingCounts.inProcessedEployees.length,
           totalEmployee: employeeIds.length,
           available: processingCounts.avalialbleEmployees.length,
-          processedData:processingCounts.processedEmployees,
-          inProcessData:  processingCounts.inProcessedEployees,
+          processedData: processingCounts.processedEmployees,
+          inProcessData: processingCounts.inProcessedEployees,
           totalEmployeeData: employeeIds,
           availableData: processingCounts.avalialbleEmployees,
         },
@@ -2470,7 +2503,7 @@ class PaymentController {
 
       let tdsDeductions = await db.tdsDeductions.findAll({
         where: {
-          EmployeeId: { [Op.in]: returnVAlue.avalialbleEmployees},
+          EmployeeId: { [Op.in]: returnVAlue.avalialbleEmployees },
           tdsMonth: req.body.paymonth,
         },
         raw: true,
@@ -2528,7 +2561,7 @@ class PaymentController {
       );
       var totaPaymentAmount = 0,
         totalLOPDays = 0;
-  
+
       let tdsDeductions = await db.extraPayment.findAll({
         where: {
           EmployeeId: { [Op.in]: returnVAlue.avalialbleEmployees },
@@ -2567,7 +2600,6 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-
 
       let allEmployeeQuery = await paymentHelper.query(
         19,
@@ -2639,11 +2671,6 @@ class PaymentController {
         queryForProcessedEmploye
       );
 
-      // console.log(queryForProcessedEmploye);
-
-      // return
-      // console.log(processedEmployee);
-
       const employeeIds = processedEmployee[0].map((item) => item.empId);
       const query = await paymentHelper.query(
         1,
@@ -2651,8 +2678,7 @@ class PaymentController {
         employeeIds
       );
       const result = await db.sequelize.query(query);
-      console.log(query);
-      console.log("result", result[0]);
+
       const processedData = groupByEmployeeId(result[0]);
       return respHelper(res, {
         status: 200,
@@ -3002,16 +3028,14 @@ class PaymentController {
         await generatePaySlip({ processId: processId, req });
       } else if (nextStatusId == 8) {
         await releasePaySlip({ processId: processId, req, nextStatusId });
-      } 
-      else {
+      } else {
         await db.payProcessDetails.update(
           { payStatus: nextStatusId },
           { where: { proceessId: processId } }
         );
       }
 
-      if([1,2,3,4,6,7,8,9,101].includes(nextStatusId))
-      {
+      if ([1, 2, 3, 4, 6, 7, 8, 9, 101].includes(nextStatusId)) {
         await db.payProcessMaster.update(
           {
             processFlowId: getNextAvaiableFlow[0][0].refferenceFlowId,
@@ -3020,18 +3044,16 @@ class PaymentController {
           },
           { where: { payProcessMasterAutoId: processId } }
         );
-      }
-      else if(nextStatusId==5)
-      {
+      } else if (nextStatusId == 5) {
         await db.payProcessMaster.destroy({
           where: {
-            payProcessMasterAutoId: processId
-          }
+            payProcessMasterAutoId: processId,
+          },
         });
         await db.payProcessDetails.destroy({
           where: {
-            proceessId: processId
-          }
+            proceessId: processId,
+          },
         });
       }
 
@@ -3249,342 +3271,341 @@ class PaymentController {
   //   }
   // }
 
-//   async exportSample(req, res) {
-//     try {
-//       const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
-//       var arr = []
-//       if (!exportSheetAutoId) {
-//         return respHelper(res, {
-//           status: 400,
-//           data: [],
-//           msg: "Sample Sheet Not Available",
-//         });
-//       }
-//       const getColumns = await db.exportSheetMapping.findAll({
-//         attributes: ["columnName"],
-//         where: {
-//           isActive: 1,
-//           exportSheetAutoId: exportSheetAutoId,
-//         },
-//         raw: true,
-//         nest: true,
-//       });
+  //   async exportSample(req, res) {
+  //     try {
+  //       const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
+  //       var arr = []
+  //       if (!exportSheetAutoId) {
+  //         return respHelper(res, {
+  //           status: 400,
+  //           data: [],
+  //           msg: "Sample Sheet Not Available",
+  //         });
+  //       }
+  //       const getColumns = await db.exportSheetMapping.findAll({
+  //         attributes: ["columnName"],
+  //         where: {
+  //           isActive: 1,
+  //           exportSheetAutoId: exportSheetAutoId,
+  //         },
+  //         raw: true,
+  //         nest: true,
+  //       });
 
-     
-//       if (salalryStructureAutoId) {
-//         const getComponentAutoIds =
-//           await db.salarystructurecomponentmapping.findAll({
-//             attributes: ["salaryComponentAutoId"],
-//             where: { salaryStructureAutoId: salalryStructureAutoId },
-//             include: [
-//               {
-//                 model: db.salaryComponent,
-//                 attributes: ["salaryComponentCode", "salaryComponentAlias"],
-//                 as: "componentDetails",
-//               },
-//             ],
-//             raw: true,
-//             nest: true,
-//           });
+  //       if (salalryStructureAutoId) {
+  //         const getComponentAutoIds =
+  //           await db.salarystructurecomponentmapping.findAll({
+  //             attributes: ["salaryComponentAutoId"],
+  //             where: { salaryStructureAutoId: salalryStructureAutoId },
+  //             include: [
+  //               {
+  //                 model: db.salaryComponent,
+  //                 attributes: ["salaryComponentCode", "salaryComponentAlias"],
+  //                 as: "componentDetails",
+  //               },
+  //             ],
+  //             raw: true,
+  //             nest: true,
+  //           });
 
-//         arr = await Promise.all(
-//           getComponentAutoIds.map(async (item) => ({
-//             columnName:
-//               item.componentDetails.salaryComponentAlias?.trim() ||
-//               item.componentDetails.salaryComponentCode,
-//           }))
-//         );
-//       }
-      
+  //         arr = await Promise.all(
+  //           getComponentAutoIds.map(async (item) => ({
+  //             columnName:
+  //               item.componentDetails.salaryComponentAlias?.trim() ||
+  //               item.componentDetails.salaryComponentCode,
+  //           }))
+  //         );
+  //       }
 
-//     if(salalryStructureAutoId==0){
-//       var query = ""
-//       let employeeIdss = [employeeIds].join(",");
-      
-//   // processed
-//     if(exportSheetAutoId==6){
-//       query = `
-//       SELECT 
-//         e.empCode, 
-//         e.name, 
-//         SUM(CASE WHEN p.payStatus = 9 THEN 1 ELSE 0 END) AS processed
-//       FROM tara.payprocessdetails p
-//       JOIN tara.employee e ON e.id = p.EmployeeId
-//       WHERE p.payMonth = '${paymonth}' AND p.EmployeeId IN (${employeeIdss})
-//       GROUP BY e.empCode, e.name
-//       HAVING processed = 1;
-//     `;
-//     }
+  //     if(salalryStructureAutoId==0){
+  //       var query = ""
+  //       let employeeIdss = [employeeIds].join(",");
 
-//        //in process
-//         if(exportSheetAutoId==7){
-//         query = `
-//         SELECT 
-//           e.empCode, 
-//           e.name, 
-//           SUM(CASE WHEN p.payStatus != 9 THEN 1 ELSE 0 END) AS inProcess
-//         FROM tara.payprocessdetails p
-//         JOIN tara.employee e ON e.id = p.EmployeeId
-//         WHERE p.payMonth = '${
-//           paymonth
-//         }' AND p.EmployeeId IN (${employeeIdss})
-//         GROUP BY e.empCode, e.name
-//         HAVING inProcess = 1;
-// `;
-//       }
-//     //total employee
-//     if(exportSheetAutoId==8){
-//         query = `
-//           SELECT 
-//             e.empCode, 
-//             e.name, 
-//             COUNT(p.EmployeeId) AS totalEmployee
-//           FROM tara.payprocessdetails p
-//           JOIN tara.employee e ON e.id = p.EmployeeId
-//           WHERE p.payMonth = '${
-//             paymonth
-//           }' AND p.EmployeeId IN (${employeeIdss})
-//           GROUP BY e.empCode, e.name;
-//         `;
-//     }
+  //   // processed
+  //     if(exportSheetAutoId==6){
+  //       query = `
+  //       SELECT
+  //         e.empCode,
+  //         e.name,
+  //         SUM(CASE WHEN p.payStatus = 9 THEN 1 ELSE 0 END) AS processed
+  //       FROM tara.payprocessdetails p
+  //       JOIN tara.employee e ON e.id = p.EmployeeId
+  //       WHERE p.payMonth = '${paymonth}' AND p.EmployeeId IN (${employeeIdss})
+  //       GROUP BY e.empCode, e.name
+  //       HAVING processed = 1;
+  //     `;
+  //     }
 
-//     var [employeeData] = await db.sequelize.query(
-//       query,
-//       { raw: true }
-//     );
-//     }
-      
-//      // }
+  //        //in process
+  //         if(exportSheetAutoId==7){
+  //         query = `
+  //         SELECT
+  //           e.empCode,
+  //           e.name,
+  //           SUM(CASE WHEN p.payStatus != 9 THEN 1 ELSE 0 END) AS inProcess
+  //         FROM tara.payprocessdetails p
+  //         JOIN tara.employee e ON e.id = p.EmployeeId
+  //         WHERE p.payMonth = '${
+  //           paymonth
+  //         }' AND p.EmployeeId IN (${employeeIdss})
+  //         GROUP BY e.empCode, e.name
+  //         HAVING inProcess = 1;
+  // `;
+  //       }
+  //     //total employee
+  //     if(exportSheetAutoId==8){
+  //         query = `
+  //           SELECT
+  //             e.empCode,
+  //             e.name,
+  //             COUNT(p.EmployeeId) AS totalEmployee
+  //           FROM tara.payprocessdetails p
+  //           JOIN tara.employee e ON e.id = p.EmployeeId
+  //           WHERE p.payMonth = '${
+  //             paymonth
+  //           }' AND p.EmployeeId IN (${employeeIdss})
+  //           GROUP BY e.empCode, e.name;
+  //         `;
+  //     }
 
-//       if (getColumns.length > 0 && salalryStructureAutoId != 0 ) {
-//         console.log("")
-//         const timestamp = moment().format("HH:mm");
+  //     var [employeeData] = await db.sequelize.query(
+  //       query,
+  //       { raw: true }
+  //     );
+  //     }
 
-//         let mergeColumns = [...getColumns, ...arr];
-      
-//         const headers = [...mergeColumns.map((item) => item.columnName)];
-//         const columns = headers.map((value) => ({
-//           label: value,
-//           value: value,
-//         }));
+  //      // }
 
-//         const data = [
-//           {
-//             sheet: "Salary Component",
-//             columns: columns,
-//             content: [],
-//           },
-//         ];
-//         const settings = {
-//           fileName: `Component_${timestamp}`,
-//           extraLength: 3,
-//           writeOptions: {
-//             type: "buffer",
-//             bookType: "xlsx",
-//           },
-//         };
+  //       if (getColumns.length > 0 && salalryStructureAutoId != 0 ) {
+  //         console.log("")
+  //         const timestamp = moment().format("HH:mm");
 
-//         const report = xlsx(data, settings);
-//         res.setHeader(
-//           "Content-Disposition",
-//           `attachment; filename=Sample_sheet_${timestamp}.xlsx`
-//         );
-//         res.end(report);
-//       } 
-//       if( getColumns.length == 0 && salalryStructureAutoId == 0 &&  (exportSheetAutoId == 6 || exportSheetAutoId == 7 || exportSheetAutoId == 8 || exportSheetAutoId == 9)){
-//         const timestamp = moment().format("HH:mm");
+  //         let mergeColumns = [...getColumns, ...arr];
 
-//         const data = [
-//           {
-//             sheet: "Employee",
-//             columns: [
-//               { label: "Employee Code", value: "empCode" },
-//               { label: "Employee Name", value: "name" } 
-//             ],
-//             content: employeeData,
-//           },
-//         ];
+  //         const headers = [...mergeColumns.map((item) => item.columnName)];
+  //         const columns = headers.map((value) => ({
+  //           label: value,
+  //           value: value,
+  //         }));
 
-//         const settings = {
-//           fileName: `Total_${timestamp}`,
-//           extraLength: 3,
-//           writeOptions: {
-//             type: "buffer",
-//             bookType: "xlsx",
-//           },
-//         };
+  //         const data = [
+  //           {
+  //             sheet: "Salary Component",
+  //             columns: columns,
+  //             content: [],
+  //           },
+  //         ];
+  //         const settings = {
+  //           fileName: `Component_${timestamp}`,
+  //           extraLength: 3,
+  //           writeOptions: {
+  //             type: "buffer",
+  //             bookType: "xlsx",
+  //           },
+  //         };
 
-//         const report = xlsx(data, settings);
-//         res.setHeader(
-//           "Content-Disposition",
-//           `attachment; filename=Employee_Master_${timestamp}.xlsx`
-//         );
-//         res.end(report);
-//       }
-//       else {
-//         res.status(404).json({
-//           message: "No active columns found for the given sheet",
-//         });
-//       }
-//     } catch (error) {
-//       console.log("error", error);
-//       return respHelper(res, {
-//         status: 500,
-//         message: "An error occurred while fetching data",
-//       });
-//     }
-//   }
+  //         const report = xlsx(data, settings);
+  //         res.setHeader(
+  //           "Content-Disposition",
+  //           `attachment; filename=Sample_sheet_${timestamp}.xlsx`
+  //         );
+  //         res.end(report);
+  //       }
+  //       if( getColumns.length == 0 && salalryStructureAutoId == 0 &&  (exportSheetAutoId == 6 || exportSheetAutoId == 7 || exportSheetAutoId == 8 || exportSheetAutoId == 9)){
+  //         const timestamp = moment().format("HH:mm");
 
-// const moment = require("moment");
-// const xlsx = require("json-as-xlsx");
+  //         const data = [
+  //           {
+  //             sheet: "Employee",
+  //             columns: [
+  //               { label: "Employee Code", value: "empCode" },
+  //               { label: "Employee Name", value: "name" }
+  //             ],
+  //             content: employeeData,
+  //           },
+  //         ];
 
-async exportSample(req, res) {
-  try {
-    const { exportSheetAutoId, salalryStructureAutoId, employeeIds } = req.query;
-    console.log("querey>>>>>>",req.query)
+  //         const settings = {
+  //           fileName: `Total_${timestamp}`,
+  //           extraLength: 3,
+  //           writeOptions: {
+  //             type: "buffer",
+  //             bookType: "xlsx",
+  //           },
+  //         };
 
-    // Check for required exportSheetAutoId
-    if (!exportSheetAutoId) {
-      return res.status(400).json({
-        status: 400,
-        data: [],
-        msg: "Sample Sheet Not Available",
-      });
-    }
+  //         const report = xlsx(data, settings);
+  //         res.setHeader(
+  //           "Content-Disposition",
+  //           `attachment; filename=Employee_Master_${timestamp}.xlsx`
+  //         );
+  //         res.end(report);
+  //       }
+  //       else {
+  //         res.status(404).json({
+  //           message: "No active columns found for the given sheet",
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.log("error", error);
+  //       return respHelper(res, {
+  //         status: 500,
+  //         message: "An error occurred while fetching data",
+  //       });
+  //     }
+  //   }
 
-    // Fetch columns for the export sheet
-    const getColumns = await db.exportSheetMapping.findAll({
-      attributes: ["columnName"],
-      where: {
-        isActive: 1,
-        exportSheetAutoId,
-      },
-      raw: true,
-      nest: true,
-    });
+  // const moment = require("moment");
+  // const xlsx = require("json-as-xlsx");
 
-    let arr = [];
+  async exportSample(req, res) {
+    try {
+      const { exportSheetAutoId, salalryStructureAutoId, employeeIds } =
+        req.query;
+      console.log("querey>>>>>>", req.query);
 
-    // Fetch salary structure details if salalryStructureAutoId is provided
-    if (salalryStructureAutoId && salalryStructureAutoId != 0) {
-      const getComponentAutoIds = await db.salarystructurecomponentmapping.findAll({
-        attributes: ["salaryComponentAutoId"],
-        where: { salaryStructureAutoId: salalryStructureAutoId },
-        include: [
-          {
-            model: db.salaryComponent,
-            attributes: ["salaryComponentCode", "salaryComponentAlias"],
-            as: "componentDetails",
-          },
-        ],
+      // Check for required exportSheetAutoId
+      if (!exportSheetAutoId) {
+        return res.status(400).json({
+          status: 400,
+          data: [],
+          msg: "Sample Sheet Not Available",
+        });
+      }
+
+      // Fetch columns for the export sheet
+      const getColumns = await db.exportSheetMapping.findAll({
+        attributes: ["columnName"],
+        where: {
+          isActive: 1,
+          exportSheetAutoId,
+        },
         raw: true,
         nest: true,
       });
 
-      arr = await Promise.all(
-        getComponentAutoIds.map(async (item) => ({
-          columnName:
-            item.componentDetails.salaryComponentAlias?.trim() ||
-            item.componentDetails.salaryComponentCode,
-        }))
-      );
-    }
-    //console.log("getColumns",getColumns)
-    //console.log("arr",arr)
-    // Process employee data for exportSheetAutoId conditions
-    let employeeData = [];
-    if (salalryStructureAutoId == 0 && exportSheetAutoId==6) {
-      let query = "";
-      const employeeIdss = [employeeIds].join(",");
-      query = `
+      let arr = [];
+
+      // Fetch salary structure details if salalryStructureAutoId is provided
+      if (salalryStructureAutoId && salalryStructureAutoId != 0) {
+        const getComponentAutoIds =
+          await db.salarystructurecomponentmapping.findAll({
+            attributes: ["salaryComponentAutoId"],
+            where: { salaryStructureAutoId: salalryStructureAutoId },
+            include: [
+              {
+                model: db.salaryComponent,
+                attributes: ["salaryComponentCode", "salaryComponentAlias"],
+                as: "componentDetails",
+              },
+            ],
+            raw: true,
+            nest: true,
+          });
+
+        arr = await Promise.all(
+          getComponentAutoIds.map(async (item) => ({
+            columnName:
+              item.componentDetails.salaryComponentAlias?.trim() ||
+              item.componentDetails.salaryComponentCode,
+          }))
+        );
+      }
+      //console.log("getColumns",getColumns)
+      //console.log("arr",arr)
+      // Process employee data for exportSheetAutoId conditions
+      let employeeData = [];
+      if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
+        let query = "";
+        const employeeIdss = [employeeIds].join(",");
+        query = `
       SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
 
-      if (query) {
-        const [results] = await db.sequelize.query(query, { raw: true });
-        employeeData = results;
+        if (query) {
+          const [results] = await db.sequelize.query(query, { raw: true });
+          employeeData = results;
+        }
       }
-    }
 
-    const timestamp = moment().format("HH:mm");
+      const timestamp = moment().format("HH:mm");
 
-    // Handle scenarios based on conditions
-    if (getColumns.length > 0 && salalryStructureAutoId != 0) {
-      const mergeColumns = [...getColumns, ...arr];
-      const headers = mergeColumns.map((item) => item.columnName);
-      console.log("headers>>>>>>>>>",headers.length)
-      const columns = headers.map((value) => ({
-        label: value,
-        value: value,
-      }));
+      // Handle scenarios based on conditions
+      if (getColumns.length > 0 && salalryStructureAutoId != 0) {
+        const mergeColumns = [...getColumns, ...arr];
+        const headers = mergeColumns.map((item) => item.columnName);
+        console.log("headers>>>>>>>>>", headers.length);
+        const columns = headers.map((value) => ({
+          label: value,
+          value: value,
+        }));
 
-      const data = [
-        {
-          sheet: "Salary Component",
-          columns,
-          content: [],
-        },
-      ];
+        const data = [
+          {
+            sheet: "Salary Component",
+            columns,
+            content: [],
+          },
+        ];
 
-      const settings = {
-        fileName: `Component_${timestamp}`,
-        extraLength: 3,
-        writeOptions: {
-          type: "buffer",
-          bookType: "xlsx",
-        },
-      };
+        const settings = {
+          fileName: `Component_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
 
-      const report = xlsx(data, settings);
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=Sample_sheet_${timestamp}.xlsx`
-      );
-      return res.end(report);
-    } else if (
-      getColumns.length == 0 &&
-      salalryStructureAutoId == 0 &&
-      [6, 7, 8, 9].includes(Number(exportSheetAutoId))
-    ) {
-      console.log("i am in else")
-      const data = [
-        {
-          sheet: "Employee",
-          columns: [
-            { label: "Employee Code", value: "empCode" },
-            { label: "Employee Name", value: "name" },
-          ],
-          content: employeeData,
-        },
-      ];
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=Sample_sheet_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } else if (
+        getColumns.length == 0 &&
+        salalryStructureAutoId == 0 &&
+        [6, 7, 8, 9].includes(Number(exportSheetAutoId))
+      ) {
+        console.log("i am in else");
+        const data = [
+          {
+            sheet: "Employee",
+            columns: [
+              { label: "Employee Code", value: "empCode" },
+              { label: "Employee Name", value: "name" },
+            ],
+            content: employeeData,
+          },
+        ];
 
-      const settings = {
-        fileName: `Total_${timestamp}`,
-        extraLength: 3,
-        writeOptions: {
-          type: "buffer",
-          bookType: "xlsx",
-        },
-      };
+        const settings = {
+          fileName: `Total_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
 
-      const report = xlsx(data, settings);
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=Employee_Master_${timestamp}.xlsx`
-      );
-      return res.end(report);
-    } else {
-      return res.status(404).json({
-        message: "No active columns found for the given sheet",
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=Employee_Master_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } else {
+        return res.status(404).json({
+          message: "No active columns found for the given sheet",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({
+        message: "An error occurred while fetching data",
       });
     }
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      message: "An error occurred while fetching data",
-    });
   }
-}
-
 
   async employeesListForProcessing(req, res) {
     try {
@@ -3651,13 +3672,18 @@ const groupByEmployeeId = (data) => {
         "PT Amount": item["PT AMOUNT"],
         "LWF Amount": item["LWF AMOUNT"],
         "Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],
+        "ESIC Employer":item['ESIC Employer'],
+        "ESIC Employee":item['ESIC Employee'],
+        "PF Employee":item['PF Employee'],
+        "PF Employer":item['PF Employer'],
       };
+      //p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
     }
 
-    Object.assign(groupedData[employeeId], {
-      [item["Element Name"]]: item["Element Amount"],
-    });
-    if (item["includeInPackage"] == 1) {
+    if (['Balancing','Earning'].includes(item["salaryComponentEarningType"])) {
+      Object.assign(groupedData[employeeId], {
+        [item["Element Name"]]: item["Element Amount"],
+      });
       Object.assign(groupedData[employeeId], {
         [item["Element Name"] + " Monthly"]: item["Monthly Element Amount"],
       });
@@ -3675,11 +3701,9 @@ function formatDate(year, month, day) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-
-
-
 async function processSalary(data) {
   let { processId, req } = data;
+  // let { processId } = req.body;
   var errorArray = [];
   let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
   const result = await db.sequelize.query(queryForAllExecutableEmployee);
@@ -3701,6 +3725,8 @@ async function processSalary(data) {
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
+
+      // console.log(employeeDetailsComponentWise);
       const queryForExtraDeductions = await paymentHelper.query(
         14,
         employee,
@@ -3721,15 +3747,10 @@ async function processSalary(data) {
         totalWorkingDays > 0
           ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
           : "0.00";
-
-      console.log("payPackageMonthlyCTC", payPackageMonthlyCTC);
-      console.log("lopMonthWiseCalculation", lopMonthWiseCalculation);
-
       const deductionOfLopMonthAmount = Math.max(
         0,
         payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
       );
-
       console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
       const currentMonth = new Date()
         .toLocaleString("default", { month: "short" })
@@ -3737,7 +3758,12 @@ async function processSalary(data) {
       const ptDynamicAttribute = [currentMonth, "ptAmount"];
       const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
       const ptDeducationDetails = await db.paymentDetails.findOne({
-        attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
+        attributes: [
+          "paymentId",
+          "userId",
+          "ptLocationId",
+          "ptApplicability",
+        ],
         where: { userId: employee },
         raw: true,
         nest: true,
@@ -3767,7 +3793,13 @@ async function processSalary(data) {
         ],
       });
       const lwfDeducationDetails = await db.jobDetails.findOne({
-        attributes: ["jobId", "lwfApplicable"],
+        attributes: [
+          "jobId",
+          "lwfApplicable",
+          "pfApplicability",
+          "pfRestricted",
+          "esicApplicable",
+        ],
         where: {
           userId: employee,
         },
@@ -3794,10 +3826,6 @@ async function processSalary(data) {
         },
         raw: true,
       });
-
-
-      return;
-
       const ptAmount1 =
         ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
           ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
@@ -3827,7 +3855,6 @@ async function processSalary(data) {
 
         continue;
       }
-
       if (
         lwfDeducationDetails &&
         lwfDeducationDetails.lwfApplicable == 1 &&
@@ -3845,7 +3872,6 @@ async function processSalary(data) {
 
         continue;
       }
-
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
           { payStatus: 101, payRemark: "Pay Package Not Assigned." },
@@ -3873,7 +3899,6 @@ async function processSalary(data) {
             employeeDetailsComponentWise[0][0].lopDays) /
           affectComponentCounts[0][0].lopAffectCount
         : 0;
-
       for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
         const queryForComponentConfiguration = await paymentHelper.query(
           12,
@@ -3893,7 +3918,6 @@ async function processSalary(data) {
           ) == 0
             ? 1
             : 0;
-
         empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
         empCopntWiseDetl["elementMonthlyAmount"] =
           paymentHelper.getElementValue(
@@ -3904,7 +3928,6 @@ async function processSalary(data) {
                 empCopntWiseDetl.payElementAmount - lopSingleUnit
               ).toFixed(2)
             : empCopntWiseDetl.payElementAmount;
-
         empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
           .totalDeduction
           ? extraDeductonsDetails[0][0].totalDeduction
@@ -3919,8 +3942,25 @@ async function processSalary(data) {
         empCopntWiseDetl["ptAmount"] = ptAmount1;
         empCopntWiseDetl["lwfAmount"] = lwfAmount1;
         empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
-
-        salaryRegisterArray.push(empCopntWiseDetl);
+        //////////////////////////////PF-Applicablity Keys////////////////////////
+        let pafApplicableComponet = paymentHelper.getElementValue(
+          "Affect PF",
+          componentConfiguration[0]
+        );
+        let esicApplicableComponent = paymentHelper.getElementValue(
+          "Affects ESIC",
+          componentConfiguration[0]
+        );
+        empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
+        empCopntWiseDetl["isPfApplicable"] =
+          lwfDeducationDetails.pfApplicability;
+        empCopntWiseDetl["isPfRestriction"] =
+          lwfDeducationDetails.pfRestricted;
+        empCopntWiseDetl["isEsicApplicable"] =
+          lwfDeducationDetails.esicApplicable;
+        empCopntWiseDetl["isEsicApplicableComponent"] =
+          esicApplicableComponent;
+        //////////////////////////////PF-Applicablity Keys//////////////////////////////////
         let existDetails = await db.payMonthlyElements.findOne({
           where: {
             empId: employee,
@@ -3929,11 +3969,37 @@ async function processSalary(data) {
           },
           raw: true,
         });
-        console.log(existDetails);
         if (!existDetails) {
           await db.payMonthlyElements.create(empCopntWiseDetl);
         }
       }
+
+      let payElementComponents = await db.payMonthlyElements.findAll({
+        where: {
+          empId: employee,
+          isPfApplicableComponent: 1,
+          payMonth: result[0][0].payMonth,
+        },
+        raw: true,
+      });
+      ///////////////Calculation And Updation of PF Amount //////////////////////
+      let calculatedPF = await paymentHelper.getCalculatedPF(
+        payElementComponents
+      );
+      let getCalculatedESIC = await paymentHelper.getCalculatedESIC(
+        payElementComponents
+      );
+      await db.payMonthlyElements.update(
+        {
+          esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
+          esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
+          pfEmployeeAmount: calculatedPF,
+          pfEmployerAmount: calculatedPF,
+        },
+        { where: { empId: employee, payMonth: result[0][0].payMonth } }
+      );
+      ///////////////Calculation And Updation of ESIC Amount //////////////////////
+
       await db.payProcessDetails.update(
         { payStatus: 2, payRemark: "Salary Processed." },
         {
@@ -3943,15 +4009,11 @@ async function processSalary(data) {
           },
         }
       );
-      // await delay(1000);
     }
-
     db.payProcessMaster.update(
       { processFlowId: 4 },
       { where: { payProcessMasterAutoId: processId } }
     );
-
-    //here need to add response
   } else {
     console.log("NO Data For Processing >>>>>>>>>");
   }
@@ -4118,6 +4180,32 @@ async function generatePaySlip(data) {
               createdAt: new Date(),
             });
           }
+
+          if (payMonthlyElement.esicEmployeeAmount > 0) {
+            customeDeduction.push({
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "ESIC Eployee",
+              paySlipComponentAmount: payMonthlyElement.esicEmployeeAmount,
+              paySlipComponentType: "Deduction",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
+            });
+          }
+
+          if (payMonthlyElement.pfEmployeeAmount > 0) {
+            customeDeduction.push({
+              EmployeeId: payMonthlyElement.empId,
+              paySlipAutoId: paySlipAutoId,
+              salaryComponentAutoId: 0,
+              paySlipComponentName: "PF Employee",
+              paySlipComponentAmount: payMonthlyElement.pfEmployeeAmount,
+              paySlipComponentType: "Deduction",
+              createdBy: req.userData.id,
+              createdAt: new Date(),
+            });
+          }
           await db.paySlipComponent.bulkCreate(customeDeduction);
         }
 
@@ -4173,15 +4261,15 @@ async function releasePaySlip(data) {
         where: {
           proceessId: processId,
           payMonth: currentProcess.payMonth,
-          payStatus: 8,
+          payStatus: 7,
         },
         raw: true,
         attributes: ["EmployeeId"],
       });
-      console.log(employeeForReleasePaySlip);
       for (const employee of employeeForReleasePaySlip) {
         employeeIds.push(employee.EmployeeId);
       }
+
       await db.paySlips.update(
         { paySlipStatus: 1 },
         { where: { EmployeeId: { [Op.in]: employeeIds } } }

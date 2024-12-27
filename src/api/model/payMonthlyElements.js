@@ -101,6 +101,37 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.DECIMAL(10, 2),
             allowNull: true
           },
+          isPfApplicable:{
+            type:Sequelize.INTEGER
+          },
+          isPfRestriction:{
+            type:Sequelize.INTEGER
+          },
+          isPfApplicableComponent:{
+            type:Sequelize.INTEGER
+          },
+          isEsicApplicable:{
+            type:Sequelize.INTEGER
+          },
+          isEsicApplicableComponent:{
+            type:Sequelize.INTEGER
+          },
+          esicEmployerAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
+          esicEmployeeAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
+          pfEmployeeAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
+          pfEmployerAmount:{
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+          },
           createdAt: {
             type: Sequelize.DATE,
             allowNull: true
@@ -124,3 +155,6 @@ export default (sequelize, Sequelize) => {
     });
     return PayMonthlyElement ;
   };
+
+  // empCopntWiseDetl["isEsicApplicable"]=lwfDeducationDetails.esicApplicable;
+  // empCopntWiseDetl["esicApplicableComponent"]=pafApplicableComponet;
