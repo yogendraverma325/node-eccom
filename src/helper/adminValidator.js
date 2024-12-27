@@ -105,10 +105,10 @@ const ptLocationMasterSchema = Joi.object({
 });
 
 const jobLevelMappingSchema = Joi.object({
-  companyId: Joi.number().required().label("Company Name"),
   bandId: Joi.number().required().label("Band Name"),
   gradeId: Joi.number().required().label("Grade Name"),
   jobLevelId: Joi.number().required().label("Job Level Name"),
+  companyId: Joi.array().items(Joi.number().required()).required().label("Company Name")
 });
 
 const departmentMappingSchema = Joi.object({

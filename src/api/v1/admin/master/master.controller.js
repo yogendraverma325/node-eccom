@@ -19,7 +19,7 @@ class CommonController {
       let result = await validator.companyTypeMasterSchema.validateAsync(
         req.body
       );
-      result = { ...result, createdBy: req.userId, isActive: 1 }
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.companyTypeMaster;
       let query = { typeName: result.typeName };
       let moduleName = "Company Type";
@@ -100,15 +100,17 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { companyTypeId: req.params.id },
-        typeName: result.typeName
+        typeName: result.typeName,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Company Type') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Company Type"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
@@ -175,7 +177,7 @@ class CommonController {
   async createBand(req, res) {
     try {
       let result = await validator.bandMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1 }
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.bandMaster;
       let query = { bandCode: result.bandCode };
       let moduleName = "Band";
@@ -254,19 +256,20 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { bandId: req.params.id },
-        bandCode: result.bandCode
+        bandCode: result.bandCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Band Code') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Band Code"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -329,10 +332,8 @@ class CommonController {
 
   async createJobLevel(req, res) {
     try {
-      let result = await validator.jobLevelMasterSchema.validateAsync(
-        req.body
-      );
-      result = { ...result, createdBy: req.userId, isActive: 1 }
+      let result = await validator.jobLevelMasterSchema.validateAsync(req.body);
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.jobLevelMaster;
       let query = {
         jobLevelName: result.jobLevelName,
@@ -413,9 +414,7 @@ class CommonController {
 
   async updateJobLevel(req, res) {
     try {
-      let result = await validator.jobLevelMasterSchema.validateAsync(
-        req.body
-      );
+      let result = await validator.jobLevelMasterSchema.validateAsync(req.body);
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.jobLevelMaster;
       let query = { jobLevelId: req.params.id };
@@ -423,19 +422,20 @@ class CommonController {
       let verifyQuery = {
         [Op.not]: { jobLevelId: req.params.id },
         jobLevelName: result.jobLevelName,
-        jobLevelCode: result.jobLevelCode
+        jobLevelCode: result.jobLevelCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Job Level') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Job Level"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -577,7 +577,17 @@ class CommonController {
       const result = await validator.bankMasterSchema.validateAsync(req.body);
       let model = db.bankMaster;
       let query = { bankId: req.params.id };
-      let response = await service.update(model, { ...result, ...{ updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"), updatedBy: req.userId } }, query);
+      let response = await service.update(
+        model,
+        {
+          ...result,
+          ...{
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            updatedBy: req.userId,
+          },
+        },
+        query
+      );
       return respHelper(res, response);
     } catch (error) {
       logger.error(error);
@@ -614,21 +624,25 @@ class CommonController {
   }
 
   /**
-     * CRUD of Department Master Created by Jay
-     * 
-    */
+   * CRUD of Department Master Created by Jay
+   *
+   */
 
   async createDepartment(req, res) {
     try {
-      let result = await validator.departmentMasterSchema.validateAsync(req.body);
+      let result = await validator.departmentMasterSchema.validateAsync(
+        req.body
+      );
       result = { ...result, createdBy: req.userId, isActive: 1 };
 
       let model = db.departmentMaster;
-      let query = { 'departmentName': result.departmentName, 'departmentCode': result.departmentCode };
+      let query = {
+        departmentName: result.departmentName,
+        departmentCode: result.departmentCode,
+      };
       let moduleName = "Department";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -647,26 +661,36 @@ class CommonController {
     try {
       let model = db.departmentMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'departmentName': { [Op.like]: `%${search}%` } })
+        ...(search && { departmentName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
         where: query,
-        attributes: ['departmentId', 'departmentName', 'departmentCode', 'parentDepartmentId', 'createdAt', 'isActive'],
+        attributes: [
+          "departmentId",
+          "departmentName",
+          "departmentCode",
+          "parentDepartmentId",
+          "createdAt",
+          "isActive",
+        ],
         order: [["departmentId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -677,27 +701,30 @@ class CommonController {
 
   async updateDepartment(req, res) {
     try {
-      let result = await validator.departmentMasterSchema.validateAsync(req.body);
+      let result = await validator.departmentMasterSchema.validateAsync(
+        req.body
+      );
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.departmentMaster;
       let query = { departmentId: req.params.id };
 
       let verifyQuery = {
         [Op.not]: { departmentId: req.params.id },
-        'departmentName': result.departmentName,
-        'departmentCode': result.departmentCode
+        departmentName: result.departmentName,
+        departmentCode: result.departmentCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Department Name') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Department Name"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -718,7 +745,6 @@ class CommonController {
       let query = { departmentId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -735,19 +761,23 @@ class CommonController {
 
   /**
    * CRUD of Functional Area Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createFunctionalArea(req, res) {
     try {
-      let result = await validator.functionalAreaMasterSchema.validateAsync(req.body);
+      let result = await validator.functionalAreaMasterSchema.validateAsync(
+        req.body
+      );
       result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.functionalAreaMaster;
-      let query = { 'functionalAreaName': result.functionalAreaName, 'functionalAreaCode': result.functionalAreaCode };
+      let query = {
+        functionalAreaName: result.functionalAreaName,
+        functionalAreaCode: result.functionalAreaCode,
+      };
       let moduleName = "Functional Area";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -766,26 +796,36 @@ class CommonController {
     try {
       let model = db.functionalAreaMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'functionalAreaName': { [Op.like]: `%${search}%` } })
+        ...(search && { functionalAreaName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
         where: query,
-        attributes: ['functionalAreaId', 'functionalAreaName', 'functionalAreaCode', 'parentFunctionalAreaId', 'createdAt', 'isActive'],
+        attributes: [
+          "functionalAreaId",
+          "functionalAreaName",
+          "functionalAreaCode",
+          "parentFunctionalAreaId",
+          "createdAt",
+          "isActive",
+        ],
         order: [["functionalAreaId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -796,27 +836,30 @@ class CommonController {
 
   async updateFunctionalArea(req, res) {
     try {
-      let result = await validator.functionalAreaMasterSchema.validateAsync(req.body);
+      let result = await validator.functionalAreaMasterSchema.validateAsync(
+        req.body
+      );
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.functionalAreaMaster;
       let query = { functionalAreaId: req.params.id };
 
       let verifyQuery = {
         [Op.not]: { functionalAreaId: req.params.id },
-        'functionalAreaName': result.functionalAreaName,
-        'functionalAreaCode': result.functionalAreaCode
+        functionalAreaName: result.functionalAreaName,
+        functionalAreaCode: result.functionalAreaCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Functional Area') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Functional Area"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -837,7 +880,6 @@ class CommonController {
       let query = { functionalAreaId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -854,19 +896,23 @@ class CommonController {
 
   /**
    * CRUD of Week Off Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createWeekoff(req, res) {
     try {
       let result = await validator.weekoffMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment(),
+      };
       let model = db.weekOffMaster;
-      let query = { 'weekOffName': result.weekOffName };
+      let query = { weekOffName: result.weekOffName };
       let moduleName = "Week Off";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -885,26 +931,35 @@ class CommonController {
     try {
       let model = db.weekOffMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'weekOffName': { [Op.like]: `%${search}%` } })
+        ...(search && { weekOffName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
         where: query,
-        attributes: ['weekOffId', 'weekOffName', 'nonWorkingDays', 'createdAt', 'isActive'],
+        attributes: [
+          "weekOffId",
+          "weekOffName",
+          "nonWorkingDays",
+          "createdAt",
+          "isActive",
+        ],
         order: [["weekOffId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -922,19 +977,20 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { weekOffId: req.params.id },
-        weekOffName: result.weekOffName
+        weekOffName: result.weekOffName,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Week Off Name') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Week Off Name"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -955,7 +1011,6 @@ class CommonController {
       let query = { weekOffId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -972,19 +1027,23 @@ class CommonController {
 
   /**
    * CRUD of Shift Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createShift(req, res) {
     try {
       let result = await validator.shiftMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment(),
+      };
       let model = db.shiftMaster;
-      let query = { 'shiftName': result.shiftName };
+      let query = { shiftName: result.shiftName };
       let moduleName = "Shift Name";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1003,26 +1062,38 @@ class CommonController {
     try {
       let model = db.shiftMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'shiftName': { [Op.like]: `%${search}%` } })
+        ...(search && { shiftName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
         where: query,
-        attributes: ['shiftId', 'shiftName', 'shiftStartTime', 'shiftEndTime', 'shiftRemark', 'isOverNight', 'createdAt', 'isActive'],
+        attributes: [
+          "shiftId",
+          "shiftName",
+          "shiftStartTime",
+          "shiftEndTime",
+          "shiftRemark",
+          "isOverNight",
+          "createdAt",
+          "isActive",
+        ],
         order: [["shiftId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1040,19 +1111,20 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { shiftId: req.params.id },
-        shiftName: result.shiftName
+        shiftName: result.shiftName,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Shift Name') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Shift Name"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1073,7 +1145,6 @@ class CommonController {
       let query = { shiftId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1090,19 +1161,25 @@ class CommonController {
 
   /**
    * CRUD of Attendance Policy Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createAttendancePolicy(req, res) {
     try {
-      let result = await validator.attendancePolicyMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
+      let result = await validator.attendancePolicyMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment(),
+      };
       let model = db.attendancePolicymaster;
-      let query = { 'policyName': result.policyName };
+      let query = { policyName: result.policyName };
       let moduleName = "Attendance Policy Name";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1121,11 +1198,11 @@ class CommonController {
     try {
       let model = db.attendancePolicymaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'policyName': { [Op.like]: `%${search}%` } })
+        ...(search && { policyName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
@@ -1135,14 +1212,17 @@ class CommonController {
         },
         order: [["attendancePolicyId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1153,26 +1233,29 @@ class CommonController {
 
   async updateAttendancePolicy(req, res) {
     try {
-      let result = await validator.attendancePolicyMasterSchema.validateAsync(req.body);
+      let result = await validator.attendancePolicyMasterSchema.validateAsync(
+        req.body
+      );
       result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.attendancePolicymaster;
       let query = { attendancePolicyId: req.params.id };
 
       let verifyQuery = {
         [Op.not]: { attendancePolicyId: req.params.id },
-        policyName: result.policyName
+        policyName: result.policyName,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Policy Name') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Policy Name"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1193,7 +1276,6 @@ class CommonController {
       let query = { attendancePolicyId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1210,19 +1292,23 @@ class CommonController {
 
   /**
    * CRUD of Leave Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createLeave(req, res) {
     try {
       let result = await validator.leaveMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() };
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment(),
+      };
       let model = db.leaveMaster;
-      let query = { 'leaveName': result.leaveName, 'leaveCode': result.leaveCode };
+      let query = { leaveName: result.leaveName, leaveCode: result.leaveCode };
       let moduleName = "Leave";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1241,11 +1327,11 @@ class CommonController {
     try {
       let model = db.leaveMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'leaveName': { [Op.like]: `%${search}%` } })
+        ...(search && { leaveName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
@@ -1255,14 +1341,17 @@ class CommonController {
         },
         order: [["leaveId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1280,20 +1369,21 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { leaveId: req.params.id },
-        'leaveName': result.leaveName, 
-        'leaveCode': result.leaveCode
+        leaveName: result.leaveName,
+        leaveCode: result.leaveCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Leave') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Leave"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1314,7 +1404,6 @@ class CommonController {
       let query = { leaveId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1331,19 +1420,30 @@ class CommonController {
 
   /**
    * CRUD of Notice Period Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createNoticePeriod(req, res) {
     try {
-      let result = await validator.noticePeriodMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, createdDt: moment().format("YYYY-MM-DD") };
+      let result = await validator.noticePeriodMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdDt: moment().format("YYYY-MM-DD"),
+      };
       let model = db.noticePeriodMaster;
-      let query = { [Op.or]: [ { 'noticePeriodName': result.noticePeriodName }, { 'noticePeriodCode': result.noticePeriodCode } ] };
+      let query = {
+        [Op.or]: [
+          { noticePeriodName: result.noticePeriodName },
+          { noticePeriodCode: result.noticePeriodCode },
+        ],
+      };
       let moduleName = "Notice Period";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1362,11 +1462,11 @@ class CommonController {
     try {
       let model = db.noticePeriodMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'noticePeriodName': { [Op.like]: `%${search}%` } })
+        ...(search && { noticePeriodName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
@@ -1376,14 +1476,17 @@ class CommonController {
         },
         order: [["noticePeriodAutoId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
-      }
+        offset: (page - 1) * pageLimit,
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1394,27 +1497,34 @@ class CommonController {
 
   async updateNoticePeriod(req, res) {
     try {
-      let result = await validator.noticePeriodMasterSchema.validateAsync(req.body);
-      result = { ...result, updatedBy: req.userId, updatedDt: moment().format("YYYY-MM-DD") };
+      let result = await validator.noticePeriodMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        updatedBy: req.userId,
+        updatedDt: moment().format("YYYY-MM-DD"),
+      };
       let model = db.noticePeriodMaster;
       let query = { noticePeriodAutoId: req.params.id };
 
       let verifyQuery = {
         [Op.not]: { noticePeriodAutoId: req.params.id },
-        'noticePeriodName': result.noticePeriodName, 
-        'noticePeriodCode': result.noticePeriodCode
+        noticePeriodName: result.noticePeriodName,
+        noticePeriodCode: result.noticePeriodCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'Notice Period') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Notice Period"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1435,7 +1545,6 @@ class CommonController {
       let query = { noticePeriodAutoId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1452,24 +1561,32 @@ class CommonController {
 
   /**
    * CRUD of PT Location Master Created by Jay
-   * 
-  */
+   *
+   */
 
   async createPtLocation(req, res) {
     try {
-      let result = await validator.ptLocationMasterSchema.validateAsync(req.body);
-      result = { ...result, createdBy: req.userId, isActive: 1, createdDt: moment() };
+      let result = await validator.ptLocationMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdDt: moment(),
+      };
       let model = db.ptLocationMaster;
-      let query = { [Op.and]: [ 
-        { 'ptLocationName': result.ptLocationName },
-        { 'ptLocationCode': result.ptLocationCode },
-        { 'stateId': result.stateId },
-        { 'frequency': result.frequency }
-      ] };
+      let query = {
+        [Op.and]: [
+          { ptLocationName: result.ptLocationName },
+          { ptLocationCode: result.ptLocationCode },
+          { stateId: result.stateId },
+          { frequency: result.frequency },
+        ],
+      };
       let moduleName = "PT Location";
       let response = await service.create(model, result, query, moduleName);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1488,11 +1605,11 @@ class CommonController {
     try {
       let model = db.ptLocationMaster;
       let page = parseInt(req.query.page) || 1;
-      let search = req.query.search || '';
+      let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
       let query = {
-        ...(search && { 'ptLocationName': { [Op.like]: `%${search}%` } })
+        ...(search && { ptLocationName: { [Op.like]: `%${search}%` } }),
       };
 
       let aggregate = {
@@ -1503,14 +1620,19 @@ class CommonController {
         order: [["ptLocationId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
-        include: [{ model: db.stateMaster, attributes: ['stateId', 'stateName'] }]
-      }
+        include: [
+          { model: db.stateMaster, attributes: ["stateId", "stateName"] },
+        ],
+      };
 
       let response = await service.aggregate(model, aggregate);
       let count = await service.count(model, query);
-      let obj = { 'rows': response.data, 'count': count };
-      return respHelper(res, { 'status': response.status, 'msg': response.msg, 'data': obj });
-
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1521,27 +1643,34 @@ class CommonController {
 
   async updatePtLocation(req, res) {
     try {
-      let result = await validator.ptLocationMasterSchema.validateAsync(req.body);
-      result = { ...result, updatedBy: req.userId, updatedDt: moment().format("YYYY-MM-DD") };
+      let result = await validator.ptLocationMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        updatedBy: req.userId,
+        updatedDt: moment().format("YYYY-MM-DD"),
+      };
       let model = db.ptLocationMaster;
       let query = { ptLocationId: req.params.id };
 
       let verifyQuery = {
         [Op.not]: { ptLocationId: req.params.id },
-        'ptLocationName': result.ptLocationName, 
-        'ptLocationCode': result.ptLocationCode
+        ptLocationName: result.ptLocationName,
+        ptLocationCode: result.ptLocationCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
-      if(isVerify.status == 200) {
-        let response = { status: 400, msg: constant.ALREADY_EXISTS.replace("<module>", 'PT Location') };
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "PT Location"),
+        };
         return respHelper(res, response);
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1562,7 +1691,6 @@ class CommonController {
       let query = { ptLocationId: req.params.id };
       let response = await service.changeStatus(model, query);
       return respHelper(res, response);
-
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1584,18 +1712,24 @@ class CommonController {
   async jobLevelMappingList(req, res) {
     try {
       let model = db.jobLevelMapping;
-      let query = { 'jobLevelId': req.params.id };
+      let query = { jobLevelId: req.params.id };
 
       let aggregate = {
         where: query,
         attributes: ["jobLevelMappingId"],
         order: [["jobLevelMappingId", "DESC"]],
         include: [
-          { model: db.companyMaster, attributes: ['companyId', 'companyName'] },
-          { model: db.bandMaster, attributes: ['bandId', 'bandCode'] },
-          { model: db.gradeMaster, attributes: ['gradeId', 'gradeName', 'gradeCode'] },
-          { model: db.jobLevelMaster, attributes: ['jobLevelId', 'jobLevelName', 'jobLevelCode'] }
-        ]
+          { model: db.companyMaster, attributes: ["companyId", "companyName"] },
+          { model: db.bandMaster, attributes: ["bandId", "bandCode"] },
+          {
+            model: db.gradeMaster,
+            attributes: ["gradeId", "gradeName", "gradeCode"],
+          },
+          {
+            model: db.jobLevelMaster,
+            attributes: ["jobLevelId", "jobLevelName", "jobLevelCode"],
+          },
+        ],
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -1607,7 +1741,6 @@ class CommonController {
         msg: response.msg,
         data: obj,
       });
-
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1621,17 +1754,40 @@ class CommonController {
       let result = await validator.jobLevelMappingSchema.validateAsync(
         req.body
       );
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() }
-      let model = db.jobLevelMapping;
-      let query = {
-        companyId: result.companyId,
-        // bandId: result.bandId,
-        // gradeId: result.gradeId,
-        jobLevelId: result.jobLevelId
+
+      let companyIds = result.companyId;
+      let metaData = {
+        bandId: result.bandId,
+        gradeId: result.gradeId,
+        jobLevelId: result.jobLevelId,
       };
+
+      let model = db.jobLevelMapping;
       let moduleName = "Job Level Mapping";
-      let response = await service.create(model, result, query, moduleName);
-      return respHelper(res, response);
+
+      for (let i = 0; i < companyIds.length; i++) {
+        metaData = {
+          ...metaData,
+          createdBy: req.userId,
+          isActive: 1,
+          createdAt: moment(),
+          companyId: companyIds[i],
+        };
+        let query = {
+          companyId: companyIds[i],
+          jobLevelId: result.jobLevelId,
+        };
+        let response = await service.create(model, metaData, query, moduleName);
+        if (response.status == 400) {
+          return respHelper(res, response);
+        }
+      }
+
+      return respHelper(res, {
+        status: 201,
+        msg: constant.INSERT_SUCCESS,
+        data: {},
+      });
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -1649,26 +1805,36 @@ class CommonController {
   async departmentMappingList(req, res) {
     try {
       let model = db.departmentMapping;
-      let query = { 'departmentId': req.params.id };
+      let query = { departmentId: req.params.id };
 
       let aggregate = {
         where: query,
         attributes: ["departmentMappingId"],
         order: [["departmentMappingId", "DESC"]],
         include: [
-          { model: db.departmentMaster, attributes: ['departmentId', 'departmentName'] },
-          { model: db.sbuMapping, attributes: ['sbuMappingId'], 
-            include: [ 
-              { model: db.sbuMaster, attributes: ['sbuId', 'sbuName'] },
-              { model: db.buMapping, attributes: ['buMappingId'], 
-                include: [
-                  { model: db.buMaster, attributes: ['buId', 'buName'] },
-                  { model: db.companyMaster, attributes: ['companyId', 'companyName'] }
-                ]
-              },
-            ] 
+          {
+            model: db.departmentMaster,
+            attributes: ["departmentId", "departmentName"],
           },
-        ]
+          {
+            model: db.sbuMapping,
+            attributes: ["sbuMappingId"],
+            include: [
+              { model: db.sbuMaster, attributes: ["sbuId", "sbuName"] },
+              {
+                model: db.buMapping,
+                attributes: ["buMappingId"],
+                include: [
+                  { model: db.buMaster, attributes: ["buId", "buName"] },
+                  {
+                    model: db.companyMaster,
+                    attributes: ["companyId", "companyName"],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -1680,7 +1846,6 @@ class CommonController {
         msg: response.msg,
         data: obj,
       });
-
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1694,11 +1859,16 @@ class CommonController {
       let result = await validator.departmentMappingSchema.validateAsync(
         req.body
       );
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() }
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment(),
+      };
       let model = db.departmentMapping;
       let query = {
         departmentId: result.departmentId,
-        sbuMappingId: result.sbuMappingId
+        sbuMappingId: result.sbuMappingId,
       };
       let moduleName = "Department Mapping";
       let response = await service.create(model, result, query, moduleName);
@@ -1720,31 +1890,46 @@ class CommonController {
   async functionalMappingList(req, res) {
     try {
       let model = db.functionalAreaMapping;
-      let query = { 'functionalAreaId': req.params.id };
+      let query = { functionalAreaId: req.params.id };
 
       let aggregate = {
         where: query,
         attributes: ["functionalAreaMappingId"],
         order: [["functionalAreaMappingId", "DESC"]],
         include: [
-          { model: db.functionalAreaMaster, attributes: ['functionalAreaId', 'functionalAreaName'] },
-          { model: db.departmentMapping, attributes: ['departmentMappingId'],
+          {
+            model: db.functionalAreaMaster,
+            attributes: ["functionalAreaId", "functionalAreaName"],
+          },
+          {
+            model: db.departmentMapping,
+            attributes: ["departmentMappingId"],
             include: [
-              { model: db.sbuMapping, attributes: ['sbuMappingId'], 
-                include: [ 
-                  { model: db.sbuMaster, attributes: ['sbuId', 'sbuName'] },
-                  { model: db.buMapping, attributes: ['buMappingId'], 
+              {
+                model: db.sbuMapping,
+                attributes: ["sbuMappingId"],
+                include: [
+                  { model: db.sbuMaster, attributes: ["sbuId", "sbuName"] },
+                  {
+                    model: db.buMapping,
+                    attributes: ["buMappingId"],
                     include: [
-                      { model: db.buMaster, attributes: ['buId', 'buName'] },
-                      { model: db.companyMaster, attributes: ['companyId', 'companyName'] }
-                    ]
+                      { model: db.buMaster, attributes: ["buId", "buName"] },
+                      {
+                        model: db.companyMaster,
+                        attributes: ["companyId", "companyName"],
+                      },
+                    ],
                   },
-                ] 
+                ],
               },
-              { model: db.departmentMaster, attributes: ['departmentId', 'departmentName']}
-            ]
-          }
-        ]
+              {
+                model: db.departmentMaster,
+                attributes: ["departmentId", "departmentName"],
+              },
+            ],
+          },
+        ],
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -1756,7 +1941,6 @@ class CommonController {
         msg: response.msg,
         data: obj,
       });
-
     } catch (error) {
       logger.error(error);
       return respHelper(res, {
@@ -1770,11 +1954,16 @@ class CommonController {
       let result = await validator.functionalAreaMappingSchema.validateAsync(
         req.body
       );
-      result = { ...result, createdBy: req.userId, isActive: 1, createdAt: moment() }
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment(),
+      };
       let model = db.functionalAreaMapping;
       let query = {
         functionalAreaId: result.functionalAreaId,
-        departmentMappingId: result.departmentMappingId
+        departmentMappingId: result.departmentMappingId,
       };
       let moduleName = "Functional Area Mapping";
       let response = await service.create(model, result, query, moduleName);
@@ -1798,23 +1987,22 @@ class CommonController {
       let result = await validator.jobLevelMappingSchema.validateAsync(
         req.body
       );
-      result = { ...result, updatedBy: req.userId, updatedAt: moment() }
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.jobLevelMapping;
       let query = {
-        jobLevelMappingId: req.params.id
+        jobLevelMappingId: req.params.id,
       };
 
       // verify if job level id have mapped with employee
 
-      let findQuery = { 'jobLevelId': result.jobLevelId };
+      let findQuery = { jobLevelId: result.jobLevelId };
       let isExist = await service.details(db.jobDetails, findQuery);
-      if(isExist.status == 200) {
+      if (isExist.status == 200) {
         return respHelper(res, {
           status: 422,
           msg: "You cannot change the job level mapping because it is already assigned to an employee.",
         });
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
@@ -1837,23 +2025,22 @@ class CommonController {
       let result = await validator.departmentMappingSchema.validateAsync(
         req.body
       );
-      result = { ...result, updatedBy: req.userId, updatedAt: moment() }
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.departmentMapping;
       let query = {
-        departmentMappingId: req.params.id
+        departmentMappingId: req.params.id,
       };
 
       // verify if department id have mapped with employee
 
-      let findQuery = { 'departmentId': result.departmentId };
+      let findQuery = { departmentId: result.departmentId };
       let isExist = await service.details(db.employeeMaster, findQuery);
-      if(isExist.status == 200) {
+      if (isExist.status == 200) {
         return respHelper(res, {
           status: 422,
           msg: "You cannot change the department mapping because it is already assigned to an employee.",
         });
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
@@ -1876,23 +2063,22 @@ class CommonController {
       let result = await validator.functionalAreaMappingSchema.validateAsync(
         req.body
       );
-      result = { ...result, updatedBy: req.userId, updatedAt: moment() }
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
       let model = db.functionalAreaMapping;
       let query = {
-        functionalAreaMappingId: req.params.id
+        functionalAreaMappingId: req.params.id,
       };
 
       // verify if department id have mapped with employee
 
-      let findQuery = { 'functionalAreaId': result.functionalAreaId };
+      let findQuery = { functionalAreaId: result.functionalAreaId };
       let isExist = await service.details(db.employeeMaster, findQuery);
-      if(isExist.status == 200) {
+      if (isExist.status == 200) {
         return respHelper(res, {
           status: 422,
           msg: "You cannot change the functional area mapping because it is already assigned to an employee.",
         });
-      }
-      else {
+      } else {
         let response = await service.update(model, result, query);
         return respHelper(res, response);
       }
