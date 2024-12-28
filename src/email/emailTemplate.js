@@ -4450,9 +4450,6 @@ const salarySlipPdf = async (data) => {
 // </html>`;
 // };
 
-
-
-
 export default {
   regularizationRequestMail,
   resetPasswordMail,
@@ -4483,5 +4480,5 @@ export default {
   confirmationExtendEmailBody,
   confirmationSLABreachEmailBody,
   confirmationWorkFlownextLevel,
-  salarySlipPdf
+  salarySlipPdf,
 };

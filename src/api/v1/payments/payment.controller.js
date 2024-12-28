@@ -3453,26 +3453,6 @@ class PaymentController {
 
      const paySlipComponent = await processPayslipComponents(salaryDetails[0].payslipcomponents)
 
-      // let body = {
-      //   name: salaryDetails[0].employee.name,
-      //   employeeCode:salaryDetails[0].employee.empCode,
-      //   employeeType:salaryDetails[0].employee.employeetypemaster.emptypename,
-      //   designation:salaryDetails[0].employee.designationmaster.name,
-      //   department:salaryDetails[0].employee.departmentmaster.departmentName,
-      //   panNo:salaryDetails[0].employee.panNo,
-      //   dateOfJoining:  moment(salaryDetails[0].employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY"),
-      //   workingDays: salaryDetails[0].paySlipWorkingDays,
-      //   companyName:salaryDetails[0].employee.companymaster.companyName,
-      //   currentOfficeLocation:salaryDetails[0].employee.companylocationmaster.citymaster.cityName,
-      //   companyAddress:salaryDetails[0].employee.companylocationmaster.address1,
-      //   grossEarnings:parseInt(salaryDetails[0].paySlipGrossEarning),
-      //   totalPay:parseInt(salaryDetails[0].paySlipTotalPay),
-      //   totalDeductions:parseInt(salaryDetails[0].paySlipTotalDeduction),
-      //   lop:salaryDetails[0].paySlipTotalDays - salaryDetails[0].paySlipWorkingDays,
-      //   paySlipComponent: paySlipComponent,
-      //   month:"09",
-      //   year:"2024"
-      // };   
       const employee = salaryDetails[0].employee;
       const body = {
         name: employee.name || "",
