@@ -4114,103 +4114,141 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 const salarySlipPdf = async (data) => {
+  const generateUnifiedTableRows = (earnings, deductions) => {
+    const maxRows = Math.max(earnings.length, deductions.length);
+
+    let rows = "";
+    for (let i = 0; i < maxRows; i++) {
+      const earning = earnings[i] || {};
+      const deduction = deductions[i] || {};
+      rows += `
+        <tr>
+            <td>${earning.paySlipComponentName || ""}</td>
+            <td>${earning.paySlipComponentAmount || ""}</td>
+            <td>${deduction.paySlipComponentName || ""}</td>
+            <td>${deduction.paySlipComponentAmount || ""}</td>
+        </tr>`;
+    }
+    return rows;
+  };
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salary Slip</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .salary-slip {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .header img {
-            max-height: 50px;
-        }
-        .header .company-details {
-            text-align: right;
-        }
-        .content {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .content td, .content th {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .content th {
-            background-color: #f2f2f2;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-        }
-    </style>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+    .salary-slip {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;  /* Reduced margin to bring the content closer */
+        padding: 0;
+    }
+    .header img {
+        max-height: 50px;
+    }
+    .header .company-details {
+        text-align: right;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        max-width: 300px;
+        line-height: 1.2;
+        margin: 0;
+        padding: 0;
+    }
+    .header .company-details h3 {
+        margin: 0; /* Remove margin from the company name */
+        padding: 0;
+        font-size: 18px;
+    }
+    .header .company-details p {
+        margin: 0; /* Remove margin from the company address */
+        padding: 0;
+        font-size: 14px;
+    }
+    .content {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .content td, .content th {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .content th {
+        background-color: #f2f2f2;
+    }
+    .footer {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+    }
+</style>
+
+
+
 </head>
 <body>
     <div class="salary-slip">
         <div class="header">
             <img src="{LOGO_URL}" alt="Company Logo">
             <div class="company-details">
-                <h3>{COMPANY_NAME}</h3>
-                <p>{COMPANY_ADDRESS}</p>
+                <h3>${data.companyName}</h3>
+                <p>${data.companyAddress}</p>
             </div>
         </div>
 
-        <h2>Salary Slip for {MONTH} - {YEAR}</h2>
+        <h2>Salary Slip for ${data.month} - ${data.year}</h2>
 
         <table class="content">
             <tr>
                 <td><strong>Employee Name:</strong></td>
-                <td>{EMPLOYEE_NAME}</td>
+                <td>${data.name}</td>
                 <td><strong>Employee Type:</strong></td>
-                <td>{EMPLOYEE_TYPE}</td>
+                <td>${data.employeeType}</td>
             </tr>
             <tr>
                 <td><strong>Designation:</strong></td>
-                <td>{DESIGNATION}</td>
+                <td>${data.designation}</td>
                 <td><strong>Employee Code:</strong></td>
-                <td>{EMPLOYEE_CODE}</td>
+                <td>${data.employeeCode}</td>
             </tr>
             <tr>
                 <td><strong>Department:</strong></td>
-                <td>{DEPARTMENT}</td>
+                <td>${data.department}</td>
                 <td><strong>Working Days:</strong></td>
-                <td>{WORKING_DAYS}</td>
+                <td>${data.workingDays}</td>
             </tr>
             <tr>
                 <td><strong>Date of Joining:</strong></td>
-                <td>{DATE_OF_JOINING}</td>
+                <td>${data.dateOfJoining}</td>
                 <td><strong>LOP:</strong></td>
-                <td>{LOP}</td>
+                <td>${data.lop}</td>
             </tr>
             <tr>
                 <td><strong>Current Office Location:</strong></td>
-                <td>{CURRENT_LOCATION}</td>
+                <td>${data.currentOfficeLocation}</td>
                 <td><strong>PAN No:</strong></td>
-                <td>{PAN_NUMBER}</td>
+                <td>${data.panNo}</td>
             </tr>
         </table>
 
@@ -4225,37 +4263,25 @@ const salarySlipPdf = async (data) => {
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Basic</td>
-                    <td>{BASIC}</td>
-                    <td>Provident Fund</td>
-                    <td>{PROVIDENT_FUND}</td>
-                </tr>
-                <tr>
-                    <td>HRA</td>
-                    <td>{HRA}</td>
-                    <td>TDS</td>
-                    <td>{TDS}</td>
-                </tr>
-                <tr>
-                    <td>Flexi Benefit Plan</td>
-                    <td>{FLEXI_BENEFIT_PLAN}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
+                ${generateUnifiedTableRows(
+                  data.paySlipComponent.earnings || [],
+                  data.paySlipComponent.deductions || []
+                )}
+            </tbody>
+            <tfoot>
                 <tr>
                     <td><strong>Gross Earnings (A)</strong></td>
-                    <td><strong>{GROSS_EARNINGS}</strong></td>
+                    <td>${data.grossEarnings || 0}</td>
                     <td><strong>Total Deductions (B)</strong></td>
-                    <td><strong>{TOTAL_DEDUCTIONS}</strong></td>
+                    <td>${data.totalDeductions || 0}</td>
                 </tr>
-                <tr>
-                    <td><strong>Net Pay (A - B)</strong></td>
-                    <td><strong>{NET_PAY}</strong></td>
-                    <td><strong>Total Pay</strong></td>
-                    <td><strong>{TOTAL_PAY}</strong></td>
-                </tr>
-            </tbody>
+               <tr>
+                  <td><strong>Net Pay (A - B)</strong></td>
+                  <td>${data.netPay || 0}</td>
+                  <td><strong>Total Pay</strong></td>
+                  <td>${data.totalPay || 0}</td>
+              </tr>
+            </tfoot>
         </table>
 
         <p class="footer">Note: This is a Computer Generated Slip and does not require a signature.</p>
@@ -4263,6 +4289,170 @@ const salarySlipPdf = async (data) => {
 </body>
 </html>`;
 };
+// const salarySlipPdf = async (data) => {
+//   const generateUnifiedTableRows = (earnings, deductions) => {
+//     const maxRows = Math.max(earnings.length, deductions.length);
+
+//     let rows = "";
+//     for (let i = 0; i < maxRows; i++) {
+//       const earning = earnings[i] || {};
+//       const deduction = deductions[i] || {};
+//       rows += `
+//         <tr>
+//             <td>${earning.paySlipComponentName || ""}</td>
+//             <td style="text-align: right;">${earning.paySlipComponentAmount || ""}</td>
+//             <td>${deduction.paySlipComponentName || ""}</td>
+//             <td style="text-align: right;">${deduction.paySlipComponentAmount || ""}</td>
+//         </tr>`;
+//     }
+//     return rows;
+//   };
+
+//   return `<!DOCTYPE html>
+// <html lang="en">
+// <head>
+//     <meta charset="UTF-8">
+//     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//     <title>Salary Slip</title>
+//     <style>
+//         body {
+//             font-family: Arial, sans-serif;
+//             margin: 0;
+//             padding: 0;
+//             background-color: #f4f4f4;
+//         }
+//         .salary-slip {
+//             max-width: 800px;
+//             margin: 20px auto;
+//             padding: 20px;
+//             background: #fff;
+//             border: 1px solid #ddd;
+//             border-radius: 5px;
+//             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+//         }
+//         .header {
+//             display: flex;
+//             justify-content: space-between;
+//             align-items: center;
+//             margin-bottom: 20px;
+//         }
+//         .header img {
+//             max-height: 50px;
+//         }
+//         .header .company-details {
+//             text-align: right;
+//         }
+//         .content {
+//             width: 100%;
+//             border-collapse: collapse;
+//             margin-top: 20px;
+//         }
+//         .content td, .content th {
+//             border: 1px solid #ddd;
+//             padding: 8px;
+//             text-align: left;
+//         }
+//         .content th {
+//             background-color: #f2f2f2;
+//             text-align: center;
+//         }
+//         .content td:nth-child(2), .content td:nth-child(4) {
+//             text-align: right;
+//         }
+//         .footer {
+//             margin-top: 20px;
+//             font-size: 12px;
+//             color: #666;
+//             text-align: center;
+//         }
+//     </style>
+// </head>
+// <body>
+//     <div class="salary-slip">
+//         <div class="header">
+//             <img src="{LOGO_URL}" alt="Company Logo">
+//             <div class="company-details">
+//                 <h3>${data.companyName || "Company Name"}</h3>
+//                 <p>${data.companyAddress || "Company Address"}</p>
+//             </div>
+//         </div>
+
+//         <h2>Salary Slip for ${data.month || "MM"} - ${data.year || "YYYY"}</h2>
+
+//         <table class="content">
+//             <tr>
+//                 <td><strong>Employee Name:</strong></td>
+//                 <td>${data.name || "N/A"}</td>
+//                 <td><strong>Employee Type:</strong></td>
+//                 <td>${data.employeeType || "N/A"}</td>
+//             </tr>
+//             <tr>
+//                 <td><strong>Designation:</strong></td>
+//                 <td>${data.designation || "N/A"}</td>
+//                 <td><strong>Employee Code:</strong></td>
+//                 <td>${data.employeeCode || "N/A"}</td>
+//             </tr>
+//             <tr>
+//                 <td><strong>Department:</strong></td>
+//                 <td>${data.department || "N/A"}</td>
+//                 <td><strong>Working Days:</strong></td>
+//                 <td>${data.workingDays || 0}</td>
+//             </tr>
+//             <tr>
+//                 <td><strong>Date of Joining:</strong></td>
+//                 <td>${data.dateOfJoining || "N/A"}</td>
+//                 <td><strong>LOP:</strong></td>
+//                 <td>${data.lop || 0}</td>
+//             </tr>
+//             <tr>
+//                 <td><strong>Current Office Location:</strong></td>
+//                 <td>${data.currentOfficeLocation || "N/A"}</td>
+//                 <td><strong>PAN No:</strong></td>
+//                 <td>${data.panNo || "N/A"}</td>
+//             </tr>
+//         </table>
+
+//         <h3>Earnings and Deductions</h3>
+//         <table class="content">
+//             <thead>
+//                 <tr>
+//                     <th>Earnings</th>
+//                     <th>Amount (Rs.)</th>
+//                     <th>Deductions</th>
+//                     <th>Amount (Rs.)</th>
+//                 </tr>
+//             </thead>
+//             <tbody>
+//                 ${generateUnifiedTableRows(
+//                   data.paySlipComponent?.earnings || [],
+//                   data.paySlipComponent?.deductions || []
+//                 )}
+//             </tbody>
+//             <tfoot>
+//                 <tr>
+//                     <td><strong>Gross Earnings (A)</strong></td>
+//                     <td>${data.grossEarnings || 0}</td>
+//                     <td><strong>Total Deductions (B)</strong></td>
+//                     <td>${data.totalDeductions || 0}</td>
+//                 </tr>
+//                <tr>
+//                   <td><strong>Net Pay (A - B)</strong></td>
+//                   <td>${data.netPay || 0}</td>
+//                   <td><strong>Total Pay</strong></td>
+//                   <td>${data.totalPay || 0}</td>
+//               </tr>
+//             </tfoot>
+//         </table>
+
+//         <p class="footer">Note: This is a Computer Generated Slip and does not require a signature.</p>
+//     </div>
+// </body>
+// </html>`;
+// };
+
+
+
+
 export default {
   regularizationRequestMail,
   resetPasswordMail,

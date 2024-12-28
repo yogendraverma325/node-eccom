@@ -151,6 +151,14 @@ import helper from "../../../helper/helper.js";
 import Sequelize from "sequelize";
 import { parse } from "dotenv";
 import xlsx from "json-as-xlsx";
+import { fileURLToPath } from "url"; // Import for resolving __dirname equivalent
+import emailTemplate from "../../../email/emailTemplate.js";
+import html_to_pdf from "html-pdf-node";
+import path from "path"; // Import the path module
+import moment from "moment";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 //import moment, { now } from "moment";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -3203,278 +3211,6 @@ class PaymentController {
     }
   }
 
-  // async exportSalaryComponent(req, res) {
-  //   try {
-  //     const { salalryStructureAutoId } = req.query;
-  //     const getComponentAutoIds =
-  //       await db.salarystructurecomponentmapping.findAll({
-  //         attributes: ["salaryComponentAutoId"],
-  //         where: { salaryStructureAutoId: salalryStructureAutoId },
-  //         include: [
-  //           {
-  //             model: db.salaryComponent,
-  //             attributes: ["salaryComponentCode", "salaryComponentAlias"],
-  //             as: "componentDetails",
-  //           },
-  //         ],
-  //         raw: true,
-  //         nest: true,
-  //       });
-
-  //       const arr = await Promise.all(
-  //       getComponentAutoIds.map(async (item) => ({
-  //         salaryComponentValue:
-  //           item.componentDetails.salaryComponentAlias?.trim() ||
-  //           item.componentDetails.salaryComponentCode,
-  //       }))
-  //     );
-
-  //     if (arr.length > 0) {
-  //       const timestamp = moment().format("HH:mm");
-
-  //       const staticFields = [
-  //         "Email/Employee ID",
-  //         "CTC",
-  //         "Effective Date",
-  //         "Salary Structure",
-  //         "Event",
-  //       ];
-
-  //       const headers = [
-  //         ...staticFields,
-  //         ...arr.map((item) => item.salaryComponentValue),
-  //       ];
-
-  //       const columns = headers.map((value) => ({
-  //         label: value,
-  //         value: value,
-  //       }));
-
-  //       const data = [
-  //         {
-  //           sheet: "Salary Component",
-  //           columns: columns,
-  //           content: [],
-  //         },
-  //       ];
-  //       const settings = {
-  //         fileName: `Component_${timestamp}`,
-  //         extraLength: 3,
-  //         writeOptions: {
-  //           type: "buffer",
-  //           bookType: "xlsx",
-  //         },
-  //       };
-
-  //       const report = xlsx(data, settings);
-  //       res.setHeader(
-  //         "Content-Disposition",
-  //         `attachment; filename=Component_${timestamp}.xlsx`
-  //       );
-  //       res.end(report);
-  //     } else {
-  //       res.status(404).json({
-  //         message: "Data not found",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.log("error", error);
-  //     return respHelper(res, {
-  //       status: 500,
-  //       message: "An error occurred while fetching data",
-  //     });
-  //   }
-  // }
-
-//   async exportSample(req, res) {
-//     try {
-//       const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
-//       var arr = []
-//       if (!exportSheetAutoId) {
-//         return respHelper(res, {
-//           status: 400,
-//           data: [],
-//           msg: "Sample Sheet Not Available",
-//         });
-//       }
-//       const getColumns = await db.exportSheetMapping.findAll({
-//         attributes: ["columnName"],
-//         where: {
-//           isActive: 1,
-//           exportSheetAutoId: exportSheetAutoId,
-//         },
-//         raw: true,
-//         nest: true,
-//       });
-
-     
-//       if (salalryStructureAutoId) {
-//         const getComponentAutoIds =
-//           await db.salarystructurecomponentmapping.findAll({
-//             attributes: ["salaryComponentAutoId"],
-//             where: { salaryStructureAutoId: salalryStructureAutoId },
-//             include: [
-//               {
-//                 model: db.salaryComponent,
-//                 attributes: ["salaryComponentCode", "salaryComponentAlias"],
-//                 as: "componentDetails",
-//               },
-//             ],
-//             raw: true,
-//             nest: true,
-//           });
-
-//         arr = await Promise.all(
-//           getComponentAutoIds.map(async (item) => ({
-//             columnName:
-//               item.componentDetails.salaryComponentAlias?.trim() ||
-//               item.componentDetails.salaryComponentCode,
-//           }))
-//         );
-//       }
-      
-
-//     if(salalryStructureAutoId==0){
-//       var query = ""
-//       let employeeIdss = [employeeIds].join(",");
-      
-//   // processed
-//     if(exportSheetAutoId==6){
-//       query = `
-//       SELECT 
-//         e.empCode, 
-//         e.name, 
-//         SUM(CASE WHEN p.payStatus = 9 THEN 1 ELSE 0 END) AS processed
-//       FROM tara.payprocessdetails p
-//       JOIN tara.employee e ON e.id = p.EmployeeId
-//       WHERE p.payMonth = '${paymonth}' AND p.EmployeeId IN (${employeeIdss})
-//       GROUP BY e.empCode, e.name
-//       HAVING processed = 1;
-//     `;
-//     }
-
-//        //in process
-//         if(exportSheetAutoId==7){
-//         query = `
-//         SELECT 
-//           e.empCode, 
-//           e.name, 
-//           SUM(CASE WHEN p.payStatus != 9 THEN 1 ELSE 0 END) AS inProcess
-//         FROM tara.payprocessdetails p
-//         JOIN tara.employee e ON e.id = p.EmployeeId
-//         WHERE p.payMonth = '${
-//           paymonth
-//         }' AND p.EmployeeId IN (${employeeIdss})
-//         GROUP BY e.empCode, e.name
-//         HAVING inProcess = 1;
-// `;
-//       }
-//     //total employee
-//     if(exportSheetAutoId==8){
-//         query = `
-//           SELECT 
-//             e.empCode, 
-//             e.name, 
-//             COUNT(p.EmployeeId) AS totalEmployee
-//           FROM tara.payprocessdetails p
-//           JOIN tara.employee e ON e.id = p.EmployeeId
-//           WHERE p.payMonth = '${
-//             paymonth
-//           }' AND p.EmployeeId IN (${employeeIdss})
-//           GROUP BY e.empCode, e.name;
-//         `;
-//     }
-
-//     var [employeeData] = await db.sequelize.query(
-//       query,
-//       { raw: true }
-//     );
-//     }
-      
-//      // }
-
-//       if (getColumns.length > 0 && salalryStructureAutoId != 0 ) {
-//         console.log("")
-//         const timestamp = moment().format("HH:mm");
-
-//         let mergeColumns = [...getColumns, ...arr];
-      
-//         const headers = [...mergeColumns.map((item) => item.columnName)];
-//         const columns = headers.map((value) => ({
-//           label: value,
-//           value: value,
-//         }));
-
-//         const data = [
-//           {
-//             sheet: "Salary Component",
-//             columns: columns,
-//             content: [],
-//           },
-//         ];
-//         const settings = {
-//           fileName: `Component_${timestamp}`,
-//           extraLength: 3,
-//           writeOptions: {
-//             type: "buffer",
-//             bookType: "xlsx",
-//           },
-//         };
-
-//         const report = xlsx(data, settings);
-//         res.setHeader(
-//           "Content-Disposition",
-//           `attachment; filename=Sample_sheet_${timestamp}.xlsx`
-//         );
-//         res.end(report);
-//       } 
-//       if( getColumns.length == 0 && salalryStructureAutoId == 0 &&  (exportSheetAutoId == 6 || exportSheetAutoId == 7 || exportSheetAutoId == 8 || exportSheetAutoId == 9)){
-//         const timestamp = moment().format("HH:mm");
-
-//         const data = [
-//           {
-//             sheet: "Employee",
-//             columns: [
-//               { label: "Employee Code", value: "empCode" },
-//               { label: "Employee Name", value: "name" } 
-//             ],
-//             content: employeeData,
-//           },
-//         ];
-
-//         const settings = {
-//           fileName: `Total_${timestamp}`,
-//           extraLength: 3,
-//           writeOptions: {
-//             type: "buffer",
-//             bookType: "xlsx",
-//           },
-//         };
-
-//         const report = xlsx(data, settings);
-//         res.setHeader(
-//           "Content-Disposition",
-//           `attachment; filename=Employee_Master_${timestamp}.xlsx`
-//         );
-//         res.end(report);
-//       }
-//       else {
-//         res.status(404).json({
-//           message: "No active columns found for the given sheet",
-//         });
-//       }
-//     } catch (error) {
-//       console.log("error", error);
-//       return respHelper(res, {
-//         status: 500,
-//         message: "An error occurred while fetching data",
-//       });
-//     }
-//   }
-
-// const moment = require("moment");
-// const xlsx = require("json-as-xlsx");
-
   async exportSample(req, res) {
     try {
       const { exportSheetAutoId, salalryStructureAutoId, employeeIds } = req.query;
@@ -3697,14 +3433,104 @@ class PaymentController {
       });
     }
   }
-
-  async downloadPaySlip(req,res){
+  
+  async salarySlipPdf(req, res) {
     try {
+     
+      const salaryDetails = await paymentHelper.salaryPaySlip(req.query.user,req.query.financialYear,req.userId);
+     
+      const processPayslipComponents = async(payslipcomponents) => {
+        const earnings = payslipcomponents.filter(
+          (item) => item.paySlipComponentType === "Earning" || item.paySlipComponentType === "Balancing"
+        );
       
+        const deductions = payslipcomponents.filter(
+          (item) => item.paySlipComponentType === "Deduction"
+        );
+      
+        return { earnings, deductions };
+      };
+
+     const paySlipComponent = await processPayslipComponents(salaryDetails[0].payslipcomponents)
+
+      // let body = {
+      //   name: salaryDetails[0].employee.name,
+      //   employeeCode:salaryDetails[0].employee.empCode,
+      //   employeeType:salaryDetails[0].employee.employeetypemaster.emptypename,
+      //   designation:salaryDetails[0].employee.designationmaster.name,
+      //   department:salaryDetails[0].employee.departmentmaster.departmentName,
+      //   panNo:salaryDetails[0].employee.panNo,
+      //   dateOfJoining:  moment(salaryDetails[0].employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY"),
+      //   workingDays: salaryDetails[0].paySlipWorkingDays,
+      //   companyName:salaryDetails[0].employee.companymaster.companyName,
+      //   currentOfficeLocation:salaryDetails[0].employee.companylocationmaster.citymaster.cityName,
+      //   companyAddress:salaryDetails[0].employee.companylocationmaster.address1,
+      //   grossEarnings:parseInt(salaryDetails[0].paySlipGrossEarning),
+      //   totalPay:parseInt(salaryDetails[0].paySlipTotalPay),
+      //   totalDeductions:parseInt(salaryDetails[0].paySlipTotalDeduction),
+      //   lop:salaryDetails[0].paySlipTotalDays - salaryDetails[0].paySlipWorkingDays,
+      //   paySlipComponent: paySlipComponent,
+      //   month:"09",
+      //   year:"2024"
+      // };   
+      const employee = salaryDetails[0].employee;
+      const body = {
+        name: employee.name || "",
+        employeeCode: employee?.empCode || "",
+        employeeType: employee?.employeetypemaster?.emptypename || "",
+        designation: employee?.designationmaster?.name || "",
+        department: employee?.departmentmaster?.departmentName || "N/A",
+        panNo: employee?.panNo || "",
+        dateOfJoining: moment(employee?.employeejobdetail?.dateOfJoining).isValid()
+            ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
+            : "",
+        workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
+        companyName: employee?.companymaster?.companyName || "",
+        currentOfficeLocation: employee?.companylocationmaster?.citymaster?.cityName || "",
+        companyAddress: employee?.companylocationmaster?.address1 || "",
+        grossEarnings: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+            ? parseInt(salaryDetails[0].paySlipGrossEarning)
+            : "",
+        totalPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
+            ? parseInt(salaryDetails[0].paySlipTotalPay)
+            : "",
+        totalDeductions: Number.isFinite(+salaryDetails[0]?.paySlipTotalDeduction)
+            ? parseInt(salaryDetails[0].paySlipTotalDeduction)
+            : "",
+        lop: salaryDetails[0]?.paySlipTotalDays && salaryDetails[0]?.paySlipWorkingDays
+            ? salaryDetails[0].paySlipTotalDays - salaryDetails[0].paySlipWorkingDays
+            : "",
+        paySlipComponent: paySlipComponent || [],
+        netPay:Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
+        ? parseInt(salaryDetails[0].paySlipTotalPay)
+        : "",
+        month: "09"||"",
+        year: "2024"||""
+    };    
+
+      const inputData = body;
+      let letter = await emailTemplate.salarySlipPdf(inputData);
+      let options = {
+        format: "A4",
+      };
+      let file = { content: letter };
+      html_to_pdf.generatePdf(file, options, (error, success) => {
+        if (error) {
+          return res.status(500).send("Error generating PDF");
+        } else {  
+          res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+          });
+          res.end(success);
+        }
+      });
     } catch (error) {
-      
+      console.log("error",error)
+      res.status(500).send("Internal Server Error");
     }
   }
+  
 }
 
 const groupByEmployeeId = (data) => {
