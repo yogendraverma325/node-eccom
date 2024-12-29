@@ -1965,12 +1965,11 @@ class PaymentController {
         } else {
           let existTDSDetails = await db.lopDeductions.findOne({
             where: {
-              empCode: lopDeductions.EmployeeId,
+              empCode: lopDeductions.empCode,
               lopMonth: lopDeductions.lopMonth,
             },
             raw: true,
           });
-
           if (existTDSDetails) {
             lopDeductions["updatedBy"] = req.userData.id;
             lopDeductions["updatedAt"] = new Date();
@@ -4077,17 +4076,13 @@ async function generatePaySlip(data) {
         if (!isExistPaySlip) {
           let customeDeduction = [];
           let totalPayslipDeductons =
-            parseFloat(payMonthlyElement.totalExtraDeduction) +
-            parseFloat(payMonthlyElement.totalComponentDeductions);
+            parseFloat(payMonthlyElement.totalExtraDeduction?payMonthlyElement.totalExtraDeduction:0) +
+            parseFloat(payMonthlyElement.esicEmployeeAmount?payMonthlyElement.esicEmployeeAmount:0)+ parseFloat(payMonthlyElement.pfEmployeeAmount?payMonthlyElement.pfEmployeeAmount:0)+parseFloat(payMonthlyElement.tdsAmount?payMonthlyElement.tdsAmount:0)+parseFloat(payMonthlyElement.ptAmount?payMonthlyElement.ptAmount:0)+parseFloat(payMonthlyElement.lwfAmount?payMonthlyElement.lwfAmount:0);
           let PaySlipNetPay =
             parseFloat(payMonthlyElement.paySlipGrossEarning) +
-            parseFloat(payMonthlyElement.extraPaymentAmount);
+            parseFloat(payMonthlyElement.extrapaymentAmount);
           PaySlipNetPay =
-            PaySlipNetPay -
-            (parseFloat(payMonthlyElement.tdsAmount) +
-              parseFloat(payMonthlyElement.totalExtraDeduction) +
-              parseFloat(payMonthlyElement.ptAmount) +
-              parseFloat(payMonthlyElement.lwfAmount));
+            parseFloat(PaySlipNetPay) -parseFloat(totalPayslipDeductons);
           isExistPaySlip = await db.paySlips.create({
             EmployeeId: payMonthlyElement.empId,
             paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
@@ -4218,7 +4213,7 @@ async function generatePaySlip(data) {
           raw: true,
         });
 
-        if (!isExistPayElement) {
+        if (!isExistPayElement && ['Earning','Balancing'].includes(payMonthlyElement.salaryComponentEarningType)) {
           await db.paySlipComponent.create({
             EmployeeId: payMonthlyElement.empId,
             paySlipAutoId: paySlipAutoId,
