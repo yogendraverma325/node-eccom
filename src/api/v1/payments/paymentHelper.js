@@ -444,6 +444,23 @@ async function getCalculatedESIC(monthlyElementPay) {
   return {calculatedEmployerESIC,calculatedEmployeeESIC}; // Return elementValue or null if not found
 }
 
+async function arrectLOP(componentAmount,lopDays,totalWorkingdays) {
+  
+  let amountAfterLop=0;
+
+    amountAfterLop=(componentAmount/totalWorkingdays)*lopDays;
+
+    console.log("***************************");
+    console.log("totalWorkingdays : "+totalWorkingdays);
+    console.log("componentAmount : "+componentAmount);
+    console.log("totalWorkingdays : "+totalWorkingdays);
+    console.log("amountAfterLop : "+amountAfterLop);
+    console.log("***************************");
+
+
+  return  (componentAmount-amountAfterLop);
+}
+
 
 
 export default {
@@ -461,4 +478,5 @@ export default {
   getFromattedDate,
   getCalculatedPF,
   getCalculatedESIC,
+  arrectLOP
 };

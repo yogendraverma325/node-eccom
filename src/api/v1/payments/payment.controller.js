@@ -1395,15 +1395,27 @@ class PaymentController {
               ? 1
               : 0;
           empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
+          // empCopntWiseDetl["elementMonthlyAmount"] =
+          //   paymentHelper.getElementValue(
+          //     "Affect Loss Of Pay",
+          //     componentConfiguration[0]
+          //   ) == 1
+          //     ? parseFloat(
+          //         empCopntWiseDetl.payElementAmount - lopSingleUnit
+          //       ).toFixed(2)
+          //     : empCopntWiseDetl.payElementAmount;
+
+
           empCopntWiseDetl["elementMonthlyAmount"] =
-            paymentHelper.getElementValue(
-              "Affect Loss Of Pay",
-              componentConfiguration[0]
-            ) == 1
-              ? parseFloat(
-                  empCopntWiseDetl.payElementAmount - lopSingleUnit
-                ).toFixed(2)
-              : empCopntWiseDetl.payElementAmount;
+          paymentHelper.getElementValue(
+            "Affect Loss Of Pay",
+            componentConfiguration[0]
+          ) == 1
+            ? paymentHelper.arrectLOP(empCopntWiseDetl.payElementAmount,employeeDetailsComponentWise[0][0].lopDays,totalWorkingDays)
+            : empCopntWiseDetl.payElementAmount;
+
+
+
           empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
             .totalDeduction
             ? extraDeductonsDetails[0][0].totalDeduction
@@ -3918,15 +3930,27 @@ async function processSalary(data) {
             ? 1
             : 0;
         empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
+        // empCopntWiseDetl["elementMonthlyAmount"] =
+        //   paymentHelper.getElementValue(
+        //     "Affect Loss Of Pay",
+        //     componentConfiguration[0]
+        //   ) == 1
+        //     ? parseFloat(
+        //         empCopntWiseDetl.payElementAmount - lopSingleUnit
+        //       ).toFixed(2)
+        //     : empCopntWiseDetl.payElementAmount;
+
+
         empCopntWiseDetl["elementMonthlyAmount"] =
-          paymentHelper.getElementValue(
-            "Affect Loss Of Pay",
-            componentConfiguration[0]
-          ) == 1
-            ? parseFloat(
-                empCopntWiseDetl.payElementAmount - lopSingleUnit
-              ).toFixed(2)
-            : empCopntWiseDetl.payElementAmount;
+        paymentHelper.getElementValue(
+          "Affect Loss Of Pay",
+          componentConfiguration[0]
+        ) == 1
+          ? await paymentHelper.arrectLOP(empCopntWiseDetl.payElementAmount,employeeDetailsComponentWise[0][0].lopDays,totalWorkingDays)
+          : empCopntWiseDetl.payElementAmount;
+
+
+
         empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
           .totalDeduction
           ? extraDeductonsDetails[0][0].totalDeduction
