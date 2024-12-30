@@ -2434,7 +2434,7 @@ class PaymentController {
         19,
         value.processingType,
         { departmentId: value.departmentId, paymonth: value.paymonth }
-      );
+      );  
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
         return respHelper(res, {
@@ -2479,6 +2479,7 @@ class PaymentController {
           impactedEmployee: lopDeductions.length,
           lopAmount: totalLopAmount.toFixed(2),
           totalLOPDays: totalLOPDays,
+          impactedEmployeeDetails: lopDeductions,
         },
       });
     } catch (error) {
@@ -2539,6 +2540,7 @@ class PaymentController {
         data: {
           impactedEmployee: tdsDeductions.length,
           tdsAmount: totalTdsAmount.toFixed(2),
+          impactedEmployeeDetails: tdsDeductions,
         },
       });
     } catch (error) {
@@ -2591,7 +2593,6 @@ class PaymentController {
       console.log("tdsDeductions", tdsDeductions);
       for (const tdsSingleDetails of tdsDeductions) {
         console.log(tdsSingleDetails);
-
         totaPaymentAmount += parseFloat(tdsSingleDetails.paymentAmount || 0);
       }
       return respHelper(res, {
@@ -2599,6 +2600,7 @@ class PaymentController {
         data: {
           impactedEmployee: tdsDeductions.length,
           paymentAmount: totaPaymentAmount.toFixed(2),
+          impactedEmployeeDetails:tdsDeductions,
         },
       });
     } catch (error) {
@@ -2641,7 +2643,7 @@ class PaymentController {
       var totalExtraDeductionsAmount = 0;
       let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${returnVAlue.avalialbleEmployees.join(
         ","
-      )}) GROUP BY empCode`;
+      )}) GROUP BY empCode and startMonth='${value.paymonth}'`;
 
       console.log("Deduction Query ::" + allDeductionQuery);
 
@@ -2658,6 +2660,7 @@ class PaymentController {
           data: {
             impactedEmployee: extraDeductions[0].length,
             extraDeductionAmount: totalExtraDeductionsAmount.toFixed(2),
+            impactedEmployeeDetatils:extraDeductions[0],
           },
         });
       } else {
@@ -3209,7 +3212,11 @@ class PaymentController {
 
   async exportSample(req, res) {
     try {
-      const { exportSheetAutoId, salalryStructureAutoId, employeeIds } = req.query;
+      const { exportSheetAutoId, salalryStructureAutoId, employeeIds,payMonth } = req.query;
+
+      console.log(req.query,)
+
+      // return
 
       const sheetName = {
         "TDS Deduction Sample":1,
@@ -3220,7 +3227,9 @@ class PaymentController {
         "Processed Employee":6,
         "In Process Employee":7,
         "Total Employee":8,
-        "Available Employee":9
+        "Available Employee":9,
+        "LOP Impacted Employees":10,
+        "Extra Payment Impacted Employees":11,
       }
 
       const getKeyByValue = async (value) => {
@@ -3277,7 +3286,7 @@ class PaymentController {
       }
     
       let employeeData = [];
-      if (salalryStructureAutoId == 0 && exportSheetAutoId==6) {
+      if (salalryStructureAutoId == 0 && [6].includes(exportSheetAutoId)) {
         let query = "";
         const employeeIdss = [employeeIds].join(",");
         query = `
@@ -3287,8 +3296,27 @@ class PaymentController {
           const [results] = await db.sequelize.query(query, { raw: true });
           employeeData = results;
         }
+        console.log(employeeData);
       }
 
+      if (salalryStructureAutoId == 0 && [10,11,12,13].includes(Number(exportSheetAutoId))) {
+        let query = "";
+        const employeeIdss = [employeeIds].join(",");
+        const impactedEmployeeQueryObject={
+          "10":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
+          "11":`SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM tara.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss});`,
+          "12":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
+          "13":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
+        }
+        query = impactedEmployeeQueryObject[exportSheetAutoId];
+        if (query) {
+          const [results] = await db.sequelize.query(query, { raw: true });
+          employeeData = results;
+        }
+        console.log(query);
+      }
+
+      // return;
       const timestamp = Date.now();
 
       // Handle scenarios based on conditions
@@ -3387,7 +3415,56 @@ class PaymentController {
           `attachment; filename=${sheetVal}_${timestamp}.xlsx`
         );
         return res.end(report);
-      } else {
+      }  else if (
+        getColumns.length == 0 &&
+        salalryStructureAutoId == 0 &&
+        [10,11,12,13].includes(Number(exportSheetAutoId))
+      ) {
+
+        const columnsFroExcel={
+          "10":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Lop Days", value: "LOP Days" },
+          ],
+          "11":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Lop Days", value: "Extra Payment Amount" },
+          ],
+          "12":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Lop Days", value: "LOP Days" },
+          ],
+          "13":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Lop Days", value: "LOP Days" },
+          ]
+        }
+
+        const data = [
+          {
+            sheet: "Employee",
+            columns: columnsFroExcel[exportSheetAutoId],
+            content: employeeData,
+          },
+        ];
+
+        const settings = {
+          fileName: `Total_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } 
+      else {
         return res.status(404).json({
           message: "No active columns found for the given sheet",
         });
