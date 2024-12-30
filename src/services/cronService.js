@@ -2,7 +2,7 @@ import cron from "node-cron";
 import cronController from "../api/v1/cron/cron.controller.js";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
 
-cron.schedule("30 1 * * *", async () => {
+cron.schedule("0 6 * * *", async () => {
   await attendanceController.attedanceCron();
 });
 
@@ -13,7 +13,7 @@ cron.schedule("0 2 * * *", async () => {
   await cronController.checkExtentionEnd();
   await cronController.generatConfiramtionletter();
 });
-
+s
 cron.schedule("* * * * *", async () => {
   await cronController.updateManager();
   await cronController.updatePolicy();
