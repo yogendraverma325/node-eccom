@@ -445,19 +445,8 @@ async function getCalculatedESIC(monthlyElementPay) {
 }
 
 async function arrectLOP(componentAmount,lopDays,totalWorkingdays) {
-  
   let amountAfterLop=0;
-
-    amountAfterLop=(componentAmount/totalWorkingdays)*lopDays;
-
-    console.log("***************************");
-    console.log("totalWorkingdays : "+totalWorkingdays);
-    console.log("componentAmount : "+componentAmount);
-    console.log("totalWorkingdays : "+totalWorkingdays);
-    console.log("amountAfterLop : "+amountAfterLop);
-    console.log("***************************");
-
-
+  amountAfterLop=(componentAmount/totalWorkingdays)*lopDays;
   return  (componentAmount-amountAfterLop);
 }
 
