@@ -2643,7 +2643,7 @@ class PaymentController {
       var totalExtraDeductionsAmount = 0;
       let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${returnVAlue.avalialbleEmployees.join(
         ","
-      )}) GROUP BY empCode and startMonth='${value.paymonth}'`;
+      )}) and startMonth='${value.paymonth}' GROUP BY empCode `;
 
       console.log("Deduction Query ::" + allDeductionQuery);
 
@@ -3212,12 +3212,9 @@ class PaymentController {
 
   async exportSample(req, res) {
     try {
-      const { exportSheetAutoId, salalryStructureAutoId, employeeIds,payMonth } = req.query;
-
-      console.log(req.query,)
-
+      const { exportSheetAutoId, salalryStructureAutoId, employeeIds,payMonth,processId } = req.query;
+      console.log(req.query);
       // return
-
       const sheetName = {
         "TDS Deduction Sample":1,
         "LOP Deduction Sample":2,
@@ -3230,6 +3227,11 @@ class PaymentController {
         "Available Employee":9,
         "LOP Impacted Employees":10,
         "Extra Payment Impacted Employees":11,
+        "Extra Deduction Impacted Employees":12,
+        "TDS Impacted Employees":13,
+        "Total Processed":14,
+        "Successfully Processed":15,
+        "Failed in Process":16,
       }
 
       const getKeyByValue = async (value) => {
@@ -3286,7 +3288,7 @@ class PaymentController {
       }
     
       let employeeData = [];
-      if (salalryStructureAutoId == 0 && [6].includes(exportSheetAutoId)) {
+      if (salalryStructureAutoId == 0 && exportSheetAutoId==6) {
         let query = "";
         const employeeIdss = [employeeIds].join(",");
         query = `
@@ -3299,14 +3301,17 @@ class PaymentController {
         console.log(employeeData);
       }
 
-      if (salalryStructureAutoId == 0 && [10,11,12,13].includes(Number(exportSheetAutoId))) {
+      if (salalryStructureAutoId == 0 && [10,11,12,13,14,15,16].includes(Number(exportSheetAutoId))) {
         let query = "";
         const employeeIdss = [employeeIds].join(",");
         const impactedEmployeeQueryObject={
           "10":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
           "11":`SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM tara.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss});`,
-          "12":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
-          "13":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
+          "12":`SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where empCode in(${employeeIdss}) and startMonth='${payMonth}' GROUP BY empCode;`,
+          "13":`SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM tara.tdsdeductions where empCode in(${employeeIds}) and tdsMonth='${payMonth}';`,
+          "14":`SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
+          "15":`SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
+          "16":`SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
         }
         query = impactedEmployeeQueryObject[exportSheetAutoId];
         if (query) {
@@ -3418,7 +3423,7 @@ class PaymentController {
       }  else if (
         getColumns.length == 0 &&
         salalryStructureAutoId == 0 &&
-        [10,11,12,13].includes(Number(exportSheetAutoId))
+        [10,11,12,13,14,15,16].includes(Number(exportSheetAutoId))
       ) {
 
         const columnsFroExcel={
@@ -3432,11 +3437,23 @@ class PaymentController {
           ],
           "12":[
             { label: "Employee Code", value: "EmployeeId" },
-            { label: "Lop Days", value: "LOP Days" },
+            { label: "Deduction Amount", value: "TotalDeductionAmount" },
           ],
           "13":[
             { label: "Employee Code", value: "EmployeeId" },
-            { label: "Lop Days", value: "LOP Days" },
+            { label: "TDS Amount", value: "TDS Amount" },
+          ],
+          "14":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Remark", value: "Remark" },
+          ],
+          "15":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Remark", value: "Remark" },
+          ],
+          "16":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Remark", value: "Remark" },
           ]
         }
 

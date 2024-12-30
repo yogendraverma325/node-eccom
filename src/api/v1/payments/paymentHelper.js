@@ -522,17 +522,18 @@ async function getCalculatedPF(monthlyElementPay) {
 async function getCalculatedESIC(monthlyElementPay) {
   let calculatedEmployeeESIC = 0,calculatedEmployerESIC,
     esicApplicableAmount = 0;
-  if (monthlyElementPay[0].isPfApplicable == 0) return calculatedEmployeeESIC;
+  if (monthlyElementPay[0].isEsicApplicable == 0) return calculatedEmployeeESIC;
   esicApplicableAmount =
   await monthlyElementPay
   .filter((element) => element.isEsicApplicableComponent == 1)
   .reduce(async (sumPromise, element) => {
+    console.log("ESIC AMOUNT ::",element["elementMonthlyAmount"]);
     const sum = await sumPromise; // Resolve the previous sum
     return sum + parseFloat(element["elementMonthlyAmount"]);
   }, Promise.resolve(0)); // Start with a resolved promise of 0
 
-        calculatedEmployeeESIC=getPercentagePart(esicApplicableAmount,0.75);
-        calculatedEmployerESIC=getPercentagePart(esicApplicableAmount,3.25);
+  calculatedEmployeeESIC=getPercentagePart(esicApplicableAmount,0.75);
+  calculatedEmployerESIC=getPercentagePart(esicApplicableAmount,3.25);
   console.log("Applicable ESIC Amount :: " + esicApplicableAmount);
   return {calculatedEmployerESIC,calculatedEmployeeESIC}; // Return elementValue or null if not found
 }
