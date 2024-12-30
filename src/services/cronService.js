@@ -13,7 +13,7 @@ cron.schedule("0 2 * * *", async () => {
   await cronController.checkExtentionEnd();
   await cronController.generatConfiramtionletter();
 });
-s
+
 cron.schedule("* * * * *", async () => {
   await cronController.updateManager();
   await cronController.updatePolicy();
