@@ -3174,7 +3174,7 @@ class AttendanceController {
                 }
               }
             } else {
-              presentStatus = singleEmp.attendancemaster.attendancePresentStatus;
+              presentStatus = (lastDayDate === moment().format("YYYY-MM-DD")) ? singleEmp.attendancemaster.attendancePresentStatus : 'singlePunchAbsent';
             }
             await db.attendanceMaster.update(
               {
@@ -3578,7 +3578,6 @@ class AttendanceController {
 
   async attendanceApproval(req, res) {
     try {
-
       const result = await validator.attendanceApprovalSchema.validateAsync(req.body)
       let successRecords = [], failedRecords = []
 
@@ -3648,6 +3647,7 @@ class AttendanceController {
               attendancePunchInLocation: element.location,
               attendancePunchInLatitude: element.lat,
               attendancePunchInLongitude: element.long,
+              needAttendanceCron: 1,
               createdBy: element.dataValues.employeeId,
               attendancePolicyId: element.attendancePolicyId,
               createdAt: moment(),
@@ -3658,7 +3658,7 @@ class AttendanceController {
 
             const createdAttendanceData = await db.attendanceMaster.create(creationObject)
 
-            if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
+            if (currentDate.format("YYYY-MM-DD") !== moment().format('YYYY-MM-DD')) {
               _this.attedanceCronManual(
                 createdAttendanceData.dataValues.attendanceAutoId,
                 createdAttendanceData.dataValues.attendanceDate
@@ -3700,6 +3700,7 @@ class AttendanceController {
                 ),
                 attendancePunchOutLocation: element.location,
                 attendancePunchOutLatitude: element.lat,
+                needAttendanceCron: 1,
                 attendancePunchOutLongitude: element.long,
                 punchOutSource: element.device,
                 updatedBy: element.dataValues.employeeId,
@@ -3735,6 +3736,7 @@ class AttendanceController {
                     "HH:mm:ss"
                   )}`
                 ),
+                needAttendanceCron: 1,
                 attendancePunchOutLocation: element.location,
                 attendancePunchOutLatitude: element.lat,
                 attendancePunchOutLongitude: element.long,
@@ -3808,7 +3810,6 @@ class AttendanceController {
           } : {},
           (failedRecords.length > 0) ? {
             failedRecords
-
           } : {}
         )
       })
