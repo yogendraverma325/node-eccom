@@ -218,7 +218,7 @@ function getFromattedDate(dateInIntger) {
 async function query(caseId, data, data2) {
   switch (caseId) {
     case 1:
-      return `SELECT p.includeInPackage, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) - SUM(CASE WHEN p.salaryComponentEarningType = 'Deduction' THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning" FROM tara.paymonthlyelement p JOIN tara.employee e ON p.empId = e.id WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
+      return `SELECT  p.salaryComponentEarningType,p.esicEmployerAmount as "ESIC Employer",p.esicEmployeeAmount as "ESIC Employee",p.pfEmployeeAmount as "PF Employee",p.pfEmployerAmount as "PF Employer",p.salaryComponentCode,p.includeInPackage,p.isPfApplicableComponent,p.isPfApplicable,p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) - SUM(CASE WHEN p.salaryComponentEarningType = 'Deduction' THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning" FROM tara.paymonthlyelement p JOIN tara.employee e ON p.empId = e.id WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
       break;
     case 2:
       return `SELECT p.EmployeeId, p.paySlipNetPay, e.name AS EmployeeName, e.empCode AS EmployeeCode, d.name AS Designation, b.buName AS BU FROM payslip p JOIN employee e ON p.EmployeeId = e.id JOIN designationmaster d ON e.designation_id = d.designationId JOIN bumaster b ON e.buId = b.buId WHERE p.EmployeeId IN (${data}) AND paySlipStatus = ${data2}`;
@@ -268,7 +268,7 @@ async function query(caseId, data, data2) {
       break;
 
     case 16:
-      return `SELECT empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType != 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) - SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId in(${data2})`;
+      return `SELECT pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType != 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
       break;
 
     case 17:
@@ -399,6 +399,59 @@ function getPayComponentObject(
   return paySlipComponentObj;
 }
 
+async function getCalculatedPF(monthlyElementPay) {
+  let calculatedPF = 0,
+    applicablePFAmount = 0;
+  if (monthlyElementPay[0].isPfApplicable == 0) return calculatedPF;
+  applicablePFAmount =
+    monthlyElementPay[0].isPfRestriction == 1
+      ? await monthlyElementPay
+          .filter((element) => element.isPfApplicableComponent == 1)
+          .reduce(async (sumPromise, element) => {
+            const sum = await sumPromise; // Resolve the previous sum
+            return sum + parseFloat(element["elementMonthlyAmount"]);
+          }, Promise.resolve(0))
+      : monthlyElementPay.find((item) => item["salaryComponentCode"] === "Basic")?.[
+          "elementMonthlyAmount"
+        ] || null; // Start with a resolved promise of 0
+
+  if (monthlyElementPay[0].isPfRestriction == 1) {
+    calculatedPF=applicablePFAmount<15000?getPercentagePart(applicablePFAmount,12):1800;
+  } else {
+    calculatedPF=getPercentagePart(applicablePFAmount,12);
+  }
+  console.log("Applicable PF Amount :: " + applicablePFAmount);
+  return calculatedPF; // Return elementValue or null if not found
+}
+
+
+
+async function getCalculatedESIC(monthlyElementPay) {
+  let calculatedEmployeeESIC = 0,calculatedEmployerESIC,
+    esicApplicableAmount = 0;
+  if (monthlyElementPay[0].isPfApplicable == 0) return calculatedEmployeeESIC;
+  esicApplicableAmount =
+  await monthlyElementPay
+  .filter((element) => element.isEsicApplicableComponent == 1)
+  .reduce(async (sumPromise, element) => {
+    const sum = await sumPromise; // Resolve the previous sum
+    return sum + parseFloat(element["elementMonthlyAmount"]);
+  }, Promise.resolve(0)); // Start with a resolved promise of 0
+
+        calculatedEmployeeESIC=getPercentagePart(esicApplicableAmount,0.75);
+        calculatedEmployerESIC=getPercentagePart(esicApplicableAmount,3.25);
+  console.log("Applicable ESIC Amount :: " + esicApplicableAmount);
+  return {calculatedEmployerESIC,calculatedEmployeeESIC}; // Return elementValue or null if not found
+}
+
+async function arrectLOP(componentAmount,lopDays,totalWorkingdays) {
+  let amountAfterLop=0;
+  amountAfterLop=(componentAmount/totalWorkingdays)*lopDays;
+  return  (componentAmount-amountAfterLop);
+}
+
+
+
 export default {
   payAfterLOPDeductions,
   payAfterTDSDeductions,
@@ -412,4 +465,7 @@ export default {
   getPayComponentObject,
   getElementValue,
   getFromattedDate,
+  getCalculatedPF,
+  getCalculatedESIC,
+  arrectLOP
 };
