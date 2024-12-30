@@ -654,6 +654,7 @@ class commonController {
           companyLocationId: req.query.user
             ? employeeData.companyLocationId
             : userData.companyLocationId,
+            isActive: 1
         },
         include: [
           {
