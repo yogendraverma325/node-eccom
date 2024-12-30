@@ -108,7 +108,7 @@ const jobLevelMappingSchema = Joi.object({
   bandId: Joi.number().required().label("Band Name"),
   gradeId: Joi.number().required().label("Grade Name"),
   jobLevelId: Joi.number().required().label("Job Level Name"),
-  companyId: Joi.array().items(Joi.number().required()).required().label("Company Name")
+  companyId: Joi.array().items(Joi.object().required()).required().label("Company Name")
 });
 
 const departmentMappingSchema = Joi.object({
@@ -124,6 +124,35 @@ const functionalAreaMappingSchema = Joi.object({
   sbuMappingId: Joi.number().required().label("Sub Business Unit"),
   departmentMappingId: Joi.number().required().label("Department Name"),
   functionalAreaId: Joi.number().required().label("Functional Area Name"),
+});
+
+const probationMasterSchema = Joi.object({
+  probationName: Joi.string().trim().required().label("Probation Name"),
+  setProbationPeriodInDays: Joi.string().trim().required().label("Probation Period In Days"),
+  setProbationPeriodInMonths: Joi.string().trim().required().label("Probation Period In Months"),
+  durationOfProbation: Joi.number().required().label("Duration Of Probation"),
+  showInProbationExtension: Joi.string().trim().required().label("Show In Probation Extension"),
+  extendConfirmation: Joi.string().trim().required().label("Extend Confirmation"),
+  startProbationPeriodFromAssignedDate: Joi.string().trim().required().label("Start Probation Period From Assigned Date"),
+  probationId: Joi.number().allow(null),
+  isActive: Joi.number().allow(null)
+});
+
+const companyLocationMasterSchema = Joi.object({
+  gstNo: Joi.string().trim().required().label("GST Number"),
+  companyId: Joi.number().required().label("Company"),
+  companyLocationCode: Joi.number().required().label("Company Location Code"),
+  countryId: Joi.number().required().label("Country"),
+  stateId: Joi.number().required().label("State"),
+  cityId: Joi.number().required().label("City"),
+  pincodeId: Joi.number().allow(null).label("Pin Code"),
+  address1: Joi.string().required().label("Address1"),
+  address2: Joi.string().allow(null).label('Address2'),
+  mobileNo: Joi.string().trim().allow(null).label("Mobile Number"),
+  phoneNo: Joi.string().trim().allow(null).label("Phone Number"),
+  isHeadquarter: Joi.number().required().label("Head Quarter"),
+  companyLocationCodeId: Joi.number().allow(null),
+  isActive: Joi.boolean().allow(null)
 });
 
 // End schema by jay
@@ -144,6 +173,8 @@ export default {
   ptLocationMasterSchema,
   jobLevelMappingSchema,
   departmentMappingSchema,
-  functionalAreaMappingSchema
+  functionalAreaMappingSchema,
+  probationMasterSchema,
+  companyLocationMasterSchema
   // jay end
 };
