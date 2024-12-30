@@ -836,6 +836,9 @@ class PaymentController {
       let errorArray = [],
         successArray = [];
       for (const employee of Employees) {
+        
+        if(!employee["Salary Structure"])
+          continue;
         let structureDetails = await db.salaryStructure.findAll({
           where: {
             salaryStructureName: employee["Salary Structure"],
