@@ -1975,13 +1975,14 @@ class PaymentController {
         );
         if (error) {
           errorArray.push({
+            index: errorArray.length + 1,
             error: error.details[0].message,
-            empId: lopDeductions.EmployeeId,
+            employeeID: lopDeductions.empCode,
           });
-          return respHelper(res, {
-            status: 400,
-            msg: error.details[0],
-          });
+          // return respHelper(res, {
+          //   status: 400,
+          //   msg: error.details[0],
+          // });
         } else {
           let existTDSDetails = await db.lopDeductions.findOne({
             where: {
