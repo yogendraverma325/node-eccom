@@ -110,5 +110,3 @@ export default Express
     .put("/company-location/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateCompanyLocation)
     .patch("/company-location/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfCompanyLocation)
 
-    
-

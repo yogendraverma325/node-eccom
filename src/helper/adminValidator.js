@@ -150,8 +150,8 @@ const companyLocationMasterSchema = Joi.object({
   address2: Joi.string().allow(null).label('Address2'),
   mobileNo: Joi.string().trim().allow(null).label("Mobile Number"),
   phoneNo: Joi.string().trim().allow(null).label("Phone Number"),
-  isHeadquarter: Joi.number().required().label("Head Quarter"),
-  companyLocationCodeId: Joi.number().allow(null),
+  isHeadquarter: Joi.number().required().label("Headquarter"),
+  companyLocationId: Joi.number().allow(null),
   isActive: Joi.boolean().allow(null)
 });
 

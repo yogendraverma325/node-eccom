@@ -2341,7 +2341,10 @@ class CommonController {
         order: [["companyLocationId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
-        include: [{ model: db.stateMaster, attributes: ['stateName'] }, { model: db.cityMaster, attributes: ['cityName'] }]
+        include: [
+          { model: db.stateMaster, attributes: ['stateName'] }, 
+          { model: db.cityMaster, attributes: ['cityName'] }
+        ]
       };
 
       let response = await service.aggregate(model, aggregate);
