@@ -151,7 +151,15 @@ import helper from "../../../helper/helper.js";
 import Sequelize from "sequelize";
 import { parse } from "dotenv";
 import xlsx from "json-as-xlsx";
+import { fileURLToPath } from "url"; // Import for resolving __dirname equivalent
+import emailTemplate from "../../../email/emailTemplate.js";
+import html_to_pdf from "html-pdf-node";
+import path from "path"; // Import the path module
 import moment from "moment";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+//import moment, { now } from "moment";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -1970,13 +1978,14 @@ class PaymentController {
         );
         if (error) {
           errorArray.push({
+            index: errorArray.length + 1,
             error: error.details[0].message,
-            empId: lopDeductions.EmployeeId,
+            employeeID: lopDeductions.empCode,
           });
-          return respHelper(res, {
-            status: 400,
-            msg: error.details[0],
-          });
+          // return respHelper(res, {
+          //   status: 400,
+          //   msg: error.details[0],
+          // });
         } else {
           let existTDSDetails = await db.lopDeductions.findOne({
             where: {
@@ -2429,7 +2438,7 @@ class PaymentController {
         19,
         value.processingType,
         { departmentId: value.departmentId, paymonth: value.paymonth }
-      );
+      );  
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
         return respHelper(res, {
@@ -2474,6 +2483,7 @@ class PaymentController {
           impactedEmployee: lopDeductions.length,
           lopAmount: totalLopAmount.toFixed(2),
           totalLOPDays: totalLOPDays,
+          impactedEmployeeDetails: lopDeductions,
         },
       });
     } catch (error) {
@@ -2534,6 +2544,7 @@ class PaymentController {
         data: {
           impactedEmployee: tdsDeductions.length,
           tdsAmount: totalTdsAmount.toFixed(2),
+          impactedEmployeeDetails: tdsDeductions,
         },
       });
     } catch (error) {
@@ -2586,7 +2597,6 @@ class PaymentController {
       console.log("tdsDeductions", tdsDeductions);
       for (const tdsSingleDetails of tdsDeductions) {
         console.log(tdsSingleDetails);
-
         totaPaymentAmount += parseFloat(tdsSingleDetails.paymentAmount || 0);
       }
       return respHelper(res, {
@@ -2594,6 +2604,7 @@ class PaymentController {
         data: {
           impactedEmployee: tdsDeductions.length,
           paymentAmount: totaPaymentAmount.toFixed(2),
+          impactedEmployeeDetails:tdsDeductions,
         },
       });
     } catch (error) {
@@ -2636,7 +2647,7 @@ class PaymentController {
       var totalExtraDeductionsAmount = 0;
       let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${returnVAlue.avalialbleEmployees.join(
         ","
-      )}) GROUP BY empCode`;
+      )}) and startMonth='${value.paymonth}' GROUP BY empCode `;
 
       console.log("Deduction Query ::" + allDeductionQuery);
 
@@ -2653,6 +2664,7 @@ class PaymentController {
           data: {
             impactedEmployee: extraDeductions[0].length,
             extraDeductionAmount: totalExtraDeductionsAmount.toFixed(2),
+            impactedEmployeeDetatils:extraDeductions[0],
           },
         });
       } else {
@@ -3202,282 +3214,36 @@ class PaymentController {
     }
   }
 
-  // async exportSalaryComponent(req, res) {
-  //   try {
-  //     const { salalryStructureAutoId } = req.query;
-  //     const getComponentAutoIds =
-  //       await db.salarystructurecomponentmapping.findAll({
-  //         attributes: ["salaryComponentAutoId"],
-  //         where: { salaryStructureAutoId: salalryStructureAutoId },
-  //         include: [
-  //           {
-  //             model: db.salaryComponent,
-  //             attributes: ["salaryComponentCode", "salaryComponentAlias"],
-  //             as: "componentDetails",
-  //           },
-  //         ],
-  //         raw: true,
-  //         nest: true,
-  //       });
-
-  //       const arr = await Promise.all(
-  //       getComponentAutoIds.map(async (item) => ({
-  //         salaryComponentValue:
-  //           item.componentDetails.salaryComponentAlias?.trim() ||
-  //           item.componentDetails.salaryComponentCode,
-  //       }))
-  //     );
-
-  //     if (arr.length > 0) {
-  //       const timestamp = moment().format("HH:mm");
-
-  //       const staticFields = [
-  //         "Email/Employee ID",
-  //         "CTC",
-  //         "Effective Date",
-  //         "Salary Structure",
-  //         "Event",
-  //       ];
-
-  //       const headers = [
-  //         ...staticFields,
-  //         ...arr.map((item) => item.salaryComponentValue),
-  //       ];
-
-  //       const columns = headers.map((value) => ({
-  //         label: value,
-  //         value: value,
-  //       }));
-
-  //       const data = [
-  //         {
-  //           sheet: "Salary Component",
-  //           columns: columns,
-  //           content: [],
-  //         },
-  //       ];
-  //       const settings = {
-  //         fileName: `Component_${timestamp}`,
-  //         extraLength: 3,
-  //         writeOptions: {
-  //           type: "buffer",
-  //           bookType: "xlsx",
-  //         },
-  //       };
-
-  //       const report = xlsx(data, settings);
-  //       res.setHeader(
-  //         "Content-Disposition",
-  //         `attachment; filename=Component_${timestamp}.xlsx`
-  //       );
-  //       res.end(report);
-  //     } else {
-  //       res.status(404).json({
-  //         message: "Data not found",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.log("error", error);
-  //     return respHelper(res, {
-  //       status: 500,
-  //       message: "An error occurred while fetching data",
-  //     });
-  //   }
-  // }
-
-  //   async exportSample(req, res) {
-  //     try {
-  //       const { exportSheetAutoId, salalryStructureAutoId, employeeIds, paymonth } = req.query;
-  //       var arr = []
-  //       if (!exportSheetAutoId) {
-  //         return respHelper(res, {
-  //           status: 400,
-  //           data: [],
-  //           msg: "Sample Sheet Not Available",
-  //         });
-  //       }
-  //       const getColumns = await db.exportSheetMapping.findAll({
-  //         attributes: ["columnName"],
-  //         where: {
-  //           isActive: 1,
-  //           exportSheetAutoId: exportSheetAutoId,
-  //         },
-  //         raw: true,
-  //         nest: true,
-  //       });
-
-  //       if (salalryStructureAutoId) {
-  //         const getComponentAutoIds =
-  //           await db.salarystructurecomponentmapping.findAll({
-  //             attributes: ["salaryComponentAutoId"],
-  //             where: { salaryStructureAutoId: salalryStructureAutoId },
-  //             include: [
-  //               {
-  //                 model: db.salaryComponent,
-  //                 attributes: ["salaryComponentCode", "salaryComponentAlias"],
-  //                 as: "componentDetails",
-  //               },
-  //             ],
-  //             raw: true,
-  //             nest: true,
-  //           });
-
-  //         arr = await Promise.all(
-  //           getComponentAutoIds.map(async (item) => ({
-  //             columnName:
-  //               item.componentDetails.salaryComponentAlias?.trim() ||
-  //               item.componentDetails.salaryComponentCode,
-  //           }))
-  //         );
-  //       }
-
-  //     if(salalryStructureAutoId==0){
-  //       var query = ""
-  //       let employeeIdss = [employeeIds].join(",");
-
-  //   // processed
-  //     if(exportSheetAutoId==6){
-  //       query = `
-  //       SELECT
-  //         e.empCode,
-  //         e.name,
-  //         SUM(CASE WHEN p.payStatus = 9 THEN 1 ELSE 0 END) AS processed
-  //       FROM tara.payprocessdetails p
-  //       JOIN tara.employee e ON e.id = p.EmployeeId
-  //       WHERE p.payMonth = '${paymonth}' AND p.EmployeeId IN (${employeeIdss})
-  //       GROUP BY e.empCode, e.name
-  //       HAVING processed = 1;
-  //     `;
-  //     }
-
-  //        //in process
-  //         if(exportSheetAutoId==7){
-  //         query = `
-  //         SELECT
-  //           e.empCode,
-  //           e.name,
-  //           SUM(CASE WHEN p.payStatus != 9 THEN 1 ELSE 0 END) AS inProcess
-  //         FROM tara.payprocessdetails p
-  //         JOIN tara.employee e ON e.id = p.EmployeeId
-  //         WHERE p.payMonth = '${
-  //           paymonth
-  //         }' AND p.EmployeeId IN (${employeeIdss})
-  //         GROUP BY e.empCode, e.name
-  //         HAVING inProcess = 1;
-  // `;
-  //       }
-  //     //total employee
-  //     if(exportSheetAutoId==8){
-  //         query = `
-  //           SELECT
-  //             e.empCode,
-  //             e.name,
-  //             COUNT(p.EmployeeId) AS totalEmployee
-  //           FROM tara.payprocessdetails p
-  //           JOIN tara.employee e ON e.id = p.EmployeeId
-  //           WHERE p.payMonth = '${
-  //             paymonth
-  //           }' AND p.EmployeeId IN (${employeeIdss})
-  //           GROUP BY e.empCode, e.name;
-  //         `;
-  //     }
-
-  //     var [employeeData] = await db.sequelize.query(
-  //       query,
-  //       { raw: true }
-  //     );
-  //     }
-
-  //      // }
-
-  //       if (getColumns.length > 0 && salalryStructureAutoId != 0 ) {
-  //         console.log("")
-  //         const timestamp = moment().format("HH:mm");
-
-  //         let mergeColumns = [...getColumns, ...arr];
-
-  //         const headers = [...mergeColumns.map((item) => item.columnName)];
-  //         const columns = headers.map((value) => ({
-  //           label: value,
-  //           value: value,
-  //         }));
-
-  //         const data = [
-  //           {
-  //             sheet: "Salary Component",
-  //             columns: columns,
-  //             content: [],
-  //           },
-  //         ];
-  //         const settings = {
-  //           fileName: `Component_${timestamp}`,
-  //           extraLength: 3,
-  //           writeOptions: {
-  //             type: "buffer",
-  //             bookType: "xlsx",
-  //           },
-  //         };
-
-  //         const report = xlsx(data, settings);
-  //         res.setHeader(
-  //           "Content-Disposition",
-  //           `attachment; filename=Sample_sheet_${timestamp}.xlsx`
-  //         );
-  //         res.end(report);
-  //       }
-  //       if( getColumns.length == 0 && salalryStructureAutoId == 0 &&  (exportSheetAutoId == 6 || exportSheetAutoId == 7 || exportSheetAutoId == 8 || exportSheetAutoId == 9)){
-  //         const timestamp = moment().format("HH:mm");
-
-  //         const data = [
-  //           {
-  //             sheet: "Employee",
-  //             columns: [
-  //               { label: "Employee Code", value: "empCode" },
-  //               { label: "Employee Name", value: "name" }
-  //             ],
-  //             content: employeeData,
-  //           },
-  //         ];
-
-  //         const settings = {
-  //           fileName: `Total_${timestamp}`,
-  //           extraLength: 3,
-  //           writeOptions: {
-  //             type: "buffer",
-  //             bookType: "xlsx",
-  //           },
-  //         };
-
-  //         const report = xlsx(data, settings);
-  //         res.setHeader(
-  //           "Content-Disposition",
-  //           `attachment; filename=Employee_Master_${timestamp}.xlsx`
-  //         );
-  //         res.end(report);
-  //       }
-  //       else {
-  //         res.status(404).json({
-  //           message: "No active columns found for the given sheet",
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.log("error", error);
-  //       return respHelper(res, {
-  //         status: 500,
-  //         message: "An error occurred while fetching data",
-  //       });
-  //     }
-  //   }
-
-  // const moment = require("moment");
-  // const xlsx = require("json-as-xlsx");
-
   async exportSample(req, res) {
     try {
-      const { exportSheetAutoId, salalryStructureAutoId, employeeIds } =
-        req.query;
-      console.log("querey>>>>>>", req.query);
+      const { exportSheetAutoId, salalryStructureAutoId, employeeIds,payMonth,processId } = req.query;
+      console.log(req.query);
+      // return
+      const sheetName = {
+        "TDS Deduction Sample":1,
+        "LOP Deduction Sample":2,
+        "Extra Payment Sample":3,
+        "Standard Deduction Sample":4,
+        "Salary Structure Component":5,
+        "Processed Employee":6,
+        "In Process Employee":7,
+        "Total Employee":8,
+        "Available Employee":9,
+        "LOP Impacted Employees":10,
+        "Extra Payment Impacted Employees":11,
+        "Extra Deduction Impacted Employees":12,
+        "TDS Impacted Employees":13,
+        "Total Processed":14,
+        "Successfully Processed":15,
+        "Failed in Process":16,
+      }
 
+      const getKeyByValue = async (value) => {
+        const result = Object.keys(sheetName).find(key => sheetName[key] == value);
+        return result;
+      };
+      
+      const sheetVal = await getKeyByValue(exportSheetAutoId); 
       // Check for required exportSheetAutoId
       if (!exportSheetAutoId) {
         return res.status(400).json({
@@ -3502,20 +3268,19 @@ class PaymentController {
 
       // Fetch salary structure details if salalryStructureAutoId is provided
       if (salalryStructureAutoId && salalryStructureAutoId != 0) {
-        const getComponentAutoIds =
-          await db.salarystructurecomponentmapping.findAll({
-            attributes: ["salaryComponentAutoId"],
-            where: { salaryStructureAutoId: salalryStructureAutoId },
-            include: [
-              {
-                model: db.salaryComponent,
-                attributes: ["salaryComponentCode", "salaryComponentAlias"],
-                as: "componentDetails",
-              },
-            ],
-            raw: true,
-            nest: true,
-          });
+        const getComponentAutoIds = await db.salarystructurecomponentmapping.findAll({
+          attributes: ["salaryComponentAutoId"],
+          where: { salaryStructureAutoId: salalryStructureAutoId },
+          include: [
+            {
+              model: db.salaryComponent,
+              attributes: ["salaryComponentCode", "salaryComponentAlias"],
+              as: "componentDetails",
+            },
+          ],
+          raw: true,
+          nest: true,
+        });
 
         arr = await Promise.all(
           getComponentAutoIds.map(async (item) => ({
@@ -3525,29 +3290,48 @@ class PaymentController {
           }))
         );
       }
-      //console.log("getColumns",getColumns)
-      //console.log("arr",arr)
-      // Process employee data for exportSheetAutoId conditions
+    
       let employeeData = [];
-      if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
+      if (salalryStructureAutoId == 0 && exportSheetAutoId==6) {
         let query = "";
         const employeeIdss = [employeeIds].join(",");
         query = `
-      SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
+        SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
 
         if (query) {
           const [results] = await db.sequelize.query(query, { raw: true });
           employeeData = results;
         }
+        console.log(employeeData);
       }
 
-      const timestamp = moment().format("HH:mm");
+      if (salalryStructureAutoId == 0 && [10,11,12,13,14,15,16].includes(Number(exportSheetAutoId))) {
+        let query = "";
+        const employeeIdss = [employeeIds].join(",");
+        const impactedEmployeeQueryObject={
+          "10":`SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
+          "11":`SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM tara.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss});`,
+          "12":`SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where empCode in(${employeeIdss}) and startMonth='${payMonth}' GROUP BY empCode;`,
+          "13":`SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM tara.tdsdeductions where empCode in(${employeeIds}) and tdsMonth='${payMonth}';`,
+          "14":`SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
+          "15":`SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
+          "16":`SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+        }
+        query = impactedEmployeeQueryObject[exportSheetAutoId];
+        if (query) {
+          const [results] = await db.sequelize.query(query, { raw: true });
+          employeeData = results;
+        }
+        console.log(query);
+      }
+
+      // return;
+      const timestamp = Date.now();
 
       // Handle scenarios based on conditions
       if (getColumns.length > 0 && salalryStructureAutoId != 0) {
         const mergeColumns = [...getColumns, ...arr];
         const headers = mergeColumns.map((item) => item.columnName);
-        console.log("headers>>>>>>>>>", headers.length);
         const columns = headers.map((value) => ({
           label: value,
           value: value,
@@ -3573,15 +3357,47 @@ class PaymentController {
         const report = xlsx(data, settings);
         res.setHeader(
           "Content-Disposition",
-          `attachment; filename=Sample_sheet_${timestamp}.xlsx`
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
         );
         return res.end(report);
-      } else if (
+      }
+      else if(getColumns.length > 0 && salalryStructureAutoId == 0) {
+        const mergeColumns = [...getColumns, ...arr];
+        const headers = mergeColumns.map((item) => item.columnName);
+        const columns = headers.map((value) => ({
+          label: value,
+          value: value,
+        }));
+
+        const data = [
+          {
+            sheet: "Salary Component",
+            columns,
+            content: [],
+          },
+        ];
+
+        const settings = {
+          fileName: `Component_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } 
+      else if (
         getColumns.length == 0 &&
         salalryStructureAutoId == 0 &&
         [6, 7, 8, 9].includes(Number(exportSheetAutoId))
       ) {
-        console.log("i am in else");
         const data = [
           {
             sheet: "Employee",
@@ -3605,10 +3421,71 @@ class PaymentController {
         const report = xlsx(data, settings);
         res.setHeader(
           "Content-Disposition",
-          `attachment; filename=Employee_Master_${timestamp}.xlsx`
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
         );
         return res.end(report);
-      } else {
+      }  else if (
+        getColumns.length == 0 &&
+        salalryStructureAutoId == 0 &&
+        [10,11,12,13,14,15,16].includes(Number(exportSheetAutoId))
+      ) {
+
+        const columnsFroExcel={
+          "10":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Lop Days", value: "LOP Days" },
+          ],
+          "11":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Lop Days", value: "Extra Payment Amount" },
+          ],
+          "12":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Deduction Amount", value: "TotalDeductionAmount" },
+          ],
+          "13":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "TDS Amount", value: "TDS Amount" },
+          ],
+          "14":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Remark", value: "Remark" },
+          ],
+          "15":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Remark", value: "Remark" },
+          ],
+          "16":[
+            { label: "Employee Code", value: "EmployeeId" },
+            { label: "Remark", value: "Remark" },
+          ]
+        }
+
+        const data = [
+          {
+            sheet: "Employee",
+            columns: columnsFroExcel[exportSheetAutoId],
+            content: employeeData,
+          },
+        ];
+
+        const settings = {
+          fileName: `Total_${timestamp}`,
+          extraLength: 3,
+          writeOptions: {
+            type: "buffer",
+            bookType: "xlsx",
+          },
+        };
+
+        const report = xlsx(data, settings);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${sheetVal}_${timestamp}.xlsx`
+        );
+        return res.end(report);
+      } 
+      else {
         return res.status(404).json({
           message: "No active columns found for the given sheet",
         });
@@ -3649,6 +3526,91 @@ class PaymentController {
       });
     }
   }
+  
+  async salarySlipPdf(req, res) {
+    try {
+        // Fetch salary details
+        const {user,financialYear} = req.query;
+        const salaryDetails = await paymentHelper.salaryPaySlip(user,financialYear,req.userId);
+
+        if (!salaryDetails || salaryDetails.length === 0) {
+            return res.status(404).send("Salary details not found.");
+        }
+
+        const processPayslipComponents = (payslipcomponents = []) => {
+            const result = { earnings: [], deductions: [] };
+            payslipcomponents.forEach((item) => {
+                if (item.paySlipComponentType === "Earning" || item.paySlipComponentType === "Balancing") {
+                    result.earnings.push(item);
+                } else if (item.paySlipComponentType === "Deduction") {
+                    result.deductions.push(item);
+                }
+            });
+            return result;
+        };
+
+        const paySlipComponent = processPayslipComponents(salaryDetails[0].payslipcomponents);
+
+        const employee = salaryDetails[0].employee;
+        const body = {
+            name: employee.name || "",
+            employeeCode: employee?.empCode || "",
+            employeeType: employee?.employeetypemaster?.emptypename || "",
+            designation: employee?.designationmaster?.name || "",
+            department: employee?.departmentmaster?.departmentName || "N/A",
+            panNo: employee?.panNo || "",
+            dateOfJoining: moment(employee?.employeejobdetail?.dateOfJoining).isValid()
+                ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
+                : "",
+            workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
+            companyName: employee?.companymaster?.companyName || "",
+            currentOfficeLocation: employee?.companylocationmaster?.citymaster?.cityName || "",
+            companyAddress: employee?.companylocationmaster?.address1 || "",
+            grossEarnings: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+                ? parseInt(salaryDetails[0].paySlipGrossEarning)
+                : "",
+            totalPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
+                ? parseInt(salaryDetails[0].paySlipTotalPay)
+                : "",
+            totalDeductions: Number.isFinite(+salaryDetails[0]?.paySlipTotalDeduction)
+                ? parseInt(salaryDetails[0].paySlipTotalDeduction)
+                : "",
+            lop: salaryDetails[0]?.paySlipTotalDays && salaryDetails[0]?.paySlipWorkingDays
+                ? salaryDetails[0].paySlipTotalDays - salaryDetails[0].paySlipWorkingDays
+                : "",
+            paySlipComponent: paySlipComponent || [],
+            netPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
+                ? parseInt(salaryDetails[0].paySlipTotalPay)
+                : "",
+            month: "09" || "",
+            year: "2024" || ""
+        };
+
+        const letter = await emailTemplate.salarySlipPdf(body);
+        const options = { format: "A4" };
+        const file = { content: letter };
+
+        html_to_pdf.generatePdf(file, options, (error, success) => {
+            // console.timeEnd("Generate PDF");
+
+            if (error) {
+                console.error("PDF generation error:", error);
+                return res.status(500).send("Error generating PDF");
+            }
+            
+            res.set({
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+            });
+            res.end(success);
+        });
+    } catch (error) {
+        console.error("Something Went Wrong:", error);
+        res.status(500).send("Something Went Wrong");
+    }
+}
+
+  
 }
 
 const groupByEmployeeId = (data) => {

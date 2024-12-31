@@ -1321,7 +1321,7 @@ const lopValidateSchama = Joi.object({
   lopAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
   EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
   lopMonth: Joi.string().max(255).required(),
-  lopDays: Joi.number().integer().min(0).required(), // Leave days must be non-negative.
+  lopDays: Joi.number().precision(2).positive().required().label("LOP Days"), // Leave days must be non-negative.
   createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
   createdAt: Joi.date().optional().allow(null), // Optional, can be null.
   updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.

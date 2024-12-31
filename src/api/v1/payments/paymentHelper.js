@@ -133,6 +133,99 @@ const getDaysInCurrentMonth = async function (data) {
   return lastDayOfMonth.getDate();
 };
 
+const salaryPaySlip = async function (user,financialYear,userId) {
+    try {
+      // const user = req.query.user;
+      // const financialYear = req.query.financialYear;
+
+      const paySlip = await db.paySlips.findAll({
+        where: {
+          EmployeeId: user ? user : userId,
+          paySlipFinancialYear: financialYear,
+          paySlipStatus: 1,
+        },
+        order: [["createdAt", "desc"]],
+        attributes: { exclude: ["createdAt", "createdBy"] },
+        include: [
+          {
+            model: db.employeeMaster,
+            attributes: [
+              "name",
+              "empCode",
+              "email",
+              "designation_id",
+              "departmentId",
+              "panNo",
+              "esicNo",
+              "uanNo",
+              "pfNo",
+              "employeeType",
+            ],
+            include: [
+              {
+                model: db.employeeTypeMaster,
+                 attributes:["emptypename"]
+              },
+              {
+                model: db.departmentMaster,
+                required: true,
+                attributes: ["departmentCode", "departmentName"],
+              },
+              {
+                model: db.designationMaster,
+                required: false,
+                attributes: ["name"],
+              },
+              {
+                model: db.jobDetails,
+                attributes: ["dateOfJoining"],
+              },
+              {
+                model: db.companyLocationMaster,
+                attributes: ["companyLocationId","companyId", "address1", "companyLocationCode"],
+                include:[{
+                  model:db.cityMaster,
+                  attributes:['cityName']
+                },
+                {
+                  model:db.stateMaster,
+                  attributes:['stateName']
+                }]
+              },
+              {
+                 model: db.companyMaster,
+                 attributes: ["companyName"]
+              }
+            ],
+          },
+          {
+            model: db.paySlipComponent,
+            attributes: {
+              exclude: [
+                "createdAt",
+                "createdBy",
+                "updatedBy",
+                "updatedAt",
+                "isActive",
+              ],
+            },
+          },
+        ],
+      });
+
+      return paySlip
+      // return respHelper(res, {
+      //   status: 200,
+      //   data: paySlip,
+      // });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
 function getPercentage(part, total) {
   if (total === 0) {
     throw new Error("Total cannot be zero.");
@@ -429,17 +522,18 @@ async function getCalculatedPF(monthlyElementPay) {
 async function getCalculatedESIC(monthlyElementPay) {
   let calculatedEmployeeESIC = 0,calculatedEmployerESIC,
     esicApplicableAmount = 0;
-  if (monthlyElementPay[0].isPfApplicable == 0) return calculatedEmployeeESIC;
+  if (monthlyElementPay[0].isEsicApplicable == 0) return calculatedEmployeeESIC;
   esicApplicableAmount =
   await monthlyElementPay
   .filter((element) => element.isEsicApplicableComponent == 1)
   .reduce(async (sumPromise, element) => {
+    console.log("ESIC AMOUNT ::",element["elementMonthlyAmount"]);
     const sum = await sumPromise; // Resolve the previous sum
     return sum + parseFloat(element["elementMonthlyAmount"]);
   }, Promise.resolve(0)); // Start with a resolved promise of 0
 
-        calculatedEmployeeESIC=getPercentagePart(esicApplicableAmount,0.75);
-        calculatedEmployerESIC=getPercentagePart(esicApplicableAmount,3.25);
+  calculatedEmployeeESIC=getPercentagePart(esicApplicableAmount,0.75);
+  calculatedEmployerESIC=getPercentagePart(esicApplicableAmount,3.25);
   console.log("Applicable ESIC Amount :: " + esicApplicableAmount);
   return {calculatedEmployerESIC,calculatedEmployeeESIC}; // Return elementValue or null if not found
 }
@@ -467,5 +561,6 @@ export default {
   getFromattedDate,
   getCalculatedPF,
   getCalculatedESIC,
-  arrectLOP
+  arrectLOP,
+  salaryPaySlip
 };

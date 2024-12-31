@@ -111,6 +111,10 @@ export default function getAllListeners(eventEmitter) {
   eventEmitter.on("confirmationWorkflowNextLevel", async (input) => {
     await confirmationWorkflowNextLevel(input);
   });
+  eventEmitter.on('x',async (input)=>{
+    await salarySlipPdf(input)
+  })
+
   //confirmation
 }
 
@@ -526,6 +530,28 @@ async function confirmationWorkflowNextLevel(input) {
       subject: `Confirmation Workflow Approval Required`,
       html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
     });
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+  }
+}
+
+async function salarySlipPdf(input) {
+  try {
+    const inputData = JSON.parse(input);
+    let letter = await emailTemplate.salarySlipPdf(inputData);
+
+    let options = { format: "A4" };
+    let file = { content: letter };
+
+    let pdfBuffer = await html_to_pdf.generatePdf(file, options);
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+    });
+    return res.end(pdfBuffer);
+   
   } catch (error) {
     console.log(error);
     logger.error(error);

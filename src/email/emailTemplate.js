@@ -49,14 +49,16 @@ const regularizationRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -73,21 +75,23 @@ const regularizationRequestMail = async (data) => {
                     >
                       <p>Hi <b>${data.managerName}</b>,</p>
                       <p>
-                        <b>${data.requesterName
-    }</b> has requested for Attendance
+                        <b>${
+                          data.requesterName
+                        }</b> has requested for Attendance
                         Request from ${moment(data.attendenceFromDate).format(
-      "MMMM D, YYYY"
-    )} to ${moment(data.attendenceToDate).format(
-      "MMMM D, YYYY"
-    )}. <br />
+                          "MMMM D, YYYY"
+                        )} to ${moment(data.attendenceToDate).format(
+    "MMMM D, YYYY"
+  )}. <br />
                       </p>
                       <p>
                         Request message : ${data.userRemark}
                       </p>
                       <p>
                         <a
-                          href='${process.env.CLIENT_URL
-    }#/TaskBox?selectedTab=0&selectedMode=assignedToMe'
+                          href='${
+                            process.env.CLIENT_URL
+                          }#/TaskBox?selectedTab=0&selectedMode=assignedToMe'
                           style="
                             padding: 5px 10px;
                             background: #0173c5;
@@ -186,14 +190,16 @@ const leaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -216,16 +222,17 @@ const leaveRequestMail = async (data) => {
                               <p>
                                 <b>${data.requesterName}</b> has requested for
                                 ${data.leaveType} from ${moment(
-      data.leaveFromDate
-    ).format("MMMM D, YYYY")} to ${moment(data.leaveToDate).format(
-      "MMMM D, YYYY"
-    )}. <br />
+    data.leaveFromDate
+  ).format("MMMM D, YYYY")} to ${moment(data.leaveToDate).format(
+    "MMMM D, YYYY"
+  )}. <br />
                               </p>
                               <p>Request message : ${data.userRemark}</p>
                               <p>
                                 <a
-                                  href=${process.env.CLIENT_URL
-    }#/TaskBox?selectedTab=1&selectedMode=assignedToMe
+                                  href=${
+                                    process.env.CLIENT_URL
+                                  }#/TaskBox?selectedTab=1&selectedMode=assignedToMe
                                   style="
                                     padding: 5px 10px;
                                     background: #0173c5;
@@ -406,14 +413,16 @@ const revokeRegularizeMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -436,8 +445,8 @@ const revokeRegularizeMail = async (data) => {
                               <p>
                                 <b>${data.name}</b> has Revoked own
                                 attendance request of ${moment(
-      data.attendanceDate
-    ).format("MMMM D, YYYY")}<br />
+                                  data.attendanceDate
+                                ).format("MMMM D, YYYY")}<br />
                               </p>
                               <p>
                                 <a
@@ -555,14 +564,16 @@ const regularizationAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -584,13 +595,14 @@ const regularizationAcknowledgement = async (data) => {
                               <p>Hi <b>${data.requesterName}</b>,</p>
                               
                               <p>
-                                <b>${data.managerName}</b> has ${data.status
-    } your Attendance
+                                <b>${data.managerName}</b> has ${
+    data.status
+  } your Attendance
                                 Request from ${moment(data.fromDate).format(
-      "MMMM D, YYYY"
-    )} to ${moment(data.toDate).format(
-      "MMMM D, YYYY"
-    )}.
+                                  "MMMM D, YYYY"
+                                )} to ${moment(data.toDate).format(
+    "MMMM D, YYYY"
+  )}.
                               </p>
                               <p>
                                 <a 
@@ -604,8 +616,9 @@ const regularizationAcknowledgement = async (data) => {
                                     display: inline-block;
                                   "
                                   target="_blank"
-                                href=${process.env.CLIENT_URL
-    }>Click Here</a> to view the
+                                href=${
+                                  process.env.CLIENT_URL
+                                }>Click Here</a> to view the
                                 full request. <br />
                               </p>
                               <p><br /></p>
@@ -707,14 +720,16 @@ const leaveAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -736,14 +751,15 @@ const leaveAcknowledgement = async (data) => {
                               <p>Hi <b>${data.requesterName}</b>,</p>
                              
                               <p>
-                                <b>${data.managerName}</b> has ${data.status
-    } your leave
+                                <b>${data.managerName}</b> has ${
+    data.status
+  } your leave
                                 request ${data.leaveType} from ${moment(
-      data.fromDate
-    ).format("MMMM D, YYYY")} to
+    data.fromDate
+  ).format("MMMM D, YYYY")} to
                                 ${moment(data.toDate).format(
-      "MMMM D, YYYY"
-    )} <br />
+                                  "MMMM D, YYYY"
+                                )} <br />
                               </p>
                               <p>
                                 <a
@@ -935,14 +951,16 @@ const revokeLeaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+                                process.env.PROXY_URL
+                              }/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -966,10 +984,10 @@ const revokeLeaveRequestMail = async (data) => {
                               <p>
                                 <b>${data.empName}</b> has Revoked the own leave
                                 request ${data.leaveType} from ${moment(
-      data.fromDate
-    ).format("MMMM D, YYYY")} to ${moment(data.toDate).format(
-      "MMMM D, YYYY"
-    )}.<br />
+    data.fromDate
+  ).format("MMMM D, YYYY")} to ${moment(data.toDate).format(
+    "MMMM D, YYYY"
+  )}.<br />
                               </p>
                               <p>
                                 <a
@@ -1087,14 +1105,16 @@ const autoLeaveDeduction = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${
+                                        process.env.PROXY_URL
+                                      }/api/uploads/assets/team-new.png"
                                       alt="Logo"
                                     />
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                                      src="${
+                                        process.env.PROXY_URL
+                                      }/api/uploads/assets/tara_small.png"
                                       alt="Logo"
                                       style="float: right"
                                     />
@@ -1178,10 +1198,11 @@ const autoLeaveDeduction = async (data) => {
                                   "
                                 >
                                   On ${moment(data.date).format(
-      "DD-MM-YYYY"
-    )}<br /><br />
-                                  ${data.leaveType} (${data.leaveDuration
-    }) has been generated by system and
+                                    "DD-MM-YYYY"
+                                  )}<br /><br />
+                                  ${data.leaveType} (${
+    data.leaveDuration
+  }) has been generated by system and
                                   ${data.leaveReason} because you have not
                                   satisfied the attendance policy.
                                 </p>
@@ -1194,23 +1215,24 @@ const autoLeaveDeduction = async (data) => {
                                   "
                                 >
                                   Assigned Shift : ${moment(
-      data.shiftStartTime,
-      "HH:mm:ss"
-    ).format("hh:mm:ss A")} - ${moment(
-      data.shiftEndTime,
-      "HH:mm:ss"
-    ).format("hh:mm:ss A")}
+                                    data.shiftStartTime,
+                                    "HH:mm:ss"
+                                  ).format("hh:mm:ss A")} - ${moment(
+    data.shiftEndTime,
+    "HH:mm:ss"
+  ).format("hh:mm:ss A")}
                                   <br />
-                                  Leave Type : ${data.leaveType} (${data.leaveDuration
-    }) <br />
+                                  Leave Type : ${data.leaveType} (${
+    data.leaveDuration
+  }) <br />
                                   Clock-in : ${moment(
-      data.punchInTime,
-      "HH:mm:ss"
-    ).format("hh:mm:ss A")} <br />
+                                    data.punchInTime,
+                                    "HH:mm:ss"
+                                  ).format("hh:mm:ss A")} <br />
                                   Clock-out : ${moment(
-      data.punchOutTime,
-      "HH:mm:ss"
-    ).format("hh:mm:ss A")} <br />
+                                    data.punchOutTime,
+                                    "HH:mm:ss"
+                                  ).format("hh:mm:ss A")} <br />
                                 </p>
                                 <p
                                   style="
@@ -2254,14 +2276,16 @@ const separationApproveByBUHR = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${
+                                        process.env.PROXY_URL
+                                      }/api/uploads/assets/team-new.png"
                                       alt="Logo"
                                     />
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                                      src="${
+                                        process.env.PROXY_URL
+                                      }/api/uploads/assets/tara_small.png"
                                       alt="Logo"
                                       style="float: right"
                                     />
@@ -2299,17 +2323,18 @@ const separationApproveByBUHR = async (data) => {
                                     font-family: Arial;
                                   "
                                   >${moment(data.dateOfResignation).format(
-      "DD-MM-YYYY"
-    )}</span
+                                    "DD-MM-YYYY"
+                                  )}</span
                                 ></span
                               ><span style="font-size: 12px"
                                 ><span style="font-family: Arial"
-                                  >&nbsp;and your last working day in ${data.companyName
-    } would be&nbsp;</span
+                                  >&nbsp;and your last working day in ${
+                                    data.companyName
+                                  } would be&nbsp;</span
                                 ></span
                               ><b>${moment(data.lastWorkingDay).format(
-      "DD-MM-YYYY"
-    )}</b
+                                "DD-MM-YYYY"
+                              )}</b
                               ><span style="font-family: Georgia"
                                 ><span style="font-family: Arial">.</span></span
                               >
@@ -2735,14 +2760,16 @@ const clearanceInitiated = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${
+                                        process.env.PROXY_URL
+                                      }/api/uploads/assets/team-new.png"
                                       alt="Logo"
                                     />
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                                      src="${
+                                        process.env.PROXY_URL
+                                      }/api/uploads/assets/tara_small.png"
                                       alt="Logo"
                                       style="float: right"
                                     />
@@ -2764,12 +2791,15 @@ const clearanceInitiated = async (data) => {
                               <br /><br />
 
                               <span>
-                              <b>${data.taskName
-    }</b> Form is pending with you to complete separation formalities for <b>${data.empName
-    }, ${data.empCode}, ${data.department
-    }</b> whose last working day is <b>${moment(data.lastWorkingDay).format(
-      "DD-MM-YYYY"
-    )}</b>. Please complete the task as early as possible. You can access the task under pending tasks on your dashboard.
+                              <b>${
+                                data.taskName
+                              }</b> Form is pending with you to complete separation formalities for <b>${
+    data.empName
+  }, ${data.empCode}, ${
+    data.department
+  }</b> whose last working day is <b>${moment(data.lastWorkingDay).format(
+    "DD-MM-YYYY"
+  )}</b>. Please complete the task as early as possible. You can access the task under pending tasks on your dashboard.
                               </span>
                              
                             </div>
@@ -2859,15 +2889,15 @@ const clearanceInitiated = async (data) => {
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 >${moment(data.dateOfJoining).format(
-      "DD-MM-YYYY"
-    )}</span
+                                  "DD-MM-YYYY"
+                                )}</span
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 ><br /><span
                                   style="font-family: Calibri; font-size: 14px"
                                   >Date of Resignation: ${moment(
-      data.dateOfResignation
-    ).format("DD-MM-YYYY")}</span
+                                    data.dateOfResignation
+                                  ).format("DD-MM-YYYY")}</span
                                 ></span
                               ><br /><span
                                 style="font-family: Calibri; font-size: 14px"
@@ -2875,8 +2905,8 @@ const clearanceInitiated = async (data) => {
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 >${moment(data.lastWorkingDay).format(
-      "DD-MM-YYYY"
-    )}</span
+                                  "DD-MM-YYYY"
+                                )}</span
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 ><br /></span
@@ -4083,6 +4113,183 @@ const confirmationWorkFlownextLevel = async (data) => {
   </body>
 </html>`;
 };
+const salarySlipPdf = async (data) => {
+  const generateUnifiedTableRows = (earnings, deductions) => {
+    const maxRows = Math.max(earnings.length, deductions.length);
+
+    let rows = "";
+    for (let i = 0; i < maxRows; i++) {
+      const earning = earnings[i] || {};
+      const deduction = deductions[i] || {};
+      rows += `
+        <tr>
+            <td>${earning.paySlipComponentName || ""}</td>
+            <td>${earning.paySlipComponentAmount || ""}</td>
+            <td>${deduction.paySlipComponentName || ""}</td>
+            <td>${deduction.paySlipComponentAmount || ""}</td>
+        </tr>`;
+    }
+    return rows;
+  };
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Slip</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+    .salary-slip {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;  /* Reduced margin to bring the content closer */
+        padding: 0;
+    }
+    .header img {
+        max-height: 50px;
+    }
+    .header .company-details {
+        text-align: right;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        max-width: 300px;
+        line-height: 1.2;
+        margin: 0;
+        padding: 0;
+    }
+    .header .company-details h3 {
+        margin: 0; /* Remove margin from the company name */
+        padding: 0;
+        font-size: 18px;
+    }
+    .header .company-details p {
+        margin: 0; /* Remove margin from the company address */
+        padding: 0;
+        font-size: 14px;
+    }
+    .content {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .content td, .content th {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .content th {
+        background-color: #f2f2f2;
+    }
+    .footer {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+    }
+</style>
+
+
+
+</head>
+<body>
+    <div class="salary-slip">
+        <div class="header">
+            <img src="https://www.teamcomputers.com/images/logo.png" alt="Company Logo">
+            <div class="company-details">
+                <h3>${data.companyName}</h3>
+                <p>${data.companyAddress}</p>
+            </div>
+        </div>
+
+        <h2>Salary Slip for ${data.month} - ${data.year}</h2>
+
+        <table class="content">
+            <tr>
+                <td><strong>Employee Name:</strong></td>
+                <td>${data.name}</td>
+                <td><strong>Employee Type:</strong></td>
+                <td>${data.employeeType}</td>
+            </tr>
+            <tr>
+                <td><strong>Designation:</strong></td>
+                <td>${data.designation}</td>
+                <td><strong>Employee Code:</strong></td>
+                <td>${data.employeeCode}</td>
+            </tr>
+            <tr>
+                <td><strong>Department:</strong></td>
+                <td>${data.department}</td>
+                <td><strong>Working Days:</strong></td>
+                <td>${data.workingDays}</td>
+            </tr>
+            <tr>
+                <td><strong>Date of Joining:</strong></td>
+                <td>${data.dateOfJoining}</td>
+                <td><strong>LOP:</strong></td>
+                <td>${data.lop}</td>
+            </tr>
+            <tr>
+                <td><strong>Current Office Location:</strong></td>
+                <td>${data.currentOfficeLocation}</td>
+                <td><strong>PAN No:</strong></td>
+                <td>${data.panNo}</td>
+            </tr>
+        </table>
+
+        <h3>Earnings and Deductions</h3>
+        <table class="content">
+            <thead>
+                <tr>
+                    <th>Earnings</th>
+                    <th>Amount (Rs.)</th>
+                    <th>Deductions</th>
+                    <th>Amount (Rs.)</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${generateUnifiedTableRows(
+                  data.paySlipComponent.earnings || [],
+                  data.paySlipComponent.deductions || []
+                )}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>Gross Earnings (A)</strong></td>
+                    <td>${data.grossEarnings || 0}</td>
+                    <td><strong>Total Deductions (B)</strong></td>
+                    <td>${data.totalDeductions || 0}</td>
+                </tr>
+               <tr>
+                  <td><strong>Net Pay (A - B)</strong></td>
+                  <td>${data.netPay || 0}</td>
+                  <td><strong>Total Pay</strong></td>
+                  <td>${data.totalPay || 0}</td>
+              </tr>
+            </tfoot>
+        </table>
+
+        <p class="footer">Note: This is a Computer Generated Slip and does not require a signature.</p>
+    </div>
+</body>
+</html>`;
+};
+
 export default {
   regularizationRequestMail,
   resetPasswordMail,
@@ -4113,4 +4320,5 @@ export default {
   confirmationExtendEmailBody,
   confirmationSLABreachEmailBody,
   confirmationWorkFlownextLevel,
+  salarySlipPdf,
 };
