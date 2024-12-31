@@ -701,7 +701,7 @@ class MasterController {
       const limit = parseInt(req.query.limit) || 10;
       const pageNo = parseInt(req.query.page) || 1;
       const offset = (pageNo - 1) * limit;
-      const cacheKey = `employeeList:${pageNo}:${limit}:${search || ""}:${
+      const cacheKey = `employeeList:${process.env.TEST}:${pageNo}:${limit}:${search || ""}:${
         department || ""
       }:${designation || ""}:${buSearch || ""}:${sbuSearch || ""}:${
         areaSearch || ""
