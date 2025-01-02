@@ -838,6 +838,11 @@ class PaymentController {
         workbookEmployee.Sheets[sheetNameEmployee]
       );
 
+
+      console.log(Employees);
+      // return;
+
+
       if (!isNaN(Employees[0]["Effective Date"])) {
         console.log(
           paymentHelper.getFromattedDate(Employees[0]["Effective Date"])
@@ -1140,6 +1145,12 @@ class PaymentController {
       const newArray = result[0].filter((item) =>
         returnVAlue.avalialbleEmployees.includes(item.EmployeeId)
       );
+
+
+
+      console.log(newArray);
+
+      return
 
       let newProcess = await db.payProcessMaster.create(
         {
@@ -2484,7 +2495,7 @@ class PaymentController {
         data: {
           impactedEmployee: lopDeductions.length,
           lopAmount: totalLopAmount.toFixed(2),
-          totalLOPDays: totalLOPDays,
+          totalLOPDays: parseFloat(totalLOPDays).toFixed(1),
           impactedEmployeeDetails: lopDeductions,
         },
       });
