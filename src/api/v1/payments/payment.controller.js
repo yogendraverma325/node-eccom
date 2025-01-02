@@ -3114,8 +3114,6 @@ class PaymentController {
       console.log("currentProcessStatus", currentProcessStatus);
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
-        //processSalary(processId,req);
-        // console.log(stepperDataQuery);
       } else if (currentProcessStatus[0][0].currentStatusId == 3) {
         stepperDataQuery = await paymentHelper.query(10, processId, null);
       } else if (
