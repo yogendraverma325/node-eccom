@@ -589,11 +589,10 @@ class commonController {
       //for key 0 using for web and 1 for app
       var dashboardData = [];
       let cacheKey =
-        req.params.for == 0 ? "dashboardCardWeb" : "dashboardCardApp";
+        req.params.for == 0 ? `dashboardCardWeb_${process.env.TEST}` : `dashboardCardApp_${process.env.TEST}`;
       await client.get(cacheKey).then(async (data) => {
         if (data) {
           dashboardData = JSON.parse(data);
-
           return respHelper(res, {
             status: 200,
             data: dashboardData,

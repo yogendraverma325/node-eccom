@@ -3057,7 +3057,7 @@ class PaymentController {
       } else {
         await db.payProcessDetails.update(
           { payStatus: nextStatusId },
-          { where: { proceessId: processId } }
+          { where: { proceessId: processId ,payStatus:{[Op.ne]:[101]}} }
         );
       }
 
@@ -3115,13 +3115,13 @@ class PaymentController {
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
         //processSalary(processId,req);
+        // console.log(stepperDataQuery);
       } else if (currentProcessStatus[0][0].currentStatusId == 3) {
         stepperDataQuery = await paymentHelper.query(10, processId, null);
       } else if (
         [6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)
       ) {
         stepperDataQuery = await paymentHelper.query(18, processId, null);
-
         console.log(stepperDataQuery);
       }
       const stepperData = await db.sequelize.query(stepperDataQuery);
@@ -3500,7 +3500,7 @@ class PaymentController {
 
   async employeesListForProcessing(req, res) {
     try {
-      let employeeForProcessingQuery = `SELECT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.buId IN (1,2,3,4,5,6,7,8,9,11,12)`;
+      let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.buId IN (1,2,3,4,5,6,7,8,9,11,12)`;
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
@@ -3869,12 +3869,12 @@ async function processSalary(data) {
       const affectComponentCounts = await db.sequelize.query(
         queryForAffetElementCounts
       );
-      const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
-        ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
-            totalWorkingDays) *
-            employeeDetailsComponentWise[0][0].lopDays) /
-          affectComponentCounts[0][0].lopAffectCount
-        : 0;
+      // const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
+      //   ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+      //       totalWorkingDays) *
+      //       employeeDetailsComponentWise[0][0].lopDays) /
+      //     affectComponentCounts[0][0].lopAffectCount
+      //   : 0;
       for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
         const queryForComponentConfiguration = await paymentHelper.query(
           12,
@@ -3965,7 +3965,7 @@ async function processSalary(data) {
       let payElementComponents = await db.payMonthlyElements.findAll({
         where: {
           empId: employee,
-          isPfApplicableComponent: 1,
+          salaryComponentEarningType:{[Op.in]:['Earning','Balancing']},
           payMonth: result[0][0].payMonth,
         },
         raw: true,
@@ -4035,6 +4035,9 @@ async function generatePaySlip(data) {
         currentProcessStatus[0][0].payMonth,
         employeeIds
       );
+
+      console.log(queryForPayMonthlyElementsForSalarySlip);
+
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
