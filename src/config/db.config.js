@@ -120,6 +120,11 @@ import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 import Signingauthority from "../api/model/signingAuthority.js";
+
+// import start by jay
+import LwfMapping from "../api/model/lwfMapping.js";
+// import end by jay
+
 //CONFIRMATION
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -330,6 +335,11 @@ db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
   sequelize,
   Sequelize
 );
+
+// start lwf mapping by jay
+db.lwfMapping = LwfMapping(sequelize,Sequelize)
+// end lwf mapping by jay
+
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1292,6 +1302,11 @@ db.functionalAreaMapping.hasOne(db.departmentMapping, {
 db.ptLocationMaster.hasOne(db.stateMaster, {
   foreignKey: "stateId",
   sourceKey: "stateId"
+});
+
+db.lwfMapping.hasOne(db.stateMaster, {
+  foreignKey: "stateId",
+  sourceKey: 'stateId'
 });
 
 

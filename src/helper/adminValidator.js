@@ -155,6 +155,32 @@ const companyLocationMasterSchema = Joi.object({
   isActive: Joi.boolean().allow(null)
 });
 
+const lwfMappingMasterSchema = Joi.array().items(
+  Joi.array().items(
+    Joi.object({
+      lwfDesignationId: Joi.number().required().label("LWF Designation"),
+      contributorType: Joi.string().required().label("Contributor Type"),
+      stateId: Joi.number().required().label("State Name"),
+      apr: Joi.string().required().label("Apr"),
+      may: Joi.string().required().label("May"),
+      jun: Joi.string().required().label("Jun"),
+      jul: Joi.string().required().label("Jul"),
+      aug: Joi.string().required().label("Aug"),
+      sep: Joi.string().required().label("Sep"),
+      oct: Joi.string().required().label("Oct"),
+      nov: Joi.string().required().label("Nov"),
+      dec: Joi.string().required().label("Dec"),
+      jan: Joi.string().required().label("Jan"),
+      feb: Joi.string().required().label("Feb"),
+      mar: Joi.string().required().label("Mar"),
+      lwfmappingId: Joi.number().allow(null)
+    })
+  )
+).messages({
+  "array.base": "Please enter value for employee and employer",
+  "array.includes": "Each inner array must contain valid objects"
+}).required()
+
 // End schema by jay
 
 export default {
@@ -175,6 +201,7 @@ export default {
   departmentMappingSchema,
   functionalAreaMappingSchema,
   probationMasterSchema,
-  companyLocationMasterSchema
+  companyLocationMasterSchema,
+  lwfMappingMasterSchema
   // jay end
 };

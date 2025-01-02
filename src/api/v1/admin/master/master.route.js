@@ -110,3 +110,8 @@ export default Express
     .put("/company-location/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateCompanyLocation)
     .patch("/company-location/:id", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.changeStatusOfCompanyLocation)
 
+    // lwf master routes created by jay
+    .post("/lwf-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.createLWFMapping)
+    .get("/lwf-list-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.lwfMappingList)
+    .put("/lwf-mapping", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.updateLWFMapping)
+    .get("/lwf-designation", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), commonController.lwfDesignationList);

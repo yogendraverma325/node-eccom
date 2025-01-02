@@ -1988,12 +1988,12 @@ class CommonController {
       let result = await validator.jobLevelMappingSchema.validateAsync(
         req.body
       );
-      let metaData = { 
+      let metaData = {
         bandId: result.bandId,
         gradeId: result.gradeId,
         jobLevelId: result.jobLevelId,
-        companyId: (result.companyId.length > 0) ? result.companyId[0].value : ""
-      }
+        companyId: result.companyId.length > 0 ? result.companyId[0].value : "",
+      };
       result = { ...metaData, updatedBy: req.userId, updatedAt: moment() };
       let model = db.jobLevelMapping;
       let query = {
@@ -2010,10 +2010,10 @@ class CommonController {
           msg: "You cannot change the job level mapping because it is already assigned to an employee.",
         });
       } else {
-        findQuery = { 
+        findQuery = {
           jobLevelId: metaData.jobLevelId,
           companyId: metaData.companyId,
-          jobLevelMappingId: { [Op.not]: req.params.id }
+          jobLevelMappingId: { [Op.not]: req.params.id },
         };
         isExist = await service.details(db.jobLevelMapping, findQuery);
         if (isExist.status == 200) {
@@ -2021,8 +2021,7 @@ class CommonController {
             status: 422,
             msg: "You cannot change the job level mapping because it is already mapped.",
           });
-        }
-        else {
+        } else {
           let response = await service.update(model, result, query);
           return respHelper(res, response);
         }
@@ -2062,10 +2061,10 @@ class CommonController {
           msg: "You cannot change the department mapping because it is already assigned to an employee.",
         });
       } else {
-        findQuery = { 
+        findQuery = {
           departmentId: result.departmentId,
           sbuMappingId: result.sbuMappingId,
-          departmentMappingId: { [Op.not]: req.params.id }
+          departmentMappingId: { [Op.not]: req.params.id },
         };
         isExist = await service.details(db.departmentMapping, findQuery);
         if (isExist.status == 200) {
@@ -2073,8 +2072,7 @@ class CommonController {
             status: 422,
             msg: "You cannot change the department mapping because it is already mapped.",
           });
-        }
-        else {
+        } else {
           let response = await service.update(model, result, query);
           return respHelper(res, response);
         }
@@ -2114,10 +2112,10 @@ class CommonController {
           msg: "You cannot change the functional area mapping because it is already assigned to an employee.",
         });
       } else {
-        findQuery = { 
+        findQuery = {
           departmentMappingId: result.departmentMappingId,
           functionalAreaId: result.functionalAreaId,
-          functionalAreaMappingId: { [Op.not]: req.params.id }
+          functionalAreaMappingId: { [Op.not]: req.params.id },
         };
         isExist = await service.details(db.functionalAreaMapping, findQuery);
         if (isExist.status == 200) {
@@ -2125,8 +2123,7 @@ class CommonController {
             status: 422,
             msg: "You cannot change the functional area mapping because it is already mapped.",
           });
-        }
-        else {
+        } else {
           let response = await service.update(model, result, query);
           return respHelper(res, response);
         }
@@ -2150,7 +2147,7 @@ class CommonController {
   /**
    * CRUD of Probation Master Created by Jay
    *
-  */
+   */
 
   async createProbation(req, res) {
     try {
@@ -2165,7 +2162,7 @@ class CommonController {
       };
       let model = db.probationMaster;
       let query = {
-        probationName: result.probationName
+        probationName: result.probationName,
       };
       let moduleName = "Probation";
       let response = await service.create(model, result, query, moduleName);
@@ -2236,7 +2233,7 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { probationId: req.params.id },
-        probationName: result.probationName
+        probationName: result.probationName,
       };
       let isVerify = await service.details(model, verifyQuery);
 
@@ -2287,7 +2284,7 @@ class CommonController {
   /**
    * CRUD of Company Location Master Created by Jay
    *
-  */
+   */
 
   async createCompanyLocation(req, res) {
     try {
@@ -2303,7 +2300,7 @@ class CommonController {
       };
       let model = db.companyLocationMaster;
       let query = {
-        companyLocationCode: result.companyLocationCode
+        companyLocationCode: result.companyLocationCode,
       };
       let moduleName = "Company Location";
       let response = await service.create(model, result, query, moduleName);
@@ -2342,9 +2339,9 @@ class CommonController {
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
         include: [
-          { model: db.stateMaster, attributes: ['stateName'] }, 
-          { model: db.cityMaster, attributes: ['cityName'] }
-        ]
+          { model: db.stateMaster, attributes: ["stateName"] },
+          { model: db.cityMaster, attributes: ["cityName"] },
+        ],
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -2378,7 +2375,7 @@ class CommonController {
 
       let verifyQuery = {
         [Op.not]: { companyLocationId: req.params.id },
-        companyLocationCode: result.companyLocationCode
+        companyLocationCode: result.companyLocationCode,
       };
       let isVerify = await service.details(model, verifyQuery);
 
@@ -2425,6 +2422,201 @@ class CommonController {
       });
     }
   }
+
+  /**
+   * CRUD of LWF Mapping Created by Jay
+   *
+   */
+
+  async createLWFMapping(req, res) {
+    try {
+      let result = await validator.lwfMappingMasterSchema.validateAsync(
+        req.body
+      );
+
+      let model = db.lwfMapping;
+      let arr = [];
+
+      if (result.length > 0) {
+
+        for (let i = 0; i < result.length; i++) {
+          let result1 = result[i];
+
+          for(let j = 0; j < result1.length; j++) {
+            let query = {
+              lwfDesignationId: result1[j].lwfDesignationId,
+              contributorType: result1[j].contributorType,
+              stateId: result1[j].stateId,
+            };
+  
+            let response = await service.details(model, query);
+  
+            if (response.status == 200) {
+              return respHelper(res, {
+                status: 400,
+                msg: "These data is already exist in our record.",
+                data: {},
+              });
+            } else {
+              arr.push({
+                ...result1[j],
+                createdBy: req.userId,
+                isActive: 1,
+                createdAt: moment().format("YYYY-MM-DD"),
+              });
+            }
+          }
+          await db.lwfMapping.bulkCreate(arr);
+          arr = [];
+
+        }
+
+        return respHelper(res, {
+          status: 201,
+          msg: constant.INSERT_SUCCESS,
+          data: {},
+        });
+      }
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async lwfMappingList(req, res) {
+    try {
+      let model = db.lwfMapping;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let lwfDesignationId = req.query.lwfDesignationId || "";
+      let stateId = req.query.stateId || "";
+
+      let query = { isActive: 1 };
+      if(stateId) {
+        query = { ...query, 'stateId': stateId };
+      }
+
+      if (lwfDesignationId) {
+        query = { ...query, lwfDesignationId: lwfDesignationId };
+      }
+      
+      let mappingQuery = {
+        isActive: 1,
+        ...(search && { stateName: { [Op.like]: `%${search}%` } }),
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "updatedAt"],
+        },
+        order: [["lwfmappingId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit,
+        include: [
+          {
+            model: db.stateMaster,
+            attributes: ["stateId", "stateName"],
+            where: mappingQuery,
+          },
+        ],
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateLWFMapping(req, res) {
+    try {
+      let result = await validator.lwfMappingMasterSchema.validateAsync(
+        req.body
+      );
+      
+      let model = db.lwfMapping;
+
+      if (result.length > 0) {
+        const dataArray = result[0];
+
+        for (let i = 0; i < dataArray.length; i++) {
+          let query = {
+            lwfmappingId: dataArray[i].lwfmappingId,
+          };
+
+          let updateMetaData = {
+            ...dataArray[i],
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD"),
+          };
+          let response = await service.update(model, updateMetaData, query);
+        }
+
+        return respHelper(res, {
+          status: 202,
+          msg: "LWF mapping data updated successfully",
+          data: {},
+        });
+      } 
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async lwfDesignationList(req, res) {
+    try {
+      let model = db.lwfDesignationMaster;
+      let query = { isActive: 1 };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "updatedAt"],
+        },
+        order: [["lwfDesignationId", "ASC"]]
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  // End admin master apis by jay
 
   // close class
 }
