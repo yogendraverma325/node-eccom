@@ -1238,11 +1238,20 @@ class PaymentController {
           0,
           payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
         );
-        console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
-        const currentMonth = new Date()
-          .toLocaleString("default", { month: "short" })
-          .toLowerCase();
-          console.log("currentMonth",currentMonth)
+      
+        async function getMonthAbbreviation(month) {
+          const monthNames = [
+            "jan", "feb", "mar", "apr", "may", "jun",
+            "jul", "aug", "sep", "oct", "nov", "dec"
+          ];
+
+          const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
+          return monthNames[monthIndex] || "";
+        }
+
+        const month = result[0][0].payMonth.split("-")[1];
+        const currentMonth = await getMonthAbbreviation(month);
+
         const ptDynamicAttribute = [currentMonth, "ptAmount"];
         const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
         const ptDeducationDetails = await db.paymentDetails.findOne({
@@ -1280,33 +1289,7 @@ class PaymentController {
             },
           ],
         });
-        // const lwfDeducationDetails = await db.jobDetails.findOne({
-        //   attributes: [
-        //     "jobId",
-        //     "lwfApplicable",
-        //     "pfApplicability",
-        //     "pfRestricted",
-        //     "esicApplicable",
-        //   ],
-        //   where: {
-        //     userId: employee,
-        //   },
-        //   raw: true,
-        //   nest: true,
-        //   include: [
-        //     {
-        //       model: db.lwfDesignationMaster,
-        //       attributes: ["lwfDesignationId"],
-        //       as: "lwfDesignationName",
-        //       include: [
-        //         {
-        //           model: db.lwfMapping,
-        //           attributes: ["lwfmappingId", lwfDynamicAttribute],
-        //         },
-        //       ],
-        //     },
-        //   ],
-        // })
+
 
         const lwfDeducationDetails = await db.jobDetails.findOne({
           attributes: [
@@ -1325,8 +1308,9 @@ class PaymentController {
         });
         
         let lwfAmount = 0;
+        let lwfMappingDetails = null
         if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
-          const lwfMappingDetails = await db.lwfMapping.findOne({
+           lwfMappingDetails = await db.lwfMapping.findOne({
             attributes: ["lwfmappingId", "stateId", lwfDynamicAttribute],  // Include the dynamic attribute here
             where: {
               lwfDesignationId: lwfDeducationDetails.lwfDesignation,
@@ -1334,9 +1318,9 @@ class PaymentController {
             },
             raw: true,
           });
-          // Set lwfAmount if lwfMappingDetails are found
+         
           if (lwfMappingDetails) {
-            lwfAmount = lwfMappingDetails[lwfDynamicAttribute] || 0;  // Dynamically use the attribute value
+            lwfAmount = lwfMappingDetails.lwfAmount || 0;  // Dynamically use the attribute value
           }
         }
 
@@ -1347,16 +1331,12 @@ class PaymentController {
           },
           raw: true,
         });
-        console.log("lwfDeducationDetails", lwfDeducationDetails);
 
         const ptAmount1 =
           ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
             ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
             : 0;
         const lwfAmount1 = lwfAmount
-          // lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
-          //   ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
-          //   : 0;
 
         const extraPaymentAmount1 = extraPaymentAmount
           ? extraPaymentAmount?.paymentAmount
@@ -1379,10 +1359,10 @@ class PaymentController {
           continue;
         }
         if (
+          !lwfMappingDetails &&
           lwfDeducationDetails &&
-          lwfDeducationDetails.lwfApplicable == 1 &&
-          !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
-        ) {
+          lwfDeducationDetails.lwfApplicable == 1
+        ){
           await db.payProcessDetails.update(
             { payStatus: 101, payRemark: "Error with lwf calculating" },
             {
@@ -3148,7 +3128,7 @@ class PaymentController {
       const currentProcessStatus = await db.sequelize.query(
         queryForProcessStatus
       );
-      console.log("currentProcessStatus", currentProcessStatus);
+     // console.log("currentProcessStatus", currentProcessStatus);
       if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
         stepperDataQuery = await paymentHelper.query(8, processId, null);
       } else if (currentProcessStatus[0][0].currentStatusId == 3) {
@@ -3787,78 +3767,51 @@ async function processSalary(data) {
         0,
         payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
       );
-      console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
-      const currentMonth = new Date()
-        .toLocaleString("default", { month: "short" })
-        .toLowerCase();
-      const ptDynamicAttribute = [currentMonth, "ptAmount"];
-      const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
-      const ptDeducationDetails = await db.paymentDetails.findOne({
-        attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
-        where: { userId: employee },
-        raw: true,
-        nest: true,
-        include: [
-          {
-            model: db.ptLocationMaster,
-            attributes: ["ptLocationId", "ptLocationCode", "stateId"],
-            include: [
-              {
-                model: db.ptMapping,
-                attributes: [
-                  "ptmappingId",
-                  "minValue",
-                  "maxValue",
-                  ptDynamicAttribute,
-                ],
-                required: false,
-                where: {
-                  [Op.and]: [
-                    { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
-                    { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+       async function getMonthAbbreviation(month) {
+          const monthNames = [
+            "jan", "feb", "mar", "apr", "may", "jun",
+            "jul", "aug", "sep", "oct", "nov", "dec"
+          ];
+
+          const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
+          return monthNames[monthIndex] || "";
+        }
+
+        const month = result[0][0].payMonth.split("-")[1];
+        const currentMonth = await getMonthAbbreviation(month);
+
+        const ptDynamicAttribute = [currentMonth, "ptAmount"];
+        const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+        const ptDeducationDetails = await db.paymentDetails.findOne({
+          attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
+          where: { userId: employee },
+          raw: true,
+          nest: true,
+          include: [
+            {
+              model: db.ptLocationMaster,
+              attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+              include: [
+                {
+                  model: db.ptMapping,
+                  attributes: [
+                    "ptmappingId",
+                    "minValue",
+                    "maxValue",
+                    ptDynamicAttribute,
                   ],
+                  required: false,
+                  where: {
+                    [Op.and]: [
+                      { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+                      { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+                    ],
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      });
-      // const lwfDeducationDetails = await db.jobDetails.findOne({
-      //   attributes: [
-      //     "jobId",
-      //     "lwfApplicable",
-      //     "pfApplicability",
-      //     "pfRestricted",
-      //     "esicApplicable",
-      //     "lwfDesignationId",
-      //     "lwfState",
-      //   ],
-      //   where: {
-      //     userId: employee,
-      //   },
-      //   raw: true,
-      //   nest: true,
-      //   include: [
-      //     {
-      //       model: db.lwfDesignationMaster,
-      //       attributes: ["lwfDesignationId"],
-      //       as: "lwfDesignationName",
-      //       include: [
-      //         {
-      //           model: db.lwfMapping,
-      //           attributes: ["lwfmappingId", lwfDynamicAttribute],
-      //           // where:  db.sequelize.literal(
-      //           //   `"lwfmapping"."lwfDesignationId" = "employeejobdetails"."lwfDesignationId" AND "lwfmapping"."stateId" = "employeejobdetails"."lwfState"`
-      //           // ),
-      //           // where:{
-      //           //   lwfDesignationId:"$jobdetails.lwfDesignationId",
-      //           //   stateId:"$jobdetails.lwfDesignationId",
-      //           // }
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // });
+              ],
+            },
+          ],
+        });
 
       const lwfDeducationDetails = await db.jobDetails.findOne({
         attributes: [
@@ -3877,22 +3830,22 @@ async function processSalary(data) {
       });
       
       let lwfAmount = 0;
+      let lwfMappingDetails = null;
+
       if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
-        const lwfMappingDetails = await db.lwfMapping.findOne({
-          attributes: ["lwfmappingId", "stateId", lwfDynamicAttribute],  // Include the dynamic attribute here
+       lwfMappingDetails = await db.lwfMapping.findOne({
+          attributes: ["lwfmappingId","lwfDesignationId", "stateId", lwfDynamicAttribute],  // Include the dynamic attribute here
           where: {
             lwfDesignationId: lwfDeducationDetails.lwfDesignation,
             stateId: lwfDeducationDetails.lwfState,
           },
           raw: true,
         });
-        // Set lwfAmount if lwfMappingDetails are found
+
         if (lwfMappingDetails) {
-          lwfAmount = lwfMappingDetails[lwfDynamicAttribute] || 0;  // Dynamically use the attribute value
+          lwfAmount = lwfMappingDetails.lwfAmount|| 0;
         }
       }
-
-      console.log("lwfDeducationDetails", lwfDeducationDetails);
       const extraPaymentAmount = await db.extraPayment.findOne({
         where: {
           EmployeeId: employee,
@@ -3905,9 +3858,6 @@ async function processSalary(data) {
           ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
           : 0;
       const lwfAmount1 = lwfAmount
-        // lwfDeducationDetails && lwfDeducationDetails.lwfApplicable == 1
-        //   ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
-        //   : 0;
 
       const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
@@ -3930,9 +3880,9 @@ async function processSalary(data) {
         continue;
       }
       if (
+        !lwfMappingDetails &&
         lwfDeducationDetails &&
-        lwfDeducationDetails.lwfApplicable == 1 &&
-        !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
+        lwfDeducationDetails.lwfApplicable == 1
       ) {
         await db.payProcessDetails.update(
           { payStatus: 101, payRemark: "Error with lwf calculating" },
