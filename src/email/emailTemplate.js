@@ -4217,7 +4217,9 @@ const salarySlipPdf = async (data) => {
             </div>
         </div>
 
-        <h2>Salary Slip for ${data.month} - ${data.year}</h2>
+       <h8>
+        <b>Salary Slip</b> for ${data.month}-${data.year}
+        </h8>
 
         <table class="content">
             <tr>

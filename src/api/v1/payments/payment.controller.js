@@ -3553,12 +3553,8 @@ class PaymentController {
   async salarySlipPdf(req, res) {
     try {
       // Fetch salary details
-      const { user, financialYear } = req.query;
-      const salaryDetails = await paymentHelper.salaryPaySlip(
-        user,
-        financialYear,
-        req.userId
-      );
+      const {paySlipAutoId } = req.query;
+      const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
 
       if (!salaryDetails || salaryDetails.length === 0) {
         return res.status(404).send("Salary details not found.");
@@ -3584,6 +3580,19 @@ class PaymentController {
       );
 
       const employee = salaryDetails[0].employee;
+
+      async function getMonthAbbreviation(month) {
+        const monthNames = [
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
+        return monthNames[monthIndex] || "";
+      }
+
+      const month = salaryDetails[0]?.paySlipMonth;
+      const currentMonth = await getMonthAbbreviation(month);
       const body = {
         name: employee.name || "",
         employeeCode: employee?.empCode || "",
@@ -3624,8 +3633,8 @@ class PaymentController {
         netPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
           ? parseInt(salaryDetails[0].paySlipTotalPay)
           : "",
-        month: "09" || "",
-        year: "2024" || "",
+        month: currentMonth|| "",
+        year: salaryDetails[0]?.paySlipYear || "",
       };
 
       const letter = await emailTemplate.salarySlipPdf(body);

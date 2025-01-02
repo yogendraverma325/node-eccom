@@ -133,16 +133,11 @@ const getDaysInCurrentMonth = async function (data) {
   return lastDayOfMonth.getDate();
 };
 
-const salaryPaySlip = async function (user,financialYear,userId) {
+const salaryPaySlip = async function (paySlipAutoId) {
     try {
-      // const user = req.query.user;
-      // const financialYear = req.query.financialYear;
-
       const paySlip = await db.paySlips.findAll({
         where: {
-          EmployeeId: user ? user : userId,
-          paySlipFinancialYear: financialYear,
-          paySlipStatus: 1,
+          paySlipAutoId: paySlipAutoId,
         },
         order: [["createdAt", "desc"]],
         attributes: { exclude: ["createdAt", "createdBy"] },
