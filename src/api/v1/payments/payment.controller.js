@@ -170,11 +170,13 @@ class PaymentController {
       const payPackageDetails = await db.payPackage.findOne({
         where: { EmployeeId: req.userId },
         raw: true,
-        attributes: ["salaryStructureAutoId"],
+        attributes: ["salaryStructureAutoId","payPackageAutoId"],
+        order: [["createdAt", "DESC"]], // Correct order syntax
       });
       const payElementsData = await db.payElements.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
+          payPackageAutoId:payPackageDetails.payPackageAutoId
         },
         attributes: {
           exclude: [
@@ -349,10 +351,10 @@ class PaymentController {
         where: { payPackageAutoId: payPackageAutoId },
         raw: true,
         attributes: ["salaryStructureAutoId"],
+        order: [["createdAt", "DESC"]], // Correct order syntax
       });
 
       console.log(payPackageDetails.salaryStructureAutoId);
-
       const payElements = await db.payElements.findAll({
         where: {
           payPackageAutoId,
