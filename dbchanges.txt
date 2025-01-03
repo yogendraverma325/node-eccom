@@ -1084,6 +1084,13 @@ ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
   `updatedBy` INT NULL DEFAULT NULL,
   PRIMARY KEY (`id`));
 
+  Jay changes for payroll
+
+  ALTER TABLE `tara`.`extradeductions` 
+CHANGE COLUMN `status` `status` INT NULL DEFAULT 0 ,
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
+
+
 
 
 
