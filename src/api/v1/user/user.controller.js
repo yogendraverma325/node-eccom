@@ -5293,18 +5293,109 @@ class UserController {
 
   async checkPolicy(req, res) {
     // try {
+    console.log("req.userId", req.userId);
+    let compOffPolicyData = await helper.checkCompOffPolicyForUser(req.userId);
+    if (compOffPolicyData) {
+      const leaveData = await db.leaveMaster.findOne({
+        where: {
+          leaveId: 9,
+          isActive: 1,
+        },
+      });
+      if (leaveData) {
+        // await db.comp_off_credit_history.create({
+        //   employee_Id: req.userId,
+        //   balance: 0.5,
+        //   status: 3,
+        //   credit_for: "Weekly Off",
+        //   total_hours: 10,
+        //   expiry_date:
+        //     leaveData?.lapse_in_days > 0
+        //       ? moment()
+        //           .add(leaveData?.lapse_in_days, "days")
+        //           .format("YYYY-MM-DD")
+        //       : null,
+        //   taken_on: null,
+        //   createdBy: 1,
+        //   updatedBy: 3,
+        // });
+      }
 
-    let compOffPolicyData = await helper.checkCompOffPolicyForUser(694);
-    return respHelper(res, {
-      status: 200,
-      data: compOffPolicyData,
-    });
+      return respHelper(res, {
+        status: 200,
+        data: leaveData,
+      });
+    }
+
     // } catch (error) {
     //   return respHelper(res, {
     //     status: 500,
     //     msg: "Internal server error",
     //   });
     // }
+  }
+  async compOffCreditHisttory(req, res) {
+    try {
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+      const comp_off_credit_historyData =
+        await db.comp_off_credit_history.findAndCountAll({
+          where: {
+            employee_Id: req.userId,
+          },
+          limit,
+          offset,
+          order: [
+            ["comp_off_credit_history_auto_id", "DESC"], // Sorting
+          ],
+        });
+
+      return respHelper(res, {
+        status: 200,
+        data: comp_off_credit_historyData,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async compOffPendingForApproval(req, res) {
+    try {
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+      const comp_off_credit_historyData =
+        await db.comp_off_credit_history.findAndCountAll({
+          where: {
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            },
+            //employee_Id: req.userId,
+            status: 3,
+          },
+          limit,
+          offset,
+          order: [
+            ["comp_off_credit_history_auto_id", "DESC"], // Sorting
+          ],
+        });
+
+      return respHelper(res, {
+        status: 200,
+        data: comp_off_credit_historyData,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
   }
   //COMP OFF
 }

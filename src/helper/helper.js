@@ -1520,15 +1520,13 @@ const checkCompOffPolicyForUser = async (UserId) => {
     });
     if (employee) {
       if (employee?.id in compOffPolicyAssignment) {
+        compOffPolicyAssignment[employee?.id] =
+          single?.comp_off_assignment_auto_id;
       } else {
         compOffPolicyAssignment[employee?.id] =
           single?.comp_off_assignment_auto_id;
       }
     }
-    // // return respHelper(res, {
-    // //   status: 200,
-    // //   data: employee,
-    // // });
   }
   let compOffPolicyData = null;
   if (Object.keys(compOffPolicyAssignment).length > 0) {

@@ -93,7 +93,7 @@ class CronController {
     const earnedLeaveDetails = await db.leaveMaster.findAll({
       raw: true,
       where: {
-        iterationDistribution: {[Op.ne]: 0},
+        iterationDistribution: { [Op.ne]: 0 },
         creditDayOfMonth: moment().format("D"),
       },
     });
@@ -1642,19 +1642,19 @@ class CronController {
     }
   }
 
-  async onBoardLeaveMapping(){
+  async onBoardLeaveMapping() {
     try {
       const employees = await db.employeeMaster.findAll({
         attributes: ["id", "empCode", "employeeType"],
         where: {
           isActive: 1,
-          employeeType: [1,4,5]
+          employeeType: [1, 4, 5],
           //empCode:20492
         },
         include: [
           {
             model: db.biographicalDetails,
-            attributes:['biographicalId','maritalStatus','gender']
+            attributes: ["biographicalId", "maritalStatus", "gender"],
           },
           {
             model: db.leaveMapping,
@@ -1666,55 +1666,55 @@ class CronController {
       });
 
       const leaveMaster = await db.leaveMaster.findAll({
-        attributes:['leaveId','defaultLeaveCount'],
+        attributes: ["leaveId", "defaultLeaveCount"],
         where: {
           leaveId: {
-            [Op.in]: [3, 4, 5]
-          }          
-        }
-      })
+            [Op.in]: [3, 4, 5],
+          },
+        },
+      });
 
       const filteredEmployees = employees.filter(
         (employee) => employee.employeeLeaves.length === 0
       );
-      
 
       const leaveMasterLookup = leaveMaster.reduce((acc, leave) => {
         acc[leave.leaveId] = leave.defaultLeaveCount;
         return acc;
       }, {});
-      
+
       for (let index = 0; index < filteredEmployees.length; index++) {
-        const element = filteredEmployees[index]; 
-        const { gender, maritalStatus } = element.dataValues.employeebiographicaldetail;
+        const element = filteredEmployees[index];
+        const { gender, maritalStatus } =
+          element.dataValues.employeebiographicaldetail;
         if ((gender === "Male" || gender === "Female") && maritalStatus == 2) {
           console.log("Male single or Female single");
           const objLeave = {
             EmployeeId: element.id,
             leaveAutoId: 5,
-            availableLeave: leaveMasterLookup[5] || 0, 
-            accruedThisYear: leaveMasterLookup[5] || 0
+            availableLeave: leaveMasterLookup[5] || 0,
+            accruedThisYear: leaveMasterLookup[5] || 0,
           };
-          console.log("objLeave",objLeave)
+          console.log("objLeave", objLeave);
           // await db.leaveMapping.create(objLeave);
         }
-  
+
         if (gender === "Male" && maritalStatus == 1) {
           const objLeave = {
             EmployeeId: element.id,
             leaveAutoId: 4,
-            availableLeave: leaveMasterLookup[4] || 0, 
-            accruedThisYear: leaveMasterLookup[4] || 0
+            availableLeave: leaveMasterLookup[4] || 0,
+            accruedThisYear: leaveMasterLookup[4] || 0,
           };
           // await db.leaveMapping.create(objLeave);
         }
-  
+
         if (gender === "Female" && maritalStatus == 1) {
           const objLeave = {
             EmployeeId: element.id,
             leaveAutoId: 3,
-            availableLeave: leaveMasterLookup[3] || 0, 
-            accruedThisYear: leaveMasterLookup[3] || 0
+            availableLeave: leaveMasterLookup[3] || 0,
+            accruedThisYear: leaveMasterLookup[3] || 0,
           };
           // await db.leaveMapping.create(objLeave);
         }
@@ -1725,13 +1725,37 @@ class CronController {
       //   message: "Leave updated successfully",
       //   data: filteredEmployees.length,
       // });
-    
     } catch (error) {
       console.log(error);
       return respHelper(res, {
         status: 500,
         message: "Internal Server Error",
       });
+    }
+  }
+  async check_comp_off_expiry() {
+    let expiredLeaves = await db.comp_off_credit_history.findAll({
+      where: {
+        expiry_date: {
+          [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+        },
+        status: 1,
+      },
+    });
+    if (expiredLeaves.length > 0) {
+      for (const singleLeave of expiredLeaves) {
+        await db.comp_off_credit_history.update(
+          {
+            status: 4,
+          },
+          {
+            where: {
+              comp_off_credit_history_auto_id:
+                singleLeave.comp_off_credit_history_auto_id,
+            },
+          }
+        );
+      }
     }
   }
 }

@@ -2,7 +2,7 @@ import Express from "express";
 import userController from "./user.controller.js";
 import authentication from "../../../middleware/authentication.js";
 import commonController from "../common/common.controller.js";
-
+import CronController from "../cron/cron.controller.js";
 export default Express.Router()
   .get(
     "/profileDetails",
@@ -346,5 +346,15 @@ export default Express.Router()
   //BULK ACTION TASK HISTORY
 
   //COMP OFF
+  .get(
+    "/compOffCreditHisttory",
+    authentication.authenticate,
+    userController.compOffCreditHisttory
+  )
+  .get(
+    "/compOffPendingForApproval",
+    authentication.authenticate,
+    userController.compOffPendingForApproval
+  )
   .get("/checkPolicy", authentication.authenticate, userController.checkPolicy);
 //COMP OFF

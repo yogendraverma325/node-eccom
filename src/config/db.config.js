@@ -126,6 +126,7 @@ import Signingauthority from "../api/model/signingAuthority.js";
 import comp_off_assignment from "../api/model/CompOffAssignment.js";
 import comp_off_assignment_filters from "../api/model/CompOffAssignmentFilter.js";
 import comp_off_polices from "../api/model/comp_off_polices.js";
+import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
 //COMP OFF
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -345,6 +346,7 @@ db.comp_off_assignment_filters = comp_off_assignment_filters(
   Sequelize
 );
 db.comp_off_polices = comp_off_polices(sequelize, Sequelize);
+db.comp_off_credit_history = comp_off_credit_history(sequelize, Sequelize);
 //COMP OFF
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
