@@ -3571,7 +3571,6 @@ class PaymentController {
         const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
         return monthNames[monthIndex] || "";
       }
-
       const month = salaryDetails[0]?.paySlipMonth;
       const currentMonth = await getMonthAbbreviation(month);
       const body = {
@@ -3611,8 +3610,8 @@ class PaymentController {
               salaryDetails[0].paySlipWorkingDays
             : "",
         paySlipComponent: paySlipComponent || [],
-        netPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
-          ? parseInt(salaryDetails[0].paySlipTotalPay)
+        netPay: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+          ? parseInt(salaryDetails[0].paySlipGrossEarning)-parseInt(salaryDetails[0].paySlipTotalDeduction)
           : "",
         month: currentMonth|| "",
         year: salaryDetails[0]?.paySlipYear || "",
@@ -3646,7 +3645,7 @@ class PaymentController {
   
 }
 
- groupByEmployeeId = (data) => {
+const  groupByEmployeeId = (data) => {
   const groupedData = {};
 
   data.forEach((item) => {
