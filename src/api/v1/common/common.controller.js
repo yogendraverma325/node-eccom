@@ -669,6 +669,7 @@ class commonController {
                 ),
               ],
             },
+            order: [["holidayDate", "ASC"]],
           },
         ],
       });
