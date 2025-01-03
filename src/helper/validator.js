@@ -1271,13 +1271,22 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
     "CTC":Joi.number().required(),
   };
   dynamicArray.forEach((field) => {
-    dynamicFields[field] = Joi.number()
-      .min(0) // Allows 0 and any positive number
-      .messages({
-        "number.base": `"${field}" must be a valid number`,
-        "number.min": `"${field}" must be 0 or greater`,
-        "any.required": `"${field}" is required`,
-      });
+    dynamicFields[field] = Joi.alternatives().try(
+      Joi.number()
+        .min(0)
+        .messages({
+          "number.base": `"${field}" must be a valid number`,
+          "number.min": `"${field}" must be 0 or greater`,
+        }),
+      Joi.string()
+        .valid("")
+        .optional() // Allows empty string
+    ).default(0).custom((value, helpers) => {
+      if (value === "") {
+        return 0; // Assign 0 if it's an empty string
+      }
+      return value;
+    });
   });
   const payPackangeSchema = Joi.object(dynamicFields).unknown(false);
   const { error ,value} = await payPackangeSchema.validate(employee);

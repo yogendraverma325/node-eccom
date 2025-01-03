@@ -977,7 +977,7 @@ class MasterController {
   async dashboardCard(req, res) {
     try {
       const mobile = parseInt(req.query.mobile);
-      const redisKey = mobile ? "dashboardCardMobile" : "dashboardCardWeb";
+      const redisKey = mobile ? `dashboardCardMobile_${process.env.TEST}` : `dashboardCardWeb_${process.env.TEST}`;
       let dashboardData = [];
 
       await client.get(redisKey).then(async (data) => {

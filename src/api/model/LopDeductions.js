@@ -12,7 +12,7 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING,
     },
     lopDays: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.DECIMAL,
     },
     empCode:{
       type: Sequelize.STRING,

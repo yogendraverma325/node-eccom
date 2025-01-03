@@ -28,7 +28,7 @@ export default (sequelize, Sequelize) => {
       default: 0,
     },
     lopDays: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.DECIMAL(10,2),
       default: 0,
     },
     lopDeductions: {

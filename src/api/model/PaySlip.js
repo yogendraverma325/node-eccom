@@ -21,13 +21,13 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING
         },
         paySlipTotalDays: {
-            type: Sequelize.INTEGER
+            type: Sequelize.DECIMAL(10, 2)
         },
         paySlipWorkingDays: {
-            type: Sequelize.INTEGER
+            type: Sequelize.DECIMAL(10, 2)
         },
         paySlipAbsentDays: {
-            type: Sequelize.INTEGER
+            type: Sequelize.DECIMAL(10, 2)
         },
         paySlipArrearDays: {
             type: Sequelize.INTEGER
