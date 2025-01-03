@@ -29,6 +29,9 @@ export default (sequelize, Sequelize) => {
     isCompleted: {
       type: Sequelize.INTEGER,
     },
+    escalted: {
+      type: Sequelize.INTEGER,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
     },

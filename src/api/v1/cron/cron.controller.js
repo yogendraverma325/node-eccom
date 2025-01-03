@@ -839,6 +839,7 @@ class CronController {
           [Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
         },
         isCompleted: 0,
+        escalted:0
       },
       include: [
         {
@@ -898,6 +899,19 @@ class CronController {
         //     EMP_DATA: EMP_DATA,
         //   })
         // );
+
+        await db.Confirmationowners.update(
+          {
+            escalted:1
+          },
+          {
+            where: {
+          confirmationinitiatedAutoId:
+          singleRecords.confirmationinitiatedAutoId,
+          level: singleRecords?.level,
+            },
+          }
+        );
 
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId:
