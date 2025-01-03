@@ -1260,6 +1260,7 @@ class PaymentController {
             "userId",
             "ptLocationId",
             "ptApplicability",
+            "ptStateId"
           ],
           where: { userId: employee },
           raw: true,
@@ -1323,7 +1324,6 @@ class PaymentController {
             lwfAmount = lwfMappingDetails.lwfAmount || 0;  // Dynamically use the attribute value
           }
         }
-
         const extraPaymentAmount = await db.extraPayment.findOne({
           where: {
             EmployeeId: employee,
@@ -1331,33 +1331,31 @@ class PaymentController {
           },
           raw: true,
         });
-
         const ptAmount1 =
-          ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
-            ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
+          ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
+            ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
             : 0;
-        const lwfAmount1 = lwfAmount
-
-        const extraPaymentAmount1 = extraPaymentAmount
+       
+        const lwfAmount1 = lwfAmount;
+        const extraPaymentAmount1 = extraPaymentAmount != null
           ? extraPaymentAmount?.paymentAmount
           : 0;
-        if (
-          ptDeducationDetails &&
-          ptDeducationDetails.ptApplicability == 1 &&
-          !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
-        ) {
-          await db.payProcessDetails.update(
-            { payStatus: 101, payRemark: "Error with PT calculating" },
-            {
-              where: {
-                EmployeeId: employee,
-                proceessId: processId,
-              },
-            }
-          );
+        // if (
+        //   ptDeducationDetails &&
+        //   ptDeducationDetails.ptApplicability == 1 && ptDeducationDetails.ptStateId == null
+        // ) {
+        //   await db.payProcessDetails.update(
+        //     { payStatus: 101, payRemark: "Error with PT calculating" },
+        //     {
+        //       where: {
+        //         EmployeeId: employee,
+        //         proceessId: processId,
+        //       },
+        //     }
+        //   );
 
-          continue;
-        }
+        //   continue;
+        // }
         if (
           !lwfMappingDetails &&
           lwfDeducationDetails &&
@@ -1433,11 +1431,11 @@ class PaymentController {
           //     : empCopntWiseDetl.payElementAmount;
 
           empCopntWiseDetl["elementMonthlyAmount"] =
-            paymentHelper.getElementValue(
+           await paymentHelper.getElementValue(
               "Affect Loss Of Pay",
               componentConfiguration[0]
             ) == 1
-              ? paymentHelper.arrectLOP(
+              ? await paymentHelper.arrectLOP(
                   empCopntWiseDetl.payElementAmount,
                   employeeDetailsComponentWise[0][0].lopDays,
                   totalWorkingDays
@@ -1459,11 +1457,11 @@ class PaymentController {
           empCopntWiseDetl["lwfAmount"] = lwfAmount1;
           empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
           //////////////////////////////PF-Applicablity Keys////////////////////////
-          let pafApplicableComponet = paymentHelper.getElementValue(
+          let pafApplicableComponet = await paymentHelper.getElementValue(
             "Affect PF",
             componentConfiguration[0]
           );
-          let esicApplicableComponent = paymentHelper.getElementValue(
+          let esicApplicableComponent = await paymentHelper.getElementValue(
             "Affects ESIC",
             componentConfiguration[0]
           );
@@ -1485,6 +1483,7 @@ class PaymentController {
             },
             raw: true,
           });
+
           if (!existDetails) {
             await db.payMonthlyElements.create(empCopntWiseDetl);
           }
@@ -3792,7 +3791,7 @@ async function processSalary(data) {
         const ptDynamicAttribute = [currentMonth, "ptAmount"];
         const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
         const ptDeducationDetails = await db.paymentDetails.findOne({
-          attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability"],
+          attributes: ["paymentId", "userId", "ptLocationId", "ptApplicability","ptStateId"],
           where: { userId: employee },
           raw: true,
           nest: true,
@@ -3862,32 +3861,32 @@ async function processSalary(data) {
         },
         raw: true,
       });
+      
       const ptAmount1 =
-        ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
-          ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
-          : 0;
+      ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
+        ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
+        : 0;
       const lwfAmount1 = lwfAmount
 
       const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
         : 0;
-      if (
-        ptDeducationDetails &&
-        ptDeducationDetails.ptApplicability == 1 &&
-        !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
-      ) {
-        await db.payProcessDetails.update(
-          { payStatus: 101, payRemark: "Error with PT calculating" },
-          {
-            where: {
-              EmployeeId: employee,
-              proceessId: processId,
-            },
-          }
-        );
+      //   if (
+      //     ptDeducationDetails &&
+      //     ptDeducationDetails.ptApplicability == 1 && ptDeducationDetails.ptStateId == null
+      //   ){
+      //   await db.payProcessDetails.update(
+      //     { payStatus: 101, payRemark: "Error with PT calculating" },
+      //     {
+      //       where: {
+      //         EmployeeId: employee,
+      //         proceessId: processId,
+      //       },
+      //     }
+      //   );
 
-        continue;
-      }
+      //   continue;
+      // }
       if (
         !lwfMappingDetails &&
         lwfDeducationDetails &&
@@ -3963,7 +3962,7 @@ async function processSalary(data) {
         //     : empCopntWiseDetl.payElementAmount;
 
         empCopntWiseDetl["elementMonthlyAmount"] =
-          paymentHelper.getElementValue(
+         await paymentHelper.getElementValue(
             "Affect Loss Of Pay",
             componentConfiguration[0]
           ) == 1
@@ -3989,11 +3988,11 @@ async function processSalary(data) {
         empCopntWiseDetl["lwfAmount"] = lwfAmount1;
         empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
         //////////////////////////////PF-Applicablity Keys////////////////////////
-        let pafApplicableComponet = paymentHelper.getElementValue(
+        let pafApplicableComponet = await paymentHelper.getElementValue(
           "Affect PF",
           componentConfiguration[0]
         );
-        let esicApplicableComponent = paymentHelper.getElementValue(
+        let esicApplicableComponent = await paymentHelper.getElementValue(
           "Affects ESIC",
           componentConfiguration[0]
         );
