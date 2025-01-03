@@ -865,13 +865,13 @@ class CronController {
           singleRecords?.confirmationinitiated?.employee?.id
         ); // EMP DATA
 
-        eventEmitter.emit(
-          "confirmationSLABreachEmailBody",
-          JSON.stringify({
-            ESCALTERDATA: ESCALTERDATA,
-            EMP_DATA: EMP_DATA,
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationSLABreachEmailBody",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA,
+        //   })
+        // );
 
         await db.Confirmationowners.create({
           confirmationinitiatedAutoId:
@@ -881,9 +881,9 @@ class CronController {
           canTakeAction: singleRecords?.canTakeAction,
           canTakeActionExtend: singleRecords?.canTakeActionExtend,
           confirmationFormGroupId: singleRecords?.confirmationFormGroupId,
-          slaEndDate: moment()
-            .add(levelownerData.maxCompletionDay, "days")
-            .format("YYYY-MM-DD"),
+          // slaEndDate: moment()
+          //   .add(levelownerData.maxCompletionDay, "days")
+          //   .format("YYYY-MM-DD"),
           createdBy: 1,
         });
       }
@@ -1012,13 +1012,13 @@ class CronController {
 
         let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
 
-        eventEmitter.emit(
-          "confirmationWorkflowNextLevel",
-          JSON.stringify({
-            ESCALTERDATA: ESCALTERDATA,
-            EMP_DATA: EMP_DATA_SELF,
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationWorkflowNextLevel",
+        //   JSON.stringify({
+        //     ESCALTERDATA: ESCALTERDATA,
+        //     EMP_DATA: EMP_DATA_SELF,
+        //   })
+        // );
 
         await db.Confirmationaudittrail.create({
           confirmationinitiatedAutoId:
@@ -1160,15 +1160,15 @@ class CronController {
           }
         }
 
-        eventEmitter.emit(
-          "confirmationLetter",
-          JSON.stringify({
-            EMP_DATA_SELF: EMP_DATA_SELF,
-            confirmationData: confirmationData,
-            signatureAuthority: signatureAuthority,
-            cc: cc_arrays.join(","),
-          })
-        );
+        // eventEmitter.emit(
+        //   "confirmationLetter",
+        //   JSON.stringify({
+        //     EMP_DATA_SELF: EMP_DATA_SELF,
+        //     confirmationData: confirmationData,
+        //     signatureAuthority: signatureAuthority,
+        //     cc: cc_arrays.join(","),
+        //   })
+        // );
       }
     }
   }
