@@ -121,6 +121,12 @@ import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 import Signingauthority from "../api/model/signingAuthority.js";
 //CONFIRMATION
+
+//COMP OFF
+import comp_off_assignment from "../api/model/CompOffAssignment.js";
+import comp_off_assignment_filters from "../api/model/CompOffAssignmentFilter.js";
+import comp_off_polices from "../api/model/comp_off_polices.js";
+//COMP OFF
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -330,6 +336,16 @@ db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
   sequelize,
   Sequelize
 );
+
+//COMP OFF
+db.comp_off_assignment = comp_off_assignment(sequelize, Sequelize);
+
+db.comp_off_assignment_filters = comp_off_assignment_filters(
+  sequelize,
+  Sequelize
+);
+db.comp_off_polices = comp_off_polices(sequelize, Sequelize);
+//COMP OFF
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1347,5 +1363,13 @@ db.holidayMaster.hasMany(db.holidayCompanyLocationConfiguration, {
   sourceKey: "holidayId",
 });
 //ritak work
+
+//COMP OFF
+
+db.comp_off_assignment.hasMany(db.comp_off_assignment_filters, {
+  foreignKey: "comp_off_assignment_auto_id_for_filter",
+  sourceKey: "comp_off_assignment_auto_id",
+});
+//COMP OFF
 
 export default db;

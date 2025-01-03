@@ -313,12 +313,12 @@ class UserController {
               {
                 model: db.stateMaster,
                 attributes: ["stateId", "stateName"],
-                required: false
+                required: false,
               },
               {
                 model: db.ptLocationMaster,
                 attributes: ["ptLocationId", "ptLocationName"],
-                required: false
+                required: false,
               },
             ],
           },
@@ -530,7 +530,7 @@ class UserController {
         where: {
           pendingAt: userid,
           status: "pending",
-        }
+        },
       });
 
       let assignedAttCount = await db.regularizationMaster.count({
@@ -562,7 +562,7 @@ class UserController {
           web: {
             leaveData: {
               raisedByMe: countLeavePending,
-              assignedToMe: countLeaveAssgined
+              assignedToMe: countLeaveAssgined,
             },
             attedanceData: {
               raisedByMe: pendingAttCount,
@@ -585,7 +585,7 @@ class UserController {
               pendingAttendanceCount: 0,
             },
             assignedToMe: {
-              leaveData:countLeaveAssgined,
+              leaveData: countLeaveAssgined,
               attedanceData: assignedAttCount,
               seperationCount: pendingSeperationCount,
               pendingAttendanceCount,
@@ -2802,34 +2802,45 @@ class UserController {
 
   async taskHistoryAttendanceApprovalSelf(req, res) {
     try {
-
       const limit = parseInt(req.query.limit, 10) || 10;
       const pageNo = parseInt(req.query.page, 10) || 1;
       const offset = (pageNo - 1) * limit;
 
-      const { count, rows: pendingAttendanceData } = await db.attendanceHistory.findAndCountAll({
-        where: {
-          employeeId: req.userId
-        },
-        include: [{
-          model: db.employeeMaster,
-          attributes: ['id', 'empCode', 'name']
-        }, {
-          model: db.employeeMaster,
-          attributes: ['id', 'empCode', 'name'],
-          as: 'attendanceApprover'
-        }],
-        order: [['date', 'DESC']],
-        limit,
-        offset
-      })
+      const { count, rows: pendingAttendanceData } =
+        await db.attendanceHistory.findAndCountAll({
+          where: {
+            employeeId: req.userId,
+          },
+          include: [
+            {
+              model: db.employeeMaster,
+              attributes: ["id", "empCode", "name"],
+            },
+            {
+              model: db.employeeMaster,
+              attributes: ["id", "empCode", "name"],
+              as: "attendanceApprover",
+            },
+          ],
+          order: [["date", "DESC"]],
+          limit,
+          offset,
+        });
 
-      pendingAttendanceData.map(record => {
-        if (!record.dataValues.attendanceApprover && record.dataValues.attendanceStatus === 'pending') {
-          record.dataValues.attendanceApprover = { name: 'Pending for Approval' };
+      pendingAttendanceData.map((record) => {
+        if (
+          !record.dataValues.attendanceApprover &&
+          record.dataValues.attendanceStatus === "pending"
+        ) {
+          record.dataValues.attendanceApprover = {
+            name: "Pending for Approval",
+          };
         }
-        if (!record.dataValues.attendanceApprover && record.dataValues.attendanceStatus === 'approved') {
-          record.dataValues.attendanceApprover = { name: 'Auto Approved' };
+        if (
+          !record.dataValues.attendanceApprover &&
+          record.dataValues.attendanceStatus === "approved"
+        ) {
+          record.dataValues.attendanceApprover = { name: "Auto Approved" };
         }
         return record;
       });
@@ -2841,13 +2852,13 @@ class UserController {
           totalPages: Math.ceil(count / limit),
           currentPage: pageNo,
           pendingAttendanceData,
-        }
+        },
       });
     } catch (error) {
       console.log(error);
       return respHelper(res, {
         status: 500,
-      })
+      });
     }
   }
   // Pending Attendance Task History
@@ -4105,11 +4116,11 @@ class UserController {
   }
 
   ///CONFIRMATION///
-   async confirmatonList(req, res) {
+  async confirmatonList(req, res) {
     try {
       const confirmationData = await db.Confirmationinitiated.findAll({
         where: {
-           status: [0, 2],
+          status: [0, 2],
         },
         include: [
           {
@@ -5277,6 +5288,25 @@ class UserController {
       });
     }
   }
+
+  //COMP OFF
+
+  async checkPolicy(req, res) {
+    // try {
+
+    let compOffPolicyData = await helper.checkCompOffPolicyForUser(694);
+    return respHelper(res, {
+      status: 200,
+      data: compOffPolicyData,
+    });
+    // } catch (error) {
+    //   return respHelper(res, {
+    //     status: 500,
+    //     msg: "Internal server error",
+    //   });
+    // }
+  }
+  //COMP OFF
 }
 
 export default new UserController();

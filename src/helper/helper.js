@@ -1446,6 +1446,109 @@ const getSigningAuthorityDate = async (SIGN_FOR, dataForWhereCondition) => {
 };
 ///CONFIRMATION
 
+///COMPOFF
+const checkCompOffPolicyForUser = async (UserId) => {
+  const mappingObject = {
+    COMPANY: "companyId",
+    BU: "buId",
+    DEPARTMENT: "departmentId",
+    SBU: "sbuId",
+    FUNCTIONALAREA: "functionalAreaId",
+    JOBLEVEL: "jobLevelId",
+    BAND: "bandId",
+    GRADE: "gradeId",
+    EMPID: "id",
+  };
+
+  const compOffAissgments = await db.comp_off_assignment.findAll({
+    include: {
+      model: db.comp_off_assignment_filters,
+    },
+  });
+  let whereCondition = {
+    isActive: 1,
+  };
+  let compOffPolicyAssignment = {};
+  let whereConditionJobdetails = {};
+  for (const single of compOffAissgments) {
+    for (const singlefilter of single.comp_off_assignment_filters) {
+      const columnName = mappingObject[singlefilter.filter_colum];
+      const validColumns = ["jobLevelId", "bandId", "gradeId"];
+      if (validColumns.includes(columnName)) {
+        if (singlefilter.filter_type == "INCLUDE") {
+          whereConditionJobdetails[columnName] = {
+            [Op.in]: singlefilter.filter_data.split(","),
+          };
+        } else {
+          whereConditionJobdetails[columnName] = {
+            [Op.notIn]: singlefilter.filter_data.split(","),
+          };
+        }
+      } else {
+        if (singlefilter.filter_type == "INCLUDE") {
+          whereCondition[columnName] = {
+            [Op.in]: singlefilter.filter_data.split(","),
+          };
+        } else {
+          whereCondition[columnName] = {
+            [Op.notIn]: singlefilter.filter_data.split(","),
+          };
+        }
+      }
+    }
+    whereConditionJobdetails = {
+      ...whereConditionJobdetails,
+      ...{ userId: UserId },
+    };
+    const employee = await db.employeeMaster.findOne({
+      where: whereCondition,
+      attributes: [
+        "id",
+        "empCode",
+        "name",
+        "buId",
+        "departmentId",
+        "companyId",
+        "functionalAreaId",
+      ],
+      include: {
+        require: true,
+        model: db.jobDetails,
+        attributes: ["bandId", "gradeId", "jobLevelId"],
+        where: whereConditionJobdetails,
+      },
+    });
+    if (employee) {
+      if (employee?.id in compOffPolicyAssignment) {
+      } else {
+        compOffPolicyAssignment[employee?.id] =
+          single?.comp_off_assignment_auto_id;
+      }
+    }
+    // // return respHelper(res, {
+    // //   status: 200,
+    // //   data: employee,
+    // // });
+  }
+  let compOffPolicyData = null;
+  if (Object.keys(compOffPolicyAssignment).length > 0) {
+    compOffPolicyData = await db.comp_off_polices.findOne({
+      where: {
+        comp_off_assignment_auto_id_for_policies: {
+          [Op.or]: [
+            { [Op.like]: `${compOffPolicyAssignment[UserId]},%` },
+            { [Op.like]: `%,${compOffPolicyAssignment[UserId]},%` },
+            { [Op.like]: `%,${compOffPolicyAssignment[UserId]}` },
+            { [Op.eq]: `${compOffPolicyAssignment[UserId]}` },
+          ],
+        },
+      },
+    });
+  }
+  return compOffPolicyData;
+};
+///COMPOFF
+
 export default {
   generateJwtToken,
   checkFolder,
@@ -1475,5 +1578,8 @@ export default {
   //CONFIRMAITON
   generateFieldsForgivenLevel,
   getSigningAuthorityDate,
-  //CONFIRMAITON
+  //CONFIRMAITON,
+  //COMPOFF
+  checkCompOffPolicyForUser,
+  //COMPOFF
 };
