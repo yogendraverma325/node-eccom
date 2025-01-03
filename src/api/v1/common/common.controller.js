@@ -668,10 +668,10 @@ class commonController {
                   new Date().getFullYear()
                 ),
               ],
-            },
-            order: [["holidayDate", "ASC"]],
+            }
           },
         ],
+        order: [[{ model: db.holidayMaster, as: "holidayDetails" }, "holidayDate", "ASC"]],
       });
 
       return respHelper(res, {
