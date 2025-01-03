@@ -907,9 +907,9 @@ class CronController {
           canTakeAction: singleRecords?.canTakeAction,
           canTakeActionExtend: singleRecords?.canTakeActionExtend,
           confirmationFormGroupId: singleRecords?.confirmationFormGroupId,
-          slaEndDate: moment()
-            .add(levelownerData.maxCompletionDay, "days")
-            .format("YYYY-MM-DD"),
+          // slaEndDate: moment()
+          //   .add(levelownerData.maxCompletionDay, "days")
+          //   .format("YYYY-MM-DD"),
           createdBy: 1,
         });
       }
