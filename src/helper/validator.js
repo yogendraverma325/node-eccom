@@ -1263,7 +1263,7 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
     );
   }
   const dynamicFields = {
-    "Email/Employee ID":Joi.number().required(),
+    "Email/Employee ID": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Name":Joi.string().allow(null,''),
     "Effective Date": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Event":Joi.string().allow('',null),
