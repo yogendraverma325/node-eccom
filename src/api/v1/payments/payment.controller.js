@@ -3470,10 +3470,18 @@ class PaymentController {
       };
 
       const letter = await emailTemplate.salarySlipPdf(body);
-      const options = { format: "A4" };
+
       const file = { content: letter };
 
-      html_to_pdf.generatePdf(file, options, (error, success) => {
+    const options = {
+      format: "A4",
+      puppeteer: {
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        executablePath: "/usr/bin/chromium-browser", // Adjust this path as needed
+      },
+    };
+
+   html_to_pdf.generatePdf(file, options, (error, success) => {
         // console.timeEnd("Generate PDF");
 
         if (error) {
@@ -3487,6 +3495,23 @@ class PaymentController {
         });
         res.end(success);
       });
+      // const options = { format: "A4" };
+      // const file = { content: letter };
+
+      // html_to_pdf.generatePdf(file, options, (error, success) => {
+      //   // console.timeEnd("Generate PDF");
+
+      //   if (error) {
+      //     console.error("PDF generation error:", error);
+      //     return res.status(500).send("Error generating PDF");
+      //   }
+
+      //   res.set({
+      //     "Content-Type": "application/pdf",
+      //     "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+      //   });
+      //   res.end(success);
+      // });
     } catch (error) {
       console.error("Something Went Wrong:", error);
       res.status(500).send("Something Went Wrong");
