@@ -2704,7 +2704,6 @@ class PaymentController {
       const processedEmployee = await db.sequelize.query(
         queryForProcessedEmploye
       );
-
       const employeeIds = processedEmployee[0].map((item) => item.empId);
       const query = await paymentHelper.query(
         1,
@@ -2712,7 +2711,6 @@ class PaymentController {
         employeeIds
       );
       const result = await db.sequelize.query(query);
-
       const processedData = groupByEmployeeId(result[0]);
       return respHelper(res, {
         status: 200,
@@ -3707,8 +3705,6 @@ async function processSalary(data) {
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
-
-      // console.log(employeeDetailsComponentWise);
       const queryForExtraDeductions = await paymentHelper.query(
         14,
         employee,
@@ -3733,7 +3729,6 @@ async function processSalary(data) {
         0,
         payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
       );
-      console.log("deductionOfLopMonthAmount", deductionOfLopMonthAmount);
       const currentMonth = new Date()
         .toLocaleString("default", { month: "short" })
         .toLowerCase();
@@ -3867,20 +3862,6 @@ async function processSalary(data) {
 
         continue;
       }
-      const queryForAffetElementCounts = await paymentHelper.query(
-        13,
-        employee,
-        null
-      );
-      const affectComponentCounts = await db.sequelize.query(
-        queryForAffetElementCounts
-      );
-      // const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
-      //   ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
-      //       totalWorkingDays) *
-      //       employeeDetailsComponentWise[0][0].lopDays) /
-      //     affectComponentCounts[0][0].lopAffectCount
-      //   : 0;
       for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
         const queryForComponentConfiguration = await paymentHelper.query(
           12,
@@ -3901,17 +3882,6 @@ async function processSalary(data) {
             ? 1
             : 0;
         empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
-        // empCopntWiseDetl["elementMonthlyAmount"] =
-        //   paymentHelper.getElementValue(
-        //     "Affect Loss Of Pay",
-        //     componentConfiguration[0]
-        //   ) == 1
-        //     ? parseFloat(
-        //         empCopntWiseDetl.payElementAmount - lopSingleUnit
-        //       ).toFixed(2)
-        //     : empCopntWiseDetl.payElementAmount;
-
-
         empCopntWiseDetl["elementMonthlyAmount"] =
         paymentHelper.getElementValue(
           "Affect Loss Of Pay",

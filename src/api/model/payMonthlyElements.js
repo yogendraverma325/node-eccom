@@ -18,7 +18,7 @@ export default (sequelize, Sequelize) => {
             allowNull: true
           },
           lopDays: {
-            type: Sequelize.DECIMAL,
+            type: Sequelize.DECIMAL(10,2),
             allowNull: true
           },
           arrearMonth: {
