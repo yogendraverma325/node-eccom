@@ -837,12 +837,6 @@ class PaymentController {
       var Employees = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
-
-
-      console.log(Employees);
-      // return;
-
-
       if (!isNaN(Employees[0]["Effective Date"])) {
         console.log(
           paymentHelper.getFromattedDate(Employees[0]["Effective Date"])
@@ -3441,7 +3435,7 @@ class PaymentController {
           ],
           "11":[
             { label: "Employee Code", value: "EmployeeId" },
-            { label: "Lop Days", value: "Extra Payment Amount" },
+            { label: "Extra Amount", value: "Extra Payment Amount" },
           ],
           "12":[
             { label: "Employee Code", value: "EmployeeId" },
