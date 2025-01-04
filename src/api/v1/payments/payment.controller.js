@@ -3724,9 +3724,14 @@ async function processSalary(data) {
         employee,
         { payMonth: result[0][0].payMonth }
       );
+
+    
+
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
+      // console.log(employeeDetailsComponentWise[0]);
+      // return
       const queryForExtraDeductions = await paymentHelper.query(
         14,
         employee,
@@ -3888,7 +3893,7 @@ async function processSalary(data) {
         const queryForComponentConfiguration = await paymentHelper.query(
           12,
           empCopntWiseDetl.salaryComponentAutoId,
-          null
+          empCopntWiseDetl.salaryStructureAutoId
         );
         const componentConfiguration = await db.sequelize.query(
           queryForComponentConfiguration
