@@ -3559,6 +3559,15 @@ const  groupByEmployeeId = (data) => {
     }
 
 
+    
+    // if(item["Deduction Category"])
+    //   {
+    //     Object.assign(groupedData[employeeId], {
+    //       [item["Deduction Category"] ]: item["Deduction Amount"],
+    //     });
+    //   }
+
+
     if (['Balancing','Earning'].includes(item["salaryComponentEarningType"])) {
  
       Object.assign(groupedData[employeeId], {
@@ -3568,9 +3577,7 @@ const  groupByEmployeeId = (data) => {
         [item["Element Name"] + " Monthly"]: item["Monthly Element Amount"],
       });
 
-      Object.assign(groupedData[employeeId], {
-        [item["Deduction Category"] ]: item["Deduction Amount"],
-      });
+      
     }
   });
 
