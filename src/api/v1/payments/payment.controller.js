@@ -3644,7 +3644,6 @@ const  groupByEmployeeId = (data) => {
 
   data.forEach((item) => {
     const employeeId = item["Employee Id"];
-
     if (!groupedData[employeeId]) {
       let totalEarning = parseFloat(
         parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
@@ -3669,8 +3668,8 @@ const  groupByEmployeeId = (data) => {
         "Net Pay": item["Net Pay"],
         "Monthly Pay":
           payableAmount != "N/A" ? payableAmount.toFixed(2) : "0.0",
-        "Advance Name": item["Advance Name"],
-        "Advance Amount": item["Advance Amount"],
+        "Extra Deduction Categories": item["Advance Name"],
+        "Total Extra Deduction Amount": item["Advance Amount"],
         "PT Amount": item["PT AMOUNT"],
         "LWF Amount": item["LWF AMOUNT"],
         "Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],
@@ -3682,12 +3681,18 @@ const  groupByEmployeeId = (data) => {
       //p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
     }
 
+
     if (['Balancing','Earning'].includes(item["salaryComponentEarningType"])) {
+ 
       Object.assign(groupedData[employeeId], {
         [item["Element Name"]]: item["Element Amount"],
       });
       Object.assign(groupedData[employeeId], {
         [item["Element Name"] + " Monthly"]: item["Monthly Element Amount"],
+      });
+
+      Object.assign(groupedData[employeeId], {
+        [item["Deduction Category"] ]: item["Deduction Amount"],
       });
     }
   });
@@ -3737,6 +3742,12 @@ async function processSalary(data) {
         employee,
         result[0][0].payMonth
       );
+
+
+      // console.log(queryForExtraDeductions);
+
+      // return
+
       const extraDeductonsDetails = await db.sequelize.query(
         queryForExtraDeductions
       );
@@ -4038,12 +4049,17 @@ async function generatePaySlip(data) {
         currentProcessStatus[0][0].payMonth,
         employeeIds
       );
-
-      console.log(queryForPayMonthlyElementsForSalarySlip);
-
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
+
+
+      // console.log(queryForPayMonthlyElementsForSalarySlip);
+
+      // return;
+
+
+
       for (const payMonthlyElement of payElements[0]) {
         let isExistPaySlip = await db.paySlips.findOne({
           where: {
@@ -4119,18 +4135,18 @@ async function generatePaySlip(data) {
             });
           }
 
-          if (payMonthlyElement.totalExtraDeduction > 0) {
-            customeDeduction.push({
-              EmployeeId: payMonthlyElement.empId,
-              paySlipAutoId: paySlipAutoId,
-              salaryComponentAutoId: 0,
-              paySlipComponentName: "Extra Deduction",
-              paySlipComponentAmount: payMonthlyElement.totalExtraDeduction,
-              paySlipComponentType: "Deduction",
-              createdBy: req.userData.id,
-              createdAt: new Date(),
-            });
-          }
+          // if (payMonthlyElement.totalExtraDeduction > 0) {
+          //   customeDeduction.push({
+          //     EmployeeId: payMonthlyElement.empId,
+          //     paySlipAutoId: paySlipAutoId,
+          //     salaryComponentAutoId: 0,
+          //     paySlipComponentName: "Extra Deduction",
+          //     paySlipComponentAmount: payMonthlyElement.totalExtraDeduction,
+          //     paySlipComponentType: "Deduction",
+          //     createdBy: req.userData.id,
+          //     createdAt: new Date(),
+          //   });
+          // }
 
           if (payMonthlyElement.ptAmount > 0) {
             customeDeduction.push({
@@ -4196,6 +4212,10 @@ async function generatePaySlip(data) {
               createdAt: new Date(),
             });
           }
+         let getExtraDeductions = await paymentHelper.getExtraDeductionsElements(payMonthlyElement.payMonth,payMonthlyElement.empId,paySlipAutoId,req.userData.id);
+         customeDeduction=customeDeduction.concat(getExtraDeductions);
+         console.log(customeDeduction);
+         //return
           await db.paySlipComponent.bulkCreate(customeDeduction);
         }
 
