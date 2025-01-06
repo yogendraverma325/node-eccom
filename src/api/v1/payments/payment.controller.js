@@ -776,7 +776,7 @@ class PaymentController {
             empCode: employee["Email/Employee ID"],
           },
           raw: true,
-          attributes: ["id", "name"],
+          attributes: ["id", "name","dateOfJoining"],
         });
 
         if (!employeeDetails) {
@@ -2785,6 +2785,7 @@ class PaymentController {
           { where: { payProcessMasterAutoId: processId } }
         );
       } else if (nextStatusId == 5) {
+
         await db.payProcessMaster.destroy({
           where: {
             payProcessMasterAutoId: processId,
@@ -2793,6 +2794,12 @@ class PaymentController {
         await db.payProcessDetails.destroy({
           where: {
             proceessId: processId,
+          },
+        });
+
+        await db.payMonthlyElements.destroy({
+          where: {
+            processId: processId,
           },
         });
       }
@@ -3725,6 +3732,8 @@ async function processSalary(data) {
         empCopntWiseDetl["ptAmount"] = ptAmount1;
         empCopntWiseDetl["lwfAmount"] = lwfAmount1;
         empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
+        empCopntWiseDetl["processId"] = processId;
+        
         //////////////////////////////PF-Applicablity Keys////////////////////////
         let pafApplicableComponet = await paymentHelper.getElementValue(
           "Affect PF",
