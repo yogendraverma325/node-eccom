@@ -326,7 +326,7 @@ const addPaymentDetailsSchema = Joi.object({
     .label("Payment Attachemnt")
     .allow("")
     .optional(),
-  bankId: Joi.number().required()
+  bankId: Joi.number().required(),
 });
 
 const deleteFamilyMemberDetailsSchema = Joi.object({
@@ -1262,6 +1262,24 @@ const attendanceApprovalSchema = Joi.object({
 });
 // Attendance Approval Validations
 
+//COMP OFF
+const updateCompOffRequest = Joi.object({
+  comp_off_credit_history_auto_id: Joi.string()
+    .trim()
+    .required()
+    .label("comp_off_credit_history_auto_id ID"),
+  status: Joi.string().trim().required().valid(1, 2).label("status"),
+  remarks: Joi.string()
+    .trim()
+    .max(100)
+    .when("status", {
+      is: Joi.string().valid(2),
+      then: Joi.required().label("Remark"),
+      otherwise: Joi.optional().allow("").label("remarks"),
+    }),
+});
+//COMP OFF
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1320,4 +1338,7 @@ export default {
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
   attendanceApprovalSchema,
+  //COMP OFF
+  updateCompOffRequest,
+  //COMP OFF
 };

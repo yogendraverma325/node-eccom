@@ -5,6 +5,10 @@ export default (sequelize, Sequelize) => {
       primaryKey: true,
       autoIncrement: true,
     },
+    attendanceAutoIdHistory: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
     employee_Id: {
       type: Sequelize.INTEGER,
       allowNull: false,
@@ -22,7 +26,11 @@ export default (sequelize, Sequelize) => {
       allowNull: false,
     },
     total_hours: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.TIME,
+      allowNull: false,
+    },
+    adjust_hours: {
+      type: Sequelize.TIME,
       allowNull: false,
     },
     expiry_date: {
@@ -32,6 +40,15 @@ export default (sequelize, Sequelize) => {
     taken_on: {
       type: Sequelize.DATE,
       allowNull: true,
+    },
+    planned_message: {
+      type: Sequelize.STRING,
+    },
+    message: {
+      type: Sequelize.STRING,
+    },
+    approver_remark: {
+      type: Sequelize.STRING,
     },
     createdBy: {
       type: Sequelize.INTEGER,

@@ -356,5 +356,10 @@ export default Express.Router()
     authentication.authenticate,
     userController.compOffPendingForApproval
   )
+  .post(
+    "/actionOnCompoff",
+    authentication.authenticate,
+    userController.actionOnCompoff
+  )
   .get("/checkPolicy", authentication.authenticate, userController.checkPolicy);
 //COMP OFF

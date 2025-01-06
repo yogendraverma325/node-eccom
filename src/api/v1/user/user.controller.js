@@ -5344,6 +5344,29 @@ class UserController {
           where: {
             employee_Id: req.userId,
           },
+          include: [
+            {
+              model: db.status_master,
+              attributes: ["name", "code"],
+            },
+            {
+              model: db.employeeMaster,
+              as: "compOffEmpDetails",
+              attributes: ["id", "name", "profileImage", "empCode"],
+            },
+            {
+              model: db.attendanceMaster,
+              as: "compOffAttendanceDetails",
+              attributes: [
+                "attendanceAutoId",
+                "attendancePunchInTime",
+                "attendancePunchOutTime",
+                "attendanceWorkingTime",
+                "attandanceShiftStartDate",
+                "attendanceShiftEndDate",
+              ],
+            },
+          ],
           limit,
           offset,
           order: [
@@ -5379,6 +5402,29 @@ class UserController {
             //employee_Id: req.userId,
             status: 3,
           },
+          include: [
+            {
+              model: db.status_master,
+              attributes: ["name", "code"],
+            },
+            {
+              model: db.employeeMaster,
+              as: "compOffEmpDetails",
+              attributes: ["id", "name", "profileImage", "empCode"],
+            },
+            {
+              model: db.attendanceMaster,
+              as: "compOffAttendanceDetails",
+              attributes: [
+                "attendanceAutoId",
+                "attendancePunchInTime",
+                "attendancePunchOutTime",
+                "attendanceWorkingTime",
+                "attandanceShiftStartDate",
+                "attendanceShiftEndDate",
+              ],
+            },
+          ],
           limit,
           offset,
           order: [
@@ -5394,6 +5440,74 @@ class UserController {
       return respHelper(res, {
         status: 500,
         msg: "Internal server error",
+      });
+    }
+  }
+  async actionOnCompoff(req, res) {
+    try {
+      const result = await validator.updateCompOffRequest.validateAsync(
+        req.body
+      );
+      let comp_off_credit_history_auto_ids =
+        req.body.comp_off_credit_history_auto_id.split(",");
+      const comp_off_credit_historyData =
+        await db.comp_off_credit_history.findAll({
+          where: {
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            },
+            //employee_Id: req.userId,
+            status: 3,
+            comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+          },
+        });
+      if (
+        comp_off_credit_historyData.length !=
+        comp_off_credit_history_auto_ids.length
+      ) {
+        return respHelper(res, {
+          status: 400,
+          msg: "You Can't Approve Selected Comp Off Request",
+          data: {},
+        });
+      }
+      await db.comp_off_credit_history.update(
+        {
+          updatedBy: req.userId,
+          approver_remark: req.body.remarks,
+          status: req.body.status == 1 ? 1 : 5,
+        },
+        {
+          where: {
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            },
+            //employee_Id: req.userId,
+            status: 3,
+            comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+          },
+        }
+      );
+      return respHelper(res, {
+        status: 200,
+        msg: "Updated",
+      });
+    } catch (error) {
+      console.log(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
       });
     }
   }
