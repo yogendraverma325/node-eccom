@@ -750,10 +750,6 @@ class PaymentController {
             },
           ],
         });
-
-        console.log(structureDetails);
-
-        
         if(structureDetails.length==0)
         {
           return respHelper(res, {
