@@ -59,7 +59,8 @@ export default Express
     .get("/salarySlipPdf",paymentController.salarySlipPdf)
 
     // jay routes
-    .get("/extraPaymentDeduction", authentication.authenticate, paymentController.extraPaymentDeduction);
+    .get("/extraDeduction", authentication.authenticate, paymentController.extraDeduction)
+    .get("/extraPayment", authentication.authenticate, paymentController.extraPayment)
 
 
 

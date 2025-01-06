@@ -594,7 +594,7 @@ class PaymentController {
       if (error) {
         return respHelper(res, {
           status: 400,
-          msg: error.details[0],
+          msg: error.details[0].message,
         });
       }
 
@@ -3657,7 +3657,7 @@ class PaymentController {
 
   // start by jay
 
-  async extraPaymentDeduction(req, res) {
+  async extraDeduction(req, res) {
     try {
       // Fetch extra payment deduction list
       let model = db.extraDeduction;
@@ -3665,17 +3665,62 @@ class PaymentController {
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
       let userId = req.query.user;
+      let financialYear = req.query.selectedYear || "";
 
       let query = { 
         EmployeeId: userId,
         isActive: 1,
-        ...(search && { "deductionName": { [Op.like]: `%${search}%`} })
+        ...(search && { "deductionName": { [Op.like]: `%${search}%`} }),
+        ...(financialYear && { "financialYear": financialYear })
       };
 
       let aggregate = {
         where: query,
         attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
         order: [["extraDeductionsAutoId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      
+      return respHelper(res, {
+        status: response.status,
+        msg: response.message,
+        data: obj
+      });
+    } catch (error) {
+      console.log(error);
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async extraPayment(req, res) {
+    try {
+      // Fetch extra payment deduction list
+      let model = db.extraPayment;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+      let userId = req.query.user;
+      let financialYear = req.query.selectedYear || "";
+
+      let query = { 
+        EmployeeId: userId,
+        isActive: 1,
+        ...(search && { "category": { [Op.like]: `%${search}%`} }),
+        ...(financialYear && { "financialYear": financialYear })
+      };
+      
+      let aggregate = {
+        where: query,
+        attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
+        order: [["extraPaymentAutoId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit
       };
