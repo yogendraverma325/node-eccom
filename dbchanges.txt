@@ -1085,7 +1085,12 @@ ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
   PRIMARY KEY (`id`));
 
 
+---------------------------------2025-01-06------------------------
 
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `processId` INT NOT NULL DEFAULT 0 AFTER `pfEmployerAmount`;
+
+-------------------------2025-01-06---------------------------
 
 
 

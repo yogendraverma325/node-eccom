@@ -523,7 +523,7 @@ async function getCalculatedPF(monthlyElementPay) {
 async function getCalculatedESIC(monthlyElementPay) {
   let calculatedEmployeeESIC = 0,calculatedEmployerESIC,
     esicApplicableAmount = 0;
-  if (monthlyElementPay[0].isEsicApplicable == 0) return calculatedEmployeeESIC;
+  if (monthlyElementPay[0].isEsicApplicable == 0) return {calculatedEmployerESIC:0,calculatedEmployeeESIC:0};
   esicApplicableAmount =
   await monthlyElementPay
   .filter((element) => element.isEsicApplicableComponent == 1)
