@@ -1391,6 +1391,11 @@ db.comp_off_credit_history.hasOne(db.employeeMaster, {
   sourceKey: "employee_Id",
   as: "compOffEmpDetails",
 });
+db.comp_off_credit_history.hasOne(db.comp_off_polices, {
+  foreignKey: "comp_off_polices_auto_id",
+  sourceKey: "comp_off_polices_auto_id_history",
+  as: "compOffPolicyDetails",
+});
 
 //COMP OFF
 

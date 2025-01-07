@@ -50,13 +50,19 @@ export default (sequelize, Sequelize) => {
     approver_remark: {
       type: Sequelize.STRING,
     },
+    comp_off_polices_auto_id_history: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
+    pending_at: {
+      type: Sequelize.STRING,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
     updatedBy: {
       type: Sequelize.INTEGER,
-      allowNull: false,
     },
     createdAt: {
       type: Sequelize.DATE,

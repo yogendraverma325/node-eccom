@@ -81,6 +81,12 @@ export default (sequelize, Sequelize) => {
     approval_users_holiday: {
       type: Sequelize.STRING(45),
     },
+    effective_date: {
+      type: Sequelize.DATE,
+    },
+    effective_untill_date: {
+      type: Sequelize.DATE,
+    },
   });
   return comp_off_polices;
 };

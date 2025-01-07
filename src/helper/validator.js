@@ -1269,14 +1269,7 @@ const updateCompOffRequest = Joi.object({
     .required()
     .label("comp_off_credit_history_auto_id ID"),
   status: Joi.string().trim().required().valid(1, 2).label("status"),
-  remarks: Joi.string()
-    .trim()
-    .max(100)
-    .when("status", {
-      is: Joi.string().valid(2),
-      then: Joi.required().label("Remark"),
-      otherwise: Joi.optional().allow("").label("remarks"),
-    }),
+  remarks: Joi.string().trim().allow("").max(100),
 });
 //COMP OFF
 
