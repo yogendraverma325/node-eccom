@@ -18,7 +18,7 @@ export default (sequelize, Sequelize) => {
             allowNull: true
           },
           lopDays: {
-            type: Sequelize.DECIMAL,
+            type: Sequelize.DECIMAL(10,2),
             allowNull: true
           },
           arrearMonth: {
@@ -151,7 +151,13 @@ export default (sequelize, Sequelize) => {
           payMonth:{
             type: Sequelize.STRING,
             allowNull: true
+          },
+          processId:{
+            type: Sequelize.INTEGER,
+            allowNull: false
           }
+
+
     });
     return PayMonthlyElement ;
   };

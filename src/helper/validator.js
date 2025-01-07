@@ -1263,13 +1263,16 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
     );
   }
   const dynamicFields = {
-    "Email/Employee ID":Joi.number().required(),
+    "Email/Employee ID": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Name":Joi.string().allow(null,''),
     "Effective Date": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Event":Joi.string().allow('',null),
     "Salary Structure":Joi.string().required(),
     "CTC":Joi.number().required(),
   };
+
+  // console.log(dynamicArray);
+
   dynamicArray.forEach((field) => {
     dynamicFields[field] = Joi.alternatives().try(
       Joi.number()
@@ -1277,10 +1280,10 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
         .messages({
           "number.base": `"${field}" must be a valid number`,
           "number.min": `"${field}" must be 0 or greater`,
-        }),
+        }).label('field'),
       Joi.string()
         .valid("")
-        .optional() // Allows empty string
+        .optional().label("PPP") // Allows empty string
     ).default(0).custom((value, helpers) => {
       if (value === "") {
         return 0; // Assign 0 if it's an empty string
@@ -1288,10 +1291,10 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
       return value;
     });
   });
-  const payPackangeSchema = Joi.object(dynamicFields).unknown(false);
+  const payPackangeSchema = Joi.object(dynamicFields).unknown(true);
   const { error ,value} = await payPackangeSchema.validate(employee);
-  console.log(value);
-  console.log(error);
+  // console.log(value);
+  // console.log("****"+error+"*************8");
   return error;
 }
 
