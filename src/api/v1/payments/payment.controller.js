@@ -3606,12 +3606,6 @@ async function processSalary(data) {
         employee,
         result[0][0].payMonth
       );
-
-
-      // console.log(queryForExtraDeductions);
-
-      // return
-
       const extraDeductonsDetails = await db.sequelize.query(
         queryForExtraDeductions
       );
@@ -3727,10 +3721,11 @@ async function processSalary(data) {
       const extraPaymentAmount1 = extraPaymentAmount
         ? extraPaymentAmount?.paymentAmount
         : 0;
-      //   if (
-      //     ptDeducationDetails &&
-      //     ptDeducationDetails.ptApplicability == 1 && ptDeducationDetails.ptStateId == null
-      //   ){
+      // if (
+      //   ptDeducationDetails &&
+      //   ptDeducationDetails.ptApplicability == 1 &&
+      //   !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
+      // ) {
       //   await db.payProcessDetails.update(
       //     { payStatus: 101, payRemark: "Error with PT calculating" },
       //     {
@@ -3743,6 +3738,7 @@ async function processSalary(data) {
 
       //   continue;
       // }
+<<<<<<< HEAD
       if (
         !lwfMappingDetails &&
         lwfDeducationDetails &&
@@ -3757,9 +3753,25 @@ async function processSalary(data) {
             },
           }
         );
+=======
+      // if (
+      //   lwfDeducationDetails &&
+      //   lwfDeducationDetails.lwfApplicable == 1 &&
+      //   !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
+      // ) {
+      //   await db.payProcessDetails.update(
+      //     { payStatus: 101, payRemark: "Error with lwf calculating" },
+      //     {
+      //       where: {
+      //         EmployeeId: employee,
+      //         proceessId: processId,
+      //       },
+      //     }
+      //   );
+>>>>>>> main_dev_payroll_himanshu
 
-        continue;
-      }
+      //   continue;
+      // }
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
           { payStatus: 101, payRemark: "Pay Package Not Assigned." },
