@@ -3738,22 +3738,6 @@ async function processSalary(data) {
 
       //   continue;
       // }
-<<<<<<< HEAD
-      if (
-        !lwfMappingDetails &&
-        lwfDeducationDetails &&
-        lwfDeducationDetails.lwfApplicable == 1
-      ) {
-        await db.payProcessDetails.update(
-          { payStatus: 101, payRemark: "Error with lwf calculating" },
-          {
-            where: {
-              EmployeeId: employee,
-              proceessId: processId,
-            },
-          }
-        );
-=======
       // if (
       //   lwfDeducationDetails &&
       //   lwfDeducationDetails.lwfApplicable == 1 &&
@@ -3768,7 +3752,6 @@ async function processSalary(data) {
       //       },
       //     }
       //   );
->>>>>>> main_dev_payroll_himanshu
 
       //   continue;
       // }
