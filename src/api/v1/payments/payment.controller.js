@@ -779,6 +779,11 @@ class PaymentController {
           attributes: ["id", "name","dateOfJoining"],
         });
 
+
+        // console.log("**"+employee["Email/Employee ID"]+"***");
+
+        // return
+
         if (!employeeDetails) {
           console.log(
             "Empoyee not found" +
@@ -856,17 +861,31 @@ class PaymentController {
             .map(Number);
           if (
             existingPackage &&
-            new Date(existingPackage.payPackageEffectiveDate) >=
-              new Date(year, month - 1, day)
+            new Date(existingPackage.payPackageEffectiveDate).setHours(0,0,0) >
+              new Date(year, month - 1, day).setHours(0,0,0)
           ) {
             errorArray.push({
               index: errorArray.length + 1,
               employeeID: employee["Email/Employee ID"],
               errorDetails:
-                "Current Effective-Date can not be greater than last effective date ",
+                "Current Effective-Date can not be greater than last effective date",
             });
             continue;
-          } else {
+          } 
+        else if (
+          employeeDetails &&
+            new Date(employeeDetails.dateOfJoining).setHours(0,0,0) >
+              new Date(year, month - 1, day).setHours(0,0,0)
+          ) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              employeeID: employee["Email/Employee ID"],
+              errorDetails:
+                "Current Effective-Date can not be less than employee joining date",
+            });
+            continue;
+          }
+          else {
             let packageInserted = await db.payPackage.create(
               {
                 EmployeeId: employeeDetails.id,
@@ -885,6 +904,14 @@ class PaymentController {
               },
               { raw: true }
             );
+
+            if(existingPackage)
+            {
+              await db.payPackage.update({isActive:0},{
+                where: { payPackageAutoId: existingPackage.payPackageAutoId },
+              });
+            }
+
 
             for (const salaryComponent of structureDetails) {
               let componentName = salaryComponent[
@@ -2780,6 +2807,7 @@ class PaymentController {
       let getEmp = await db.payPackage.findAll({
         where: {
           salaryStructureAutoId: salaryStructureAutoId,
+          isActive:1
         },
         include: [
           {
