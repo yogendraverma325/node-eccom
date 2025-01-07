@@ -1,5 +1,9 @@
 import Express from "express";
 import attendanceController from "./attendance.controller.js";
+import multer from 'multer';
+
+const upload = multer({ dest: 'uploads/excel/' });
+
 
 export default Express
   .Router()
@@ -13,4 +17,9 @@ export default Express
   .post("/attedanceCronForEMP", attendanceController.attedanceCronForEMP)
   .get("/attendenceDetails", attendanceController.attendenceDetails)
   .get("/pendingAttendance", attendanceController.pendingAttendanceList)
-  .post("/attendanceApproval",attendanceController.attendanceApproval)
+  .post("/attendanceApproval", attendanceController.attendanceApproval)
+
+  //Attedace Roster//
+  .post('/attendanceRoster', attendanceController.attendanceRoster)
+  .post('/uploadAttendanceRoster', upload.single('attendanceroster'), attendanceController.uploadAttendanceRoster)
+//Attendance Roster

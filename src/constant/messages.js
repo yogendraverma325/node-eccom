@@ -89,7 +89,8 @@ const message = {
     EXTEND_PERMISSOIN_BREACH:
       "This profile has reached to maximum number of extention",
   },
-  ATTENDANCE_APPROVAL: 'Attendance <status>'
+  ATTENDANCE_APPROVAL: 'Attendance <status>',
+  ATTENDANCE_ROSTER_ADDED: "Attendance Roster Updated.",
 };
 
 export default message;

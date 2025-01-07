@@ -1403,6 +1403,11 @@ const getSigningAuthorityDate = async (SIGN_FOR, dataForWhereCondition) => {
 };
 ///CONFIRMATION
 
+const convertExcelDate = (serial) => {
+  const date = new Date((serial - 25569) * 86400 * 1000);
+  return moment(date).format("YYYY-MM-DD");
+};
+
 export default {
   generateJwtToken,
   checkFolder,
@@ -1433,4 +1438,5 @@ export default {
   generateFieldsForgivenLevel,
   getSigningAuthorityDate,
   //CONFIRMAITON
+  convertExcelDate
 };

@@ -68,8 +68,7 @@ class MasterController {
             let obj = createObj(employee);
 
             // validate fields
-            const { error } =
-              await validator.importOnboardEmployeeSchema.validate(obj);
+            const { error } = await validator.importOnboardEmployeeSchema.validate(obj);
             if (!error) {
               const isValidCompany = await validateCompany(obj.company);
               const isValidEmployeeType = await validateEmployeeType(
@@ -145,9 +144,7 @@ class MasterController {
               ) {
                 // prepare employee object
                 let newEmployee = {
-                  name: [obj.firstName, obj.middleName, obj.lastName]
-                    .filter((name) => name)
-                    .join(" "),
+                  name: [obj.firstName, obj.middleName, obj.lastName].filter((name) => name).join(" "),
                   firstName: obj.firstName,
                   middleName: obj.middleName,
                   lastName: obj.lastName,
@@ -374,7 +371,7 @@ class MasterController {
               { transaction }
             );
           }
-        } 
+        }
         if (employee && req.body.documentType == 2) {
           const fileBuffer = zipEntry.getData();
           const mimeType = `application/${fileExtension.replace(".", "")}`;
@@ -426,7 +423,7 @@ class MasterController {
               { transaction }
             );
           }
-        } 
+        }
         if (employee && req.body.documentType == 3) {
           const fileBuffer = zipEntry.getData();
           const mimeType = `application/${fileExtension.replace(".", "")}`;
@@ -478,7 +475,7 @@ class MasterController {
               { transaction }
             );
           }
-        } 
+        }
         if (employee && req.body.documentType == 4) {
           const fileBuffer = zipEntry.getData();
           const mimeType = `application/${fileExtension.replace(".", "")}`;
@@ -530,7 +527,7 @@ class MasterController {
               { transaction }
             );
           }
-        } 
+        }
         if (employee && req.body.documentType == 5) {
           const fileBuffer = zipEntry.getData();
           const mimeType = `application/${fileExtension.replace(".", "")}`;
@@ -582,7 +579,7 @@ class MasterController {
               { transaction }
             );
           }
-        } 
+        }
         if (employee && req.body.documentType == 6) {
           const fileBuffer = zipEntry.getData();
           const mimeType = `application/${fileExtension.replace(".", "")}`;
@@ -634,8 +631,8 @@ class MasterController {
               { transaction }
             );
           }
-        } 
-       
+        }
+
         else {
           empNotFound.push({
             empCode: empCode,
@@ -728,24 +725,24 @@ class MasterController {
           const chunk = Employees.slice(i, i + chunkSize);
           for (const manager of chunk) {
             let history = {
-                id: manager.id,
-                employeeId: manager.employeeId,
-                managerId: manager.managerId,
-                oldManagerId: null,
-                fromDate: convertExcelDate(manager.fromDate),
-                toDate: (manager.toDate != 'NULL') ? convertExcelDate(manager.toDate) : null,
-                needAttendanceCron: 1,
-                sourceName: 'System',
-                status: 1,
-                createdBy: 1,
-                updatedBy: null,
-                createdAt: null,
-                updatedAt: null
+              id: manager.id,
+              employeeId: manager.employeeId,
+              managerId: manager.managerId,
+              oldManagerId: null,
+              fromDate: convertExcelDate(manager.fromDate),
+              toDate: (manager.toDate != 'NULL') ? convertExcelDate(manager.toDate) : null,
+              needAttendanceCron: 1,
+              sourceName: 'System',
+              status: 1,
+              createdBy: 1,
+              updatedBy: null,
+              createdAt: null,
+              updatedAt: null
             }
 
             // verify employeeId and managerId in employee master table
-            let isVerify = await db.employeeMaster.findOne({ where: { 'id': manager.employeeId, 'id': manager.managerId }, attributes: ['id']});
-            if(isVerify) {
+            let isVerify = await db.employeeMaster.findOne({ where: { 'id': manager.employeeId, 'id': manager.managerId }, attributes: ['id'] });
+            if (isVerify) {
               await db.managerHistory.create(history);
             }
             else {
@@ -799,8 +796,8 @@ const createObj = (obj) => {
     maritalStatus: obj.Marital_Status,
     maritalStatusSince:
       obj.Marital_Since == "" ||
-      obj.Marital_Since == undefined ||
-      obj.Marital_Since == "NA"
+        obj.Marital_Since == undefined ||
+        obj.Marital_Since == "NA"
         ? null
         : convertExcelDate(obj.Marital_Since),
     nationality: obj.Nationality_Name,
@@ -834,27 +831,27 @@ const createObj = (obj) => {
     recruiterName: obj.Recruiter_Name,
     offRoleCTC:
       obj.Off_Role_CTC === "NA" ||
-      obj.Off_Role_CTC === "" ||
-      obj.Off_Role_CTC === undefined
+        obj.Off_Role_CTC === "" ||
+        obj.Off_Role_CTC === undefined
         ? 0
         : obj.Off_Role_CTC,
     highestQualification: obj.Highest_Qualification,
     ESICPFDeduction:
       obj.ESIC_PF_Deduction == "NA" ||
-      obj.ESIC_PF_Deduction == "" ||
-      obj.ESIC_PF_Deduction == undefined
+        obj.ESIC_PF_Deduction == "" ||
+        obj.ESIC_PF_Deduction == undefined
         ? null
         : obj.ESIC_PF_Deduction,
     fatherName:
       obj.Father_Name == "NA" ||
-      obj.Father_Name == "" ||
-      obj.Father_Name == undefined
+        obj.Father_Name == "" ||
+        obj.Father_Name == undefined
         ? null
         : obj.Father_Name,
     paymentAccountNumber:
       obj.Bank_Account_Number == "NA" ||
-      obj.Bank_Account_Number == "" ||
-      obj.Bank_Account_Number == undefined
+        obj.Bank_Account_Number == "" ||
+        obj.Bank_Account_Number == undefined
         ? null
         : obj.Bank_Account_Number.toString(),
     paymentBankName:
@@ -863,8 +860,8 @@ const createObj = (obj) => {
         : obj.Bank_Name,
     paymentBankIfsc:
       obj.Bank_IFSC_Number == "NA" ||
-      obj.Bank_IFSC_Number == "" ||
-      obj.Bank_IFSC_Number == undefined
+        obj.Bank_IFSC_Number == "" ||
+        obj.Bank_IFSC_Number == undefined
         ? null
         : obj.Bank_IFSC_Number,
   };
@@ -904,11 +901,11 @@ const handleErrors = (error) => {
       : null,
     officeMobileNumber: error
       ? error.details.find((d) => d.context.key === "officeMobileNumber")
-          ?.message
+        ?.message
       : null,
     personalMobileNumber: error
       ? error.details.find((d) => d.context.key === "personalMobileNumber")
-          ?.message
+        ?.message
       : null,
     dateOfBirth: error
       ? error.details.find((d) => d.context.key === "dateOfBirth")?.message
@@ -963,7 +960,7 @@ const handleErrors = (error) => {
       : null,
     maritalStatusSince: error
       ? error.details.find((d) => d.context.key === "maritalStatusSince")
-          ?.message
+        ?.message
       : null,
     nationality: error
       ? error.details.find((d) => d.context.key === "nationality")?.message
@@ -994,7 +991,7 @@ const handleErrors = (error) => {
       : null,
     backgroundVerification: error
       ? error.details.find((d) => d.context.key === "backgroundVerification")
-          ?.message
+        ?.message
       : null,
     workstationAdmin: error
       ? error.details.find((d) => d.context.key === "workstationAdmin")?.message
@@ -1007,7 +1004,7 @@ const handleErrors = (error) => {
       : null,
     visitingCardAdmin: error
       ? error.details.find((d) => d.context.key === "visitingCardAdmin")
-          ?.message
+        ?.message
       : null,
     recruiterName: error
       ? error.details.find((d) => d.context.key === "recruiterName")?.message
@@ -1017,7 +1014,7 @@ const handleErrors = (error) => {
       : null,
     highestQualification: error
       ? error.details.find((d) => d.context.key === "highestQualification")
-          ?.message
+        ?.message
       : null,
     ESICPFDeduction: error
       ? error.details.find((d) => d.context.key === "ESICPFDeduction")?.message
@@ -1027,7 +1024,7 @@ const handleErrors = (error) => {
       : null,
     paymentAccountNumber: error
       ? error.details.find((d) => d.context.key === "paymentAccountNumber")
-          ?.message
+        ?.message
       : null,
     paymentBankName: error
       ? error.details.find((d) => d.context.key === "paymentBankName")?.message

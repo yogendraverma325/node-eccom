@@ -5,7 +5,10 @@ import message from "../../../constant/messages.js";
 import validator from "../../../helper/validator.js";
 import helper from "../../../helper/helper.js";
 import eventEmitter from "../../../services/eventService.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
+import fs from 'fs'
+import path from 'path'
+import pkg from "xlsx";
 
 var _this = null;
 class AttendanceController {
@@ -28,10 +31,7 @@ class AttendanceController {
       )
     ) AS distance
     FROM companylocationmaster
-    HAVING distance <= ${
-      process.env.RADIUS_LIMIT / 1000
-    }; -- 0.5 km = 500 meters
-  `;
+    HAVING distance <= ${process.env.RADIUS_LIMIT / 1000}; -- 0.5 km = 500 meters`;
         let userLat = result.latitude;
         let userLon = result.longitude;
         const withInLocatoinRange = await db.sequelize.query(distanceQuery, {
@@ -60,31 +60,36 @@ class AttendanceController {
           "weekOffId",
           "companyLocationId",
         ],
-        include: [
-          {
+        include: [{
+          model: db.AttendanceRoster,
+          required: false,
+          where: {
+            attendanceDate: currentDate.format("YYYY-MM-DD"),
+            isActive: true,
+          },
+          attributes: ["shiftId", "weekOffId"],
+          include: [{
             model: db.shiftMaster,
-            required: false,
-            attributes: [
-              "shiftId",
-              "shiftName",
-              "shiftStartTime",
-              "shiftEndTime",
-              "isOverNight",
-            ],
-            where: {
-              isActive: true,
-            },
+            attributes: ["shiftId", "shiftName", "shiftStartTime", "shiftEndTime", "isOverNight",],
+          }]
+        },
+        {
+          model: db.shiftMaster,
+          required: false,
+          attributes: ["shiftId", "shiftName", "shiftStartTime", "shiftEndTime", "isOverNight",],
+          where: {
+            isActive: true,
           },
-          {
-            model: db.attendancePolicymaster,
-            required: false,
-            where: {
-              isActive: true,
-            },
+        },
+        {
+          model: db.attendancePolicymaster,
+          required: false,
+          where: {
+            isActive: true,
           },
+        },
         ],
       });
-
       await db.attendanceHistory.create({
         date: currentDate.format("YYYY-MM-DD"),
         time: currentDate.format("HH:mm:ss"),
@@ -118,7 +123,7 @@ class AttendanceController {
         });
       }
 
-      if (existEmployee.shiftsmaster.isOverNight == 0) {
+      if (((existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.isOverNight : existEmployee.shiftsmaster.isOverNight) == 0) {
         const checkAttendance = await db.attendanceMaster.findOne({
           raw: true,
           where: {
@@ -128,19 +133,10 @@ class AttendanceController {
         });
 
         if (!checkAttendance) {
-          const givenShiftTime = moment(
-            `${currentDate.format("YYYY-MM-DD")} ${
-              existEmployee.shiftsmaster.shiftStartTime
-            }`,
-            "YYYY-MM-DD HH:mm:ss"
-          );
-          const acutalShiftTime = moment(
-            `${currentDate.format("YYYY-MM-DD")} ${
-              existEmployee.shiftsmaster.shiftStartTime
-            }`,
-            "YYYY-MM-DD HH:mm:ss"
-          );
 
+          const shiftStartTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftStartTime : existEmployee.shiftsmaster.shiftStartTime
+          const givenShiftTime = moment(`${currentDate.format("YYYY-MM-DD")} ${shiftStartTime}`, "YYYY-MM-DD HH:mm:ss");
+          const acutalShiftTime = moment(`${currentDate.format("YYYY-MM-DD")} ${shiftStartTime}`, "YYYY-MM-DD HH:mm:ss");
           acutalShiftTime.subtract(
             existEmployee.attendancePolicymaster.allowBufferTime == 1
               ? existEmployee.attendancePolicymaster.bufferTimePre
@@ -153,8 +149,10 @@ class AttendanceController {
             givenShiftTime.format("YYYY-MM-DD")
           ) {
           } else {
+
+            const assignedShiftStartTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftStartTime : existEmployee.shiftsmaster.shiftStartTime
             let shiftStartTime = moment(
-              existEmployee.shiftsmaster.shiftStartTime,
+              assignedShiftStartTime,
               "HH:mm"
             ); // set shift start time
             shiftStartTime.subtract(
@@ -167,8 +165,10 @@ class AttendanceController {
             const finalShiftStartTime = shiftStartTime.format("HH:mm");
             const finalShiftStartTimeFormat = shiftStartTime.format("hh:mm A");
             if (currentDate.format("HH:mm") < finalShiftStartTime) {
+
+              const assignedShiftEndTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftEndTime : existEmployee.shiftsmaster.shiftEndTime
               let shiftEndTime = moment(
-                existEmployee.shiftsmaster.shiftEndTime,
+                assignedShiftEndTime,
                 "HH:mm"
               ); // set shift start time
 
@@ -194,7 +194,7 @@ class AttendanceController {
           }
 
           let graceTime = moment(
-            existEmployee.shiftsmaster.shiftStartTime,
+            shiftStartTime,
             "HH:mm"
           ); // set shift start time
 
@@ -211,13 +211,11 @@ class AttendanceController {
             attendanceDate: currentDate.format("YYYY-MM-DD"),
             employeeId: req.userId,
             attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
-            attendanceShiftId: existEmployee.shiftsmaster.shiftId,
+            attendanceShiftId: existEmployee.attendanceroster ? existEmployee.attendanceroster.shiftsmaster.shiftId : existEmployee.shiftsmaster.shiftId,
+            weekOffId: existEmployee.attendanceroster ? existEmployee.attendanceroster.weekOffId : existEmployee.weekOffId,
             attendancePunchInTime: currentDate.format("HH:mm:ss"),
             attendanceStatus: "Punch In",
-            attendanceLateBy: await helper.calculateLateBy(
-              currentDate.format("HH:mm:ss"),
-              withGraceTime
-            ),
+            attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
             attendancePresentStatus: "present",
             attendancePunchInRemark: result.remark,
             attendancePunchInLocationType: result.locationType,
@@ -227,10 +225,8 @@ class AttendanceController {
             createdBy: req.userId,
             attendancePolicyId: req.userData.attendancePolicyId,
             createdAt: currentDate,
-            weekOffId: existEmployee.weekOffId,
             punchInSource: req.device,
-            holidayCompanyLocationConfigurationID:
-              existEmployee.companyLocationId,
+            holidayCompanyLocationConfigurationID: existEmployee.companyLocationId,
           };
 
           await db.attendanceMaster.create(creationObject);
@@ -275,8 +271,9 @@ class AttendanceController {
         }
       } else {
         // Over night code
+        const assignedShiftStartTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftStartTime : existEmployee.shiftsmaster.shiftStartTime
         let ShiftStartTime = moment(
-          existEmployee.shiftsmaster.shiftStartTime,
+          assignedShiftStartTime,
           "HH:mm"
         ); // set shift start time
 
@@ -289,8 +286,9 @@ class AttendanceController {
 
         const finalShiftStartTime = ShiftStartTime.format("HH:mm");
 
+        const assignedShiftEndTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftEndTime : existEmployee.shiftsmaster.shiftEndTime
         let shiftEndtime = moment(
-          existEmployee.shiftsmaster.shiftEndTime,
+          assignedShiftEndTime,
           "HH:mm"
         ); // set shift start time
 
@@ -358,8 +356,10 @@ class AttendanceController {
               msg: message.PUNCH_OUT_SUCCESS,
             });
           } else {
+
+            const assignedShiftStartTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftStartTime : existEmployee.shiftsmaster.shiftStartTime
             let graceTime = moment(
-              existEmployee.shiftsmaster.shiftStartTime,
+              assignedShiftStartTime,
               "HH:mm"
             ); // set shift start time
 
@@ -375,7 +375,8 @@ class AttendanceController {
               attendanceDate: currentDate.format("YYYY-MM-DD"),
               employeeId: req.userId,
               attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
-              attendanceShiftId: existEmployee.shiftsmaster.shiftId,
+              attendanceShiftId: existEmployee.attendanceroster ? existEmployee.attendanceroster.shiftsmaster.shiftId : existEmployee.shiftsmaster.shiftId,
+              weekOffId: existEmployee.attendanceroster ? existEmployee.attendanceroster.weekOffId : existEmployee.weekOffId,
               attendancePunchInTime: currentDate.format("HH:mm:ss"),
               attendanceStatus: "Punch In",
               attendanceLateBy: await helper.calculateLateBy(
@@ -391,7 +392,6 @@ class AttendanceController {
               createdBy: req.userId,
               attendancePolicyId: req.userData.attendancePolicyId,
               createdAt: currentDate,
-              weekOffId: existEmployee.weekOffId,
               punchInSource: req.device,
               holidayCompanyLocationConfigurationID:
                 existEmployee.companyLocationId,
@@ -430,8 +430,7 @@ class AttendanceController {
                 attendancePunchOutRemark: result.remark,
                 attendanceLocationType: result.locationType,
                 attendanceWorkingTime: await helper.timeDifference(
-                  `${yerterdayDate.format("YYYY-MM-DD")} ${
-                    lastDayAttendace.attendancePunchInTime
+                  `${yerterdayDate.format("YYYY-MM-DD")} ${lastDayAttendace.attendancePunchInTime
                   }`,
                   `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
                     "HH:mm:ss"
@@ -455,8 +454,10 @@ class AttendanceController {
               msg: message.PUNCH_OUT_SUCCESS,
             });
           } else {
+
+            const assignedShiftStartTime = (existEmployee.attendanceroster) ? existEmployee.attendanceroster.shiftsmaster.shiftStartTime : existEmployee.shiftsmaster.shiftStartTime
             let graceTime = moment(
-              existEmployee.shiftsmaster.shiftStartTime,
+              assignedShiftStartTime,
               "HH:mm"
             ); // set shift start time
 
@@ -471,7 +472,8 @@ class AttendanceController {
               attendanceDate: yerterdayDate.format("YYYY-MM-DD"),
               employeeId: req.userId,
               attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
-              attendanceShiftId: existEmployee.shiftsmaster.shiftId,
+              attendanceShiftId: existEmployee.attendanceroster ? existEmployee.attendanceroster.shiftsmaster.shiftId : existEmployee.shiftsmaster.shiftId,
+              weekOffId: existEmployee.attendanceroster ? existEmployee.attendanceroster.weekOffId : existEmployee.weekOffId,
               attendancePunchInTime: currentDate.format("HH:mm:ss"),
               attendanceStatus: "Punch In",
               attendanceLateBy: await helper.calculateLateBy(
@@ -489,9 +491,7 @@ class AttendanceController {
               createdBy: req.userId,
               attendancePolicyId: req.userData.attendancePolicyId,
               createdAt: currentDate,
-              weekOffId: existEmployee.weekOffId,
-              holidayCompanyLocationConfigurationID:
-                existEmployee.companyLocationId,
+              holidayCompanyLocationConfigurationID: existEmployee.companyLocationId,
               punchInSource: req.device,
             };
 
@@ -1254,10 +1254,11 @@ class AttendanceController {
             },
           ],
         }),
-        db.CalenderYear.findAll({
-          attributes: ["calenderId", "date", "year", "month", "fullDate"],
-          where: { month: month, year: year },
-        }),
+        Calender(month, year),
+        // db.CalenderYear.findAll({
+        //   attributes: ["calenderId", "date", "year", "month", "fullDate"],
+        //   where: { month: month, year: year },
+        // }),
         db.employeeLeaveTransactions.findAll({
           attributes: [
             "status",
@@ -1432,6 +1433,22 @@ class AttendanceController {
           let momentDate = moment(fullDate);
           let dayOfMonth = momentDate.date();
           let occurrence = Math.ceil(dayOfMonth / 7);
+          const attendaceRoster = await db.AttendanceRoster.findOne({
+            where: {
+              employeeId: user,
+              attendanceDate: day.fullDate
+            },
+            include: [{
+              model: db.shiftMaster,
+              attributes: [
+                "shiftId",
+                "shiftName",
+                "shiftStartTime",
+                "shiftEndTime",
+                "shiftRemark",
+              ],
+            }]
+          })
 
           let occurrenceDayCondition = {};
           switch (occurrence) {
@@ -1557,7 +1574,7 @@ class AttendanceController {
               latest_Regularization_Request:
                 attendance.latest_Regularization_Request || [],
               employeeLeaveTransactionDetails: leaveTransactions,
-              attendanceShiftEmployee: shiftMaster,
+              attendanceShiftEmployee: (attendaceRoster) ? attendaceRoster.dataValues.shiftsmaster : shiftMaster,
             }
           );
         })
@@ -3631,6 +3648,165 @@ class AttendanceController {
     }
   }
   // Attendance Approval Functionality
+
+  //Attednance Roster//
+  async attendanceRoster(req, res) {
+    try {
+      const result = await validator.attendanceRosterSchema.validateAsync(req.body)
+
+      for (const element of result) {
+
+        const existUser = await db.employeeMaster.findOne({
+          where: {
+            id: element.employeeId,
+            isActive: 1
+          },
+          include: [{
+            model: db.shiftMaster,
+            attributes: ['shiftId'],
+          }, {
+            model: db.attendancePolicymaster,
+            attributes: ['attendancePolicyId', 'attendaceRosterLimitForPreviousDays']
+          }]
+        })
+
+        if (existUser) {
+
+          const creationObject = Object.assign(
+            element,
+            {
+              isActive: 1,
+              createdDt: moment(),
+              createdAt: req.userId
+            }
+          )
+
+          await db.AttendanceRoster.create(creationObject)
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        msg: message.ATTENDANCE_ROSTER_ADDED
+      })
+    } catch (error) {
+      console.log(error)
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500
+      })
+    }
+  }
+
+  async uploadAttendanceRoster(req, res) {
+    try {
+
+      if (!req.file.path) {
+        return respHelper(res, {
+          status: 422,
+          msg: message.ATTENDANCE_ROSTER_FILE_REQUIRED
+        });
+      }
+
+      const originalPath = req.file.path;
+      const newPath = path.join(path.dirname(originalPath), `${path.basename(originalPath)}_${moment().format("YYYY-mm-dd")}.xlsx`);
+
+      fs.renameSync(originalPath, newPath);
+
+      const rosterWorkbook = pkg.readFile(newPath);
+
+      const sheetNameEmployee = rosterWorkbook.SheetNames[0];
+      const rosterData = pkg.utils.sheet_to_json(
+        rosterWorkbook.Sheets[sheetNameEmployee]
+      );
+
+      for (const element of rosterData) {
+
+        const existUser = await db.employeeMaster.findOne({
+          where: {
+            empCode: element.Email_Or_TMC
+          },
+          attributes: ['id'],
+        })
+
+        const shift = await db.shiftMaster.findOne({
+          where: {
+            shiftName: element.Shift_Name
+          },
+          attributes: ['shiftId']
+        })
+
+        const weekOff = await db.weekOffMaster.findOne({
+          where: {
+            weekOffName: element.Weekly_Off_Name
+          },
+          attributes: ['weekOffId']
+        })
+
+        const toDate = helper.convertExcelDate(element.To_Date)
+        const fromDate = helper.convertExcelDate(element.From_Date)
+        const differenceInDays = moment(toDate).diff(moment(fromDate), 'day')
+
+        for (let i = 0; i <= differenceInDays; i++) {
+          await db.AttendanceRoster.create({
+            employeeId: existUser.id,
+            attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
+            shiftId: shift.dataValues.shiftId,
+            weekOffId: weekOff.dataValues.weekOffId,
+            isActive: 1,
+            createdDt: moment(),
+            createdAt: req.userId
+          })
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        msg: message.ATTENDANCE_ROSTER_ADDED
+      })
+
+    } catch (error) {
+      console.log(error)
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500
+      })
+    }
+  }
+  //Attedance Roster//
+}
+
+
+const Calender = (month, year) => {
+  let dateArray = [];
+
+  const startDateLeaves = moment(`${year}-${month}-01`);
+  const endDateLeaves = moment()
+    .year(year)
+    .month(month - 1)
+    .endOf("month")
+    .format("YYYY-MM-DD");
+
+  for (let currentDate = startDateLeaves.clone(); currentDate.isSameOrBefore(endDateLeaves); currentDate.add(1, 'days')) {
+    dateArray.push({
+      date: currentDate.format('DD'),
+      year: currentDate.format('YYYY'),
+      month: currentDate.format('MM'),
+      fullDate: currentDate.format('YYYY-MM-DD')
+    });
+  }
+
+  return dateArray
 }
 
 export default new AttendanceController();

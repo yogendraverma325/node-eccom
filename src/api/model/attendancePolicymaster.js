@@ -70,6 +70,9 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
+    attendaceRosterLimitForPreviousDays: {
+      type: Sequelize.INTEGER,
+    },
     createdAt: {
       type: Sequelize.DATE,
     },

@@ -57,7 +57,7 @@ import LoginDetails from "../api/model/LoginDetails.js";
 import DaysMaster from "../api/model/DaysMaster.js";
 import weekOffMaster from "../api/model/weekOffMaster.js";
 import weekOffDayMappingMaster from "../api/model/weekOffDayMappingMaster.js";
-import CalenderYear from "../api/model/CalenderYear.js";
+// import CalenderYear from "../api/model/CalenderYear.js";
 import permissoinandaccess from "../api/model/PermissionAndAccess.js";
 import ManagerHistory from "../api/model/ManagerHistory.js";
 import employeeJobDetailsHistory from "../api/model/EmployeeJobDetailsHistory.js";
@@ -121,6 +121,10 @@ import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 import Signingauthority from "../api/model/signingAuthority.js";
 //CONFIRMATION
+//Attendace Roster///
+import AttendanceRoster from "../api/model/AttendanceRoster.js";
+//Ateendance Roster///
+
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -230,7 +234,7 @@ db.employeeLeaveTransactions = employeeLeaveTransactions(sequelize, Sequelize);
 db.DaysMaster = DaysMaster(sequelize, Sequelize);
 db.weekOffMaster = weekOffMaster(sequelize, Sequelize);
 db.weekOffDayMappingMaster = weekOffDayMappingMaster(sequelize, Sequelize);
-db.CalenderYear = CalenderYear(sequelize, Sequelize);
+// db.CalenderYear = CalenderYear(sequelize, Sequelize);
 db.loginDetails = LoginDetails(sequelize, Sequelize);
 db.permissoinandaccess = permissoinandaccess(sequelize, Sequelize);
 db.managerHistory = ManagerHistory(sequelize, Sequelize);
@@ -330,6 +334,10 @@ db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
   sequelize,
   Sequelize
 );
+
+//Attendance Roster
+db.AttendanceRoster = AttendanceRoster(sequelize, Sequelize);
+//Attendance Roster
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1362,5 +1370,15 @@ db.ptLocationMaster.hasOne(db.stateMaster, {
   foreignKey: "stateId",
   sourceKey: "stateId",
 });
+
+db.employeeMaster.hasOne(db.AttendanceRoster, {
+  foreignKey: "employeeId",
+  sourceKey: "id",
+})
+
+db.AttendanceRoster.hasOne(db.shiftMaster, {
+  foreignKey: "shiftId",
+  sourceKey: "shiftId",
+})
 
 export default db;
