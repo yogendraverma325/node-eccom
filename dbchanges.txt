@@ -1107,14 +1107,27 @@ CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
 
 
 
-
-
 ---------------------------------2025-01-06------------------------
 
 ALTER TABLE `tara`.`paymonthlyelement` 
 ADD COLUMN `processId` INT NOT NULL DEFAULT 0 AFTER `pfEmployerAmount`;
 
 -------------------------2025-01-06---------------------------
+
+Create by jay on 01-07-2025
+
+CREATE TABLE `tara`.`financialyear` (
+  `financialyearId` INT NOT NULL,
+  `financialYearName` VARCHAR(45) NOT NULL,
+  `status` INT NULL DEFAULT 1,
+  `createdBy` INT NULL DEFAULT 1,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` DATETIME NULL,
+  PRIMARY KEY (`financialyearId`),
+  UNIQUE INDEX `financialyearId_UNIQUE` (`financialyearId` ASC) VISIBLE,
+  UNIQUE INDEX `financialYearName_UNIQUE` (`financialYearName` ASC) VISIBLE);
+
 
 
 

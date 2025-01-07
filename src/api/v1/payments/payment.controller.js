@@ -3493,6 +3493,111 @@ class PaymentController {
     }
   }
 
+  async payProcessList(req, res) {
+    try {
+      // Fetch pay process details list
+      const { error } = await validator.payProcessSchema.validate(
+        req.body
+      );
+
+      if (error) {
+        return respHelper(res, {
+          status: 400,
+          msg: error.details[0].message,
+        });
+      }
+      
+      let model = db.financialYearMaster;
+      let financialYear = req.body.selectedYear || "";
+      let companyId = req.body.companyId || "";
+
+      let query = { 
+        isActive: 1,
+        ...(financialYear && { "financialYearName": financialYear })
+      };
+
+      let processQuery = {
+        isActive: 1,
+        ...(companyId && { "companyId": companyId })
+      }
+
+      let attribute = { exclude: ["createdBy", "updatedBy", "updatedAt"] };
+      
+      let aggregate = {
+        where: query,
+        attributes: attribute,
+        include: [
+          {
+            model: db.payProcessMaster,
+            as: 'payprocessmaster',
+            attributes: [
+              "payProcessMasterAutoId",
+              "name",
+              "payMonth",
+              [
+                Sequelize.literal(
+                  `(SELECT COUNT(proceessId) 
+                   FROM payprocessdetails pd 
+                   WHERE pd.proceessId = payprocessmaster.payProcessMasterAutoId 
+                   AND pd.payStatus IN (8, 9))`
+                ),
+                'pay_count' // Alias for the computed column
+              ]
+            ],
+            where: processQuery,
+            order: [["payProcessMasterAutoId", "DESC"]]
+          }
+        ]
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let payProcessList = response?.data[0]?.payprocessmaster;
+
+      const currentFinancialMonth = [
+        { value: 3, key: 'April', customValue: '04' },
+        { value: 4, key: 'May', customValue: '05' },
+        { value: 5, key: 'June', customValue: '06' },
+        { value: 6, key: 'July', customValue: '07' },
+        { value: 7, key: 'Aug', customValue: '08' },
+        { value: 8, key: 'Sep', customValue: '09' },
+        { value: 9, key: 'Oct', customValue: '10' },
+        { value: 10, key: 'Nov', customValue: '11' },
+        { value: 11, key: 'Dec', customValue: '12' },
+        { value: 0, key: 'Jan', customValue: '01' },
+        { value: 1, key: 'Feb', customValue: '02' },
+        { value: 2, key: 'March', customValue: '03' }
+      ];
+
+      // Map the `payprocess` array to include `value` and `key`
+      const updatePayProcess = currentFinancialMonth.map(item => {
+
+        const matchedItem = payProcessList?.find(m => {
+          const month = m.payMonth.split('-')[1]; // Extract the month (e.g., "01" -> "1")
+          return item.customValue === month;
+        });
+
+        return {
+          "pay_count": matchedItem ? matchedItem.dataValues?.pay_count : 0,
+          "value": item.value,
+          "key": item.key 
+        };
+      });
+
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: updatePayProcess
+      });
+      
+    } catch (error) {
+      console.log(error);
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
   // End by jay
 }
 

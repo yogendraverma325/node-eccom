@@ -1469,6 +1469,12 @@ const attendanceApprovalSchema = Joi.object({
 })
 // Attendance Approval Validations
 
+// create function by jay
+const  payProcessSchema = Joi.object({
+  selectedYear: Joi.string().required(),
+  companyId: Joi.number().required()
+})
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1538,5 +1544,7 @@ export default {
   addCompanyLocationEmploymentSchema,
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
-  attendanceApprovalSchema
+  attendanceApprovalSchema,
+  // add by jay
+  payProcessSchema
 };

@@ -140,6 +140,7 @@ import LwfMapping from "../api/model/lwfMapping.js";
 import ExtraPayment from "../api/model/ExtraPayment.js";
 import ExportSheetMaster from '../api/model/exportSheetMaster.js'
 import ExportSheetMapping from '../api/model/exportSheetMapping.js'
+import FinancialYearMaster from '../api/model/FinancialYearMaster.js';
 
 
 ////////////////////PAyroll////////////
@@ -350,6 +351,9 @@ db.lwfMapping = LwfMapping(sequelize,Sequelize)
 db.extraPayment = ExtraPayment(sequelize,Sequelize)
 db.exportSheetMaster = ExportSheetMaster(sequelize,Sequelize)
 db.exportSheetMapping = ExportSheetMapping(sequelize,Sequelize)
+
+// import by jay
+db.financialYearMaster = FinancialYearMaster(sequelize,Sequelize)
 
 //////////////////Payroll///////////////////
 
@@ -1406,5 +1410,18 @@ db.exportSheetMapping.hasMany(db.exportSheetMaster, {
   foreignKey: "exportSheetAutoId",
   sourceKey: "exportSheetAutoId"
 });
+
+// assign by jay
+
+db.financialYearMaster.hasMany(db.payProcessMaster, {
+  foreignKey: 'financialYearId',
+  sourceKey: 'financialYearId',
+  as: 'payprocessmaster'
+});
+
+db.payProcessMaster.hasMany(db.payProcessDetails, {
+  foreignKey: 'proceessId',
+  sourceKey: 'payProcessMasterAutoId'
+})
 
 export default db;

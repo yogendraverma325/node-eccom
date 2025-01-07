@@ -2124,6 +2124,28 @@ class MasterController {
       });
     }
   }
+
+  // created by jay
+
+  async financialYear(req, res) {
+    try {
+      let query = { isActive: 1 };
+      const docs = await db.financialYearMaster.findAll({
+        where: query,
+        attributes: ["financialYearId", "financialYearName", "year"],
+        order: [['financialYearId', "DESC"]]
+      });
+      return respHelper(res, {
+        status: 200,
+        data: docs,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
 }
 
 export default new MasterController();
