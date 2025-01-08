@@ -2230,7 +2230,7 @@ class PaymentController {
           (payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
           lopSingleDetails.lopDays;
         totalLopAmount = lopAmount + totalLopAmount;
-        totalLOPDays = lopSingleDetails.lopDays + totalLOPDays;
+        totalLOPDays = parseFloat(lopSingleDetails.lopDays) + parseFloat(totalLOPDays);
       }
       return respHelper(res, {
         status: 200,
