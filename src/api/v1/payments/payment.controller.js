@@ -23,6 +23,7 @@ import Constant from "../../../constant/messages.js";
 import service from "./payment.service.js";
 import Pagination from "../../../helper/pagination.js";
 import logger from "../../../helper/logger.js";
+import puppeteer from "puppeteer";
 
 //import moment, { now } from "moment";
 
@@ -3518,6 +3519,121 @@ class PaymentController {
       return respHelper(res, {
         status: 500,
       });
+    }
+  }
+
+  async salarySlipPdf(req, res) {
+    try {
+      // Fetch salary details
+      const { paySlipAutoId } = req.query;
+      // const salaryDetails = await salaryPaySlip(paySlipAutoId);
+      const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
+  
+      if (!salaryDetails || salaryDetails.length === 0) {
+        return res.status(404).send("Salary details not found.");
+      }
+  
+      const processPayslipComponents = (payslipcomponents = []) => {
+        const result = { earnings: [], deductions: [] };
+        payslipcomponents.forEach((item) => {
+          if (
+            item.paySlipComponentType === "Earning" ||
+            item.paySlipComponentType === "Balancing"
+          ) {
+            result.earnings.push(item);
+          } else if (item.paySlipComponentType === "Deduction") {
+            result.deductions.push(item);
+          }
+        });
+        return result;
+      };
+  
+      const paySlipComponent = processPayslipComponents(
+        salaryDetails[0].payslipcomponents
+      );
+  
+      const employee = salaryDetails[0].employee;
+  
+      const monthNames = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      ];
+      const currentMonth =
+        monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+  
+      const body = {
+        name: employee.name || "",
+        employeeCode: employee?.empCode || "",
+        employeeType: employee?.employeetypemaster?.emptypename || "",
+        designation: employee?.designationmaster?.name || "",
+        department: employee?.departmentmaster?.departmentName || "N/A",
+        panNo: employee?.panNo || "",
+        dateOfJoining: moment(
+          employee?.employeejobdetail?.dateOfJoining
+        ).isValid()
+          ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
+          : "",
+        workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
+        companyName: employee?.companymaster?.companyName || "",
+        currentOfficeLocation:
+          employee?.companylocationmaster?.citymaster?.cityName || "",
+        companyAddress: employee?.companylocationmaster?.address1 || "",
+        grossEarnings: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+          ? parseInt(salaryDetails[0].paySlipGrossEarning)
+          : "",
+        totalPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
+          ? parseInt(salaryDetails[0].paySlipTotalPay)
+          : "",
+        totalDeductions: Number.isFinite(
+          +salaryDetails[0]?.paySlipTotalDeduction
+        )
+          ? parseInt(salaryDetails[0].paySlipTotalDeduction)
+          : "",
+        lop:
+          salaryDetails[0]?.paySlipTotalDays &&
+          salaryDetails[0]?.paySlipWorkingDays
+            ? salaryDetails[0].paySlipTotalDays -
+              salaryDetails[0].paySlipWorkingDays
+            : "",
+        paySlipComponent: paySlipComponent || [],
+        netPay: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+          ? parseInt(salaryDetails[0].paySlipGrossEarning) -
+            parseInt(salaryDetails[0].paySlipTotalDeduction)
+          : "",
+        month: currentMonth || "",
+        year: salaryDetails[0]?.paySlipYear || "",
+      };
+  
+      //const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
+       const letter = await emailTemplate.salarySlipPdf(body);
+  
+      // Puppeteer for PDF generation
+      const browser = await puppeteer.launch({
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        headless: true,
+      });
+      const page = await browser.newPage();
+  
+      // Set HTML content
+      await page.setContent(letter, { waitUntil: "networkidle0" });
+  
+      // Generate PDF
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+      });
+  
+      await browser.close();
+  
+      // Set response headers and send the PDF
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+      });
+      res.end(pdfBuffer);
+    } catch (error) {
+      console.error("Something Went Wrong:", error);
+      res.status(500).send("Something Went Wrong");
     }
   }
 
