@@ -238,7 +238,8 @@ const validateUser = async (req, existUser) => {
       id: existUser.id,
       name: existUser.name,
       role: existUser.role.name,
-      device: req.headers.source ? req.headers.source : null
+      device: req.headers.source ? req.headers.source : null,
+      firebasetoken: req.headers.firebasetoken
     },
   };
 

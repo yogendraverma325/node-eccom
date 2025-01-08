@@ -233,40 +233,69 @@ class AttendanceController {
 
           return respHelper(res, {
             status: 200,
-            msg: message.PUNCH_IN_SUCCESS,
+            msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
           });
         } else {
-          await db.attendanceMaster.update(
-            {
-              attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-              attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-              attendancePunchOutLocationType: result.locationType,
-              attendanceStatus: "Punch Out",
-              attendancePunchOutRemark: result.remark,
-              attendanceLocationType: result.locationType,
-              attendanceWorkingTime: await helper.timeDifference(
-                `${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
-                `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-                  "HH:mm:ss"
-                )}`
-              ),
-              attendancePunchOutLocation: result.location,
-              attendancePunchOutLatitude: result.latitude,
-              attendancePunchOutLongitude: result.longitude,
-              punchOutSource: req.device,
-              updatedBy: req.userId,
-            },
-            {
-              where: {
-                attendanceDate: currentDate.format("YYYY-MM-DD"),
-                employeeId: req.userId,
+          console.log("here");
+          if (!existEmployee.dataValues.requiredAttendanceApproval) {
+            await db.attendanceMaster.update(
+              {
+                attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+                attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+                attendancePunchOutLocationType: result.locationType,
+                attendanceStatus: "Punch Out",
+                attendancePunchOutRemark: result.remark,
+                attendanceWorkingTime: await helper.timeDifference(
+                  `${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
+                  `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                    "HH:mm:ss"
+                  )}`
+                ),
+                attendancePunchOutLocation: result.location,
+                attendancePunchOutLatitude: result.latitude,
+                attendancePunchOutLongitude: result.longitude,
+                punchOutSource: req.device,
+                updatedBy: req.userId,
               },
+              {
+                where: {
+                  attendanceDate: currentDate.format("YYYY-MM-DD"),
+                  employeeId: req.userId,
+                },
+              }
+            );
+          }
+
+          const attendanceHistoryData = await db.attendanceHistory.findOne({
+            where: {
+              date: currentDate.format("YYYY-MM-DD"),
+              employeeId: req.userId,
             }
-          );
+          })
+
+          await db.attendanceHistory.create({
+            date: currentDate.format("YYYY-MM-DD"),
+            time: currentDate.format("HH:mm:ss"),
+            status: (!attendanceHistoryData) ? "Punch In" : "Punch Out",
+            employeeId: req.userId,
+            location: result.location,
+            locationType: result.locationType,
+            lat: result.latitude,
+            userRemark: result.remark != '' ? result.remark : null,
+            attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval ? 'approved' : 'pending',
+            long: result.longitude,
+            createdBy: req.userId,
+            createdAt: currentDate,
+            device: req.device,
+            shiftId: existEmployee.shiftsmaster.shiftId,
+            attendancePolicyId: req.userData.attendancePolicyId,
+            weekOffId: existEmployee.weekOffId,
+            companyLocationId: existEmployee.companyLocationId,
+          });
 
           return respHelper(res, {
             status: 200,
-            msg: message.PUNCH_OUT_SUCCESS,
+            msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
           });
         }
       } else {
@@ -324,36 +353,65 @@ class AttendanceController {
           });
 
           if (checkAttendance) {
-            await db.attendanceMaster.update(
-              {
-                attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-                attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-                attendancePunchOutLocationType: result.locationType,
-                attendanceStatus: "Punch Out",
-                attendancePunchOutRemark: result.remark,
-                attendanceLocationType: result.locationType,
-                attendanceWorkingTime: await helper.timeDifference(
-                  `${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
-                  `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-                    "HH:mm:ss"
-                  )}`
-                ),
-                attendancePunchOutLocation: result.location,
-                attendancePunchOutLatitude: result.latitude,
-                attendancePunchOutLongitude: result.longitude,
-                punchOutSource: req.device,
-                updatedBy: req.userId,
-              },
-              {
-                where: {
-                  attendanceDate: currentDate.format("YYYY-MM-DD"),
-                  employeeId: req.userId,
+            if (!existEmployee.dataValues.requiredAttendanceApproval) {
+              await db.attendanceMaster.update(
+                {
+                  attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+                  attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+                  attendancePunchOutLocationType: result.locationType,
+                  attendanceStatus: "Punch Out",
+                  attendancePunchOutRemark: result.remark,
+                  attendanceWorkingTime: await helper.timeDifference(
+                    `${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
+                    `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                      "HH:mm:ss"
+                    )}`
+                  ),
+                  attendancePunchOutLocation: result.location,
+                  attendancePunchOutLatitude: result.latitude,
+                  attendancePunchOutLongitude: result.longitude,
+                  punchOutSource: req.device,
+                  updatedBy: req.userId,
                 },
+                {
+                  where: {
+                    attendanceDate: currentDate.format("YYYY-MM-DD"),
+                    employeeId: req.userId,
+                  },
+                }
+              );
+            }
+
+            const attendanceHistoryData = await db.attendanceHistory.findOne({
+              where: {
+                date: currentDate.format("YYYY-MM-DD"),
+                employeeId: req.userId,
               }
-            );
+            })
+
+            await db.attendanceHistory.create({
+              date: currentDate.format("YYYY-MM-DD"),
+              time: currentDate.format("HH:mm:ss"),
+              status: (!attendanceHistoryData) ? "Punch In" : "Punch Out",
+              employeeId: req.userId,
+              location: result.location,
+              lat: result.latitude,
+              long: result.longitude,
+              createdBy: req.userId,
+              createdAt: currentDate,
+              locationType: result.locationType,
+              userRemark: result.remark != '' ? result.remark : null,
+              attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval ? 'approved' : 'pending',
+              device: req.device,
+              shiftId: existEmployee.shiftsmaster.shiftId,
+              attendancePolicyId: req.userData.attendancePolicyId,
+              weekOffId: existEmployee.weekOffId,
+              companyLocationId: existEmployee.companyLocationId,
+            });
+
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_OUT_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           } else {
 
@@ -379,10 +437,7 @@ class AttendanceController {
               weekOffId: existEmployee.attendanceroster ? existEmployee.attendanceroster.weekOffId : existEmployee.weekOffId,
               attendancePunchInTime: currentDate.format("HH:mm:ss"),
               attendanceStatus: "Punch In",
-              attendanceLateBy: await helper.calculateLateBy(
-                currentDate.format("HH:mm:ss"),
-                withGraceTime
-              ),
+              attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
               attendancePresentStatus: "present",
               attendancePunchInRemark: result.remark,
               attendancePunchInLocationType: result.locationType,
@@ -401,7 +456,7 @@ class AttendanceController {
 
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_IN_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           }
         } else {
@@ -421,37 +476,66 @@ class AttendanceController {
             },
           });
           if (lastDayAttendace) {
-            await db.attendanceMaster.update(
-              {
-                attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-                attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-                attendancePunchOutLocationType: result.locationType,
-                attendanceStatus: "Punch Out",
-                attendancePunchOutRemark: result.remark,
-                attendanceLocationType: result.locationType,
-                attendanceWorkingTime: await helper.timeDifference(
-                  `${yerterdayDate.format("YYYY-MM-DD")} ${lastDayAttendace.attendancePunchInTime
-                  }`,
-                  `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-                    "HH:mm:ss"
-                  )}`
-                ),
-                attendancePunchOutLocation: result.location,
-                attendancePunchOutLatitude: result.latitude,
-                attendancePunchOutLongitude: result.longitude,
-                punchOutSource: req.device,
-                updatedBy: req.userId,
-              },
-              {
-                where: {
-                  attendanceDate: yerterdayDate.format("YYYY-MM-DD"),
-                  employeeId: req.userId,
+            if (!existEmployee.dataValues.requiredAttendanceApproval) {
+              await db.attendanceMaster.update(
+                {
+                  attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+                  attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+                  attendancePunchOutLocationType: result.locationType,
+                  attendanceStatus: "Punch Out",
+                  attendancePunchOutRemark: result.remark,
+                  attendanceWorkingTime: await helper.timeDifference(
+                    `${yerterdayDate.format("YYYY-MM-DD")} ${lastDayAttendace.attendancePunchInTime
+                    }`,
+                    `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                      "HH:mm:ss"
+                    )}`
+                  ),
+                  attendancePunchOutLocation: result.location,
+                  attendancePunchOutLatitude: result.latitude,
+                  attendancePunchOutLongitude: result.longitude,
+                  punchOutSource: req.device,
+                  updatedBy: req.userId,
                 },
+                {
+                  where: {
+                    attendanceDate: yerterdayDate.format("YYYY-MM-DD"),
+                    employeeId: req.userId,
+                  },
+                }
+              );
+            }
+
+            const attendanceHistoryData = await db.attendanceHistory.findOne({
+              where: {
+                date: yerterdayDate.format("YYYY-MM-DD"),
+                employeeId: req.userId,
               }
-            );
+            })
+
+            await db.attendanceHistory.create({
+              date: currentDate.format("YYYY-MM-DD"),
+              time: currentDate.format("HH:mm:ss"),
+              status: (!attendanceHistoryData) ? "Punch In" : "Punch Out",
+              employeeId: req.userId,
+              location: result.location,
+              lat: result.latitude,
+              long: result.longitude,
+              createdBy: req.userId,
+              createdAt: currentDate,
+              locationType: result.locationType,
+              userRemark: result.remark != '' ? result.remark : null,
+              attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval ? 'approved' : 'pending',
+              device: req.device,
+              shiftId: existEmployee.shiftsmaster.shiftId,
+              attendancePolicyId: req.userData.attendancePolicyId,
+              weekOffId: existEmployee.weekOffId,
+              companyLocationId: existEmployee.companyLocationId,
+            });
+
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_OUT_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           } else {
 
@@ -463,8 +547,7 @@ class AttendanceController {
 
             graceTime.add(
               existEmployee.attendancePolicymaster.allowBufferTime == 1
-                ? existEmployee.attendancePolicymaster.graceTimeClockIn
-                : 0,
+                ? existEmployee.attendancePolicymaster.graceTimeClockIn : 0,
               "minutes"
             ); // Add buffer time  to the selected time if buffer allow
             const withGraceTime = graceTime.format("HH:mm:ss");
@@ -495,10 +578,40 @@ class AttendanceController {
               punchInSource: req.device,
             };
 
-            await db.attendanceMaster.create(creationObject);
+            const attendanceHistoryData = await db.attendanceHistory.findOne({
+              where: {
+                date: yerterdayDate.format("YYYY-MM-DD"),
+                employeeId: req.userId,
+              }
+            })
+
+            await db.attendanceHistory.create({
+              date: currentDate.format("YYYY-MM-DD"),
+              time: currentDate.format("HH:mm:ss"),
+              status: (!attendanceHistoryData) ? "Punch In" : "Punch Out",
+              employeeId: req.userId,
+              location: result.location,
+              lat: result.latitude,
+              long: result.longitude,
+              createdBy: req.userId,
+              createdAt: currentDate,
+              locationType: result.locationType,
+              userRemark: result.remark != '' ? result.remark : null,
+              attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval ? 'approved' : 'pending',
+              device: req.device,
+              shiftId: existEmployee.shiftsmaster.shiftId,
+              attendancePolicyId: req.userData.attendancePolicyId,
+              weekOffId: existEmployee.weekOffId,
+              companyLocationId: existEmployee.companyLocationId,
+            });
+
+            if (!existEmployee.dataValues.requiredAttendanceApproval) {
+              await db.attendanceMaster.create(creationObject);
+            }
+
             return respHelper(res, {
               status: 200,
-              msg: message.PUNCH_IN_SUCCESS,
+              msg: (!attendanceHistoryData) ? message.PUNCH_IN_SUCCESS : message.PUNCH_OUT_SUCCESS,
             });
           }
         }
@@ -1273,6 +1386,7 @@ class AttendanceController {
             "leaveCount",
             "fromDate",
             "toDate",
+            'createdAt',
             "managerRemark",
             "leaveAttachment",
           ],
@@ -2398,8 +2512,8 @@ class AttendanceController {
         id: empId,
       },
     });
-    console.log("EMPID", empId);
-    console.log("EMPID weekoff", singleEmp);
+    // console.log("EMPID", empId);
+    // console.log("EMPID weekoff", singleEmp);
     let presentStatus = null;
 
     if (
@@ -2587,7 +2701,7 @@ class AttendanceController {
         );
       }
     } else {
-      console.log("attendance create");
+      // console.log("attendance create");
       await db.attendanceMaster.create({
         attendanceDate: moment().subtract(1, "day").format("YYYY-MM-DD"),
         attandanceShiftStartDate: moment()
@@ -2681,6 +2795,13 @@ class AttendanceController {
         },
       });
 
+      attendanceData = await db.attendanceHistory.findOne({
+        where: {
+          employeeId: req.userId,
+          date: moment().format("YYYY-MM-DD"),
+        },
+      });
+
       if (!attendanceData) {
         return respHelper(res, {
           status: 200,
@@ -2710,8 +2831,8 @@ class AttendanceController {
   async attedanceCronManual(attendanceAutoId, date) {
     try {
       let lastDayDate = moment(date).format("YYYY-MM-DD");
-      console.log("date", date);
-      console.log("attendanceAutoId", attendanceAutoId);
+      //console.log("date", date);
+      //console.log("attendanceAutoId", attendanceAutoId);
       let lastDayDateAnotherFormat = moment(date).format("DD-MM-YYYY");
       let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
       let dayCode = parseInt(moment(date).format("d")) + 1;
@@ -2862,7 +2983,7 @@ class AttendanceController {
                 // Calculate the total minutes
                 let totalMinutesLateMinutes =
                   time.hours() * 60 + time.minutes() + time.seconds() / 60;
-                console.log("totalMinutesLateMinutes", totalMinutesLateMinutes);
+                //console.log("totalMinutesLateMinutes", totalMinutesLateMinutes);
                 if (totalMinutesLateMinutes > 0) {
                   totalMinutesLateMinutes =
                     totalMinutesLateMinutes +
@@ -2995,7 +3116,7 @@ class AttendanceController {
                 }
               }
             } else {
-              presentStatus = "singlePunchAbsent";
+              presentStatus = (lastDayDate === moment().format("YYYY-MM-DD")) ? singleEmp.attendancemaster.attendancePresentStatus : 'singlePunchAbsent';
             }
             await db.attendanceMaster.update(
               {
@@ -3362,11 +3483,13 @@ class AttendanceController {
       const limit = req.query.limit * 1 || 10;
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
+      const user = req.query.user;
 
       const attendanceList = await db.attendanceHistory.findAndCountAll({
-        where: {
+        where: Object.assign({
           attendanceStatus: 'pending'
         },
+          (user) ? { employeeId: user } : {}),
         order: [['date', 'DESC']],
         include: [{
           model: db.employeeMaster,
@@ -3397,26 +3520,8 @@ class AttendanceController {
 
   async attendanceApproval(req, res) {
     try {
-
       const result = await validator.attendanceApprovalSchema.validateAsync(req.body)
-
-      if (!result.status) {
-        await db.attendanceHistory.update({
-          attendanceStatus: 'rejected',
-          approverRemark: result.remark != "" ? result.remark : null
-        }, {
-          where: {
-            attendanceHistoryId: {
-              [Op.in]: result.attendanceAutoId
-            }
-          }
-        })
-
-        return respHelper(res, {
-          status: 200,
-          msg: message.ATTENDANCE_APPROVAL.replace('<status>', 'Rejected')
-        })
-      }
+      let successRecords = [], failedRecords = []
 
       const attendanceHistoryData = await db.attendanceHistory.findAll({
         where: {
@@ -3426,7 +3531,7 @@ class AttendanceController {
         },
         include: [{
           model: db.employeeMaster,
-          attributes: ['empCode', 'name'],
+          attributes: ['empCode', 'firstName'],
         },
         {
           model: db.shiftMaster,
@@ -3439,199 +3544,216 @@ class AttendanceController {
         },
         {
           model: db.weekOffMaster
-        }]
+        }],
+        order: [['attendanceHistoryId', 'ASC']]
       })
 
       for (const element of attendanceHistoryData) {
 
-        const attendanceData = await db.attendanceMaster.findOne({
-          where: {
-            attendanceDate: element.dataValues.date,
-            employeeId: element.dataValues.employeeId
-          }
-        })
-
-        if (!attendanceData) {
-          let graceTime = moment(
-            element.shiftsmaster.shiftStartTime,
-            "HH:mm"
-          );
-
-          graceTime.add(
-            element.attendancePolicymaster.allowBufferTime == 1
-              ? element.attendancePolicymaster.graceTimeClockIn
-              : 0,
-            "minutes"
-          );
-          const withGraceTime = graceTime.format("HH:mm:ss");
-          const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
-          const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
-
-          let creationObject = {
-            attendanceDate: currentDate.format("YYYY-MM-DD"),
-            employeeId: element.dataValues.employeeId,
-            attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
-            attendanceShiftId: element.shiftId,
-            attendancePunchInTime: currentDate.format("HH:mm:ss"),
-            attendanceStatus: "Punch In",
-            attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
-            attendancePresentStatus: "present",
-            attendancePunchInRemark: element.userRemark,
-            attendancePunchInLocationType: element.locationType,
-            attendancePunchInLocation: element.location,
-            attendancePunchInLatitude: element.lat,
-            attendancePunchInLongitude: element.long,
-            createdBy: element.dataValues.employeeId,
-            attendancePolicyId: element.attendancePolicyId,
-            createdAt: moment(),
-            weekOffId: element.weekOffId,
-            punchInSource: element.device,
-            holidayCompanyLocationConfigurationID: element.companyLocationId,
-          };
-
-          const createdAttendanceData = await db.attendanceMaster.create(creationObject)
-
-          _this.attedanceCronManual(
-            createdAttendanceData.dataValues.attendanceAutoId,
-            createdAttendanceData.dataValues.attendanceDate
-          );
-
-          await db.attendanceHistory.update({
-            attendanceStatus: 'approved',
-            updatedBy: req.userId,
-            updatedAt: moment()
-          }, {
+        if (result.status) {
+          const attendanceData = await db.attendanceMaster.findOne({
             where: {
-              attendanceHistoryId: element.dataValues.attendanceHistoryId
+              attendanceDate: element.dataValues.date,
+              employeeId: element.dataValues.employeeId
             }
           })
-        } else if (attendanceData && element.dataValues.status === 'Punch Out') {
+
           const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
           const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
 
-          const updateObject = {
-            attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-            attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-            attendancePunchOutLocationType: element.locationType,
-            attendanceStatus: "Punch Out",
-            attendancePunchOutRemark: element.userRemark,
-            attendanceLocationType: element.locationType,
-            attendanceWorkingTime: await helper.timeDifference(
-              `${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
-              `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-                "HH:mm:ss"
-              )}`
-            ),
-            attendancePunchOutLocation: element.location,
-            attendancePunchOutLatitude: element.lat,
-            attendancePunchOutLongitude: element.long,
-            punchOutSource: element.device,
-            updatedBy: element.dataValues.employeeId,
-          }
+          if (element.dataValues.status == 'Punch In') {
+            let graceTime = moment(
+              element.shiftsmaster.shiftStartTime,
+              "HH:mm"
+            );
 
-          await db.attendanceMaster.update(
-            updateObject,
-            {
+            graceTime.add(
+              element.attendancePolicymaster.allowBufferTime == 1
+                ? element.attendancePolicymaster.graceTimeClockIn
+                : 0,
+              "minutes"
+            );
+            const withGraceTime = graceTime.format("HH:mm:ss");
+
+            let creationObject = {
+              attendanceDate: currentDate.format("YYYY-MM-DD"),
+              employeeId: element.dataValues.employeeId,
+              attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
+              attendanceShiftId: element.shiftId,
+              attendancePunchInTime: currentDate.format("HH:mm:ss"),
+              attendanceStatus: "Punch In",
+              attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
+              attendancePresentStatus: "present",
+              attendancePunchInRemark: element.userRemark,
+              attendancePunchInLocationType: element.locationType,
+              attendancePunchInLocation: element.location,
+              attendancePunchInLatitude: element.lat,
+              attendancePunchInLongitude: element.long,
+              needAttendanceCron: 1,
+              createdBy: element.dataValues.employeeId,
+              attendancePolicyId: element.attendancePolicyId,
+              createdAt: moment(),
+              weekOffId: element.weekOffId,
+              punchInSource: element.device,
+              holidayCompanyLocationConfigurationID: element.companyLocationId,
+            };
+
+            const createdAttendanceData = await db.attendanceMaster.create(creationObject)
+
+            if (currentDate.format("YYYY-MM-DD") !== moment().format('YYYY-MM-DD')) {
+              _this.attedanceCronManual(
+                createdAttendanceData.dataValues.attendanceAutoId,
+                createdAttendanceData.dataValues.attendanceDate
+              );
+            }
+
+            await db.attendanceHistory.update({
+              approverRemark: result.remark != "" ? result.remark : null,
+              attendanceStatus: 'approved',
+              updatedBy: req.userId,
+              updatedAt: moment()
+            }, {
+              where: {
+                attendanceHistoryId: element.dataValues.attendanceHistoryId
+              }
+            })
+
+            successRecords.push(`Punch In Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
+
+          } else if (element.dataValues.status == 'Punch Out') {
+
+            if (!attendanceData) {
+              failedRecords.push(`Punch In Data Not Available for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
+              continue
+            }
+
+            if (attendanceData && !attendanceData.dataValues.attendanceShiftEndDate) {
+              const updateObject = {
+                attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+                attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+                attendancePunchOutLocationType: element.locationType,
+                attendanceStatus: "Punch Out",
+                attendancePunchOutRemark: element.userRemark,
+                attendanceWorkingTime: await helper.timeDifference(
+                  `${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
+                  `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                    "HH:mm:ss"
+                  )}`
+                ),
+                attendancePunchOutLocation: element.location,
+                attendancePunchOutLatitude: element.lat,
+                needAttendanceCron: 1,
+                attendancePunchOutLongitude: element.long,
+                punchOutSource: element.device,
+                updatedBy: element.dataValues.employeeId,
+              }
+
+              await db.attendanceMaster.update(
+                updateObject,
+                {
+                  where: {
+                    attendanceDate: currentDate.format("YYYY-MM-DD"),
+                    employeeId: element.dataValues.employeeId,
+                  },
+                }
+              );
+
+              successRecords.push(`Punch Out Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
+            } else if (
+              attendanceData && currentDate.isAfter(moment(
+                `${attendanceData.dataValues.attendanceShiftEndDate} ${attendanceData.dataValues.attendancePunchOutTime}`,
+                'YYYY-MM-DD HH:mm:ss')
+                .format('YYYY-MM-DD HH:mm:ss'))
+            ) {
+
+              const updateObject = {
+                attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+                attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+                attendancePunchOutLocationType: element.locationType,
+                attendanceStatus: "Punch Out",
+                attendancePunchOutRemark: element.userRemark,
+                attendanceWorkingTime: await helper.timeDifference(
+                  `${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
+                  `${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
+                    "HH:mm:ss"
+                  )}`
+                ),
+                needAttendanceCron: 1,
+                attendancePunchOutLocation: element.location,
+                attendancePunchOutLatitude: element.lat,
+                attendancePunchOutLongitude: element.long,
+                punchOutSource: element.device,
+                updatedBy: element.dataValues.employeeId,
+              }
+
+              await db.attendanceMaster.update(
+                updateObject,
+                {
+                  where: {
+                    attendanceDate: currentDate.format("YYYY-MM-DD"),
+                    employeeId: element.dataValues.employeeId,
+                  },
+                }
+              );
+
+              successRecords.push(`Punch Out Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
+            }
+
+            await db.attendanceHistory.update({
+              approverRemark: result.remark != "" ? result.remark : null,
+              attendanceStatus: 'approved',
+              updatedBy: req.userId,
+              updatedAt: moment()
+            }, {
+              where: {
+                attendanceHistoryId: element.dataValues.attendanceHistoryId
+              }
+            })
+
+            const createdAttendanceData = await db.attendanceMaster.findOne({
               where: {
                 attendanceDate: currentDate.format("YYYY-MM-DD"),
                 employeeId: element.dataValues.employeeId,
               },
-            }
-          );
+            })
 
+            if (currentDate.format("YYYY-MM-DD") != moment().format('YYYY-MM-DD')) {
+              _this.attedanceCronManual(
+                createdAttendanceData.dataValues.attendanceAutoId,
+                createdAttendanceData.dataValues.attendanceDate
+              );
+            }
+          }
+        } else {
           await db.attendanceHistory.update({
-            attendanceStatus: 'approved',
+            updatedAt: moment(),
             updatedBy: req.userId,
-            updatedAt: moment()
+            attendanceStatus: 'rejected',
+            approverRemark: result.remark != "" ? result.remark : null
           }, {
             where: {
               attendanceHistoryId: element.dataValues.attendanceHistoryId
             }
           })
 
-          const createdAttendanceData = await db.attendanceMaster.findOne({
-            where: {
-              attendanceDate: currentDate.format("YYYY-MM-DD"),
-              employeeId: element.dataValues.employeeId,
-            },
-          })
-
-          _this.attedanceCronManual(
-            createdAttendanceData.dataValues.attendanceAutoId,
-            createdAttendanceData.dataValues.attendanceDate
-          );
-
-        } else if (attendanceData && element.dataValues.status === 'Punch In') {
-          let graceTime = moment(
-            element.shiftsmaster.shiftStartTime,
-            "HH:mm"
-          );
-
-          graceTime.add(
-            element.attendancePolicymaster.allowBufferTime == 1
-              ? element.attendancePolicymaster.graceTimeClockIn
-              : 0,
-            "minutes"
-          );
-          const withGraceTime = graceTime.format("HH:mm:ss");
-          const dateTime = `${element.dataValues.date} ${element.dataValues.time}`
-          const currentDate = moment(dateTime, 'YYYY-MM-DD HH:mm:ss')
-
-          await db.attendanceMaster.update({
-            attendanceDate: currentDate.format("YYYY-MM-DD"),
-            employeeId: element.dataValues.employeeId,
-            attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
-            attendanceShiftId: element.shiftId,
-            attendancePunchInTime: currentDate.format("HH:mm:ss"),
-            attendanceStatus: "Punch In",
-            attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
-            attendancePresentStatus: "present",
-            attendancePunchInRemark: element.userRemark,
-            attendancePunchInLocationType: element.locationType,
-            attendancePunchInLocation: element.location,
-            attendancePunchInLatitude: element.lat,
-            attendancePunchInLongitude: element.long,
-            createdBy: element.dataValues.employeeId,
-            attendancePolicyId: element.attendancePolicyId,
-            createdAt: moment(),
-            weekOffId: element.weekOffId,
-            punchInSource: element.device,
-            holidayCompanyLocationConfigurationID: element.companyLocationId,
-          },
-            {
-              where: {
-                attendanceDate: currentDate.format("YYYY-MM-DD"),
-                employeeId: element.dataValues.employeeId,
-              },
-            }
-          );
-
-          await db.attendanceHistory.update({
-            attendanceStatus: 'approved',
-            updatedBy: req.userId,
-            updatedAt: moment()
-          }, {
-            where: {
-              attendanceHistoryId: element.dataValues.attendanceHistoryId
-            }
-          })
-
-          const createdAttendanceData = await db.attendanceMaster.findOne({
-            where: {
-              attendanceDate: currentDate.format("YYYY-MM-DD"),
-              employeeId: element.dataValues.employeeId,
-            },
-          })
-
-          _this.attedanceCronManual(
-            createdAttendanceData.dataValues.attendanceAutoId,
-            createdAttendanceData.dataValues.attendanceDate
-          );
+          successRecords.push(`Attendance Data Rejected for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`)
         }
       }
+
+      successRecords = [...new Set(successRecords)];
+      failedRecords = [...new Set(failedRecords)];
+
       return respHelper(res, {
         status: 200,
-        msg: message.ATTENDANCE_APPROVAL.replace('<status>', 'Approved')
+        msg: message.ATTENDANCE_APPROVAL.replace('<status>', (result.status) ? 'Approved' : 'Rejected'),
+        data: Object.assign(
+          (successRecords.length > 0) ? {
+            successRecords
+          } : {},
+          (failedRecords.length > 0) ? {
+            failedRecords
+          } : {}
+        )
       })
 
     } catch (error) {
@@ -3808,5 +3930,4 @@ const Calender = (month, year) => {
 
   return dateArray
 }
-
 export default new AttendanceController();

@@ -229,6 +229,8 @@ export default Express.Router()
     userController.taskHistoryAttendanceApproval
   )
 
+  .get("/taskHistoryAttendanceApprovalSelf", authentication.authenticate, userController.taskHistoryAttendanceApprovalSelf)
+
   .get(
     "/separationTaskForm/:id",
     authentication.authenticate,
