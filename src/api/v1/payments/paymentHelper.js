@@ -522,7 +522,9 @@ async function getCalculatedPF(monthlyElementPay) {
     calculatedPF=getPercentagePart(applicablePFAmountRestrictionYes,12);
     actualApplicableAmount=applicablePFAmountRestrictionYes;
   }
-  console.log("Applicable PF Amount:: " + actualApplicableAmount);
+  // console.log("Applicable PF Amount Actual:: " + actualApplicableAmount);
+  // console.log("Applicable PF Amount YES :: " + applicablePFAmountRestrictionYes);
+  // console.log("Applicable PF Amount No:: " + applicablePFAmountRestrictionNo);
   return calculatedPF; // Return elementValue or null if not found
 }
 
