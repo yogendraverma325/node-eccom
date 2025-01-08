@@ -24,11 +24,20 @@ class PaymentController {
     try {
       const user = req.query.user;
       const payPackageDetails = await db.payPackage.findOne({
-        where: { EmployeeId: req.userId },
+        where: { EmployeeId: req.userId ,isActive:1},
         raw: true,
         attributes: ["salaryStructureAutoId","payPackageAutoId"],
         order: [["createdAt", "DESC"]], // Correct order syntax
       });
+
+      if(!payPackageDetails)
+      {
+        return respHelper(res, {
+          status: 400,
+          data: [],
+          msg:"Pay Package not assigned"
+        });
+      }
       const payElementsData = await db.payElements.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
@@ -175,6 +184,7 @@ class PaymentController {
         where: {
           EmployeeId: user ? user : req.userId,
           payPackageFinancialYear: financialYear,
+          // isActive:1
         },
         order: [["createdAt", "desc"]],
         attributes: {
@@ -183,7 +193,7 @@ class PaymentController {
             "createdBy",
             "updatedBy",
             "updatedAt",
-            "isActive",
+            // "isActive",
           ],
         },
       });
@@ -204,7 +214,7 @@ class PaymentController {
     try {
       const payPackageAutoId = req.query.payPackageAutoId;
       const payPackageDetails = await db.payPackage.findOne({
-        where: { payPackageAutoId: payPackageAutoId },
+        where: { payPackageAutoId: payPackageAutoId ,isActive:1},
         raw: true,
         attributes: ["salaryStructureAutoId"],
         order: [["createdAt", "DESC"]], // Correct order syntax
@@ -2366,7 +2376,7 @@ class PaymentController {
           (payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
           lopSingleDetails.lopDays;
         totalLopAmount = lopAmount + totalLopAmount;
-        totalLOPDays = lopSingleDetails.lopDays + totalLOPDays;
+        totalLOPDays = parseFloat(lopSingleDetails.lopDays) + parseFloat(totalLOPDays);
       }
       return respHelper(res, {
         status: 200,
@@ -3118,7 +3128,7 @@ class PaymentController {
         "TDS Deduction Sample":1,
         "LOP Deduction Sample":2,
         "Extra Payment Sample":3,
-        "Standard Deduction Sample":4,
+        "Extra Deduction Sample":4,
         "Salary Structure Component":5,
         "Processed Employee":6,
         "In Process Employee":7,
@@ -3633,9 +3643,6 @@ async function processSalary(data) {
         employee,
         { payMonth: result[0][0].payMonth }
       );
-
-    
-
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
