@@ -3493,10 +3493,10 @@ class PaymentController {
     }
   }
 
-  async payProcessList(req, res) {
+  async payProcessCardList(req, res) {
     try {
       // Fetch pay process details list
-      const { error } = await validator.payProcessSchema.validate(
+      const { error } = await validator.payProcessCardSchema.validate(
         req.body
       );
 
@@ -3513,7 +3513,7 @@ class PaymentController {
 
       let query = { 
         isActive: 1,
-        ...(financialYear && { "financialYearName": financialYear })
+        ...(financialYear && { "year": financialYear })
       };
 
       let processQuery = {
@@ -3575,18 +3575,79 @@ class PaymentController {
           const month = m.payMonth.split('-')[1]; // Extract the month (e.g., "01" -> "1")
           return item.customValue === month;
         });
+        console.log()
 
         return {
+          "processId": matchedItem ? matchedItem.dataValues?.payProcessMasterAutoId : 0,
           "pay_count": matchedItem ? matchedItem.dataValues?.pay_count : 0,
           "value": item.value,
-          "key": item.key 
+          "key": item.key
         };
       });
 
       return respHelper(res, {
         status: response.status,
-        msg: response.msg,
+        msg: "Data fetched successfully",
         data: updatePayProcess
+      });
+      
+    } catch (error) {
+      console.log(error);
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async payrollProcessList(req, res) {
+    try {
+      // Fetch pay process details list
+      const { error } = await validator.payProcessSchema.validate(
+        req.body
+      );
+
+      if (error) {
+        return respHelper(res, {
+          status: 400,
+          msg: error.details[0].message,
+        });
+      }
+      
+      let payMonth = req.body.payMonth || "";
+      let companyId = req.body.companyId || "";
+
+      let query = { 
+        isActive: 1,
+        payMonth: payMonth,
+        companyId: companyId
+      };
+
+      let docs = await db.payProcessMaster.findAll({ 
+        where: query, 
+        as: 'payprocessmaster',
+        attributes: [
+          "payProcessMasterAutoId",
+          "name",
+          "payMonth",
+          [
+            Sequelize.literal(
+              `(SELECT COUNT(proceessId) 
+                FROM payprocessdetails pd 
+                WHERE pd.proceessId = payprocessmaster.payProcessMasterAutoId 
+                AND pd.payStatus IN (8, 9))`
+            ),
+            'pay_count' // Alias for the computed column
+          ]
+        ],
+        include: [{ model: db.payProcessDetails,  where: { payStatus: { [Op.in]: [8, 9] } } }],
+        order: [["payProcessMasterAutoId", "DESC"]]
+      });
+
+      return respHelper(res, {
+        status: 200,
+        msg: "Data fetched successfully",
+        data: docs
       });
       
     } catch (error) {

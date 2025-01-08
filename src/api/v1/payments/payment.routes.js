@@ -61,7 +61,8 @@ export default Express
     // jay routes
     .get("/extraDeduction", authentication.authenticate, paymentController.extraDeduction)
     .get("/extraPayment", authentication.authenticate, paymentController.extraPayment)
-    .post("/payProcessList", authentication.authenticate, paymentController.payProcessList)
+    .post("/payProcessCardList", authentication.authenticate, paymentController.payProcessCardList)
+    .post("/payrollProcessList", authentication.authenticate, paymentController.payrollProcessList)
 
 
 

@@ -365,7 +365,7 @@ async function query(caseId, data, data2) {
       break;
 
     case 17:
-      return `SELECT pm.payMonth, pd.EmployeeId as empId FROM tara.payprocessmaster pm INNER JOIN tara.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId WHERE pm.payProcessMasterAutoId = ${data} AND pd.payStatus in(2,3,4,5,6,7)`;
+      return `SELECT pm.payMonth, pd.EmployeeId as empId FROM tara.payprocessmaster pm INNER JOIN tara.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId WHERE pm.payProcessMasterAutoId = ${data} AND pd.payStatus in(2,3,4,5,6,7,8,9)`;
       break;
     // case 18: return`SELECT (SELECT COUNT(*) FROM tara.payprocessdetails WHERE payMonth = '${data2.paymonth}') AS totalEmployees, (SELECT COUNT(*) FROM tara.payslip WHERE paySlipMonth = ${data2.month} AND paySlipYear = ${data2.year}) AS total_payslips, (SELECT COUNT(*) FROM tara.payslip WHERE paySlipMonth = ${data2.month} AND paySlipYear = ${data2.year} AND paySlipStatus = 1) AS paySlipReleased, COUNT(ps.paySlipAutoId) AS paySlipGenerated, ROUND((COUNT(ps.paySlipAutoId) * 100.0) / (SELECT COUNT(*) FROM tara.payprocessdetails WHERE payMonth = '${data2.paymonth}'), 2) AS paySlipPercentage FROM tara.payprocessdetails pd LEFT JOIN tara.payslip ps ON pd.EmployeeId = ps.EmployeeId WHERE pd.payMonth = '${data2.paymonth}' AND ps.paySlipMonth = ${data2.month} AND ps.paySlipYear = ${data2.year};`;
     // break;

@@ -8,6 +8,9 @@ export default (sequelize, Sequelize) => {
         financialYearName: {
             type: Sequelize.STRING
         },
+        year: {
+            type: Sequelize.STRING
+        },
         isActive: {
             type: Sequelize.BOOLEAN
         },
