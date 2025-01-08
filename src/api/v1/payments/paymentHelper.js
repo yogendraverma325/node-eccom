@@ -1,5 +1,6 @@
 import { where } from "sequelize";
 import db from "../../../config/db.config.js";
+import { parse } from "dotenv";
 
 let paySlipComponentObject = {
   EmployeeId: "",
@@ -340,7 +341,7 @@ async function query(caseId, data, data2) {
       return `SELECT pm.payProcessMasterAutoId, pd.ctc, pd.lopDays, pd.totalWorkingDays, pd.tdsdeductions, pd.netPay, pd.deductionAmount, pd.arrearAmount, pd.loanAmont, pd.salaryMonth, pd.deductionName, pd.lopdeductions, pp.payPackageEffectiveDate, pe.salaryComponentAutoId, pe.payElementAmount, sc.includeInPackage, sc.includeInPackage, sc.salaryComponentEarningType FROM payprocessmaster pm JOIN payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId JOIN paypackage pp ON pd.EmployeeId = pp.EmployeeId JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE pm.payProcessMasterAutoId = 1 AND pd.payStatus = 2 AND pd.EmployeeId = 484`;
       break;
     case 11:
-      return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}`;
+      return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}  and pp.isActive=1`;
       break;
     case 12:
       //return `SELECT sc.salaryComponentAutoId, scm.elementValue, sce.salaryComponentElementAutoId, sce.salaryComponentElementName FROM salarycomponent sc JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId JOIN salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sc.salaryComponentAutoId = ${data}`;
@@ -438,9 +439,10 @@ function getPaySlipObject(processedEmployee, createdBy) {
   return paySlipObject;
 }
 function getElementValue(name, data) {
-  // console.log(data);
   const item = data.find((item) => item.salaryComponentElementName === name);
-  return item ? item.elementValue : null; // Return elementValue or null if not found
+  console.log(name);
+  console.log(item?item.elementValue:0);
+  return item ? item.elementValue : 0; // Return elementValue or null if not found
 }
 function getPayComponentObject(
   employeePackageDetails,
@@ -495,26 +497,34 @@ function getPayComponentObject(
 
 async function getCalculatedPF(monthlyElementPay) {
   let calculatedPF = 0,
-    applicablePFAmount = 0;
+    applicablePFAmountRestrictionYes = 0,applicablePFAmountRestrictionNo=0,actualApplicableAmount=0;
   if (monthlyElementPay[0].isPfApplicable == 0) return calculatedPF;
-  applicablePFAmount =
-    monthlyElementPay[0].isPfRestriction == 1
-      ? await monthlyElementPay
+  
+     applicablePFAmountRestrictionYes = await monthlyElementPay
           .filter((element) => element.isPfApplicableComponent == 1)
           .reduce(async (sumPromise, element) => {
             const sum = await sumPromise; // Resolve the previous sum
             return sum + parseFloat(element["elementMonthlyAmount"]);
-          }, Promise.resolve(0))
-      : monthlyElementPay.find((item) => item["salaryComponentCode"] === "Basic")?.[
+          }, Promise.resolve(0));
+          
+          applicablePFAmountRestrictionNo= monthlyElementPay.find((item) => item["pfApplicable15000AndNoRestriction"] === 1)?.[
           "elementMonthlyAmount"
         ] || null; // Start with a resolved promise of 0
 
   if (monthlyElementPay[0].isPfRestriction == 1) {
-    calculatedPF=applicablePFAmount<15000?getPercentagePart(applicablePFAmount,12):1800;
-  } else {
-    calculatedPF=getPercentagePart(applicablePFAmount,12);
+    calculatedPF=applicablePFAmountRestrictionYes<15000?getPercentagePart(applicablePFAmountRestrictionYes,12):1800;
+    actualApplicableAmount=applicablePFAmountRestrictionYes;
+  } else if (monthlyElementPay[0].isPfRestriction == 0 && applicablePFAmountRestrictionNo>=15000) {
+    calculatedPF=getPercentagePart(applicablePFAmountRestrictionNo,12);
+    actualApplicableAmount=applicablePFAmountRestrictionNo;
   }
-  console.log("Applicable PF Amount :: " + applicablePFAmount);
+  else if (monthlyElementPay[0].isPfRestriction == 0 && applicablePFAmountRestrictionNo<15000) {
+    calculatedPF=getPercentagePart(applicablePFAmountRestrictionYes,12);
+    actualApplicableAmount=applicablePFAmountRestrictionYes;
+  }
+  // console.log("Applicable PF Amount Actual:: " + actualApplicableAmount);
+  // console.log("Applicable PF Amount YES :: " + applicablePFAmountRestrictionYes);
+  // console.log("Applicable PF Amount No:: " + applicablePFAmountRestrictionNo);
   return calculatedPF; // Return elementValue or null if not found
 }
 

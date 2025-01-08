@@ -16,6 +16,8 @@ import emailTemplate from "../../../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
 import path from "path"; // Import the path module
 import moment from "moment";
+import puppeteer from "puppeteer";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,7 +35,7 @@ class PaymentController {
     try {
       const user = req.query.user;
       const payPackageDetails = await db.payPackage.findOne({
-        where: { EmployeeId: req.userId },
+        where: { EmployeeId: req.userId ,isActive:1},
         raw: true,
         attributes: ["salaryStructureAutoId", "payPackageAutoId"],
         order: [["createdAt", "DESC"]], // Correct order syntax
@@ -51,7 +53,6 @@ class PaymentController {
               "createdBy",
               "updatedBy",
               "updatedAt",
-              "isActive",
             ],
           },
           include: [
@@ -191,6 +192,7 @@ class PaymentController {
         where: {
           EmployeeId: user ? user : req.userId,
           payPackageFinancialYear: financialYear,
+          // isActive:1
         },
         order: [["createdAt", "desc"]],
         attributes: {
@@ -199,7 +201,7 @@ class PaymentController {
             "createdBy",
             "updatedBy",
             "updatedAt",
-            "isActive",
+            // "isActive",
           ],
         },
       });
@@ -220,7 +222,7 @@ class PaymentController {
     try {
       const payPackageAutoId = req.query.payPackageAutoId;
       const payPackageDetails = await db.payPackage.findOne({
-        where: { payPackageAutoId: payPackageAutoId },
+        where: { payPackageAutoId: payPackageAutoId ,isActive:1},
         raw: true,
         attributes: ["salaryStructureAutoId"],
         order: [["createdAt", "DESC"]], // Correct order syntax
@@ -3298,13 +3300,14 @@ class PaymentController {
   async salarySlipPdf(req, res) {
     try {
       // Fetch salary details
-      const {paySlipAutoId } = req.query;
+      const { paySlipAutoId } = req.query;
+      // const salaryDetails = await salaryPaySlip(paySlipAutoId);
       const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
-
+  
       if (!salaryDetails || salaryDetails.length === 0) {
         return res.status(404).send("Salary details not found.");
       }
-
+  
       const processPayslipComponents = (payslipcomponents = []) => {
         const result = { earnings: [], deductions: [] };
         payslipcomponents.forEach((item) => {
@@ -3319,24 +3322,20 @@ class PaymentController {
         });
         return result;
       };
-
+  
       const paySlipComponent = processPayslipComponents(
         salaryDetails[0].payslipcomponents
       );
-
+  
       const employee = salaryDetails[0].employee;
-
-      async function getMonthAbbreviation(month) {
-        const monthNames = [
-          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        ];
-
-        const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
-        return monthNames[monthIndex] || "";
-      }
-      const month = salaryDetails[0]?.paySlipMonth;
-      const currentMonth = await getMonthAbbreviation(month);
+  
+      const monthNames = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      ];
+      const currentMonth =
+        monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+  
       const body = {
         name: employee.name || "",
         employeeCode: employee?.empCode || "",
@@ -3347,9 +3346,7 @@ class PaymentController {
         dateOfJoining: moment(
           employee?.employeejobdetail?.dateOfJoining
         ).isValid()
-          ? moment(employee.employeejobdetail.dateOfJoining).format(
-              "DD-MM-YYYY"
-            )
+          ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
           : "",
         workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
         companyName: employee?.companymaster?.companyName || "",
@@ -3375,9 +3372,10 @@ class PaymentController {
             : "",
         paySlipComponent: paySlipComponent || [],
         netPay: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
-          ? parseInt(salaryDetails[0].paySlipGrossEarning)-parseInt(salaryDetails[0].paySlipTotalDeduction)
+          ? parseInt(salaryDetails[0].paySlipGrossEarning) -
+            parseInt(salaryDetails[0].paySlipTotalDeduction)
           : "",
-        month: currentMonth|| "",
+        month: currentMonth || "",
         year: salaryDetails[0]?.paySlipYear || "",
       };
 
@@ -3847,9 +3845,6 @@ async function processSalary(data) {
         employee,
         { payMonth: result[0][0].payMonth }
       );
-
-    
-
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
@@ -4103,13 +4098,20 @@ async function processSalary(data) {
           "Affects ESIC",
           componentConfiguration[0]
         );
+        let pfElementOnMorethan15000AndRestrictionNo = paymentHelper.getElementValue(
+          "Affect PF >15000 No Restriction",
+          componentConfiguration[0]
+        );
         empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
         empCopntWiseDetl["isPfApplicable"] =
           lwfDeducationDetails.pfApplicability;
         empCopntWiseDetl["isPfRestriction"] = lwfDeducationDetails.pfRestricted;
         empCopntWiseDetl["isEsicApplicable"] =
           lwfDeducationDetails.esicApplicable;
-        empCopntWiseDetl["isEsicApplicableComponent"] = esicApplicableComponent;
+        empCopntWiseDetl["isEsicApplicableComponent"] =
+          esicApplicableComponent;
+          empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
+          pfElementOnMorethan15000AndRestrictionNo;
         //////////////////////////////PF-Applicablity Keys//////////////////////////////////
         let existDetails = await db.payMonthlyElements.findOne({
           where: {
