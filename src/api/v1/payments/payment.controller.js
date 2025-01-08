@@ -3977,6 +3977,10 @@ async function processSalary(data) {
           "Affects ESIC",
           componentConfiguration[0]
         );
+        let pfElementOnMorethan15000AndRestrictionNo = paymentHelper.getElementValue(
+          "Affect PF >15000 No Restriction",
+          componentConfiguration[0]
+        );
         empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
         empCopntWiseDetl["isPfApplicable"] =
           lwfDeducationDetails.pfApplicability;
@@ -3986,6 +3990,8 @@ async function processSalary(data) {
           lwfDeducationDetails.esicApplicable;
         empCopntWiseDetl["isEsicApplicableComponent"] =
           esicApplicableComponent;
+          empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
+          pfElementOnMorethan15000AndRestrictionNo;
         //////////////////////////////PF-Applicablity Keys//////////////////////////////////
         let existDetails = await db.payMonthlyElements.findOne({
           where: {

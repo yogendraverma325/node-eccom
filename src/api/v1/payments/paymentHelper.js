@@ -1,5 +1,6 @@
 import { where } from "sequelize";
 import db from "../../../config/db.config.js";
+import { parse } from "dotenv";
 
 let paySlipComponentObject = {
   EmployeeId: "",
@@ -438,9 +439,10 @@ function getPaySlipObject(processedEmployee, createdBy) {
   return paySlipObject;
 }
 function getElementValue(name, data) {
-  // console.log(data);
   const item = data.find((item) => item.salaryComponentElementName === name);
-  return item ? item.elementValue : null; // Return elementValue or null if not found
+  console.log(name);
+  console.log(item?item.elementValue:0);
+  return item ? item.elementValue : 0; // Return elementValue or null if not found
 }
 function getPayComponentObject(
   employeePackageDetails,
@@ -495,26 +497,32 @@ function getPayComponentObject(
 
 async function getCalculatedPF(monthlyElementPay) {
   let calculatedPF = 0,
-    applicablePFAmount = 0;
+    applicablePFAmountRestrictionYes = 0,applicablePFAmountRestrictionNo=0,actualApplicableAmount=0;
   if (monthlyElementPay[0].isPfApplicable == 0) return calculatedPF;
-  applicablePFAmount =
-    monthlyElementPay[0].isPfRestriction == 1
-      ? await monthlyElementPay
+  
+     applicablePFAmountRestrictionYes = await monthlyElementPay
           .filter((element) => element.isPfApplicableComponent == 1)
           .reduce(async (sumPromise, element) => {
             const sum = await sumPromise; // Resolve the previous sum
             return sum + parseFloat(element["elementMonthlyAmount"]);
-          }, Promise.resolve(0))
-      : monthlyElementPay.find((item) => item["salaryComponentCode"] === "Basic")?.[
+          }, Promise.resolve(0));
+          
+          applicablePFAmountRestrictionNo= monthlyElementPay.find((item) => item["pfApplicable15000AndNoRestriction"] === 1)?.[
           "elementMonthlyAmount"
         ] || null; // Start with a resolved promise of 0
 
   if (monthlyElementPay[0].isPfRestriction == 1) {
-    calculatedPF=applicablePFAmount<15000?getPercentagePart(applicablePFAmount,12):1800;
-  } else {
-    calculatedPF=getPercentagePart(applicablePFAmount,12);
+    calculatedPF=applicablePFAmountRestrictionYes<15000?getPercentagePart(applicablePFAmountRestrictionYes,12):1800;
+    actualApplicableAmount=applicablePFAmountRestrictionYes;
+  } else if (monthlyElementPay[0].isPfRestriction == 0 && applicablePFAmountRestrictionNo>=15000) {
+    calculatedPF=getPercentagePart(applicablePFAmountRestrictionNo,12);
+    actualApplicableAmount=applicablePFAmountRestrictionNo;
   }
-  console.log("Applicable PF Amount :: " + applicablePFAmount);
+  else if (monthlyElementPay[0].isPfRestriction == 0 && applicablePFAmountRestrictionNo<15000) {
+    calculatedPF=getPercentagePart(applicablePFAmountRestrictionYes,12);
+    actualApplicableAmount=applicablePFAmountRestrictionYes;
+  }
+  console.log("Applicable PF Amount:: " + actualApplicableAmount);
   return calculatedPF; // Return elementValue or null if not found
 }
 
