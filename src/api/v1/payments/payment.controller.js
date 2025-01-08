@@ -4039,6 +4039,7 @@ async function generatePaySlip(data) {
             parseFloat(payMonthlyElement.extrapaymentAmount);
           PaySlipNetPay =
             parseFloat(PaySlipNetPay) - parseFloat(totalPayslipDeductons);
+            let GrossPayAfterExtraPay=parseFloat(payMonthlyElement.paySlipGrossEarning)+parseFloat(payMonthlyElement.extrapaymentAmount);
           isExistPaySlip = await db.paySlips.create({
             EmployeeId: payMonthlyElement.empId,
             paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
@@ -4049,7 +4050,7 @@ async function generatePaySlip(data) {
             paySlipWorkingDays: totalWorkingDays - payMonthlyElement.lopDays,
             paySlipAbsentDays: payMonthlyElement.lopDays,
             paySlipArrearDays: payMonthlyElement.arrearDays,
-            paySlipGrossEarning: payMonthlyElement.paySlipGrossEarning,
+            paySlipGrossEarning: GrossPayAfterExtraPay,
             paySlipTotalPay: payMonthlyElement.paySlipTotalPay,
             paySlipNetPay: PaySlipNetPay,
             paySlipTotalDeduction: totalPayslipDeductons
