@@ -101,7 +101,7 @@ class commonController {
             ESICPFDeduction: result.ESICPFDeduction,
             fatherName: result.fatherName,
             updatedAt: moment(),
-            updatedBy: req.userId
+            updatedBy: req.userId,
           },
           {
             where: { id: userId },
@@ -151,7 +151,7 @@ class commonController {
           data: {},
         });
       }
-    } catch (error) { }
+    } catch (error) {}
   }
 
   async updatePaymentDetails(req, res) {
@@ -334,7 +334,7 @@ class commonController {
           data: {},
         });
       }
-    } catch (error) { }
+    } catch (error) {}
   }
 
   async getFamilyMember(req, res) {
@@ -378,7 +378,10 @@ class commonController {
 
       // fetch bandId and gradeId based on job level
       if (result.jobLevelId) {
-        const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({ where: { 'jobLevelId': result.jobLevelId }, attributes: ['bandId', 'gradeId'] });
+        const getJobLevelMappingDetails = await db.jobLevelMapping.findOne({
+          where: { jobLevelId: result.jobLevelId },
+          attributes: ["bandId", "gradeId"],
+        });
         if (getJobLevelMappingDetails) {
           result["bandId"] = getJobLevelMappingDetails.bandId;
           result["gradeId"] = getJobLevelMappingDetails.gradeId;
@@ -387,7 +390,10 @@ class commonController {
 
       // update date of joining and company location in employee master table
       if (result.companyLocationId) {
-        await db.employeeMaster.update({ 'companyLocationId': result.companyLocationId }, { where: { 'id': userId } });
+        await db.employeeMaster.update(
+          { companyLocationId: result.companyLocationId },
+          { where: { id: userId } }
+        );
       }
 
       const existPaymentDetails = await db.jobDetails.findOne({
@@ -589,7 +595,9 @@ class commonController {
       //for key 0 using for web and 1 for app
       var dashboardData = [];
       let cacheKey =
-        req.params.for == 0 ? `dashboardCardWeb_${process.env.TEST}` : `dashboardCardApp_${process.env.TEST}`;
+        req.params.for == 0
+          ? `dashboardCardWeb_${process.env.TEST}`
+          : `dashboardCardApp_${process.env.TEST}`;
       await client.get(cacheKey).then(async (data) => {
         if (data) {
           dashboardData = JSON.parse(data);
@@ -654,6 +662,7 @@ class commonController {
           companyLocationId: req.query.user
             ? employeeData.companyLocationId
             : userData.companyLocationId,
+          isActive: 1,
         },
         include: [
           {
@@ -668,10 +677,16 @@ class commonController {
                   new Date().getFullYear()
                 ),
               ],
-            }
+            },
           },
         ],
-        order: [[{ model: db.holidayMaster, as: "holidayDetails" }, "holidayDate", "ASC"]],
+        order: [
+          [
+            { model: db.holidayMaster, as: "holidayDetails" },
+            "holidayDate",
+            "ASC",
+          ],
+        ],
       });
 
       return respHelper(res, {
@@ -854,9 +869,11 @@ class commonController {
       const pageNo = req.query.page * 1 || 1;
       const offset = (pageNo - 1) * limit;
 
-      const cacheKey = `employeeList:${process.env.TEST}:${req.userId}:${pageNo}:${limit}:${search || ""
-        }:${department || ""}:${designation || ""}:${buSearch || ""}:${sbuSearch || ""
-        }:${areaSearch || ""}`;
+      const cacheKey = `employeeList:${process.env.TEST}:${
+        req.userId
+      }:${pageNo}:${limit}:${search || ""}:${department || ""}:${
+        designation || ""
+      }:${buSearch || ""}:${sbuSearch || ""}:${areaSearch || ""}`;
 
       let employeeData = [];
       await client.get(cacheKey).then(async (data) => {
@@ -889,44 +906,44 @@ class commonController {
             where: Object.assign(
               search
                 ? {
-                  [Op.or]: [
-                    {
-                      empCode: {
-                        [Op.like]: `%${search}%`,
+                    [Op.or]: [
+                      {
+                        empCode: {
+                          [Op.like]: `%${search}%`,
+                        },
                       },
-                    },
-                    {
-                      name: {
-                        [Op.like]: `%${search}%`,
+                      {
+                        name: {
+                          [Op.like]: `%${search}%`,
+                        },
                       },
-                    },
-                    {
-                      email: {
-                        [Op.like]: `%${search}%`,
+                      {
+                        email: {
+                          [Op.like]: `%${search}%`,
+                        },
                       },
-                    },
-                  ],
-                  [Op.and]: [
-                    {
-                      isActive:
-                        usersData.role_id == 1 || usersData.role_id == 2
-                          ? [1, 0]
-                          : [1],
-                      ...empFilters,
-                    },
-                  ],
-                }
+                    ],
+                    [Op.and]: [
+                      {
+                        isActive:
+                          usersData.role_id == 1 || usersData.role_id == 2
+                            ? [1, 0]
+                            : [1],
+                        ...empFilters,
+                      },
+                    ],
+                  }
                 : {
-                  [Op.and]: [
-                    {
-                      isActive:
-                        usersData.role_id == 1 || usersData.role_id == 2
-                          ? [1, 0]
-                          : [1],
-                      ...empFilters,
-                    },
-                  ],
-                }
+                    [Op.and]: [
+                      {
+                        isActive:
+                          usersData.role_id == 1 || usersData.role_id == 2
+                            ? [1, 0]
+                            : [1],
+                        ...empFilters,
+                      },
+                    ],
+                  }
             ),
             attributes: [
               "id",
@@ -1768,8 +1785,8 @@ class commonController {
         let insuranceQuery = {
           where: {
             userId: userId,
-            documentType: 6
-          }
+            documentType: 6,
+          },
         };
 
         let isVerify = await db.hrLetters.findOne(insuranceQuery);
@@ -1781,8 +1798,7 @@ class commonController {
             createdBy: createdBy,
           };
           await db.hrLetters.update(updateDocument, insuranceQuery);
-        }
-        else {
+        } else {
           let addDocument = {
             userId: userId,
             documentType: 6,
@@ -1791,7 +1807,6 @@ class commonController {
           };
           await db.hrLetters.create(addDocument);
         }
-
       }
 
       if (req.body.contractLetter) {
@@ -1868,9 +1883,9 @@ class commonController {
         });
       } else {
         const getNewChanges = await db.paymentDetails.findOne({
-          attributes: { exclude: ['paymentId'] },
+          attributes: { exclude: ["paymentId"] },
           where: { userId: result.userId, status: "pending" },
-          raw: true
+          raw: true,
         });
 
         if (getNewChanges) {
@@ -1889,10 +1904,10 @@ class commonController {
               newSupportingDocument: null,
               paymentAttachment: getNewChanges.newPaymentAttachment,
               updatedBy: req.userId,
-              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
+              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
             },
           };
-          await db.paymentDetailsHistory.create(getNewChanges)
+          await db.paymentDetailsHistory.create(getNewChanges);
           await db.paymentDetails.update(objForApproval, {
             where: { userId: result.userId },
           });

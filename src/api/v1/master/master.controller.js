@@ -361,8 +361,8 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
 
       const bandData = await db.bandMaster.findAndCountAll({
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       return respHelper(res, {
@@ -416,7 +416,7 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
       let search = req.query.search;
       if (search) {
-        query = { ...query, costCenterName: { [Op.like]: `%${search}%` } };
+        query = { ...query, [Op.or]: [{ costCenterName: { [Op.like]: `%${search}%` } }, { costCenterCode: { [Op.like]: `%${search}%` } }] };
       }
       const costCenterData = await db.costCenterMaster.findAndCountAll({
         // limit,
@@ -476,8 +476,8 @@ class MasterController {
       const offset = (pageNo - 1) * limit;
 
       const gradeData = await db.gradeMaster.findAndCountAll({
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       return respHelper(res, {
@@ -541,7 +541,7 @@ class MasterController {
 
   async functionalArea(req, res) {
     try {
-      let query = { departmentMappingId: req.query.departmentMappingId };
+      let query = { ...(req.query.departmentMappingId && { departmentMappingId: req.query.departmentMappingId }) };
       let subQuery = { isActive: 1 };
       const functionalAreaData = await db.functionalAreaMapping.findAll({
         where: query,

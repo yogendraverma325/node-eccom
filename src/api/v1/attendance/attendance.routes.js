@@ -1,6 +1,9 @@
 import Express from "express";
 import attendanceController from "./attendance.controller.js";
-import authorization from "../../../middleware/authorization.js";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/excel/" });
+
 export default Express.Router()
   .post("/markAttendance", attendanceController.attendance)
   .post("/regularizeRequest", attendanceController.regularizeRequest)
@@ -26,5 +29,14 @@ export default Express.Router()
     "/approveRegularizationRequestBulk",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     attendanceController.approveRegularizationRequestBulk
+  )
+  //BULK ACTION
+
+  //Attedace Roster//
+  .post("/attendanceRoster", attendanceController.attendanceRoster)
+  .post(
+    "/uploadAttendanceRoster",
+    upload.single("attendanceroster"),
+    attendanceController.uploadAttendanceRoster
   );
-//BULK ACTION
+//Attendance Roster

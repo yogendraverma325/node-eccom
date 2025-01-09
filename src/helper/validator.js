@@ -326,7 +326,7 @@ const addPaymentDetailsSchema = Joi.object({
     .label("Payment Attachemnt")
     .allow("")
     .optional(),
-  bankId: Joi.number().required()
+  bankId: Joi.number().required(),
 });
 
 const deleteFamilyMemberDetailsSchema = Joi.object({
@@ -1262,6 +1262,17 @@ const attendanceApprovalSchema = Joi.object({
 });
 // Attendance Approval Validations
 
+//Attedance Roster Validations
+const attendanceRosterSchema = Joi.array().items(
+  Joi.object({
+    employeeId: Joi.number().required().label("Employee ID"),
+    attendanceDate: Joi.string().required().label("Date"),
+    shiftId: Joi.number().required().label("Shift"),
+    weekOffId: Joi.number().required().label("Week Off"),
+  })
+);
+//Attedance Roster Validations
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1320,4 +1331,5 @@ export default {
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
   attendanceApprovalSchema,
+  attendanceRosterSchema,
 };

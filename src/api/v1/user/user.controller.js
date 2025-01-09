@@ -313,12 +313,12 @@ class UserController {
               {
                 model: db.stateMaster,
                 attributes: ["stateId", "stateName"],
-                required: false
+                required: false,
               },
               {
                 model: db.ptLocationMaster,
                 attributes: ["ptLocationId", "ptLocationName"],
-                required: false
+                required: false,
               },
             ],
           },
@@ -530,7 +530,7 @@ class UserController {
         where: {
           pendingAt: userid,
           status: "pending",
-        }
+        },
       });
 
       let assignedAttCount = await db.regularizationMaster.count({
@@ -562,7 +562,7 @@ class UserController {
           web: {
             leaveData: {
               raisedByMe: countLeavePending,
-              assignedToMe: countLeaveAssgined
+              assignedToMe: countLeaveAssgined,
             },
             attedanceData: {
               raisedByMe: pendingAttCount,
@@ -585,7 +585,7 @@ class UserController {
               pendingAttendanceCount: 0,
             },
             assignedToMe: {
-              leaveData:countLeaveAssgined,
+              leaveData: countLeaveAssgined,
               attedanceData: assignedAttCount,
               seperationCount: pendingSeperationCount,
               pendingAttendanceCount,
@@ -1754,6 +1754,10 @@ class UserController {
         );
       }
 
+      if (moment(result.l2LastWorkingDay).isBefore(moment())) {
+        await inactiveEmpOnLastWorkingDay(user, result.l2LastWorkingDay);
+      }
+
       return respHelper(res, {
         status: 200,
         msg: constant.SEPARATION_STATUS.replace("<status>", "Initiated"),
@@ -2381,6 +2385,13 @@ class UserController {
         );
       }
 
+      if (moment(result.l2LastWorkingDay).isBefore(moment())) {
+        await inactiveEmpOnLastWorkingDay(
+          separationData.dataValues.employee.id,
+          result.l2LastWorkingDay
+        );
+      }
+
       return respHelper(res, {
         status: 200,
         msg: constant.SEPARATION_STATUS.replace("<status>", "Approved"),
@@ -2802,34 +2813,45 @@ class UserController {
 
   async taskHistoryAttendanceApprovalSelf(req, res) {
     try {
-
       const limit = parseInt(req.query.limit, 10) || 10;
       const pageNo = parseInt(req.query.page, 10) || 1;
       const offset = (pageNo - 1) * limit;
 
-      const { count, rows: pendingAttendanceData } = await db.attendanceHistory.findAndCountAll({
-        where: {
-          employeeId: req.userId
-        },
-        include: [{
-          model: db.employeeMaster,
-          attributes: ['id', 'empCode', 'name']
-        }, {
-          model: db.employeeMaster,
-          attributes: ['id', 'empCode', 'name'],
-          as: 'attendanceApprover'
-        }],
-        order: [['date', 'DESC']],
-        limit,
-        offset
-      })
+      const { count, rows: pendingAttendanceData } =
+        await db.attendanceHistory.findAndCountAll({
+          where: {
+            employeeId: req.userId,
+          },
+          include: [
+            {
+              model: db.employeeMaster,
+              attributes: ["id", "empCode", "name"],
+            },
+            {
+              model: db.employeeMaster,
+              attributes: ["id", "empCode", "name"],
+              as: "attendanceApprover",
+            },
+          ],
+          order: [["date", "DESC"]],
+          limit,
+          offset,
+        });
 
-      pendingAttendanceData.map(record => {
-        if (!record.dataValues.attendanceApprover && record.dataValues.attendanceStatus === 'pending') {
-          record.dataValues.attendanceApprover = { name: 'Pending for Approval' };
+      pendingAttendanceData.map((record) => {
+        if (
+          !record.dataValues.attendanceApprover &&
+          record.dataValues.attendanceStatus === "pending"
+        ) {
+          record.dataValues.attendanceApprover = {
+            name: "Pending for Approval",
+          };
         }
-        if (!record.dataValues.attendanceApprover && record.dataValues.attendanceStatus === 'approved') {
-          record.dataValues.attendanceApprover = { name: 'Auto Approved' };
+        if (
+          !record.dataValues.attendanceApprover &&
+          record.dataValues.attendanceStatus === "approved"
+        ) {
+          record.dataValues.attendanceApprover = { name: "Auto Approved" };
         }
         return record;
       });
@@ -2841,13 +2863,13 @@ class UserController {
           totalPages: Math.ceil(count / limit),
           currentPage: pageNo,
           pendingAttendanceData,
-        }
+        },
       });
     } catch (error) {
       console.log(error);
       return respHelper(res, {
         status: 500,
-      })
+      });
     }
   }
   // Pending Attendance Task History
@@ -3903,7 +3925,7 @@ class UserController {
           // }
           const objForApproval = {
             status: "pending",
-            pendingAt: 1982,
+            pendingAt: 2996,
             requrestTriggred: moment().format("YYYY-MM-DD HH:mm:ss"),
             ...(result.bankId != isSameDetails.bankId && {
               newBankId: result.bankId,
@@ -4105,11 +4127,11 @@ class UserController {
   }
 
   ///CONFIRMATION///
-   async confirmatonList(req, res) {
+  async confirmatonList(req, res) {
     try {
       const confirmationData = await db.Confirmationinitiated.findAll({
         where: {
-           status: [0, 2],
+          status: [0, 2],
         },
         include: [
           {
@@ -4915,11 +4937,6 @@ class UserController {
                   },
                 ],
               },
-              {
-                model: db.employeeMaster,
-                as: "officeLocationHistoryCreatedBy",
-                attributes: ["id", "name"],
-              },
               // { model: db.companyLocationMaster, as: 'officeLocationChangesFrom', attributes: ['companyLocationCode', 'address1'],
               //   include: [
               //       { model: db.countryMaster, attributes: ['countryId', 'countryName', 'countryCode'] },
@@ -4973,11 +4990,6 @@ class UserController {
                     ],
                   },
                 ],
-              },
-              {
-                model: db.employeeMaster,
-                as: "managerHistoryCreatedBy",
-                attributes: ["id", "name"],
               },
               // { model: db.employeeMaster, as: 'managerChangesFrom', attributes: ['id', 'name', 'empCode' ] },
             ],
@@ -5278,5 +5290,19 @@ class UserController {
     }
   }
 }
+
+const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
+  await db.employeeMaster.update(
+    {
+      isActive: 0,
+      dateOfexit: exitDate,
+    },
+    {
+      where: {
+        id: emp,
+      },
+    }
+  );
+};
 
 export default new UserController();

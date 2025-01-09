@@ -1,3 +1,22 @@
+// ----------------------------------- 2025-01-02 (Attendance Roster) -------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`attendancepolicymaster` 
+ADD COLUMN `attendaceRosterLimitForPreviousDays` INT NULL DEFAULT NULL AFTER `leaveDeductPolicyWorkDurationLeaveType`;
+
+CREATE TABLE `attendanceroster` (
+  `rosterAutoId` int NOT NULL AUTO_INCREMENT,
+  `employeeId` int NOT NULL,
+  `attendanceDate` date NOT NULL,
+  `shiftId` int DEFAULT NULL,
+  `weekOffId` int DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '1',
+  `createdDt` datetime DEFAULT NULL,
+  `createdAt` int DEFAULT NULL,
+  `updatedBy` datetime DEFAULT NULL,
+  `updatedAt` int DEFAULT NULL,
+  PRIMARY KEY (`rosterAutoId`)
+)
+
 // --------------------------------------- 2024-12-12 -----------------------------------------------//
 ALTER TABLE `tara`.`attendanceHistory` 
 ADD COLUMN `device` VARCHAR(45) NULL DEFAULT NULL AFTER `location`,

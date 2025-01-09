@@ -9,7 +9,7 @@ import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
-// import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
   let pattern = /desktop/i;
@@ -1446,6 +1446,11 @@ const getSigningAuthorityDate = async (SIGN_FOR, dataForWhereCondition) => {
 };
 ///CONFIRMATION
 
+const convertExcelDate = (serial) => {
+  const date = new Date((serial - 25569) * 86400 * 1000);
+  return moment(date).format("YYYY-MM-DD");
+};
+
 export default {
   generateJwtToken,
   checkFolder,
@@ -1476,4 +1481,5 @@ export default {
   generateFieldsForgivenLevel,
   getSigningAuthorityDate,
   //CONFIRMAITON
+  convertExcelDate
 };
