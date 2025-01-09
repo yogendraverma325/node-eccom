@@ -2,7 +2,7 @@ import Express from "express";
 import userController from "./user.controller.js";
 import authentication from "../../../middleware/authentication.js";
 import commonController from "../common/common.controller.js";
-
+import CronController from "../cron/cron.controller.js";
 export default Express.Router()
   .get(
     "/profileDetails",
@@ -229,7 +229,11 @@ export default Express.Router()
     userController.taskHistoryAttendanceApproval
   )
 
-  .get("/taskHistoryAttendanceApprovalSelf", authentication.authenticate, userController.taskHistoryAttendanceApprovalSelf)
+  .get(
+    "/taskHistoryAttendanceApprovalSelf",
+    authentication.authenticate,
+    userController.taskHistoryAttendanceApprovalSelf
+  )
 
   .get(
     "/separationTaskForm/:id",
@@ -338,5 +342,24 @@ export default Express.Router()
     "/confirmatonListActionBy",
     authentication.authenticate,
     userController.confirmatonListActionBy
-  );
-//BULK ACTION TASK HISTORY
+  )
+  //BULK ACTION TASK HISTORY
+
+  //COMP OFF
+  .get(
+    "/compOffCreditHisttory",
+    authentication.authenticate,
+    userController.compOffCreditHisttory
+  )
+  .get(
+    "/compOffPendingForApproval",
+    authentication.authenticate,
+    userController.compOffPendingForApproval
+  )
+  .post(
+    "/actionOnCompoff",
+    authentication.authenticate,
+    userController.actionOnCompoff
+  )
+  .get("/checkPolicy", authentication.authenticate, userController.checkPolicy);
+//COMP OFF

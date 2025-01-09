@@ -5289,6 +5289,276 @@ class UserController {
       });
     }
   }
+
+  //COMP OFF
+
+  async checkPolicy(req, res) {
+    // try {
+    let compofftype = "Week Day";
+    let attendance_auto_id = 343495;
+    let attendanceStartDate = "2025-01-07";
+    let attendanceEndDate = "2025-01-07";
+    let shiftStartTime = "08:30:00";
+    let shiftEndTime = "17:30:00";
+
+    let allowedTime = await helper.timeDifference(
+      `${attendanceStartDate} ${shiftStartTime}`,
+      `${attendanceEndDate} ${shiftEndTime}`
+    );
+    let empId = 694;
+
+    let working_hours = "15:00:00";
+
+    const employeeData = {
+      compofftype: compofftype,
+      attendance_auto_id: attendance_auto_id,
+      attendanceStartDate: attendanceStartDate,
+      attendanceEndDate: attendanceEndDate,
+      attendanceDate: "2025-01-07",
+      shiftStartTime: shiftStartTime,
+      shiftEndTime: shiftEndTime,
+      allowedTime: allowedTime,
+      empId: empId,
+      working_hours: working_hours,
+      holiday: [],
+      weekoff: [],
+    };
+    await helper.creditCompoff(employeeData);
+    // } catch (error) {
+    //   return respHelper(res, {
+    //     status: 500,
+    //     msg: "Internal server error",
+    //   });
+    // }
+  }
+  async compOffCreditHisttory(req, res) {
+    try {
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+      let userId = req.userId;
+      let compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
+
+      const comp_off_credit_historyData =
+        await db.comp_off_credit_history.findAndCountAll({
+          where: {
+            employee_Id: userId,
+          },
+          include: [
+            {
+              model: db.status_master,
+              attributes: ["name", "code"],
+            },
+            {
+              model: db.employeeMaster,
+              as: "compOffEmpDetails",
+              attributes: ["id", "name", "profileImage", "empCode"],
+            },
+            {
+              model: db.employeeMaster,
+              as: "approvarEmpDetails",
+              attributes: ["id", "name", "profileImage", "empCode"],
+            },
+            {
+              model: db.attendanceMaster,
+              as: "compOffAttendanceDetails",
+              attributes: [
+                "attendanceAutoId",
+                "attendancePunchInTime",
+                "attendancePunchOutTime",
+                "attendanceWorkingTime",
+                "attendanceDate",
+                "attandanceShiftStartDate",
+                "attendanceShiftEndDate",
+                "attendancePunchInLocationType",
+                "attendancePunchOutLocationType",
+              ],
+            },
+            {
+              model: db.comp_off_polices,
+              as: "compOffPolicyDetails",
+            },
+          ],
+          limit,
+          offset,
+          order: [
+            ["comp_off_credit_history_auto_id", "DESC"], // Sorting
+          ],
+        });
+
+      return respHelper(res, {
+        status: 200,
+        data: {
+          total_balance: compOffbalabceForUser,
+          count: comp_off_credit_historyData.count,
+          rows: comp_off_credit_historyData.rows,
+        },
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async compOffPendingForApproval(req, res) {
+    try {
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const pageNo = parseInt(req.query.page, 10) || 1;
+      const offset = (pageNo - 1) * limit;
+      const userId = req.userId;
+      const comp_off_credit_historyData =
+        await db.comp_off_credit_history.findAndCountAll({
+          attributes: [
+            "comp_off_credit_history_auto_id",
+            "attendanceAutoIdHistory",
+            "employee_Id",
+            "balance",
+            "status",
+            "credit_for",
+            "total_hours",
+            "adjust_hours",
+            "expiry_date",
+            "taken_on",
+            "planned_message",
+            "message",
+            "approver_remark",
+            "comp_off_polices_auto_id_history",
+            "pending_at",
+            "createdBy",
+            "updatedBy",
+            "createdAt",
+            "updatedAt",
+          ],
+          where: {
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            },
+            [Op.or]: [
+              { pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
+              { pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
+              { pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
+              { pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
+            ],
+            //employee_Id: req.userId,
+            status: 3,
+          },
+          include: [
+            {
+              model: db.status_master,
+              attributes: ["name", "code"],
+            },
+            {
+              model: db.employeeMaster,
+              as: "compOffEmpDetails",
+              attributes: ["id", "name", "profileImage", "empCode"],
+            },
+            {
+              model: db.attendanceMaster,
+              as: "compOffAttendanceDetails",
+              attributes: [
+                "attendanceAutoId",
+                "attendancePunchInTime",
+                "attendancePunchOutTime",
+                "attendanceWorkingTime",
+                "attendanceDate",
+                "attandanceShiftStartDate",
+                "attendanceShiftEndDate",
+                "attendancePunchInLocationType",
+                "attendancePunchOutLocationType",
+              ],
+            },
+          ],
+          limit,
+          offset,
+          order: [
+            ["comp_off_credit_history_auto_id", "DESC"], // Sorting
+          ],
+        });
+
+      return respHelper(res, {
+        status: 200,
+        data: comp_off_credit_historyData,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+        msg: "Internal server error",
+      });
+    }
+  }
+  async actionOnCompoff(req, res) {
+    try {
+      const result = await validator.updateCompOffRequest.validateAsync(
+        req.body
+      );
+      let comp_off_credit_history_auto_ids =
+        req.body.comp_off_credit_history_auto_id.split(",");
+      const comp_off_credit_historyData =
+        await db.comp_off_credit_history.findAll({
+          where: {
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            },
+            //employee_Id: req.userId,
+            status: 3,
+            comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+          },
+        });
+      if (
+        comp_off_credit_historyData.length !=
+        comp_off_credit_history_auto_ids.length
+      ) {
+        return respHelper(res, {
+          status: 400,
+          msg: "You Can't Approve Selected Comp Off Request",
+          data: {},
+        });
+      }
+      await db.comp_off_credit_history.update(
+        {
+          updatedBy: req.userId,
+          approver_remark: req.body.remarks,
+          status: req.body.status == 1 ? 1 : 5,
+        },
+        {
+          where: {
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            },
+            //employee_Id: req.userId,
+            status: 3,
+            comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+          },
+        }
+      );
+      return respHelper(res, {
+        status: 200,
+        msg: "Updated",
+      });
+    } catch (error) {
+      console.log(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+  //COMP OFF
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

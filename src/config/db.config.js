@@ -125,6 +125,13 @@ import Signingauthority from "../api/model/signingAuthority.js";
 import AttendanceRoster from "../api/model/AttendanceRoster.js";
 //Ateendance Roster///
 
+//COMP OFF
+import comp_off_assignment from "../api/model/CompOffAssignment.js";
+import comp_off_assignment_filters from "../api/model/CompOffAssignmentFilter.js";
+import comp_off_polices from "../api/model/comp_off_polices.js";
+import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
+import status_master from "../api/model/StatusMaster.js";
+//COMP OFF
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -338,6 +345,17 @@ db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
 //Attendance Roster
 db.AttendanceRoster = AttendanceRoster(sequelize, Sequelize);
 //Attendance Roster
+//COMP OFF
+db.comp_off_assignment = comp_off_assignment(sequelize, Sequelize);
+
+db.comp_off_assignment_filters = comp_off_assignment_filters(
+  sequelize,
+  Sequelize
+);
+db.comp_off_polices = comp_off_polices(sequelize, Sequelize);
+db.comp_off_credit_history = comp_off_credit_history(sequelize, Sequelize);
+db.status_master = status_master(sequelize, Sequelize);
+//COMP OFF
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1417,5 +1435,41 @@ db.AttendanceRoster.hasOne(db.shiftMaster, {
   foreignKey: "shiftId",
   sourceKey: "shiftId",
 });
+
+//COMP OFF
+
+db.comp_off_assignment.hasMany(db.comp_off_assignment_filters, {
+  foreignKey: "comp_off_assignment_auto_id_for_filter",
+  sourceKey: "comp_off_assignment_auto_id",
+});
+
+db.comp_off_credit_history.hasOne(db.status_master, {
+  foreignKey: "status_master_auto_id",
+  sourceKey: "status",
+});
+
+db.comp_off_credit_history.hasOne(db.attendanceMaster, {
+  foreignKey: "attendanceAutoId",
+  sourceKey: "attendanceAutoIdHistory",
+  as: "compOffAttendanceDetails",
+});
+
+db.comp_off_credit_history.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "employee_Id",
+  as: "compOffEmpDetails",
+});
+db.comp_off_credit_history.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "updatedBy",
+  as: "approvarEmpDetails",
+});
+db.comp_off_credit_history.hasOne(db.comp_off_polices, {
+  foreignKey: "comp_off_polices_auto_id",
+  sourceKey: "comp_off_polices_auto_id_history",
+  as: "compOffPolicyDetails",
+});
+
+//COMP OFF
 
 export default db;

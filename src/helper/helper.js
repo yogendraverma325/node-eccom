@@ -593,6 +593,7 @@ const empLeaveDetails = async function (userId, type) {
         },
       ],
     });
+    let count = await this.compOffbalabceForUser(userId);
     // Check if leaveData is an array and process each item
     leaveData.forEach((item) => {
       if (item.leaveAutoId === 6 && item.leavemaster) {
@@ -601,6 +602,9 @@ const empLeaveDetails = async function (userId, type) {
         item.leavemaster.dataValues.countSystemDeducting =
           totalLeaveCountSystemDeducting;
         item.dataValues.totalPendingLeaveCount = countPendingLeave;
+      }
+      if (item.leaveAutoId === 9 && item.leavemaster) {
+        item.dataValues.availableLeave = count;
       } else {
         item.dataValues.totalPendingLeaveCount = countPendingLeave;
       }
@@ -620,7 +624,14 @@ const empLeaveDetails = async function (userId, type) {
         leaveAutoId: type,
       },
     });
+    console.log("leaveData from this");
     // If leaveData is an object, handle it directly
+    if (leaveData && leaveData.leaveAutoId == 9 && leaveData) {
+      console.log("leaveData from inside");
+      leaveData.dataValues.availableLeave = await this.compOffbalabceForUser(
+        userId
+      );
+    }
     if (leaveData && leaveData.leaveAutoId === 6 && leaveData.leavemaster) {
       let countApproved = await db.employeeLeaveTransactions.findAll({
         attributes: [
@@ -1451,6 +1462,506 @@ const convertExcelDate = (serial) => {
   return moment(date).format("YYYY-MM-DD");
 };
 
+///COMPOFF
+const checkCompOffPolicyForUser = async (UserId) => {
+  console.log("UserId", UserId);
+  const mappingObject = {
+    COMPANY: "companyId",
+    BU: "buId",
+    DEPARTMENT: "departmentId",
+    SBU: "sbuId",
+    FUNCTIONALAREA: "functionalAreaId",
+    JOBLEVEL: "jobLevelId",
+    BAND: "bandId",
+    GRADE: "gradeId",
+    EMPID: "id",
+  };
+
+  const compOffAissgments = await db.comp_off_assignment.findAll({
+    include: {
+      model: db.comp_off_assignment_filters,
+    },
+  });
+  let whereCondition = {
+    isActive: 1,
+  };
+  let compOffPolicyAssignment = {};
+  let whereConditionJobdetails = {};
+  for (const single of compOffAissgments) {
+    for (const singlefilter of single.comp_off_assignment_filters) {
+      const columnName = mappingObject[singlefilter.filter_colum];
+      const validColumns = ["jobLevelId", "bandId", "gradeId"];
+      if (validColumns.includes(columnName)) {
+        if (singlefilter.filter_type == "INCLUDE") {
+          whereConditionJobdetails[columnName] = {
+            [Op.in]: singlefilter.filter_data.split(","),
+          };
+        } else {
+          whereConditionJobdetails[columnName] = {
+            [Op.notIn]: singlefilter.filter_data.split(","),
+          };
+        }
+      } else {
+        if (singlefilter.filter_type == "INCLUDE") {
+          whereCondition[columnName] = {
+            [Op.in]: singlefilter.filter_data.split(","),
+          };
+        } else {
+          whereCondition[columnName] = {
+            [Op.notIn]: singlefilter.filter_data.split(","),
+          };
+        }
+      }
+    }
+    whereConditionJobdetails = {
+      ...whereConditionJobdetails,
+      ...{ userId: UserId },
+    };
+    const employee = await db.employeeMaster.findOne({
+      where: whereCondition,
+      attributes: [
+        "id",
+        "empCode",
+        "name",
+        "buId",
+        "departmentId",
+        "companyId",
+        "functionalAreaId",
+      ],
+      include: {
+        require: true,
+        model: db.jobDetails,
+        attributes: ["bandId", "gradeId", "jobLevelId"],
+        where: whereConditionJobdetails,
+      },
+    });
+    if (employee) {
+      if (employee?.id in compOffPolicyAssignment) {
+        compOffPolicyAssignment[employee?.id] =
+          single?.comp_off_assignment_auto_id;
+      } else {
+        compOffPolicyAssignment[employee?.id] =
+          single?.comp_off_assignment_auto_id;
+      }
+    }
+  }
+  let compOffPolicyData = null;
+  if (Object.keys(compOffPolicyAssignment).length > 0) {
+    compOffPolicyData = await db.comp_off_polices.findOne({
+      where: {
+        comp_off_assignment_auto_id_for_policies: {
+          [Op.or]: [
+            { [Op.like]: `${compOffPolicyAssignment[UserId]},%` },
+            { [Op.like]: `%,${compOffPolicyAssignment[UserId]},%` },
+            { [Op.like]: `%,${compOffPolicyAssignment[UserId]}` },
+            { [Op.eq]: `${compOffPolicyAssignment[UserId]}` },
+          ],
+        },
+      },
+    });
+  }
+  return compOffPolicyData;
+};
+const compOffbalabceForUser = async (UserId) => {
+  const result = await db.comp_off_credit_history.findOne({
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+    ],
+    where: {
+      employee_Id: UserId,
+      expiry_date: {
+        [Op.or]: [
+          { [Op.eq]: null }, // Check if expiry_date is null
+          { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+        ],
+      },
+      status: 1,
+    },
+  });
+  let count = 0;
+  if (result.dataValues.total_balance != null) {
+    count = parseFloat(result.dataValues.total_balance);
+  }
+  return count;
+};
+const leaveDetailsMaster = async (leaveId) => {
+  const leaveData = await db.leaveMaster.findOne({
+    raw: true,
+    where: {
+      leaveId: leaveId,
+      isActive: 1,
+    },
+  });
+  return leaveData;
+};
+const checkWeekOffOfEMPforData = async (weekoffId, Date) => {
+  let lastDayDateAnotherFormat = moment(Date).format("DD-MM-YYYY");
+  let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
+  let dayCode = parseInt(moment(Date).format("d")) + 1;
+
+  let dayOfMonth = parsedDate.date();
+  let occurrence = Math.ceil(dayOfMonth / 7);
+  // Output the result
+  let occurrenceDayCondition = {};
+  switch (occurrence) {
+    case 1:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isfirstDayOff: 1,
+      };
+      break;
+    case 2:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isSecondDayOff: 1,
+      };
+      break;
+    case 3:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isThirdyDayOff: 1,
+      };
+      break;
+    case 4:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isFourthDayOff: 1,
+      };
+      break;
+    case 5:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isFivethDayOff: 1,
+      };
+      break;
+    default:
+  }
+  const weekoff = await db.weekOffMaster.findOne({
+    where: {
+      weekOffId: weekoffId,
+    },
+    include: [
+      {
+        model: db.weekOffDayMappingMaster,
+        attributes: ["weekOffId"],
+        required: false,
+        where: occurrenceDayCondition,
+      },
+    ],
+  });
+  return weekoff?.weekOffDayMappingMasters?.length;
+};
+const checkHolidayEMPforData = async (companyLocationId, Date) => {
+  let lastDayDateAnotherFormat = moment(Date).format("YYYY-MM-DD");
+  const holidayData = await db.holidayCompanyLocationConfiguration.findOne({
+    attributes: ["holidayCompanyLocationConfigurationID"],
+    where: {
+      companyLocationId: companyLocationId,
+      isActive: 1,
+    },
+    include: {
+      model: db.holidayMaster,
+      required: true,
+      as: "holidayDetails",
+      attributes: ["holidayName", "holidayDate"],
+      where: {
+        isActive: 1,
+        holidayDate: lastDayDateAnotherFormat,
+      },
+    },
+  });
+  return holidayData;
+};
+
+const leaveCountForUserForMonth = async (UserId, fromdate, toDate, leaveId) => {
+  let count = 0;
+  const fromMoment = moment(fromdate);
+  const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD");
+
+  const result = await db.employeeLeaveTransactions.findOne({
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("leaveCount")), "total_balance"], // Sum of balance column
+    ],
+    where: {
+      employeeId: UserId,
+      leaveAutoId: leaveId,
+      fromDate: {
+        [Op.between]: [monthStart, monthEnd],
+      },
+      status: ["approved", "pending"],
+    },
+  });
+  if (result.dataValues.total_balance != null) {
+    count += parseFloat(result.dataValues.total_balance);
+  }
+
+  const toMoment = moment(toDate);
+  const tomonthStart = toMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const tomonthEnd = toMoment.clone().endOf("month").format("YYYY-MM-DD");
+
+  const toresult = await db.employeeLeaveTransactions.findOne({
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("leaveCount")), "total_balance"], // Sum of balance column
+    ],
+    where: {
+      employeeId: UserId,
+      leaveAutoId: leaveId,
+      fromDate: {
+        [Op.between]: [tomonthStart, tomonthEnd],
+      },
+      status: ["approved", "pending"],
+    },
+  });
+  if (toresult.dataValues.total_balance != null) {
+    count += parseFloat(toresult.dataValues.total_balance);
+  }
+  return count;
+};
+
+const creditCompoff = async (inputObject) => {
+  try {
+    let compofftype = inputObject.compofftype;
+    let attendance_auto_id = inputObject.attendance_auto_id;
+    let attendanceStartDate = inputObject.attendanceStartDate;
+    let attendanceEndDate = inputObject.attendanceEndDate;
+    let shiftStartTime = inputObject.shiftStartTime;
+    let shiftEndTime = inputObject.shiftEndTime;
+    let attendanceDate = inputObject.attendanceDate;
+
+    let allowedTime = await timeDifference(
+      `${attendanceStartDate} ${shiftStartTime}`,
+      `${attendanceEndDate} ${shiftEndTime}`
+    );
+    let empId = inputObject.empId;
+
+    let working_hours = inputObject.working_hours;
+
+    const timeWorkDuration = moment.duration(working_hours);
+
+    // Calculate the total minutes
+    const totaltimeWorkDuration =
+      timeWorkDuration.hours() * 60 +
+      timeWorkDuration.minutes() +
+      timeWorkDuration.seconds() / 60;
+
+    const alloweWorkingHours = moment.duration(allowedTime);
+
+    // Calculate the total minutes
+    const totalalloweWorkingHours =
+      alloweWorkingHours.hours() * 60 +
+      alloweWorkingHours.minutes() +
+      alloweWorkingHours.seconds() / 60;
+
+    if (totaltimeWorkDuration > totalalloweWorkingHours) {
+      let comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
+
+      let holiday = inputObject.holiday;
+
+      let weekoff = inputObject.weekoff;
+
+      if (holiday.length > 0 && weekoff.length > 0) {
+        compofftype = "Weekly Off/Holiday";
+      } else if (holiday.length > 0 && weekoff.length == 0) {
+        compofftype = "Holiday";
+      } else if (holiday.length == 0 && weekoff.length > 0) {
+        compofftype = "Weekly Off";
+      }
+
+      let compOffPolicyData = await checkCompOffPolicyForUser(empId);
+
+      const startOfMonth = moment(attendanceDate)
+        .startOf("year")
+        .format("YYYY-MM-DD HH:mm:ss");
+      const endOfMonth = moment(attendanceDate)
+        .month(0)
+        .endOf("month")
+        .format("YYYY-MM-DD HH:mm:ss");
+      let totalCount = await db.comp_off_credit_history.count({
+        where: {
+          employee_Id: empId,
+          createdAt: {
+            [Op.between]: [startOfMonth, endOfMonth],
+          },
+        },
+      });
+
+      if (
+        compOffPolicyData &&
+        compOffPolicyData.per_month_comp_off_limit > totalCount
+      ) {
+        const leaveData = await db.leaveMaster.findOne({
+          where: {
+            leaveId: 9,
+            isActive: 1,
+          },
+        });
+        let compoffCredit = null;
+        let approvalRequired = null;
+        let approvalIds = [];
+        if (leaveData) {
+          // Helper function to calculate compoffCredit
+          const calculateCompOffCredit = (
+            policyData,
+            fullDayKey,
+            halfDayKey,
+            compOffHours,
+            approvalRequiredKey,
+            approvalRequiredIdsKey
+          ) => {
+            if (policyData[fullDayKey] <= compOffHours) {
+              approvalRequired = policyData[approvalRequiredKey];
+              if (approvalRequired) {
+                approvalIds = policyData[approvalRequiredIdsKey].split(",");
+              }
+              return 1;
+            } else if (policyData[halfDayKey] <= compOffHours) {
+              approvalRequired = policyData[approvalRequiredKey];
+              if (approvalRequired) {
+                approvalIds = policyData[approvalRequiredIdsKey].split(",");
+              }
+              return 0.5;
+            }
+            return 0;
+          };
+
+          // Main logic
+
+          switch (compofftype) {
+            case "Week Day":
+              if (compOffPolicyData.is_weekday_on) {
+                compoffCredit = calculateCompOffCredit(
+                  compOffPolicyData,
+                  "minimum_duration_for_fullday_on_weekday",
+                  "minimum_duration_for_halfday_on_weekday",
+                  comp_off_hours,
+                  "require_approval_weekday",
+                  "approval_users_weekday"
+                );
+              }
+              break;
+
+            case "Weekly Off":
+              if (compOffPolicyData.is_weekoff_on) {
+                compoffCredit = calculateCompOffCredit(
+                  compOffPolicyData,
+                  "minimum_duration_for_fullday_on_weekoff",
+                  "minimum_duration_for_halfday_on_weekoff",
+                  comp_off_hours,
+                  "require_approval_weekoff",
+                  "approval_users_weekoff"
+                );
+              }
+              break;
+
+            case "Holiday":
+              if (compOffPolicyData.is_holiday_on) {
+                compoffCredit = calculateCompOffCredit(
+                  compOffPolicyData,
+                  "minimum_duration_for_fullday_on_holiday",
+                  "minimum_duration_for_halfday_on_holiday",
+                  comp_off_hours,
+                  "require_approval_holiday",
+                  "approval_users_holiday"
+                );
+              }
+              break;
+
+            case "Weekly Off/Holiday":
+              if (compOffPolicyData.is_holiday_on) {
+                // Only check Holiday if Weekly Off didn't give credit
+                compoffCredit = calculateCompOffCredit(
+                  compOffPolicyData,
+                  "minimum_duration_for_fullday_on_holiday",
+                  "minimum_duration_for_halfday_on_holiday",
+                  comp_off_hours,
+                  "require_approval_holiday",
+                  "approval_users_holiday"
+                );
+                compofftype = "Holiday";
+              }
+
+              if (!compoffCredit && compOffPolicyData.is_weekoff_on) {
+                compoffCredit = calculateCompOffCredit(
+                  compOffPolicyData,
+                  "minimum_duration_for_fullday_on_weekoff",
+                  "minimum_duration_for_halfday_on_weekoff",
+                  comp_off_hours,
+                  "require_approval_weekoff",
+                  "approval_users_weekoff"
+                );
+                compofftype = "Weekly Off";
+              }
+
+              break;
+          }
+
+          if (compoffCredit == 1 || compoffCredit == 0.5) {
+            let comp_off_data = {
+              employee_Id: empId,
+              balance: compoffCredit,
+              status: approvalRequired == 1 ? 3 : 1,
+              credit_for: compofftype,
+              expiry_date:
+                leaveData?.lapse_in_days > 0
+                  ? moment()
+                      .add(leaveData?.lapse_in_days, "days")
+                      .format("YYYY-MM-DD")
+                  : null,
+              taken_on: null,
+              createdBy: 1,
+              planned_message: "",
+              message: "",
+              attendanceAutoIdHistory: attendance_auto_id,
+              comp_off_polices_auto_id_history:
+                compOffPolicyData?.comp_off_polices_auto_id,
+              pending_at: "",
+            };
+
+            if (approvalRequired) {
+              let finalApprovalIds = [];
+              for (const singleapprovalId of approvalIds) {
+                if (singleapprovalId == "MANAGER") {
+                  let EMP_DATA = await getEmpProfile(empId); // L2 Manager
+                  finalApprovalIds.push(EMP_DATA?.managerData?.id);
+                } else if (singleapprovalId == "ADMIN") {
+                  let admins = await db.employeeMaster.findAll({
+                    where: {
+                      role_id: 2,
+                      isActive: 1,
+                    },
+                    attributes: ["id"],
+                  });
+                  for (const singleAdmin of admins) {
+                    finalApprovalIds.push(singleAdmin?.id);
+                  }
+                }
+              }
+              comp_off_data.pending_at = finalApprovalIds.join(",");
+            }
+            const hrs = Math.floor(comp_off_hours / 60)
+              .toString()
+              .padStart(2, "0");
+            const mins = (comp_off_hours % 60).toString().padStart(2, "0");
+            const secs = "00"; // No additional seconds
+            let time = `${hrs}:${mins}:${secs}`;
+
+            comp_off_data.adjust_hours = time;
+            comp_off_data.total_hours = time;
+
+            // const records = Array(50).fill(null); // Create an array with 50 null placeholders
+            // for (const [index] of records.entries()) {
+            await db.comp_off_credit_history.create(comp_off_data);
+            // }
+          }
+        }
+      }
+    }
+  } catch (error) {}
+};
+
+///COMPOFF
+
 export default {
   generateJwtToken,
   checkFolder,
@@ -1482,4 +1993,14 @@ export default {
   getSigningAuthorityDate,
   //CONFIRMAITON
   convertExcelDate,
+  //CONFIRMAITON,
+  //COMPOFF
+  checkCompOffPolicyForUser,
+  compOffbalabceForUser,
+  leaveDetailsMaster,
+  checkWeekOffOfEMPforData,
+  checkHolidayEMPforData,
+  leaveCountForUserForMonth,
+  creditCompoff,
+  //COMPOFF
 };

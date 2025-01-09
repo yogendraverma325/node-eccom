@@ -1272,6 +1272,16 @@ const attendanceRosterSchema = Joi.array().items(
   })
 );
 //Attedance Roster Validations
+//COMP OFF
+const updateCompOffRequest = Joi.object({
+  comp_off_credit_history_auto_id: Joi.string()
+    .trim()
+    .required()
+    .label("comp_off_credit_history_auto_id ID"),
+  status: Joi.string().trim().required().valid(1, 2).label("status"),
+  remarks: Joi.string().trim().allow("").max(100),
+});
+//COMP OFF
 
 export default {
   loginSchema,
@@ -1332,4 +1342,7 @@ export default {
   addEmployeeTypeEmploymentSchema,
   attendanceApprovalSchema,
   attendanceRosterSchema,
+  //COMP OFF
+  updateCompOffRequest,
+  //COMP OFF
 };

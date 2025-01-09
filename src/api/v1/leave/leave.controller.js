@@ -479,6 +479,190 @@ class LeaveController {
     try {
       const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
+      const fromDateReq = req.body.fromDate;
+      const toDateReq = req.body.toDate;
+      const startDate = moment(fromDateReq);
+      const endDate = moment(toDateReq);
+      const daysDifferenceReq = moment(toDateReq).diff(
+        moment(fromDateReq),
+        "days"
+      );
+      if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
+        return respHelper(res, {
+          status: 404,
+          data: {},
+          msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
+        });
+      }
+      const leaveMasterData = await helper.leaveDetailsMaster(
+        result.leaveAutoId
+      );
+      if (!leaveMasterData) {
+        return respHelper(res, {
+          status: 404,
+          data: {},
+          msg: message.LEAVE.NO_LEAVE,
+        });
+      }
+      if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
+        if (leaveMasterData.canTakeHalfDay == 0) {
+          return respHelper(res, {
+            status: 404,
+            data: {},
+            msg:
+              message.LEAVE.HALF_DAY_NOT_ALLOWED +
+              ` for ${leaveMasterData.leaveName}`,
+          });
+        }
+      }
+
+      const fromDateOnly = moment(fromDateReq).startOf("day");
+
+      // Get the current date (only the date part)
+      const currentDateOnly = moment().startOf("day");
+
+      // Calculate the difference in days
+      const differenceInDays = currentDateOnly.diff(fromDateOnly, "days");
+      if (differenceInDays > 0) {
+        if (leaveMasterData.is_back_date_allowed == 0) {
+          return respHelper(res, {
+            status: 404,
+            data: {},
+            msg: message.LEAVE.BACK_DATED_LEAVE_NOT_ALLOWED,
+          });
+        }
+        if (differenceInDays > leaveMasterData.back_days_max) {
+          return respHelper(res, {
+            status: 404,
+            data: {},
+            msg: message.LEAVE.BACK_DATED_LIMIT.replace(
+              "#",
+              leaveMasterData.back_days_max
+            ),
+          });
+        }
+      }
+      if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
+        let dates = [];
+
+        while (startDate.isSameOrBefore(endDate)) {
+          dates.push(startDate.format("YYYY-MM-DD")); // Add formatted date to array
+          startDate.add(1, "day"); // Move to the next day
+        }
+
+        if (leaveMasterData.weekly_prefix_policy == 2) {
+          let prefixDate = moment(fromDateReq)
+            .add(1, "day")
+            .format("YYYY-MM-DD");
+          let checkWeekOff = await helper.checkWeekOffOfEMPforData(
+            req.userData.weekOffId,
+            prefixDate
+          );
+          if (checkWeekOff > 0) {
+            return respHelper(res, {
+              status: 404,
+              data: {},
+              msg: message.LEAVE.PREPOSTFIX.replace("#", "Weekoff").replace(
+                "@",
+                "Prefix"
+              ),
+            });
+          }
+        }
+        if (leaveMasterData.weekly_suffix_policy == 2) {
+          let subfixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
+          let checkWeekOff = await helper.checkWeekOffOfEMPforData(
+            req.userData.weekOffId,
+            subfixDate
+          );
+          if (checkWeekOff > 0) {
+            return respHelper(res, {
+              status: 404,
+              data: {},
+              msg: message.LEAVE.PREPOSTFIX.replace("#", "Weekoff").replace(
+                "@",
+                "Suffix"
+              ),
+            });
+          }
+        }
+
+        if (leaveMasterData.holiday_prefix_policy == 2) {
+          let prefixDate = moment(fromDateReq)
+            .add(1, "day")
+            .format("YYYY-MM-DD");
+
+          let leaveCheck = await helper.checkHolidayEMPforData(
+            req.userData.companyLocationId,
+            prefixDate
+          );
+          if (leaveCheck) {
+            return respHelper(res, {
+              status: 404,
+              data: {},
+              msg: message.LEAVE.PREPOSTFIX.replace("#", "Holiday").replace(
+                "@",
+                "Prefix"
+              ),
+            });
+          }
+        }
+        if (leaveMasterData.holiday_suffix_policy == 2) {
+          let prefixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
+
+          let leaveCheck = await helper.checkHolidayEMPforData(
+            req.userData.companyLocationId,
+            prefixDate
+          );
+          if (leaveCheck) {
+            return respHelper(res, {
+              status: 404,
+              data: {},
+              msg: message.LEAVE.PREPOSTFIX.replace("#", "Holiday").replace(
+                "@",
+                "Suffix"
+              ),
+            });
+          }
+        }
+      }
+
+      let workingdays = daysDifferenceReq + 1;
+      if (
+        leaveMasterData?.max_consecutive_count != 0 &&
+        workingdays > leaveMasterData?.max_consecutive_count
+      ) {
+        return respHelper(res, {
+          status: 404,
+          data: {},
+          msg: message.LEAVE.MAX_CONSECUTIVE.replace(
+            "#",
+            leaveMasterData?.max_consecutive_count
+          ),
+        });
+      }
+
+      let monthCount = await helper.leaveCountForUserForMonth(
+        req.body.employeeId,
+        fromDateReq,
+        toDateReq,
+        req.body.leaveAutoId
+      );
+
+      if (
+        leaveMasterData?.max_month_count != 0 &&
+        monthCount > leaveMasterData?.max_month_count
+      ) {
+        return respHelper(res, {
+          status: 404,
+          data: {},
+          msg: message.LEAVE.MAX_DAY_MONTH.replace(
+            "#",
+            leaveMasterData?.max_month_count
+          ),
+        });
+      }
+
       const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
         where: {
           appliedFor: {
@@ -491,19 +675,6 @@ class LeaveController {
         },
       });
 
-      const fromDateReq = req.body.fromDate;
-      const toDateReq = req.body.toDate;
-      const daysDifferenceReq = moment(toDateReq).diff(
-        moment(fromDateReq),
-        "days"
-      );
-      if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
-        return respHelper(res, {
-          status: 404,
-          data: {},
-          msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
-        });
-      }
       var inputs = [];
       for (let i = -1; i < daysDifferenceReq; i++) {
         let appliedFor = moment(fromDateReq)

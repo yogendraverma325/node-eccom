@@ -12,6 +12,7 @@ cron.schedule("0 6 * * *", async () => {
   await cronController.checkConfirmatonHold();
   await cronController.checkExtentionEnd();
   await cronController.generatConfiramtionletter();
+  await cronController.check_comp_off_expiry();
 });
 
 cron.schedule("* * * * *", async () => {
