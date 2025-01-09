@@ -71,6 +71,10 @@ const message = {
     BACK_DATED_LEAVE_NOT_ALLOWED: "Back dated leave is not allowed",
     BACK_DATED_LIMIT: "Back-dated leave is not allowed beyond # days.",
     PREPOSTFIX: "Not allowed to apply Leave on # @",
+    MAX_CONSECUTIVE:
+      "Not allowed to apply for leave exceeding # consecutive days",
+    MAX_DAY_MONTH: "Not allowed to apply for leave exceeding # days in a month",
+    BALANCE_NOT_AVAILABLE: "Enough Leave Balance is not available",
   },
   PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
   INVALID: "Invalid <module>",

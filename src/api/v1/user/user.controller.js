@@ -5563,7 +5563,6 @@ class UserController {
       const offset = (pageNo - 1) * limit;
       let userId = req.userId;
       let compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
-      console.log("compOffbalabceForUser", compOffbalabceForUser);
 
       const comp_off_credit_historyData =
         await db.comp_off_credit_history.findAndCountAll({

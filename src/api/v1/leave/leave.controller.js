@@ -481,6 +481,8 @@ class LeaveController {
 
       const fromDateReq = req.body.fromDate;
       const toDateReq = req.body.toDate;
+      const startDate = moment(fromDateReq);
+      const endDate = moment(toDateReq);
       const daysDifferenceReq = moment(toDateReq).diff(
         moment(fromDateReq),
         "days"
@@ -542,8 +544,7 @@ class LeaveController {
       }
       if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
         let dates = [];
-        const startDate = moment(fromDateReq);
-        const endDate = moment(toDateReq);
+
         while (startDate.isSameOrBefore(endDate)) {
           dates.push(startDate.format("YYYY-MM-DD")); // Add formatted date to array
           startDate.add(1, "day"); // Move to the next day
@@ -624,26 +625,43 @@ class LeaveController {
             });
           }
         }
-
-        // console.log("weekoff", checkWeekOff);
-        // console.log(
-        //   "occurrenceDayCondition",
-        //   occurrenceDayCondition,
-        //   "lastDayDateAnotherFormat",
-        //   lastDayDateAnotherFormat,
-        //   singleEmp,
-        //   req.userData.weekOffId
-        // );
-
-        //console.log("result", result, "leaveMasterData", leaveMasterData);
       }
-      // console.log("result", result, "leaveMasterData", leaveMasterData);
 
-      return respHelper(res, {
-        status: 404,
-        data: {},
-        msg: "TEST",
-      });
+      let workingdays = daysDifferenceReq + 1;
+      if (
+        leaveMasterData?.max_consecutive_count != 0 &&
+        workingdays > leaveMasterData?.max_consecutive_count
+      ) {
+        return respHelper(res, {
+          status: 404,
+          data: {},
+          msg: message.LEAVE.MAX_CONSECUTIVE.replace(
+            "#",
+            leaveMasterData?.max_consecutive_count
+          ),
+        });
+      }
+
+      let monthCount = await helper.leaveCountForUserForMonth(
+        req.body.employeeId,
+        fromDateReq,
+        toDateReq,
+        req.body.leaveAutoId
+      );
+
+      if (
+        leaveMasterData?.max_month_count != 0 &&
+        monthCount > leaveMasterData?.max_month_count
+      ) {
+        return respHelper(res, {
+          status: 404,
+          data: {},
+          msg: message.LEAVE.MAX_DAY_MONTH.replace(
+            "#",
+            leaveMasterData?.max_month_count
+          ),
+        });
+      }
 
       const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
         where: {
@@ -713,6 +731,7 @@ class LeaveController {
         req.body.employeeId,
         req.body.leaveAutoId
       );
+      console.log("leaveData", leaveData);
 
       const fromDate = req.body.fromDate;
       const toDate = req.body.toDate;

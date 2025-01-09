@@ -624,7 +624,14 @@ const empLeaveDetails = async function (userId, type) {
         leaveAutoId: type,
       },
     });
+    console.log("leaveData from this");
     // If leaveData is an object, handle it directly
+    if (leaveData && leaveData.leaveAutoId == 9 && leaveData) {
+      console.log("leaveData from inside");
+      leaveData.dataValues.availableLeave = await this.compOffbalabceForUser(
+        userId
+      );
+    }
     if (leaveData && leaveData.leaveAutoId === 6 && leaveData.leavemaster) {
       let countApproved = await db.employeeLeaveTransactions.findAll({
         attributes: [
@@ -1660,6 +1667,52 @@ const checkHolidayEMPforData = async (companyLocationId, Date) => {
   return holidayData;
 };
 
+const leaveCountForUserForMonth = async (UserId, fromdate, toDate, leaveId) => {
+  let count = 0;
+  const fromMoment = moment(fromdate);
+  const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD");
+
+  const result = await db.employeeLeaveTransactions.findOne({
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("leaveCount")), "total_balance"], // Sum of balance column
+    ],
+    where: {
+      employeeId: UserId,
+      leaveAutoId: leaveId,
+      fromDate: {
+        [Op.between]: [monthStart, monthEnd],
+      },
+      status: ["approved", "pending"],
+    },
+  });
+  if (result.dataValues.total_balance != null) {
+    count += parseFloat(result.dataValues.total_balance);
+  }
+
+  const toMoment = moment(toDate);
+  const tomonthStart = toMoment.clone().startOf("month").format("YYYY-MM-DD");
+  const tomonthEnd = toMoment.clone().endOf("month").format("YYYY-MM-DD");
+
+  const toresult = await db.employeeLeaveTransactions.findOne({
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("leaveCount")), "total_balance"], // Sum of balance column
+    ],
+    where: {
+      employeeId: UserId,
+      leaveAutoId: leaveId,
+      fromDate: {
+        [Op.between]: [tomonthStart, tomonthEnd],
+      },
+      status: ["approved", "pending"],
+    },
+  });
+  if (toresult.dataValues.total_balance != null) {
+    count += parseFloat(toresult.dataValues.total_balance);
+  }
+  return count;
+};
+
 ///COMPOFF
 
 export default {
@@ -1698,5 +1751,6 @@ export default {
   leaveDetailsMaster,
   checkWeekOffOfEMPforData,
   checkHolidayEMPforData,
+  leaveCountForUserForMonth,
   //COMPOFF
 };
