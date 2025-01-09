@@ -1481,5 +1481,5 @@ export default {
   generateFieldsForgivenLevel,
   getSigningAuthorityDate,
   //CONFIRMAITON
-  convertExcelDate
+  convertExcelDate,
 };

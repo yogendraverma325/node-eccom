@@ -1,7 +1,7 @@
 import Express from "express";
 import attendanceController from "./attendance.controller.js";
 import multer from "multer";
-
+import authorization from "../../../middleware/authorization.js";
 const upload = multer({ dest: "uploads/excel/" });
 
 export default Express.Router()
