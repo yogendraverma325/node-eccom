@@ -3955,7 +3955,8 @@ async function processSalary(data) {
       //   raw: true,
       // });
 
-      let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '2024-05' AND EmployeeId = 1982;`;
+      let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
+      
       let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
       const ptAmount1 =
       ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
