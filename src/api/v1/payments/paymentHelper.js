@@ -381,15 +381,15 @@ async function query(caseId, data, data2) {
       return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
         data == 1 ? "buId" : "empCode"
       } IN (${
-        data2.departmentId
-      }) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
+        data2.departmentId.map(id => `'${id}'`).join(', ')}
+      ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
         data2.paymonth
       }' OR (ppd.payStatus = 101)));;`;
       break;
     case 20:
       return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.${
         data == 1 ? "buId" : "empCode"
-      } IN (${data2.departmentId});`;
+      } IN (${data2.departmentId.map(id => `'${id}'`).join(', ')});`;
       break;
     case 21:
       return `SELECT EmployeeId FROM tara.payprocessdetails  where payStatus in(1,2,3,4,5,6,7)   and payMonth='${data2}' and EmployeeId  in (${data});`;

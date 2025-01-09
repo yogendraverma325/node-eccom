@@ -1013,10 +1013,12 @@ class PaymentController {
           msg: error.details[0],
         });
       }
+      
+      let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
         19,
         value.processingType,
-        { departmentId: value.departmentId, paymonth: value.paymonth }
+        { departmentId: ids, paymonth: value.paymonth }
       );
       const result = await db.sequelize.query(allEmployeeQuery);
 
@@ -1951,10 +1953,14 @@ class PaymentController {
           msg: error.details[0],
         });
       }
+
+      let ids =value.departmentId.split(',');
+      console.log(ids);
+
       let employeeForProcessingQuery = await paymentHelper.query(
         20,
         value.processingType,
-        { departmentId: value.departmentId, paymonth: value.paymonth }
+        { departmentId: ids, paymonth: value.paymonth }
       );
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
@@ -2193,11 +2199,12 @@ class PaymentController {
         year: value.paymonth.split("-")[0],
         month: value.paymonth.split("-")[1],
       });
+      let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
         19,
         value.processingType,
-        { departmentId: value.departmentId, paymonth: value.paymonth }
-      );
+        { departmentId: ids, paymonth: value.paymonth }
+      );  
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
         return respHelper(res, {
@@ -2263,10 +2270,11 @@ class PaymentController {
           msg: error.details[0],
         });
       }
+      let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
         19,
         value.processingType,
-        { departmentId: value.departmentId, paymonth: value.paymonth }
+        { departmentId:ids, paymonth: value.paymonth }
       );
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
@@ -2324,11 +2332,11 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-
+      let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
         19,
         value.processingType,
-        { departmentId: value.departmentId, paymonth: value.paymonth }
+        { departmentId: ids, paymonth: value.paymonth }
       );
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
@@ -2343,17 +2351,18 @@ class PaymentController {
         employeeIds,
         value.paymonth
       );
-      var totaPaymentAmount = 0;
-      let allDeductionQuery = `SELECT empCode , EmployeeId, SUM(paymentAmount) AS paymentAmount FROM tara.extrapayment where EmployeeId in(${returnVAlue.avalialbleEmployees}) and paymentMonth='${req.body.paymonth}' GROUP BY empCode`;
+      var totaPaymentAmount = 0,uniqueEmployeeImpacted=0;
+      let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM tara.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`
       let extraPayments = await db.sequelize.query(allDeductionQuery);
       for (const singleEmployeePayment of extraPayments[0]) {
         console.log(singleEmployeePayment);
         totaPaymentAmount += parseFloat(singleEmployeePayment.paymentAmount || 0);
+        uniqueEmployeeImpacted=singleEmployeePayment.uniqueEmployeeImpacted+uniqueEmployeeImpacted;
       }
       return respHelper(res, {
         status: 200,
         data: {
-          impactedEmployee: extraPayments[0].length,
+          impactedEmployee: uniqueEmployeeImpacted,
           paymentAmount: totaPaymentAmount.toFixed(2),
           impactedEmployeeDetails:extraPayments[0],
         },
@@ -2376,11 +2385,11 @@ class PaymentController {
           msg: error.details[0],
         });
       }
-
+      let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
         19,
         value.processingType,
-        { departmentId: value.departmentId, paymonth: value.paymonth }
+        { departmentId: ids, paymonth: value.paymonth }
       );
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
@@ -3263,7 +3272,8 @@ class PaymentController {
 
   async employeesListForProcessing(req, res) {
     try {
-      let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.buId IN (1,2,3,4,5,6,7,8,9,11,12)`;
+      let {companyId}= req.query;
+      let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId})`;
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
@@ -3955,6 +3965,7 @@ async function processSalary(data) {
       //   raw: true,
       // });
 
+   
       let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
       
       let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
@@ -3984,23 +3995,21 @@ async function processSalary(data) {
 
       //   continue;
       // }
-      // if (
-      //   lwfDeducationDetails &&
-      //   lwfDeducationDetails.lwfApplicable == 1 &&
-      //   !lwfDeducationDetails?.lwfDesignationName?.lwfmapping?.lwfAmount
-      // ) {
-      //   await db.payProcessDetails.update(
-      //     { payStatus: 101, payRemark: "Error with lwf calculating" },
-      //     {
-      //       where: {
-      //         EmployeeId: employee,
-      //         proceessId: processId,
-      //       },
-      //     }
-      //   );
+      if (
+        !lwfDeducationDetails
+      ) {
+        await db.payProcessDetails.update(
+          { payStatus: 101, payRemark: "Employee job details not found." },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
 
-      //   continue;
-      // }
+        continue;
+      }
       if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
         await db.payProcessDetails.update(
           { payStatus: 101, payRemark: "Pay Package Not Assigned." },
