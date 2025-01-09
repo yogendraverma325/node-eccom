@@ -593,6 +593,7 @@ const empLeaveDetails = async function (userId, type) {
         },
       ],
     });
+    let count = await this.compOffbalabceForUser(userId);
     // Check if leaveData is an array and process each item
     leaveData.forEach((item) => {
       if (item.leaveAutoId === 6 && item.leavemaster) {
@@ -601,6 +602,9 @@ const empLeaveDetails = async function (userId, type) {
         item.leavemaster.dataValues.countSystemDeducting =
           totalLeaveCountSystemDeducting;
         item.dataValues.totalPendingLeaveCount = countPendingLeave;
+      }
+      if (item.leaveAutoId === 9 && item.leavemaster) {
+        item.dataValues.availableLeave = count;
       } else {
         item.dataValues.totalPendingLeaveCount = countPendingLeave;
       }
@@ -1545,6 +1549,117 @@ const checkCompOffPolicyForUser = async (UserId) => {
   }
   return compOffPolicyData;
 };
+const compOffbalabceForUser = async (UserId) => {
+  const result = await db.comp_off_credit_history.findOne({
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+    ],
+    where: {
+      employee_Id: UserId,
+      expiry_date: {
+        [Op.or]: [
+          { [Op.eq]: null }, // Check if expiry_date is null
+          { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+        ],
+      },
+      status: 1,
+    },
+  });
+  let count = 0;
+  if (result.dataValues.total_balance != null) {
+    count = parseFloat(result.dataValues.total_balance);
+  }
+  return count;
+};
+const leaveDetailsMaster = async (leaveId) => {
+  const leaveData = await db.leaveMaster.findOne({
+    raw: true,
+    where: {
+      leaveId: leaveId,
+      isActive: 1,
+    },
+  });
+  return leaveData;
+};
+const checkWeekOffOfEMPforData = async (weekoffId, Date) => {
+  let lastDayDateAnotherFormat = moment(Date).format("DD-MM-YYYY");
+  let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
+  let dayCode = parseInt(moment(Date).format("d")) + 1;
+
+  let dayOfMonth = parsedDate.date();
+  let occurrence = Math.ceil(dayOfMonth / 7);
+  // Output the result
+  let occurrenceDayCondition = {};
+  switch (occurrence) {
+    case 1:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isfirstDayOff: 1,
+      };
+      break;
+    case 2:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isSecondDayOff: 1,
+      };
+      break;
+    case 3:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isThirdyDayOff: 1,
+      };
+      break;
+    case 4:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isFourthDayOff: 1,
+      };
+      break;
+    case 5:
+      occurrenceDayCondition = {
+        dayId: dayCode,
+        isFivethDayOff: 1,
+      };
+      break;
+    default:
+  }
+  const weekoff = await db.weekOffMaster.findOne({
+    where: {
+      weekOffId: weekoffId,
+    },
+    include: [
+      {
+        model: db.weekOffDayMappingMaster,
+        attributes: ["weekOffId"],
+        required: false,
+        where: occurrenceDayCondition,
+      },
+    ],
+  });
+  return weekoff?.weekOffDayMappingMasters?.length;
+};
+const checkHolidayEMPforData = async (companyLocationId, Date) => {
+  let lastDayDateAnotherFormat = moment(Date).format("YYYY-MM-DD");
+  const holidayData = await db.holidayCompanyLocationConfiguration.findOne({
+    attributes: ["holidayCompanyLocationConfigurationID"],
+    where: {
+      companyLocationId: companyLocationId,
+      isActive: 1,
+    },
+    include: {
+      model: db.holidayMaster,
+      required: true,
+      as: "holidayDetails",
+      attributes: ["holidayName", "holidayDate"],
+      where: {
+        isActive: 1,
+        holidayDate: lastDayDateAnotherFormat,
+      },
+    },
+  });
+  return holidayData;
+};
+
 ///COMPOFF
 
 export default {
@@ -1579,5 +1694,9 @@ export default {
   //CONFIRMAITON,
   //COMPOFF
   checkCompOffPolicyForUser,
+  compOffbalabceForUser,
+  leaveDetailsMaster,
+  checkWeekOffOfEMPforData,
+  checkHolidayEMPforData,
   //COMPOFF
 };

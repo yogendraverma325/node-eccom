@@ -5295,10 +5295,10 @@ class UserController {
     // try {
     let compofftype = "Week Day";
     let attendance_auto_id = 343495;
-    let attendanceStartDate = "2025-01-06";
+    let attendanceStartDate = "2025-01-07";
     let attendanceEndDate = "2025-01-07";
-    let shiftStartTime = "18:30:00";
-    let shiftEndTime = "02:30:00";
+    let shiftStartTime = "08:30:00";
+    let shiftEndTime = "17:30:00";
 
     let allowedTime = await helper.timeDifference(
       `${attendanceStartDate} ${shiftStartTime}`,
@@ -5306,7 +5306,7 @@ class UserController {
     );
     let empId = 694;
 
-    let working_hours = "12:00:00";
+    let working_hours = "15:00:00";
 
     const timeWorkDuration = moment.duration(working_hours);
 
@@ -5326,6 +5326,7 @@ class UserController {
 
     if (totaltimeWorkDuration > totalalloweWorkingHours) {
       let comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
+
       let holiday = [
         // {
         //   holidayDate: "2025-01-01",
@@ -5357,9 +5358,7 @@ class UserController {
       } else if (holiday.length == 0 && weekoff.length > 0) {
         compofftype = "Weekly Off";
       }
-      let compOffPolicyData = await helper.checkCompOffPolicyForUser(
-        req.userId
-      );
+      let compOffPolicyData = await helper.checkCompOffPolicyForUser(empId);
       const startOfMonth = moment()
         .startOf("year")
         .format("YYYY-MM-DD HH:mm:ss");
@@ -5455,19 +5454,7 @@ class UserController {
               break;
 
             case "Weekly Off/Holiday":
-              if (compOffPolicyData.is_weekoff_on) {
-                compoffCredit = calculateCompOffCredit(
-                  compOffPolicyData,
-                  "minimum_duration_for_fullday_on_weekoff",
-                  "minimum_duration_for_halfday_on_weekoff",
-                  comp_off_hours,
-                  "require_approval_weekoff",
-                  "approval_users_weekoff"
-                );
-                compofftype = "Weekly Off";
-              }
-
-              if (!compoffCredit && compOffPolicyData.is_holiday_on) {
+              if (compOffPolicyData.is_holiday_on) {
                 // Only check Holiday if Weekly Off didn't give credit
                 compoffCredit = calculateCompOffCredit(
                   compOffPolicyData,
@@ -5479,6 +5466,19 @@ class UserController {
                 );
                 compofftype = "Holiday";
               }
+
+              if (!compoffCredit && compOffPolicyData.is_weekoff_on) {
+                compoffCredit = calculateCompOffCredit(
+                  compOffPolicyData,
+                  "minimum_duration_for_fullday_on_weekoff",
+                  "minimum_duration_for_halfday_on_weekoff",
+                  comp_off_hours,
+                  "require_approval_weekoff",
+                  "approval_users_weekoff"
+                );
+                compofftype = "Weekly Off";
+              }
+
               break;
           }
 
@@ -5534,7 +5534,11 @@ class UserController {
 
             comp_off_data.adjust_hours = time;
             comp_off_data.total_hours = time;
+
+            // const records = Array(50).fill(null); // Create an array with 50 null placeholders
+            // for (const [index] of records.entries()) {
             await db.comp_off_credit_history.create(comp_off_data);
+            // }
           }
 
           return respHelper(res, {
@@ -5557,10 +5561,14 @@ class UserController {
       const limit = parseInt(req.query.limit, 10) || 10;
       const pageNo = parseInt(req.query.page, 10) || 1;
       const offset = (pageNo - 1) * limit;
+      let userId = req.userId;
+      let compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
+      console.log("compOffbalabceForUser", compOffbalabceForUser);
+
       const comp_off_credit_historyData =
         await db.comp_off_credit_history.findAndCountAll({
           where: {
-            employee_Id: req.userId,
+            employee_Id: userId,
           },
           include: [
             {
@@ -5573,6 +5581,11 @@ class UserController {
               attributes: ["id", "name", "profileImage", "empCode"],
             },
             {
+              model: db.employeeMaster,
+              as: "approvarEmpDetails",
+              attributes: ["id", "name", "profileImage", "empCode"],
+            },
+            {
               model: db.attendanceMaster,
               as: "compOffAttendanceDetails",
               attributes: [
@@ -5580,6 +5593,7 @@ class UserController {
                 "attendancePunchInTime",
                 "attendancePunchOutTime",
                 "attendanceWorkingTime",
+                "attendanceDate",
                 "attandanceShiftStartDate",
                 "attendanceShiftEndDate",
                 "attendancePunchInLocationType",
@@ -5600,7 +5614,11 @@ class UserController {
 
       return respHelper(res, {
         status: 200,
-        data: comp_off_credit_historyData,
+        data: {
+          total_balance: compOffbalabceForUser,
+          count: comp_off_credit_historyData.count,
+          rows: comp_off_credit_historyData.rows,
+        },
       });
     } catch (error) {
       return respHelper(res, {
@@ -5617,6 +5635,27 @@ class UserController {
       const userId = req.userId;
       const comp_off_credit_historyData =
         await db.comp_off_credit_history.findAndCountAll({
+          attributes: [
+            "comp_off_credit_history_auto_id",
+            "attendanceAutoIdHistory",
+            "employee_Id",
+            "balance",
+            "status",
+            "credit_for",
+            "total_hours",
+            "adjust_hours",
+            "expiry_date",
+            "taken_on",
+            "planned_message",
+            "message",
+            "approver_remark",
+            "comp_off_polices_auto_id_history",
+            "pending_at",
+            "createdBy",
+            "updatedBy",
+            "createdAt",
+            "updatedAt",
+          ],
           where: {
             expiry_date: {
               [Op.or]: [
@@ -5651,6 +5690,7 @@ class UserController {
                 "attendancePunchInTime",
                 "attendancePunchOutTime",
                 "attendanceWorkingTime",
+                "attendanceDate",
                 "attandanceShiftStartDate",
                 "attendanceShiftEndDate",
                 "attendancePunchInLocationType",

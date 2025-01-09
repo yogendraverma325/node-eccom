@@ -66,6 +66,11 @@ const message = {
     REMAINING_LEAVES: "Available Leaves",
     LEAVE_LIMIT: "Can't apply leave more than # days",
     LEAVE_NOT_APPLICABLE: "You can't apply leave on weekOff/holidays",
+    NO_LEAVE: "Leave is not available",
+    HALF_DAY_NOT_ALLOWED: "Half Day leave is not allowed",
+    BACK_DATED_LEAVE_NOT_ALLOWED: "Back dated leave is not allowed",
+    BACK_DATED_LIMIT: "Back-dated leave is not allowed beyond # days.",
+    PREPOSTFIX: "Not allowed to apply Leave on # @",
   },
   PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
   INVALID: "Invalid <module>",
@@ -89,7 +94,7 @@ const message = {
     EXTEND_PERMISSOIN_BREACH:
       "This profile has reached to maximum number of extention",
   },
-  ATTENDANCE_APPROVAL: 'Attendance <status>'
+  ATTENDANCE_APPROVAL: "Attendance <status>",
 };
 
 export default message;

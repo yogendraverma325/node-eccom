@@ -53,11 +53,41 @@ export default (sequelize, Sequelize) => {
     lapse_in_days: {
       type: Sequelize.INTEGER,
     },
+    is_back_date_allowed: {
+      type: Sequelize.INTEGER,
+    },
+    back_days_max: {
+      type: Sequelize.INTEGER,
+    },
     updatedAt: {
       type: Sequelize.DATE,
     },
     isActive: {
       type: Sequelize.TINYINT,
+    },
+    is_application_on_holiday_weekly_off: {
+      type: Sequelize.INTEGER,
+    },
+    weekly_prefix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    weekly_suffix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    holiday_prefix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    holiday_suffix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    can_club_with_other: {
+      type: Sequelize.INTEGER,
+    },
+    club_with_any: {
+      type: Sequelize.INTEGER,
+    },
+    club_with: {
+      type: Sequelize.STRING,
     },
   });
 

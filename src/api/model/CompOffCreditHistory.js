@@ -50,6 +50,9 @@ export default (sequelize, Sequelize) => {
     approver_remark: {
       type: Sequelize.STRING,
     },
+    source: {
+      type: Sequelize.STRING,
+    },
     comp_off_polices_auto_id_history: {
       type: Sequelize.INTEGER,
       allowNull: false,

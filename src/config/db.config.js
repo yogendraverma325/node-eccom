@@ -128,6 +128,7 @@ import comp_off_assignment_filters from "../api/model/CompOffAssignmentFilter.js
 import comp_off_polices from "../api/model/comp_off_polices.js";
 import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
 import status_master from "../api/model/StatusMaster.js";
+import AttendanceRoster from "../api/model/AttendanceRoster.js";
 //COMP OFF
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -349,6 +350,7 @@ db.comp_off_assignment_filters = comp_off_assignment_filters(
 db.comp_off_polices = comp_off_polices(sequelize, Sequelize);
 db.comp_off_credit_history = comp_off_credit_history(sequelize, Sequelize);
 db.status_master = status_master(sequelize, Sequelize);
+db.AttendanceRoster = AttendanceRoster(sequelize, Sequelize);
 //COMP OFF
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -1390,6 +1392,11 @@ db.comp_off_credit_history.hasOne(db.employeeMaster, {
   foreignKey: "id",
   sourceKey: "employee_Id",
   as: "compOffEmpDetails",
+});
+db.comp_off_credit_history.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "updatedBy",
+  as: "approvarEmpDetails",
 });
 db.comp_off_credit_history.hasOne(db.comp_off_polices, {
   foreignKey: "comp_off_polices_auto_id",
