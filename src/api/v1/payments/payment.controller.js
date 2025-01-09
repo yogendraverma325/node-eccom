@@ -3291,6 +3291,7 @@ class PaymentController {
   }
 
   async salarySlipPdf(req, res) {
+    console.log("i am here")
     try {
       // Fetch salary details
       const { paySlipAutoId } = req.query;
@@ -3321,15 +3322,34 @@ class PaymentController {
       );
   
       const employee = salaryDetails[0].employee;
+console.log('employee',employee)
   
       const monthNames = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
       ];
+      const monthNamesFullName = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      // Extract month and year from salaryDetails
+      const monthIndex = parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1; // Convert 1-based index to 0-based
+      const currentMonthFullName = monthNamesFullName[monthIndex];
+      // Function to determine the last day of the month
+        const getLastDayOfMonth = (year, monthIndex) => {
+          return new Date(year, monthIndex + 1, 0).getDate(); // Add 1 to the month index, then set date to 0
+        };
+
+        // Calculate last day of the month
+        const lastDay = getLastDayOfMonth(year, monthIndex);
       const currentMonth =
         monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+
+        // Calculate total days in the month
+        const totalDays = getTotalDaysInMonth(salaryDetails[0]?.paySlipMonth, monthIndex);
   
-      const body = {
+        const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipMonth} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipMonth}`;
+        const body = {
         name: employee.name || "",
         employeeCode: employee?.empCode || "",
         employeeType: employee?.employeetypemaster?.emptypename || "",
@@ -3370,6 +3390,10 @@ class PaymentController {
           : "",
         month: currentMonth || "",
         year: salaryDetails[0]?.paySlipYear || "",
+        duration:duration,
+        noOfDaysInMonth:totalDays,
+        uanNo:"",
+        totalArrearDays:0
       };
 
       const letter = await emailTemplate.salarySlipPdf(body);
@@ -3624,6 +3648,7 @@ class PaymentController {
   }
 
   async salarySlipPdf(req, res) {
+    console.log("i am thereee>>>>>>>")
     try {
       // Fetch salary details
       const { paySlipAutoId } = req.query;
@@ -3654,13 +3679,36 @@ class PaymentController {
       );
   
       const employee = salaryDetails[0].employee;
-  
       const monthNames = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
       ];
+
+      const monthNamesFullName = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      // Extract month and year from salaryDetails
+      const monthIndex = parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1; // Convert 1-based index to 0-based
+      const currentMonthFullName = monthNamesFullName[monthIndex];
+      // Function to determine the last day of the month
+        const getLastDayOfMonth = (year, monthIndex) => {
+          return new Date(year, monthIndex + 1, 0).getDate(); // Add 1 to the month index, then set date to 0
+        };
+
+        // Calculate last day of the month
+        const lastDay = getLastDayOfMonth(salaryDetails[0]?.paySlipMonth, monthIndex);
       const currentMonth =
         monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+
+        // Calculate total days in the month
+        // Function to determine the total days in the month
+        const getTotalDaysInMonth = (year, monthIndex) => {
+          return new Date(year, monthIndex + 1, 0).getDate(); // Add 1 to the month index, then set date to 0
+        };
+        const totalDays = getTotalDaysInMonth(salaryDetails[0]?.paySlipMonth, monthIndex);
+  
+        const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear}`;
   
       const body = {
         name: employee.name || "",
@@ -3703,6 +3751,10 @@ class PaymentController {
           : "",
         month: currentMonth || "",
         year: salaryDetails[0]?.paySlipYear || "",
+        duration:duration,
+        noOfDaysInMonth:salaryDetails[0]?.paySlipTotalDays || "",//totalDays,
+        uanNo:employee?.employeejobdetail?.uanNumber || "",
+        totalArrearDays:salaryDetails[0]?.paySlipArrearDays
       };
   
       //const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
