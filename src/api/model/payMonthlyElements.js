@@ -159,6 +159,9 @@ export default (sequelize, Sequelize) => {
           processId:{
             type: Sequelize.INTEGER,
             allowNull: false
+          },
+          extraPaymentCategories:{
+            type: Sequelize.TEXT,
           }
 
 
