@@ -731,7 +731,6 @@ class LeaveController {
         req.body.employeeId,
         req.body.leaveAutoId
       );
-      console.log("leaveData", leaveData);
 
       const fromDate = req.body.fromDate;
       const toDate = req.body.toDate;

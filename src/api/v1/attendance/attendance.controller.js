@@ -2751,6 +2751,43 @@ class AttendanceController {
         } else {
           presentStatus = "singlePunchAbsent";
         }
+        if (
+          singleEmp.attendancemaster &&
+          singleEmp.attendancemaster.attendanceWorkingTime
+        ) {
+          let compofftype = "Week Day";
+          let attendance_auto_id = singleEmp.attendancemaster.attendanceAutoId;
+          let attendanceStartDate =
+            singleEmp.attendancemaster.attandanceShiftStartDate;
+          let attendanceEndDate =
+            singleEmp.attendancemaster.attendanceShiftEndDate;
+          let shiftStartTime = singleEmp.shiftsmaster.shiftStartTime;
+          let shiftEndTime = singleEmp.shiftsmaster.shiftEndTime;
+
+          let allowedTime = await helper.timeDifference(
+            `${attendanceStartDate} ${shiftStartTime}`,
+            `${attendanceEndDate} ${shiftEndTime}`
+          );
+          let working_hours = singleEmp.attendancemaster.attendanceWorkingTime;
+
+          const employeeData = {
+            compofftype: compofftype,
+            attendance_auto_id: attendance_auto_id,
+            attendanceStartDate: attendanceStartDate,
+            attendanceEndDate: attendanceEndDate,
+            attendanceDate: singleEmp.attendancemaster.attendanceDate,
+            shiftStartTime: shiftStartTime,
+            shiftEndTime: shiftEndTime,
+            allowedTime: allowedTime,
+            empId: empId,
+            working_hours: working_hours,
+            holiday: singleEmp.holidaycompanylocationconfigurations,
+            weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+          };
+
+          await helper.creditCompoff(employeeData);
+        }
+
         await db.attendanceMaster.update(
           {
             attendanceShiftEndDate: moment()
