@@ -1103,6 +1103,17 @@ ADD COLUMN `financialYear` VARCHAR(45) NULL DEFAULT NULL AFTER `type`;
 ALTER TABLE `tara`.`extrapayment` 
 CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
 
+09-01-2025
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `isActive`;
+
+ALTER TABLE `tara`.`extrapayment` 
+DROP COLUMN `financialYear`,
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `empCode`;
+
+
+
 
 
 

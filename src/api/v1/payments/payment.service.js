@@ -101,15 +101,15 @@ class CommonService {
         }
     }
 
-    async delete(model, updateMetaData, query, moduleName) {
+    async delete(model, query, moduleName) {
         let result = {};
 
-        const [updated] = await model.update(updateMetaData, {
+        const deletedCount = await model.destroy({
             where: query
         });
 
-        if (updated) {
-            result = { status: 200, msg: constant.DETAILS_DELETED.replace("<module>", moduleName), data: updated };
+        if (deletedCount > 0) {
+            result = { status: 200, msg: constant.DETAILS_DELETED.replace("<module>", moduleName), data: deletedCount };
             return result;
         }
 

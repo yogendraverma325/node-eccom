@@ -42,8 +42,8 @@ export default (sequelize, Sequelize) => {
       currencyCode:{
         type:Sequelize.INTEGER
       },
-      financialYear: {
-        type:Sequelize.STRING
+      financialYearId: {
+        type:Sequelize.INTEGER
       },
       createdBy: {
         type: Sequelize.INTEGER,

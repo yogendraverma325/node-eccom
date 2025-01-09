@@ -2697,14 +2697,17 @@ class PaymentController {
           msg: error,
         });
       }
-      let paymonth = value.pay_year + "-" + value.pay_month;
+
+      let pay_year = (value.pay_month == "01" || value.pay_month == "02" || value.pay_month == "03") ? parseInt(value.pay_year) + 1 : value.pay_year;
+
+      let paymonth = pay_year + "-" + value.pay_month;
+
       const queryForMappedEmployeeList = await paymentHelper.query(
         4,
         [1, 2, 3, 4, 5, 6, 7, 8, 9],
         { paymonth: paymonth, companyId: value.companyId }
       );
 
-      console.log(queryForMappedEmployeeList);
       const pendingProcessList = await db.sequelize.query(
         queryForMappedEmployeeList
       );
@@ -3402,7 +3405,7 @@ class PaymentController {
   }
 
   /**
-   * Create API for get extra payment deduction list
+   * Create APIs for extra deduction and extra payment
    */
 
   // start by jay
@@ -3415,13 +3418,13 @@ class PaymentController {
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
       let userId = req.query.user;
-      let financialYear = req.query.selectedYear || "";
+      let financialYearId = req.query.financialYearId || "";
 
       let query = { 
         EmployeeId: userId,
         isActive: 1,
         ...(search && { "deductionName": { [Op.like]: `%${search}%`} }),
-        ...(financialYear && { "financialYear": financialYear })
+        ...(financialYearId && { "financialYearId": financialYearId })
       };
 
       let aggregate = {
@@ -3450,6 +3453,73 @@ class PaymentController {
     }
   }
 
+  async createExtraDeduction(req, res) {
+    try {
+      const result = await validator.extraDeductionFormSchema.validateAsync(req.body);
+      let model = db.extraDeduction;
+      let userId = req.userId;
+      let query = { EmployeeId: result.EmployeeId, deductionCategory: result.deductionCategory, startMonth: result.startMonth };
+
+      let moduleName = "Extra Deduction";
+      let metaData = { ...result, createdBy: userId, createdAt: moment() };
+      let response = await service.create(model, metaData, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateExtraDeduction(req, res) {
+    try {
+      const result = await validator.extraDeductionFormSchema.validateAsync(req.body);
+      let model = db.extraDeduction;
+      let query = { extraDeductionsAutoId: req.params.id };
+      let metaData = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let response = await service.update(model, metaData, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async deleteExtraDeduction(req, res) {
+    try {
+      let model = db.extraDeduction;
+      let query = { extraDeductionsAutoId: req.params.id, status: 0 };
+      let moduleName = "Extra Deduction";
+      let response = await service.delete(
+        model,
+        query,
+        moduleName
+      );
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
   async extraPayment(req, res) {
     try {
       // Fetch extra payment deduction list
@@ -3458,13 +3528,13 @@ class PaymentController {
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
       let userId = req.query.user;
-      let financialYear = req.query.selectedYear || "";
+      let financialYearId = req.query.financialYearId || "";
 
       let query = { 
         EmployeeId: userId,
         isActive: 1,
         ...(search && { "category": { [Op.like]: `%${search}%`} }),
-        ...(financialYear && { "financialYear": financialYear })
+        ...(financialYearId && { "financialYearId": financialYearId })
       };
       
       let aggregate = {
@@ -3486,6 +3556,72 @@ class PaymentController {
       });
     } catch (error) {
       console.log(error);
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async createExtraPayment(req, res) {
+    try {
+      const result = await validator.extraPayment.validateAsync(req.body);
+      let model = db.extraPayment;
+      let userId = req.userId;
+      let query = { EmployeeId: userId, paymentMonth: result.paymentMonth, category: result.category };
+
+      let moduleName = "Extra Payment";
+      result["EmployeeId"] = userId;
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateExtraPayment(req, res) {
+    try {
+      const result = await validator.extraPayment.validateAsync(req.body);
+      let model = db.extraPayment;
+      let query = { extraPaymentAutoId: req.params.id };
+      let response = await service.update(model, result, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async deleteExtraPayment(req, res) {
+    try {
+      let model = db.extraPayment;
+      let query = { extraPaymentAutoId: req.params.id };
+      let moduleName = "Extra Payment";
+      let response = await service.delete(
+        model,
+        query,
+        moduleName
+      );
+      return respHelper(res, response);
+    } catch (error) {
       logger.error(error);
       return respHelper(res, {
         status: 500,
@@ -3538,8 +3674,8 @@ class PaymentController {
                 Sequelize.literal(
                   `(SELECT COUNT(proceessId) 
                    FROM payprocessdetails pd 
-                   WHERE pd.proceessId = payprocessmaster.payProcessMasterAutoId 
-                   AND pd.payStatus IN (8, 9))`
+                   WHERE pd.payMonth = payprocessmaster.payMonth 
+                   AND pd.payStatus NOT IN (4))`
                 ),
                 'pay_count' // Alias for the computed column
               ]
@@ -3575,7 +3711,6 @@ class PaymentController {
           const month = m.payMonth.split('-')[1]; // Extract the month (e.g., "01" -> "1")
           return item.customValue === month;
         });
-        console.log()
 
         return {
           "processId": matchedItem ? matchedItem.dataValues?.payProcessMasterAutoId : 0,
@@ -3589,65 +3724,6 @@ class PaymentController {
         status: response.status,
         msg: "Data fetched successfully",
         data: updatePayProcess
-      });
-      
-    } catch (error) {
-      console.log(error);
-      logger.error(error);
-      return respHelper(res, {
-        status: 500,
-      });
-    }
-  }
-
-  async payrollProcessList(req, res) {
-    try {
-      // Fetch pay process details list
-      const { error } = await validator.payProcessSchema.validate(
-        req.body
-      );
-
-      if (error) {
-        return respHelper(res, {
-          status: 400,
-          msg: error.details[0].message,
-        });
-      }
-      
-      let payMonth = req.body.payMonth || "";
-      let companyId = req.body.companyId || "";
-
-      let query = { 
-        isActive: 1,
-        payMonth: payMonth,
-        companyId: companyId
-      };
-
-      let docs = await db.payProcessMaster.findAll({ 
-        where: query, 
-        as: 'payprocessmaster',
-        attributes: [
-          "payProcessMasterAutoId",
-          "name",
-          "payMonth",
-          [
-            Sequelize.literal(
-              `(SELECT COUNT(proceessId) 
-                FROM payprocessdetails pd 
-                WHERE pd.proceessId = payprocessmaster.payProcessMasterAutoId 
-                AND pd.payStatus IN (8, 9))`
-            ),
-            'pay_count' // Alias for the computed column
-          ]
-        ],
-        include: [{ model: db.payProcessDetails,  where: { payStatus: { [Op.in]: [8, 9] } } }],
-        order: [["payProcessMasterAutoId", "DESC"]]
-      });
-
-      return respHelper(res, {
-        status: 200,
-        msg: "Data fetched successfully",
-        data: docs
       });
       
     } catch (error) {

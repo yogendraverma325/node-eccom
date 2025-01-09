@@ -1327,6 +1327,9 @@ const extraPayment = Joi.object({
   .try(Joi.string(), Joi.number().integer())
   .required()
   .label("Employee Code"),
+  type: Joi.string()
+    .allow(null)
+    .label("Type"),
 });
 
 const lopValidateSchama = Joi.object({
@@ -1470,14 +1473,53 @@ const attendanceApprovalSchema = Joi.object({
 // Attendance Approval Validations
 
 // create function by jay
-const  payProcessCardSchema = Joi.object({
+const payProcessCardSchema = Joi.object({
   selectedYear: Joi.number().required(),
   companyId: Joi.number().required()
 });
 
-const payProcessSchema = Joi.object({
-  payMonth: Joi.string().required(),
-  companyId: Joi.number().required()
+const extraDeductionFormSchema = Joi.object({
+  EmployeeId: Joi.number()
+    .required()
+    .label("Employee Id"),
+  empCode: Joi.string()
+    .required()
+    .label("Employee Code"),
+  deductionCategory: Joi.string()
+    .required()
+    .label("Deduction Category"),
+  deductionType: Joi.string()
+    .required()
+    .label("Deduction Type"),
+  deductionName: Joi.string()
+    .required()
+    .label("Deduction Name"),
+  deductionAmount: Joi.number()
+    .positive()
+    .required()
+    .label("Deduction Amount"),
+  currencyCode: Joi.number()
+    .required()
+    .label("Currency Code"),
+  startMonth: Joi.string()
+    .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+    .required()
+    .label("Start Month"),
+  endMonth: Joi.string().allow(null)
+    .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+    .label("End Month"),
+  numberOfDeductions: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .label("Number Of Deductions"),
+  financialYearId: Joi.number()
+    .required()
+    .label("Financial Year"),
+  // monthlyDeductionAmount: Joi.number()
+  //   .positive()
+  //   .required()
+  //   .label("Monthly Deduction Amount"),
 });
 
 export default {
@@ -1552,5 +1594,5 @@ export default {
   attendanceApprovalSchema,
   // add by jay
   payProcessCardSchema,
-  payProcessSchema
+  extraDeductionFormSchema
 };

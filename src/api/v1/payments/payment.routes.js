@@ -62,7 +62,15 @@ export default Express
     .get("/extraDeduction", authentication.authenticate, paymentController.extraDeduction)
     .get("/extraPayment", authentication.authenticate, paymentController.extraPayment)
     .post("/payProcessCardList", authentication.authenticate, paymentController.payProcessCardList)
-    .post("/payrollProcessList", authentication.authenticate, paymentController.payrollProcessList)
+
+    .post("/extraDeduction", authentication.authenticate, paymentController.createExtraDeduction)
+    .put("/extraDeduction/:id", authentication.authenticate, paymentController.updateExtraDeduction)
+    .delete("/extraDeduction/:id", authentication.authenticate, paymentController.deleteExtraDeduction)
+
+    .post("/extraPayment", authentication.authenticate, paymentController.createExtraPayment)
+    .put("/extraPayment/:id", authentication.authenticate, paymentController.updateExtraPayment)
+    .delete("/extraPayment/:id", authentication.authenticate, paymentController.deleteExtraPayment)
+
 
 
 
