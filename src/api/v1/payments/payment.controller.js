@@ -1805,6 +1805,7 @@ class PaymentController {
             where: {
               EmployeeId: extraPayment.EmployeeId,
               paymentMonth: extraPayment.paymentMonth,
+              category:extraPayment.paymentMonth,
             },
             raw: true,
           });
@@ -2487,27 +2488,19 @@ class PaymentController {
         employeeIds,
         value.paymonth
       );
-      var totaPaymentAmount = 0,
-        totalLOPDays = 0;
-
-      let tdsDeductions = await db.extraPayment.findAll({
-        where: {
-          EmployeeId: { [Op.in]: returnVAlue.avalialbleEmployees },
-          paymentMonth: req.body.paymonth,
-        },
-        raw: true,
-      });
-      console.log("tdsDeductions", tdsDeductions);
-      for (const tdsSingleDetails of tdsDeductions) {
-        console.log(tdsSingleDetails);
-        totaPaymentAmount += parseFloat(tdsSingleDetails.paymentAmount || 0);
+      var totaPaymentAmount = 0;
+      let allDeductionQuery = `SELECT empCode , EmployeeId, SUM(paymentAmount) AS paymentAmount FROM tara.extrapayment where EmployeeId in(${returnVAlue.avalialbleEmployees}) and paymentMonth='${req.body.paymonth}' GROUP BY empCode`;
+      let extraPayments = await db.sequelize.query(allDeductionQuery);
+      for (const singleEmployeePayment of extraPayments[0]) {
+        console.log(singleEmployeePayment);
+        totaPaymentAmount += parseFloat(singleEmployeePayment.paymentAmount || 0);
       }
       return respHelper(res, {
         status: 200,
         data: {
-          impactedEmployee: tdsDeductions.length,
+          impactedEmployee: extraPayments[0].length,
           paymentAmount: totaPaymentAmount.toFixed(2),
-          impactedEmployeeDetails:tdsDeductions,
+          impactedEmployeeDetails:extraPayments[0],
         },
       });
     } catch (error) {
@@ -3696,11 +3689,13 @@ const  groupByEmployeeId = (data) => {
         "Total Extra Deduction Amount": item["Advance Amount"],
         "PT Amount": item["PT AMOUNT"],
         "LWF Amount": item["LWF AMOUNT"],
+        "Extra Payment Categories":item['EXTRA PAYMENT CATEGORIES'],
         "Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],
         "ESIC Employer":item['ESIC Employer'],
         "ESIC Employee":item['ESIC Employee'],
         "PF Employee":item['PF Employee'],
         "PF Employer":item['PF Employer'],
+
       };
       //p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
     }
@@ -3856,13 +3851,16 @@ async function processSalary(data) {
           },
         ],
       });
-      const extraPaymentAmount = await db.extraPayment.findOne({
-        where: {
-          EmployeeId: employee,
-          paymentMonth: result[0][0].payMonth,
-        },
-        raw: true,
-      });
+      // const extraPaymentAmount = await db.extraPayment.findAll({
+      //   where: {
+      //     EmployeeId: employee,
+      //     paymentMonth: result[0][0].payMonth,
+      //   },
+      //   raw: true,
+      // });
+
+      let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '2024-05' AND EmployeeId = 1982;`;
+      let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
       const ptAmount1 =
         ptDeducationDetails && ptDeducationDetails.lwfApplicable == 1
           ? ptDeducationDetails.ptlocationmaster?.ptMapping?.ptAmount
@@ -3872,8 +3870,8 @@ async function processSalary(data) {
           ? lwfDeducationDetails.lwfDesignationName?.lwfmapping?.lwfAmount
           : 0;
 
-      const extraPaymentAmount1 = extraPaymentAmount
-        ? extraPaymentAmount?.paymentAmount
+      const extraPaymentAmount1 = extraPaymentAmount[0].length>0
+        ? extraPaymentAmount[0][0]?.totalExtraPayment
         : 0;
       // if (
       //   ptDeducationDetails &&
@@ -3949,9 +3947,6 @@ async function processSalary(data) {
         ) == 1
           ? await paymentHelper.arrectLOP(empCopntWiseDetl.payElementAmount,employeeDetailsComponentWise[0][0].lopDays,totalWorkingDays)
           : empCopntWiseDetl.payElementAmount;
-
-
-
         empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
           .totalDeduction
           ? extraDeductonsDetails[0][0].totalDeduction
@@ -3966,8 +3961,8 @@ async function processSalary(data) {
         empCopntWiseDetl["ptAmount"] = ptAmount1;
         empCopntWiseDetl["lwfAmount"] = lwfAmount1;
         empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
+        empCopntWiseDetl["extraPaymentCategories"] = extraPaymentAmount[0][0]?.paymentCategories;
         empCopntWiseDetl["processId"] = processId;
-        
         //////////////////////////////PF-Applicablity Keys////////////////////////
         let pafApplicableComponet = paymentHelper.getElementValue(
           "Affect PF",
@@ -4082,14 +4077,6 @@ async function generatePaySlip(data) {
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
-
-
-      // console.log(queryForPayMonthlyElementsForSalarySlip);
-
-      // return;
-
-
-
       for (const payMonthlyElement of payElements[0]) {
         let isExistPaySlip = await db.paySlips.findOne({
           where: {
@@ -4204,18 +4191,18 @@ async function generatePaySlip(data) {
             });
           }
 
-          if (payMonthlyElement.extrapaymentAmount > 0) {
-            customeDeduction.push({
-              EmployeeId: payMonthlyElement.empId,
-              paySlipAutoId: paySlipAutoId,
-              salaryComponentAutoId: 0,
-              paySlipComponentName: "Extra Payment",
-              paySlipComponentAmount: payMonthlyElement.extrapaymentAmount,
-              paySlipComponentType: "Earning",
-              createdBy: req.userData.id,
-              createdAt: new Date(),
-            });
-          }
+          // if (payMonthlyElement.extrapaymentAmount > 0) {
+          //   customeDeduction.push({
+          //     EmployeeId: payMonthlyElement.empId,
+          //     paySlipAutoId: paySlipAutoId,
+          //     salaryComponentAutoId: 0,
+          //     paySlipComponentName: "Extra Payment",
+          //     paySlipComponentAmount: payMonthlyElement.extrapaymentAmount,
+          //     paySlipComponentType: "Earning",
+          //     createdBy: req.userData.id,
+          //     createdAt: new Date(),
+          //   });
+          // }
 
           if (payMonthlyElement.esicEmployeeAmount > 0) {
             customeDeduction.push({
@@ -4243,9 +4230,13 @@ async function generatePaySlip(data) {
             });
           }
          let getExtraDeductions = await paymentHelper.getExtraDeductionsElements(payMonthlyElement.payMonth,payMonthlyElement.empId,paySlipAutoId,req.userData.id);
+         let getExtraEarnings = await paymentHelper.getExtraEarningElements(payMonthlyElement.payMonth,payMonthlyElement.empId,paySlipAutoId,req.userData.id);
+         
+        //  customeEarnings.push(getExtraEarnings)
          customeDeduction=customeDeduction.concat(getExtraDeductions);
-         console.log(customeDeduction);
-         //return
+         customeDeduction=customeDeduction.concat(getExtraEarnings);
+        //  console.log(customeEarnings);
+        //  return
           await db.paySlipComponent.bulkCreate(customeDeduction);
         }
 
