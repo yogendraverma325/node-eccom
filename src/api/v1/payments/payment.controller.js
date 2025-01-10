@@ -3300,136 +3300,160 @@ class PaymentController {
     }
   }
 
-  async salarySlipPdf(req, res) {
-    try {
-      // Fetch salary details
-      const { paySlipAutoId } = req.query;
-      // const salaryDetails = await salaryPaySlip(paySlipAutoId);
-      const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
+//   async salarySlipPdf(req, res) {
+//     console.log("i am here")
+//     try {
+//       // Fetch salary details
+//       const { paySlipAutoId } = req.query;
+//       // const salaryDetails = await salaryPaySlip(paySlipAutoId);
+//       const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
   
-      if (!salaryDetails || salaryDetails.length === 0) {
-        return res.status(404).send("Salary details not found.");
-      }
+//       if (!salaryDetails || salaryDetails.length === 0) {
+//         return res.status(404).send("Salary details not found.");
+//       }
   
-      const processPayslipComponents = (payslipcomponents = []) => {
-        const result = { earnings: [], deductions: [] };
-        payslipcomponents.forEach((item) => {
-          if (
-            item.paySlipComponentType === "Earning" ||
-            item.paySlipComponentType === "Balancing"
-          ) {
-            result.earnings.push(item);
-          } else if (item.paySlipComponentType === "Deduction") {
-            result.deductions.push(item);
-          }
-        });
-        return result;
-      };
+//       const processPayslipComponents = (payslipcomponents = []) => {
+//         const result = { earnings: [], deductions: [] };
+//         payslipcomponents.forEach((item) => {
+//           if (
+//             item.paySlipComponentType === "Earning" ||
+//             item.paySlipComponentType === "Balancing"
+//           ) {
+//             result.earnings.push(item);
+//           } else if (item.paySlipComponentType === "Deduction") {
+//             result.deductions.push(item);
+//           }
+//         });
+//         return result;
+//       };
   
-      const paySlipComponent = processPayslipComponents(
-        salaryDetails[0].payslipcomponents
-      );
+//       const paySlipComponent = processPayslipComponents(
+//         salaryDetails[0].payslipcomponents
+//       );
   
-      const employee = salaryDetails[0].employee;
+//       const employee = salaryDetails[0].employee;
+// console.log('employee',employee)
   
-      const monthNames = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      ];
-      const currentMonth =
-        monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+//       const monthNames = [
+//         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+//         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+//       ];
+//       const monthNamesFullName = [
+//         "January", "February", "March", "April", "May", "June",
+//         "July", "August", "September", "October", "November", "December"
+//       ];
+//       // Extract month and year from salaryDetails
+//       const monthIndex = parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1; // Convert 1-based index to 0-based
+//       const currentMonthFullName = monthNamesFullName[monthIndex];
+//       // Function to determine the last day of the month
+//         const getLastDayOfMonth = (year, monthIndex) => {
+//           return new Date(year, monthIndex + 1, 0).getDate(); // Add 1 to the month index, then set date to 0
+//         };
+
+//         // Calculate last day of the month
+//         const lastDay = getLastDayOfMonth(year, monthIndex);
+//       const currentMonth =
+//         monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+
+//         // Calculate total days in the month
+//         const totalDays = getTotalDaysInMonth(salaryDetails[0]?.paySlipMonth, monthIndex);
   
-      const body = {
-        name: employee.name || "",
-        employeeCode: employee?.empCode || "",
-        employeeType: employee?.employeetypemaster?.emptypename || "",
-        designation: employee?.designationmaster?.name || "",
-        department: employee?.departmentmaster?.departmentName || "N/A",
-        panNo: employee?.panNo || "",
-        dateOfJoining: moment(
-          employee?.employeejobdetail?.dateOfJoining
-        ).isValid()
-          ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
-          : "",
-        workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
-        companyName: employee?.companymaster?.companyName || "",
-        currentOfficeLocation:
-          employee?.companylocationmaster?.citymaster?.cityName || "",
-        companyAddress: employee?.companylocationmaster?.address1 || "",
-        grossEarnings: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
-          ? parseInt(salaryDetails[0].paySlipGrossEarning)
-          : "",
-        totalPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
-          ? parseInt(salaryDetails[0].paySlipTotalPay)
-          : "",
-        totalDeductions: Number.isFinite(
-          +salaryDetails[0]?.paySlipTotalDeduction
-        )
-          ? parseInt(salaryDetails[0].paySlipTotalDeduction)
-          : "",
-        lop:
-          salaryDetails[0]?.paySlipTotalDays &&
-          salaryDetails[0]?.paySlipWorkingDays
-            ? salaryDetails[0].paySlipTotalDays -
-              salaryDetails[0].paySlipWorkingDays
-            : "",
-        paySlipComponent: paySlipComponent || [],
-        netPay: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
-          ? parseInt(salaryDetails[0].paySlipGrossEarning) -
-            parseInt(salaryDetails[0].paySlipTotalDeduction)
-          : "",
-        month: currentMonth || "",
-        year: salaryDetails[0]?.paySlipYear || "",
-      };
+//         const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipMonth} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipMonth}`;
+//         const body = {
+//         name: employee.name || "",
+//         employeeCode: employee?.empCode || "",
+//         employeeType: employee?.employeetypemaster?.emptypename || "",
+//         designation: employee?.designationmaster?.name || "",
+//         department: employee?.departmentmaster?.departmentName || "N/A",
+//         panNo: employee?.panNo || "",
+//         dateOfJoining: moment(
+//           employee?.employeejobdetail?.dateOfJoining
+//         ).isValid()
+//           ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
+//           : "",
+//         workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
+//         companyName: employee?.companymaster?.companyName || "",
+//         currentOfficeLocation:
+//           employee?.companylocationmaster?.citymaster?.cityName || "",
+//         companyAddress: employee?.companylocationmaster?.address1 || "",
+//         grossEarnings: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+//           ? parseInt(salaryDetails[0].paySlipGrossEarning)
+//           : "",
+//         totalPay: Number.isFinite(+salaryDetails[0]?.paySlipTotalPay)
+//           ? parseInt(salaryDetails[0].paySlipTotalPay)
+//           : "",
+//         totalDeductions: Number.isFinite(
+//           +salaryDetails[0]?.paySlipTotalDeduction
+//         )
+//           ? parseInt(salaryDetails[0].paySlipTotalDeduction)
+//           : "",
+//         lop:
+//           salaryDetails[0]?.paySlipTotalDays &&
+//           salaryDetails[0]?.paySlipWorkingDays
+//             ? salaryDetails[0].paySlipTotalDays -
+//               salaryDetails[0].paySlipWorkingDays
+//             : "",
+//         paySlipComponent: paySlipComponent || [],
+//         netPay: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
+//           ? parseInt(salaryDetails[0].paySlipGrossEarning) -
+//             parseInt(salaryDetails[0].paySlipTotalDeduction)
+//           : "",
+//         month: currentMonth || "",
+//         year: salaryDetails[0]?.paySlipYear || "",
+//         duration:duration,
+//         noOfDaysInMonth:totalDays,
+//         uanNo:"",
+//         totalArrearDays:0
+//       };
 
-      const letter = await emailTemplate.salarySlipPdf(body);
+//       const letter = await emailTemplate.salarySlipPdf(body);
 
-      const file = { content: letter };
+//       const file = { content: letter };
 
-    const options = {
-      format: "A4",
-      puppeteer: {
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: "/usr/bin/chromium-browser", // Adjust this path as needed
-      },
-    };
+//     const options = {
+//       format: "A4",
+//       puppeteer: {
+//         args: ["--no-sandbox", "--disable-setuid-sandbox"],
+//         executablePath: "/usr/bin/chromium-browser", // Adjust this path as needed
+//       },
+//     };
 
-   html_to_pdf.generatePdf(file, options, (error, success) => {
-        // console.timeEnd("Generate PDF");
+//    html_to_pdf.generatePdf(file, options, (error, success) => {
+//         // console.timeEnd("Generate PDF");
 
-        if (error) {
-          console.error("PDF generation error:", error);
-          return res.status(500).send("Error generating PDF");
-        }
+//         if (error) {
+//           console.error("PDF generation error:", error);
+//           return res.status(500).send("Error generating PDF");
+//         }
 
-        res.set({
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
-        });
-        res.end(success);
-      });
-      // const options = { format: "A4" };
-      // const file = { content: letter };
+//         res.set({
+//           "Content-Type": "application/pdf",
+//           "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+//         });
+//         res.end(success);
+//       });
+//       // const options = { format: "A4" };
+//       // const file = { content: letter };
 
-      // html_to_pdf.generatePdf(file, options, (error, success) => {
-      //   // console.timeEnd("Generate PDF");
+//       // html_to_pdf.generatePdf(file, options, (error, success) => {
+//       //   // console.timeEnd("Generate PDF");
 
-      //   if (error) {
-      //     console.error("PDF generation error:", error);
-      //     return res.status(500).send("Error generating PDF");
-      //   }
+//       //   if (error) {
+//       //     console.error("PDF generation error:", error);
+//       //     return res.status(500).send("Error generating PDF");
+//       //   }
 
-      //   res.set({
-      //     "Content-Type": "application/pdf",
-      //     "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
-      //   });
-      //   res.end(success);
-      // });
-    } catch (error) {
-      console.error("Something Went Wrong:", error);
-      res.status(500).send("Something Went Wrong");
-    }
-  }
+//       //   res.set({
+//       //     "Content-Type": "application/pdf",
+//       //     "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+//       //   });
+//       //   res.end(success);
+//       // });
+//     } catch (error) {
+//       console.error("Something Went Wrong:", error);
+//       res.status(500).send("Something Went Wrong");
+//     }
+//   }
 
 
     // async salarySlipPdf(req, res) {
@@ -3634,6 +3658,7 @@ class PaymentController {
   }
 
   async salarySlipPdf(req, res) {
+    console.log("i am thereee>>>>>>>")
     try {
       // Fetch salary details
       const { paySlipAutoId } = req.query;
@@ -3664,13 +3689,40 @@ class PaymentController {
       );
   
       const employee = salaryDetails[0].employee;
-  
+      // const monthNames = [
+      //   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      //   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      // ];
       const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+
+      const monthNamesFullName = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
       ];
+      // Extract month and year from salaryDetails
+      const monthIndex = parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1; // Convert 1-based index to 0-based
+      const currentMonthFullName = monthNamesFullName[monthIndex];
+      // Function to determine the last day of the month
+        const getLastDayOfMonth = (year, monthIndex) => {
+          return new Date(year, monthIndex + 1, 0).getDate(); // Add 1 to the month index, then set date to 0
+        };
+
+        // Calculate last day of the month
+        const lastDay = getLastDayOfMonth(salaryDetails[0]?.paySlipMonth, monthIndex);
       const currentMonth =
         monthNames[parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1] || "";
+
+        // Calculate total days in the month
+        // Function to determine the total days in the month
+        const getTotalDaysInMonth = (year, monthIndex) => {
+          return new Date(year, monthIndex + 1, 0).getDate(); // Add 1 to the month index, then set date to 0
+        };
+        const totalDays = getTotalDaysInMonth(salaryDetails[0]?.paySlipMonth, monthIndex);
+  
+        const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear}`;
   
       const body = {
         name: employee.name || "",
@@ -3713,6 +3765,12 @@ class PaymentController {
           : "",
         month: currentMonth || "",
         year: salaryDetails[0]?.paySlipYear || "",
+        duration:duration,
+        noOfDaysInMonth:salaryDetails[0]?.paySlipTotalDays || "",//totalDays,
+        uanNo:employee?.employeejobdetail?.uanNumber || "",
+        totalArrearDays:salaryDetails[0]?.paySlipArrearDays,
+        providentFund:employee?.employeejobdetail?.pfNumber || "N.A",
+        esicNo:employee?.employeejobdetail?.esicNumber || "N.A"
       };
   
       //const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
