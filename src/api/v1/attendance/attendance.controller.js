@@ -2847,6 +2847,10 @@ class AttendanceController {
         } else {
           presentStatus = "singlePunchAbsent";
         }
+        console.log(
+          "singleEmp.attendancemaster.attendanceWorkingTime",
+          singleEmp.attendancemaster.attendanceWorkingTime
+        );
         if (
           singleEmp.attendancemaster &&
           singleEmp.attendancemaster.attendanceWorkingTime
@@ -2880,6 +2884,7 @@ class AttendanceController {
             holiday: singleEmp.holidaycompanylocationconfigurations,
             weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
           };
+          console.log("employeeData", employeeData);
 
           await helper.creditCompoff(employeeData);
         }
