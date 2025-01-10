@@ -3679,14 +3679,18 @@ class PaymentController {
       );
   
       const employee = salaryDetails[0].employee;
+      // const monthNames = [
+      //   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      //   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      // ];
       const monthNames = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
       ];
 
       const monthNamesFullName = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
       ];
       // Extract month and year from salaryDetails
       const monthIndex = parseInt(salaryDetails[0]?.paySlipMonth, 10) - 1; // Convert 1-based index to 0-based
