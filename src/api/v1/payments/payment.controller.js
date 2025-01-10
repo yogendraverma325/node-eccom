@@ -1057,7 +1057,7 @@ class PaymentController {
           createdAt: new Date(),
           isActive: 1,
           processFlowId: 1,
-          companyId: 1,
+          companyId: value.companyId,
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );
