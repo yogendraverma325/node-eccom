@@ -56,7 +56,11 @@ export default Express
     // .get("/exportSalaryComponent",paymentController.exportSalaryComponent)
     .get("/exportSample",paymentController.exportSample)
     .get("/employeesListForProcessing",authentication.authenticate,paymentController.employeesListForProcessing)
-    .get("/salarySlipPdf",paymentController.salarySlipPdf);
+    .get("/salarySlipPdf",paymentController.salarySlipPdf)
+
+    // jay routes
+    .get("/extraDeduction", authentication.authenticate, paymentController.extraDeduction)
+    .get("/extraPayment", authentication.authenticate, paymentController.extraPayment)
 
 
 

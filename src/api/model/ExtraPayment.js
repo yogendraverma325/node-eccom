@@ -20,6 +20,9 @@ export default (sequelize, Sequelize) => {
       empCode: {
         type: Sequelize.STRING,
       },
+      financialYear: {
+        type: Sequelize.STRING
+      },
       createdBy: {
         type: Sequelize.INTEGER,
         default:null

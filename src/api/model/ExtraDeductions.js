@@ -32,8 +32,8 @@ export default (sequelize, Sequelize) => {
         type:Sequelize.INTEGER
       },
       status:{
-        type:Sequelize.STRING,
-        default:null
+        type:Sequelize.INTEGER,
+        default: 0
       },
       changeReason:{
         type:Sequelize.STRING,
@@ -41,6 +41,9 @@ export default (sequelize, Sequelize) => {
       },
       currencyCode:{
         type:Sequelize.INTEGER
+      },
+      financialYear: {
+        type:Sequelize.STRING
       },
       createdBy: {
         type: Sequelize.INTEGER,

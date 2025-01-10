@@ -4252,6 +4252,24 @@ const salarySlipPdf = async (data) => {
                 <td><strong>PAN No:</strong></td>
                 <td>${data.panNo}</td>
             </tr>
+            <tr>
+              <td><strong>Duration:</strong></td>
+              <td>${data.duration}</td>
+              <td><strong>No. of Days in Month:</strong></td>
+              <td>${data.noOfDaysInMonth}</td>
+          </tr>
+           <tr> 
+              <td><strong>UAN No:</strong></td>
+              <td>${data.uanNo}</td>
+              <td><strong>Total Arrear Days:</strong></td>
+              <td>${data.totalArrearDays}</td>
+          </tr>
+           <tr> 
+              <td><strong>Provident Fund:</strong></td>
+              <td>${data.providentFund}</td>
+              <td><strong>ESIC Number:</strong></td>
+              <td>${data.esicNo}</td>
+          </tr>
         </table>
 
         <h3>Earnings and Deductions</h3>

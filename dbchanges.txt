@@ -1084,6 +1084,30 @@ ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
   `updatedBy` INT NULL DEFAULT NULL,
   PRIMARY KEY (`id`));
 
+  Jay changes for payroll
+
+  03-01-2025
+
+  ALTER TABLE `tara`.`extradeductions` 
+CHANGE COLUMN `status` `status` INT NULL DEFAULT 0 ,
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
+
+06-01-2025
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `financialYear` VARCHAR(45) NULL DEFAULT NULL AFTER `currencyCode`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `financialYear` VARCHAR(45) NULL DEFAULT NULL AFTER `type`;
+
+ALTER TABLE `tara`.`extrapayment` 
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
+
+
+
+
+
+
 
 ---------------------------------2025-01-06------------------------
 
