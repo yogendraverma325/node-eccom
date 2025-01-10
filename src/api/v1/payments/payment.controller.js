@@ -853,7 +853,7 @@ class PaymentController {
           }
         }
         console.log(
-          employee["Name"] + "--" + employee["CTC"],
+          employee["Email/Employee ID"] + "--" + employee["CTC"],
           ctcFromComponent
         );
 
