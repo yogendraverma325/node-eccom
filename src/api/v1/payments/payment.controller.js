@@ -3458,11 +3458,34 @@ class PaymentController {
       const result = await validator.extraDeductionFormSchema.validateAsync(req.body);
       let model = db.extraDeduction;
       let userId = req.userId;
-      let query = { EmployeeId: result.EmployeeId, deductionCategory: result.deductionCategory, startMonth: result.startMonth };
+      let endMonth = result.endMonth || result.startMonth;
+      result["endMonth"] = endMonth;
 
+      let query = { EmployeeId: result.EmployeeId, deductionCategory: result.deductionCategory, startMonth: result.startMonth };
       let moduleName = "Extra Deduction";
       let metaData = { ...result, createdBy: userId, createdAt: moment() };
-      let response = await service.create(model, metaData, query, moduleName);
+      let response = {};
+
+      if(result.startMonth == result.endMonth) {
+          response = await service.create(model, metaData, query, moduleName);
+      } 
+      else {
+        const start = new Date(result.startMonth + "-01"); // Start date
+        const end = new Date(result.endMonth + "-01"); // End date
+      
+        if (end > start) {
+          let current = new Date(start);
+      
+          while (current <= end) {
+            const yearMonth = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`;
+            current.setMonth(current.getMonth() + 1); // Move to the next month
+            metaData = { ...metaData, startMonth: yearMonth, endMonth: yearMonth };
+            query = { EmployeeId: result.EmployeeId, deductionCategory: result.deductionCategory, startMonth: yearMonth };
+            response = await service.create(model, metaData, query, moduleName);
+          }
+        }
+      }
+
       return respHelper(res, response);
 
     } catch (error) {
@@ -3565,14 +3588,14 @@ class PaymentController {
 
   async createExtraPayment(req, res) {
     try {
-      const result = await validator.extraPayment.validateAsync(req.body);
+      const result = await validator.extraPaymentFormSchema.validateAsync(req.body);
       let model = db.extraPayment;
       let userId = req.userId;
-      let query = { EmployeeId: userId, paymentMonth: result.paymentMonth, category: result.category };
+      let query = { EmployeeId: result.EmployeeId, paymentMonth: result.paymentMonth, category: result.category };
 
       let moduleName = "Extra Payment";
-      result["EmployeeId"] = userId;
-      let response = await service.create(model, result, query, moduleName);
+      let metaData = { ...result, createdAt: moment(), createdBy: userId };
+      let response = await service.create(model, metaData, query, moduleName);
       return respHelper(res, response);
 
     } catch (error) {
@@ -3591,9 +3614,10 @@ class PaymentController {
 
   async updateExtraPayment(req, res) {
     try {
-      const result = await validator.extraPayment.validateAsync(req.body);
+      const result = await validator.extraPaymentFormSchema.validateAsync(req.body);
       let model = db.extraPayment;
       let query = { extraPaymentAutoId: req.params.id };
+      let metaData = { ...result, updatedAt: moment(), updatedBy: req.userId };
       let response = await service.update(model, result, query);
       return respHelper(res, response);
     } catch (error) {
@@ -3644,7 +3668,7 @@ class PaymentController {
       }
       
       let model = db.financialYearMaster;
-      let financialYear = req.body.selectedYear || "";
+      let financialYear = parseInt(req.body.selectedYear) || "";
       let companyId = req.body.companyId || "";
 
       let query = { 
@@ -3659,7 +3683,7 @@ class PaymentController {
 
       let attribute = { exclude: ["createdBy", "updatedBy", "updatedAt"] };
       
-      let aggregate = {
+      let aggregate1 = {
         where: query,
         attributes: attribute,
         include: [
@@ -3686,10 +3710,40 @@ class PaymentController {
         ]
       };
 
-      let response = await service.aggregate(model, aggregate);
-      let payProcessList = response?.data[0]?.payprocessmaster;
+      let aggregate2 = {
+        where: { isActive: 1, "year": financialYear + 1 },
+        attributes: attribute,
+        include: [
+          {
+            model: db.payProcessMaster,
+            as: 'payprocessmaster',
+            attributes: [
+              "payProcessMasterAutoId",
+              "name",
+              "payMonth",
+              [
+                Sequelize.literal(
+                  `(SELECT COUNT(proceessId) 
+                   FROM payprocessdetails pd 
+                   WHERE pd.payMonth = payprocessmaster.payMonth 
+                   AND pd.payStatus NOT IN (4))`
+                ),
+                'pay_count' // Alias for the computed column
+              ]
+            ],
+            where: processQuery,
+            order: [["payProcessMasterAutoId", "DESC"]]
+          }
+        ]
+      };
 
-      const currentFinancialMonth = [
+      let response1 = await service.aggregate(model, aggregate1);
+      let payProcessList1 = response1?.data[0]?.payprocessmaster;
+
+      let response2 = await service.aggregate(model, aggregate2);
+      let payProcessList2 = response2?.data[0]?.payprocessmaster;
+
+      const currentFinancialMonth1 = [
         { value: 3, key: 'April', customValue: '04' },
         { value: 4, key: 'May', customValue: '05' },
         { value: 5, key: 'June', customValue: '06' },
@@ -3698,16 +3752,19 @@ class PaymentController {
         { value: 8, key: 'Sep', customValue: '09' },
         { value: 9, key: 'Oct', customValue: '10' },
         { value: 10, key: 'Nov', customValue: '11' },
-        { value: 11, key: 'Dec', customValue: '12' },
+        { value: 11, key: 'Dec', customValue: '12' }
+      ];
+
+      const currentFinancialMonth2 = [
         { value: 0, key: 'Jan', customValue: '01' },
         { value: 1, key: 'Feb', customValue: '02' },
         { value: 2, key: 'March', customValue: '03' }
-      ];
+      ]
 
       // Map the `payprocess` array to include `value` and `key`
-      const updatePayProcess = currentFinancialMonth.map(item => {
+      const updatePayProcess1 = currentFinancialMonth1.map(item => {
 
-        const matchedItem = payProcessList?.find(m => {
+        const matchedItem = payProcessList1?.find(m => {
           const month = m.payMonth.split('-')[1]; // Extract the month (e.g., "01" -> "1")
           return item.customValue === month;
         });
@@ -3720,8 +3777,25 @@ class PaymentController {
         };
       });
 
+      const updatePayProcess2 = currentFinancialMonth2.map(item => {
+
+        const matchedItem = payProcessList2?.find(m => {
+          const month = m.payMonth.split('-')[1]; // Extract the month (e.g., "01" -> "1")
+          return item.customValue === month;
+        });
+
+        return {
+          "processId": matchedItem ? matchedItem.dataValues?.payProcessMasterAutoId : 0,
+          "pay_count": matchedItem ? matchedItem.dataValues?.pay_count : 0,
+          "value": item.value,
+          "key": item.key
+        };
+      });
+
+      const updatePayProcess = [...updatePayProcess1, ...updatePayProcess2];
+
       return respHelper(res, {
-        status: response.status,
+        status: response1.status,
         msg: "Data fetched successfully",
         data: updatePayProcess
       });

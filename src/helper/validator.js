@@ -1522,6 +1522,23 @@ const extraDeductionFormSchema = Joi.object({
   //   .label("Monthly Deduction Amount"),
 });
 
+const extraPaymentFormSchema = Joi.object({
+  EmployeeId: Joi.number().integer().positive().required(),
+  paymentMonth: Joi.string().max(255).required(),
+  category: Joi.string().max(255).required(),
+  paymentAmount: Joi.number().precision(2).positive().required().label("Extra Payment Amount"),
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+  paymentType: Joi.string()
+    .required()
+    .label("Payment Type"),
+  financialYearId: Joi.number()
+    .required()
+    .label("Financial Year")
+});
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1594,5 +1611,6 @@ export default {
   attendanceApprovalSchema,
   // add by jay
   payProcessCardSchema,
-  extraDeductionFormSchema
+  extraDeductionFormSchema,
+  extraPaymentFormSchema
 };

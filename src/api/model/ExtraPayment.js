@@ -23,6 +23,13 @@ export default (sequelize, Sequelize) => {
       financialYearId: {
         type:Sequelize.INTEGER
       },
+      paymentType: {
+        type: Sequelize.STRING
+      },
+      status:{
+        type:Sequelize.INTEGER,
+        default: 0
+      },
       createdBy: {
         type: Sequelize.INTEGER,
         default:null

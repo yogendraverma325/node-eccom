@@ -1112,6 +1112,18 @@ ALTER TABLE `tara`.`extrapayment`
 DROP COLUMN `financialYear`,
 ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `empCode`;
 
+10-01-2025
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `status` INT NULL DEFAULT 0 AFTER `financialYearId`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `paymentType` VARCHAR(45) NULL DEFAULT NULL AFTER `status`;
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `deductionType` VARCHAR(45) NULL DEFAULT NULL AFTER `financialYearId`;
+
+
+
 
 
 
