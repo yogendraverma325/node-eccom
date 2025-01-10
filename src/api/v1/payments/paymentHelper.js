@@ -175,7 +175,7 @@ const salaryPaySlip = async function (paySlipAutoId) {
               },
               {
                 model: db.jobDetails,
-                attributes: ["dateOfJoining","uanNumber"],
+                attributes: ["dateOfJoining","uanNumber","esicNumber","pfNumber"],
               },
               {
                 model: db.companyLocationMaster,
