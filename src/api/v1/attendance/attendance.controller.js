@@ -2046,6 +2046,7 @@ class AttendanceController {
 
   async regularizeRequestList(req, res) {
     try {
+      console.log("regularizeRequestList UAT");
       const query = req.query.listFor;
 
       const regularizeList = await db.regularizationMaster.findAll({
