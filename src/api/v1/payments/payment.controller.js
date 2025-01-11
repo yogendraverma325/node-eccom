@@ -3815,7 +3815,7 @@ class PaymentController {
   // End by jay
 }
 
-const  groupByEmployeeId = (data) => {
+const  groupByEmployeeId =  (data) =>  {
   const groupedData = {};
   data.forEach((item) => {
     const employeeId = item["Employee Id"];
@@ -3835,6 +3835,7 @@ const  groupByEmployeeId = (data) => {
           
       );
       let payableAmount = totalEarning - totalDeduction;
+      payableAmount =  paymentHelper.customRound(payableAmount);
       groupedData[employeeId] = {
         "Employee Id": employeeId,
         "Employee Name": item["Employee Name"],
@@ -3845,7 +3846,7 @@ const  groupByEmployeeId = (data) => {
         "TDS Amount": item["TDS Amount"],
         "Net Pay": item["Net Pay"],
         "Monthly Pay":
-          payableAmount != "N/A" ?Math.ceil(payableAmount) : "0.0",
+          payableAmount != "N/A" ? payableAmount : "0.0",
         "Extra Deduction Categories": item["Advance Name"],
         "Total Extra Deduction Amount": item["Advance Amount"],
         "PT Amount": item["PT AMOUNT"],
@@ -4333,13 +4334,16 @@ async function generatePaySlip(data) {
             parseFloat(
               payMonthlyElement.lwfAmount ? payMonthlyElement.lwfAmount : 0
             );
+            totalPayslipDeductons=paymentHelper.customRound(totalPayslipDeductons);
           let PaySlipNetPay =
             parseFloat(payMonthlyElement.paySlipGrossEarning) +
             parseFloat(payMonthlyElement.extrapaymentAmount?payMonthlyElement.extrapaymentAmount:0);
           PaySlipNetPay =
             parseFloat(PaySlipNetPay) - parseFloat(totalPayslipDeductons);
+            PaySlipNetPay=paymentHelper.customRound(PaySlipNetPay);
             let GrossPayAfterExtraPay=parseFloat(payMonthlyElement.paySlipGrossEarning)+parseFloat(payMonthlyElement.extrapaymentAmount?payMonthlyElement.extrapaymentAmount:0);
-          isExistPaySlip = await db.paySlips.create({
+            GrossPayAfterExtraPay=paymentHelper.customRound(GrossPayAfterExtraPay);
+            isExistPaySlip = await db.paySlips.create({
             EmployeeId: payMonthlyElement.empId,
             paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
             paySlipYear: payMonthlyElement.payMonth.split("-")[0],

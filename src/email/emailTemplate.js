@@ -1,5 +1,4 @@
 import moment from "moment";
-
 const regularizationRequestMail = async (data) => {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -4210,7 +4209,7 @@ const salarySlipPdf = async (data) => {
 <body>
     <div class="salary-slip">
         <div class="header">
-            <img src="https://www.teamcomputers.com/images/logo.png" alt="Company Logo">
+            <img  src="${process.env.PROXY_URL}/api/uploads/logos/THRLogo.png" alt="Company Logo">
             <div class="company-details">
                 <h3>${data.companyName}</h3>
                 <p>${data.companyAddress}</p>

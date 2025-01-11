@@ -612,6 +612,18 @@ async function getExtraEarningElements(payMonth,EmployeeId,paySlipAutoId,userId)
   return  extraDeducionsElements;
 }
 
+ function customRound(num) {
+  const decimalPart = num - Math.floor(num);
+  console.log(decimalPart)
+  if (decimalPart <= 0.50) {
+      return Math.floor(num); // Round down
+  } else {
+      return Math.ceil(num);  // Round up
+  }
+
+
+}
+
 
 export default {
   payAfterLOPDeductions,
@@ -632,4 +644,5 @@ export default {
   salaryPaySlip,
   getExtraDeductionsElements,
   getExtraEarningElements,
+  customRound
 };
