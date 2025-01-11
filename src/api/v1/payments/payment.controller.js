@@ -4276,6 +4276,12 @@ async function generatePaySlip(data) {
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
+
+      // console.log(queryForPayMonthlyElementsForSalarySlip);
+      // console.log(payElements);
+
+      // return
+
       for (const payMonthlyElement of payElements[0]) {
         let isExistPaySlip = await db.paySlips.findOne({
           where: {
@@ -4329,10 +4335,10 @@ async function generatePaySlip(data) {
             );
           let PaySlipNetPay =
             parseFloat(payMonthlyElement.paySlipGrossEarning) +
-            parseFloat(payMonthlyElement.extrapaymentAmount);
+            parseFloat(payMonthlyElement.extrapaymentAmount?payMonthlyElement.extrapaymentAmount:0);
           PaySlipNetPay =
             parseFloat(PaySlipNetPay) - parseFloat(totalPayslipDeductons);
-            let GrossPayAfterExtraPay=parseFloat(payMonthlyElement.paySlipGrossEarning)+parseFloat(payMonthlyElement.extrapaymentAmount);
+            let GrossPayAfterExtraPay=parseFloat(payMonthlyElement.paySlipGrossEarning)+parseFloat(payMonthlyElement.extrapaymentAmount?payMonthlyElement.extrapaymentAmount:0);
           isExistPaySlip = await db.paySlips.create({
             EmployeeId: payMonthlyElement.empId,
             paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
