@@ -1717,6 +1717,11 @@ class PaymentController {
       );
       var errorArray = [],
         successArray = [];
+
+
+        console.log(lopDetails);
+
+
       for (const employeeTds of lopDetails) {
         let employeeDetais = await db.employeeMaster.findOne({
           where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
@@ -3811,7 +3816,6 @@ class PaymentController {
 
 const  groupByEmployeeId = (data) => {
   const groupedData = {};
-
   data.forEach((item) => {
     const employeeId = item["Employee Id"];
     if (!groupedData[employeeId]) {
@@ -3824,7 +3828,8 @@ const  groupByEmployeeId = (data) => {
       let totalDeduction = parseFloat(
         parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
           parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
-          parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0)
+          parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0)+
+          parseFloat(item['PF Employer'] ? item['PF Employer'] : 0)
       );
       let payableAmount = totalEarning - totalDeduction;
       groupedData[employeeId] = {
@@ -3837,7 +3842,7 @@ const  groupByEmployeeId = (data) => {
         "TDS Amount": item["TDS Amount"],
         "Net Pay": item["Net Pay"],
         "Monthly Pay":
-          payableAmount != "N/A" ? payableAmount.toFixed(2) : "0.0",
+          payableAmount != "N/A" ?Math.ceil(payableAmount) : "0.0",
         "Extra Deduction Categories": item["Advance Name"],
         "Total Extra Deduction Amount": item["Advance Amount"],
         "PT Amount": item["PT AMOUNT"],
@@ -3907,6 +3912,7 @@ async function processSalary(data) {
         employee,
         { payMonth: result[0][0].payMonth }
       );
+      console.log("queryForEmployeePayDetails ::: "+queryForEmployeePayDetails);
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
@@ -4105,7 +4111,7 @@ async function processSalary(data) {
           queryForComponentConfiguration
         );
         let includeInPayPackage =
-          ["Earning", "Balancing", "OTC"].includes(
+          ["Earning", "Balancing"].includes(
             empCopntWiseDetl["salaryComponentEarningType"]
           ) &&
           paymentHelper.getElementValue(
