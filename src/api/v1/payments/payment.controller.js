@@ -1058,6 +1058,7 @@ class PaymentController {
           isActive: 1,
           processFlowId: 1,
           companyId: value.companyId,
+          financialYearId:3,
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );
