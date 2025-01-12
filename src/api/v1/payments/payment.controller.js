@@ -1016,10 +1016,10 @@ class PaymentController {
       
       let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
-        19,
+        value.departmentId==0?25:19,
         value.processingType,
-        { departmentId: ids, paymonth: value.paymonth }
-      );
+        { departmentId: ids, paymonth: value.paymonth, companyId:value.companyId }
+      ); 
       const result = await db.sequelize.query(allEmployeeQuery);
 
       if (result[0].length == 0) {
@@ -1961,12 +1961,12 @@ class PaymentController {
       }
 
       let ids =value.departmentId.split(',');
-      console.log(ids);
+      console.log("Department ID :: "+value.departmentId);
 
       let employeeForProcessingQuery = await paymentHelper.query(
-        20,
+        value.departmentId==0?24:20,
         value.processingType,
-        { departmentId: ids, paymonth: value.paymonth }
+        { departmentId: ids, paymonth: value.paymonth,companyId:value.companyId }
       );
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
@@ -2207,9 +2207,9 @@ class PaymentController {
       });
       let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
-        19,
+        value.departmentId==0?25:19,
         value.processingType,
-        { departmentId: ids, paymonth: value.paymonth }
+        { departmentId: ids, paymonth: value.paymonth, companyId:value.companyId }
       );  
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
@@ -2278,10 +2278,10 @@ class PaymentController {
       }
       let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
-        19,
+        value.departmentId==0?25:19,
         value.processingType,
-        { departmentId:ids, paymonth: value.paymonth }
-      );
+        { departmentId: ids, paymonth: value.paymonth, companyId:value.companyId }
+      ); 
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
         return respHelper(res, {
@@ -2340,10 +2340,10 @@ class PaymentController {
       }
       let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
-        19,
+        value.departmentId==0?25:19,
         value.processingType,
-        { departmentId: ids, paymonth: value.paymonth }
-      );
+        { departmentId: ids, paymonth: value.paymonth, companyId:value.companyId }
+      ); 
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
         return respHelper(res, {
@@ -2393,10 +2393,10 @@ class PaymentController {
       }
       let ids =value.departmentId.split(',');
       let allEmployeeQuery = await paymentHelper.query(
-        19,
+        value.departmentId==0?25:19,
         value.processingType,
-        { departmentId: ids, paymonth: value.paymonth }
-      );
+        { departmentId: ids, paymonth: value.paymonth, companyId:value.companyId }
+      ); 
       const result = await db.sequelize.query(allEmployeeQuery);
       if (result[0].length == 0) {
         return respHelper(res, {
@@ -2937,6 +2937,10 @@ class PaymentController {
         buName: item.bumaster.buName,
         buCode: item.bumaster.buCode,
       }));
+      const allEmployees = { "buId": 0, "buName": "All Employees", "buCode": "ALL" };
+
+    // Add the new object at the beginning of the array
+    responseData.unshift(allEmployees);
 
       return respHelper(res, {
         status: 200,
@@ -4178,23 +4182,13 @@ const  groupByEmployeeId =  (data) =>  {
       //p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
     }
 
-
-    
-    // if(item["Deduction Category"])
-    //   {
-    //     Object.assign(groupedData[employeeId], {
-    //       [item["Deduction Category"] ]: item["Deduction Amount"],
-    //     });
-    //   }
-
-
     if (['Balancing','Earning'].includes(item["salaryComponentEarningType"])) {
  
       Object.assign(groupedData[employeeId], {
-        [item["Element Name"]]: item["Element Amount"],
+        [item["Element Name"]]: item["Element Amount"]?paymentHelper.customRound(item["Element Amount"]):item["Element Amount"],
       });
       Object.assign(groupedData[employeeId], {
-        [item["Element Name"] + " Monthly"]: item["Monthly Element Amount"],
+        [item["Element Name"] + " Monthly"]: item["Monthly Element Amount"]?paymentHelper.customRound(item["Monthly Element Amount"]):item["Monthly Element Amount"],
       });
 
       
@@ -4457,12 +4451,12 @@ async function processSalary(data) {
             "Affect Loss Of Pay",
             componentConfiguration[0]
           ) == 1
-            ? await paymentHelper.arrectLOP(
-                empCopntWiseDetl.payElementAmount,
-                employeeDetailsComponentWise[0][0].lopDays,
-                totalWorkingDays
-              )
-            : empCopntWiseDetl.payElementAmount;
+            ? paymentHelper.customRound(await paymentHelper.arrectLOP(
+              empCopntWiseDetl.payElementAmount,
+              employeeDetailsComponentWise[0][0].lopDays,
+              totalWorkingDays
+            ))
+            : paymentHelper.customRound(empCopntWiseDetl.payElementAmount);
 
         empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
           .totalDeduction
@@ -4780,12 +4774,8 @@ async function generatePaySlip(data) {
           }
          let getExtraDeductions = await paymentHelper.getExtraDeductionsElements(payMonthlyElement.payMonth,payMonthlyElement.empId,paySlipAutoId,req.userData.id);
          let getExtraEarnings = await paymentHelper.getExtraEarningElements(payMonthlyElement.payMonth,payMonthlyElement.empId,paySlipAutoId,req.userData.id);
-         
-        //  customeEarnings.push(getExtraEarnings)
          customeDeduction=customeDeduction.concat(getExtraDeductions);
          customeDeduction=customeDeduction.concat(getExtraEarnings);
-        //  console.log(customeEarnings);
-        //  return
           await db.paySlipComponent.bulkCreate(customeDeduction);
         }
 
@@ -4809,7 +4799,7 @@ async function generatePaySlip(data) {
             paySlipAutoId: paySlipAutoId,
             salaryComponentAutoId: payMonthlyElement.salaryComponentAutoId,
             paySlipComponentName: payMonthlyElement.paySlipComponentName,
-            paySlipComponentAmount: payMonthlyElement.elementMonthlyAmount,
+            paySlipComponentAmount: payMonthlyElement.elementMonthlyAmount?paymentHelper.customRound(payMonthlyElement.elementMonthlyAmount):payMonthlyElement.elementMonthlyAmount,
             paySlipComponentType: payMonthlyElement.salaryComponentEarningType,
             createdBy: req.userData.id,
             createdAt: new Date(),
