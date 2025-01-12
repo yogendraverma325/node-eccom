@@ -1,5 +1,4 @@
 import moment from "moment";
-
 const regularizationRequestMail = async (data) => {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -4210,7 +4209,7 @@ const salarySlipPdf = async (data) => {
 <body>
     <div class="salary-slip">
         <div class="header">
-            <img src="https://www.teamcomputers.com/images/logo.png" alt="Company Logo">
+            <img  src="${process.env.PROXY_URL}/api/uploads/logos/THRLogo.png" alt="Company Logo">
             <div class="company-details">
                 <h3>${data.companyName}</h3>
                 <p>${data.companyAddress}</p>
@@ -4252,6 +4251,24 @@ const salarySlipPdf = async (data) => {
                 <td><strong>PAN No:</strong></td>
                 <td>${data.panNo}</td>
             </tr>
+            <tr>
+              <td><strong>Duration:</strong></td>
+              <td>${data.duration}</td>
+              <td><strong>No. of Days in Month:</strong></td>
+              <td>${data.noOfDaysInMonth}</td>
+          </tr>
+           <tr> 
+              <td><strong>UAN No:</strong></td>
+              <td>${data.uanNo}</td>
+              <td><strong>Total Arrear Days:</strong></td>
+              <td>${data.totalArrearDays}</td>
+          </tr>
+           <tr> 
+              <td><strong>Provident Fund:</strong></td>
+              <td>${data.providentFund}</td>
+              <td><strong>ESIC Number:</strong></td>
+              <td>${data.esicNo}</td>
+          </tr>
         </table>
 
         <h3>Earnings and Deductions</h3>
@@ -4281,7 +4298,7 @@ const salarySlipPdf = async (data) => {
                   <td><strong>Net Pay (A - B)</strong></td>
                   <td>${data.netPay || 0}</td>
                   <td><strong>Total Pay</strong></td>
-                  <td>${data.totalPay || 0}</td>
+                  <td>${data.netPay || 0}</td>
               </tr>
             </tfoot>
         </table>

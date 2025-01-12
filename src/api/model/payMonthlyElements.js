@@ -116,6 +116,10 @@ export default (sequelize, Sequelize) => {
           isEsicApplicableComponent:{
             type:Sequelize.INTEGER
           },
+          pfApplicable15000AndNoRestriction:{
+            type:Sequelize.INTEGER,
+            default:0,
+          },
           esicEmployerAmount:{
             type: Sequelize.DECIMAL(10, 2),
             allowNull: true
@@ -155,6 +159,9 @@ export default (sequelize, Sequelize) => {
           processId:{
             type: Sequelize.INTEGER,
             allowNull: false
+          },
+          extraPaymentCategories:{
+            type: Sequelize.TEXT,
           }
 
 

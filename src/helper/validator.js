@@ -1342,13 +1342,17 @@ const lopValidateSchama = Joi.object({
   updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
   updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
   isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
-  empCode: Joi.number().required(), // Employee ID is required.
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
 });
 
 const employeesForPayrollProcess = Joi.object({
   departmentId: Joi.string().allow("",null), // Auto-incremented primary key, not required in most cases.
   paymonth: Joi.string().required(),
   processingType:Joi.number().required().valid(0,1),
+  companyId:Joi.number(),
 });
 
 const extraDeductionSchema = Joi.object({
