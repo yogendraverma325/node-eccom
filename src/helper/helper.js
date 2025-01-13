@@ -1939,6 +1939,7 @@ const creditCompoff = async (inputObject) => {
               }
               comp_off_data.pending_at = finalApprovalIds.join(",");
             }
+            comp_off_hours = Math.round(comp_off_hours);
             const hrs = Math.floor(comp_off_hours / 60)
               .toString()
               .padStart(2, "0");

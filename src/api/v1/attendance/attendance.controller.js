@@ -2993,7 +2993,7 @@ class AttendanceController {
         ],
         where: {
           isActive: 1,
-          // id: 694,
+          id: [1144, 3900],
         },
       });
       let nightwala = 0;
