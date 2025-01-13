@@ -361,5 +361,14 @@ export default Express.Router()
     authentication.authenticate,
     userController.actionOnCompoff
   )
-  .get("/checkPolicy", authentication.authenticate, userController.checkPolicy);
+  .get("/checkPolicy", authentication.authenticate, userController.checkPolicy)
 //COMP OFF
+  .get("/searchEmpForRoster",
+    authentication.authenticate,
+    userController.searchEmpForRoster
+  )
+
+  .get("/rosterCalendar",
+    authentication.authenticate,
+    userController.rosterCalendar
+  )

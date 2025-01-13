@@ -3,7 +3,7 @@ import respHelper from "../../../helper/respHelper.js";
 import commonController from "../common/common.controller.js";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import constant from "../../../constant/messages.js";
 import eventEmitter from "../../../services/eventService.js";
 import fs from "fs";
@@ -5553,12 +5553,166 @@ class UserController {
           msg: error.details[0].message,
         });
       }
+    }
+  }
+
+  async searchEmpForRoster(req, res) {
+    try {
+
+      const limit = req.query.limit * 1 || 10;
+      const pageNo = req.query.page * 1 || 1;
+      const offset = (pageNo - 1) * limit;
+      const search = req.query.search;
+      let selectedUser = req.query.selectedUser
+
+      selectedUser = (selectedUser) ? selectedUser.split(",") : []
+
+      const employeeData = await db.employeeMaster.findAll({
+        where: Object.assign(
+          (!['ADMIN', 'HR_OPS'].includes(req.userRole)) ? {
+            manager: req.userId
+          } : {},
+          {
+            isActive: 1
+          },
+          (search || search != "") ? {
+            [Op.or]: [{
+              empCode: {
+                [Op.like]: `%${search}%`
+              }
+            }, {
+              name: {
+                [Op.like]: `%${search}%`
+              }
+            },
+            {
+              email: {
+                [Op.like]: `%${search}%`
+              }
+            }]
+          } : {},
+          (selectedUser.length > 0) ? {
+            id: {
+              [Op.notIn]: selectedUser
+            }
+          } : {}
+        ),
+        attributes: ['id', 'empCode', 'name', 'profileImage'],
+        limit,
+        offset
+      })
+
+      return respHelper(res, {
+        status: 200,
+        data: employeeData
+      })
+
+    } catch (error) {
+      console.log(error)
       return respHelper(res, {
         status: 500,
       });
     }
   }
-  //COMP OFF
+
+  async rosterCalendar(req, res) {
+    try {
+
+      const minDate = (req.query.date) ? moment(req.query.date) : moment()
+      const maxDate = ((req.query.date) ? moment(req.query.date) : moment()).add(6, 'days')
+      let selectedUser = (req.query.selectedUser).split(",")
+      let dateArray = []
+
+      for (const element of selectedUser) {
+
+        const user = await db.employeeMaster.findOne({
+          where: {
+            id: element
+          },
+          attributes: ['id', 'empCode', 'name'],
+          include: [{
+            model: db.shiftMaster,
+            attributes: [
+              "shiftId",
+              "shiftName",
+              "shiftStartTime",
+              "shiftEndTime",
+              "isOverNight",
+            ],
+          }]
+        })
+
+        const rosterData = async () => {
+          const rosterData = []
+
+          for (let currentDate = minDate.clone(); currentDate.isSameOrBefore(maxDate); currentDate.add(1, 'days')) {
+
+            const attedanceData = await db.attendanceMaster.findOne({
+              where: {
+                employeeId: element,
+                attendanceDate: currentDate.format('YYYY-MM-DD')
+              },
+              attributes: ['attendanceDate', 'employeeId'],
+              include: [{
+                model: db.shiftMaster,
+                attributes: [
+                  "shiftId",
+                  "shiftName",
+                  "shiftStartTime",
+                  "shiftEndTime",
+                  "isOverNight",
+                ],
+              }]
+            })
+
+            const existRosterData = await db.AttendanceRoster.findOne({
+              where: {
+                employeeId: element,
+                attendanceDate: currentDate.format('YYYY-MM-DD')
+              },
+              attributes: ['attendanceDate', 'employeeId'],
+              include: [{
+                model: db.shiftMaster,
+                attributes: [
+                  "shiftId",
+                  "shiftName",
+                  "shiftStartTime",
+                  "shiftEndTime",
+                  "isOverNight",
+                ],
+              }]
+            })
+
+            rosterData.push({
+              day: moment(currentDate).format('dddd'),
+              date: currentDate.format('YYYY-MM-DD'),
+              shift: attedanceData ? attedanceData.dataValues.shiftsmaster : (existRosterData) ? existRosterData.dataValues.shiftsmaster : user.dataValues.shiftsmaster
+            });
+          }
+
+          return rosterData
+        }
+
+        dateArray.push({
+          id: user.dataValues.id,
+          empCode: user.dataValues.empCode,
+          name: user.dataValues.name,
+          attendanceRosterData: await rosterData()
+        })
+
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: dateArray
+      });
+    } catch (error) {
+      console.log(error)
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

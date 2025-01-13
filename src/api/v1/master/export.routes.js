@@ -23,7 +23,7 @@ export default Express
     .get("/sperationPending", masterExportController.sperationPending)
     .get("/sperationApproved", masterExportController.sperationApproved)
     .get("/sperationApprovedHistory", masterExportController.sperationApprovedHistory)
-
+    .get("/shiftAndWeekOff", masterExportController.shiftAndWeekOff)
 
 
 
