@@ -68,6 +68,9 @@ export default (sequelize, Sequelize) => {
         },
         payMonth:{
             type: Sequelize.STRING
+        },
+        sendEmail: {
+            type: Sequelize.INTEGER
         }
     })
     return paySlips

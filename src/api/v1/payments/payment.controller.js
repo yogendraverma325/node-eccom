@@ -17,9 +17,16 @@ import html_to_pdf from "html-pdf-node";
 import path from "path"; // Import the path module
 import moment from "moment";
 import puppeteer from "puppeteer";
+import eventEmitter from "../../../services/eventService.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const financialMonth = 
+  { 1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'Jun',
+    7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'
+  };
 
 import Constant from "../../../constant/messages.js";
 import service from "./payment.service.js";
@@ -3979,6 +3986,44 @@ class PaymentController {
     }
   }
 
+  async checkPaySlipMail(req, res) {
+    try {
+      let EmployeeIds = req.body.EmployeeIds;
+      let paySlipMonth = req.body.paySlipMonth;
+
+      let allPaySlips = await db.paySlips.findAll({ 
+        where: { paySlipMonth: paySlipMonth, paySlipStatus: 1, sendEmail: 0, EmployeeId: { [Op.in]: EmployeeIds } }, 
+        attribute: ['paySlipAutoId', 'EmployeeId', 'payMonth', 'paySlipYear', 'paySlipMonth'], 
+        include: [{ model: db.employeeMaster, attribute: ['email', 'firstName'] }]});
+      
+        for(let i = 0; allPaySlips.length > i; i++) {
+          let mailStatus = await eventEmitter.emit(
+            "releasePaySlip",
+            JSON.stringify({
+              email: allPaySlips[i]?.employee?.email,
+              firstName: allPaySlips[i]?.employee.firstName,
+              month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}` 
+            })
+          )
+          if(mailStatus) {
+            await db.paySlips.update({ sendEmail: 1 }, { where: { paySlipAutoId: allPaySlips[i]?.paySlipAutoId } })
+          }
+        }
+
+        return respHelper(res, {
+          status: 200,
+          msg: allPaySlips.length > 0 ? "Mail send successfully" : 'No employee found',
+          data: {}
+        });
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500
+      });
+    }
+  }
+
   async salarySlipPdf(req, res) {
     console.log("i am thereee>>>>>>>")
     try {
@@ -4862,6 +4907,12 @@ async function releasePaySlip(data) {
         { payStatus: 8 },
         { where: { proceessId: processId } }
       );
+
+      // send confirmation mail to employee after salary slip release
+      if(employeeIds.length > 0) {
+        sendMailAfterSalarySlipRelease(employeeIds, currentProcess.payMonth);
+      }
+
     }
   } catch (e) {
     console.log(e);
@@ -4902,6 +4953,28 @@ async function availableEmployeeForProcessing(employeeIds, paymonth) {
   } catch (e) {
     console.log(e);
   }
+}
+
+async function sendMailAfterSalarySlipRelease(employeeIds, payMonth) {
+  let allPaySlips = await db.paySlips.findAll({ 
+    where: { payMonth: payMonth, paySlipStatus: 1, sendEmail: 0, EmployeeId: { [Op.in]: employeeIds } }, 
+    attribute: ['paySlipAutoId', 'EmployeeId', 'payMonth', 'paySlipYear', 'paySlipMonth'], 
+    include: [{ model: db.employeeMaster, attribute: ['email', 'firstName'] }]});
+  
+    for(let i = 0; allPaySlips.length > i; i++) {
+      let mailStatus = await eventEmitter.emit(
+        "releasePaySlip",
+        JSON.stringify({
+          email: allPaySlips[i]?.employee?.email,
+          firstName: allPaySlips[i]?.employee.firstName,
+          month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}` 
+        })
+      )
+      if(mailStatus) {
+        // update mail status in paySlip table
+        await db.paySlips.update({ sendEmail: 1 }, { where: { paySlipAutoId: allPaySlips[i]?.paySlipAutoId } })
+      }
+    }
 }
 
 export default new PaymentController();

@@ -1122,7 +1122,10 @@ ADD COLUMN `paymentType` VARCHAR(45) NULL DEFAULT NULL AFTER `status`;
 ALTER TABLE `tara`.`extradeductions` 
 ADD COLUMN `deductionType` VARCHAR(45) NULL DEFAULT NULL AFTER `financialYearId`;
 
+13-01-2025
 
+ALTER TABLE `tara`.`payslip` 
+ADD COLUMN `sendEmail` INT NULL DEFAULT 0 AFTER `payMonth`;
 
 
 
