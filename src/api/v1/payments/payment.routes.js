@@ -71,6 +71,9 @@ export default Express
     .put("/extraPayment/:id", authentication.authenticate, paymentController.updateExtraPayment)
     .delete("/extraPayment/:id", authentication.authenticate, paymentController.deleteExtraPayment)
 
+    // test mail
+    .post("/checkPaySlipMail",authentication.authenticate, paymentController.checkPaySlipMail)
+
 
 
 

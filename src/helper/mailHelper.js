@@ -116,6 +116,13 @@ export default function getAllListeners(eventEmitter) {
   })
 
   //confirmation
+
+
+  // create method by jay
+
+  eventEmitter.on("releasePaySlip", async (input) => {
+    await releasePaySlip(input);
+  })
 }
 
 async function regularizationRequestMail(input) {
@@ -558,3 +565,23 @@ async function salarySlipPdf(input) {
   }
 }
 ///confitmatoion
+
+
+// create function by jay
+
+async function releasePaySlip(input) {
+  try {
+    const userData = JSON.parse(input);
+    let response = await helper.mailService({
+      to: userData.email,
+      subject: `Payslip has been released`,
+      html: await emailTemplate.releasePaySlip(userData)
+    });
+    // console.log("mail helper", response);
+    return response;
+  }
+  catch(error) {
+    console.log(error);
+    error.log(error, "ERROR THROWING WHEN SEND MAIL FOR RELEASE SALARY SLIP");
+  }
+}
