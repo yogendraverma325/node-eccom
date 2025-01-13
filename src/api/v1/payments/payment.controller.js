@@ -3077,11 +3077,12 @@ class PaymentController {
           }))
         );
       }
-
+     // return 
       let employeeData = [];
       if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
         let query = "";
-        const employeeIdss = [employeeIds].join(",");
+        const employeeIdss =employeeIds.split(",");
+        console.log(employeeIds);
         query = `
         SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
 
@@ -3097,12 +3098,16 @@ class PaymentController {
         [10, 11, 12, 13, 14, 15, 16].includes(Number(exportSheetAutoId))
       ) {
         let query = "";
-        const employeeIdss = [employeeIds].join(",");
+        const employeeIdss =employeeIds.split(",");// [employeeIds];
+        // employeeIdss.map(id => `'${id}'`).join(', ')
+        // console.log(employeeIdss);
+
+        //return
         const impactedEmployeeQueryObject = {
-          10: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss});`,
-          11: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM tara.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss});`,
-          12: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where empCode in(${employeeIdss}) and startMonth='${payMonth}' GROUP BY empCode;`,
-          13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM tara.tdsdeductions where empCode in(${employeeIds}) and tdsMonth='${payMonth}';`,
+          10: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss.map(id => `'${id}'`).join(', ')});`,
+          11: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM tara.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss.map(id => `'${id}'`).join(', ')});`,
+          12: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where empCode in(${employeeIdss.map(id => `'${id}'`).join(', ')}) and startMonth='${payMonth}' GROUP BY empCode;`,
+          13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM tara.tdsdeductions where empCode in(${employeeIdss.map(id => `'${id}'`).join(', ')}) and tdsMonth='${payMonth}';`,
           14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
           15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
           16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
