@@ -321,4 +321,14 @@ export default Express.Router()
     "/getEmploymentDetails",
     authentication.authenticate,
     userController.getEmploymentDetails
-  );
+  )
+
+  .get("/searchEmpForRoster",
+    authentication.authenticate,
+    userController.searchEmpForRoster
+  )
+
+  .get("/rosterCalendar",
+    authentication.authenticate,
+    userController.rosterCalendar
+  )
