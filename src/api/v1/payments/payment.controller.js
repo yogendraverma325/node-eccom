@@ -3814,7 +3814,7 @@ class PaymentController {
   async deleteExtraPayment(req, res) {
     try {
       let model = db.extraPayment;
-      let query = { extraPaymentAutoId: req.params.id };
+      let query = { extraPaymentAutoId: req.params.id, status: 0 };
       let moduleName = "Extra Payment";
       let response = await service.delete(
         model,
