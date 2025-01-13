@@ -1424,4 +1424,9 @@ db.payProcessMaster.hasMany(db.payProcessDetails, {
   sourceKey: 'payProcessMasterAutoId'
 })
 
+db.paySlips.hasOne(db.employeeMaster, {
+  foreignKey: 'id',
+  sourceKey: 'EmployeeId'
+})
+
 export default db;

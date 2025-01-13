@@ -4309,6 +4309,63 @@ const salarySlipPdf = async (data) => {
 </html>`;
 };
 
+const releasePaySlip = async (data) => {
+  return `
+    <!DOCTYPE html>
+      <html lang="en">
+
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+      </head>
+
+      <body>
+        <table style="border-collapse:collapse;max-width:635px;min-width:550px;width:auto;margin:0 auto;border:0.5px solid #eee" align="center">
+        <tbody>
+        <tr>
+        <td>
+        <table style="border-collapse:collapse;margin:0 auto;width:100%" align="center">
+        <tbody>
+        <tr style="background:#fff">
+        <td colspan="2" style="padding:20px;padding-bottom:0" valign="top">
+        <table style="width:100%">
+        <tbody>
+        <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle">
+        <img height="45" src="${process.env.PROXY_URL}/api/uploads/logos/THRLogo.png" alt="Logo" class="CToWUd" data-bit="iit">
+        </td>
+        </tr>
+        </tbody>
+        </table>
+        </td>
+        </tr>
+        <tr style="min-height:300px;background:#fff">
+        <td colspan="2" style="padding:20px" valign="top">
+        <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
+        <tbody><tr><td><p>Dear ${data.firstName},</p><p style="text-align:justify">Please be informed that the Payslip for the month of ${data.month} has been released.</p><p style="text-align:justify"><br></p><p style="text-align:justify"><strong>Teams</strong><br></p></td></tr></tbody>
+        </table>
+        </td>
+        </tr>
+        <tr style="background-color:#fff;width:100%">
+        <td valign="middle" style="padding:18px 0;color:#ffffff;padding-left:25px;text-align:left">
+        
+        </td>
+        <td valign="middle" style="padding:18px 0;color:#ffffff;padding-right:25px;text-align:right;font-size:12px"><a href="https://tara.teamcomputers.com"
+          style="text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://tara.teamcomputers.com/&amp;source=gmail&amp;ust=1727407654468000&amp;usg=AOvVaw0u4ezRJDHPE2alMMkynFks"><span
+          style="color:#ccc">Powered By :</span> TARA</a></td>
+        </tr>
+        </tbody>
+        </table>
+        </td>
+        </tr>
+        </tbody>
+        </table>
+      </body>
+
+    </html>`;
+};
+
 export default {
   regularizationRequestMail,
   resetPasswordMail,
@@ -4340,4 +4397,5 @@ export default {
   confirmationSLABreachEmailBody,
   confirmationWorkFlownextLevel,
   salarySlipPdf,
+  releasePaySlip
 };
