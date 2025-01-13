@@ -4295,9 +4295,7 @@ const salarySlipPdf = async (data) => {
                     <td>${data.totalDeductions || 0}</td>
                 </tr>
                <tr>
-                  <td><strong>Net Pay (A - B)</strong></td>
-                  <td>${data.netPay || 0}</td>
-                  <td><strong>Total Pay</strong></td>
+                  <td><strong>Total Net Pay (A - B)</strong></td>
                   <td>${data.netPay || 0}</td>
               </tr>
             </tfoot>
