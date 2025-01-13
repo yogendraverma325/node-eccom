@@ -82,9 +82,7 @@ class commonController {
       if (result.salutationId) {
         await db.employeeMaster.update(
           {
-            name: result.lastName
-              ? `${getUserDetails.firstName} ${result.lastName}`
-              : getUserDetails.firstName,
+            name: result.lastName ? `${result.firstName} ${result.lastName}` : result.firstName,
             salutationId: result.salutationId,
             middleName: result.middleName,
             lastName: result.lastName,
