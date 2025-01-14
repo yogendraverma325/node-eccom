@@ -479,6 +479,8 @@ class LeaveController {
     try {
       const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
+      let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
+
       const fromDateReq = req.body.fromDate;
       const toDateReq = req.body.toDate;
       const startDate = moment(fromDateReq);
@@ -495,7 +497,8 @@ class LeaveController {
         });
       }
       const leaveMasterData = await helper.leaveDetailsMaster(
-        result.leaveAutoId
+        result.leaveAutoId,
+        EMP_DATA
       );
       if (!leaveMasterData) {
         return respHelper(res, {
@@ -542,6 +545,7 @@ class LeaveController {
           });
         }
       }
+
       if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
         let dates = [];
 
@@ -554,10 +558,12 @@ class LeaveController {
           let prefixDate = moment(fromDateReq)
             .add(1, "day")
             .format("YYYY-MM-DD");
+
           let checkWeekOff = await helper.checkWeekOffOfEMPforData(
-            req.userData.weekOffId,
+            EMP_DATA?.weekOffId,
             prefixDate
           );
+
           if (checkWeekOff > 0) {
             return respHelper(res, {
               status: 404,
@@ -569,10 +575,11 @@ class LeaveController {
             });
           }
         }
+
         if (leaveMasterData.weekly_suffix_policy == 2) {
           let subfixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
           let checkWeekOff = await helper.checkWeekOffOfEMPforData(
-            req.userData.weekOffId,
+            EMP_DATA?.weekOffId,
             subfixDate
           );
           if (checkWeekOff > 0) {
@@ -593,7 +600,7 @@ class LeaveController {
             .format("YYYY-MM-DD");
 
           let leaveCheck = await helper.checkHolidayEMPforData(
-            req.userData.companyLocationId,
+            EMP_DATA?.companyLocationId,
             prefixDate
           );
           if (leaveCheck) {
@@ -611,7 +618,7 @@ class LeaveController {
           let prefixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
 
           let leaveCheck = await helper.checkHolidayEMPforData(
-            req.userData.companyLocationId,
+            EMP_DATA?.companyLocationId,
             prefixDate
           );
           if (leaveCheck) {
@@ -726,7 +733,7 @@ class LeaveController {
           msg: message.LEAVE.DATES_NOT_APPLICABLE,
         });
       }
-      let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
+
       let leaveData = await helper.empLeaveDetails(
         req.body.employeeId,
         req.body.leaveAutoId
@@ -794,10 +801,10 @@ class LeaveController {
             leaveAttachment:
               result.attachment != ""
                 ? await helper.fileUpload(
-                  result.attachment,
-                  `leaveAttachment_${uuid}`,
-                  `uploads/${EMP_DATA.empCode}`
-                )
+                    result.attachment,
+                    `leaveAttachment_${uuid}`,
+                    `uploads/${EMP_DATA.empCode}`
+                  )
                 : null,
             pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
             createdBy: req.userId, // Replace with actual creator user ID
@@ -809,7 +816,7 @@ class LeaveController {
             source: req.device,
           };
           arr.push(recordData);
-          //const record = await db.employeeLeaveTransactions.create(recordData);
+          // const record = await db.employeeLeaveTransactions.create(recordData);
         }
         //const record = await db.employeeLeaveTransactions.bulkCreate(arr);
       }
@@ -848,6 +855,30 @@ class LeaveController {
           msg: message.LEAVE.LEAVE_NOT_APPLICABLE,
         });
       }
+      if (
+        leaveMasterData &&
+        leaveMasterData.can_club_with_other == 1 &&
+        leaveMasterData.club_with_any == 0
+      ) {
+        let prefixDate = moment(fromDateReq)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
+        let suffixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
+        console.log("prefixDate", prefixDate, "suffixDate", suffixDate);
+
+        let leaveCount = await helper.checkLeaveClupEMPforDate(
+          [prefixDate, suffixDate],
+          req.body.leaveAutoId,
+          EMP_DATA
+        );
+        if (leaveCount != 0) {
+          return respHelper(res, {
+            status: 400,
+            data: arr,
+            msg: message.LEAVE.CLUB_NOT_ALLOWED,
+          });
+        }
+      }
 
       let headerInsert = await db.EmployeeLeaveHeader.create({
         employeeId: req.body.employeeId, // Replace with actual employee ID
@@ -867,10 +898,10 @@ class LeaveController {
         leaveAttachment:
           result.attachment != ""
             ? await helper.fileUpload(
-              result.attachment,
-              `leaveAttachment_${uuid}`,
-              `uploads/${EMP_DATA.empCode}`
-            )
+                result.attachment,
+                `leaveAttachment_${uuid}`,
+                `uploads/${EMP_DATA.empCode}`
+              )
             : null,
         pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
         createdBy: req.userId, // Replace with actual creator user ID
@@ -927,7 +958,7 @@ class LeaveController {
           leaveType: leaveType.dataValues.leaveName,
           managerName: employeeData.dataValues.managerData.name,
           managerEmail: employeeData.dataValues.managerData.email,
-          cc: recipientsEmail.map((user) => user.email).join(','),
+          cc: recipientsEmail.map((user) => user.email).join(","),
         })
       );
 

@@ -170,8 +170,8 @@ const mergeEmail = (email) => {
     typeof email === "string"
       ? [{ email }]
       : email.map((email) => {
-        return { email };
-      });
+          return { email };
+        });
   return emails;
 };
 
@@ -764,55 +764,60 @@ const empMarkLeaveOfGivenDate = async function (
       leaveType = "Full Day";
     }
     if (lateCase != null && workCase == null) {
-      leaveText = `Auto-requested for Leave deduction based on late duration policy.${empData.name
-        } (${empData.empCode}) has clocked in late in ${attendanceandOtherData.attendancemaster.attendanceLateBy
-        }
+      leaveText = `Auto-requested for Leave deduction based on late duration policy.${
+        empData.name
+      } (${empData.empCode}) has clocked in late in ${
+        attendanceandOtherData.attendancemaster.attendanceLateBy
+      }
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyLateDurationHalfDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationHalfDayTime
+      )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyLateDurationFullDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationFullDayTime
+      )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-          inputData.toDate
-        ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+        inputData.toDate
+      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
     } else if (lateCase == null && workCase != null) {
-      leaveText = `Auto-requested for Leave because of Work duration policy.${empData.name
-        } (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
-        }
+      leaveText = `Auto-requested for Leave because of Work duration policy.${
+        empData.name
+      } (${empData.empCode}) has worked for ${
+        attendanceandOtherData.attendancemaster.attendanceWorkingTime
+      }
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyWorkDurationHalfDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationHalfDayTime
+      )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyWorkDurationFullDayTime
-        )}`;
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationFullDayTime
+      )}`;
     } else {
       leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
-${empData.name} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
-        } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
+${empData.name} (${empData.empCode}) has worked for ${
+        attendanceandOtherData.attendancemaster.attendanceWorkingTime
+      } and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyWorkDurationHalfDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationHalfDayTime
+      )}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyWorkDurationFullDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyWorkDurationFullDayTime
+      )}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyLateDurationHalfDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationHalfDayTime
+      )}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-          attendanceandOtherData.attendancePolicymaster
-            .leaveDeductPolicyLateDurationFullDayTime
-        )}
+        attendanceandOtherData.attendancePolicymaster
+          .leaveDeductPolicyLateDurationFullDayTime
+      )}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-          inputData.toDate
-        ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+        inputData.toDate
+      ).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
     }
     inputData.source = "system_generated";
 
@@ -1579,11 +1584,19 @@ const compOffbalabceForUser = async (UserId) => {
   }
   return count;
 };
-const leaveDetailsMaster = async (leaveId) => {
-  const leaveData = await db.leaveMaster.findOne({
-    raw: true,
+const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
+  const leaveData = await db.leaveCompanyMapping.findOne({
     where: {
-      leaveId: leaveId,
+      leaveAutoId: leaveId,
+      companyId: EMP_DATA?.companyId,
+      empType: {
+        [Op.or]: [
+          { [Op.like]: `${EMP_DATA?.employeeType},%` },
+          { [Op.like]: `%,${EMP_DATA?.employeeType},%` },
+          { [Op.like]: `%,${EMP_DATA?.employeeType}` },
+          { [Op.eq]: `${EMP_DATA?.employeeType}` },
+        ],
+      },
       isActive: 1,
     },
   });
@@ -1900,8 +1913,8 @@ const creditCompoff = async (inputObject) => {
               expiry_date:
                 leaveData?.lapse_in_days > 0
                   ? moment()
-                    .add(leaveData?.lapse_in_days, "days")
-                    .format("YYYY-MM-DD")
+                      .add(leaveData?.lapse_in_days, "days")
+                      .format("YYYY-MM-DD")
                   : null,
               taken_on: null,
               createdBy: 1,
@@ -1953,7 +1966,39 @@ const creditCompoff = async (inputObject) => {
         }
       }
     }
-  } catch (error) { }
+  } catch (error) {}
+};
+const checkLeaveClupEMPforDate = async (Date, leaveID, EMP_DATA) => {
+  const leaveClup = await db.leaveCompanyMapping.findOne({
+    attributes: ["club_with"],
+    where: {
+      leaveAutoId: leaveID,
+      companyId: EMP_DATA?.companyId,
+      empType: {
+        [Op.or]: [
+          { [Op.like]: `${EMP_DATA?.employeeType},%` },
+          { [Op.like]: `%,${EMP_DATA?.employeeType},%` },
+          { [Op.like]: `%,${EMP_DATA?.employeeType}` },
+          { [Op.eq]: `${EMP_DATA?.employeeType}` },
+        ],
+      },
+    },
+  });
+
+  let leaveids = leaveClup ? leaveClup.club_with.split(",") : [];
+  leaveids.push(leaveID);
+
+  const leaveData = await db.employeeLeaveTransactions.count({
+    where: {
+      appliedFor: Date,
+      employeeId: EMP_DATA?.id,
+      status: ["approved", "pending"],
+      leaveAutoId: {
+        [Op.notIn]: leaveids,
+      },
+    },
+  });
+  return leaveData;
 };
 
 ///COMPOFF
@@ -1998,5 +2043,6 @@ export default {
   checkHolidayEMPforData,
   leaveCountForUserForMonth,
   creditCompoff,
+  checkLeaveClupEMPforDate,
   //COMPOFF
 };
