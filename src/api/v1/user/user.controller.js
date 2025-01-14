@@ -5001,6 +5001,9 @@ class UserController {
               "shiftEndTime",
               "isOverNight",
             ],
+          }, {
+            model: db.attendancePolicymaster,
+            attributes: ['attendaceRosterLimitForPreviousDays']
           }]
         })
 
@@ -5059,6 +5062,7 @@ class UserController {
           id: user.dataValues.id,
           empCode: user.dataValues.empCode,
           name: user.dataValues.name,
+          rosterLimit: user.dataValues.attendancePolicymaster.attendaceRosterLimitForPreviousDays,
           attendanceRosterData: await rosterData()
         })
 

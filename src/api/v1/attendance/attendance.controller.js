@@ -3938,8 +3938,8 @@ class AttendanceController {
 
           await db.AttendanceRoster.create(creationObject)
 
-          if (moment(element.attendanceDate).add(i, 'days').isBefore(moment())) {
-            await attedanceRosterCron(element.employeeId, moment(element.attendanceDate).add(i, 'days').format("YYYY-MM-DD"))
+          if (moment(element.attendanceDate).isBefore(moment())) {
+            await attedanceRosterCron(element.employeeId, moment(element.attendanceDate).format("YYYY-MM-DD"))
           }
         }
       }
@@ -4081,10 +4081,12 @@ const attedanceRosterCron = async (user, date) => {
     attributes: ['attendanceAutoId']
   })
 
-  _this.attedanceCronManual(
-    attendanceData.attendanceAutoId,
-    date
-  );
+  if (attendanceData) {
+    _this.attedanceCronManual(
+      attendanceData.attendanceAutoId,
+      date
+    );
+  }
 
 }
 export default new AttendanceController();

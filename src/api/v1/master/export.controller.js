@@ -3794,38 +3794,54 @@ class MasterController {
       const shiftMaster = await db.shiftMaster.findAll({
         attributes: ['shiftName']
       })
-      const weekOff = await db.weekOffMaster.findAll({
+      const weekOffMaster = await db.weekOffMaster.findAll({
         attributes: ['weekOffName']
       })
-      const attendancePolicy = await db.attendancePolicymaster.findAll({
+      const attendancePolicyMaster = await db.attendancePolicymaster.findAll({
         attributes: ['policyName']
       })
-      console.log("shift length", shiftMaster.length)
-      console.log("Weekoff length", weekOff.length)
-      console.log("policy length", attendancePolicy.length)
 
-      let length = (shiftMaster.length > weekOff.length && shiftMaster.length > attendancePolicy.length) ? shiftMaster.length : (weekOff.length > attendancePolicy.length ? weekOff.length : attendancePolicy.length);
+      let length = (shiftMaster.length > weekOffMaster.length && shiftMaster.length > attendancePolicyMaster.length) ? shiftMaster.length : (weekOffMaster.length > attendancePolicyMaster.length ? weekOffMaster.length : attendancePolicyMaster.length);
 
-      console.log("final length", length)
       let finalData = []
       for (let index = 0; index < length; index++) {
-        // const element = array[index];
         finalData.push({
-          shift: (shiftMaster[index].shiftName) ? (shiftMaster[index].shiftName) : '',
-          weekOff: (weekOff[index].weekOffName) ? weekOff[index].weekOffName : '',
-          // attendancepolicy: (attendancePolicy[index].policyName) ? attendancePolicy[index].policyName : ''
+          shift: (shiftMaster[index] != undefined) ? (shiftMaster[index].shiftName) : '',
+          weekoff: (weekOffMaster[index] != undefined) ? weekOffMaster[index].weekOffName : '',
+          attendancepolicy: (attendancePolicyMaster[index] != undefined) ? attendancePolicyMaster[index].policyName : ''
         })
-
       }
 
-      return respHelper(res, {
-        status: 200,
-        data: {
-          shiftMaster,
-          weekOff,
-          attendancePolicy
-        }
-      })
+      const timestamp = moment().format("HH:mm");
+
+      const data = [
+        {
+          sheet: "Shift and WeekOff Master",
+          columns: [
+            { label: "Shift Master", value: "shift" },
+            { label: "Week Off Master", value: "weekoff" },
+            { label: "Attendance Policy Master", value: "attendancepolicy" },
+
+          ],
+          content: finalData,
+        },
+      ];
+
+      const settings = {
+        fileName: `Shift_and_WeekOff_Master_${timestamp}`,
+        extraLength: 3,
+        writeOptions: {
+          type: "buffer",
+          bookType: "xlsx",
+        },
+      };
+
+      const report = xlsx(data, settings);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=Shift_and_WeekOff_Master_${timestamp}.xlsx`
+      );
+      res.end(report);
     } catch (error) {
       console.error(error);
       return respHelper(res, {
