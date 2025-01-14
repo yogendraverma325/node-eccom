@@ -4639,6 +4639,9 @@ async function generatePaySlip(data) {
         queryForPayMonthlyElementsForSalarySlip
       );
 
+      // console.log(payElements[0])
+      // console.log(queryForPayMonthlyElementsForSalarySlip)
+      // return
       // console.log(queryForPayMonthlyElementsForSalarySlip);
       // console.log(payElements);
 
@@ -4853,6 +4856,7 @@ async function generatePaySlip(data) {
             paySlipComponentType: payMonthlyElement.salaryComponentEarningType,
             createdBy: req.userData.id,
             createdAt: new Date(),
+            fixedPayElementAmount:payMonthlyElement.payElementAmount
           });
         }
         await db.payProcessDetails.update(

@@ -1160,8 +1160,8 @@ CREATE TABLE `tara`.`financialyear` (
 
 
 
-
-
+------------------Add in Payslip component 14-01-2025-----------
+fixedPayElementAmount
 
 
 

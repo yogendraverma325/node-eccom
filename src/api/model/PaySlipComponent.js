@@ -38,6 +38,10 @@ export default (sequelize, Sequelize) => {
         isActive: {
             type: Sequelize.BOOLEAN
         },
+        fixedPayElementAmount:{
+            type: Sequelize.INTEGER,
+            default:0,
+        }
     })
     return paySlipComponent
 }
