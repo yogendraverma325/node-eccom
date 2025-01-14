@@ -4121,6 +4121,7 @@ class PaymentController {
           : "",
         workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
         companyName: employee?.companymaster?.companyName || "",
+        companyLogo: employee?.companymaster?.companyLogo || "",
         currentOfficeLocation:
           employee?.companylocationmaster?.citymaster?.cityName || "",
         companyAddress: employee?.companylocationmaster?.address1 || "",

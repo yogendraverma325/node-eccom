@@ -191,7 +191,7 @@ const salaryPaySlip = async function (paySlipAutoId) {
               },
               {
                  model: db.companyMaster,
-                 attributes: ["companyName"]
+                 attributes: ["companyName","companyLogo"]
               }
             ],
           },
