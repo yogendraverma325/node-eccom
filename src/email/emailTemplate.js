@@ -4123,7 +4123,9 @@ const salarySlipPdf = async (data) => {
       rows += `
         <tr>
             <td>${earning.paySlipComponentName || ""}</td>
+            <td>${earning.fixedPayElementAmount && earning.fixedPayElementAmount>0?earning.fixedPayElementAmount: ""}</td>
             <td>${earning.paySlipComponentAmount || ""}</td>
+       
             <td>${deduction.paySlipComponentName || ""}</td>
             <td>${deduction.paySlipComponentAmount || ""}</td>
         </tr>`;
@@ -4209,7 +4211,9 @@ const salarySlipPdf = async (data) => {
 <body>
     <div class="salary-slip">
         <div class="header">
-            <img  src="${process.env.PROXY_URL}/api/uploads/logos/THRLogo.png" alt="Company Logo">
+            <img  src="${
+              process.env.PROXY_URL
+            }/api/uploads/logos/THRLogo.png" alt="Company Logo">
             <div class="company-details">
                 <h3>${data.companyName}</h3>
                 <p>${data.companyAddress}</p>
@@ -4275,10 +4279,11 @@ const salarySlipPdf = async (data) => {
         <table class="content">
             <thead>
                 <tr>
-                    <th>Earnings</th>
-                    <th>Amount (Rs.)</th>
-                    <th>Deductions</th>
-                    <th>Amount (Rs.)</th>
+                    <th>Discription</th>
+                    <th>Fixed</th>
+                    <th>Payble</th>
+                    <th>Discription</th>
+                    <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -4290,12 +4295,21 @@ const salarySlipPdf = async (data) => {
             <tfoot>
                 <tr>
                     <td><strong>Gross Earnings (A)</strong></td>
+                    <td></strong></td>
                     <td>${data.grossEarnings || 0}</td>
                     <td><strong>Total Deductions (B)</strong></td>
                     <td>${data.totalDeductions || 0}</td>
                 </tr>
                <tr>
+                  <td><strong>Net Pay (A - B)</strong></td>
+                    <td></td>
+                  <td>${data.netPay || 0}</td>
+                  <td></td>
+                  <td></td>
+              </tr>
+                <tr>
                   <td><strong>Total Net Pay (A - B)</strong></td>
+                    <td></td>
                   <td>${data.netPay || 0}</td>
                   <td></td>
                   <td></td>
@@ -4397,5 +4411,5 @@ export default {
   confirmationSLABreachEmailBody,
   confirmationWorkFlownextLevel,
   salarySlipPdf,
-  releasePaySlip
+  releasePaySlip,
 };

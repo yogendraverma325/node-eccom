@@ -4041,6 +4041,9 @@ class PaymentController {
       const { paySlipAutoId } = req.query;
       // const salaryDetails = await salaryPaySlip(paySlipAutoId);
       const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
+
+      // console.log(salaryDetails)
+      // return
   
       if (!salaryDetails || salaryDetails.length === 0) {
         return res.status(404).send("Salary details not found.");
@@ -4065,6 +4068,9 @@ class PaymentController {
         salaryDetails[0].payslipcomponents
       );
   
+
+      // console.log(salaryDetails[0].employee);
+      // return
       const employee = salaryDetails[0].employee;
       // const monthNames = [
       //   "Jan", "Feb", "Mar", "Apr", "May", "Jun",

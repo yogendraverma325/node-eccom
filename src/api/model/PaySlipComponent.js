@@ -40,7 +40,7 @@ export default (sequelize, Sequelize) => {
         },
         fixedPayElementAmount:{
             type: Sequelize.INTEGER,
-            default:0,
+            default:null,
         }
     })
     return paySlipComponent
