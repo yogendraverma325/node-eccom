@@ -3927,16 +3927,34 @@ class AttendanceController {
 
         if (existUser) {
 
-          const creationObject = Object.assign(
-            element,
-            {
-              isActive: 1,
-              createdDt: moment(),
-              createdAt: req.userId
+          const existRoster = await db.AttendanceRoster.findOne({
+            where: {
+              employeeId: element.employeeId,
+              attendanceDate: element.attendanceDate
             }
-          )
+          })
 
-          await db.AttendanceRoster.create(creationObject)
+          if (!existRoster) {
+            const creationObject = Object.assign(
+              element,
+              {
+                isActive: 1,
+                createdDt: moment(),
+                createdAt: req.userId
+              }
+            )
+
+            await db.AttendanceRoster.create(creationObject)
+          } else {
+            await db.AttendanceRoster.update({
+              shiftId: element.shiftId,
+              weekOffId: element.weekOffId
+            }, {
+              where: {
+                rosterAutoId: existRoster.dataValues.rosterAutoId
+              }
+            })
+          }
 
           if (moment(element.attendanceDate).isBefore(moment())) {
             await attedanceRosterCron(element.employeeId, moment(element.attendanceDate).format("YYYY-MM-DD"))
@@ -4012,15 +4030,34 @@ class AttendanceController {
         const differenceInDays = moment(toDate).diff(moment(fromDate), 'day')
 
         for (let i = 0; i <= differenceInDays; i++) {
-          await db.AttendanceRoster.create({
-            employeeId: existUser.id,
-            attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
-            shiftId: shift.dataValues.shiftId,
-            weekOffId: weekOff.dataValues.weekOffId,
-            isActive: 1,
-            createdDt: moment(),
-            createdAt: req.userId
+
+          const existRoster = await db.AttendanceRoster.findOne({
+            where: {
+              employeeId: existUser.id,
+              attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
+            }
           })
+
+          if (!existUser) {
+            await db.AttendanceRoster.create({
+              employeeId: existUser.id,
+              attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
+              shiftId: shift.dataValues.shiftId,
+              weekOffId: weekOff.dataValues.weekOffId,
+              isActive: 1,
+              createdDt: moment(),
+              createdAt: req.userId
+            })
+          } else {
+            await db.AttendanceRoster.update({
+              shiftId: shift.dataValues.shiftId,
+              weekOffId: weekOff.dataValues.weekOffId,
+            }, {
+              where: {
+                rosterAutoId: existRoster.dataValues.rosterAutoId
+              }
+            })
+          }
 
           if (moment(fromDate).add(i, 'days').isBefore(moment())) {
             await attedanceRosterCron(existUser.id, moment(fromDate).add(i, 'days').format("YYYY-MM-DD"))
