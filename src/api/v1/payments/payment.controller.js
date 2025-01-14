@@ -4160,6 +4160,7 @@ class PaymentController {
       //const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
        const letter = await emailTemplate.salarySlipPdf(body);
   
+      //  console.log(letter);
       // Puppeteer for PDF generation
       const browser = await puppeteer.launch({
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
