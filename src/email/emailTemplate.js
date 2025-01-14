@@ -4343,7 +4343,7 @@ const releasePaySlip = async (data) => {
         <tr style="min-height:300px;background:#fff">
         <td colspan="2" style="padding:20px" valign="top">
         <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
-        <tbody><tr><td><p>Dear ${data.firstName},</p><p style="text-align:justify">Please be informed that the Payslip for the month of ${data.month} has been released.</p><p style="text-align:justify"><br></p><p style="text-align:justify"><strong>Teams</strong><br></p></td></tr></tbody>
+        <tbody><tr><td><p>Dear ${data.firstName},</p><p style="text-align:justify">Please be informed that the Payslip for the month of ${data.month} has been released. <a href="${process.env.PROXY_URL}/api/payment/salarySlipPdf?paySlipAutoId=${data.paySlipAutoId}" download="${data.year_month}_Payslip" style="color: blue; text-decoration: none;">Click here to download</a>.</p><p style="text-align:justify"><br></p><p style="text-align:justify"><strong>Teams</strong><br></p></td></tr></tbody>
         </table>
         </td>
         </tr>

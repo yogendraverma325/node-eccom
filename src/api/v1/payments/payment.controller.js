@@ -3877,7 +3877,13 @@ class PaymentController {
                   `(SELECT COUNT(proceessId) 
                    FROM payprocessdetails pd 
                    WHERE pd.payMonth = payprocessmaster.payMonth 
-                   AND pd.payStatus NOT IN (4))`
+                   AND pd.payMonth IN (
+                      SELECT ppm.payMonth 
+                      FROM payprocessmaster ppm 
+                      WHERE ppm.companyId = ${companyId} 
+                      AND ppm.payMonth = payprocessmaster.payMonth
+                    )
+                  )`
                 ),
                 'pay_count' // Alias for the computed column
               ]
@@ -3904,7 +3910,13 @@ class PaymentController {
                   `(SELECT COUNT(proceessId) 
                    FROM payprocessdetails pd 
                    WHERE pd.payMonth = payprocessmaster.payMonth 
-                   AND pd.payStatus NOT IN (4))`
+                   AND pd.payMonth IN (
+                      SELECT ppm.payMonth 
+                      FROM payprocessmaster ppm 
+                      WHERE ppm.companyId = ${companyId} 
+                      AND ppm.payMonth = payprocessmaster.payMonth
+                    )
+                  )`
                 ),
                 'pay_count' // Alias for the computed column
               ]
@@ -3996,6 +4008,7 @@ class PaymentController {
         where: { paySlipMonth: paySlipMonth, paySlipStatus: 1, sendEmail: 0, EmployeeId: { [Op.in]: EmployeeIds } }, 
         attribute: ['paySlipAutoId', 'EmployeeId', 'payMonth', 'paySlipYear', 'paySlipMonth'], 
         include: [{ model: db.employeeMaster, attribute: ['email', 'firstName'] }]});
+        console.log(allPaySlips)
       
         for(let i = 0; allPaySlips.length > i; i++) {
           let mailStatus = await eventEmitter.emit(
@@ -4003,7 +4016,9 @@ class PaymentController {
             JSON.stringify({
               email: allPaySlips[i]?.employee?.email,
               firstName: allPaySlips[i]?.employee.firstName,
-              month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}` 
+              month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+              year_month: `${allPaySlips[i]?.paySlipYear}_${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+              paySlipAutoId: allPaySlips[i]?.paySlipAutoId
             })
           )
           if(mailStatus) {
@@ -4011,15 +4026,15 @@ class PaymentController {
           }
         }
 
-        await db.extraDeduction.update(
-          { status: 1, updatedAt: moment(), updatedBy: req.userId },
-          { where: { EmployeeId: { [Op.in]: EmployeeIds }, startMonth: paySlipMonth } }
-        );
+        // await db.extraDeduction.update(
+        //   { status: 1, updatedAt: moment(), updatedBy: req.userId },
+        //   { where: { EmployeeId: { [Op.in]: EmployeeIds }, startMonth: paySlipMonth } }
+        // );
   
-        await db.extraPayment.update(
-          { status: 1, updatedAt: moment(), updatedBy: req.userId },
-          { where: { EmployeeId: { [Op.in]: EmployeeIds }, paymentMonth: paySlipMonth } }
-        );
+        // await db.extraPayment.update(
+        //   { status: 1, updatedAt: moment(), updatedBy: req.userId },
+        //   { where: { EmployeeId: { [Op.in]: EmployeeIds }, paymentMonth: paySlipMonth } }
+        // );
 
         return respHelper(res, {
           status: 200,
@@ -4990,7 +5005,9 @@ async function sendMailAfterSalarySlipRelease(employeeIds, payMonth) {
         JSON.stringify({
           email: allPaySlips[i]?.employee?.email,
           firstName: allPaySlips[i]?.employee.firstName,
-          month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}` 
+          month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+          year_month: `${allPaySlips[i]?.paySlipYear}_${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+          paySlipAutoId: allPaySlips[i]?.paySlipAutoId
         })
       )
       if(mailStatus) {
