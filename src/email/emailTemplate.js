@@ -4279,10 +4279,10 @@ const salarySlipPdf = async (data) => {
         <table class="content">
             <thead>
                 <tr>
-                    <th>Discription</th>
+                    <th>Description</th>
                     <th>Fixed</th>
                     <th>Payble</th>
-                    <th>Discription</th>
+                    <th>Description</th>
                     <th>Amount</th>
                 </tr>
             </thead>
@@ -4302,13 +4302,6 @@ const salarySlipPdf = async (data) => {
                 </tr>
                <tr>
                   <td><strong>Net Pay (A - B)</strong></td>
-                    <td></td>
-                  <td>${data.netPay || 0}</td>
-                  <td></td>
-                  <td></td>
-              </tr>
-                <tr>
-                  <td><strong>Total Net Pay (A - B)</strong></td>
                     <td></td>
                   <td>${data.netPay || 0}</td>
                   <td></td>

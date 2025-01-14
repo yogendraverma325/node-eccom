@@ -204,7 +204,7 @@ class PaymentController {
         order: [["createdAt", "desc"]],
         attributes: {
           exclude: [
-            "createdAt",
+            // "createdAt",
             "createdBy",
             "updatedBy",
             "updatedAt",
