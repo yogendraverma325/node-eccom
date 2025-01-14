@@ -5062,7 +5062,7 @@ class UserController {
           id: user.dataValues.id,
           empCode: user.dataValues.empCode,
           name: user.dataValues.name,
-          rosterLimit: (user) ? user.dataValues.attendancePolicymaster.attendaceRosterLimitForPreviousDays : 0,
+          rosterLimit: (user.dataValues.attendancePolicymaster) ? user.dataValues.attendancePolicymaster.attendaceRosterLimitForPreviousDays : 0,
           attendanceRosterData: await rosterData()
         })
 
