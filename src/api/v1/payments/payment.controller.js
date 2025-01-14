@@ -40,9 +40,10 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 class PaymentController {
   async payElements(req, res) {
     try {
-      const user = req.query.user;
+      const user = req.query.user || req.userId;
+
       const payPackageDetails = await db.payPackage.findOne({
-        where: { EmployeeId: req.userId ,isActive:1},
+        where: { EmployeeId: user ,isActive:1},
         raw: true,
         attributes: ["salaryStructureAutoId", "payPackageAutoId"],
         order: [["createdAt", "DESC"]], // Correct order syntax
@@ -51,7 +52,7 @@ class PaymentController {
       if (payPackageDetails) {
         const payElementsData = await db.payElements.findAll({
           where: {
-            EmployeeId: user ? user : req.userId,
+            EmployeeId: user,
             payPackageAutoId: payPackageDetails.payPackageAutoId,
           },
           attributes: {
@@ -3594,7 +3595,7 @@ class PaymentController {
       let page = parseInt(req.query.page) || 1;
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
-      let userId = req.query.user;
+      let userId = req.query.user || req.userId;
       let financialYearId = req.query.financialYearId || "";
 
       let query = { 
@@ -3727,7 +3728,7 @@ class PaymentController {
       let page = parseInt(req.query.page) || 1;
       let search = req.query.search || "";
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
-      let userId = req.query.user;
+      let userId = req.query.user || req.userId;
       let financialYearId = req.query.financialYearId || "";
 
       let query = { 
@@ -4009,6 +4010,16 @@ class PaymentController {
             await db.paySlips.update({ sendEmail: 1 }, { where: { paySlipAutoId: allPaySlips[i]?.paySlipAutoId } })
           }
         }
+
+        await db.extraDeduction.update(
+          { status: 1, updatedAt: moment(), updatedBy: req.userId },
+          { where: { EmployeeId: { [Op.in]: EmployeeIds }, startMonth: paySlipMonth } }
+        );
+  
+        await db.extraPayment.update(
+          { status: 1, updatedAt: moment(), updatedBy: req.userId },
+          { where: { EmployeeId: { [Op.in]: EmployeeIds }, paymentMonth: paySlipMonth } }
+        );
 
         return respHelper(res, {
           status: 200,
@@ -4906,6 +4917,18 @@ async function releasePaySlip(data) {
       await db.payProcessDetails.update(
         { payStatus: 8 },
         { where: { proceessId: processId } }
+      );
+
+      // complete status of extra payment and extra deduction
+
+      await db.extraDeduction.update(
+        { status: 1, updatedAt: moment(), updatedBy: req.userId },
+        { where: { EmployeeId: { [Op.in]: employeeIds }, startMonth: currentProcess.payMonth } }
+      );
+
+      await db.extraPayment.update(
+        { status: 1, updatedAt: moment(), updatedBy: req.userId },
+        { where: { EmployeeId: { [Op.in]: employeeIds }, paymentMonth: currentProcess.payMonth } }
       );
 
       // send confirmation mail to employee after salary slip release
