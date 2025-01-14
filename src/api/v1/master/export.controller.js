@@ -50,12 +50,12 @@ class MasterController {
         where: Object.assign(
           search
             ? {
-                [Op.or]: [
-                  { empCode: { [Op.like]: `%${search}%` } },
-                  { name: { [Op.like]: `%${search}%` } },
-                  { email: { [Op.like]: `%${search}%` } },
-                ],
-              }
+              [Op.or]: [
+                { empCode: { [Op.like]: `%${search}%` } },
+                { name: { [Op.like]: `%${search}%` } },
+                { email: { [Op.like]: `%${search}%` } },
+              ],
+            }
             : {}
         ),
         include: [
@@ -701,11 +701,9 @@ class MasterController {
       const limit = parseInt(req.query.limit) || 10;
       const pageNo = parseInt(req.query.page) || 1;
       const offset = (pageNo - 1) * limit;
-      const cacheKey = `employeeList:${process.env.TEST}:${pageNo}:${limit}:${
-        search || ""
-      }:${department || ""}:${designation || ""}:${buSearch || ""}:${
-        sbuSearch || ""
-      }:${areaSearch || ""}`;
+      const cacheKey = `employeeList:${pageNo}:${limit}:${search || ""}:${department || ""
+        }:${designation || ""}:${buSearch || ""}:${sbuSearch || ""}:${areaSearch || ""
+        }`;
 
       let employeeData = [];
       await client.get(cacheKey).then(async (data) => {
@@ -1004,9 +1002,9 @@ class MasterController {
               ")",
             manager: record["employee.managerData.name"]
               ? record["employee.managerData.name"] +
-                " (" +
-                record["employee.managerData.empCode"] +
-                ")"
+              " (" +
+              record["employee.managerData.empCode"] +
+              ")"
               : "-",
             attendanceDate: moment(record.attendanceDate).format("DD-MM-YYYY"),
             attendanceStatus: record.attendanceStatus,
@@ -1036,14 +1034,12 @@ class MasterController {
             //createdBy: record["punchInCreatedBy.name"] + record["punchInCreatedBy.empCode"] || "N/A",
             //updatedBy: record["punchOutCreatedBy.name"] + record["punchOutCreatedBy.empCode"]|| "N/A",
             createdBy: record["punchInCreatedBy.name"]
-              ? `${record["punchInCreatedBy.name"]} (${
-                  record["punchInCreatedBy.empCode"] ?? "N/A"
-                })`
+              ? `${record["punchInCreatedBy.name"]} (${record["punchInCreatedBy.empCode"] ?? "N/A"
+              })`
               : "N/A",
             updatedBy: record["punchOutCreatedBy.name"]
-              ? `${record["punchOutCreatedBy.name"]} (${
-                  record["punchOutCreatedBy.empCode"] ?? "N/A"
-                })`
+              ? `${record["punchOutCreatedBy.name"]} (${record["punchOutCreatedBy.empCode"] ?? "N/A"
+              })`
               : "N/A",
             createdAt:
               record.createdAt != null
@@ -1203,7 +1199,7 @@ class MasterController {
               ...(fromDate && {
                 [Op.or]: [
                   { dateOfexit: null },
-                  { dateOfexit: { [Op.gte]: fromDate.format("YYYY-MM-DD") } },
+                  { dateOfexit: { [Op.gte]: fromDate.format("YYYY-MM-DD") } }
                 ],
               }),
               ...(employeeType && {
@@ -1291,7 +1287,7 @@ class MasterController {
           ...(fromDate && {
             [Op.or]: [
               { dateOfexit: null },
-              { dateOfexit: { [Op.gte]: fromDate.format("YYYY-MM-DD") } },
+              { dateOfexit: { [Op.gte]: fromDate.format("YYYY-MM-DD") } }
             ],
           }),
           ...(department && {
@@ -1500,8 +1496,8 @@ class MasterController {
                     leave.leaveCount === "1.0"
                       ? "L"
                       : leave.leaveAutoId == 6
-                      ? "0.5U"
-                      : "0.5L";
+                        ? "0.5U"
+                        : "0.5L";
                   dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                   //attendanceCount.L++;
                   attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1527,8 +1523,8 @@ class MasterController {
                     leave.leaveCount === "1.0"
                       ? "L"
                       : leave.leaveAutoId == 6
-                      ? "0.5U"
-                      : "0.5L";
+                        ? "0.5U"
+                        : "0.5L";
                   dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                   //attendanceCount.L++;
                   attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1554,8 +1550,8 @@ class MasterController {
                     leave.leaveCount === "1.0"
                       ? "L"
                       : leave.leaveAutoId == 6
-                      ? "0.5U"
-                      : "0.5L";
+                        ? "0.5U"
+                        : "0.5L";
                   dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                   // attendanceCount.L++;
                   attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1578,7 +1574,8 @@ class MasterController {
               // If there are no attendance records, set to '-'
               if (employeeRecord.type == 0) {
                 dayRecords[dayKey] = "-"; // Set to W for week off
-              } else {
+              }
+              else {
                 dayRecords[dayKey] = "H"; // Set to H for holiday
                 attendanceCount.H++;
               }
@@ -1610,8 +1607,8 @@ class MasterController {
                     leave.leaveCount === "1.0"
                       ? "L"
                       : leave.leaveAutoId == 6
-                      ? "0.5U"
-                      : "0.5L";
+                        ? "0.5U"
+                        : "0.5L";
                   dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                   //attendanceCount.L++;
                   attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1637,8 +1634,8 @@ class MasterController {
                     leave.leaveCount === "1.0"
                       ? "L"
                       : leave.leaveAutoId == 6
-                      ? "0.5U"
-                      : "0.5L";
+                        ? "0.5U"
+                        : "0.5L";
                   dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                   // attendanceCount.L++;
                   attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1664,8 +1661,8 @@ class MasterController {
                     leave.leaveCount === "1.0"
                       ? "L"
                       : leave.leaveAutoId == 6
-                      ? "0.5U"
-                      : "0.5L";
+                        ? "0.5U"
+                        : "0.5L";
                   dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                   //attendanceCount.L++;
                   attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1688,7 +1685,8 @@ class MasterController {
             } else {
               if (employeeRecord.type == 0) {
                 dayRecords[dayKey] = "-"; // Set to W for week off
-              } else {
+              }
+              else {
                 dayRecords[dayKey] = "W"; // Set to W for week off
                 attendanceCount.W++;
               }
@@ -1730,8 +1728,8 @@ class MasterController {
                       leave.leaveCount === "1.0"
                         ? "L"
                         : leave.leaveAutoId == 6
-                        ? "0.5U"
-                        : "0.5L";
+                          ? "0.5U"
+                          : "0.5L";
                     dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                     //attendanceCount.L++;
                     attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1762,8 +1760,8 @@ class MasterController {
                       leave.leaveCount === "1.0"
                         ? "L"
                         : leave.leaveAutoId == 6
-                        ? "0.5U"
-                        : "0.5L";
+                          ? "0.5U"
+                          : "0.5L";
                     dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                     //attendanceCount.L++;
                     attendanceCount.L += parseFloat(leave.leaveCount);
@@ -1794,8 +1792,8 @@ class MasterController {
                       leave.leaveCount === "1.0"
                         ? "L"
                         : leave.leaveAutoId == 6
-                        ? "0.5U"
-                        : "0.5L";
+                          ? "0.5U"
+                          : "0.5L";
                     dayRecords[dayKey] = `${dayRecords[dayKey]},${leaveStatus}`; // Append leave status
                     //attendanceCount.L++;
                     attendanceCount.L += parseFloat(leave.leaveCount);
@@ -2258,8 +2256,7 @@ class MasterController {
           manager_name: ele.dataValues.managerData?.name || "",
           manager_email_id: ele.dataValues.managerData?.email || "",
           designation_name: ele.dataValues.designationmaster
-            ? `${ele.dataValues.designationmaster.name || ""} (${
-                ele.dataValues.designationmaster.code || ""
+            ? `${ele.dataValues.designationmaster.name || ""} (${ele.dataValues.designationmaster.code || ""
               })`.trim()
             : "",
           designation_code: ele.dataValues.designationmaster?.code || "",
@@ -2285,8 +2282,8 @@ class MasterController {
             ele.employeejobdetail?.joblevelmaster?.jobLevelCode || "",
           costCenter:
             ele.costcentermaster?.costCenterName +
-              " " +
-              ele.costcentermaster?.costCenterCode || "",
+            " " +
+            ele.costcentermaster?.costCenterCode || "",
           dateOfJoining: ele.employeejobdetail?.dateOfJoining
             ? moment(ele.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
             : "",
@@ -2303,18 +2300,18 @@ class MasterController {
           nationality: ele.employeebiographicaldetail?.nationality || "",
           maritalStatus: ele.employeebiographicaldetail?.maritalStatus
             ? Object.keys(maritalStatusOptions).find(
-                (key) =>
-                  maritalStatusOptions[key] ===
-                  ele.employeebiographicaldetail.maritalStatus
-              ) || ""
+              (key) =>
+                maritalStatusOptions[key] ===
+                ele.employeebiographicaldetail.maritalStatus
+            ) || ""
             : "",
           maritalStatusSince:
             ele.employeebiographicaldetail.maritalStatusSince || "",
           gender: ele.employeebiographicaldetail?.gender,
           dateOfBirth: ele.employeebiographicaldetail?.dateOfBirth
             ? moment(ele.employeebiographicaldetail.dateOfBirth).format(
-                "DD-MM-YYYY"
-              )
+              "DD-MM-YYYY"
+            )
             : "",
           office_country: ele.companylocationmaster?.countrymaster?.countryName,
           office_state: ele.companylocationmaster?.statemaster?.stateName,
@@ -2398,8 +2395,8 @@ class MasterController {
           anniversary_date: ele.employeebiographicaldetail?.dataValues
             ?.maritalStatusSince
             ? moment(
-                ele.employeebiographicaldetail?.dataValues?.maritalStatusSince
-              ).format("DD-MM-YYYY")
+              ele.employeebiographicaldetail?.dataValues?.maritalStatusSince
+            ).format("DD-MM-YYYY")
             : "",
 
           location_type:
@@ -2408,18 +2405,18 @@ class MasterController {
               : "Branch",
           work_area: ele.companylocationmaster?.dataValues
             ? [
-                ele.companylocationmaster?.dataValues?.address1 || "",
-                ele.companylocationmaster?.dataValues?.currentcity?.cityName ||
-                  "",
-                ele.companylocationmaster?.dataValues?.currentstate
-                  ?.stateName || "",
-                ele.companylocationmaster?.dataValues?.currentcountry
-                  ?.countryName || "",
-                ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
-                  ?.pincode || "",
-              ]
-                .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-                .join(", ")
+              ele.companylocationmaster?.dataValues?.address1 || "",
+              ele.companylocationmaster?.dataValues?.currentcity?.cityName ||
+              "",
+              ele.companylocationmaster?.dataValues?.currentstate
+                ?.stateName || "",
+              ele.companylocationmaster?.dataValues?.currentcountry
+                ?.countryName || "",
+              ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
+                ?.pincode || "",
+            ]
+              .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+              .join(", ")
             : "",
           work_area_code:
             ele.companylocationmaster?.dataValues?.companyLocationCode || "",
@@ -2440,37 +2437,37 @@ class MasterController {
           project_code: ele.employeejobdetail?.projectCode || "",
           customer_code: ele.employeejobdetail?.dataValues?.customerName
             ? (ele.employeejobdetail.dataValues.customerName.match(/(C\d+)/) ||
-                [])[1] || ""
+              [])[1] || ""
             : "",
           current_address: ele.employeeaddress?.dataValues
             ? [
-                ele.employeeaddress?.dataValues?.currentHouse || "",
-                ele.employeeaddress?.dataValues?.currentStreet || "",
-                ele.employeeaddress?.dataValues?.currentLandmark || "",
-                ele.employeeaddress?.dataValues?.currentcity?.cityName || "",
-                ele.employeeaddress?.dataValues?.currentstate?.stateName || "",
-                ele.employeeaddress?.dataValues?.currentcountry?.countryName ||
-                  "",
-                ele.employeeaddress?.dataValues?.currentpincode?.pincode || "",
-              ]
-                .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-                .join(", ")
+              ele.employeeaddress?.dataValues?.currentHouse || "",
+              ele.employeeaddress?.dataValues?.currentStreet || "",
+              ele.employeeaddress?.dataValues?.currentLandmark || "",
+              ele.employeeaddress?.dataValues?.currentcity?.cityName || "",
+              ele.employeeaddress?.dataValues?.currentstate?.stateName || "",
+              ele.employeeaddress?.dataValues?.currentcountry?.countryName ||
+              "",
+              ele.employeeaddress?.dataValues?.currentpincode?.pincode || "",
+            ]
+              .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+              .join(", ")
             : "",
           permanent_address: ele.employeeaddress?.dataValues
             ? [
-                ele.employeeaddress?.dataValues?.permanentHouse || "",
-                ele.employeeaddress?.dataValues?.permanentStreet || "",
-                ele.employeeaddress?.dataValues?.permanentLandmark || "",
-                ele.employeeaddress?.dataValues?.permanentcity?.cityName || "",
-                ele.employeeaddress?.dataValues?.permanentstate?.stateName ||
-                  "",
-                ele.employeeaddress?.dataValues?.permanentcountry
-                  ?.countryName || "",
-                ele.employeeaddress?.dataValues?.permanentpincode?.pincode ||
-                  "",
-              ]
-                .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-                .join(", ")
+              ele.employeeaddress?.dataValues?.permanentHouse || "",
+              ele.employeeaddress?.dataValues?.permanentStreet || "",
+              ele.employeeaddress?.dataValues?.permanentLandmark || "",
+              ele.employeeaddress?.dataValues?.permanentcity?.cityName || "",
+              ele.employeeaddress?.dataValues?.permanentstate?.stateName ||
+              "",
+              ele.employeeaddress?.dataValues?.permanentcountry
+                ?.countryName || "",
+              ele.employeeaddress?.dataValues?.permanentpincode?.pincode ||
+              "",
+            ]
+              .filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+              .join(", ")
             : "",
         };
 
@@ -2755,27 +2752,25 @@ class MasterController {
           return {
             empCode: ele.dataValues.empCode || "",
             name: ele.dataValues.name || "",
-            jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${
-              ele.dataValues.designationmaster?.code || ""
-            })`,
-            department: `${
-              ele.dataValues.departmentmaster?.departmentName || ""
-            } (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
+            jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${ele.dataValues.designationmaster?.code || ""
+              })`,
+            department: `${ele.dataValues.departmentmaster?.departmentName || ""
+              } (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
             bu_name: ele.dataValues.bumaster?.buName || "",
             separationRequestedOn: ele.dataValues.separationmaster?.createdDt
               ? moment(ele.dataValues.separationmaster.createdDt).format(
-                  "DD-MM-YYYY"
-                )
+                "DD-MM-YYYY"
+              )
               : "",
             requestedLastDay: ele.dataValues.separationmaster
               ?.empProposedLastWorkingDay
               ? moment(
-                  ele.dataValues.separationmaster.empProposedLastWorkingDay
-                ).format("DD-MM-YYYY")
+                ele.dataValues.separationmaster.empProposedLastWorkingDay
+              ).format("DD-MM-YYYY")
               : "",
             status:
               ele.dataValues.separationmaster?.finalStatus === 2 ||
-              ele.dataValues.separationmaster?.finalStatus === 5
+                ele.dataValues.separationmaster?.finalStatus === 5
                 ? "Pending with Manager"
                 : "Pending with BuHr",
             agreedLastDay: "N/A",
@@ -2789,16 +2784,16 @@ class MasterController {
               ele.dataValues.noticeperiodmaster?.noticePeriodName || "N/A",
             noticePeriodDuration:
               ele.dataValues.noticeperiodmaster?.nPDaysAfterConfirmation +
-                " " +
-                "Day(s)" || "N/A",
+              " " +
+              "Day(s)" || "N/A",
             replacementRequired:
               ele.dataValues.separationmaster?.replacementRequired == null ||
-              false
+                false
                 ? "N/A"
                 : "Yes",
             replacementRequiredBy:
               ele.dataValues.separationmaster?.replacementRequired == null ||
-              false
+                false
                 ? "N/A"
                 : ele.dataValues.separationmaster?.replacementRequired,
             shortFallPayout:
@@ -3048,12 +3043,10 @@ class MasterController {
           return {
             empCode: ele.dataValues.empCode || "",
             name: ele.dataValues.name || "",
-            jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${
-              ele.dataValues.designationmaster?.code || ""
-            })`,
-            department: `${
-              ele.dataValues.departmentmaster?.departmentName || ""
-            } (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
+            jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${ele.dataValues.designationmaster?.code || ""
+              })`,
+            department: `${ele.dataValues.departmentmaster?.departmentName || ""
+              } (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
             bu_name: ele.dataValues.bumaster?.buName || "",
 
             resignationDate: ele.dataValues.separationmaster?.resignationDate,
@@ -3061,8 +3054,8 @@ class MasterController {
             requestedLastDay: ele.dataValues.separationmaster
               ?.empProposedLastWorkingDay
               ? moment(
-                  ele.dataValues.separationmaster.empProposedLastWorkingDay
-                ).format("DD-MM-YYYY")
+                ele.dataValues.separationmaster.empProposedLastWorkingDay
+              ).format("DD-MM-YYYY")
               : "",
             noticePeriodRecoveryDays:
               ele.dataValues.separationmaster?.noticePeriodDay || "N/A",
@@ -3141,17 +3134,17 @@ class MasterController {
               ele.dataValues.noticeperiodmaster?.noticePeriodName || "N/A",
             noticePeriodDuration:
               ele.dataValues.noticeperiodmaster?.nPDaysAfterConfirmation +
-                " " +
-                "Day(s)" || "N/A",
+              " " +
+              "Day(s)" || "N/A",
 
             replacementRequired:
               ele.dataValues.separationmaster?.replacementRequired == null ||
-              false
+                false
                 ? "N/A"
                 : "Yes",
             replacementRequiredBy:
               ele.dataValues.separationmaster?.replacementRequired == null ||
-              false
+                false
                 ? "N/A"
                 : ele.dataValues.separationmaster?.replacementRequired,
 
@@ -3171,8 +3164,8 @@ class MasterController {
             //need to add
             l2LastWorkingDay: ele.dataValues.separationmaster?.l2LastWorkingDay
               ? moment(ele.dataValues.separationmaster.l2LastWorkingDay).format(
-                  "DD-MM-YYYY"
-                )
+                "DD-MM-YYYY"
+              )
               : "",
             // newCompanyName:
             //ele.dataValues.separationmaster?.empNewOrganizationName || "N/A",
@@ -3434,10 +3427,10 @@ class MasterController {
             where: {
               ...(fromDate &&
                 toDate && {
-                  resignationDate: {
-                    [db.Sequelize.Op.between]: [fromDate, toDate],
-                  },
-                }),
+                resignationDate: {
+                  [db.Sequelize.Op.between]: [fromDate, toDate],
+                },
+              }),
             },
             required: true,
             include: [
@@ -3491,13 +3484,11 @@ class MasterController {
           return {
             empCode: ele.dataValues.empCode || "",
             name: ele.dataValues.name || "",
-            jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${
-              ele.dataValues.designationmaster?.code || ""
-            })`,
+            jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${ele.dataValues.designationmaster?.code || ""
+              })`,
 
-            department: `${
-              ele.dataValues.departmentmaster?.departmentName || ""
-            } (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
+            department: `${ele.dataValues.departmentmaster?.departmentName || ""
+              } (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
 
             bu_name: ele.dataValues.bumaster?.buName || "",
 
@@ -3506,8 +3497,8 @@ class MasterController {
             requestedLastDay: ele.dataValues.separationmaster
               ?.empProposedLastWorkingDay
               ? moment(
-                  ele.dataValues.separationmaster.empProposedLastWorkingDay
-                ).format("DD-MM-YYYY")
+                ele.dataValues.separationmaster.empProposedLastWorkingDay
+              ).format("DD-MM-YYYY")
               : "",
 
             noticePeriodRecoveryDays:
@@ -3561,16 +3552,16 @@ class MasterController {
             updatedByName:
               ele.dataValues.separationmaster.initiatedBy == "BuHr"
                 ? ele.dataValues.separationmaster.separationtrails[0]
-                    .createdBySeparationTrail.name
+                  .createdBySeparationTrail.name
                 : ele.dataValues.separationmaster.separationtrails[0]
-                    .updatedBySeparationTrail.name,
+                  .updatedBySeparationTrail.name,
 
             updatedByEmployeeNumber:
               ele.dataValues.separationmaster.initiatedBy == "BuHr"
                 ? ele.dataValues.separationmaster.separationtrails[0]
-                    .createdBySeparationTrail.empCode
+                  .createdBySeparationTrail.empCode
                 : ele.dataValues.separationmaster.separationtrails[0]
-                    .updatedBySeparationTrail.empCode,
+                  .updatedBySeparationTrail.empCode,
 
             updatedOn:
               ele.dataValues.separationmaster.initiatedBy == "BuHr"
@@ -3582,8 +3573,8 @@ class MasterController {
               ele.dataValues.noticeperiodmaster?.noticePeriodName || "N/A",
             noticePeriodDuration:
               ele.dataValues.noticeperiodmaster?.nPDaysAfterConfirmation +
-                " " +
-                "Day(s)" || "N/A",
+              " " +
+              "Day(s)" || "N/A",
 
             l2SalaryHike:
               ele.dataValues.separationmaster?.l2SalaryHike == null
@@ -3604,12 +3595,12 @@ class MasterController {
 
             replacementRequired:
               ele.dataValues.separationmaster?.replacementRequired == null ||
-              false
+                false
                 ? "N/A"
                 : "Yes",
             replacementRequiredBy:
               ele.dataValues.separationmaster?.replacementRequired == null ||
-              false
+                false
                 ? "N/A"
                 : ele.dataValues.separationmaster?.replacementRequired,
 
@@ -3792,6 +3783,68 @@ class MasterController {
       res.status(500).json({
         message: "An error occurred while exporting employee master data",
       });
+    }
+  }
+
+  async shiftAndWeekOff(req, res) {
+    try {
+
+      const shiftMaster = await db.shiftMaster.findAll({
+        attributes: ['shiftName']
+      })
+      const weekOffMaster = await db.weekOffMaster.findAll({
+        attributes: ['weekOffName']
+      })
+      const attendancePolicyMaster = await db.attendancePolicymaster.findAll({
+        attributes: ['policyName']
+      })
+
+      let length = (shiftMaster.length > weekOffMaster.length && shiftMaster.length > attendancePolicyMaster.length) ? shiftMaster.length : (weekOffMaster.length > attendancePolicyMaster.length ? weekOffMaster.length : attendancePolicyMaster.length);
+
+      let finalData = []
+      for (let index = 0; index < length; index++) {
+        finalData.push({
+          shift: (shiftMaster[index] != undefined) ? (shiftMaster[index].shiftName) : '',
+          weekoff: (weekOffMaster[index] != undefined) ? weekOffMaster[index].weekOffName : '',
+          attendancepolicy: (attendancePolicyMaster[index] != undefined) ? attendancePolicyMaster[index].policyName : ''
+        })
+      }
+
+      const timestamp = moment().format("HH:mm");
+
+      const data = [
+        {
+          sheet: "Shift and WeekOff Master",
+          columns: [
+            { label: "Shift Master", value: "shift" },
+            { label: "Week Off Master", value: "weekoff" },
+            { label: "Attendance Policy Master", value: "attendancepolicy" },
+
+          ],
+          content: finalData,
+        },
+      ];
+
+      const settings = {
+        fileName: `Shift_and_WeekOff_Master_${timestamp}`,
+        extraLength: 3,
+        writeOptions: {
+          type: "buffer",
+          bookType: "xlsx",
+        },
+      };
+
+      const report = xlsx(data, settings);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=Shift_and_WeekOff_Master_${timestamp}.xlsx`
+      );
+      res.end(report);
+    } catch (error) {
+      console.error(error);
+      return respHelper(res, {
+        status: 500
+      })
     }
   }
 }
