@@ -1,0 +1,67 @@
+export default (sequelize, Sequelize) => {
+  const leaveCompanyMapping = sequelize.define("leavecompanymapping", {
+    leaveCompanyId: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    leaveAutoId: {
+      type: Sequelize.INTEGER,
+    },
+    companyId: {
+      type: Sequelize.INTEGER,
+    },
+    empType: {
+      type: Sequelize.STRING,
+    },
+    defaultLeaveCount: {
+      type: Sequelize.DECIMAL(10, 2),
+    },
+    iterationDistribution: {
+      type: Sequelize.DECIMAL(10, 2),
+    },
+    canCarryForwardAhead: {
+      type: Sequelize.BOOLEAN,
+    },
+    systemGenerated: {
+      type: Sequelize.BOOLEAN,
+    },
+    creditDayOfMonth: {
+      type: Sequelize.INTEGER,
+    },
+    canTakeHalfDay: {
+      type: Sequelize.BOOLEAN,
+    },
+    minConsecutiveDay: {
+      type: Sequelize.INTEGER,
+    },
+    maxConsecutiveDay: {
+      type: Sequelize.INTEGER,
+    },
+    attachmentRequired: {
+      type: Sequelize.BOOLEAN,
+    },
+    attachmentRequiredafterdays: {
+      type: Sequelize.STRING,
+    },
+    messageRequired: {
+      type: Sequelize.BOOLEAN,
+    },
+    createdAt: {
+      type: Sequelize.DATE,
+    },
+    createdBy: {
+      type: Sequelize.INTEGER,
+    },
+    updatedBy: {
+      type: Sequelize.INTEGER,
+    },
+    updatedAt: {
+      type: Sequelize.DATE,
+    },
+    isActive: {
+      type: Sequelize.TINYINT,
+    },
+  });
+  return leaveCompanyMapping;
+};

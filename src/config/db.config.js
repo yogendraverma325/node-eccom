@@ -120,6 +120,7 @@ import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 import Signingauthority from "../api/model/signingAuthority.js";
+
 //CONFIRMATION
 //Attendace Roster///
 import AttendanceRoster from "../api/model/AttendanceRoster.js";
@@ -131,6 +132,7 @@ import comp_off_assignment_filters from "../api/model/CompOffAssignmentFilter.js
 import comp_off_polices from "../api/model/comp_off_polices.js";
 import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
 import status_master from "../api/model/StatusMaster.js";
+import LeaveCompanyMapping from "../api/model/LeaveCompanyMapping.js";
 //COMP OFF
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -355,6 +357,7 @@ db.comp_off_assignment_filters = comp_off_assignment_filters(
 db.comp_off_polices = comp_off_polices(sequelize, Sequelize);
 db.comp_off_credit_history = comp_off_credit_history(sequelize, Sequelize);
 db.status_master = status_master(sequelize, Sequelize);
+db.leaveCompanyMapping = LeaveCompanyMapping(sequelize, Sequelize);
 //COMP OFF
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -1470,6 +1473,10 @@ db.comp_off_credit_history.hasOne(db.comp_off_polices, {
   as: "compOffPolicyDetails",
 });
 
+db.companyMaster.hasMany(db.leaveCompanyMapping, {
+  foreignKey: "companyId",
+  sourceKey: "companyId",
+});
 //COMP OFF
 
 export default db;
