@@ -1067,6 +1067,7 @@ class PaymentController {
           processFlowId: 1,
           companyId: value.companyId,
           financialYearId:3,
+          filterType: (value.departmentId === "0") ? 1 : 0
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
       );

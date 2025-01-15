@@ -1132,6 +1132,10 @@ ADD COLUMN `sendEmail` INT NULL DEFAULT 0 AFTER `payMonth`;
 ALTER TABLE `tara`.`payprocessdetails` 
 ADD COLUMN `companyId` INT NULL DEFAULT NULL AFTER `payMonth`;
 
+ALTER TABLE `tara`.`payprocessmaster` 
+ADD COLUMN `filterType` INT NULL DEFAULT 0 AFTER `financialYearId`;
+
+
 
 
 
