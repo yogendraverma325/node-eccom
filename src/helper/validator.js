@@ -1283,6 +1283,16 @@ const updateCompOffRequest = Joi.object({
 });
 //COMP OFF
 
+//comp off leave 
+
+const updateCompOffLeaveRequest = Joi.object({
+  comp_off_credit_history_auto_id: Joi.string()
+    .trim()
+    .required()
+    .label("comp_off_credit_history_auto_id ID"),
+  status: Joi.string().trim().required().valid(1, 2).label("status"),
+  remarks: Joi.string().trim().allow("").max(100),
+});
 export default {
   loginSchema,
   userCreationSchema,
@@ -1341,6 +1351,9 @@ export default {
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
   attendanceApprovalSchema,
+  // comp off leave 
+  updateCompOffLeaveRequest,
+  // comp off leave
   attendanceRosterSchema,
   //COMP OFF
   updateCompOffRequest,

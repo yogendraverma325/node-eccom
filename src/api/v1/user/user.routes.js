@@ -372,3 +372,9 @@ export default Express.Router()
     authentication.authenticate,
     userController.rosterCalendar
   )
+
+  .post(
+    "/actionOnLeaveCompoff",
+    authentication.authenticate,
+    userController.actionOnLeaveCompoff
+  )

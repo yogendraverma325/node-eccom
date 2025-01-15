@@ -5717,6 +5717,141 @@ class UserController {
       });
     }
   }
+
+  async actionOnLeaveCompoff(req, res) {
+    try {
+      const result = await validator.updateCompOffLeaveRequest.validateAsync(
+        req.body
+      );
+      const getLeaveRequest = await db.EmployeeLeaveHeader.findOne({
+        attributes:['employeeId','leaveAutoId','leaveCount'],
+        where:{
+          employeeId:3201,
+          leaveAutoId:9,
+          status:"pending"
+        },
+        include:[{
+          model:db.employeeLeaveTransactions,
+          attributes:["employeeleavetransactionsId","employeeId","employeeleaveheaderID"]
+        }],
+        raw:true
+      })
+      console.log(">>>>>>",getLeaveRequest)
+      return
+      if(!getLeaveRequest){
+        return respHelper(res, {
+          status: 400,
+          msg: "No Request Available For Leave",
+          data: {},
+        });
+      }
+      
+      const comp_off_credit_historyData = await db.comp_off_credit_history.findAll({
+          attributes:['employee_Id','balance'],
+          where: {
+            employee_Id: 3201,
+            status: 1,
+            expiry_date: {
+              [Op.or]: [
+                { [Op.eq]: null }, // Check if expiry_date is null
+                { [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+              ],
+            }
+          },
+          raw:true
+        });
+
+      if(comp_off_credit_historyData.length==0){
+        return respHelper(res, {
+          status: 400,
+          msg: "No Comp-off Leave Available",
+          data: {},
+        });
+      }
+
+      const totalBalanceCompOffLeaveBalance = comp_off_credit_historyData.reduce((sum, record) => {
+        return sum + parseFloat(record.balance);
+      }, 0);
+
+      if(parseFloat(totalBalanceCompOffLeaveBalance) < parseFloat(getLeaveRequest.leaveCount)){
+        return respHelper(res, {
+          status: 400,
+          msg: "You Can't Approve Selected Comp Off Request",
+          data: {},
+        });
+      }
+      else {
+        let leaveToDeduct = parseFloat(getLeaveRequest.leaveCount);
+      
+        while (leaveToDeduct > 0) {
+          // Find the closest expiry date record
+          const findCloseDate = await db.comp_off_credit_history.findOne({
+            attributes: ["comp_off_credit_history_auto_id", "employee_id", "balance"],
+            where: {
+              employee_Id: 3201,
+              status: 1,
+              expiry_date: {
+                [Op.or]: [
+                  { [Op.eq]: null },
+                  { [Op.gt]: moment().format("YYYY-MM-DD") },
+                ],
+              },
+            },
+            raw: true,
+            order: [["expiry_date", "ASC"]], 
+          });
+      
+          if (!findCloseDate) {
+            console.log("No more eligible comp-off records to process.");
+            break;
+          }
+      
+          const availableBalance = parseFloat(findCloseDate.balance);
+      
+          if (leaveToDeduct <= availableBalance) {
+            await db.comp_off_credit_history.update(
+              {
+                updatedBy: req.userId,
+                approver_remark: req.body.remarks,
+                ...(req.body.status === 1 && { status: 2 })
+              },
+              { where: { comp_off_credit_history_auto_id: findCloseDate.comp_off_credit_history_auto_id } }
+            );
+      
+          
+            leaveToDeduct = 0;
+          } else {
+            await db.comp_off_credit_history.update(
+              {
+                updatedBy: req.userId,
+                approver_remark: req.body.remarks,
+                ...(req.body.status === 1 && { status: 2 })
+              },
+              { where: { comp_off_credit_history_auto_id: findCloseDate.comp_off_credit_history_auto_id } }
+            );
+      
+            leaveToDeduct -= availableBalance;
+          }
+          console.log("Processed record:", findCloseDate);
+          console.log("Remaining leaveToDeduct:", leaveToDeduct);
+        }
+        console.log("Final leaveToDeduct:", leaveToDeduct);
+      };
+     
+      return respHelper(res, {
+        status: 200,
+        msg: "Updated",
+      });
+    } catch (error) {
+      console.log(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+    }
+  }
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
