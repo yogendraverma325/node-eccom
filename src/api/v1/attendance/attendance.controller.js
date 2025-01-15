@@ -5,7 +5,7 @@ import message from "../../../constant/messages.js";
 import validator from "../../../helper/validator.js";
 import helper from "../../../helper/helper.js";
 import eventEmitter from "../../../services/eventService.js";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import fs from 'fs'
 import path from 'path'
 import pkg from "xlsx";
@@ -3983,9 +3983,23 @@ class AttendanceController {
   async uploadAttendanceRoster(req, res) {
     try {
 
+      const fileExt = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.template'
+      ]
+      console.log(
+        req.file.mimetype, (req.file.mimetype).includes(fileExt)
+      )
+      if (!fileExt.includes(req.file.mimetype)) {
+        return respHelper(res, {
+          status: 400,
+          msg: message.ONLY_EXCEL_ALLOWED
+        });
+      }
       if (!req.file.path) {
         return respHelper(res, {
-          status: 422,
+          status: 400,
           msg: message.ATTENDANCE_ROSTER_FILE_REQUIRED
         });
       }
@@ -4002,14 +4016,26 @@ class AttendanceController {
         rosterWorkbook.Sheets[sheetNameEmployee]
       );
 
-      for (const element of rosterData) {
+      const result = await validator.rosterUploadSchema.validateAsync(rosterData)
 
+      let failedRecords = [], successRecords = []
+      for (const element of result) {
         const existUser = await db.employeeMaster.findOne({
           where: {
-            empCode: element.Email_Or_TMC
+            [Op.or]: [{
+              empCode: element.Email_Or_TMC,
+            }, {
+              email: element.Email_Or_TMC,
+            }],
+            isActive: 1
           },
           attributes: ['id'],
         })
+
+        if (!existUser) {
+          failedRecords.push(`${element.Email_Or_TMC} User Not Found`)
+          continue
+        }
 
         const shift = await db.shiftMaster.findOne({
           where: {
@@ -4018,12 +4044,22 @@ class AttendanceController {
           attributes: ['shiftId']
         })
 
+        if (!shift) {
+          failedRecords.push(`${element.Shift_Name} Shift Not Found`)
+          continue
+        }
+
         const weekOff = await db.weekOffMaster.findOne({
           where: {
             weekOffName: element.Weekly_Off_Name
           },
           attributes: ['weekOffId']
         })
+
+        if (!weekOff) {
+          failedRecords.push(`${element.Weekly_Off_Name} Week Off Not Found`)
+          continue
+        }
 
         const toDate = helper.convertExcelDate(element.To_Date)
         const fromDate = helper.convertExcelDate(element.From_Date)
@@ -4038,7 +4074,7 @@ class AttendanceController {
             }
           })
 
-          if (!existUser) {
+          if (!existRoster) {
             await db.AttendanceRoster.create({
               employeeId: existUser.id,
               attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
@@ -4063,15 +4099,20 @@ class AttendanceController {
             await attedanceRosterCron(existUser.id, moment(fromDate).add(i, 'days').format("YYYY-MM-DD"))
           }
         }
+        successRecords.push(`${element.Email_Or_TMC} added successfully.`)
       }
 
       return respHelper(res, {
         status: 200,
-        msg: message.ATTENDANCE_ROSTER_ADDED
+        msg: message.ATTENDANCE_ROSTER_ADDED,
+        data: {
+          failedRecords,
+          successRecords
+        }
       })
 
     } catch (error) {
-      console.log(error)
+      console.log(error);
       if (error.isJoi === true) {
         return respHelper(res, {
           status: 422,

@@ -1263,10 +1263,23 @@ const attendanceApprovalSchema = Joi.object({
 //Attedance Roster Validations
 const attendanceRosterSchema = Joi.array().items(
   Joi.object({
-    employeeId:Joi.number().required().label("Employee ID"),
-    attendanceDate:Joi.string().required().label("Date"),
-    shiftId:Joi.number().required().label("Shift"),
-    weekOffId:Joi.number().required().label("Week Off"),
+    employeeId: Joi.number().required().label("Employee ID"),
+    attendanceDate: Joi.string().required().label("Date"),
+    shiftId: Joi.number().required().label("Shift"),
+    weekOffId: Joi.number().required().label("Week Off"),
+  })
+)
+
+const rosterUploadSchema = Joi.array().items(
+  Joi.object({
+    Email_Or_TMC: Joi.alternatives().try(
+      Joi.number().integer(),
+      Joi.string().email()
+    ).required().label("Email or TMC"),
+    From_Date: Joi.number().integer().required().label("From Date"),
+    To_Date: Joi.number().integer().required().label("To Date"),
+    Shift_Name: Joi.string().trim().required().label("Shift"),
+    Weekly_Off_Name: Joi.string().trim().required().label("Week Off")
   })
 )
 //Attedance Roster Validations
@@ -1329,5 +1342,6 @@ export default {
   addJobLevelEmploymentSchema,
   addEmployeeTypeEmploymentSchema,
   attendanceApprovalSchema,
-  attendanceRosterSchema
+  attendanceRosterSchema,
+  rosterUploadSchema
 };
