@@ -4121,21 +4121,21 @@ class PaymentController {
       const body = {
         name: employee.name || "",
         employeeCode: employee?.empCode || "",
-        employeeType: employee?.employeetypemaster?.emptypename || "",
-        designation: employee?.designationmaster?.name || "",
-        department: employee?.departmentmaster?.departmentName || "N/A",
-        panNo: employee?.panNo || "",
+        employeeType: employee?.employeetypemaster?.emptypename || "N.A",
+        designation: employee?.designationmaster?.name || "N.A",
+        department: employee?.departmentmaster?.departmentName || "N.A",
+        panNo: employee?.panNo || "N.A",
         dateOfJoining: moment(
           employee?.employeejobdetail?.dateOfJoining
         ).isValid()
           ? moment(employee.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
-          : "",
-        workingDays: salaryDetails[0]?.paySlipWorkingDays || "",
-        companyName: employee?.companymaster?.companyName || "",
-        companyLogo: employee?.companymaster?.companyLogo || "",
+          : "N.A",
+        workingDays: salaryDetails[0]?.paySlipWorkingDays || "N.A",
+        companyName: employee?.companymaster?.companyName || "N.A",
+        companyLogo: employee?.companymaster?.companyLogo || "N.A",
         currentOfficeLocation:
-          employee?.companylocationmaster?.citymaster?.cityName || "",
-        companyAddress: employee?.companylocationmaster?.address1 || "",
+          employee?.companylocationmaster?.citymaster?.cityName || "N.A",
+        companyAddress: employee?.companylocationmaster?.address1 || "N.A",
         grossEarnings: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
           ? parseInt(salaryDetails[0].paySlipGrossEarning)
           : "",
@@ -4158,11 +4158,11 @@ class PaymentController {
           ? parseInt(salaryDetails[0].paySlipGrossEarning) -
             parseInt(salaryDetails[0].paySlipTotalDeduction)
           : "",
-        month: currentMonth || "",
-        year: salaryDetails[0]?.paySlipYear || "",
+        month: currentMonth || "N.A",
+        year: salaryDetails[0]?.paySlipYear || "N.A",
         duration:duration,
-        noOfDaysInMonth:salaryDetails[0]?.paySlipTotalDays || "",//totalDays,
-        uanNo:employee?.employeejobdetail?.uanNumber || "",
+        noOfDaysInMonth:salaryDetails[0]?.paySlipTotalDays || "N.A",//totalDays,
+        uanNo:employee?.employeejobdetail?.uanNumber || "N.A",
         totalArrearDays:salaryDetails[0]?.paySlipArrearDays,
         providentFund:employee?.employeejobdetail?.pfNumber || "N.A",
         esicNo:employee?.employeejobdetail?.esicNumber || "N.A"

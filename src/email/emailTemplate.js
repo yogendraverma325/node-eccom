@@ -4122,15 +4122,15 @@ const salarySlipPdf = async (data) => {
       const deduction = deductions[i] || {};
       rows += `
         <tr>
-            <td>${earning.paySlipComponentName || ""}</td>
+            <td>${earning.paySlipComponentName}</td>
             <td>${
               earning.fixedPayElementAmount && earning.fixedPayElementAmount > 0
                 ? earning.fixedPayElementAmount
-                : "N/A"
+                : ""
             }</td>
-            <td>${earning.paySlipComponentAmount || "N/A"}</td>
-            <td>${deduction.paySlipComponentName || "N/A"}</td>
-            <td>${deduction.paySlipComponentAmount || "N/A"}</td>
+            <td>${earning.paySlipComponentAmount || '' }</td>
+            <td>${deduction.paySlipComponentName || ''}</td>
+            <td>${deduction.paySlipComponentAmount || '' }</td>
         </tr>`;
     }
     return rows;
@@ -4237,27 +4237,27 @@ const salarySlipPdf = async (data) => {
             </tr>
             <tr>
                 <td><strong>Designation:</strong></td>
-                <td>${data.designation || "N/A"}</td>
+                <td>${data.designation }</td>
                 <td><strong>Employee Code:</strong></td>
-                <td>${data.employeeCode || "N/A"}</td>
+                <td>${data.employeeCode }</td>
             </tr>
             <tr>
                 <td><strong>Department:</strong></td>
-                <td>${data.department || "N/A"}</td>
+                <td>${data.department }</td>
                 <td><strong>Working Days:</strong></td>
-                <td>${data.workingDays || "N/A"}</td>
+                <td>${data.workingDays }</td>
             </tr>
             <tr>
                 <td><strong>Date of Joining:</strong></td>
-                <td>${data.dateOfJoining || "N/A"}</td>
+                <td>${data.dateOfJoining }</td>
                 <td><strong>LOP:</strong></td>
-                <td>${data.lop || "N/A"}</td>
+                <td>${data.lop }</td>
             </tr>
             <tr>
                 <td><strong>Current Office Location:</strong></td>
-                <td>${data.currentOfficeLocation || "N/A"}</td>
+                <td>${data.currentOfficeLocation }</td>
                 <td><strong>PAN No:</strong></td>
-                <td>${data.panNo || "N/A"}</td>
+                <td>${data.panNo }</td>
             </tr>
             <tr>
               <td><strong>Duration:</strong></td>
@@ -4267,15 +4267,15 @@ const salarySlipPdf = async (data) => {
           </tr>
            <tr> 
               <td><strong>UAN No:</strong></td>
-              <td>${data.uanNo || "N/A"}</td>
+              <td>${data.uanNo }</td>
               <td><strong>Total Arrear Days:</strong></td>
-              <td>${data.totalArrearDays || "N/A"}</td>
+              <td>${data.totalArrearDays }</td>
           </tr>
            <tr> 
               <td><strong>Provident Fund:</strong></td>
-              <td>${data.providentFund || "N/A"}</td>
+              <td>${data.providentFund }</td>
               <td><strong>ESIC Number:</strong></td>
-              <td>${data.esicNo || "N/A"}</td>
+              <td>${data.esicNo }</td>
           </tr>
         </table>
 
