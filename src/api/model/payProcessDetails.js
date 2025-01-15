@@ -71,6 +71,9 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       default: null,
     },
+    companyId : {
+      type: Sequelize.INTEGER,
+    },
     createdBy: {
       type: Sequelize.INTEGER,
       allowNull: true,

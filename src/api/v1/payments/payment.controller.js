@@ -1082,6 +1082,7 @@ class PaymentController {
         payRemark: "Salary Initiated",
         salaryMonth: newProcess.dataValues.payMonth,
         payMonth: newProcess.dataValues.payMonth,
+        companyId: value.companyId
       }));
       await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
         console.log(resp);
@@ -3918,7 +3919,8 @@ class PaymentController {
                   `(SELECT COUNT(proceessId) 
                    FROM payprocessdetails pd 
                    WHERE pd.payMonth = payprocessmaster.payMonth 
-                   AND pd.payStatus NOT IN (4))`
+                   AND pd.companyId = payprocessmaster.companyId
+                  )`
                 ),
                 'pay_count' // Alias for the computed column
               ]
@@ -3945,7 +3947,8 @@ class PaymentController {
                   `(SELECT COUNT(proceessId) 
                    FROM payprocessdetails pd 
                    WHERE pd.payMonth = payprocessmaster.payMonth 
-                   AND pd.payStatus NOT IN (4))`
+                   AND pd.companyId = payprocessmaster.companyId
+                  )`
                 ),
                 'pay_count' // Alias for the computed column
               ]
@@ -4033,6 +4036,12 @@ class PaymentController {
       let EmployeeIds = req.body.EmployeeIds;
       let paySlipMonth = req.body.paySlipMonth;
 
+      let currentProcess = await db.payProcessMaster.findOne({
+        where: { payProcessMasterAutoId: 1 },
+        include: [{ model: db.companyMaster }],
+        raw: true,
+      });
+
       let allPaySlips = await db.paySlips.findAll({ 
         where: { paySlipMonth: paySlipMonth, paySlipStatus: 1, sendEmail: 0, EmployeeId: { [Op.in]: EmployeeIds } }, 
         attribute: ['paySlipAutoId', 'EmployeeId', 'payMonth', 'paySlipYear', 'paySlipMonth'], 
@@ -4044,7 +4053,10 @@ class PaymentController {
             JSON.stringify({
               email: allPaySlips[i]?.employee?.email,
               firstName: allPaySlips[i]?.employee.firstName,
-              month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}` 
+              month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+              year_month: `${allPaySlips[i]?.paySlipYear}_${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+              paySlipAutoId: allPaySlips[i]?.paySlipAutoId,
+              companyLogo: currentProcess['companymaster.companyLogo']
             })
           )
           if(mailStatus) {
@@ -4052,15 +4064,15 @@ class PaymentController {
           }
         }
 
-        await db.extraDeduction.update(
-          { status: 1, updatedAt: moment(), updatedBy: req.userId },
-          { where: { EmployeeId: { [Op.in]: EmployeeIds }, startMonth: paySlipMonth } }
-        );
+        // await db.extraDeduction.update(
+        //   { status: 1, updatedAt: moment(), updatedBy: req.userId },
+        //   { where: { EmployeeId: { [Op.in]: EmployeeIds }, startMonth: paySlipMonth } }
+        // );
   
-        await db.extraPayment.update(
-          { status: 1, updatedAt: moment(), updatedBy: req.userId },
-          { where: { EmployeeId: { [Op.in]: EmployeeIds }, paymentMonth: paySlipMonth } }
-        );
+        // await db.extraPayment.update(
+        //   { status: 1, updatedAt: moment(), updatedBy: req.userId },
+        //   { where: { EmployeeId: { [Op.in]: EmployeeIds }, paymentMonth: paySlipMonth } }
+        // );
 
         return respHelper(res, {
           status: 200,
@@ -4933,6 +4945,7 @@ async function releasePaySlip(data) {
     let employeeIds = [];
     let currentProcess = await db.payProcessMaster.findOne({
       where: { payProcessMasterAutoId: processId },
+      include: [{ model: db.companyMaster }],
       raw: true,
     });
     if (currentProcess) {
@@ -4972,7 +4985,8 @@ async function releasePaySlip(data) {
 
       // send confirmation mail to employee after salary slip release
       if(employeeIds.length > 0) {
-        sendMailAfterSalarySlipRelease(employeeIds, currentProcess.payMonth);
+        let companyLogo = currentProcess['companymaster.companyLogo'];
+        sendMailAfterSalarySlipRelease(employeeIds, currentProcess.payMonth, companyLogo);
       }
 
     }
@@ -5017,7 +5031,7 @@ async function availableEmployeeForProcessing(employeeIds, paymonth) {
   }
 }
 
-async function sendMailAfterSalarySlipRelease(employeeIds, payMonth) {
+async function sendMailAfterSalarySlipRelease(employeeIds, payMonth, companyLogo) {
   let allPaySlips = await db.paySlips.findAll({ 
     where: { payMonth: payMonth, paySlipStatus: 1, sendEmail: 0, EmployeeId: { [Op.in]: employeeIds } }, 
     attribute: ['paySlipAutoId', 'EmployeeId', 'payMonth', 'paySlipYear', 'paySlipMonth'], 
@@ -5029,7 +5043,10 @@ async function sendMailAfterSalarySlipRelease(employeeIds, payMonth) {
         JSON.stringify({
           email: allPaySlips[i]?.employee?.email,
           firstName: allPaySlips[i]?.employee.firstName,
-          month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}` 
+          month: `${allPaySlips[i]?.paySlipYear} - ${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+          year_month: `${allPaySlips[i]?.paySlipYear}_${financialMonth[allPaySlips[i]?.paySlipMonth]}`,
+          paySlipAutoId: allPaySlips[i]?.paySlipAutoId,
+          companyLogo: companyLogo
         })
       )
       if(mailStatus) {
