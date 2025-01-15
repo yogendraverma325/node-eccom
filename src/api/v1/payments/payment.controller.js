@@ -1655,6 +1655,7 @@ class PaymentController {
           EmployeeId: employeeDetais.id,
           paymentAmount: employeeExtraPayment["Amount"],
           paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
+          category: employeeExtraPayment["Category"],
           empCode: employeeExtraPayment["Email/Employee ID"],
           category: employeeExtraPayment["Category"],
         };
@@ -1671,7 +1672,7 @@ class PaymentController {
             where: {
               EmployeeId: extraPayment.EmployeeId,
               paymentMonth: extraPayment.paymentMonth,
-              category:extraPayment.paymentMonth,
+              category:extraPayment.category,
             },
             raw: true,
           });
@@ -1684,6 +1685,7 @@ class PaymentController {
               where: {
                 EmployeeId: extraPayment.EmployeeId,
                 paymentMonth: extraPayment.paymentMonth,
+                category:extraPayment.category,
               },
             });
             extraPayment["ACTION_TYPE"] = "UPDATE";
