@@ -892,7 +892,7 @@ class PaymentController {
               index: errorArray.length + 1,
               employeeID: employee["Email/Employee ID"],
               errorDetails:
-                "Current Effective-Date can not be greater than last effective date",
+                "The current effective date can not be smaller than the last effective date.",
             });
             continue;
           } 
@@ -1546,6 +1546,14 @@ class PaymentController {
       var tdsDetails = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
+      if(!tdsDetails[0]['Email/Employee ID'])
+        {
+          return respHelper(res, {
+            status: 400,
+            msg: "Invalid File Format",
+          });
+        }
+
       var errorArray = [],
         successArray = [];
       for (const employeeTds of tdsDetails) {
@@ -1630,6 +1638,14 @@ class PaymentController {
       var tdsDetails = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
+
+      if(!tdsDetails[0]['Email/Employee ID'])
+      {
+        return respHelper(res, {
+          status: 400,
+          msg: "Invalid File Format",
+        });
+      }
       var errorArray = [],
         successArray = [];
       for (const employeeExtraPayment of tdsDetails) {
@@ -1659,7 +1675,6 @@ class PaymentController {
           empCode: employeeExtraPayment["Email/Employee ID"],
           category: employeeExtraPayment["Category"],
         };
-        console.log("extraPayment", extraPayment);
         const { error } = await validator.extraPayment.validate(extraPayment);
         if (error) {
           errorArray.push({
@@ -1730,7 +1745,13 @@ class PaymentController {
         successArray = [];
 
 
-        console.log(lopDetails);
+        if(!lopDetails[0]['Email/Employee ID'])
+          {
+            return respHelper(res, {
+              status: 400,
+              msg: "Invalid File Format",
+            });
+          }
 
 
       for (const employeeTds of lopDetails) {
@@ -1822,6 +1843,14 @@ class PaymentController {
       var extraDeductonsDetails = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
+
+      if(!extraDeductonsDetails[0]['Email/Employee ID'])
+        {
+          return respHelper(res, {
+            status: 400,
+            msg: "Invalid File Format",
+          });
+        }
 
       for (const employeeExtraDeduction of extraDeductonsDetails) {
         const { error } = await validator.extraDeductionSchema.validate(
