@@ -4333,7 +4333,7 @@ const releasePaySlip = async (data) => {
         <tbody>
         <tr>
         <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle">
-        <img height="45" src="${process.env.PROXY_URL}/api/uploads/logos/THRLogo.png" alt="Logo" class="CToWUd" data-bit="iit">
+        <img height="45" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo" class="CToWUd" data-bit="iit">
         </td>
         </tr>
         </tbody>
