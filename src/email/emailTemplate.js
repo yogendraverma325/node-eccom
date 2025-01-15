@@ -4122,10 +4122,15 @@ const salarySlipPdf = async (data) => {
       const deduction = deductions[i] || {};
       rows += `
         <tr>
-            <td>${earning.paySlipComponentName || ""}</td>
-            <td>${earning.paySlipComponentAmount || ""}</td>
-            <td>${deduction.paySlipComponentName || ""}</td>
-            <td>${deduction.paySlipComponentAmount || ""}</td>
+            <td>${earning.paySlipComponentName}</td>
+            <td>${
+              earning.fixedPayElementAmount && earning.fixedPayElementAmount > 0
+                ? earning.fixedPayElementAmount
+                : ""
+            }</td>
+            <td>${earning.paySlipComponentAmount || '' }</td>
+            <td>${deduction.paySlipComponentName || ''}</td>
+            <td>${deduction.paySlipComponentAmount || '' }</td>
         </tr>`;
     }
     return rows;
@@ -4209,11 +4214,14 @@ const salarySlipPdf = async (data) => {
 <body>
     <div class="salary-slip">
         <div class="header">
-            <img  src="${process.env.PROXY_URL}/api/uploads/logos/THRLogo.png" alt="Company Logo">
-            <div class="company-details">
-                <h3>${data.companyName}</h3>
-                <p>${data.companyAddress}</p>
-            </div>
+            <img  src="${
+              process.env.PROXY_URL + "/api" + data.companyLogo
+            }" alt="Company Logo">
+    <div class="company-details" style="word-wrap: break-word; white-space: normal;">
+    <p><b><font style="font-size: 16px; font-weight: 400;">${
+      data.companyName
+    }</font></b><br>${data.companyAddress}</p>
+</div>
         </div>
 
        <h8>
@@ -4229,27 +4237,27 @@ const salarySlipPdf = async (data) => {
             </tr>
             <tr>
                 <td><strong>Designation:</strong></td>
-                <td>${data.designation}</td>
+                <td>${data.designation }</td>
                 <td><strong>Employee Code:</strong></td>
-                <td>${data.employeeCode}</td>
+                <td>${data.employeeCode }</td>
             </tr>
             <tr>
                 <td><strong>Department:</strong></td>
-                <td>${data.department}</td>
+                <td>${data.department }</td>
                 <td><strong>Working Days:</strong></td>
-                <td>${data.workingDays}</td>
+                <td>${data.workingDays }</td>
             </tr>
             <tr>
                 <td><strong>Date of Joining:</strong></td>
-                <td>${data.dateOfJoining}</td>
+                <td>${data.dateOfJoining }</td>
                 <td><strong>LOP:</strong></td>
-                <td>${data.lop}</td>
+                <td>${data.lop }</td>
             </tr>
             <tr>
                 <td><strong>Current Office Location:</strong></td>
-                <td>${data.currentOfficeLocation}</td>
+                <td>${data.currentOfficeLocation }</td>
                 <td><strong>PAN No:</strong></td>
-                <td>${data.panNo}</td>
+                <td>${data.panNo }</td>
             </tr>
             <tr>
               <td><strong>Duration:</strong></td>
@@ -4259,15 +4267,15 @@ const salarySlipPdf = async (data) => {
           </tr>
            <tr> 
               <td><strong>UAN No:</strong></td>
-              <td>${data.uanNo}</td>
+              <td>${data.uanNo }</td>
               <td><strong>Total Arrear Days:</strong></td>
-              <td>${data.totalArrearDays}</td>
+              <td>${data.totalArrearDays }</td>
           </tr>
            <tr> 
               <td><strong>Provident Fund:</strong></td>
-              <td>${data.providentFund}</td>
+              <td>${data.providentFund }</td>
               <td><strong>ESIC Number:</strong></td>
-              <td>${data.esicNo}</td>
+              <td>${data.esicNo }</td>
           </tr>
         </table>
 
@@ -4275,10 +4283,11 @@ const salarySlipPdf = async (data) => {
         <table class="content">
             <thead>
                 <tr>
-                    <th>Earnings</th>
-                    <th>Amount (Rs.)</th>
-                    <th>Deductions</th>
-                    <th>Amount (Rs.)</th>
+                    <th>Description</th>
+                    <th>Fixed</th>
+                    <th>Payble</th>
+                    <th>Description</th>
+                    <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -4290,15 +4299,17 @@ const salarySlipPdf = async (data) => {
             <tfoot>
                 <tr>
                     <td><strong>Gross Earnings (A)</strong></td>
+                    <td></strong></td>
                     <td>${data.grossEarnings || 0}</td>
                     <td><strong>Total Deductions (B)</strong></td>
                     <td>${data.totalDeductions || 0}</td>
                 </tr>
                <tr>
                   <td><strong>Net Pay (A - B)</strong></td>
+                    <td></td>
                   <td>${data.netPay || 0}</td>
-                  <td><strong>Total Pay</strong></td>
-                  <td>${data.netPay || 0}</td>
+                  <td></td>
+                  <td></td>
               </tr>
             </tfoot>
         </table>
@@ -4397,5 +4408,5 @@ export default {
   confirmationSLABreachEmailBody,
   confirmationWorkFlownextLevel,
   salarySlipPdf,
-  releasePaySlip
+  releasePaySlip,
 };

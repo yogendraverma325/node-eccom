@@ -191,7 +191,7 @@ const salaryPaySlip = async function (paySlipAutoId) {
               },
               {
                  model: db.companyMaster,
-                 attributes: ["companyName"]
+                 attributes: ["companyName","companyLogo"]
               }
             ],
           },
@@ -364,7 +364,7 @@ async function query(caseId, data, data2) {
       break;
 
     case 16:
-      return `SELECT pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
+      return `SELECT payElementAmount,pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM tara.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
       break;
 
     case 17:
@@ -399,6 +399,15 @@ async function query(caseId, data, data2) {
       break;
     case 23:
       return `SELECT EmployeeId FROM tara.payprocessdetails where proceessId=${data} and payStatus in(6);`;
+      break;
+      case 24:
+        return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId =${data2.companyId};`;
+      break;
+        case 25:
+          return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM tara.employee e LEFT JOIN tara.paypackage p ON e.id = p.EmployeeId LEFT JOIN tara.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
+            data2.paymonth
+          }' OR (ppd.payStatus = 101)));;`;
+          break;
     default:
   }
 }
@@ -614,14 +623,11 @@ async function getExtraEarningElements(payMonth,EmployeeId,paySlipAutoId,userId)
 
  function customRound(num) {
   const decimalPart = num - Math.floor(num);
-  console.log(decimalPart)
   if (decimalPart <= 0.50) {
       return Math.floor(num); // Round down
   } else {
       return Math.ceil(num);  // Round up
   }
-
-
 }
 
 
