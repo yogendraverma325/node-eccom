@@ -556,7 +556,7 @@ class LeaveController {
 
         if (leaveMasterData.weekly_prefix_policy == 2) {
           let prefixDate = moment(fromDateReq)
-            .add(1, "day")
+            .subtract(1, "day")
             .format("YYYY-MM-DD");
 
           let checkWeekOff = await helper.checkWeekOffOfEMPforData(
@@ -596,7 +596,7 @@ class LeaveController {
 
         if (leaveMasterData.holiday_prefix_policy == 2) {
           let prefixDate = moment(fromDateReq)
-            .add(1, "day")
+            .subtract(1, "day")
             .format("YYYY-MM-DD");
 
           let leaveCheck = await helper.checkHolidayEMPforData(
