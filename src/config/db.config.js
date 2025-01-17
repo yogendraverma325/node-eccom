@@ -141,7 +141,7 @@ import ExtraPayment from "../api/model/ExtraPayment.js";
 import ExportSheetMaster from '../api/model/exportSheetMaster.js'
 import ExportSheetMapping from '../api/model/exportSheetMapping.js'
 import FinancialYearMaster from '../api/model/FinancialYearMaster.js';
-
+import CompensationCategoryMaster from '../api/model/CompensationCategory.js';
 
 ////////////////////PAyroll////////////
 import literal from "sequelize";
@@ -378,6 +378,7 @@ db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
   sequelize,
   Sequelize
 );
+db.CompensationCategoryMaster = CompensationCategoryMaster(sequelize, Sequelize);
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1433,5 +1434,15 @@ db.payProcessMaster.hasOne(db.companyMaster, {
   foreignKey: 'companyId',
   sourceKey: 'companyId'
 })
+
+db.extraDeduction.hasOne(db.CompensationCategoryMaster, {
+  foreignKey: 'compensationCategoryId',
+  sourceKey: 'deductionCategoryId'
+});
+
+db.extraPayment.hasOne(db.CompensationCategoryMaster, {
+  foreignKey: 'compensationCategoryId',
+  sourceKey: 'paymentCategoryId'
+});
 
 export default db;

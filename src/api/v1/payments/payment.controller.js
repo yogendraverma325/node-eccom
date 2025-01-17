@@ -3653,7 +3653,8 @@ class PaymentController {
         attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
         order: [["extraDeductionsAutoId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
+        offset: (page - 1) * pageLimit,
+        include: [{ model: db.CompensationCategoryMaster, attributes: ['compensationCategoryId', 'name', 'type'] }]
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -3682,32 +3683,43 @@ class PaymentController {
       let endMonth = result.endMonth || result.startMonth;
       result["endMonth"] = endMonth;
 
-      let query = { EmployeeId: result.EmployeeId, deductionCategory: result.deductionCategory, startMonth: result.startMonth };
+      let query = { EmployeeId: result.EmployeeId, startMonth: result.startMonth };
       let moduleName = "Extra Deduction";
       let metaData = { ...result, createdBy: userId, createdAt: moment() };
       let response = {};
 
-      if(result.startMonth == result.endMonth) {
+      let date = new Date(`${result.startMonth}-01`);
+      date.setMonth(date.getMonth() -1);
+      let oneMonthBefore = date.toISOString().slice(0, 7);
+
+      let findQuery = { EmployeeId: result.EmployeeId, startMonth: oneMonthBefore };
+      let isExist = await service.details(model, findQuery);
+      if(isExist.status === 200) {
+        if(result.startMonth == result.endMonth) {
           response = await service.create(model, metaData, query, moduleName);
-      } 
-      else {
-        const start = new Date(result.startMonth + "-01"); // Start date
-        const end = new Date(result.endMonth + "-01"); // End date
-      
-        if (end > start) {
-          let current = new Date(start);
-      
-          while (current <= end) {
-            const yearMonth = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`;
-            current.setMonth(current.getMonth() + 1); // Move to the next month
-            metaData = { ...metaData, startMonth: yearMonth, endMonth: yearMonth };
-            query = { EmployeeId: result.EmployeeId, deductionCategory: result.deductionCategory, startMonth: yearMonth };
-            response = await service.create(model, metaData, query, moduleName);
+        } 
+        else {
+          const start = new Date(result.startMonth + "-01"); // Start date
+          const end = new Date(result.endMonth + "-01"); // End date
+        
+          if (end > start) {
+            let current = new Date(start);
+        
+            while (current <= end) {
+              const yearMonth = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`;
+              current.setMonth(current.getMonth() + 1); // Move to the next month
+              metaData = { ...metaData, startMonth: yearMonth, endMonth: yearMonth };
+              query = { EmployeeId: result.EmployeeId, deductionCategoryId: result.deductionCategoryId, startMonth: yearMonth };
+              response = await service.create(model, metaData, query, moduleName);
+            }
           }
         }
-      }
 
-      return respHelper(res, response);
+        return respHelper(res, response);
+      }
+      else {
+        return respHelper(res, { status: 200, msg: 'Previous month data is not exist', data: {} });
+      }
 
     } catch (error) {
       logger.error(error);
@@ -3727,10 +3739,26 @@ class PaymentController {
     try {
       const result = await validator.extraDeductionFormSchema.validateAsync(req.body);
       let model = db.extraDeduction;
-      let query = { extraDeductionsAutoId: req.params.id };
-      let metaData = { ...result, updatedBy: req.userId, updatedAt: moment() };
-      let response = await service.update(model, metaData, query);
-      return respHelper(res, response);
+      let query = { 
+        extraDeductionsAutoId: req.params.id
+      };
+
+      let findQuery = {
+        EmployeeId: result.EmployeeId,
+        startMonth: result.startMonth,
+        extraDeductionsAutoId: { [Op.not]: req.params.id }
+      };
+
+      let isExist = await service.details(model, findQuery);
+      if(isExist.status == 200) {
+        return respHelper(res, { status: 200, msg: Constant.ALREADY_EXISTS.replace('<module>', 'Extra Deduction'), data: {} });
+      }
+      else {
+        let metaData = { ...result, updatedBy: req.userId, updatedAt: moment() };
+        let response = await service.update(model, metaData, query);
+        return respHelper(res, response);
+      }
+
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -3786,7 +3814,8 @@ class PaymentController {
         attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
         order: [["extraPaymentAutoId", "DESC"]],
         limit: pageLimit,
-        offset: (page - 1) * pageLimit
+        offset: (page - 1) * pageLimit,
+        include: [{ model: db.CompensationCategoryMaster, attributes: ['compensationCategoryId', 'name', 'type'] }]
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -3812,7 +3841,7 @@ class PaymentController {
       const result = await validator.extraPaymentFormSchema.validateAsync(req.body);
       let model = db.extraPayment;
       let userId = req.userId;
-      let query = { EmployeeId: result.EmployeeId, paymentMonth: result.paymentMonth, category: result.category };
+      let query = {};
 
       let moduleName = "Extra Payment";
       let metaData = { ...result, createdAt: moment(), createdBy: userId };

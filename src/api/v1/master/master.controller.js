@@ -2146,6 +2146,26 @@ class MasterController {
     }
   }
 
+  async compensationCategory(req, res) {
+    try {
+      let type = req.query.type || 1;
+      let query = { isActive: 1, 'type': type };
+      const docs = await db.CompensationCategoryMaster.findAll({
+        where: query,
+        attributes: ["compensationCategoryId", "name", "type"],
+        // order: [['compensationCategoryId', "DESC"]]
+      });
+      return respHelper(res, {
+        status: 200,
+        data: docs,
+      });
+    } catch (error) {
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
 }
 
 export default new MasterController();

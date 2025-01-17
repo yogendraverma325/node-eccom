@@ -1135,6 +1135,17 @@ ADD COLUMN `companyId` INT NULL DEFAULT NULL AFTER `payMonth`;
 ALTER TABLE `tara`.`payprocessmaster` 
 ADD COLUMN `filterType` INT NULL DEFAULT 0 AFTER `financialYearId`;
 
+17-01-2025
+
+create new table as compensationcategory
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `deductionCategoryId` INT NULL DEFAULT NULL AFTER `deductionType`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `paymentCategoryId` INT NULL DEFAULT NULL AFTER `paymentType`;
+
+
 
 
 
