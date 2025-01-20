@@ -3651,7 +3651,7 @@ class PaymentController {
       let aggregate = {
         where: query,
         attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
-        order: [["extraDeductionsAutoId", "DESC"]],
+        order: [["extraDeductionsAutoId", "ASC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
         include: [{ model: db.CompensationCategoryMaster, attributes: ['compensationCategoryId', 'name', 'type'] }]
@@ -3718,7 +3718,7 @@ class PaymentController {
         return respHelper(res, response);
       }
       else {
-        return respHelper(res, { status: 200, msg: 'Previous month data is not exist', data: {} });
+        return respHelper(res, { status: 400, msg: 'Previous month data is not exist', data: {} });
       }
 
     } catch (error) {
@@ -3751,7 +3751,7 @@ class PaymentController {
 
       let isExist = await service.details(model, findQuery);
       if(isExist.status == 200) {
-        return respHelper(res, { status: 200, msg: Constant.ALREADY_EXISTS.replace('<module>', 'Extra Deduction'), data: {} });
+        return respHelper(res, { status: 400, msg: Constant.ALREADY_EXISTS.replace('<module>', 'Extra Deduction'), data: {} });
       }
       else {
         let metaData = { ...result, updatedBy: req.userId, updatedAt: moment() };
@@ -3812,7 +3812,7 @@ class PaymentController {
       let aggregate = {
         where: query,
         attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
-        order: [["extraPaymentAutoId", "DESC"]],
+        order: [["extraPaymentAutoId", "ASC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
         include: [{ model: db.CompensationCategoryMaster, attributes: ['compensationCategoryId', 'name', 'type'] }]

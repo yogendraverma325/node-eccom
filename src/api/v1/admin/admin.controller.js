@@ -435,7 +435,7 @@ class AdminController {
         query[Op.or] = [...query[Op.or], ...additionalConditions];
       }
 
-      let existUser = await db.employeeMaster.findOne({ where: query });
+      let existUser = await db.employeeMaster.findOne({ where: { ...query, 'isActive': 1 } });
 
       if (existUser) {
         if (
@@ -803,7 +803,7 @@ class AdminController {
             query[Op.or] = [...query[Op.or], ...additionalConditions];
           }
 
-          const existUser = await db.employeeMaster.findOne({ where: query });
+          const existUser = await db.employeeMaster.findOne({ where: { ...query, 'isActive': 1 } });
 
           if (existUser) {
             if (
