@@ -1557,6 +1557,14 @@ const extraPaymentFormSchema = Joi.object({
     .label("Financial Year")
 });
 
+const generatePaySlipSchema = Joi.object({
+  EmployeeId: Joi.number().integer().positive().required(),
+  payMonth: Joi.string().max(10).required().label("Pay Month"),
+  paySlipType: Joi.string().required().label("Pay Slip Type"),
+  totalLossOfPay: Joi.number().required().label("Total Loss Of Pay"),
+  remarks: Joi.string().allow("").label("Remarks")
+});
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1630,5 +1638,5 @@ export default {
   // add by jay
   payProcessCardSchema,
   extraDeductionFormSchema,
-  extraPaymentFormSchema
+  generatePaySlipSchema
 };
