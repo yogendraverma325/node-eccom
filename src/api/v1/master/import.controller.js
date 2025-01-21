@@ -323,7 +323,35 @@ class MasterController {
         });
 
         if (employee) {
+          if(employee && req.body.documentType == 1){
+            console.log(">>>>>>>>>>>>>>>>>>>>>1")
+            const fileBuffer = zipEntry.getData();
+            const mimeType = `application/${fileExtension.replace(".", "")}`;
+            const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+              "base64"
+            )}`;
+
+            const d = Math.floor(Date.now() / 1000);
+            const uniqueFileName = `merit_planning_letter_${d}`;
+
+            const imageUrl = await helper.fileUpload(
+              base64String,
+              uniqueFileName,
+              `uploads/${empCode}`
+            );
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: req.body.documentType,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+           }
           if (employee && req.body.documentType == 2) {
+            console.log(">>>>>>>>>>>>>>>>>>>>>2")
             const fileBuffer = zipEntry.getData();
             const mimeType = `application/${fileExtension.replace(".", "")}`;
             const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -338,10 +366,9 @@ class MasterController {
               uniqueFileName,
               `uploads/${empCode}`
             );
-            console.log("imageUrl", imageUrl);
             const existingDocument = await db.hrLetters.findOne({
               attributes: ["letterId", "userId", "documentType"],
-              where: { userId: employee.id, documentType: 2 },
+              where: { userId: employee.id, documentType: req.body.documentType },
               transaction,
             });
 
@@ -349,7 +376,7 @@ class MasterController {
               // Update the existing document
               await db.hrLetters.update(
                 {
-                  documentType: 2,
+                  documentType: req.body.documentType,
                   documentImage: imageUrl,
                   updatedBy: req.userId,
                   updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -357,7 +384,7 @@ class MasterController {
                 {
                   where: {
                     userId: employee.id,
-                    documentType: 2,
+                    documentType: req.body.documentType,
                   },
                   transaction,
                 }
@@ -367,7 +394,7 @@ class MasterController {
               await db.hrLetters.create(
                 {
                   userId: employee.id,
-                  documentType: 2,
+                  documentType: req.body.documentType,
                   documentImage: imageUrl,
                   createdBy: req.userId,
                   createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -376,8 +403,35 @@ class MasterController {
               );
             }
           }
+          if(employee && req.body.documentType == 3){
+            console.log(">>>>>>>>>>>>>>>>>>>>>3")
+            const fileBuffer = zipEntry.getData();
+            const mimeType = `application/${fileExtension.replace(".", "")}`;
+            const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+              "base64"
+            )}`;
 
+            const d = Math.floor(Date.now() / 1000);
+            const uniqueFileName = `pip_letter_${d}`;
+
+            const imageUrl = await helper.fileUpload(
+              base64String,
+              uniqueFileName,
+              `uploads/${empCode}`
+            );
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: req.body.documentType,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+           }
           if (employee && req.body.documentType == 4) {
+            console.log(">>>>>>>>>>>>>>>>>>>>>4")
             const fileBuffer = zipEntry.getData();
             const mimeType = `application/${fileExtension.replace(".", "")}`;
             const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -394,7 +448,7 @@ class MasterController {
             );
             const existingDocument = await db.hrLetters.findOne({
               attributes: ["letterId", "userId", "documentType"],
-              where: { userId: employee.id, documentType: 4 },
+              where: { userId: employee.id, documentType: req.body.documentType },
               transaction,
             });
 
@@ -402,7 +456,7 @@ class MasterController {
               // Update the existing document
               await db.hrLetters.update(
                 {
-                  documentType: 4,
+                  documentType: req.body.documentType,
                   documentImage: imageUrl,
                   updatedBy: req.userId,
                   updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -410,7 +464,7 @@ class MasterController {
                 {
                   where: {
                     userId: employee.id,
-                    documentType: 4,
+                    documentType: req.body.documentType,
                   },
                   transaction,
                 }
@@ -420,7 +474,7 @@ class MasterController {
               await db.hrLetters.create(
                 {
                   userId: employee.id,
-                  documentType: 4,
+                  documentType: req.body.documentType,
                   documentImage: imageUrl,
                   createdBy: req.userId,
                   createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -429,8 +483,35 @@ class MasterController {
               );
             }
           }
+          if(employee && req.body.documentType == 5){
+            console.log(">>>>>>>>>>>>>>>>>>>>>5")
+            const fileBuffer = zipEntry.getData();
+            const mimeType = `application/${fileExtension.replace(".", "")}`;
+            const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+              "base64"
+            )}`;
 
+            const d = Math.floor(Date.now() / 1000);
+            const uniqueFileName = `employment_related${d}`;
+
+            const imageUrl = await helper.fileUpload(
+              base64String,
+              uniqueFileName,
+              `uploads/${empCode}`
+            );
+            await db.hrLetters.create(
+              {
+                userId: employee.id,
+                documentType: req.body.documentType,
+                documentImage: imageUrl,
+                createdBy: req.userId,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              },
+              { transaction }
+            );
+           }
           if (employee && req.body.documentType == 6) {
+            console.log(">>>>>>>>>>>>>>>>>>>>>6")
             const fileBuffer = zipEntry.getData();
             const mimeType = `application/${fileExtension.replace(".", "")}`;
             const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -447,7 +528,7 @@ class MasterController {
             );
             const existingDocument = await db.hrLetters.findOne({
               attributes: ["letterId", "userId", "documentType"],
-              where: { userId: employee.id, documentType: 6 },
+              where: { userId: employee.id, documentType: req.body.documentType },
               transaction,
             });
 
@@ -455,7 +536,7 @@ class MasterController {
               // Update the existing document
               await db.hrLetters.update(
                 {
-                  documentType: 6,
+                  documentType: req.body.documentType,
                   documentImage: imageUrl,
                   updatedBy: req.userId,
                   updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -463,7 +544,7 @@ class MasterController {
                 {
                   where: {
                     userId: employee.id,
-                    documentType: 6,
+                    documentType: req.body.documentType,
                   },
                   transaction,
                 }
@@ -473,7 +554,60 @@ class MasterController {
               await db.hrLetters.create(
                 {
                   userId: employee.id,
-                  documentType: 6,
+                  documentType: req.body.documentType,
+                  documentImage: imageUrl,
+                  createdBy: req.userId,
+                  createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+                },
+                { transaction }
+              );
+            }
+          }
+          if (employee && req.body.documentType == 7) {
+            console.log(">>>>>>>>>>>>>>>>>>>>>2")
+            const fileBuffer = zipEntry.getData();
+            const mimeType = `application/${fileExtension.replace(".", "")}`;
+            const base64String = `data:${mimeType};base64,${fileBuffer.toString(
+              "base64"
+            )}`;
+
+            const d = Math.floor(Date.now() / 1000);
+            const uniqueFileName = `confirmation_letter_${d}`;
+
+            const imageUrl = await helper.fileUpload(
+              base64String,
+              uniqueFileName,
+              `uploads/${empCode}`
+            );
+            const existingDocument = await db.hrLetters.findOne({
+              attributes: ["letterId", "userId", "documentType"],
+              where: { userId: employee.id, documentType: req.body.documentType },
+              transaction,
+            });
+
+            if (existingDocument) {
+              // Update the existing document
+              await db.hrLetters.update(
+                {
+                  documentType: req.body.documentType,
+                  documentImage: imageUrl,
+                  updatedBy: req.userId,
+                  updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+                }, // Update only the required field
+                {
+                  where: {
+                    userId: employee.id,
+                    documentType: req.body.documentType,
+                  },
+                  transaction,
+                }
+              );
+            } else {
+              // Create a new document record
+              await db.hrLetters.create(
+                {
+                  userId: employee.id,
+                  documentType: req.body.documentType,
                   documentImage: imageUrl,
                   createdBy: req.userId,
                   createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
