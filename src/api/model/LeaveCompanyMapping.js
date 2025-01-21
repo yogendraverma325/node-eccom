@@ -59,8 +59,47 @@ export default (sequelize, Sequelize) => {
     updatedAt: {
       type: Sequelize.DATE,
     },
+    lapse_in_days: {
+      type: Sequelize.INTEGER,
+    },
+    is_back_date_allowed: {
+      type: Sequelize.INTEGER,
+    },
+    back_days_max: {
+      type: Sequelize.INTEGER,
+    },
     isActive: {
       type: Sequelize.TINYINT,
+    },
+    is_application_on_holiday_weekly_off: {
+      type: Sequelize.INTEGER,
+    },
+    weekly_prefix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    weekly_suffix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    holiday_prefix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    holiday_suffix_policy: {
+      type: Sequelize.INTEGER,
+    },
+    max_consecutive_count: {
+      type: Sequelize.INTEGER,
+    },
+    max_month_count: {
+      type: Sequelize.INTEGER,
+    },
+    can_club_with_other: {
+      type: Sequelize.INTEGER,
+    },
+    club_with_any: {
+      type: Sequelize.INTEGER,
+    },
+    club_with: {
+      type: Sequelize.STRING,
     },
   });
   return leaveCompanyMapping;

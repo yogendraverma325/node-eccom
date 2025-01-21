@@ -5,9 +5,9 @@ import message from "../../../constant/messages.js";
 import validator from "../../../helper/validator.js";
 import helper from "../../../helper/helper.js";
 import eventEmitter from "../../../services/eventService.js";
-import { Op, where } from "sequelize";
-import fs from "fs";
-import path from "path";
+import { Op } from "sequelize";
+import fs from 'fs'
+import path from 'path'
 import pkg from "xlsx";
 
 var _this = null;
@@ -4406,9 +4406,34 @@ class AttendanceController {
             createdAt: req.userId,
           });
 
-          await db.AttendanceRoster.create(creationObject);
+          const existRoster = await db.AttendanceRoster.findOne({
+            where: {
+              employeeId: element.employeeId,
+              attendanceDate: element.attendanceDate
+            }
+          })
 
-          await db.AttendanceRoster.create(creationObject)
+          if (!existRoster) {
+            const creationObject = Object.assign(
+              element,
+              {
+                isActive: 1,
+                createdDt: moment(),
+                createdAt: req.userId
+              }
+            )
+
+            await db.AttendanceRoster.create(creationObject)
+          } else {
+            await db.AttendanceRoster.update({
+              shiftId: element.shiftId,
+              weekOffId: element.weekOffId
+            }, {
+              where: {
+                rosterAutoId: existRoster.dataValues.rosterAutoId
+              }
+            })
+          }
 
           if (moment(element.attendanceDate).isBefore(moment())) {
             await attedanceRosterCron(element.employeeId, moment(element.attendanceDate).format("YYYY-MM-DD"))
@@ -4436,10 +4461,25 @@ class AttendanceController {
 
   async uploadAttendanceRoster(req, res) {
     try {
+
+      const fileExt = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.template'
+      ]
+      console.log(
+        req.file.mimetype, (req.file.mimetype).includes(fileExt)
+      )
+      if (!fileExt.includes(req.file.mimetype)) {
+        return respHelper(res, {
+          status: 400,
+          msg: message.ONLY_EXCEL_ALLOWED
+        });
+      }
       if (!req.file.path) {
         return respHelper(res, {
-          status: 422,
-          msg: message.ATTENDANCE_ROSTER_FILE_REQUIRED,
+          status: 400,
+          msg: message.ATTENDANCE_ROSTER_FILE_REQUIRED
         });
       }
 
@@ -4460,13 +4500,26 @@ class AttendanceController {
         rosterWorkbook.Sheets[sheetNameEmployee]
       );
 
-      for (const element of rosterData) {
+      const result = await validator.rosterUploadSchema.validateAsync(rosterData)
+
+      let failedRecords = [], successRecords = []
+      for (const element of result) {
         const existUser = await db.employeeMaster.findOne({
           where: {
-            empCode: element.Email_Or_TMC,
+            [Op.or]: [{
+              empCode: element.Email_Or_TMC,
+            }, {
+              email: element.Email_Or_TMC,
+            }],
+            isActive: 1
           },
           attributes: ["id"],
         });
+
+        if (!existUser) {
+          failedRecords.push(`${element.Email_Or_TMC} User Not Found`)
+          continue
+        }
 
         const shift = await db.shiftMaster.findOne({
           where: {
@@ -4475,6 +4528,11 @@ class AttendanceController {
           attributes: ["shiftId"],
         });
 
+        if (!shift) {
+          failedRecords.push(`${element.Shift_Name} Shift Not Found`)
+          continue
+        }
+
         const weekOff = await db.weekOffMaster.findOne({
           where: {
             weekOffName: element.Weekly_Off_Name,
@@ -4482,36 +4540,61 @@ class AttendanceController {
           attributes: ["weekOffId"],
         });
 
-        const toDate = helper.convertExcelDate(element.To_Date);
-        const fromDate = helper.convertExcelDate(element.From_Date);
-        const differenceInDays = moment(toDate).diff(moment(fromDate), "day");
+        if (!weekOff) {
+          failedRecords.push(`${element.Weekly_Off_Name} Week Off Not Found`)
+          continue
+        }
+
+        const toDate = helper.convertExcelDate(element.To_Date)
+        const fromDate = helper.convertExcelDate(element.From_Date)
+        const differenceInDays = moment(toDate).diff(moment(fromDate), 'day')
 
         for (let i = 0; i <= differenceInDays; i++) {
-          await db.AttendanceRoster.create({
-            employeeId: existUser.id,
-            attendanceDate: moment(fromDate)
-              .add(i, "days")
-              .format("YYYY-MM-DD"),
-            shiftId: shift.dataValues.shiftId,
-            weekOffId: weekOff.dataValues.weekOffId,
-            isActive: 1,
-            createdDt: moment(),
-            createdAt: req.userId,
-          });
 
-          if (moment(fromDate).add(i, "days").isBefore(moment())) {
-            await attedanceRosterCron(
-              existUser.id,
-              moment(fromDate).add(i, "days").format("YYYY-MM-DD")
-            );
+          const existRoster = await db.AttendanceRoster.findOne({
+            where: {
+              employeeId: existUser.id,
+              attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
+            }
+          })
+
+          if (!existRoster) {
+            await db.AttendanceRoster.create({
+              employeeId: existUser.id,
+              attendanceDate: moment(fromDate).add(i, 'days').format("YYYY-MM-DD"),
+              shiftId: shift.dataValues.shiftId,
+              weekOffId: weekOff.dataValues.weekOffId,
+              isActive: 1,
+              createdDt: moment(),
+              createdAt: req.userId
+            })
+          } else {
+            await db.AttendanceRoster.update({
+              shiftId: shift.dataValues.shiftId,
+              weekOffId: weekOff.dataValues.weekOffId,
+            }, {
+              where: {
+                rosterAutoId: existRoster.dataValues.rosterAutoId
+              }
+            })
+          }
+
+          if (moment(fromDate).add(i, 'days').isBefore(moment())) {
+            await attedanceRosterCron(existUser.id, moment(fromDate).add(i, 'days').format("YYYY-MM-DD"))
           }
         }
+        successRecords.push(`${element.Email_Or_TMC} added successfully.`)
       }
 
       return respHelper(res, {
         status: 200,
         msg: message.ATTENDANCE_ROSTER_ADDED,
-      });
+        data: {
+          failedRecords,
+          successRecords
+        }
+      })
+
     } catch (error) {
       console.log(error);
       if (error.isJoi === true) {
