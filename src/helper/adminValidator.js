@@ -206,10 +206,13 @@ const ptLocationMasterSchema = Joi.object({
 });
 
 const jobLevelMappingSchema = Joi.object({
-  companyId: Joi.number().required().label("Company Name"),
   bandId: Joi.number().required().label("Band Name"),
   gradeId: Joi.number().required().label("Grade Name"),
   jobLevelId: Joi.number().required().label("Job Level Name"),
+  companyId: Joi.array()
+    .items(Joi.object().required())
+    .required()
+    .label("Company Name"),
 });
 
 const departmentMappingSchema = Joi.object({
@@ -226,6 +229,79 @@ const functionalAreaMappingSchema = Joi.object({
   departmentMappingId: Joi.number().required().label("Department Name"),
   functionalAreaId: Joi.number().required().label("Functional Area Name"),
 });
+
+const probationMasterSchema = Joi.object({
+  probationName: Joi.string().trim().required().label("Probation Name"),
+  setProbationPeriodInDays: Joi.string()
+    .trim()
+    .required()
+    .label("Probation Period In Days"),
+  setProbationPeriodInMonths: Joi.string()
+    .trim()
+    .required()
+    .label("Probation Period In Months"),
+  durationOfProbation: Joi.number().required().label("Duration Of Probation"),
+  showInProbationExtension: Joi.string()
+    .trim()
+    .required()
+    .label("Show In Probation Extension"),
+  extendConfirmation: Joi.string()
+    .trim()
+    .required()
+    .label("Extend Confirmation"),
+  startProbationPeriodFromAssignedDate: Joi.string()
+    .trim()
+    .required()
+    .label("Start Probation Period From Assigned Date"),
+  probationId: Joi.number().allow(null),
+  isActive: Joi.number().allow(null),
+});
+
+const companyLocationMasterSchema = Joi.object({
+  gstNo: Joi.string().trim().required().label("GST Number"),
+  companyId: Joi.number().required().label("Company"),
+  companyLocationCode: Joi.number().required().label("Company Location Code"),
+  countryId: Joi.number().required().label("Country"),
+  stateId: Joi.number().required().label("State"),
+  cityId: Joi.number().required().label("City"),
+  pincodeId: Joi.number().allow(null).label("Pin Code"),
+  address1: Joi.string().required().label("Address1"),
+  address2: Joi.string().allow(null).label("Address2"),
+  mobileNo: Joi.string().trim().allow(null).label("Mobile Number"),
+  phoneNo: Joi.string().trim().allow(null).label("Phone Number"),
+  isHeadquarter: Joi.number().required().label("Headquarter"),
+  companyLocationId: Joi.number().allow(null),
+  isActive: Joi.boolean().allow(null),
+});
+
+const lwfMappingMasterSchema = Joi.array()
+  .items(
+    Joi.array().items(
+      Joi.object({
+        lwfDesignationId: Joi.number().required().label("LWF Designation"),
+        contributorType: Joi.string().required().label("Contributor Type"),
+        stateId: Joi.number().required().label("State Name"),
+        apr: Joi.string().required().label("Apr"),
+        may: Joi.string().required().label("May"),
+        jun: Joi.string().required().label("Jun"),
+        jul: Joi.string().required().label("Jul"),
+        aug: Joi.string().required().label("Aug"),
+        sep: Joi.string().required().label("Sep"),
+        oct: Joi.string().required().label("Oct"),
+        nov: Joi.string().required().label("Nov"),
+        dec: Joi.string().required().label("Dec"),
+        jan: Joi.string().required().label("Jan"),
+        feb: Joi.string().required().label("Feb"),
+        mar: Joi.string().required().label("Mar"),
+        lwfmappingId: Joi.number().allow(null),
+      })
+    )
+  )
+  .messages({
+    "array.base": "Please enter value for employee and employer",
+    "array.includes": "Each inner array must contain valid objects",
+  })
+  .required();
 
 // End schema by jay
 
@@ -257,5 +333,8 @@ export default {
   jobLevelMappingSchema,
   departmentMappingSchema,
   functionalAreaMappingSchema,
+  probationMasterSchema,
+  companyLocationMasterSchema,
+  lwfMappingMasterSchema,
   // jay end
 };

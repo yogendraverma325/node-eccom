@@ -576,4 +576,69 @@ export default Express.Router()
     "/functional-area-mapping",
     authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
     commonController.functionalMapping
+  )
+  // probation master routes created by jay
+  .post(
+    "/probation",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createProbation
+  )
+  .get(
+    "/probation-list",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.probationList
+  )
+  .put(
+    "/probation/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateProbation
+  )
+  .patch(
+    "/probation/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.changeStatusOfProbation
+  )
+
+  // company location master routes created by jay
+  .post(
+    "/company-location",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createCompanyLocation
+  )
+  .get(
+    "/company-location-list",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.companyLocationList
+  )
+  .put(
+    "/company-location/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateCompanyLocation
+  )
+  .patch(
+    "/company-location/:id",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.changeStatusOfCompanyLocation
+  )
+
+  // lwf master routes created by jay
+  .post(
+    "/lwf-mapping",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.createLWFMapping
+  )
+  .get(
+    "/lwf-list-mapping",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.lwfMappingList
+  )
+  .put(
+    "/lwf-mapping",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.updateLWFMapping
+  )
+  .get(
+    "/lwf-designation",
+    authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+    commonController.lwfDesignationList
   );

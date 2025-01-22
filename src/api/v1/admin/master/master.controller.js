@@ -20,6 +20,7 @@ class CommonController {
       const result = await validator.companyTypeMasterSchema.validateAsync(
         req.body
       );
+      result = { ...result, createdBy: req.userId, isActive: 1 };
       let model = db.companyTypeMaster;
       let query = { typeName: result.typeName };
       let moduleName = "Company Type";
@@ -3194,22 +3195,41 @@ class CommonController {
       let result = await validator.jobLevelMappingSchema.validateAsync(
         req.body
       );
-      result = {
-        ...result,
-        createdBy: req.userId,
-        isActive: 1,
-        createdAt: moment(),
-      };
-      let model = db.jobLevelMapping;
-      let query = {
-        companyId: result.companyId,
-        // bandId: result.bandId,
-        // gradeId: result.gradeId,
+
+      let company = result.companyId;
+      let metaData = {
+        bandId: result.bandId,
+        gradeId: result.gradeId,
         jobLevelId: result.jobLevelId,
       };
+
+      let model = db.jobLevelMapping;
       let moduleName = "Job Level Mapping";
-      let response = await service.create(model, result, query, moduleName);
-      return respHelper(res, response);
+
+      for (let i = 0; i < company.length; i++) {
+        let companyId = company[i].value;
+        metaData = {
+          ...metaData,
+          createdBy: req.userId,
+          isActive: 1,
+          createdAt: moment(),
+          companyId: companyId,
+        };
+        let query = {
+          companyId: companyId,
+          jobLevelId: result.jobLevelId,
+        };
+        let response = await service.create(model, metaData, query, moduleName);
+        if (response.status == 400) {
+          return respHelper(res, response);
+        }
+      }
+
+      return respHelper(res, {
+        status: 201,
+        msg: constant.INSERT_SUCCESS,
+        data: {},
+      });
     } catch (error) {
       logger.error(error);
       if (error.isJoi === true) {
@@ -3402,7 +3422,637 @@ class CommonController {
     }
   }
 
+  async updateJobLevelMapping(req, res) {
+    try {
+      let result = await validator.jobLevelMappingSchema.validateAsync(
+        req.body
+      );
+      let metaData = {
+        bandId: result.bandId,
+        gradeId: result.gradeId,
+        jobLevelId: result.jobLevelId,
+        companyId: result.companyId.length > 0 ? result.companyId[0].value : "",
+      };
+      result = { ...metaData, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.jobLevelMapping;
+      let query = {
+        jobLevelMappingId: req.params.id,
+      };
+
+      // verify if job level id have mapped with employee
+
+      let findQuery = { jobLevelId: result.jobLevelId };
+      let isExist = await service.details(db.jobDetails, findQuery);
+      if (isExist.status == 200) {
+        return respHelper(res, {
+          status: 422,
+          msg: "You cannot change the job level mapping because it is already assigned to an employee.",
+        });
+      } else {
+        findQuery = {
+          jobLevelId: metaData.jobLevelId,
+          companyId: metaData.companyId,
+          jobLevelMappingId: { [Op.not]: req.params.id },
+        };
+        isExist = await service.details(db.jobLevelMapping, findQuery);
+        if (isExist.status == 200) {
+          return respHelper(res, {
+            status: 422,
+            msg: "You cannot change the job level mapping because it is already mapped.",
+          });
+        } else {
+          let response = await service.update(model, result, query);
+          return respHelper(res, response);
+        }
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateDepartmentMapping(req, res) {
+    try {
+      let result = await validator.departmentMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.departmentMapping;
+      let query = {
+        departmentMappingId: req.params.id,
+      };
+
+      // verify if department id have mapped with employee
+
+      let findQuery = { departmentId: result.departmentId };
+      let isExist = await service.details(db.employeeMaster, findQuery);
+      if (isExist.status == 200) {
+        return respHelper(res, {
+          status: 422,
+          msg: "You cannot change the department mapping because it is already assigned to an employee.",
+        });
+      } else {
+        findQuery = {
+          departmentId: result.departmentId,
+          sbuMappingId: result.sbuMappingId,
+          departmentMappingId: { [Op.not]: req.params.id },
+        };
+        isExist = await service.details(db.departmentMapping, findQuery);
+        if (isExist.status == 200) {
+          return respHelper(res, {
+            status: 422,
+            msg: "You cannot change the department mapping because it is already mapped.",
+          });
+        } else {
+          let response = await service.update(model, result, query);
+          return respHelper(res, response);
+        }
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateFunctionalAreaMapping(req, res) {
+    try {
+      let result = await validator.functionalAreaMappingSchema.validateAsync(
+        req.body
+      );
+      result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+      let model = db.functionalAreaMapping;
+      let query = {
+        functionalAreaMappingId: req.params.id,
+      };
+
+      // verify if department id have mapped with employee
+
+      let findQuery = { functionalAreaId: result.functionalAreaId };
+      let isExist = await service.details(db.employeeMaster, findQuery);
+      if (isExist.status == 200) {
+        return respHelper(res, {
+          status: 422,
+          msg: "You cannot change the functional area mapping because it is already assigned to an employee.",
+        });
+      } else {
+        findQuery = {
+          departmentMappingId: result.departmentMappingId,
+          functionalAreaId: result.functionalAreaId,
+          functionalAreaMappingId: { [Op.not]: req.params.id },
+        };
+        isExist = await service.details(db.functionalAreaMapping, findQuery);
+        if (isExist.status == 200) {
+          return respHelper(res, {
+            status: 422,
+            msg: "You cannot change the functional area mapping because it is already mapped.",
+          });
+        } else {
+          let response = await service.update(model, result, query);
+          return respHelper(res, response);
+        }
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
   // End Master Mapping APIs by Jay
+
+  /**
+   * CRUD of Probation Master Created by Jay
+   *
+   */
+
+  async createProbation(req, res) {
+    try {
+      let result = await validator.probationMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment().format("YYYY-MM-DD"),
+      };
+      let model = db.probationMaster;
+      let query = {
+        probationName: result.probationName,
+      };
+      let moduleName = "Probation";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async probationList(req, res) {
+    try {
+      let model = db.probationMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { probationName: { [Op.like]: `%${search}%` } }),
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "updatedDt"],
+        },
+        order: [["probationId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit,
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateProbation(req, res) {
+    try {
+      let result = await validator.probationMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        updatedBy: req.userId,
+        updatedAt: moment(),
+      };
+      let model = db.probationMaster;
+      let query = { probationId: req.params.id };
+
+      let verifyQuery = {
+        [Op.not]: { probationId: req.params.id },
+        probationName: result.probationName,
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Probation"),
+        };
+        return respHelper(res, response);
+      } else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfProbation(req, res) {
+    try {
+      let model = db.probationMaster;
+      let query = { probationId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of Company Location Master Created by Jay
+   *
+   */
+
+  async createCompanyLocation(req, res) {
+    try {
+      let result = await validator.companyLocationMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        districtId: result.cityId,
+        createdBy: req.userId,
+        isActive: 1,
+        createdAt: moment().format("YYYY-MM-DD"),
+      };
+      let model = db.companyLocationMaster;
+      let query = {
+        companyLocationCode: result.companyLocationCode,
+      };
+      let moduleName = "Company Location";
+      let response = await service.create(model, result, query, moduleName);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async companyLocationList(req, res) {
+    try {
+      let model = db.companyLocationMaster;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let query = {
+        ...(search && { address1: { [Op.like]: `%${search}%` } }),
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "updatedDt"],
+        },
+        order: [["companyLocationId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit,
+        include: [
+          { model: db.stateMaster, attributes: ["stateName"] },
+          { model: db.cityMaster, attributes: ["cityName"] },
+        ],
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateCompanyLocation(req, res) {
+    try {
+      let result = await validator.companyLocationMasterSchema.validateAsync(
+        req.body
+      );
+      result = {
+        ...result,
+        updatedBy: req.userId,
+        updatedAt: moment(),
+      };
+      let model = db.companyLocationMaster;
+      let query = { companyLocationId: req.params.id };
+
+      let verifyQuery = {
+        [Op.not]: { companyLocationId: req.params.id },
+        companyLocationCode: result.companyLocationCode,
+      };
+      let isVerify = await service.details(model, verifyQuery);
+
+      if (isVerify.status == 200) {
+        let response = {
+          status: 400,
+          msg: constant.ALREADY_EXISTS.replace("<module>", "Company Location"),
+        };
+        return respHelper(res, response);
+      } else {
+        let response = await service.update(model, result, query);
+        return respHelper(res, response);
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async changeStatusOfCompanyLocation(req, res) {
+    try {
+      let model = db.companyLocationMaster;
+      let query = { companyLocationId: req.params.id };
+      let response = await service.changeStatus(model, query);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  /**
+   * CRUD of LWF Mapping Created by Jay
+   *
+   */
+
+  async createLWFMapping(req, res) {
+    try {
+      let result = await validator.lwfMappingMasterSchema.validateAsync(
+        req.body
+      );
+
+      let model = db.lwfMapping;
+      let arr = [];
+
+      if (result.length > 0) {
+        for (let i = 0; i < result.length; i++) {
+          let result1 = result[i];
+
+          for (let j = 0; j < result1.length; j++) {
+            let query = {
+              lwfDesignationId: result1[j].lwfDesignationId,
+              contributorType: result1[j].contributorType,
+              stateId: result1[j].stateId,
+            };
+
+            let response = await service.details(model, query);
+
+            if (response.status == 200) {
+              return respHelper(res, {
+                status: 400,
+                msg: "These data is already exist in our record.",
+                data: {},
+              });
+            } else {
+              arr.push({
+                ...result1[j],
+                createdBy: req.userId,
+                isActive: 1,
+                createdAt: moment().format("YYYY-MM-DD"),
+              });
+            }
+          }
+          await db.lwfMapping.bulkCreate(arr);
+          arr = [];
+        }
+
+        return respHelper(res, {
+          status: 201,
+          msg: constant.INSERT_SUCCESS,
+          data: {},
+        });
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async lwfMappingList(req, res) {
+    try {
+      let model = db.lwfMapping;
+      let page = parseInt(req.query.page) || 1;
+      let search = req.query.search || "";
+      let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
+
+      let lwfDesignationId = req.query.lwfDesignationId || "";
+      let stateId = req.query.stateId || "";
+
+      let query = { isActive: 1 };
+      if (stateId) {
+        query = { ...query, stateId: stateId };
+      }
+
+      if (lwfDesignationId) {
+        query = { ...query, lwfDesignationId: lwfDesignationId };
+      }
+
+      let mappingQuery = {
+        isActive: 1,
+        ...(search && { stateName: { [Op.like]: `%${search}%` } }),
+      };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "updatedAt"],
+        },
+        order: [["lwfmappingId", "DESC"]],
+        limit: pageLimit,
+        offset: (page - 1) * pageLimit,
+        include: [
+          {
+            model: db.stateMaster,
+            attributes: ["stateId", "stateName"],
+            where: mappingQuery,
+          },
+        ],
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      let count = await service.count(model, query);
+      let obj = { rows: response.data, count: count };
+      return respHelper(res, {
+        status: response.status,
+        msg: response.msg,
+        data: obj,
+      });
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async updateLWFMapping(req, res) {
+    try {
+      let result = await validator.lwfMappingMasterSchema.validateAsync(
+        req.body
+      );
+
+      let model = db.lwfMapping;
+
+      if (result.length > 0) {
+        const dataArray = result[0];
+
+        for (let i = 0; i < dataArray.length; i++) {
+          let query = {
+            lwfmappingId: dataArray[i].lwfmappingId,
+          };
+
+          let updateMetaData = {
+            ...dataArray[i],
+            updatedBy: req.userId,
+            updatedAt: moment().format("YYYY-MM-DD"),
+          };
+          let response = await service.update(model, updateMetaData, query);
+        }
+
+        return respHelper(res, {
+          status: 202,
+          msg: "LWF mapping data updated successfully",
+          data: {},
+        });
+      }
+    } catch (error) {
+      logger.error(error);
+      if (error.isJoi === true) {
+        return respHelper(res, {
+          status: 422,
+          msg: error.details[0].message,
+        });
+      }
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async lwfDesignationList(req, res) {
+    try {
+      let model = db.lwfDesignationMaster;
+      let query = { isActive: 1 };
+
+      let aggregate = {
+        where: query,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "updatedAt"],
+        },
+        order: [["lwfDesignationId", "ASC"]],
+      };
+
+      let response = await service.aggregate(model, aggregate);
+      return respHelper(res, response);
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  // End admin master apis by jay
 
   // close class
 }

@@ -121,6 +121,10 @@ import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 import Signingauthority from "../api/model/signingAuthority.js";
 
+// import start by jay
+import LwfMapping from "../api/model/lwfMapping.js";
+// import end by jay
+
 //CONFIRMATION
 //Attendace Roster///
 import AttendanceRoster from "../api/model/AttendanceRoster.js";
@@ -359,6 +363,9 @@ db.comp_off_credit_history = comp_off_credit_history(sequelize, Sequelize);
 db.status_master = status_master(sequelize, Sequelize);
 db.leaveCompanyMapping = LeaveCompanyMapping(sequelize, Sequelize);
 //COMP OFF
+// start lwf mapping by jay
+db.lwfMapping = LwfMapping(sequelize, Sequelize);
+// end lwf mapping by jay
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
   foreignKey: "holidayId",
@@ -1478,5 +1485,9 @@ db.companyMaster.hasMany(db.leaveCompanyMapping, {
   sourceKey: "companyId",
 });
 //COMP OFF
+db.lwfMapping.hasOne(db.stateMaster, {
+  foreignKey: "stateId",
+  sourceKey: "stateId",
+});
 
 export default db;
