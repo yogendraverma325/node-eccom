@@ -1,3 +1,3 @@
 export default {
-    'perPage': 10
-}
+	perPage: 10,
+};

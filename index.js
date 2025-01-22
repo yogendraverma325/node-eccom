@@ -1,2 +1,2 @@
-import 'dotenv/config.js'
-import './src/index.js'
+import "dotenv/config.js";
+import "./src/index.js";
