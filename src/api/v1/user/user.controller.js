@@ -5348,7 +5348,7 @@ class UserController {
 
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
 			//let reporties = await helper.reportieesofEmp(req.userId);
-			reporties.push(userId);
+			//reporties.push(userId);
 
 			const comp_off_credit_historyData =
 				await db.comp_off_credit_history.findAndCountAll({
