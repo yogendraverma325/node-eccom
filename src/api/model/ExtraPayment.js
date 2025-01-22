@@ -17,6 +17,9 @@ export default (sequelize, Sequelize) => {
       category:{
         type: Sequelize.STRING,
       },
+      paymentCategoryId: {
+        type: Sequelize.INTEGER
+      },
       empCode: {
         type: Sequelize.STRING,
       },

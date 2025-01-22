@@ -23,6 +23,9 @@ export default (sequelize, Sequelize) => {
           companyId : {
             type: Sequelize.INTEGER,
           },
+          filterType: {
+            type: Sequelize.INTEGER // default 0 for custom selection
+          },
           createdBy: {
             type: Sequelize.INTEGER,
             allowNull: true,

@@ -1127,6 +1127,29 @@ ADD COLUMN `deductionType` VARCHAR(45) NULL DEFAULT NULL AFTER `financialYearId`
 ALTER TABLE `tara`.`payslip` 
 ADD COLUMN `sendEmail` INT NULL DEFAULT 0 AFTER `payMonth`;
 
+15-01-2025
+
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `companyId` INT NULL DEFAULT NULL AFTER `payMonth`;
+
+ALTER TABLE `tara`.`payprocessmaster` 
+ADD COLUMN `filterType` INT NULL DEFAULT 0 AFTER `financialYearId`;
+
+17-01-2025
+
+create new table as compensationcategory
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `deductionCategoryId` INT NULL DEFAULT NULL AFTER `deductionType`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `paymentCategoryId` INT NULL DEFAULT NULL AFTER `paymentType`;
+
+add new field as paySlipType in payslip table and default Regular
+
+
+
+
 
 
 

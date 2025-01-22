@@ -1486,10 +1486,7 @@ const extraDeductionFormSchema = Joi.object({
   EmployeeId: Joi.number()
     .required()
     .label("Employee Id"),
-  empCode: Joi.string()
-    .required()
-    .label("Employee Code"),
-  deductionCategory: Joi.string()
+  deductionCategoryId: Joi.number()
     .required()
     .label("Deduction Category"),
   deductionType: Joi.string()
@@ -1509,9 +1506,23 @@ const extraDeductionFormSchema = Joi.object({
     .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
     .required()
     .label("Start Month"),
-  endMonth: Joi.string().allow(null)
+  endMonth: Joi.string()
+    .allow(null)
     .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
-    .label("End Month"),
+    .label("End Month")
+    .custom((value, helpers) => {
+      const { startMonth } = helpers.state.ancestors[0]; // Access startMonth from the object being validated
+      if (value && startMonth) {
+        const start = new Date(`${startMonth}-01`);
+        const end = new Date(`${value}-01`);
+        if (end < start) {
+          return helpers.message(
+            `"End Month" must be equal to or later than "Start Month"`
+          );
+        }
+      }
+      return value;
+    }),
   numberOfDeductions: Joi.number()
     .integer()
     .positive()
@@ -1528,19 +1539,27 @@ const extraDeductionFormSchema = Joi.object({
 
 const extraPaymentFormSchema = Joi.object({
   EmployeeId: Joi.number().integer().positive().required(),
-  paymentMonth: Joi.string().max(255).required(),
-  category: Joi.string().max(255).required(),
+  paymentMonth: Joi.string().max(255).required().label("Payment Month"),
+  paymentCategoryId: Joi.number().required().label("Payment Category"),
   paymentAmount: Joi.number().precision(2).positive().required().label("Extra Payment Amount"),
-  empCode: Joi.alternatives()
-  .try(Joi.string(), Joi.number().integer())
-  .required()
-  .label("Employee Code"),
   paymentType: Joi.string()
     .required()
     .label("Payment Type"),
   financialYearId: Joi.number()
     .required()
     .label("Financial Year")
+});
+
+const generatePaySlipSchema = Joi.object({
+  EmployeeId: Joi.number().integer().positive().required(),
+  payMonth: Joi.string().max(10).required().label("Pay Month"),
+  paySlipType: Joi.string().required().label("Pay Slip Type"),
+  lopDays: Joi.number().required().label("Total Loss Of Pay"),
+  remarks: Joi.string().allow(null).label("Remarks"),
+  tdsAmount: Joi.number().required().label("TDS Amount"),
+  financialYearId: Joi.number()
+    .required()
+    .label("Financial Year"),
 });
 
 export default {
@@ -1616,5 +1635,6 @@ export default {
   // add by jay
   payProcessCardSchema,
   extraDeductionFormSchema,
-  extraPaymentFormSchema
+  extraPaymentFormSchema,
+  generatePaySlipSchema
 };

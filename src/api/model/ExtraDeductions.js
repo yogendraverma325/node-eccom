@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
       deductionCategory: {
         type: Sequelize.STRING,
       },
+      deductionCategoryId: {
+        type: Sequelize.INTEGER
+      },
       deductionName: {
         type: Sequelize.STRING,
       },
