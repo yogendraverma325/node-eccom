@@ -3988,9 +3988,6 @@ class AttendanceController {
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.template'
       ]
-      console.log(
-        req.file.mimetype, (req.file.mimetype).includes(fileExt)
-      )
       if (!fileExt.includes(req.file.mimetype)) {
         return respHelper(res, {
           status: 400,
