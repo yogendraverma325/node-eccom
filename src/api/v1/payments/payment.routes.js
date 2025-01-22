@@ -1,20 +1,17 @@
 // import Express from 'express';
 // import paymentController from './payment.controller.js'
 // import authentication from '../../../middleware/authentication.js';
-
 // export default Express
 //     .Router()
 //     .get('/payElements', authentication.authenticate, paymentController.payElements)
 //     .get("/paySlip", authentication.authenticate, paymentController.paySlips)
 //     .get("/payPackage", authentication.authenticate, paymentController.payPackage)
 //     .get("/ctcProration", authentication.authenticate, paymentController.ctcProration)
-
 import Express from 'express';
-import paymentController from './payment.controller.js'
+import paymentController from './payment.controller.js';
 import authentication from '../../../middleware/authentication.js';
 import multer from 'multer';
 const upload = multer({ dest: 'uploads/excel/' });
-
 export default Express
     .Router()
     .get('/payElements', authentication.authenticate, paymentController.payElements)

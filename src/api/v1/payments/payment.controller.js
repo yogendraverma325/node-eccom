@@ -798,6 +798,7 @@ class PaymentController {
         let employeeDetails = await db.employeeMaster.findOne({
           where: {
             empCode: employee["Email/Employee ID"],
+            isActive:1
           },
           raw: true,
           attributes: ["id", "name","dateOfJoining"],
@@ -810,7 +811,7 @@ class PaymentController {
 
         if (!employeeDetails) {
           console.log(
-            "Empoyee not found" +
+            "Empoyee not found or inactive" +
               " for empId : " +
               employee["Email/Employee ID"]
           );
@@ -2008,6 +2009,7 @@ class PaymentController {
         value.processingType,
         { departmentId: ids, paymonth: value.paymonth,companyId:value.companyId }
       );
+      console.log(employeeForProcessingQuery);
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
@@ -3041,8 +3043,9 @@ class PaymentController {
         payMonth,
         processId,
       } = req.query;
+
       console.log(req.query);
-      // return
+
       const sheetName = {
         "TDS Deduction Sample": 1,
         "LOP Deduction Sample": 2,
@@ -3332,7 +3335,7 @@ class PaymentController {
   async employeesListForProcessing(req, res) {
     try {
       let {companyId}= req.query;
-      let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId})`;
+      let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
@@ -4214,7 +4217,7 @@ class PaymentController {
       //const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
        const letter = await emailTemplate.salarySlipPdf(body);
   
-      //  console.log(letter);
+        console.log(letter);
       // Puppeteer for PDF generation
       const browser = await puppeteer.launch({
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
