@@ -1137,7 +1137,7 @@ ADD COLUMN `filterType` INT NULL DEFAULT 0 AFTER `financialYearId`;
 
 17-01-2025
 
-create new table as compensationcategory
+create new table as compensationcategorymaster
 
 ALTER TABLE `tara`.`extradeductions` 
 ADD COLUMN `deductionCategoryId` INT NULL DEFAULT NULL AFTER `deductionType`;
@@ -1145,7 +1145,9 @@ ADD COLUMN `deductionCategoryId` INT NULL DEFAULT NULL AFTER `deductionType`;
 ALTER TABLE `tara`.`extrapayment` 
 ADD COLUMN `paymentCategoryId` INT NULL DEFAULT NULL AFTER `paymentType`;
 
-add new field as paySlipType in payslip table and default Regular
+ALTER TABLE `tara`.`payslip` 
+ADD COLUMN `paySlipType` VARCHAR(45) NULL DEFAULT 'Regular' AFTER `sendEmail`;
+
 
 
 
