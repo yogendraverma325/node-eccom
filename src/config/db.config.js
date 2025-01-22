@@ -1490,4 +1490,29 @@ db.lwfMapping.hasOne(db.stateMaster, {
   sourceKey: "stateId",
 });
 
+db.buMaster.hasMany(db.buMapping, {
+  foreignKey: "buId",
+  sourceKey: "buId",
+});
+
+db.buMapping.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "buHrId",
+  as: "buHrData",
+});
+db.buMapping.hasOne(db.employeeMaster, {
+  foreignKey: "id",
+  sourceKey: "headId",
+  as: "headIdData",
+});
+
+db.sbuMaster.hasOne(db.sbuMapping, {
+  foreignKey: "sbuId",
+  sourceKey: "sbuId",
+});
+
+db.sbuMapping.hasOne(db.buMaster, {
+  foreignKey: "buId",
+  sourceKey: "buMappingId",
+});
 export default db;

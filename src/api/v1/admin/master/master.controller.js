@@ -682,6 +682,28 @@ class CommonController {
         order: [["buId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
+        include: [
+          {
+            model: db.buMapping,
+            attributes: ["companyId"],
+            include: [
+              {
+                model: db.companyMaster,
+                attributes: ["companyId", "companyName"],
+              },
+              {
+                model: db.employeeMaster,
+                attributes: ["id", "name"],
+                as: "buhrData",
+              },
+              {
+                model: db.employeeMaster,
+                attributes: ["id", "name"],
+                as: "buHeadData",
+              },
+            ],
+          },
+        ],
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -702,26 +724,82 @@ class CommonController {
   }
   async createBu(req, res) {
     try {
+      // Validate the request body using Joi
       const result = await validator.buMasterSchema.validateAsync(req.body);
-      let model = db.buMaster;
-      let query = { buCode: result.buCode };
-      let moduleName = "Bu";
-      let response = await service.create(
-        model,
-        {
-          ...result,
-          ...{
-            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-            createdBy: req.userId,
-            isActive: 1,
-          },
-        },
-        query,
-        moduleName
-      );
-      return respHelper(res, response);
+  
+     // Prepare the data for the buMaster table
+     let model = db.buMaster;
+     let query = { buCode: result.buCode }; // This should query the buMaster table for the buCode
+     let moduleName = "Bu";
+     
+     // Check if the BU Code already exists in the buMaster table
+     const existingBu = await model.findOne({ where: query });
+     if (existingBu) {
+       return respHelper(res, {
+         status: 400,
+         msg: "BU Code already exists."
+       });
+     }
+     
+     // Create the BU Master record
+     const response = await service.create(
+       model,
+       {
+         ...result,
+         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+         createdBy: req.userId,
+         isActive: 1
+       },
+       query,
+       moduleName
+     );
+ 
+     // Get the generated buId from the BU Master record
+     const buId = response.data?.buId;
+     if (!buId) {
+       return respHelper(res, {
+         status: 500,
+         msg: "BU is missing or could not be created."
+       });
+     }
+ 
+     // Ensure companyFields is provided
+     if (!result.companyFields || result.companyFields.length === 0) {
+       return respHelper(res, {
+         status: 500,
+         msg: "Company Fields are missing in the request."
+       });
+     }
+ 
+     // Create BU Mapping for each company
+     for (let i = 0; i < result.companyFields.length; i++) {
+       let companyField = result.companyFields[i];
+       let { companyId, buHead, buHr } = companyField;
+ 
+       // Prepare the data for the buMapping table
+       const buMappingData = {
+         buId: buId, // Use the generated buId
+         companyId: companyId,
+         headId: buHead.value, // Store the ID of BU Head
+         buHrId: buHr.value, // Store the ID of BU HR
+         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+         createdBy: req.userId,
+         isActive: 1
+       };
+ 
+       // Create the BU Mapping record for each company
+       await service.create(db.buMapping, buMappingData, null, "BU Mapping");
+     }
+ 
+     return respHelper(res, {
+       status: 200,
+       msg: "BU and BU Mappings created successfully.",
+       data: response.data
+     });
     } catch (error) {
+      // Handle errors and return a proper response
       logger.error(error);
+      console.log(error);
       if (error.isJoi === true) {
         return respHelper(res, {
           status: 422,
@@ -730,29 +808,118 @@ class CommonController {
       }
       return respHelper(res, {
         status: 500,
+        msg: "An unexpected error occurred.",
       });
     }
   }
-
+  
   async updateBu(req, res) {
     try {
+      // Step 1: Validate the incoming request body for buMaster
       const result = await validator.buMasterSchema.validateAsync(req.body);
+  
+      // Step 2: Prepare for the `buMaster` update
       let model = db.buMaster;
       let query = { buId: req.params.id };
-      console.log("");
+  
+      // Check if the BU exists
+      const existingBu = await model.findOne({ where: query });
+      if (!existingBu) {
+        return respHelper(res, {
+          status: 404,
+          msg: "Business Unit not found."
+        });
+      }
+  
+      // Proceed with the update
       let response = await service.update(
         model,
         {
           ...result,
-          ...{
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-            updatedBy: req.userId,
-          },
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          updatedBy: req.userId,
         },
         query
       );
-      return respHelper(res, response);
+  
+      // Step 3: If `buMaster` update is successful, handle `buMapping` updates
+      const buId = req.params.id;
+  
+      // Step 4: Ensure companyFields is provided for the mapping update
+      if (!result.companyFields || result.companyFields.length === 0) {
+        return respHelper(res, {
+          status: 500,
+          msg: "Company Fields are missing in the request."
+        });
+      }
+  
+      // Get the list of all companyIds from the request (to check for deletions)
+      const requestCompanyIds = result.companyFields.map(field => field.companyId);
+  
+      // Step 5: Iterate through company fields and update or create each mapping
+      for (let i = 0; i < result.companyFields.length; i++) {
+        let companyField = result.companyFields[i];
+        let { companyId, buHead, buHr } = companyField;
+  
+        // Check if the mapping exists
+        const existingMapping = await db.buMapping.findOne({
+          where: { buId, companyId },
+        });
+  
+        if (existingMapping) {
+          // Update existing mapping entry
+          await db.buMapping.update(
+            {
+              headId: buHead.value,
+              buHrId: buHr.value,
+              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              updatedBy: req.userId,
+            },
+            { where: { buId, companyId } }
+          );
+        } else {
+          // Create a new mapping if it doesn't exist
+          await db.buMapping.create({
+            buId,
+            companyId,
+            headId: buHead.value,
+            buHrId: buHr.value,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            createdBy: req.userId,
+            isActive: 1,
+          });
+        }
+      }
+  
+      // Step 6: Delete any mappings that are no longer in the request
+      // Find all companyIds for the current buId in the buMapping table
+      const existingMappings = await db.buMapping.findAll({
+        where: { buId },
+      });
+  
+      // Get the companyIds from the existing mappings
+      const existingCompanyIds = existingMappings.map(mapping => mapping.companyId);
+  
+      // Find companyIds that exist in the database but are missing from the request
+      const companyIdsToDelete = existingCompanyIds.filter(
+        companyId => !requestCompanyIds.includes(companyId)
+      );
+  
+      // Delete the mappings for companyIds that are no longer in the request
+      if (companyIdsToDelete.length > 0) {
+        await db.buMapping.destroy({
+          where: { buId, companyId: companyIdsToDelete },
+        });
+      }
+  
+      // After processing all mappings, return a success response
+      return respHelper(res, {
+        status: 200,
+        msg: "Business Unit and Mapping updated successfully",
+      });
+  
     } catch (error) {
+      // Handle errors during the update process
       logger.error(error);
       if (error.isJoi === true) {
         return respHelper(res, {
@@ -762,9 +929,11 @@ class CommonController {
       }
       return respHelper(res, {
         status: 500,
+        msg: "An unexpected error occurred.",
       });
     }
   }
+  
 
   async changeStatusOfSbu(req, res) {
     try {
@@ -815,6 +984,20 @@ class CommonController {
         order: [["sbuId", "DESC"]],
         limit: pageLimit,
         offset: (page - 1) * pageLimit,
+        include: [
+          { 
+            model: db.sbuMapping, 
+            attributes: ["buMappingId"],
+            include: [
+              { 
+                model: db.buMaster, 
+                attributes: ["buName","buCode"] 
+              },
+              
+            ], 
+          },
+          
+        ],
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -847,11 +1030,53 @@ class CommonController {
             createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
             createdBy: req.userId,
             isActive: 1,
+            
           },
         },
         query,
         moduleName
       );
+
+       // Get the generated buId from the BU Master record
+     const sbuId = response.data?.sbuId;
+     if (!sbuId) {
+       return respHelper(res, {
+         status: 500,
+         msg: "Sbu is missing or could not be created."
+       });
+     }
+ 
+     // Ensure buId is provided
+     if (!result.buId) {
+       return respHelper(res, {
+         status: 500,
+         msg: "buId Fields are missing in the request."
+       });
+     }
+ 
+     // Create SBU Mapping for BU
+       let buId = result.buId;
+      
+ 
+       // Prepare the data for the buMapping table
+       const sbuMappingData = {
+        sbuId:sbuId,
+        buMappingId: buId, // Use the generated buId
+         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+         createdBy: req.userId,
+         isActive: 1
+       };
+ 
+       // Create the BU Mapping record for each company
+       await service.create(db.sbuMapping, sbuMappingData, null, "SBU Mapping");
+     
+ 
+     return respHelper(res, {
+       status: 200,
+       msg: "SBU and SBU Mappings created successfully.",
+       data: response.data
+     });
+
       return respHelper(res, response);
     } catch (error) {
       logger.error(error);
@@ -869,23 +1094,95 @@ class CommonController {
 
   async updateSbu(req, res) {
     try {
+      // Step 1: Validate the incoming request body for sbuMaster
       const result = await validator.sbuMasterSchema.validateAsync(req.body);
+  
+      // Step 2: Prepare for the `sbuMaster` update
       let model = db.sbuMaster;
       let query = { sbuId: req.params.id };
-      console.log("");
+  
+      // Check if the SBU exists
+      const existingSbu = await model.findOne({ where: query });
+      if (!existingSbu) {
+        return respHelper(res, {
+          status: 404,
+          msg: "Strategic Business Unit (SBU) not found.",
+        });
+      }
+  
+      // Proceed with the update
       let response = await service.update(
         model,
         {
           ...result,
-          ...{
-            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-            updatedBy: req.userId,
-          },
+          updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          updatedBy: req.userId,
         },
         query
       );
-      return respHelper(res, response);
+  
+      // Step 3: If `sbuMaster` update is successful, handle `sbuMapping` updates
+      const sbuId = req.params.id;
+  
+      // Step 4: Ensure buId is provided for the mapping update
+      if (!result.buId || result.buId.length === 0) {
+        return respHelper(res, {
+          status: 500,
+          msg: "Business Unit (BU) ID is missing in the request.",
+        });
+      }
+  
+      // Step 5: Check if the mapping exists or needs creation
+      const existingMapping = await db.sbuMapping.findOne({
+        where: { sbuId, buMappingId: result.buId },
+      });
+  
+      if (existingMapping) {
+        // Update existing mapping entry
+        await db.sbuMapping.update(
+          {
+            updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            updatedBy: req.userId,
+          },
+          { where: { sbuId, buMappingId: result.buId } }
+        );
+      } else {
+        // Create a new mapping if it doesn't exist
+        await db.sbuMapping.create({
+          sbuId,
+          buMappingId: result.buId,
+          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          createdBy: req.userId,
+          isActive: 1,
+        });
+      }
+  
+      // Step 6: Handle removal of old mappings if needed
+      const existingMappings = await db.sbuMapping.findAll({
+        where: { sbuId },
+      });
+  
+      // Get the mapping IDs from the database
+      const existingMappingIds = existingMappings.map(mapping => mapping.buMappingId);
+  
+      // If `result.buId` doesn't match the existing ones, delete the old mappings
+      const mappingIdsToDelete = existingMappingIds.filter(
+        id => id !== result.buId
+      );
+  
+      if (mappingIdsToDelete.length > 0) {
+        await db.sbuMapping.destroy({
+          where: { sbuId, buMappingId: mappingIdsToDelete },
+        });
+      }
+  
+      // After processing all mappings, return a success response
+      return respHelper(res, {
+        status: 200,
+        msg: "Strategic Business Unit (SBU) and Mapping updated successfully.",
+      });
     } catch (error) {
+      // Handle errors during the update process
       logger.error(error);
       if (error.isJoi === true) {
         return respHelper(res, {
@@ -895,10 +1192,11 @@ class CommonController {
       }
       return respHelper(res, {
         status: 500,
+        msg: "An unexpected error occurred.",
       });
     }
   }
-
+  
   async changeStatusOfDesignation(req, res) {
     try {
       let model = db.designationMaster;

@@ -23,10 +23,27 @@ const bankMasterSchema = Joi.object({
 const buMasterSchema = Joi.object({
   buName: Joi.string().trim().required().label("Bu Name"),
   buCode: Joi.string().trim().required().label("Bu Code"),
+  companyId: Joi.array().items(Joi.number().integer()).required().label("Company Ids"),
+  companyFields: Joi.array().items(
+    Joi.object({
+      companyId: Joi.number().integer().required().label("Company Id"),
+      buHead: Joi.object({
+        label: Joi.string().required(),
+        value: Joi.number().integer().required()
+      }).required(),
+      buHr: Joi.object({
+        label: Joi.string().required(),
+        value: Joi.number().integer().required()
+      }).required()
+    })
+  ).required().label("Company Fields")
 });
+
 const sbuMasterSchema = Joi.object({
   sbuName: Joi.string().trim().required().label("Sbu Name"),
   code: Joi.string().trim().required().label("Sbu Code"),
+  buId: Joi.number().integer().required().label("Bu ID"),
+
 });
 const designationMasterSchema = Joi.object({
   name: Joi.string().trim().required().label("Designation Name"),

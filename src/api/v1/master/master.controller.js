@@ -381,7 +381,8 @@ class MasterController {
     try {
       const companyId = req.query.companyId;
       let query = {
-        companyId: companyId,
+        ...(companyId && { companyId: companyId }),  // Apply companyId filter only if it's provided
+
         ...(req.userData.role_id == 4 && { buHrId: req.userId }),
       };
       let subQuery = { isActive: 1 };
