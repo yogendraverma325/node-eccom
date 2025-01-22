@@ -555,6 +555,11 @@ class UserController {
 					},
 				},
 			);
+			let userId = req.userId;
+			let compOffbalabceForUser = await helper.compOffbalabceForUser(
+				userId,
+				"Pending",
+			);
 
 			return respHelper(res, {
 				status: 200,
@@ -583,12 +588,14 @@ class UserController {
 							attedanceData: pendingAttCount,
 							seperationCount: 0,
 							pendingAttendanceCount: 0,
+							compOffCount: 0,
 						},
 						assignedToMe: {
 							leaveData: countLeaveAssgined,
 							attedanceData: assignedAttCount,
 							seperationCount: pendingSeperationCount,
 							pendingAttendanceCount,
+							compOffCount: compOffbalabceForUser,
 						},
 					},
 				},
@@ -5336,8 +5343,12 @@ class UserController {
 			const limit = parseInt(req.query.limit, 10) || 10;
 			const pageNo = parseInt(req.query.page, 10) || 1;
 			const offset = (pageNo - 1) * limit;
-			let userId = req.userId;
+
+			const userId = req.query.user;
+
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
+			//let reporties = await helper.reportieesofEmp(req.userId);
+			reporties.push(userId);
 
 			const comp_off_credit_historyData =
 				await db.comp_off_credit_history.findAndCountAll({

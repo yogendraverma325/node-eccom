@@ -1536,24 +1536,50 @@ const checkCompOffPolicyForUser = async (UserId) => {
 	}
 	return compOffPolicyData;
 };
-const compOffbalabceForUser = async (UserId) => {
-	const result = await db.comp_off_credit_history.findOne({
-		attributes: [
-			[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
-		],
-		where: {
-			employee_Id: UserId,
-			expiry_date: {
-				[Op.or]: [
-					{ [Op.eq]: null }, // Check if expiry_date is null
-					{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-				],
-			},
-			status: 1,
-		},
-	});
+const compOffbalabceForUser = async (UserId, status = "Approved") => {
 	let count = 0;
-	if (result.dataValues.total_balance != null) {
+	var result = null;
+	if (status == "Approved") {
+		result = await db.comp_off_credit_history.findOne({
+			attributes: [
+				[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+			],
+			where: {
+				employee_Id: UserId,
+				expiry_date: {
+					[Op.or]: [
+						{ [Op.eq]: null }, // Check if expiry_date is null
+						{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+					],
+				},
+				status: 1,
+			},
+		});
+	} else {
+		result = await db.comp_off_credit_history.findOne({
+			attributes: [
+				[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+			],
+			where: {
+				expiry_date: {
+					[Op.or]: [
+						{ [Op.eq]: null }, // Check if expiry_date is null
+						{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+					],
+				},
+				[Op.or]: [
+					{ pending_at: { [Op.like]: `${UserId},%` } }, // Check if userId is at the start
+					{ pending_at: { [Op.like]: `%,${UserId},%` } }, // Check if userId is in the middle
+					{ pending_at: { [Op.like]: `%,${UserId}` } }, // Check if userId is at the end
+					{ pending_at: { [Op.eq]: `${UserId}` } }, // Check if userId is the only value
+				],
+				//employee_Id: req.userId,
+				status: 3,
+			},
+		});
+	}
+
+	if (result && result.dataValues.total_balance != null) {
 		count = parseFloat(result.dataValues.total_balance);
 	}
 	return count;
@@ -1974,6 +2000,20 @@ const checkLeaveClupEMPforDate = async (Date, leaveID, EMP_DATA) => {
 	});
 	return leaveData;
 };
+const reportieesofEmp = async (empId) => {
+	let empids = [];
+	const existUsers = await db.employeeMaster.findAll({
+		attributes: ["id"],
+		where: {
+			manager: empId,
+			isActive: 1,
+		},
+	});
+	for (const singleUser of existUsers) {
+		empids.push(singleUser.id);
+	}
+	return empids;
+};
 
 ///COMPOFF
 
@@ -2018,5 +2058,6 @@ export default {
 	leaveCountForUserForMonth,
 	creditCompoff,
 	checkLeaveClupEMPforDate,
+	reportieesofEmp,
 	//COMPOFF
 };
