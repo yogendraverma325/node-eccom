@@ -51,6 +51,10 @@ export default (sequelize, Sequelize) => {
             type:  Sequelize.INTEGER,
             default:0,
         },
+        paySlipType: {
+            type: Sequelize.STRING,
+            default: 'Regular'
+        },
         createdBy: {
             type: Sequelize.INTEGER
         },

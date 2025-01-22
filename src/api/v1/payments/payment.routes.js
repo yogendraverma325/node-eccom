@@ -72,6 +72,8 @@ export default Express
     .delete("/extraPayment/:id", authentication.authenticate, paymentController.deleteExtraPayment)
 
     .post("/generateSinglePaySlip",authentication.authenticate,paymentController.generateSinglePaySlip)
+    .patch("/releaseSinglePaySlip/:id", authentication.authenticate, paymentController.releaseSinglePaySlip)
+    .delete("/deleteSinglePaySlip/:id", authentication.authenticate, paymentController.deleteSinglePaySlip)
 
     // test mail
     .post("/checkPaySlipMail",authentication.authenticate, paymentController.checkPaySlipMail)

@@ -1145,6 +1145,8 @@ ADD COLUMN `deductionCategoryId` INT NULL DEFAULT NULL AFTER `deductionType`;
 ALTER TABLE `tara`.`extrapayment` 
 ADD COLUMN `paymentCategoryId` INT NULL DEFAULT NULL AFTER `paymentType`;
 
+add new field as paySlipType in payslip table and default Regular
+
 
 
 

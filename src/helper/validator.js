@@ -1486,9 +1486,6 @@ const extraDeductionFormSchema = Joi.object({
   EmployeeId: Joi.number()
     .required()
     .label("Employee Id"),
-  empCode: Joi.string()
-    .required()
-    .label("Employee Code"),
   deductionCategoryId: Joi.number()
     .required()
     .label("Deduction Category"),
@@ -1545,10 +1542,6 @@ const extraPaymentFormSchema = Joi.object({
   paymentMonth: Joi.string().max(255).required().label("Payment Month"),
   paymentCategoryId: Joi.number().required().label("Payment Category"),
   paymentAmount: Joi.number().precision(2).positive().required().label("Extra Payment Amount"),
-  empCode: Joi.alternatives()
-  .try(Joi.string(), Joi.number().integer())
-  .required()
-  .label("Employee Code"),
   paymentType: Joi.string()
     .required()
     .label("Payment Type"),
@@ -1561,8 +1554,12 @@ const generatePaySlipSchema = Joi.object({
   EmployeeId: Joi.number().integer().positive().required(),
   payMonth: Joi.string().max(10).required().label("Pay Month"),
   paySlipType: Joi.string().required().label("Pay Slip Type"),
-  totalLossOfPay: Joi.number().required().label("Total Loss Of Pay"),
-  remarks: Joi.string().allow("").label("Remarks")
+  lopDays: Joi.number().required().label("Total Loss Of Pay"),
+  remarks: Joi.string().allow(null).label("Remarks"),
+  tdsAmount: Joi.number().required().label("TDS Amount"),
+  financialYearId: Joi.number()
+    .required()
+    .label("Financial Year"),
 });
 
 export default {
@@ -1638,5 +1635,6 @@ export default {
   // add by jay
   payProcessCardSchema,
   extraDeductionFormSchema,
+  extraPaymentFormSchema,
   generatePaySlipSchema
 };
