@@ -5342,18 +5342,24 @@ class UserController {
 		try {
 			const limit = parseInt(req.query.limit, 10) || 10;
 			const pageNo = parseInt(req.query.page, 10) || 1;
+			const selectMode = req.query.type || "self";
 			const offset = (pageNo - 1) * limit;
 
 			const userId = req.query.user;
+			let reporties = [];
 
-			let compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
-			//let reporties = await helper.reportieesofEmp(req.userId);
-			//reporties.push(userId);
+			if (selectMode == "all") {
+				reporties = await helper.reportieesofEmp(req.userId);
+				reporties.push(req.userId);
+			} else {
+				var compOffbalabceForUser = await helper.compOffbalabceForUser(userId);
+				reporties.push(userId);
+			}
 
 			const comp_off_credit_historyData =
 				await db.comp_off_credit_history.findAndCountAll({
 					where: {
-						employee_Id: userId,
+						employee_Id: reporties,
 					},
 					include: [
 						{
