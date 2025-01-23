@@ -21,17 +21,18 @@ class AttendanceController {
 			const result = await validator.attendanceSchema.validateAsync(req.body);
 			if (result.locationType == "Office") {
 				const distanceQuery = `
-    SELECT companyLocationId, (s
-      6371 * acos(
-        cos(radians(:userLat)) *
-        cos(radians(latitude)) *
-        cos(radians(longitude) - radians(:userLon)) +
-        sin(radians(:userLat)) *
-        sin(radians(latitude))
-      )
-    ) AS distance
+    SELECT 
+        companyLocationId, 
+        (6371 * acos(
+            cos(radians(:userLat)) *
+            cos(radians(latitude)) *
+            cos(radians(longitude) - radians(:userLon)) +
+            sin(radians(:userLat)) *
+            sin(radians(latitude))
+        )) AS distance
     FROM companylocationmaster
-    HAVING distance <= ${process.env.RADIUS_LIMIT / 1000}; -- 0.5 km = 500 meters`;
+    HAVING distance <= ${process.env.RADIUS_LIMIT / 1000}; -- 0.5 km = 500 meters
+`;
 				let userLat = result.latitude;
 				let userLon = result.longitude;
 				const withInLocatoinRange = await db.sequelize.query(distanceQuery, {
