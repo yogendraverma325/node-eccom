@@ -1515,4 +1515,9 @@ db.sbuMapping.hasOne(db.buMaster, {
 	foreignKey: "buId",
 	sourceKey: "buMappingId",
 });
+
+db.AttendanceRoster.hasOne(db.weekOffMaster, {
+	foreignKey: "weekOffId",
+	sourceKey: "weekOffId",
+})
 export default db;

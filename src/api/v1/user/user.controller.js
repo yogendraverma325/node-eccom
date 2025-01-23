@@ -5664,6 +5664,9 @@ class UserController {
 							model: db.attendancePolicymaster,
 							attributes: ["attendaceRosterLimitForPreviousDays"],
 						},
+						{
+							model: db.weekOffMaster
+						}
 					],
 				});
 
@@ -5675,11 +5678,45 @@ class UserController {
 						currentDate.isSameOrBefore(maxDate);
 						currentDate.add(1, "days")
 					) {
+						const attedanceData = await db.attendanceMaster.findOne({
+							where: {
+								employeeId: element,
+								attendanceDate: currentDate.format("YYYY-MM-DD"),
+							},
+							attributes: ["attendanceDate", "employeeId"],
+							include: [
+								{
+									model: db.shiftMaster,
+									attributes: ["shiftName"],
+								},
+								{
+									model: db.weekOffMaster
+								}
+							],
+						});
+
+						const existRosterData = await db.AttendanceRoster.findOne({
+							where: {
+								employeeId: element,
+								attendanceDate: currentDate.format("YYYY-MM-DD"),
+							},
+							attributes: ["attendanceDate", "employeeId"],
+							include: [
+								{
+									model: db.shiftMaster,
+									attributes: ["shiftName"],
+								},
+								{
+									model: db.weekOffMaster
+								}
+							],
+						});
+
 						const dayCode = parseInt(moment(currentDate).format("d")) + 1;
 						const dayOfMonth = currentDate.date();
 						const occurrence = Math.ceil(dayOfMonth / 7);
-						const currentWeekOffId = user.dataValues.weekOffId;
-
+						const currentWeekOffId = existRosterData ? existRosterData.dataValues.weekOffMaster.weekOffId : attedanceData ? attedanceData.dataValues.weekOffMaster.weekOffId : user.dataValues.weekOffMaster.weekOffId
+						
 						let occurrenceDayCondition = {};
 						switch (occurrence) {
 							case 1:
@@ -5724,39 +5761,11 @@ class UserController {
 							where: occurrenceDayCondition,
 						});
 
-						const attedanceData = await db.attendanceMaster.findOne({
-							where: {
-								employeeId: element,
-								attendanceDate: currentDate.format("YYYY-MM-DD"),
-							},
-							attributes: ["attendanceDate", "employeeId"],
-							include: [
-								{
-									model: db.shiftMaster,
-									attributes: ["shiftName"],
-								},
-							],
-						});
-
-						const existRosterData = await db.AttendanceRoster.findOne({
-							where: {
-								employeeId: element,
-								attendanceDate: currentDate.format("YYYY-MM-DD"),
-							},
-							attributes: ["attendanceDate", "employeeId"],
-							include: [
-								{
-									model: db.shiftMaster,
-									attributes: ["shiftName"],
-								},
-							],
-						});
-
 						rosterData.push({
 							day: moment(currentDate).format("dddd"),
 							date: currentDate.format("YYYY-MM-DD"),
 							shift: checkWeekOff
-								? { shiftName: `(Weekly Off)` }
+								? { shiftName: `Weekly Off` }
 								: attedanceData
 									? attedanceData.dataValues.shiftsmaster
 									: existRosterData
