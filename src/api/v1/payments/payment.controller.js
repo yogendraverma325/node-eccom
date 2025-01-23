@@ -4537,304 +4537,628 @@ class PaymentController {
           month: payMonth.split("-")[1],
         });
 
-        const employee = [EmployeeId];
-        const queryForEmployeePayDetails = await paymentHelper.query(
-          11,
-          employee,
-          { payMonth: payMonth }
-        );
+        // const employee = [EmployeeId];
+        // const queryForEmployeePayDetails = await paymentHelper.query(
+        //   11,
+        //   employee,
+        //   { payMonth: payMonth }
+        // );
 
-        const employeeDetailsComponentWise = await db.sequelize.query(
-          queryForEmployeePayDetails
-        );
+        // const employeeDetailsComponentWise = await db.sequelize.query(
+        //   queryForEmployeePayDetails
+        // );
 
-        const queryForExtraDeductions = await paymentHelper.query(
-          14,
-          employee,
-          payMonth
-        );
-        const extraDeductonsDetails = await db.sequelize.query(
-          queryForExtraDeductions
-        );
+        // const queryForExtraDeductions = await paymentHelper.query(
+        //   14,
+        //   employee,
+        //   payMonth
+        // );
+        // const extraDeductonsDetails = await db.sequelize.query(
+        //   queryForExtraDeductions
+        // );
 
-        const payPackageMonthlyCTC =
-          parseFloat(
-            employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
-          ) || 0;
+        // const payPackageMonthlyCTC =
+        //   parseFloat(
+        //     employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
+        //   ) || 0;
 
-        const lopDays =
-          parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
+        // const lopDays =
+        //   parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
 
-        const lopMonthWiseCalculation =
-          totalWorkingDays > 0
-            ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
-            : "0.00";
-        const deductionOfLopMonthAmount = Math.max(
-          0,
-          payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
-        );
+        // const lopMonthWiseCalculation =
+        //   totalWorkingDays > 0
+        //     ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
+        //     : "0.00";
+        // const deductionOfLopMonthAmount = Math.max(
+        //   0,
+        //   payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
+        // );
 
-        async function getMonthAbbreviation(month) {
-          const monthNames = [
-            "jan",
-            "feb",
-            "mar",
-            "apr",
-            "may",
-            "jun",
-            "jul",
-            "aug",
-            "sep",
-            "oct",
-            "nov",
-            "dec",
-          ];
+        // async function getMonthAbbreviation(month) {
+        //   const monthNames = [
+        //     "jan",
+        //     "feb",
+        //     "mar",
+        //     "apr",
+        //     "may",
+        //     "jun",
+        //     "jul",
+        //     "aug",
+        //     "sep",
+        //     "oct",
+        //     "nov",
+        //     "dec",
+        //   ];
 
-          const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
-          return monthNames[monthIndex] || "";
-        }
+        //   const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
+        //   return monthNames[monthIndex] || "";
+        // }
 
-        const month = payMonth.split("-")[1];
-        const currentMonth = await getMonthAbbreviation(month);
+        // const month = payMonth.split("-")[1];
+        // const currentMonth = await getMonthAbbreviation(month);
 
-        const ptDynamicAttribute = [currentMonth, "ptAmount"];
-        const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
-        const ptDeducationDetails = await db.paymentDetails.findOne({
-          attributes: [
-            "paymentId",
-            "userId",
-            "ptLocationId",
-            "ptApplicability",
-            "ptStateId",
-          ],
-          where: { userId: employee },
-          raw: true,
-          nest: true,
-          include: [
-            {
-              model: db.ptLocationMaster,
-              attributes: ["ptLocationId", "ptLocationCode", "stateId"],
-              include: [
-                {
-                  model: db.ptMapping,
-                  attributes: [
-                    "ptmappingId",
-                    "minValue",
-                    "maxValue",
-                    ptDynamicAttribute,
-                  ],
-                  required: false,
-                  where: {
-                    [Op.and]: [
-                      { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
-                      { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+        // const ptDynamicAttribute = [currentMonth, "ptAmount"];
+        // const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+        // const ptDeducationDetails = await db.paymentDetails.findOne({
+        //   attributes: [
+        //     "paymentId",
+        //     "userId",
+        //     "ptLocationId",
+        //     "ptApplicability",
+        //     "ptStateId",
+        //   ],
+        //   where: { userId: employee },
+        //   raw: true,
+        //   nest: true,
+        //   include: [
+        //     {
+        //       model: db.ptLocationMaster,
+        //       attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+        //       include: [
+        //         {
+        //           model: db.ptMapping,
+        //           attributes: [
+        //             "ptmappingId",
+        //             "minValue",
+        //             "maxValue",
+        //             ptDynamicAttribute,
+        //           ],
+        //           required: false,
+        //           where: {
+        //             [Op.and]: [
+        //               { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+        //               { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+        //             ],
+        //           },
+        //         },
+        //       ],
+        //     },
+        //   ],
+        // });
+
+        // const lwfDeducationDetails = await db.jobDetails.findOne({
+        //   attributes: [
+        //     "jobId",
+        //     "lwfApplicable",
+        //     "pfApplicability",
+        //     "pfRestricted",
+        //     "esicApplicable",
+        //     "lwfDesignation",
+        //     "lwfState",
+        //   ],
+        //   where: {
+        //     userId: employee,
+        //   },
+        //   raw: true,
+        // });
+
+        // let lwfAmount = 0;
+        // let lwfMappingDetails = null;
+        // if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
+        //   lwfMappingDetails = await db.lwfMapping.findOne({
+        //     attributes: ["lwfmappingId", "stateId", lwfDynamicAttribute], // Include the dynamic attribute here
+        //     where: {
+        //       lwfDesignationId: lwfDeducationDetails.lwfDesignation,
+        //       stateId: lwfDeducationDetails.lwfState,
+        //     },
+        //     raw: true,
+        //   });
+
+        //   if (lwfMappingDetails) {
+        //     lwfAmount = lwfMappingDetails.lwfAmount || 0; // Dynamically use the attribute value
+        //   }
+        // }
+        // const extraPaymentAmount = await db.extraPayment.findOne({
+        //   where: {
+        //     EmployeeId: employee,
+        //     paymentMonth: payMonth,
+        //   },
+        //   raw: true,
+        // });
+        // const ptAmount1 =
+        //   ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
+        //     ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
+        //     : 0;
+
+        // const lwfAmount1 = lwfAmount;
+        // const extraPaymentAmount1 =
+        //   extraPaymentAmount != null ? extraPaymentAmount?.paymentAmount : 0;
+        // if (
+        //   !lwfMappingDetails &&
+        //   lwfDeducationDetails &&
+        //   lwfDeducationDetails.lwfApplicable == 1
+        // ) {
+        //   return respHelper(res, {
+        //     status: 422,
+        //     msg: "Error with lwf calculating.",
+        //   });
+        // }
+        // if (!employeeDetailsComponentWise[0][0]?.payPackageAutoId) {
+        //   return respHelper(res, {
+        //     status: 422,
+        //     msg: "Pay Package Not Assigned.",
+        //   });
+        // }
+        // const queryForAffetElementCounts = await paymentHelper.query(
+        //   13,
+        //   employee,
+        //   null
+        // );
+        // const affectComponentCounts = await db.sequelize.query(
+        //   queryForAffetElementCounts
+        // );
+
+        // for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
+        //   const queryForComponentConfiguration = await paymentHelper.query(
+        //     12,
+        //     empCopntWiseDetl.salaryComponentAutoId,
+        //     null
+        //   );
+        //   const componentConfiguration = await db.sequelize.query(
+        //     queryForComponentConfiguration
+        //   );
+
+        //   let includeInPayPackage =
+        //     ["Earning", "Balancing", "OTC"].includes(
+        //       empCopntWiseDetl["salaryComponentEarningType"]
+        //     ) &&
+        //     paymentHelper.getElementValue(
+        //       "Exclude From Special Allowance",
+        //       componentConfiguration[0]
+        //     ) == 0
+        //       ? 1
+        //       : 0;
+        //   empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
+
+        //   empCopntWiseDetl["elementMonthlyAmount"] =
+        //     (await paymentHelper.getElementValue(
+        //       "Affect Loss Of Pay",
+        //       componentConfiguration[0]
+        //     )) == 1
+        //       ? await paymentHelper.arrectLOP(
+        //           empCopntWiseDetl.payElementAmount,
+        //           employeeDetailsComponentWise[0][0].lopDays,
+        //           totalWorkingDays
+        //         )
+        //       : empCopntWiseDetl.payElementAmount;
+
+        //   empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
+        //     .totalDeduction
+        //     ? extraDeductonsDetails[0][0].totalDeduction
+        //     : 0;
+        //   empCopntWiseDetl["extraDeductionCategories"] =
+        //     extraDeductonsDetails[0][0].deductionCategories
+        //       ? extraDeductonsDetails[0][0].deductionCategories
+        //       : "";
+        //   empCopntWiseDetl["createdAt"] = new Date();
+        //   empCopntWiseDetl["createdBy"] = req.userData.id;
+        //   empCopntWiseDetl["payMonth"] = payMonth;
+        //   empCopntWiseDetl["ptAmount"] = ptAmount1;
+        //   empCopntWiseDetl["lwfAmount"] = lwfAmount1;
+        //   empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
+        //   empCopntWiseDetl["lopMonth"] = payMonth;
+
+        //   // get lop days by employeeId
+        //   let getLOPDeductionDetails = await db.lopDeductions.findOne({
+        //     where: { EmployeeId: EmployeeId, lopMonth: payMonth },
+        //     attributes: ["lopDays"],
+        //   });
+
+        //   if (getLOPDeductionDetails) {
+        //     empCopntWiseDetl["lopDays"] = getLOPDeductionDetails?.lopDays;
+        //   }
+
+        //   //////////////////////////////PF-Applicablity Keys////////////////////////
+        //   let pafApplicableComponet = await paymentHelper.getElementValue(
+        //     "Affect PF",
+        //     componentConfiguration[0]
+        //   );
+        //   let esicApplicableComponent = await paymentHelper.getElementValue(
+        //     "Affects ESIC",
+        //     componentConfiguration[0]
+        //   );
+        //   empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
+        //   empCopntWiseDetl["isPfApplicable"] =
+        //     lwfDeducationDetails.pfApplicability;
+        //   empCopntWiseDetl["isPfRestriction"] =
+        //     lwfDeducationDetails.pfRestricted;
+        //   empCopntWiseDetl["isEsicApplicable"] =
+        //     lwfDeducationDetails.esicApplicable;
+        //   empCopntWiseDetl["isEsicApplicableComponent"] =
+        //     esicApplicableComponent;
+        //   empCopntWiseDetl["processId"] = 0;
+        //   //////////////////////////////PF-Applicablity Keys//////////////////////////////////
+        //   let existDetails = await db.payMonthlyElements.findOne({
+        //     where: {
+        //       empId: employee,
+        //       salaryComponentAutoId: empCopntWiseDetl.salaryComponentAutoId,
+        //       payMonth: payMonth,
+        //     },
+        //     raw: true,
+        //   });
+
+        //   if (!existDetails) {
+        //     await db.payMonthlyElements.create(empCopntWiseDetl);
+        //   }
+        // }
+
+        // let payElementComponents = await db.payMonthlyElements.findAll({
+        //   where: {
+        //     empId: employee,
+        //     isPfApplicableComponent: 1,
+        //     payMonth: payMonth,
+        //   },
+        //   raw: true,
+        // });
+        // ///////////////Calculation And Updation of PF Amount //////////////////////
+
+        // let calculatedPF = "0.00";
+        // let getCalculatedESIC = "0.00";
+
+        // if (payElementComponents.length > 0) {
+        //   calculatedPF = await paymentHelper.getCalculatedPF(
+        //     payElementComponents
+        //   );
+        //   getCalculatedESIC = await paymentHelper.getCalculatedESIC(
+        //     payElementComponents
+        //   );
+        // }
+
+        // await db.payMonthlyElements.update(
+        //   {
+        //     esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
+        //     esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
+        //     pfEmployeeAmount: calculatedPF,
+        //     pfEmployerAmount: calculatedPF,
+        //   },
+        //   { where: { empId: employee, payMonth: payMonth } }
+        // );
+
+
+        let employees = [EmployeeId]; //[484,560];//employeeIds
+        for (const employee of employees) {
+          const queryForEmployeePayDetails = await paymentHelper.query(
+            11,
+            employee,
+            { payMonth: result.payMonth }
+          );
+          console.log(
+            "queryForEmployeePayDetails ::: " + queryForEmployeePayDetails
+          );
+          const employeeDetailsComponentWise = await db.sequelize.query(
+            queryForEmployeePayDetails
+          );
+          // console.log(employeeDetailsComponentWise[0]);
+          // return
+          const queryForExtraDeductions = await paymentHelper.query(
+            14,
+            employee,
+            result.payMonth
+          );
+          const extraDeductonsDetails = await db.sequelize.query(
+            queryForExtraDeductions
+          );
+          const payPackageMonthlyCTC =
+            parseFloat(
+              employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
+            ) || 0;
+    
+          const lopDays =
+            parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
+    
+          const lopMonthWiseCalculation =
+            totalWorkingDays > 0
+              ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
+              : "0.00";
+          const deductionOfLopMonthAmount = Math.max(
+            0,
+            payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation)
+          );
+          async function getMonthAbbreviation(month) {
+            const monthNames = [
+              "jan",
+              "feb",
+              "mar",
+              "apr",
+              "may",
+              "jun",
+              "jul",
+              "aug",
+              "sep",
+              "oct",
+              "nov",
+              "dec",
+            ];
+    
+            const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
+            return monthNames[monthIndex] || "";
+          }
+    
+          const month = result.payMonth.split("-")[1];
+          const currentMonth = await getMonthAbbreviation(month);
+    
+          const ptDynamicAttribute = [currentMonth, "ptAmount"];
+          const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+          const ptDeducationDetails = await db.paymentDetails.findOne({
+            attributes: [
+              "paymentId",
+              "userId",
+              "ptLocationId",
+              "ptApplicability",
+              "ptStateId",
+            ],
+            where: { userId: employee },
+            raw: true,
+            nest: true,
+            include: [
+              {
+                model: db.ptLocationMaster,
+                attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+                include: [
+                  {
+                    model: db.ptMapping,
+                    attributes: [
+                      "ptmappingId",
+                      "minValue",
+                      "maxValue",
+                      ptDynamicAttribute,
                     ],
+                    required: false,
+                    where: {
+                      [Op.and]: [
+                        { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+                        { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+                      ],
+                    },
                   },
-                },
-              ],
-            },
-          ],
-        });
-
-        const lwfDeducationDetails = await db.jobDetails.findOne({
-          attributes: [
-            "jobId",
-            "lwfApplicable",
-            "pfApplicability",
-            "pfRestricted",
-            "esicApplicable",
-            "lwfDesignation",
-            "lwfState",
-          ],
-          where: {
-            userId: employee,
-          },
-          raw: true,
-        });
-
-        let lwfAmount = 0;
-        let lwfMappingDetails = null;
-        if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
-          lwfMappingDetails = await db.lwfMapping.findOne({
-            attributes: ["lwfmappingId", "stateId", lwfDynamicAttribute], // Include the dynamic attribute here
+                ],
+              },
+            ],
+          });
+    
+          const lwfDeducationDetails = await db.jobDetails.findOne({
+            attributes: [
+              "jobId",
+              "lwfApplicable",
+              "pfApplicability",
+              "pfRestricted",
+              "esicApplicable",
+              "lwfDesignation",
+              "lwfState",
+            ],
             where: {
-              lwfDesignationId: lwfDeducationDetails.lwfDesignation,
-              stateId: lwfDeducationDetails.lwfState,
+              userId: employee,
             },
             raw: true,
           });
-
-          if (lwfMappingDetails) {
-            lwfAmount = lwfMappingDetails.lwfAmount || 0; // Dynamically use the attribute value
+    
+          let lwfAmount = 0;
+          let lwfMappingDetails = null;
+    
+          if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
+            lwfMappingDetails = await db.lwfMapping.findOne({
+              attributes: [
+                "lwfmappingId",
+                "lwfDesignationId",
+                "stateId",
+                lwfDynamicAttribute,
+              ], // Include the dynamic attribute here
+              where: {
+                lwfDesignationId: lwfDeducationDetails.lwfDesignation,
+                stateId: lwfDeducationDetails.lwfState,
+              },
+              raw: true,
+            });
+    
+            if (lwfMappingDetails) {
+              lwfAmount = lwfMappingDetails.lwfAmount || 0;
+            }
           }
-        }
-        const extraPaymentAmount = await db.extraPayment.findOne({
-          where: {
-            EmployeeId: employee,
-            paymentMonth: payMonth,
-          },
-          raw: true,
-        });
-        const ptAmount1 =
-          ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
-            ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
-            : 0;
 
-        const lwfAmount1 = lwfAmount;
-        const extraPaymentAmount1 =
-          extraPaymentAmount != null ? extraPaymentAmount?.paymentAmount : 0;
-        if (
-          !lwfMappingDetails &&
-          lwfDeducationDetails &&
-          lwfDeducationDetails.lwfApplicable == 1
-        ) {
-          return respHelper(res, {
-            status: 422,
-            msg: "Error with lwf calculating.",
-          });
-        }
-        if (!employeeDetailsComponentWise[0][0]?.payPackageAutoId) {
-          return respHelper(res, {
-            status: 422,
-            msg: "Pay Package Not Assigned.",
-          });
-        }
-        const queryForAffetElementCounts = await paymentHelper.query(
-          13,
-          employee,
-          null
-        );
-        const affectComponentCounts = await db.sequelize.query(
-          queryForAffetElementCounts
-        );
+    
+          let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
+    
+          let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
+          const ptAmount1 =
+            ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
+              ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
+              : 0;
+          const lwfAmount1 = lwfAmount;
+    
+          const extraPaymentAmount1 =
+            extraPaymentAmount[0].length > 0
+              ? extraPaymentAmount[0][0]?.totalExtraPayment
+              : 0;
 
-        for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
-          const queryForComponentConfiguration = await paymentHelper.query(
-            12,
-            empCopntWiseDetl.salaryComponentAutoId,
+          if (!lwfDeducationDetails) {
+            await db.payProcessDetails.update(
+              { payStatus: 101, payRemark: "Employee job details not found." },
+              {
+                where: {
+                  EmployeeId: employee,
+                  proceessId: processId,
+                },
+              }
+            );
+    
+            continue;
+          }
+          if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+            await db.payProcessDetails.update(
+              { payStatus: 101, payRemark: "Pay Package Not Assigned." },
+              {
+                where: {
+                  EmployeeId: employee,
+                  proceessId: processId,
+                },
+              }
+            );
+    
+            continue;
+          }
+          const queryForAffetElementCounts = await paymentHelper.query(
+            13,
+            employee,
             null
           );
-          const componentConfiguration = await db.sequelize.query(
-            queryForComponentConfiguration
+          const affectComponentCounts = await db.sequelize.query(
+            queryForAffetElementCounts
           );
-
-          let includeInPayPackage =
-            ["Earning", "Balancing", "OTC"].includes(
-              empCopntWiseDetl["salaryComponentEarningType"]
-            ) &&
-            paymentHelper.getElementValue(
-              "Exclude From Special Allowance",
-              componentConfiguration[0]
-            ) == 0
-              ? 1
+          // const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
+          //   ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
+          //       totalWorkingDays) *
+          //       employeeDetailsComponentWise[0][0].lopDays) /
+          //     affectComponentCounts[0][0].lopAffectCount
+          //   : 0;
+          for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
+            const queryForComponentConfiguration = await paymentHelper.query(
+              12,
+              empCopntWiseDetl.salaryComponentAutoId,
+              empCopntWiseDetl.salaryStructureAutoId
+            );
+            const componentConfiguration = await db.sequelize.query(
+              queryForComponentConfiguration
+            );
+            let includeInPayPackage =
+              ["Earning", "Balancing"].includes(
+                empCopntWiseDetl["salaryComponentEarningType"]
+              ) &&
+              paymentHelper.getElementValue(
+                "Exclude From Special Allowance",
+                componentConfiguration[0]
+              ) == 0
+                ? 1
+                : 0;
+            empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
+            // empCopntWiseDetl["elementMonthlyAmount"] =
+            //   paymentHelper.getElementValue(
+            //     "Affect Loss Of Pay",
+            //     componentConfiguration[0]
+            //   ) == 1
+            //     ? parseFloat(
+            //         empCopntWiseDetl.payElementAmount - lopSingleUnit
+            //       ).toFixed(2)
+            //     : empCopntWiseDetl.payElementAmount;
+    
+            empCopntWiseDetl["elementMonthlyAmount"] =
+              (await paymentHelper.getElementValue(
+                "Affect Loss Of Pay",
+                componentConfiguration[0]
+              )) == 1
+                ? paymentHelper.customRound(
+                    await paymentHelper.arrectLOP(
+                      empCopntWiseDetl.payElementAmount,
+                      employeeDetailsComponentWise[0][0].lopDays,
+                      totalWorkingDays
+                    )
+                  )
+                : paymentHelper.customRound(empCopntWiseDetl.payElementAmount);
+    
+            empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
+              .totalDeduction
+              ? extraDeductonsDetails[0][0].totalDeduction
               : 0;
-          empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
-
-          empCopntWiseDetl["elementMonthlyAmount"] =
-            (await paymentHelper.getElementValue(
-              "Affect Loss Of Pay",
+            empCopntWiseDetl["extraDeductionCategories"] =
+              extraDeductonsDetails[0][0].deductionCategories
+                ? extraDeductonsDetails[0][0].deductionCategories
+                : "";
+            empCopntWiseDetl["createdAt"] = new Date();
+            empCopntWiseDetl["createdBy"] = req.userData.id;
+            empCopntWiseDetl["payMonth"] = result.payMonth;
+            empCopntWiseDetl["ptAmount"] = ptAmount1;
+            empCopntWiseDetl["lwfAmount"] = lwfAmount1;
+            empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
+            empCopntWiseDetl["extraPaymentCategories"] =
+              extraPaymentAmount[0][0]?.paymentCategories;
+            empCopntWiseDetl["processId"] = 0;
+            //////////////////////////////PF-Applicablity Keys////////////////////////
+            let pafApplicableComponet = await paymentHelper.getElementValue(
+              "Affect PF",
               componentConfiguration[0]
-            )) == 1
-              ? await paymentHelper.arrectLOP(
-                  empCopntWiseDetl.payElementAmount,
-                  employeeDetailsComponentWise[0][0].lopDays,
-                  totalWorkingDays
-                )
-              : empCopntWiseDetl.payElementAmount;
-
-          empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
-            .totalDeduction
-            ? extraDeductonsDetails[0][0].totalDeduction
-            : 0;
-          empCopntWiseDetl["extraDeductionCategories"] =
-            extraDeductonsDetails[0][0].deductionCategories
-              ? extraDeductonsDetails[0][0].deductionCategories
-              : "";
-          empCopntWiseDetl["createdAt"] = new Date();
-          empCopntWiseDetl["createdBy"] = req.userData.id;
-          empCopntWiseDetl["payMonth"] = payMonth;
-          empCopntWiseDetl["ptAmount"] = ptAmount1;
-          empCopntWiseDetl["lwfAmount"] = lwfAmount1;
-          empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
-          empCopntWiseDetl["lopMonth"] = payMonth;
-
-          // get lop days by employeeId
-          let getLOPDeductionDetails = await db.lopDeductions.findOne({
-            where: { EmployeeId: EmployeeId, lopMonth: payMonth },
-            attributes: ["lopDays"],
-          });
-
-          if (getLOPDeductionDetails) {
-            empCopntWiseDetl["lopDays"] = getLOPDeductionDetails?.lopDays;
+            );
+            let esicApplicableComponent = await paymentHelper.getElementValue(
+              "Affects ESIC",
+              componentConfiguration[0]
+            );
+            let pfElementOnMorethan15000AndRestrictionNo =
+              paymentHelper.getElementValue(
+                "Affect PF >15000 No Restriction",
+                componentConfiguration[0]
+              );
+            empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
+            empCopntWiseDetl["isPfApplicable"] =
+              lwfDeducationDetails.pfApplicability;
+            empCopntWiseDetl["isPfRestriction"] = lwfDeducationDetails.pfRestricted;
+            empCopntWiseDetl["isEsicApplicable"] =
+              lwfDeducationDetails.esicApplicable;
+            empCopntWiseDetl["isEsicApplicableComponent"] = esicApplicableComponent;
+            empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
+              pfElementOnMorethan15000AndRestrictionNo;
+            //////////////////////////////PF-Applicablity Keys//////////////////////////////////
+            let existDetails = await db.payMonthlyElements.findOne({
+              where: {
+                empId: employee,
+                salaryComponentAutoId: empCopntWiseDetl.salaryComponentAutoId,
+                payMonth: result.payMonth,
+              },
+              raw: true,
+            });
+            if (!existDetails) {
+              await db.payMonthlyElements.create(empCopntWiseDetl);
+            }
           }
-
-          //////////////////////////////PF-Applicablity Keys////////////////////////
-          let pafApplicableComponet = await paymentHelper.getElementValue(
-            "Affect PF",
-            componentConfiguration[0]
-          );
-          let esicApplicableComponent = await paymentHelper.getElementValue(
-            "Affects ESIC",
-            componentConfiguration[0]
-          );
-          empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
-          empCopntWiseDetl["isPfApplicable"] =
-            lwfDeducationDetails.pfApplicability;
-          empCopntWiseDetl["isPfRestriction"] =
-            lwfDeducationDetails.pfRestricted;
-          empCopntWiseDetl["isEsicApplicable"] =
-            lwfDeducationDetails.esicApplicable;
-          empCopntWiseDetl["isEsicApplicableComponent"] =
-            esicApplicableComponent;
-          empCopntWiseDetl["processId"] = 0;
-          //////////////////////////////PF-Applicablity Keys//////////////////////////////////
-          let existDetails = await db.payMonthlyElements.findOne({
+    
+          let payElementComponents = await db.payMonthlyElements.findAll({
             where: {
               empId: employee,
-              salaryComponentAutoId: empCopntWiseDetl.salaryComponentAutoId,
-              payMonth: payMonth,
+              salaryComponentEarningType: { [Op.in]: ["Earning", "Balancing"] },
+              payMonth: result.payMonth,
             },
             raw: true,
           });
-
-          if (!existDetails) {
-            await db.payMonthlyElements.create(empCopntWiseDetl);
-          }
-        }
-
-        let payElementComponents = await db.payMonthlyElements.findAll({
-          where: {
-            empId: employee,
-            isPfApplicableComponent: 1,
-            payMonth: payMonth,
-          },
-          raw: true,
-        });
-        ///////////////Calculation And Updation of PF Amount //////////////////////
-
-        let calculatedPF = "0.00";
-        let getCalculatedESIC = "0.00";
-
-        if (payElementComponents.length > 0) {
-          calculatedPF = await paymentHelper.getCalculatedPF(
+          ///////////////Calculation And Updation of PF Amount //////////////////////
+          let calculatedPF = await paymentHelper.getCalculatedPF(
             payElementComponents
           );
-          getCalculatedESIC = await paymentHelper.getCalculatedESIC(
+          let getCalculatedESIC = await paymentHelper.getCalculatedESIC(
             payElementComponents
           );
+          await db.payMonthlyElements.update(
+            {
+              esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
+              esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
+              pfEmployeeAmount: calculatedPF,
+              pfEmployerAmount: calculatedPF,
+            },
+            { where: { empId: employee, payMonth: result.payMonth } }
+          );
+          ///////////////Calculation And Updation of ESIC Amount //////////////////////
+    
+   
         }
 
-        await db.payMonthlyElements.update(
-          {
-            esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
-            esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
-            pfEmployeeAmount: calculatedPF,
-            pfEmployerAmount: calculatedPF,
-          },
-          { where: { empId: employee, payMonth: payMonth } }
-        );
 
-        let metaData = { employee, req };
+        let metaData = { EmployeeId, req };
         // console.log("salary process completed");
         let status = await callSinglePaySlipFun(metaData);
 
@@ -5830,8 +6154,8 @@ async function sendMailAfterSalarySlipRelease(
 }
 
 async function callSinglePaySlipFun(data) {
-  let { employee, req } = data;
-  const employeeIds = employee;
+  let { EmployeeId, req } = data;
+  const employeeIds = [EmployeeId];
 
   let queryForPayMonthlyElementsForSalarySlip = await paymentHelper.query(
     16,
