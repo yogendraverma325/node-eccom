@@ -159,13 +159,13 @@ export default Express.Router()
 
 	.post(
 		"/actionOnPaymentDetails",
-		authorization("ADMIN"),
+		authorization("ADMIN", "HR_OPS"),
 		commonController.actionOnPaymentDetails,
 	)
 
 	.get(
 		"/paymentActionPending",
-		authorization("ADMIN"),
+		authorization("ADMIN", "HR_OPS"),
 		commonController.paymentActionPending,
 	)
 	.post(
