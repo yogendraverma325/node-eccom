@@ -1438,7 +1438,7 @@ const convertExcelDate = (serial) => {
 
 ///COMPOFF
 const checkCompOffPolicyForUser = async (UserId) => {
-	console.log("UserId", UserId);
+	//console.log("UserId", UserId);
 	const mappingObject = {
 		COMPANY: "companyId",
 		BU: "buId",
@@ -1585,6 +1585,7 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 	return count;
 };
 const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
+	//console.log("EMP_DATA", EMP_DATA);
 	const leaveData = await db.leaveCompanyMapping.findOne({
 		where: {
 			leaveAutoId: leaveId,
@@ -1681,16 +1682,12 @@ const checkHolidayEMPforData = async (companyLocationId, Date) => {
 	return holidayData;
 };
 
-const leaveCountForUserForMonth = async (UserId, fromdate, toDate, leaveId) => {
-	let count = 0;
-	const fromMoment = moment(fromdate);
-	const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD");
-	const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD");
+const leaveCountForUserForMonth = async (UserId, date, leaveId) => {
+	const fromMoment = moment(date);
+	const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
+	const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
 
-	const result = await db.employeeLeaveTransactions.findOne({
-		attributes: [
-			[db.Sequelize.fn("SUM", db.Sequelize.col("leaveCount")), "total_balance"], // Sum of balance column
-		],
+	const result = await db.employeeLeaveTransactions.count({
 		where: {
 			employeeId: UserId,
 			leaveAutoId: leaveId,
@@ -1700,31 +1697,7 @@ const leaveCountForUserForMonth = async (UserId, fromdate, toDate, leaveId) => {
 			status: ["approved", "pending"],
 		},
 	});
-	if (result.dataValues.total_balance != null) {
-		count += parseFloat(result.dataValues.total_balance);
-	}
-
-	const toMoment = moment(toDate);
-	const tomonthStart = toMoment.clone().startOf("month").format("YYYY-MM-DD");
-	const tomonthEnd = toMoment.clone().endOf("month").format("YYYY-MM-DD");
-
-	const toresult = await db.employeeLeaveTransactions.findOne({
-		attributes: [
-			[db.Sequelize.fn("SUM", db.Sequelize.col("leaveCount")), "total_balance"], // Sum of balance column
-		],
-		where: {
-			employeeId: UserId,
-			leaveAutoId: leaveId,
-			fromDate: {
-				[Op.between]: [tomonthStart, tomonthEnd],
-			},
-			status: ["approved", "pending"],
-		},
-	});
-	if (toresult.dataValues.total_balance != null) {
-		count += parseFloat(toresult.dataValues.total_balance);
-	}
-	return count;
+	return result;
 };
 
 const creditCompoff = async (inputObject) => {

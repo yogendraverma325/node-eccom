@@ -478,7 +478,6 @@ class LeaveController {
 	async requestForLeave(req, res) {
 		try {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
-
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
 
 			const fromDateReq = req.body.fromDate;
@@ -652,7 +651,6 @@ class LeaveController {
 			let monthCount = await helper.leaveCountForUserForMonth(
 				req.body.employeeId,
 				fromDateReq,
-				toDateReq,
 				req.body.leaveAutoId,
 			);
 
@@ -670,6 +668,25 @@ class LeaveController {
 				});
 			}
 
+			let monthCountTo = await helper.leaveCountForUserForMonth(
+				req.body.employeeId,
+				toDateReq,
+				req.body.leaveAutoId,
+			);
+
+			if (
+				leaveMasterData?.max_month_count != 0 &&
+				monthCountTo > leaveMasterData?.max_month_count
+			) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.MAX_DAY_MONTH.replace(
+						"#",
+						leaveMasterData?.max_month_count,
+					),
+				});
+			}
 			const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
 				where: {
 					appliedFor: {
