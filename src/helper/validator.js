@@ -1369,4 +1369,5 @@ export default {
 	// comp off leave
 	attendanceRosterSchema,
 	rosterUploadSchema,
+	updateCompOffRequest
 };
