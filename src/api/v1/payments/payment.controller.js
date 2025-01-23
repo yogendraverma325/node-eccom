@@ -127,12 +127,13 @@ class PaymentController {
     try {
       const user = req.query.user;
       const financialYear = req.query.financialYear;
+      const type = parseInt(req.query.type);
 
       const paySlip = await db.paySlips.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
           paySlipFinancialYear: financialYear,
-          // paySlipStatus: 1,
+          ...((type === 1) && { paySlipStatus: 1 })
         },
         order: [["createdAt", "desc"]],
         attributes: { exclude: ["createdAt", "createdBy"] },
@@ -3735,12 +3736,19 @@ class PaymentController {
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
       let userId = req.query.user || req.userId;
       let financialYearId = req.query.financialYearId || "";
+      const type = parseInt(req.query.type);
 
       let query = {
         EmployeeId: userId,
         isActive: 1,
+<<<<<<< HEAD
         ...(search && { deductionName: { [Op.like]: `%${search}%` } }),
         ...(financialYearId && { financialYearId: financialYearId }),
+=======
+        ...(search && { "deductionName": { [Op.like]: `%${search}%`} }),
+        ...(financialYearId && { "financialYearId": financialYearId }),
+        ...(type === 1 && { status: 1 })
+>>>>>>> main_dev_payroll_jay
       };
 
       let aggregate = {
@@ -3795,6 +3803,13 @@ class PaymentController {
           startMonth: result.startMonth,
         };
         let moduleName = "Extra Deduction";
+
+        // get category name
+        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.deductionCategoryId }, attributes: ['name'], raw: true })
+        if(getCategoryDetails) {
+          result['deductionCategory'] = getCategoryDetails?.name;
+        }
+
         let metaData = { ...result, createdBy: userId, createdAt: moment() };
         let response = {};
 
@@ -3882,18 +3897,18 @@ class PaymentController {
       };
 
       let isExist = await service.details(model, findQuery);
-      if (isExist.status == 200) {
-        return respHelper(res, {
-          status: 400,
-          msg: Constant.ALREADY_EXISTS.replace("<module>", "Extra Deduction"),
-          data: {},
-        });
-      } else {
-        let metaData = {
-          ...result,
-          updatedBy: req.userId,
-          updatedAt: moment(),
-        };
+      if(isExist.status == 200) {
+        return respHelper(res, { status: 400, msg: Constant.ALREADY_EXISTS.replace('<module>', 'Extra Deduction'), data: {} });
+      }
+      else {
+        
+        // get category name
+        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.deductionCategoryId }, attributes: ['name'], raw: true })
+        if(getCategoryDetails) {
+          result['deductionCategory'] = getCategoryDetails?.name;
+        }
+
+        let metaData = { ...result, updatedBy: req.userId, updatedAt: moment() };
         let response = await service.update(model, metaData, query);
         return respHelper(res, response);
       }
@@ -3935,12 +3950,19 @@ class PaymentController {
       let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
       let userId = req.query.user || req.userId;
       let financialYearId = req.query.financialYearId || "";
+      const type = parseInt(req.query.type);
 
       let query = {
         EmployeeId: userId,
         isActive: 1,
+<<<<<<< HEAD
         ...(search && { category: { [Op.like]: `%${search}%` } }),
         ...(financialYearId && { financialYearId: financialYearId }),
+=======
+        ...(search && { "category": { [Op.like]: `%${search}%`} }),
+        ...(financialYearId && { "financialYearId": financialYearId }),
+        ...(type === 1 && { status: 1 })
+>>>>>>> main_dev_payroll_jay
       };
 
       let aggregate = {
@@ -3987,12 +4009,22 @@ class PaymentController {
         let model = db.extraPayment;
         let userId = req.userId;
 
+<<<<<<< HEAD
         let metaData = {
           ...result,
           createdAt: moment(),
           createdBy: userId,
           empCode: getDetails?.data?.empCode,
         };
+=======
+        // get category name
+        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.paymentCategoryId }, attributes: ['name'], raw: true })
+        if(getCategoryDetails) {
+          result['category'] = getCategoryDetails?.name;
+        }
+
+        let metaData = { ...result, createdAt: moment(), createdBy: userId, 'empCode': getDetails?.data?.empCode };
+>>>>>>> main_dev_payroll_jay
         let response = await model.create(metaData);
         return respHelper(res, {
           status: 201,
@@ -4027,6 +4059,13 @@ class PaymentController {
       );
       let model = db.extraPayment;
       let query = { extraPaymentAutoId: req.params.id };
+
+      // get category name
+      let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.paymentCategoryId }, attributes: ['name'], raw: true })
+      if(getCategoryDetails) {
+        result['category'] = getCategoryDetails?.name;
+      }
+
       let metaData = { ...result, updatedAt: moment(), updatedBy: req.userId };
       let response = await service.update(model, metaData, query);
       return respHelper(res, response);
