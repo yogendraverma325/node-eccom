@@ -3808,6 +3808,8 @@ class PaymentController {
         let query = {
           EmployeeId: result.EmployeeId,
           startMonth: result.startMonth,
+          deductionCategoryId: result.deductionCategoryId,
+          deductionName: result.deductionName
         };
         let moduleName = "Extra Deduction";
 
@@ -3850,6 +3852,7 @@ class PaymentController {
                 EmployeeId: result.EmployeeId,
                 deductionCategoryId: result.deductionCategoryId,
                 startMonth: yearMonth,
+                deductionName: result.deductionName
               };
               response = await service.create(
                 model,
@@ -3900,6 +3903,8 @@ class PaymentController {
       let findQuery = {
         EmployeeId: result.EmployeeId,
         startMonth: result.startMonth,
+        deductionCategoryId: result.deductionCategoryId,
+        deductionName: result.deductionName,
         extraDeductionsAutoId: { [Op.not]: req.params.id },
       };
 
