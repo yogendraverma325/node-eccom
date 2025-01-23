@@ -735,7 +735,7 @@ class PaymentController {
         if (!employee["Salary Structure"]) continue;
         let structureDetails = await db.salaryStructure.findAll({
           where: {
-            salaryStructureName: employee["Salary Structure"],
+            salaryStructureName: employee["Salary Structure"].trim(),
           },
           raw: true,
           attributes: ["salaryStructureName", "salaryStructureAutoId"],

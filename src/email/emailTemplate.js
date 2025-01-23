@@ -4122,7 +4122,7 @@ const salarySlipPdf = async (data) => {
       const deduction = deductions[i] || {};
       rows += `
         <tr>
-            <td>${earning.paySlipComponentName}</td>
+            <td>${earning.paySlipComponentName?earning.paySlipComponentName:''}</td>
             <td>${
               earning.fixedPayElementAmount && earning.fixedPayElementAmount > 0
                 ? earning.fixedPayElementAmount
