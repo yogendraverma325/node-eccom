@@ -3741,14 +3741,9 @@ class PaymentController {
       let query = {
         EmployeeId: userId,
         isActive: 1,
-<<<<<<< HEAD
-        ...(search && { deductionName: { [Op.like]: `%${search}%` } }),
-        ...(financialYearId && { financialYearId: financialYearId }),
-=======
         ...(search && { "deductionName": { [Op.like]: `%${search}%`} }),
         ...(financialYearId && { "financialYearId": financialYearId }),
         ...(type === 1 && { status: 1 })
->>>>>>> main_dev_payroll_jay
       };
 
       let aggregate = {
@@ -3955,14 +3950,9 @@ class PaymentController {
       let query = {
         EmployeeId: userId,
         isActive: 1,
-<<<<<<< HEAD
-        ...(search && { category: { [Op.like]: `%${search}%` } }),
-        ...(financialYearId && { financialYearId: financialYearId }),
-=======
         ...(search && { "category": { [Op.like]: `%${search}%`} }),
         ...(financialYearId && { "financialYearId": financialYearId }),
         ...(type === 1 && { status: 1 })
->>>>>>> main_dev_payroll_jay
       };
 
       let aggregate = {
@@ -4009,14 +3999,6 @@ class PaymentController {
         let model = db.extraPayment;
         let userId = req.userId;
 
-<<<<<<< HEAD
-        let metaData = {
-          ...result,
-          createdAt: moment(),
-          createdBy: userId,
-          empCode: getDetails?.data?.empCode,
-        };
-=======
         // get category name
         let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.paymentCategoryId }, attributes: ['name'], raw: true })
         if(getCategoryDetails) {
@@ -4024,7 +4006,6 @@ class PaymentController {
         }
 
         let metaData = { ...result, createdAt: moment(), createdBy: userId, 'empCode': getDetails?.data?.empCode };
->>>>>>> main_dev_payroll_jay
         let response = await model.create(metaData);
         return respHelper(res, {
           status: 201,
