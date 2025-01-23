@@ -1330,6 +1330,7 @@ const extraPayment = Joi.object({
   type: Joi.string()
     .allow(null)
     .label("Type"),
+  paymentCategoryId:Joi.number().integer().positive().required(),
 });
 
 const lopValidateSchama = Joi.object({
