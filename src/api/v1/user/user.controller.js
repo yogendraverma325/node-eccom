@@ -514,8 +514,8 @@ class UserController {
 						where: Object.assign(
 							!["ADMIN", "HR_OPS"].includes(req.userRole)
 								? {
-										manager: req.userId,
-									}
+									manager: req.userId,
+								}
 								: {},
 							{
 								isActive: 1,
@@ -867,10 +867,10 @@ class UserController {
 				finalStatus: 2,
 				empAttachment: result.attachment
 					? await helper.fileUpload(
-							result.attachment,
-							`separation_attachment_${d}`,
-							`uploads/${existUser.dataValues.empCode}`,
-						)
+						result.attachment,
+						`separation_attachment_${d}`,
+						`uploads/${existUser.dataValues.empCode}`,
+					)
 					: null,
 				empSubmissionDate: moment(),
 				createdDt: moment(),
@@ -1063,10 +1063,10 @@ class UserController {
 					l1Remark: result.l1Remark,
 					l1Attachment: result.attachment
 						? await helper.fileUpload(
-								result.attachment,
-								`separation_attachment_${d}`,
-								`uploads/${separationData.dataValues.employee.empCode}`,
-							)
+							result.attachment,
+							`separation_attachment_${d}`,
+							`uploads/${separationData.dataValues.employee.empCode}`,
+						)
 						: null,
 					l1SubmissionDate: moment(),
 					pendingAt: separationData.dataValues.employee.buHRId,
@@ -2128,10 +2128,10 @@ class UserController {
 					l2Remark: result.l2Remark,
 					l2Attachment: result.attachment
 						? await helper.fileUpload(
-								result.attachment,
-								`separation_attachment_${d}`,
-								`uploads/${separationData.dataValues.employee.empCode}`,
-							)
+							result.attachment,
+							`separation_attachment_${d}`,
+							`uploads/${separationData.dataValues.employee.empCode}`,
+						)
 						: null,
 					l2SubmissionDate: moment(),
 					l2RequestStatus: "Approved",
@@ -2601,10 +2601,10 @@ class UserController {
 						regularizeStatus: { [Op.ne]: "Pending" },
 						...(fromDate &&
 							extendedToDate && {
-								createdAt: {
-									[db.Sequelize.Op.between]: [fromDate, extendedToDate],
-								},
-							}),
+							createdAt: {
+								[db.Sequelize.Op.between]: [fromDate, extendedToDate],
+							},
+						}),
 					},
 					include: [
 						{
@@ -2624,11 +2624,11 @@ class UserController {
 										...(search && { name: { [Op.like]: `%${search}%` } }),
 										...(type === "all"
 											? {
-													[Op.or]: [
-														//{ id: req.userId },
-														{ manager: req.userId },
-													],
-												}
+												[Op.or]: [
+													//{ id: req.userId },
+													{ manager: req.userId },
+												],
+											}
 											: { id: req.userId }),
 									},
 									include: [
@@ -2702,26 +2702,26 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(fromDate &&
 							toDate && {
-								appliedFor: {
-									[db.Sequelize.Op.between]: [fromDate, toDate],
-								},
-							}),
+							appliedFor: {
+								[db.Sequelize.Op.between]: [fromDate, toDate],
+							},
+						}),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-									[Op.or]: [
-										{
-											pendingAt: req.userId,
-											source: { [Op.ne]: "system_generated" },
-										},
-									],
-								}
+								[Op.or]: [
+									{
+										pendingAt: req.userId,
+										source: { [Op.ne]: "system_generated" },
+									},
+								],
+							}
 							: type === "all" && isSystemGenerated == 1
 								? {
-										[Op.or]: [
-											{ employeeId: req.userId },
-											{ pendingAt: req.userId, source: "system_generated" },
-										],
-									}
+									[Op.or]: [
+										{ employeeId: req.userId },
+										{ pendingAt: req.userId, source: "system_generated" },
+									],
+								}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -5144,20 +5144,20 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-									[Op.or]: [
-										{
-											updatedBy: req.userId,
-											source: { [Op.ne]: "system_generated" },
-										},
-									],
-								}
+								[Op.or]: [
+									{
+										updatedBy: req.userId,
+										source: { [Op.ne]: "system_generated" },
+									},
+								],
+							}
 							: type === "all" && isSystemGenerated == 1
 								? {
-										[Op.or]: [
-											{ employeeId: req.userId },
-											{ updatedBy: req.userId, source: "system_generated" },
-										],
-									}
+									[Op.or]: [
+										{ employeeId: req.userId },
+										{ updatedBy: req.userId, source: "system_generated" },
+									],
+								}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -5587,39 +5587,39 @@ class UserController {
 				where: Object.assign(
 					!["ADMIN", "HR_OPS"].includes(req.userRole)
 						? {
-								manager: req.userId,
-							}
+							manager: req.userId,
+						}
 						: {},
 					{
 						isActive: 1,
 					},
 					search || search != ""
 						? {
-								[Op.or]: [
-									{
-										empCode: {
-											[Op.like]: `%${search}%`,
-										},
+							[Op.or]: [
+								{
+									empCode: {
+										[Op.like]: `%${search}%`,
 									},
-									{
-										name: {
-											[Op.like]: `%${search}%`,
-										},
+								},
+								{
+									name: {
+										[Op.like]: `%${search}%`,
 									},
-									{
-										email: {
-											[Op.like]: `%${search}%`,
-										},
+								},
+								{
+									email: {
+										[Op.like]: `%${search}%`,
 									},
-								],
-							}
+								},
+							],
+						}
 						: {},
 					selectedUser.length > 0
 						? {
-								id: {
-									[Op.notIn]: selectedUser,
-								},
-							}
+							id: {
+								[Op.notIn]: selectedUser,
+							},
+						}
 						: {},
 				),
 				attributes: ["id", "empCode", "name", "profileImage"],
@@ -5654,17 +5654,11 @@ class UserController {
 					where: {
 						id: element,
 					},
-					attributes: ["id", "empCode", "name"],
+					attributes: ["id", "empCode", "name", "weekOffId"],
 					include: [
 						{
 							model: db.shiftMaster,
-							attributes: [
-								"shiftId",
-								"shiftName",
-								"shiftStartTime",
-								"shiftEndTime",
-								"isOverNight",
-							],
+							attributes: ["shiftName"],
 						},
 						{
 							model: db.attendancePolicymaster,
@@ -5681,6 +5675,55 @@ class UserController {
 						currentDate.isSameOrBefore(maxDate);
 						currentDate.add(1, "days")
 					) {
+						const dayCode = parseInt(moment(currentDate).format("d")) + 1;
+						const dayOfMonth = currentDate.date();
+						const occurrence = Math.ceil(dayOfMonth / 7);
+						const currentWeekOffId = user.dataValues.weekOffId;
+
+						let occurrenceDayCondition = {};
+						switch (occurrence) {
+							case 1:
+								occurrenceDayCondition = {
+									dayId: dayCode,
+									isfirstDayOff: 1,
+									weekOffId: currentWeekOffId,
+								};
+								break;
+							case 2:
+								occurrenceDayCondition = {
+									dayId: dayCode,
+									isSecondDayOff: 1,
+									weekOffId: currentWeekOffId,
+								};
+								break;
+							case 3:
+								occurrenceDayCondition = {
+									dayId: dayCode,
+									isThirdyDayOff: 1,
+									weekOffId: currentWeekOffId,
+								};
+								break;
+							case 4:
+								occurrenceDayCondition = {
+									dayId: dayCode,
+									isFourthDayOff: 1,
+									weekOffId: currentWeekOffId,
+								};
+								break;
+							case 5:
+								occurrenceDayCondition = {
+									dayId: dayCode,
+									isFivethDayOff: 1,
+									weekOffId: currentWeekOffId,
+								};
+								break;
+							default:
+								occurrenceDayCondition = {};
+						}
+						let checkWeekOff = await db.weekOffDayMappingMaster.findOne({
+							where: occurrenceDayCondition,
+						});
+
 						const attedanceData = await db.attendanceMaster.findOne({
 							where: {
 								employeeId: element,
@@ -5690,13 +5733,7 @@ class UserController {
 							include: [
 								{
 									model: db.shiftMaster,
-									attributes: [
-										"shiftId",
-										"shiftName",
-										"shiftStartTime",
-										"shiftEndTime",
-										"isOverNight",
-									],
+									attributes: ["shiftName"],
 								},
 							],
 						});
@@ -5710,13 +5747,7 @@ class UserController {
 							include: [
 								{
 									model: db.shiftMaster,
-									attributes: [
-										"shiftId",
-										"shiftName",
-										"shiftStartTime",
-										"shiftEndTime",
-										"isOverNight",
-									],
+									attributes: ["shiftName"],
 								},
 							],
 						});
@@ -5724,11 +5755,13 @@ class UserController {
 						rosterData.push({
 							day: moment(currentDate).format("dddd"),
 							date: currentDate.format("YYYY-MM-DD"),
-							shift: attedanceData
-								? attedanceData.dataValues.shiftsmaster
-								: existRosterData
-									? existRosterData.dataValues.shiftsmaster
-									: user.dataValues.shiftsmaster,
+							shift: checkWeekOff
+								? { shiftName: `(Weekly Off)` }
+								: attedanceData
+									? attedanceData.dataValues.shiftsmaster
+									: existRosterData
+										? existRosterData.dataValues.shiftsmaster
+										: user.dataValues.shiftsmaster,
 						});
 					}
 
@@ -5741,7 +5774,7 @@ class UserController {
 					name: user.dataValues.name,
 					rosterLimit: user.dataValues.attendancePolicymaster
 						? user.dataValues.attendancePolicymaster
-								.attendaceRosterLimitForPreviousDays
+							.attendaceRosterLimitForPreviousDays
 						: 0,
 					attendanceRosterData: await rosterData(),
 				});
