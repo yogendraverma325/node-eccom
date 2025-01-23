@@ -3829,42 +3829,50 @@ class PaymentController {
         // let findQuery = { EmployeeId: result.EmployeeId, startMonth: oneMonthBefore };
         // let isExist = await service.details(model, findQuery);
         // if(isExist.status === 200) {
-        if (result.startMonth == result.endMonth) {
-          response = await service.create(model, metaData, query, moduleName);
-        } else {
-          const start = new Date(result.startMonth + "-01"); // Start date
-          const end = new Date(result.endMonth + "-01"); // End date
 
-          if (end > start) {
-            let current = new Date(start);
-
-            while (current <= end) {
-              const yearMonth = `${current.getFullYear()}-${String(
-                current.getMonth() + 1
-              ).padStart(2, "0")}`;
-              current.setMonth(current.getMonth() + 1); // Move to the next month
-              metaData = {
-                ...metaData,
-                startMonth: yearMonth,
-                endMonth: yearMonth,
-              };
-              query = {
-                EmployeeId: result.EmployeeId,
-                deductionCategoryId: result.deductionCategoryId,
-                startMonth: yearMonth,
-                deductionName: result.deductionName
-              };
-              response = await service.create(
-                model,
-                metaData,
-                query,
-                moduleName
-              );
+        matchQuery = { EmployeeId: result.EmployeeId, payMonth: result.startMonth };
+        getDetails = await service.details(db.paySlips, matchQuery);
+        if(getDetails.status == 200) {
+          return respHelper(res, { status: 400, msg: 'Salary slip already exist.' });
+        }
+        else {
+          if (result.startMonth == result.endMonth) {
+            response = await service.create(model, metaData, query, moduleName);
+          } else {
+            const start = new Date(result.startMonth + "-01"); // Start date
+            const end = new Date(result.endMonth + "-01"); // End date
+  
+            if (end > start) {
+              let current = new Date(start);
+  
+              while (current <= end) {
+                const yearMonth = `${current.getFullYear()}-${String(
+                  current.getMonth() + 1
+                ).padStart(2, "0")}`;
+                current.setMonth(current.getMonth() + 1); // Move to the next month
+                metaData = {
+                  ...metaData,
+                  startMonth: yearMonth,
+                  endMonth: yearMonth,
+                };
+                query = {
+                  EmployeeId: result.EmployeeId,
+                  deductionCategoryId: result.deductionCategoryId,
+                  startMonth: yearMonth,
+                  deductionName: result.deductionName
+                };
+                response = await service.create(
+                  model,
+                  metaData,
+                  query,
+                  moduleName
+                );
+              }
             }
           }
+          return respHelper(res, response);
         }
 
-        return respHelper(res, response);
         // }
         // else {
         //   return respHelper(res, { status: 400, msg: 'Previous month data is not exist', data: {} });
@@ -4023,12 +4031,20 @@ class PaymentController {
         }
 
         let metaData = { ...result, createdAt: moment(), createdBy: userId, 'empCode': getDetails?.data?.empCode };
-        let response = await model.create(metaData);
-        return respHelper(res, {
-          status: 201,
-          msg: Constant.INSERT_SUCCESS,
-          data: response,
-        });
+
+        matchQuery = { EmployeeId: result.EmployeeId, payMonth: result.paymentMonth };
+        getDetails = await service.details(db.paySlips, matchQuery);
+        if(getDetails.status == 200) {
+          return respHelper(res, { status: 400, msg: 'Salary slip already exist.' });
+        }
+        else {
+          let response = await model.create(metaData);
+          return respHelper(res, {
+            status: 201,
+            msg: Constant.INSERT_SUCCESS,
+            data: response,
+          });
+        }
       } else {
         return respHelper(res, {
           status: 400,
@@ -4528,12 +4544,24 @@ class PaymentController {
       let matchQuery = { EmployeeId: EmployeeId, payMonth: payMonth };
       let model = db.paySlips;
       let doc = await service.details(model, matchQuery);
+
+      // verify pay process details
+      let payProcessDetailsQuery = { EmployeeId: EmployeeId, payMonth: payMonth, payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9]} }
+      let doc1 = await service.details(db.payProcessDetails, payProcessDetailsQuery);
+
       if (doc.status == 200) {
         return respHelper(res, {
           status: 400,
           msg: Constant.ALREADY_EXISTS.replace("<module>", "Salary Slip"),
         });
-      } else {
+      }
+      else if (doc1.status == 200) {
+        return respHelper(res, {
+          status: 400,
+          msg: "Pay process in the progress",
+        });
+      }
+      else {
         // add or update TDS deduction and LOP deduction
         await addUpdateTDSDeductionAndLOPDeduction(req, result);
 
