@@ -1584,12 +1584,24 @@ class PaymentController {
           attributes: ["empCode", "id"],
         });
 
+        if(!employeeDetais)
+          {
+            errorArray.push({
+              index: errorArray.length+1,
+              errorDetails:"Employee not found/ deactivated",
+              employeeID: employeeTds["Email/Employee ID"],
+            });
+            continue;
+          }
+
         let tdsDeductions = {
           EmployeeId: employeeDetais.id,
           tdsAmount: employeeTds["TDS Deductions"],
           tdsMonth: employeeTds["TDS Month (YYYY-MM)"],
           empCode: employeeTds["Email/Employee ID"],
         };
+
+   
         const { error } = await validator.tdsDeductionsSchema.validate(
           tdsDeductions
         );
