@@ -2704,7 +2704,7 @@ class AttendanceController {
 				id: empId,
 			},
 		});
-		// console.log("EMPID", empId);
+		console.log("EMPID", empId);
 		// console.log("EMPID weekoff", singleEmp);
 		let presentStatus = null;
 
@@ -2910,7 +2910,7 @@ class AttendanceController {
 						holiday: singleEmp.holidaycompanylocationconfigurations,
 						weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
 					};
-
+					console.log("employeeData", employeeData);
 					await helper.creditCompoff(employeeData);
 				}
 				await db.attendanceMaster.update(
