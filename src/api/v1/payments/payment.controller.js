@@ -817,14 +817,14 @@ class PaymentController {
 
         if (!employeeDetails) {
           console.log(
-            "Empoyee not found or inactive" +
+            "Employee not found or inactive" +
               " for empId : " +
               employee["Email/Employee ID"]
           );
           errorArray.push({
             index: errorArray.length + 1,
             employeeID: employee["Email/Employee ID"],
-            errorDetails: "Empoyee not found",
+            errorDetails: "Employee not found",
           });
           continue;
         }
@@ -3143,6 +3143,15 @@ class PaymentController {
         processId,
       } = req.query;
 
+      let fileNameType = req.query.fileNameType || '';
+      let customSheetName = '';
+      if(fileNameType === '1') {
+        customSheetName = 'Total Employees';
+      }
+      else if(fileNameType === '2') {
+        customSheetName = 'Payroll Processing Employees';
+      }
+
       console.log(req.query);
 
       const sheetName = {
@@ -3171,7 +3180,9 @@ class PaymentController {
         return result;
       };
 
-      const sheetVal = await getKeyByValue(exportSheetAutoId);
+      let sheetVal = await getKeyByValue(exportSheetAutoId);
+      sheetVal = (customSheetName) ? customSheetName : sheetVal;
+
       // Check for required exportSheetAutoId
       if (!exportSheetAutoId) {
         return res.status(400).json({
