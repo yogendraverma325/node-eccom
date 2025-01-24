@@ -171,13 +171,19 @@ class LeaveController {
 						leaveHeaderSingleRecords &&
 						leaveHeaderSingleRecords.leaveAutoId == 9
 					) {
-						await helper.actionOnLeaveCompOff({
-							employeeId: leaveHeaderSingleRecords.employeeId,
-							employeeLeaveTransactionsIds: leaveID,
-							status: 1,
-							remarks: result.remark != "" ? result.remark : null,
-							userId: req.userId,
-						});
+						const employeeId = leaveHeaderSingleRecords.employeeId;
+						const employeeLeaveTransactionsIds = leaveID;
+						const status = 1;
+						const remarks = result.remark != "" ? result.remark : null;
+						const userId = req.userId;
+
+						await helper.actionOnLeaveCompOff(
+							employeeId,
+							employeeLeaveTransactionsIds,
+							status,
+							remarks,
+							userId,
+						);
 					}
 
 					const existingRecord = await db.employeeLeaveTransactions.findOne({
