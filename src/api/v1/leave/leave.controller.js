@@ -154,6 +154,24 @@ class LeaveController {
 			);
 			if (result.status == "approved") {
 				for (const leaveID of leaveIds) {
+					let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+						where: {
+							employeeleaveheaderID: leaveID,
+						},
+					});
+					if (
+						leaveHeaderSingleRecords &&
+						leaveHeaderSingleRecords.leaveAutoId == 9
+					) {
+						await helper.actionOnLeaveCompOff({
+							employeeId: leaveHeaderSingleRecords.employeeId,
+							employeeLeaveTransactionsIds: leaveID,
+							status: 1,
+							remarks: result.remark != "" ? result.remark : null,
+							userId: req.userId,
+						});
+					}
+
 					const existingRecord = await db.employeeLeaveTransactions.findOne({
 						where: { employeeleaveheaderID: leaveID },
 					});
@@ -172,7 +190,10 @@ class LeaveController {
 						//   }
 						// );
 
-						if (existingRecord.leaveAutoId === 6) {
+						if (
+							existingRecord.leaveAutoId === 6 ||
+							existingRecord.leaveAutoId === 9
+						) {
 							const lwpLeave = await db.leaveMapping.findOne({
 								where: {
 									EmployeeId: existingRecord.employeeId,

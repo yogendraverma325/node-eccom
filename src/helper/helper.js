@@ -1989,6 +1989,142 @@ const reportieesofEmp = async (empId) => {
 	return empids;
 };
 
+const actionOnLeaveCompOff = async (
+	employeeId,
+	employeeLeaveTransactionsIds,
+	status,
+	remarks,
+	userId,
+) => {
+	try {
+		const getLeaveRequest = await db.EmployeeLeaveHeader.findOne({
+			attributes: ["employeeId", "leaveAutoId", "leaveCount"],
+			where: {
+				employeeId: employeeId,
+				leaveAutoId: 9,
+				status: "pending",
+			},
+			raw: false,
+		});
+
+		if (!getLeaveRequest) {
+			return {
+				data: 0,
+			};
+		}
+
+		const compOffHistory = await db.comp_off_credit_history.findAll({
+			attributes: [
+				"comp_off_credit_history_auto_id",
+				"employee_Id",
+				"balance",
+				"expiry_date",
+			],
+			where: {
+				employee_Id: employeeId,
+				status: 3,
+				expiry_date: {
+					[Op.or]: [
+						{ [Op.eq]: null },
+						{ [Op.gt]: moment().format("YYYY-MM-DD") },
+					],
+				},
+			},
+			order: [["expiry_date", "ASC"]],
+			raw: true,
+		});
+
+		if (compOffHistory.length === 0) {
+			return {
+				data: 0,
+			};
+		}
+
+		const totalBalance = compOffHistory.reduce(
+			(sum, record) => sum + parseFloat(record.balance),
+			0,
+		);
+
+		if (totalBalance < parseFloat(getLeaveRequest.leaveCount)) {
+			return {
+				data: 0,
+			};
+		}
+
+		const appliedForData = await db.EmployeeLeaveHeader.findOne({
+			where: { employeeleaveheaderID: employeeLeaveTransactionsIds },
+			include: [
+				{
+					model: db.employeeLeaveTransactions,
+					attributes: ["appliedFor", "leaveCount"],
+					where: { leaveAutoId: 9 },
+				},
+			],
+		});
+
+		if (!appliedForData || !appliedForData.employeeleavetransactions) {
+			return {
+				data: 0,
+			};
+		}
+
+		const appliedDates = appliedForData.employeeleavetransactions.map((e) => ({
+			appliedFor: e.appliedFor,
+			leaveCount: parseFloat(e.leaveCount),
+		}));
+
+		let leaveToDeduct = parseFloat(getLeaveRequest.leaveCount);
+
+		for (const date of appliedDates) {
+			let remainingForDate = date.leaveCount;
+
+			while (remainingForDate > 0 && leaveToDeduct > 0) {
+				const eligibleRecord = compOffHistory.find(
+					(record) => parseFloat(record.balance) > 0,
+				);
+				if (!eligibleRecord) {
+					console.log("No more eligible comp-off records to process.");
+					break;
+				}
+
+				const availableBalance = parseFloat(eligibleRecord.balance);
+				const deductionAmount = Math.min(
+					availableBalance,
+					remainingForDate,
+					leaveToDeduct,
+				);
+
+				await db.comp_off_credit_history.update(
+					{
+						updatedBy: userId,
+						approver_remark: remarks,
+						taken_on: date.appliedFor,
+						...(status === 1 && { status: 1 }),
+					},
+					{
+						where: {
+							comp_off_credit_history_auto_id:
+								eligibleRecord.comp_off_credit_history_auto_id,
+						},
+					},
+				);
+
+				remainingForDate -= deductionAmount;
+				leaveToDeduct -= deductionAmount;
+				eligibleRecord.balance = availableBalance - deductionAmount;
+			}
+		}
+
+		return {
+			data: 1,
+		};
+	} catch (error) {
+		return {
+			data: 0,
+		};
+	}
+};
+
 ///COMPOFF
 
 export default {
@@ -2033,5 +2169,6 @@ export default {
 	creditCompoff,
 	checkLeaveClupEMPforDate,
 	reportieesofEmp,
+	actionOnLeaveCompOff,
 	//COMPOFF
 };
