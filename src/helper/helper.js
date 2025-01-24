@@ -2011,7 +2011,7 @@ const actionOnLeaveCompOff = async (
 			where: {
 				employeeId: employeeId,
 				leaveAutoId: 9,
-				status: "pending",
+				status: "approved",
 			},
 			raw: false,
 		});
