@@ -191,6 +191,8 @@ const calculateLateBy = async (
 			`${withToDate} ${actualTime}`,
 			"YYYY-MM-DD HH:mm:ss",
 		);
+		console.log("combinedLastDayTime", combinedLastDayTime);
+		console.log("combinedCurrentTime", combinedCurrentTime);
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
 			let duration = moment.duration(
