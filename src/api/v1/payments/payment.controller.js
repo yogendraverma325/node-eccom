@@ -5196,6 +5196,27 @@ class PaymentController {
         let status = await callSinglePaySlipFun(metaData);
 
         if (status == true) {
+          // update status of extra payment and extra deduction
+          await db.extraDeduction.update(
+            { status: 1, updatedAt: moment(), updatedBy: req.userId },
+            {
+              where: {
+                EmployeeId: EmployeeId,
+                startMonth: payMonth,
+              },
+            }
+          );
+    
+          await db.extraPayment.update(
+            { status: 1, updatedAt: moment(), updatedBy: req.userId },
+            {
+              where: {
+                EmployeeId: EmployeeId,
+                paymentMonth: payMonth,
+              },
+            }
+          );
+
           return respHelper(res, {
             status: 200,
             msg: "Salary slip generated successfully",
@@ -5270,6 +5291,27 @@ class PaymentController {
         });
 
         if (deletedCount1 > 0 && deletedCount2 && deletedCount3) {
+          // update status of extra payment and extra deduction
+          await db.extraDeduction.update(
+            { status: 0, updatedAt: moment(), updatedBy: req.userId },
+            {
+              where: {
+                EmployeeId: paySlipDetails?.EmployeeId,
+                startMonth: paySlipDetails?.payMonth,
+              },
+            }
+          );
+    
+          await db.extraPayment.update(
+            { status: 0, updatedAt: moment(), updatedBy: req.userId },
+            {
+              where: {
+                EmployeeId: paySlipDetails?.EmployeeId,
+                paymentMonth: paySlipDetails?.payMonth,
+              },
+            }
+          );
+
           return respHelper(res, {
             status: 200,
             msg: Constant.DETAILS_DELETED.replace("<module>", "Pay slip"),
@@ -5279,6 +5321,76 @@ class PaymentController {
         }
       } else {
         return respHelper(res, { status: 404, msg: Constant.NOT_FOUND });
+      }
+    } catch (error) {
+      logger.error(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async getPayMonth(req, res) {
+    try {
+      let { EmployeeId } = req.params;
+      let selectYear = parseInt(req.query.selectYear) || 2024;
+
+      let months = [
+        { id: 4, value: `${selectYear}-04`, label: `${selectYear}-04` },
+        { id: 5, value: `${selectYear}-05`, label: `${selectYear}-05` },
+        { id: 6, value: `${selectYear}-06`, label: `${selectYear}-06` },
+        { id: 7, value: `${selectYear}-07`, label: `${selectYear}-07` },
+        { id: 8, value: `${selectYear}-08`, label: `${selectYear}-08` },
+        { id: 9, value: `${selectYear}-09`, label: `${selectYear}-09` },
+        { id: 10, value: `${selectYear}-10`, label: `${selectYear}-10` },
+        { id: 11, value: `${selectYear}-11`, label: `${selectYear}-11` },
+        { id: 12, value: `${selectYear}-12`, label: `${selectYear}-12` },
+        {
+          id: 1, value: `${parseInt(selectYear) + 1}-01`,
+          label: `${parseInt(selectYear) + 1}-01`,
+        },
+        {
+          id: 2, value: `${parseInt(selectYear) + 1}-02`,
+          label: `${parseInt(selectYear) + 1}-02`,
+        },
+        {
+          id: 3, value: `${parseInt(selectYear) + 1}-03`,
+          label: `${parseInt(selectYear) + 1}-03`,
+        },
+      ];
+
+      let paySlips = await db.paySlips.findAll({
+        where: { EmployeeId: EmployeeId },
+        attributes: ["EmployeeId", "payMonth", "paySlipMonth"],
+        raw: true,
+      });
+
+      if(paySlips.length > 0) {
+
+        // manage financial year month
+        let modifiedMonths = [];
+        months.map((item) => {
+          const matchedItem = paySlips?.find((m) => {
+            return item.id === m.paySlipMonth;
+          });
+          if(matchedItem === undefined) {
+            modifiedMonths.push(item);
+          }
+        });
+
+        return respHelper(res, {
+          status: 200,
+          msg: Constant.DATA_FETCHED,
+          data: modifiedMonths
+        });
+      }
+      else {
+        return respHelper(res, {
+          status: 200,
+          msg: Constant.DATA_FETCHED,
+          data: months
+        });
+
       }
     } catch (error) {
       logger.error(error);
