@@ -1978,7 +1978,7 @@ class AttendanceController {
 							regularizeData.regularizePunchInTime,
 							withGraceTime,
 							regularizeData.regularizePunchInDate,
-							regularizeData.regularizePunchOutDate,
+							regularizeData.regularizePunchInDate,
 						),
 						createdBy: req.userId,
 						createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
