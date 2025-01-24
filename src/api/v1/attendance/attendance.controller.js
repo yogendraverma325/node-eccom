@@ -1951,6 +1951,12 @@ class AttendanceController {
 			);
 
 			if (result.status) {
+				console.log(
+					regularizeData.regularizePunchInTime,
+					withGraceTime,
+					regularizeData.regularizePunchInDate,
+					regularizeData.regularizePunchOutDate,
+				);
 				await db.attendanceMaster.update(
 					{
 						attendanceDate: regularizeData.regularizePunchInDate,
