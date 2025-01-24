@@ -5897,7 +5897,7 @@ class UserController {
 						const dayCode = parseInt(moment(currentDate).format("d")) + 1;
 						const dayOfMonth = currentDate.date();
 						const occurrence = Math.ceil(dayOfMonth / 7);
-						const currentWeekOffId = existRosterData ? existRosterData.dataValues.weekOffMaster.weekOffId : attedanceData ? attedanceData.dataValues.weekOffMaster.weekOffId : user.dataValues.weekOffMaster.weekOffId
+						const currentWeekOffId = existRosterData ? existRosterData.dataValues.weekOffMaster.weekOffId : attedanceData ? attedanceData.dataValues.weekOffMaster.weekOffId : user.dataValues.weekOffMaster ? user.dataValues.weekOffMaster.weekOffId : 0
 
 						let occurrenceDayCondition = {};
 						switch (occurrence) {
