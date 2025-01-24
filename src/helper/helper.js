@@ -2022,7 +2022,7 @@ const actionOnLeaveCompOff = async (
 			],
 			where: {
 				employee_Id: employeeId,
-				status: 3,
+				status: 1,
 				expiry_date: {
 					[Op.or]: [
 						{ [Op.eq]: null },
