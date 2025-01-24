@@ -1760,7 +1760,15 @@ const creditCompoff = async (inputObject) => {
 				.month(0)
 				.endOf("month")
 				.format("YYYY-MM-DD HH:mm:ss");
-			let totalCount = await db.comp_off_credit_history.count({
+			let totalCount = 0;
+
+			const result = await db.comp_off_credit_history.findOne({
+				attributes: [
+					[
+						db.Sequelize.fn("SUM", db.Sequelize.col("balance")),
+						"total_balance",
+					], // Sum of balance column
+				],
 				where: {
 					employee_Id: empId,
 					createdAt: {
@@ -1768,6 +1776,9 @@ const creditCompoff = async (inputObject) => {
 					},
 				},
 			});
+			if (result.dataValues.total_balance != null) {
+				totalCount += parseFloat(result.dataValues.total_balance);
+			}
 
 			if (
 				compOffPolicyData &&
