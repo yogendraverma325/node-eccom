@@ -159,6 +159,14 @@ class LeaveController {
 							employeeleaveheaderID: leaveID,
 						},
 					});
+					console.log("action on comp"),
+						console.log({
+							employeeId: leaveHeaderSingleRecords.employeeId,
+							employeeLeaveTransactionsIds: leaveID,
+							status: 1,
+							remarks: result.remark != "" ? result.remark : null,
+							userId: req.userId,
+						});
 					if (
 						leaveHeaderSingleRecords &&
 						leaveHeaderSingleRecords.leaveAutoId == 9

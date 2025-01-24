@@ -1997,6 +1997,13 @@ const actionOnLeaveCompOff = async (
 	userId,
 ) => {
 	try {
+		console.log({
+			employeeId,
+			employeeLeaveTransactionsIds,
+			status,
+			remarks,
+			userId,
+		});
 		const getLeaveRequest = await db.EmployeeLeaveHeader.findOne({
 			attributes: ["employeeId", "leaveAutoId", "leaveCount"],
 			where: {
