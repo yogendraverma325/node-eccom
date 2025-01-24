@@ -3,7 +3,7 @@ import respHelper from "../../../helper/respHelper.js";
 import commonController from "../common/common.controller.js";
 import helper from "../../../helper/helper.js";
 import validator from "../../../helper/validator.js";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import constant from "../../../constant/messages.js";
 import eventEmitter from "../../../services/eventService.js";
 import fs from "fs";
@@ -55,8 +55,190 @@ class UserController {
 	}
 	async profileDetails(req, res) {
 		try {
-			const user = req.query.user;
-			let EMP_DATA = await helper.getEmpProfile(user ? user : req.userId);
+			const user = req.query.user || req.userId;
+			const status = parseInt(req.query.status) || null
+
+			const EMP_DATA = await db.employeeMaster.findOne({
+				where: Object.assign(
+					{
+						id: user
+					},
+					(status) ? { isActive: status } : {}
+				),
+				attributes: {
+					exclude: ["password", "role_id", "designation_id"],
+				},
+				include: [
+					{
+						model: db.salutationMaster,
+						required: false,
+						attributes: ["salutationId", "salutation"],
+					},
+					{
+						model: db.jobDetails,
+						required: false,
+						attributes: [
+							"dateOfProbationEnd",
+							"confirmationDate",
+							"confirmationGenerated",
+						],
+					},
+					{
+						model: db.functionalAreaMaster,
+						required: false,
+						attributes: [
+							"functionalAreaId",
+							"functionalAreaName",
+							"functionalAreaCode",
+						],
+					},
+					{
+						model: db.noticePeriodMaster,
+						required: false,
+						attributes: ["nPDaysAfterConfirmation"],
+					},
+					{
+						model: db.buMaster,
+						required: false,
+						attributes: ["buId", "buName", "buCode"],
+					},
+					{
+						model: db.sbuMaster,
+						required: false,
+						attributes: ["sbuname", "code"],
+					},
+					{
+						model: db.departmentMaster,
+						required: false,
+						attributes: ["departmentId", "departmentCode", "departmentName"],
+					},
+					{
+						model: db.companyMaster,
+						required: false,
+						attributes: ["companyId", "companyName", "companyCode"],
+						include: [
+							{
+								model: db.groupCompanyMaster,
+								required: false,
+								attributes: ["groupId", "groupCode", "groupName", "groupShortName"],
+							},
+						],
+					},
+					{
+						model: db.employeeMaster,
+						required: false,
+						attributes: ["id", "name", "profileImage", "email"],
+						as: "managerData",
+						include: [
+							{
+								model: db.roleMaster,
+								required: false,
+							},
+							{
+								model: db.designationMaster,
+								required: false,
+								attributes: ["designationId", "name"],
+							},
+						],
+					},
+					{
+						model: db.roleMaster,
+						required: false,
+						attributes: ["name"],
+					},
+					{
+						model: db.designationMaster,
+						required: false,
+						attributes: ["designationId", "name"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "reportie",
+						// required: false,
+						attributes: {
+							exclude: ["password", "role_id", "designation_id"],
+						},
+						include: [
+							{
+								model: db.roleMaster,
+								required: true,
+							},
+							{
+								model: db.designationMaster,
+								required: false,
+								attributes: ["designationId", "name"],
+							},
+						],
+					},
+					{
+						model: db.weekOffMaster,
+						required: false,
+						where: {
+							isActive: 1,
+						},
+					},
+					{
+						model: db.attendancePolicymaster,
+						required: false,
+						where: {
+							isActive: 1,
+						},
+					},
+					{
+						model: db.shiftMaster,
+						required: false,
+						attributes: [
+							"shiftId",
+							"shiftName",
+							"shiftStartTime",
+							"shiftEndTime",
+							"isOverNight",
+						],
+						where: {
+							isActive: 1,
+						},
+					},
+					// {
+					//   model: db.employeeMaster,
+					//   required: false,
+					//   attributes: ["id", "name"],
+					//   as: "buHeadData",
+					// },
+					// {
+					//   model: db.employeeMaster,
+					//   required: false,
+					//   attributes: ["id", "name"],
+					//   as: "buhrData",
+					// },
+					{
+						model: db.companyLocationMaster,
+						required: false,
+						attributes: ["address1", "address2"],
+					},
+				],
+			});
+			if (EMP_DATA) {
+				const headAndHrData = await db.buMapping.findOne({
+					where: { buId: EMP_DATA.buId, companyId: EMP_DATA.companyId },
+					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "email"],
+							as: "buHeadData",
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "email"],
+							as: "buhrData",
+						},
+					],
+				});
+
+				if (headAndHrData) {
+					EMP_DATA.dataValues.buHeadData = headAndHrData.buHeadData;
+					EMP_DATA.dataValues.buhrData = headAndHrData.buhrData;
+				}
+			}
 
 			return respHelper(res, {
 				status: 200,
@@ -5716,7 +5898,7 @@ class UserController {
 						const dayOfMonth = currentDate.date();
 						const occurrence = Math.ceil(dayOfMonth / 7);
 						const currentWeekOffId = existRosterData ? existRosterData.dataValues.weekOffMaster.weekOffId : attedanceData ? attedanceData.dataValues.weekOffMaster.weekOffId : user.dataValues.weekOffMaster.weekOffId
-						
+
 						let occurrenceDayCondition = {};
 						switch (occurrence) {
 							case 1:
