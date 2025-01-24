@@ -2,7 +2,7 @@ import Express from "express";
 import userController from "./user.controller.js";
 import authentication from "../../../middleware/authentication.js";
 import commonController from "../common/common.controller.js";
-import CronController from "../cron/cron.controller.js";
+
 export default Express.Router()
 	.get(
 		"/profileDetails",
