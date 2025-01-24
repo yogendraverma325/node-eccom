@@ -1900,6 +1900,7 @@ const creditCompoff = async (inputObject) => {
 						};
 
 						if (approvalRequired) {
+							comp_off_data.message = "Auto Generated Request for Approval";
 							let finalApprovalIds = [];
 							for (const singleapprovalId of approvalIds) {
 								if (singleapprovalId == "MANAGER") {

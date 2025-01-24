@@ -1434,11 +1434,8 @@ class LeaveController {
 					? totalWorkingDaysCalculated
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
-			console.log("c", c);
-			console.log("b", b);
-			console.log("a", a);
 
-			if (leaveAutoId == 6) {
+			if (leaveAutoId == 6 || leaveAutoId == 9) {
 				b = a;
 			}
 
