@@ -2013,12 +2013,14 @@ const actionOnLeaveCompOff = async (
 			},
 			raw: false,
 		});
+		console.log("getLeaveRequest");
 
 		if (!getLeaveRequest) {
 			return {
 				data: 0,
 			};
 		}
+		console.log("getLeaveRequest checked");
 
 		const compOffHistory = await db.comp_off_credit_history.findAll({
 			attributes: [
@@ -2040,23 +2042,27 @@ const actionOnLeaveCompOff = async (
 			order: [["expiry_date", "ASC"]],
 			raw: true,
 		});
+		console.log("compOffHistory list");
 
 		if (compOffHistory.length === 0) {
 			return {
 				data: 0,
 			};
 		}
+		console.log("compOffHistory checked");
 
 		const totalBalance = compOffHistory.reduce(
 			(sum, record) => sum + parseFloat(record.balance),
 			0,
 		);
+		console.log("totalBalance");
 
 		if (totalBalance < parseFloat(getLeaveRequest.leaveCount)) {
 			return {
 				data: 0,
 			};
 		}
+		console.log("totalBalance checked");
 
 		const appliedForData = await db.EmployeeLeaveHeader.findOne({
 			where: { employeeleaveheaderID: employeeLeaveTransactionsIds },
@@ -2068,19 +2074,24 @@ const actionOnLeaveCompOff = async (
 				},
 			],
 		});
+		console.log("appliedForData");
 
 		if (!appliedForData || !appliedForData.employeeleavetransactions) {
 			return {
 				data: 0,
 			};
 		}
+		console.log("appliedForData checked");
 
 		const appliedDates = appliedForData.employeeleavetransactions.map((e) => ({
 			appliedFor: e.appliedFor,
 			leaveCount: parseFloat(e.leaveCount),
 		}));
 
+		console.log("appliedDates");
+
 		let leaveToDeduct = parseFloat(getLeaveRequest.leaveCount);
+		console.log("appliedDates checked", appliedDates.length);
 
 		for (const date of appliedDates) {
 			let remainingForDate = date.leaveCount;
