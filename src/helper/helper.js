@@ -2099,7 +2099,7 @@ const actionOnLeaveCompOff = async (
 						updatedBy: userId,
 						approver_remark: remarks,
 						taken_on: date.appliedFor,
-						...(status === 1 && { status: 1 }),
+						...(status === 1 && { status: 2 }),
 					},
 					{
 						where: {
