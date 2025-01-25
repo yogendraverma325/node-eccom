@@ -2303,6 +2303,20 @@ class AttendanceController {
 								"isOverNight",
 							],
 						},
+						{
+							model: db.weekOffMaster,
+							where: {
+								isActive: 1
+							},
+							include: [
+								{
+									model: db.weekOffDayMappingMaster,
+									attributes: ["weekOffId"],
+									required: false,
+									where: occurrenceDayCondition,
+								},
+							],
+						}
 					],
 				},
 				{
@@ -2365,8 +2379,10 @@ class AttendanceController {
 		let presentStatus = null;
 
 		if (
-			singleEmp.weekOffMaster &&
-			singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0
+			(singleEmp.weekOffMaster &&
+				singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) || (
+				singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0
+			)
 		) {
 			presentStatus = "weeklyOff";
 		} else if (
@@ -2694,6 +2710,20 @@ class AttendanceController {
 								"isOverNight",
 							],
 						},
+						{
+							model: db.weekOffMaster,
+							where: {
+								isActive: 1
+							},
+							include: [
+								{
+									model: db.weekOffDayMappingMaster,
+									attributes: ["weekOffId"],
+									required: false,
+									where: occurrenceDayCondition,
+								},
+							],
+						}
 					],
 				},
 				{
@@ -2758,8 +2788,8 @@ class AttendanceController {
 		let presentStatus = null;
 
 		if (
-			singleEmp.weekOffMaster &&
-			singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0
+			(singleEmp.weekOffMaster && singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) ||
+			(singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0)
 		) {
 			presentStatus = "weeklyOff";
 		} else if (
@@ -3209,6 +3239,20 @@ class AttendanceController {
 									isActive: 1,
 								},
 							},
+							{
+								model: db.weekOffMaster,
+								where: {
+									isActive: 1
+								},
+								include: [
+									{
+										model: db.weekOffDayMappingMaster,
+										attributes: ["weekOffId"],
+										required: false,
+										where: occurrenceDayCondition,
+									},
+								],
+							}
 						],
 					},
 					{
@@ -3283,7 +3327,9 @@ class AttendanceController {
 				existEmployees.map(async (singleEmp) => {
 					let presentStatus = null;
 
-					if (singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) {
+					if (singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0 || (
+						singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0
+					)) {
 						presentStatus = "weeklyOff";
 					} else if (
 						singleEmp.holidaycompanylocationconfigurations.length > 0
@@ -4763,7 +4809,7 @@ const attedanceRosterCron = async (user, date) => {
 	});
 
 	if (attendanceData) {
-		_this.attedanceCronManual(attendanceData.attendanceAutoId, date);
+		_this.attedanceCronManual(attendanceData.dataValues.attendanceAutoId, date);
 	}
 };
 export default new AttendanceController();
