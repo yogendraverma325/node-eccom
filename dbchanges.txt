@@ -1148,6 +1148,12 @@ ADD COLUMN `paymentCategoryId` INT NULL DEFAULT NULL AFTER `paymentType`;
 ALTER TABLE `tara`.`payslip` 
 ADD COLUMN `paySlipType` VARCHAR(45) NULL DEFAULT 'Regular' AFTER `sendEmail`;
 
+27-01-2025
+
+ALTER TABLE `tara`.`paypackage` 
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `salaryStructureAutoId`;
+
+
 
 
 

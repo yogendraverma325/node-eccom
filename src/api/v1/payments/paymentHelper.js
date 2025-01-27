@@ -1,7 +1,8 @@
 import { Op, Sequelize, where } from "sequelize";
 import db from "../../../config/db.config.js";
 import { parse } from "dotenv";
-import { raw } from "mysql2";
+import moment from 'moment';
+
 let paySlipComponentObject = {
   EmployeeId: "",
   paySlipAutoId: "",
@@ -718,6 +719,20 @@ async function getActualMonthlyAmount(componentAmount,totalWorkingDays,actualWor
 }
 
 
+// create function by jay fot get financial year
+async function getFinancialYear(date = moment()) {
+   const startMonth = 3; // 0 based index of month 3 for april
+   const year = date.year(); // get year
+   // if the month before april, consider it is previous financial year
+   const financialYearStart = date.month() < startMonth ? year - 1 : year;
+   const financialYearEnd = ((financialYearStart + 1).toString()).slice(-2);
+
+   // get financial year id from table
+   let financialYearDetails = await db.financialYearMaster.findOne({ where: { 'year': financialYearStart, isActive: 1 }, attributes: ['financialYearId', 'financialYearName'], raw: true });
+  //  return `${financialYearStart}-${financialYearEnd}`;
+  return financialYearDetails;
+}
+
 
 export default {
   payAfterLOPDeductions,
@@ -740,5 +755,6 @@ export default {
   getExtraEarningElements,
   customRound,
   actualWorkingDays,
-  getActualMonthlyAmount
+  getActualMonthlyAmount,
+  getFinancialYear
 };

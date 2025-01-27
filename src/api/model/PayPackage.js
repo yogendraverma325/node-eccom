@@ -26,6 +26,9 @@ export default (sequelize, Sequelize) => {
         payPackageType: {
             type: Sequelize.STRING
         },
+        financialYearId: {
+            type: Sequelize.INTEGER
+        },
         createdBy: {
             type: Sequelize.INTEGER
         },

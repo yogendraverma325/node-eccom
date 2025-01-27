@@ -126,13 +126,13 @@ class PaymentController {
   async paySlips(req, res) {
     try {
       const user = req.query.user;
-      const financialYear = req.query.financialYear;
+      const financialYearId = req.query.financialYearId;
       const type = parseInt(req.query.type);
 
       const paySlip = await db.paySlips.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
-          paySlipFinancialYear: financialYear,
+          financialYearId: financialYearId,
           ...((type === 1) && { paySlipStatus: 1 })
         },
         order: [["createdAt", "desc"]],
@@ -199,12 +199,12 @@ class PaymentController {
   async payPackage(req, res) {
     try {
       const user = req.query.user;
-      const financialYear = req.query.financialYear;
+      const financialYearId = req.query.financialYearId;
 
       const payPackage = await db.payPackage.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
-          payPackageFinancialYear: financialYear,
+          financialYearId: financialYearId,
           // isActive:1
         },
         order: [["createdAt", "desc"]],
@@ -718,6 +718,10 @@ class PaymentController {
           msg: "File is required!",
         });
       }
+
+      // get financial year
+      let financialYearDetails = await paymentHelper.getFinancialYear();
+      
       ///////////////If File is provided by the users//////////////////
       const workbookEmployee = pkg.readFile(req.file.path);
       const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -817,14 +821,14 @@ class PaymentController {
 
         if (!employeeDetails) {
           console.log(
-            "Empoyee not found or inactive" +
+            "Employee not found or inactive" +
               " for empId : " +
               employee["Email/Employee ID"]
           );
           errorArray.push({
             index: errorArray.length + 1,
             employeeID: employee["Email/Employee ID"],
-            errorDetails: "Empoyee not found",
+            errorDetails: "Employee not found",
           });
           continue;
         }
@@ -921,7 +925,8 @@ class PaymentController {
             let packageInserted = await db.payPackage.create(
               {
                 EmployeeId: employeeDetails.id,
-                payPackageFinancialYear: "2024-25",
+                payPackageFinancialYear: financialYearDetails?.financialYearName,
+                financialYearId: financialYearDetails?.financialYearId,
                 payPackageEffectiveDate: formatDate(year, month, day), //new Date(year, month - 1, day),
                 payPackageMonthlyCTC: employee["CTC"],
                 payPackageSalaryStructure:
@@ -2331,6 +2336,10 @@ class PaymentController {
         month: value.paymonth.split("-")[1],
       });
       let ids = value.departmentId.split(",");
+
+      // get financial year
+      let financialYearDetails = await paymentHelper.getFinancialYear();
+
       let allEmployeeQuery = await paymentHelper.query(
         value.departmentId == 0 ? 25 : 19,
         value.processingType,
@@ -2367,7 +2376,7 @@ class PaymentController {
         let payPackageDetails = await db.payPackage.findOne({
           where: {
             EmployeeId: lopSingleDetails.EmployeeId,
-            payPackageFinancialYear: "2024-25",
+            payPackageFinancialYear: financialYearDetails?.financialYearName,
           },
           attributes: ["payPackageMonthlyCTC"],
           raw: true,
@@ -3152,6 +3161,15 @@ class PaymentController {
         processId,
       } = req.query;
 
+      let fileNameType = req.query.fileNameType || '';
+      let customSheetName = '';
+      if(fileNameType === '1') {
+        customSheetName = 'Total Employees';
+      }
+      else if(fileNameType === '2') {
+        customSheetName = 'Payroll Processing Employees';
+      }
+
       console.log(req.query);
 
       const sheetName = {
@@ -3180,7 +3198,9 @@ class PaymentController {
         return result;
       };
 
-      const sheetVal = await getKeyByValue(exportSheetAutoId);
+      let sheetVal = await getKeyByValue(exportSheetAutoId);
+      sheetVal = (customSheetName) ? customSheetName : sheetVal;
+
       // Check for required exportSheetAutoId
       if (!exportSheetAutoId) {
         return res.status(400).json({
@@ -5841,6 +5861,10 @@ async function generatePaySlip(data) {
   console.log("generate pay slip");
   try {
     let { processId, req } = data;
+
+    // get financial year
+    let financialYearDetails = await paymentHelper.getFinancialYear();
+
     let queryForCurrentProcessStatus = await paymentHelper.query(
       15,
       processId,
@@ -5946,7 +5970,8 @@ async function generatePaySlip(data) {
             EmployeeId: payMonthlyElement.empId,
             paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
             paySlipYear: payMonthlyElement.payMonth.split("-")[0],
-            paySlipFinancialYear: "2024-25",
+            paySlipFinancialYear: financialYearDetails?.financialYearName,
+            financialYearId: financialYearDetails?.financialYearId,
             paySlipDuration: paySlipDuration,
             paySlipTotalDays: payMonthlyElement.totalWorkingDays,
             paySlipWorkingDays: payMonthlyElement.actualWorkingDays - payMonthlyElement.lopDays,
@@ -6270,6 +6295,8 @@ async function sendMailAfterSalarySlipRelease(
 async function callSinglePaySlipFun(data) {
   let { EmployeeId, req } = data;
   const employeeIds = [EmployeeId];
+  // get financial year
+  let financialYearDetails = await paymentHelper.getFinancialYear();
 
   let queryForPayMonthlyElementsForSalarySlip = await paymentHelper.query(
     16,
@@ -6353,7 +6380,8 @@ async function callSinglePaySlipFun(data) {
         EmployeeId: payMonthlyElement.empId,
         paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
         paySlipYear: payMonthlyElement.payMonth.split("-")[0],
-        paySlipFinancialYear: "2024-25",
+        paySlipFinancialYear: financialYearDetails?.financialYearName,
+        financialYearId: financialYearDetails?.financialYearId,
         paySlipDuration: paySlipDuration,
         paySlipTotalDays: totalWorkingDays,
         paySlipWorkingDays: totalWorkingDays - payMonthlyElement.lopDays,
