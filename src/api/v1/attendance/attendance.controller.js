@@ -60,6 +60,7 @@ class AttendanceController {
 					"email",
 					"weekOffId",
 					"companyLocationId",
+					'requiredAttendanceApproval'
 				],
 				include: [
 					{

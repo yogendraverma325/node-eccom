@@ -18,7 +18,7 @@ class MasterController {
 			let departmentFIlter = {};
 			let designationFIlter = {};
 			const usersData = req.userData;
-			const status = parseInt(req.query.status)
+			const status = parseInt(req.query.status) || 1
 
 			const limit = req.query.limit * 1 || 10;
 			const pageNo = req.query.page * 1 || 1;
