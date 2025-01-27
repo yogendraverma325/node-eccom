@@ -162,8 +162,13 @@ export default (sequelize, Sequelize) => {
           },
           extraPaymentCategories:{
             type: Sequelize.TEXT,
-          }
-
+          },
+          totalWorkingDays:{
+            type:Sequelize.INTEGER
+          },
+          actualWorkingDays:{
+            type:Sequelize.INTEGER
+          },
 
     });
     return PayMonthlyElement ;
