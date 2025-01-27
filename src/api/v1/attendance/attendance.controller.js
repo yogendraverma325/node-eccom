@@ -2380,6 +2380,7 @@ class AttendanceController {
 		if (
 			(singleEmp.weekOffMaster &&
 				singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) || (
+					singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0
 			)
 		) {
@@ -2788,7 +2789,7 @@ class AttendanceController {
 
 		if (
 			(singleEmp.weekOffMaster && singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) ||
-			(singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0)
+			(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0)
 		) {
 			presentStatus = "weeklyOff";
 		} else if (
@@ -3033,6 +3034,7 @@ class AttendanceController {
 	async attedanceCron() {
 		try {
 			const start = performance.now();
+			console.log("start",start)
 			const activeEmployees = await db.employeeMaster.findAll({
 				include: [
 					{
@@ -3277,7 +3279,7 @@ class AttendanceController {
 					},
 					{
 						model: db.attendanceMaster,
-						required: false,
+						required: true,
 						where: {
 							attendanceDate: lastDayDate,
 							attendanceAutoId: attendanceAutoId,
