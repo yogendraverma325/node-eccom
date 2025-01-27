@@ -55,6 +55,9 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             default: 'Regular'
         },
+        financialYearId: {
+            type: Sequelize.INTEGER
+        },
         createdBy: {
             type: Sequelize.INTEGER
         },
