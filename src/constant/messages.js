@@ -76,6 +76,8 @@ const message = {
 		MAX_DAY_MONTH: "Not allowed to apply for leave exceeding # days in a month",
 		BALANCE_NOT_AVAILABLE: "Enough Leave Balance is not available",
 		CLUB_NOT_ALLOWED: "Clubbing with other leaves is not allowed",
+		ON_PRAOBATION_LEAVE_COUNT:
+			"Employees on probation are not allowed to take more than # leaves",
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
 	INVALID: "Invalid <module>",

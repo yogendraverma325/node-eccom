@@ -76,6 +76,16 @@ const checkActiveUser = async (data) => {
 			isActive: 1,
 			isLoginActive: 1,
 		},
+		include: {
+			model: db.jobDetails,
+			required: true,
+			attributes: [
+				"dateOfProbationEnd",
+				"confirmationDate",
+				"confirmationGenerated",
+				"dateOfJoining",
+			],
+		},
 	});
 	return existUser;
 };
@@ -554,6 +564,7 @@ const empLeaveDetails = async function (userId, type) {
 		leaveData = await db.leaveMapping.findAll({
 			where: {
 				EmployeeId: userId,
+				isActive: 1,
 			},
 			include: [
 				{
@@ -599,6 +610,7 @@ const empLeaveDetails = async function (userId, type) {
 			where: {
 				EmployeeId: userId,
 				leaveAutoId: type,
+				isActive: 1,
 			},
 		});
 		console.log("leaveData from this");
@@ -1684,21 +1696,45 @@ const checkHolidayEMPforData = async (companyLocationId, Date) => {
 	return holidayData;
 };
 
-const leaveCountForUserForMonth = async (UserId, date, leaveId) => {
-	const fromMoment = moment(date);
-	const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
-	const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
+const leaveCountForUserForMonth = async (
+	UserId,
+	date,
+	leaveId,
+	overAll = "OTHER",
+	lastDate = null,
+) => {
+	let result = 0;
+	console.log("overAll", overAll);
+	if (overAll == "YES") {
+		const fromMoment = moment(date).format("YYYY-MM-DD");
+		const todayDate = moment(lastDate).format("YYYY-MM-DD"); // Today's date
+		console.log("fromMoment", fromMoment, "todayDate", todayDate);
 
-	const result = await db.employeeLeaveTransactions.count({
-		where: {
-			employeeId: UserId,
-			leaveAutoId: leaveId,
-			fromDate: {
-				[Op.between]: [monthStart, monthEnd],
+		result = await db.employeeLeaveTransactions.count({
+			where: {
+				employeeId: UserId,
+				fromDate: {
+					[Op.between]: [fromMoment, todayDate],
+				},
+				status: ["approved", "pending"],
 			},
-			status: ["approved", "pending"],
-		},
-	});
+		});
+	} else {
+		const fromMoment = moment(date);
+		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
+		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
+		result = await db.employeeLeaveTransactions.count({
+			where: {
+				employeeId: UserId,
+				leaveAutoId: leaveId,
+				fromDate: {
+					[Op.between]: [monthStart, monthEnd],
+				},
+				status: ["approved", "pending"],
+			},
+		});
+	}
+
 	return result;
 };
 

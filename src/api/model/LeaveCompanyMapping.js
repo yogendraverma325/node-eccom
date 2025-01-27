@@ -101,6 +101,18 @@ export default (sequelize, Sequelize) => {
 		club_with: {
 			type: Sequelize.STRING,
 		},
+		probation_period_leave_validity: {
+			type: Sequelize.INTEGER,
+		},
+		probation_period_leave_validity_duration: {
+			type: Sequelize.INTEGER,
+		},
+		probation_period_leave_validity_duration_type: {
+			type: Sequelize.STRING,
+		},
+		maximum_leave_allowed_in_probation: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveCompanyMapping;
 };

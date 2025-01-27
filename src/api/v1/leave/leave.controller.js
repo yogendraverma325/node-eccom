@@ -513,6 +513,7 @@ class LeaveController {
 	async requestForLeave(req, res) {
 		try {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
+
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
 
 			const fromDateReq = req.body.fromDate;
@@ -534,6 +535,31 @@ class LeaveController {
 				result.leaveAutoId,
 				EMP_DATA,
 			);
+			const onProbation = req.userData["employeejobdetail.confirmationDate"];
+			if (onProbation == null) {
+				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
+					let probationLeaveCount = await helper.leaveCountForUserForMonth(
+						req.body.employeeId,
+						req.userData["employeejobdetail.dateOfJoining"],
+						req.body.leaveAutoId,
+						"YES",
+						toDateReq,
+					);
+					if (
+						probationLeaveCount >
+						leaveMasterData.maximum_leave_allowed_in_probation
+					) {
+						return respHelper(res, {
+							status: 404,
+							data: {},
+							msg: message.LEAVE.ON_PRAOBATION_LEAVE_COUNT.replace(
+								"#",
+								leaveMasterData.maximum_leave_allowed_in_probation,
+							),
+						});
+					}
+				}
+			}
 			if (!leaveMasterData) {
 				return respHelper(res, {
 					status: 404,
