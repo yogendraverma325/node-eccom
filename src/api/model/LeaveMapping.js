@@ -41,6 +41,12 @@ export default (sequelize, Sequelize) => {
 		isActive: {
 			type: Sequelize.BOOLEAN,
 		},
+		is_active_for_display: {
+			type: Sequelize.INTEGER,
+		},
+		is_active_for_application: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveMapping;
 };

@@ -18,7 +18,7 @@ class MasterController {
 			let departmentFIlter = {};
 			let designationFIlter = {};
 			const usersData = req.userData;
-			const status = parseInt(req.query.status);
+			const status = req.query.status ? parseInt(req.query.status) : undefined;
 
 			const limit = req.query.limit * 1 || 10;
 			const pageNo = req.query.page * 1 || 1;
@@ -124,9 +124,13 @@ class MasterController {
 					break;
 			}
 
-			let searchCondition = {
-				isActive: status,
-			};
+			let searchCondition = Object.assign(
+				status
+					? {
+							isActive: status,
+						}
+					: {},
+			);
 
 			if (searchId) {
 				searchCondition = { id: searchId };
@@ -152,9 +156,13 @@ class MasterController {
 						},
 					],
 					[Op.and]: [
-						{
-							isActive: status,
-						},
+						Object.assign(
+							status
+								? {
+										isActive: status,
+									}
+								: {},
+						),
 					],
 				};
 			}
