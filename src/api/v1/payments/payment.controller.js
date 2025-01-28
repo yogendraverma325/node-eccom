@@ -133,7 +133,7 @@ class PaymentController {
         where: {
           EmployeeId: user ? user : req.userId,
           financialYearId: financialYearId,
-          ...((type === 1) && { paySlipStatus: 1 })
+          ...(type === 1 && { paySlipStatus: 1 }),
         },
         order: [["createdAt", "desc"]],
         attributes: { exclude: ["createdAt", "createdBy"] },
@@ -721,7 +721,7 @@ class PaymentController {
 
       // get financial year
       let financialYearDetails = await paymentHelper.getFinancialYear();
-      
+
       ///////////////If File is provided by the users//////////////////
       const workbookEmployee = pkg.readFile(req.file.path);
       const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -925,7 +925,8 @@ class PaymentController {
             let packageInserted = await db.payPackage.create(
               {
                 EmployeeId: employeeDetails.id,
-                payPackageFinancialYear: financialYearDetails?.financialYearName,
+                payPackageFinancialYear:
+                  financialYearDetails?.financialYearName,
                 financialYearId: financialYearDetails?.financialYearId,
                 payPackageEffectiveDate: formatDate(year, month, day), //new Date(year, month - 1, day),
                 payPackageMonthlyCTC: employee["CTC"],
@@ -1104,7 +1105,6 @@ class PaymentController {
         companyId: value.companyId,
       }));
       await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
-        console.log(resp);
         processSalary({
           processId: newProcess.dataValues.payProcessMasterAutoId,
           req,
@@ -1127,6 +1127,15 @@ class PaymentController {
   }
   //////////////////////////////UPLOAD SECTION///////////////////////////////////
   async processSalaryAPI(req, res) {
+    let actualWorkingDays = await paymentHelper.actualWorkingDays({
+      payYear: 2020,
+      payMonth: 1,
+      employeeId: 1119,
+    });
+
+    console.log(actualWorkingDays);
+    return;
+
     let { processId } = req.body;
     var errorArray = [];
     let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
@@ -1583,69 +1592,64 @@ class PaymentController {
       var errorArray = [],
         successArray = [];
       for (const employeeTds of tdsDetails) {
-        let employeeDetais = await db.employeeMaster.findOne({
-          where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
-          raw: true,
-          attributes: ["empCode", "id"],
-        });
+        if (employeeTds["Email/Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
+            raw: true,
+            attributes: ["empCode", "id"],
+          });
 
-        if(!employeeDetais)
-          {
+          if (!employeeDetais) {
             errorArray.push({
-              index: errorArray.length+1,
-              errorDetails:"Employee not found/ deactivated",
+              index: errorArray.length + 1,
+              errorDetails: "Employee not found/ deactivated",
               employeeID: employeeTds["Email/Employee ID"],
             });
             continue;
           }
 
-        let tdsDeductions = {
-          EmployeeId: employeeDetais.id,
-          tdsAmount: employeeTds["TDS Deductions"],
-          tdsMonth: employeeTds["TDS Month (YYYY-MM)"],
-          empCode: employeeTds["Email/Employee ID"],
-        };
-
-   
-        const { error } = await validator.tdsDeductionsSchema.validate(
-          tdsDeductions
-        );
-        if (error) {
-          errorArray.push({
-            error: error.details[0].message,
-            empId: tdsDeductions.EmployeeId,
-          });
-          // return respHelper(res, {
-          //   status: 400,
-          //   msg: error.details[0],
-          // });
-        } else {
-          let existTDSDetails = await db.tdsDeductions.findOne({
-            where: {
-              EmployeeId: tdsDeductions.EmployeeId,
-              tdsMonth: tdsDeductions.tdsMonth,
-            },
-            raw: true,
-          });
-
-          if (existTDSDetails) {
-            tdsDeductions["updatedBy"] = req.userData.id;
-            tdsDeductions["updatedAt"] = new Date();
-
-            await db.tdsDeductions.update(tdsDeductions, {
+          let tdsDeductions = {
+            EmployeeId: employeeDetais.id,
+            tdsAmount: employeeTds["TDS Deductions"],
+            tdsMonth: employeeTds["TDS Month (YYYY-MM)"],
+            empCode: employeeTds["Email/Employee ID"],
+          };
+          const { error } = await validator.tdsDeductionsSchema.validate(
+            tdsDeductions
+          );
+          if (error) {
+            errorArray.push({
+              error: error.details[0].message,
+              empId: tdsDeductions.EmployeeId,
+            });
+          } else {
+            let existTDSDetails = await db.tdsDeductions.findOne({
               where: {
                 EmployeeId: tdsDeductions.EmployeeId,
                 tdsMonth: tdsDeductions.tdsMonth,
               },
+              raw: true,
             });
-            tdsDeductions["ACTION_TYPE"] = "UPDATE";
-          } else {
-            tdsDeductions["createdBy"] = req.userData.id;
-            tdsDeductions["createdAt"] = new Date();
-            await db.tdsDeductions.create(tdsDeductions);
-            tdsDeductions["ACTION_TYPE"] = "CREATE";
+
+            if (existTDSDetails) {
+              tdsDeductions["updatedBy"] = req.userData.id;
+              tdsDeductions["updatedAt"] = new Date();
+
+              await db.tdsDeductions.update(tdsDeductions, {
+                where: {
+                  EmployeeId: tdsDeductions.EmployeeId,
+                  tdsMonth: tdsDeductions.tdsMonth,
+                },
+              });
+              tdsDeductions["ACTION_TYPE"] = "UPDATE";
+            } else {
+              tdsDeductions["createdBy"] = req.userData.id;
+              tdsDeductions["createdAt"] = new Date();
+              await db.tdsDeductions.create(tdsDeductions);
+              tdsDeductions["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(tdsDeductions);
           }
-          successArray.push(tdsDeductions);
         }
       }
 
@@ -1686,90 +1690,96 @@ class PaymentController {
       var errorArray = [],
         successArray = [];
       for (const employeeExtraPayment of tdsDetails) {
-        let employeeDetais = await db.employeeMaster.findOne({
-          where: {
-            empCode: employeeExtraPayment["Email/Employee ID"],
-            isActive: 1,
-          },
-          raw: true,
-          attributes: ["empCode", "id"],
-        });
-
-        if (!employeeDetais) {
-          errorArray.push({
-            index: errorArray.length,
-            errorDetails: "Employee not exist.",
-            employeeID: employeeExtraPayment["Email/Employee ID"],
-          });
-          continue;
-        }
-
-        let extraPaymentCategory = await db.CompensationCategoryMaster.findOne({
-          where: { name: employeeExtraPayment["Category"] },
-          raw: true,
-          attribute: ["compensationCategoryId", "name"],
-        });
-
-        // console.log(extraPaymentCategory);
-        // return;
-        if (!extraPaymentCategory) {
-          errorArray.push({
-            index: errorArray.length+1,
-            errorDetails:
-              "Invalid Category Name " + "("+employeeExtraPayment["Category"]+")",
-            employeeID: employeeExtraPayment["Email/Employee ID"],
-          });
-          continue;
-        }
-
-        let extraPayment = {
-          EmployeeId: employeeDetais.id,
-          paymentAmount: employeeExtraPayment["Amount"],
-          paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
-          category: employeeExtraPayment["Category"],
-          empCode: employeeExtraPayment["Email/Employee ID"],
-          category: employeeExtraPayment["Category"],
-          paymentCategoryId: extraPaymentCategory.compensationCategoryId,
-        };
-
-        // console.log(extraPayment);
-        // return;
-        const { error } = await validator.extraPayment.validate(extraPayment);
-        if (error) {
-          errorArray.push({
-            index: errorArray.length + 1,
-            error: error.details[0].message,
-            employeeID: employeeExtraPayment["Email/Employee ID"],
-          });
-        } else {
-          let existTDSDetails = await db.extraPayment.findOne({
+        if (employeeExtraPayment["Email/Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
             where: {
-              EmployeeId: extraPayment.EmployeeId,
-              paymentMonth: extraPayment.paymentMonth,
-              category: extraPayment.category,
+              empCode: employeeExtraPayment["Email/Employee ID"],
+              isActive: 1,
             },
             raw: true,
+            attributes: ["empCode", "id"],
           });
 
-          if (existTDSDetails) {
-            extraPayment["updatedBy"] = req.userData.id;
-            extraPayment["updatedAt"] = new Date();
+          if (!employeeDetais) {
+            errorArray.push({
+              index: errorArray.length,
+              errorDetails: "Employee not exist.",
+              employeeID: employeeExtraPayment["Email/Employee ID"],
+            });
+            continue;
+          }
 
-            await db.extraPayment.update(extraPayment, {
+          let extraPaymentCategory =
+            await db.CompensationCategoryMaster.findOne({
+              where: { name: employeeExtraPayment["Category"] },
+              raw: true,
+              attribute: ["compensationCategoryId", "name"],
+            });
+
+          // console.log(extraPaymentCategory);
+          // return;
+          if (!extraPaymentCategory) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              errorDetails:
+                "Invalid Category Name " +
+                "(" +
+                employeeExtraPayment["Category"] +
+                ")",
+              employeeID: employeeExtraPayment["Email/Employee ID"],
+            });
+            continue;
+          }
+
+          let extraPayment = {
+            EmployeeId: employeeDetais.id,
+            paymentAmount: employeeExtraPayment["Amount"],
+            paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
+            category: employeeExtraPayment["Category"],
+            empCode: employeeExtraPayment["Email/Employee ID"],
+            category: employeeExtraPayment["Category"],
+            paymentCategoryId: extraPaymentCategory.compensationCategoryId,
+          };
+
+          // console.log(extraPayment);
+          // return;
+          const { error } = await validator.extraPayment.validate(extraPayment);
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              error: error.details[0].message,
+              employeeID: employeeExtraPayment["Email/Employee ID"],
+            });
+          } else {
+            let existTDSDetails = await db.extraPayment.findOne({
               where: {
                 EmployeeId: extraPayment.EmployeeId,
                 paymentMonth: extraPayment.paymentMonth,
                 category: extraPayment.category,
               },
+              raw: true,
             });
-            extraPayment["ACTION_TYPE"] = "UPDATE";
-          } else {
-            extraPayment["createdBy"] = req.userData.id;
-            extraPayment["createdAt"] = new Date();
-            await db.extraPayment.create(extraPayment);
-            extraPayment["ACTION_TYPE"] = "CREATE";
+
+            if (existTDSDetails) {
+              extraPayment["updatedBy"] = req.userData.id;
+              extraPayment["updatedAt"] = new Date();
+
+              await db.extraPayment.update(extraPayment, {
+                where: {
+                  EmployeeId: extraPayment.EmployeeId,
+                  paymentMonth: extraPayment.paymentMonth,
+                  category: extraPayment.category,
+                },
+              });
+              extraPayment["ACTION_TYPE"] = "UPDATE";
+            } else {
+              extraPayment["createdBy"] = req.userData.id;
+              extraPayment["createdAt"] = new Date();
+              await db.extraPayment.create(extraPayment);
+              extraPayment["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(extraPayment);
           }
-          successArray.push(extraPayment);
         }
       }
 
@@ -1811,62 +1821,64 @@ class PaymentController {
       }
 
       for (const employeeTds of lopDetails) {
-        let employeeDetais = await db.employeeMaster.findOne({
-          where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
-          raw: true,
-          attributes: ["empCode", "id"],
-        });
-
-        if (!employeeDetais) {
-          continue;
-        }
-
-        let lopDeductions = {
-          EmployeeId: employeeDetais.id,
-          lopDays: employeeTds["LOP DAYS"],
-          lopMonth: employeeTds["LOP Month (YYYY-MM)"],
-          empCode: employeeTds["Email/Employee ID"],
-        };
-        const { error } = await validator.lopValidateSchama.validate(
-          lopDeductions
-        );
-        if (error) {
-          errorArray.push({
-            index: errorArray.length + 1,
-            error: error.details[0].message,
-            employeeID: lopDeductions.empCode,
-          });
-          // return respHelper(res, {
-          //   status: 400,
-          //   msg: error.details[0],
-          // });
-        } else {
-          let existTDSDetails = await db.lopDeductions.findOne({
-            where: {
-              empCode: lopDeductions.empCode,
-              lopMonth: lopDeductions.lopMonth,
-            },
+        if (employeeTds["Email/Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
             raw: true,
+            attributes: ["empCode", "id"],
           });
-          if (existTDSDetails) {
-            lopDeductions["updatedBy"] = req.userData.id;
-            lopDeductions["updatedAt"] = new Date();
 
-            await db.lopDeductions.update(lopDeductions, {
-              where: {
-                EmployeeId: lopDeductions.EmployeeId,
-                lopMonth: lopDeductions.lopMonth,
-                empCode: lopDeductions.empCode,
-              },
-            });
-            lopDeductions["ACTION_TYPE"] = "UPDATE";
-          } else {
-            lopDeductions["createdBy"] = req.userData.id;
-            lopDeductions["createdAt"] = new Date();
-            await db.lopDeductions.create(lopDeductions);
-            lopDeductions["ACTION_TYPE"] = "CREATE";
+          if (!employeeDetais) {
+            continue;
           }
-          successArray.push(lopDeductions);
+
+          let lopDeductions = {
+            EmployeeId: employeeDetais.id,
+            lopDays: employeeTds["LOP DAYS"],
+            lopMonth: employeeTds["LOP Month (YYYY-MM)"],
+            empCode: employeeTds["Email/Employee ID"],
+          };
+          const { error } = await validator.lopValidateSchama.validate(
+            lopDeductions
+          );
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              error: error.details[0].message,
+              employeeID: lopDeductions.empCode,
+            });
+            // return respHelper(res, {
+            //   status: 400,
+            //   msg: error.details[0],
+            // });
+          } else {
+            let existTDSDetails = await db.lopDeductions.findOne({
+              where: {
+                empCode: lopDeductions.empCode,
+                lopMonth: lopDeductions.lopMonth,
+              },
+              raw: true,
+            });
+            if (existTDSDetails) {
+              lopDeductions["updatedBy"] = req.userData.id;
+              lopDeductions["updatedAt"] = new Date();
+
+              await db.lopDeductions.update(lopDeductions, {
+                where: {
+                  EmployeeId: lopDeductions.EmployeeId,
+                  lopMonth: lopDeductions.lopMonth,
+                  empCode: lopDeductions.empCode,
+                },
+              });
+              lopDeductions["ACTION_TYPE"] = "UPDATE";
+            } else {
+              lopDeductions["createdBy"] = req.userData.id;
+              lopDeductions["createdAt"] = new Date();
+              await db.lopDeductions.create(lopDeductions);
+              lopDeductions["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(lopDeductions);
+          }
         }
       }
 
@@ -1908,102 +1920,108 @@ class PaymentController {
       }
 
       for (const employeeExtraDeduction of extraDeductonsDetails) {
-        const { error } = await validator.extraDeductionSchema.validate(
-          employeeExtraDeduction
-        );
-        if (error) {
-          errorArray.push({
-            index: errorArray.length + 1,
-            employeeID: employeeExtraDeduction["Email/Employee ID"],
-            errorDetails: error.details[0].message,
+
+        if(employeeExtraDeduction["Email/Employee ID"])
+        {
+          const { error } = await validator.extraDeductionSchema.validate(
+            employeeExtraDeduction
+          );
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              employeeID: employeeExtraDeduction["Email/Employee ID"],
+              errorDetails: error.details[0].message,
+            });
+            continue;
+          }
+  
+          let extraDeductionCategory =
+            await db.CompensationCategoryMaster.findOne({
+              where: { name: employeeExtraDeduction["Advance Category"] },
+              raw: true,
+              attribute: ["compensationCategoryId", "name"],
+            });
+  
+          if (!extraDeductionCategory) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              errorDetails:
+                "Invalid Category Name " +
+                "(" +
+                employeeExtraDeduction["Advance Category"] +
+                ")",
+              employeeID: employeeExtraDeduction["Email/Employee ID"],
+            });
+            continue;
+          }
+  
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: {
+              empCode: employeeExtraDeduction["Email/Employee ID"],
+              isActive: 1,
+            },
+            raw: true,
+            attributes: ["empCode", "id"],
           });
-          continue;
-        }
-
-
-
-
-        let extraDeductionCategory = await db.CompensationCategoryMaster.findOne({
-          where: { name:  employeeExtraDeduction["Advance Category"] },
-          raw: true,
-          attribute: ["compensationCategoryId", "name"],
-        });
-
-
-        if (!extraDeductionCategory) {
-          errorArray.push({
-            index: errorArray.length+1,
-            errorDetails:
-              "Invalid Category Name " + "("+employeeExtraDeduction["Advance Category"]+")",
-            employeeID: employeeExtraDeduction["Email/Employee ID"],
-          });
-          continue;
-        }
-
-        let employeeDetais = await db.employeeMaster.findOne({
-          where: {
+  
+          if (!employeeDetais) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              employeeID: employeeExtraDeduction["Email/Employee ID"],
+              errorDetails: "Employee Not Exists or Acive Anymore.",
+            });
+            continue;
+          }
+  
+          let extraDeductions = {
+            EmployeeId: employeeDetais.id,
             empCode: employeeExtraDeduction["Email/Employee ID"],
-            isActive: 1,
-          },
-          raw: true,
-          attributes: ["empCode", "id"],
-        });
-
-        if (!employeeDetais) {
-          errorArray.push({
-            index: errorArray.length + 1,
-            employeeID: employeeExtraDeduction["Email/Employee ID"],
-            errorDetails: "Employee Not Exists or Acive Anymore.",
-          });
-          continue;
-        }
-
-        let extraDeductions = {
-          EmployeeId: employeeDetais.id,
-          empCode: employeeExtraDeduction["Email/Employee ID"],
-          deductionCategory: employeeExtraDeduction["Advance Category"],
-          deductionName: employeeExtraDeduction["Advance Name"],
-          deductionAmount:
-            employeeExtraDeduction["Total Amount/Percent/Hours/Days"],
-          startMonth: employeeExtraDeduction["Start Month"],
-          numberOfDeductions: employeeExtraDeduction["Number Of Deductions"],
-          status: employeeExtraDeduction["Status (Open/Completed)"],
-          endMonth: employeeExtraDeduction["End Month"],
-          currencyCode: employeeExtraDeduction["Currency ISO Code"],
-          changeReason: employeeExtraDeduction["Reason for status change"],
-          deductionCategoryId: extraDeductionCategory.compensationCategoryId,
-        };
-
-        let existExtraDeductionDetails = await db.extraDeduction.findOne({
-          where: {
-            empCode: extraDeductions.empCode,
-            deductionCategory: extraDeductions.deductionCategory,
-            deductionName: extraDeductions.deductionName,
-            startMonth: extraDeductions.startMonth,
-          },
-          raw: true,
-        });
-
-        if (existExtraDeductionDetails) {
-          extraDeductions["updatedBy"] = req.userData.id;
-          extraDeductions["updatedAt"] = new Date();
-
-          await db.extraDeduction.update(extraDeductions, {
+            deductionCategory: employeeExtraDeduction["Advance Category"],
+            deductionName: employeeExtraDeduction["Advance Name"],
+            deductionAmount:
+              employeeExtraDeduction["Total Amount/Percent/Hours/Days"],
+            startMonth: employeeExtraDeduction["Start Month"],
+            numberOfDeductions: employeeExtraDeduction["Number Of Deductions"],
+            status: employeeExtraDeduction["Status (Open/Completed)"],
+            endMonth: employeeExtraDeduction["End Month"],
+            currencyCode: employeeExtraDeduction["Currency ISO Code"],
+            changeReason: employeeExtraDeduction["Reason for status change"],
+            deductionCategoryId: extraDeductionCategory.compensationCategoryId,
+          };
+  
+          let existExtraDeductionDetails = await db.extraDeduction.findOne({
             where: {
               empCode: extraDeductions.empCode,
               deductionCategory: extraDeductions.deductionCategory,
               deductionName: extraDeductions.deductionName,
               startMonth: extraDeductions.startMonth,
             },
+            raw: true,
           });
-          extraDeductions["ACTION_TYPE"] = "UPDATE";
-        } else {
-          extraDeductions["createdBy"] = req.userData.id;
-          extraDeductions["createdAt"] = new Date();
-          await db.extraDeduction.create(extraDeductions);
-          extraDeductions["ACTION_TYPE"] = "CREATE";
+  
+          if (existExtraDeductionDetails) {
+            extraDeductions["updatedBy"] = req.userData.id;
+            extraDeductions["updatedAt"] = new Date();
+  
+            await db.extraDeduction.update(extraDeductions, {
+              where: {
+                empCode: extraDeductions.empCode,
+                deductionCategory: extraDeductions.deductionCategory,
+                deductionName: extraDeductions.deductionName,
+                startMonth: extraDeductions.startMonth,
+              },
+            });
+            extraDeductions["ACTION_TYPE"] = "UPDATE";
+          } else {
+            extraDeductions["createdBy"] = req.userData.id;
+            extraDeductions["createdAt"] = new Date();
+            await db.extraDeduction.create(extraDeductions);
+            extraDeductions["ACTION_TYPE"] = "CREATE";
+          }
+          successArray.push(extraDeductions);
         }
-        successArray.push(extraDeductions);
+
+
       }
 
       return respHelper(res, {
@@ -3152,13 +3170,12 @@ class PaymentController {
         processId,
       } = req.query;
 
-      let fileNameType = req.query.fileNameType || '';
-      let customSheetName = '';
-      if(fileNameType === '1') {
-        customSheetName = 'Total Employees';
-      }
-      else if(fileNameType === '2') {
-        customSheetName = 'Payroll Processing Employees';
+      let fileNameType = req.query.fileNameType || "";
+      let customSheetName = "";
+      if (fileNameType === "1") {
+        customSheetName = "Total Employees";
+      } else if (fileNameType === "2") {
+        customSheetName = "Payroll Processing Employees";
       }
 
       console.log(req.query);
@@ -3190,7 +3207,7 @@ class PaymentController {
       };
 
       let sheetVal = await getKeyByValue(exportSheetAutoId);
-      sheetVal = (customSheetName) ? customSheetName : sheetVal;
+      sheetVal = customSheetName ? customSheetName : sheetVal;
 
       // Check for required exportSheetAutoId
       if (!exportSheetAutoId) {
@@ -3461,8 +3478,13 @@ class PaymentController {
 
   async employeesListForProcessing(req, res) {
     try {
-      let { companyId } = req.query;
-      let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
+      let { companyId ,year,month} = req.query;
+      //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
+      //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
+      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) <= ${year} AND MONTH(ejd.dateOfJoining) <= ${month});`;
+    
+      console.log(employeeForProcessingQuery)
+    
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
       );
@@ -3773,9 +3795,9 @@ class PaymentController {
       let query = {
         EmployeeId: userId,
         isActive: 1,
-        ...(search && { "deductionName": { [Op.like]: `%${search}%`} }),
-        ...(financialYearId && { "financialYearId": financialYearId }),
-        ...(type === 1 && { status: 1 })
+        ...(search && { deductionName: { [Op.like]: `%${search}%` } }),
+        ...(financialYearId && { financialYearId: financialYearId }),
+        ...(type === 1 && { status: 1 }),
       };
 
       let aggregate = {
@@ -3829,14 +3851,18 @@ class PaymentController {
           EmployeeId: result.EmployeeId,
           startMonth: result.startMonth,
           deductionCategoryId: result.deductionCategoryId,
-          deductionName: result.deductionName
+          deductionName: result.deductionName,
         };
         let moduleName = "Extra Deduction";
 
         // get category name
-        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.deductionCategoryId }, attributes: ['name'], raw: true })
-        if(getCategoryDetails) {
-          result['deductionCategory'] = getCategoryDetails?.name;
+        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({
+          where: { compensationCategoryId: result.deductionCategoryId },
+          attributes: ["name"],
+          raw: true,
+        });
+        if (getCategoryDetails) {
+          result["deductionCategory"] = getCategoryDetails?.name;
         }
 
         let metaData = { ...result, createdBy: userId, createdAt: moment() };
@@ -3850,21 +3876,26 @@ class PaymentController {
         // let isExist = await service.details(model, findQuery);
         // if(isExist.status === 200) {
 
-        matchQuery = { EmployeeId: result.EmployeeId, payMonth: result.startMonth };
+        matchQuery = {
+          EmployeeId: result.EmployeeId,
+          payMonth: result.startMonth,
+        };
         getDetails = await service.details(db.paySlips, matchQuery);
-        if(getDetails.status == 200) {
-          return respHelper(res, { status: 400, msg: 'Salary slip already exist.' });
-        }
-        else {
+        if (getDetails.status == 200) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Salary slip already exist.",
+          });
+        } else {
           if (result.startMonth == result.endMonth) {
             response = await service.create(model, metaData, query, moduleName);
           } else {
             const start = new Date(result.startMonth + "-01"); // Start date
             const end = new Date(result.endMonth + "-01"); // End date
-  
+
             if (end > start) {
               let current = new Date(start);
-  
+
               while (current <= end) {
                 const yearMonth = `${current.getFullYear()}-${String(
                   current.getMonth() + 1
@@ -3879,7 +3910,7 @@ class PaymentController {
                   EmployeeId: result.EmployeeId,
                   deductionCategoryId: result.deductionCategoryId,
                   startMonth: yearMonth,
-                  deductionName: result.deductionName
+                  deductionName: result.deductionName,
                 };
                 response = await service.create(
                   model,
@@ -3937,18 +3968,28 @@ class PaymentController {
       };
 
       let isExist = await service.details(model, findQuery);
-      if(isExist.status == 200) {
-        return respHelper(res, { status: 400, msg: Constant.ALREADY_EXISTS.replace('<module>', 'Extra Deduction'), data: {} });
-      }
-      else {
-        
+      if (isExist.status == 200) {
+        return respHelper(res, {
+          status: 400,
+          msg: Constant.ALREADY_EXISTS.replace("<module>", "Extra Deduction"),
+          data: {},
+        });
+      } else {
         // get category name
-        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.deductionCategoryId }, attributes: ['name'], raw: true })
-        if(getCategoryDetails) {
-          result['deductionCategory'] = getCategoryDetails?.name;
+        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({
+          where: { compensationCategoryId: result.deductionCategoryId },
+          attributes: ["name"],
+          raw: true,
+        });
+        if (getCategoryDetails) {
+          result["deductionCategory"] = getCategoryDetails?.name;
         }
 
-        let metaData = { ...result, updatedBy: req.userId, updatedAt: moment() };
+        let metaData = {
+          ...result,
+          updatedBy: req.userId,
+          updatedAt: moment(),
+        };
         let response = await service.update(model, metaData, query);
         return respHelper(res, response);
       }
@@ -3995,9 +4036,9 @@ class PaymentController {
       let query = {
         EmployeeId: userId,
         isActive: 1,
-        ...(search && { "category": { [Op.like]: `%${search}%`} }),
-        ...(financialYearId && { "financialYearId": financialYearId }),
-        ...(type === 1 && { status: 1 })
+        ...(search && { category: { [Op.like]: `%${search}%` } }),
+        ...(financialYearId && { financialYearId: financialYearId }),
+        ...(type === 1 && { status: 1 }),
       };
 
       let aggregate = {
@@ -4045,19 +4086,33 @@ class PaymentController {
         let userId = req.userId;
 
         // get category name
-        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.paymentCategoryId }, attributes: ['name'], raw: true })
-        if(getCategoryDetails) {
-          result['category'] = getCategoryDetails?.name;
+        let getCategoryDetails = await db.CompensationCategoryMaster.findOne({
+          where: { compensationCategoryId: result.paymentCategoryId },
+          attributes: ["name"],
+          raw: true,
+        });
+        if (getCategoryDetails) {
+          result["category"] = getCategoryDetails?.name;
         }
 
-        let metaData = { ...result, createdAt: moment(), createdBy: userId, 'empCode': getDetails?.data?.empCode };
+        let metaData = {
+          ...result,
+          createdAt: moment(),
+          createdBy: userId,
+          empCode: getDetails?.data?.empCode,
+        };
 
-        matchQuery = { EmployeeId: result.EmployeeId, payMonth: result.paymentMonth };
+        matchQuery = {
+          EmployeeId: result.EmployeeId,
+          payMonth: result.paymentMonth,
+        };
         getDetails = await service.details(db.paySlips, matchQuery);
-        if(getDetails.status == 200) {
-          return respHelper(res, { status: 400, msg: 'Salary slip already exist.' });
-        }
-        else {
+        if (getDetails.status == 200) {
+          return respHelper(res, {
+            status: 400,
+            msg: "Salary slip already exist.",
+          });
+        } else {
           let response = await model.create(metaData);
           return respHelper(res, {
             status: 201,
@@ -4095,9 +4150,13 @@ class PaymentController {
       let query = { extraPaymentAutoId: req.params.id };
 
       // get category name
-      let getCategoryDetails = await db.CompensationCategoryMaster.findOne({ where: { 'compensationCategoryId': result.paymentCategoryId }, attributes: ['name'], raw: true })
-      if(getCategoryDetails) {
-        result['category'] = getCategoryDetails?.name;
+      let getCategoryDetails = await db.CompensationCategoryMaster.findOne({
+        where: { compensationCategoryId: result.paymentCategoryId },
+        attributes: ["name"],
+        raw: true,
+      });
+      if (getCategoryDetails) {
+        result["category"] = getCategoryDetails?.name;
       }
 
       let metaData = { ...result, updatedAt: moment(), updatedBy: req.userId };
@@ -4467,6 +4526,8 @@ class PaymentController {
 
       const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear}`;
 
+      console.log(employee);
+
       const body = {
         name: employee.name || "",
         employeeCode: employee?.empCode || "",
@@ -4498,12 +4559,15 @@ class PaymentController {
         )
           ? parseInt(salaryDetails[0].paySlipTotalDeduction)
           : "",
-        lop:
-          salaryDetails[0]?.paySlipTotalDays &&
-          salaryDetails[0]?.paySlipWorkingDays
-            ? salaryDetails[0].paySlipTotalDays -
-              salaryDetails[0].paySlipWorkingDays
-            : "",
+        // lop:
+        //   salaryDetails[0]?.paySlipTotalDays &&
+        //   salaryDetails[0]?.paySlipWorkingDays
+        //     ? salaryDetails[0].paySlipTotalDays -
+        //       salaryDetails[0].paySlipWorkingDays
+        //     : "",
+        lop: salaryDetails[0]?.paySlipAbsentDays
+          ? salaryDetails[0]?.paySlipAbsentDays
+          : 0,
         paySlipComponent: paySlipComponent || [],
         netPay: Number.isFinite(+salaryDetails[0]?.paySlipGrossEarning)
           ? parseInt(salaryDetails[0].paySlipGrossEarning) -
@@ -4566,22 +4630,27 @@ class PaymentController {
       let doc = await service.details(model, matchQuery);
 
       // verify pay process details
-      let payProcessDetailsQuery = { EmployeeId: EmployeeId, payMonth: payMonth, payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9]} }
-      let doc1 = await service.details(db.payProcessDetails, payProcessDetailsQuery);
+      let payProcessDetailsQuery = {
+        EmployeeId: EmployeeId,
+        payMonth: payMonth,
+        payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9] },
+      };
+      let doc1 = await service.details(
+        db.payProcessDetails,
+        payProcessDetailsQuery
+      );
 
       if (doc.status == 200) {
         return respHelper(res, {
           status: 400,
           msg: Constant.ALREADY_EXISTS.replace("<module>", "Salary Slip"),
         });
-      }
-      else if (doc1.status == 200) {
+      } else if (doc1.status == 200) {
         return respHelper(res, {
           status: 400,
           msg: "Pay process in the progress",
         });
-      }
-      else {
+      } else {
         // add or update TDS deduction and LOP deduction
         await addUpdateTDSDeductionAndLOPDeduction(req, result);
 
@@ -4887,7 +4956,6 @@ class PaymentController {
         //   { where: { empId: employee, payMonth: payMonth } }
         // );
 
-
         let employees = [EmployeeId]; //[484,560];//employeeIds
         for (const employee of employees) {
           const queryForEmployeePayDetails = await paymentHelper.query(
@@ -4915,10 +4983,10 @@ class PaymentController {
             parseFloat(
               employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC
             ) || 0;
-    
+
           const lopDays =
             parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-    
+
           const lopMonthWiseCalculation =
             totalWorkingDays > 0
               ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
@@ -4942,14 +5010,14 @@ class PaymentController {
               "nov",
               "dec",
             ];
-    
+
             const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
             return monthNames[monthIndex] || "";
           }
-    
+
           const month = result.payMonth.split("-")[1];
           const currentMonth = await getMonthAbbreviation(month);
-    
+
           const ptDynamicAttribute = [currentMonth, "ptAmount"];
           const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
           const ptDeducationDetails = await db.paymentDetails.findOne({
@@ -4988,7 +5056,7 @@ class PaymentController {
               },
             ],
           });
-    
+
           const lwfDeducationDetails = await db.jobDetails.findOne({
             attributes: [
               "jobId",
@@ -5004,11 +5072,14 @@ class PaymentController {
             },
             raw: true,
           });
-    
+
           let lwfAmount = 0;
           let lwfMappingDetails = null;
-    
-          if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
+
+          if (
+            lwfDeducationDetails &&
+            lwfDeducationDetails.lwfApplicable === 1
+          ) {
             lwfMappingDetails = await db.lwfMapping.findOne({
               attributes: [
                 "lwfmappingId",
@@ -5022,22 +5093,21 @@ class PaymentController {
               },
               raw: true,
             });
-    
+
             if (lwfMappingDetails) {
               lwfAmount = lwfMappingDetails.lwfAmount || 0;
             }
           }
 
-    
           let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
-    
+
           let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
           const ptAmount1 =
             ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
               ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
               : 0;
           const lwfAmount1 = lwfAmount;
-    
+
           const extraPaymentAmount1 =
             extraPaymentAmount[0].length > 0
               ? extraPaymentAmount[0][0]?.totalExtraPayment
@@ -5053,7 +5123,7 @@ class PaymentController {
                 },
               }
             );
-    
+
             continue;
           }
           if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
@@ -5066,7 +5136,7 @@ class PaymentController {
                 },
               }
             );
-    
+
             continue;
           }
           const queryForAffetElementCounts = await paymentHelper.query(
@@ -5112,7 +5182,7 @@ class PaymentController {
             //         empCopntWiseDetl.payElementAmount - lopSingleUnit
             //       ).toFixed(2)
             //     : empCopntWiseDetl.payElementAmount;
-    
+
             empCopntWiseDetl["elementMonthlyAmount"] =
               (await paymentHelper.getElementValue(
                 "Affect Loss Of Pay",
@@ -5126,11 +5196,11 @@ class PaymentController {
                     )
                   )
                 : paymentHelper.customRound(empCopntWiseDetl.payElementAmount);
-    
-            empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
-              .totalDeduction
-              ? extraDeductonsDetails[0][0].totalDeduction
-              : 0;
+
+            empCopntWiseDetl["totalExtraDeduction"] =
+              extraDeductonsDetails[0][0].totalDeduction
+                ? extraDeductonsDetails[0][0].totalDeduction
+                : 0;
             empCopntWiseDetl["extraDeductionCategories"] =
               extraDeductonsDetails[0][0].deductionCategories
                 ? extraDeductonsDetails[0][0].deductionCategories
@@ -5161,10 +5231,12 @@ class PaymentController {
             empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
             empCopntWiseDetl["isPfApplicable"] =
               lwfDeducationDetails.pfApplicability;
-            empCopntWiseDetl["isPfRestriction"] = lwfDeducationDetails.pfRestricted;
+            empCopntWiseDetl["isPfRestriction"] =
+              lwfDeducationDetails.pfRestricted;
             empCopntWiseDetl["isEsicApplicable"] =
               lwfDeducationDetails.esicApplicable;
-            empCopntWiseDetl["isEsicApplicableComponent"] = esicApplicableComponent;
+            empCopntWiseDetl["isEsicApplicableComponent"] =
+              esicApplicableComponent;
             empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
               pfElementOnMorethan15000AndRestrictionNo;
             //////////////////////////////PF-Applicablity Keys//////////////////////////////////
@@ -5180,7 +5252,7 @@ class PaymentController {
               await db.payMonthlyElements.create(empCopntWiseDetl);
             }
           }
-    
+
           let payElementComponents = await db.payMonthlyElements.findAll({
             where: {
               empId: employee,
@@ -5206,10 +5278,7 @@ class PaymentController {
             { where: { empId: employee, payMonth: result.payMonth } }
           );
           ///////////////Calculation And Updation of ESIC Amount //////////////////////
-    
-   
         }
-
 
         let metaData = { EmployeeId, req };
         // console.log("salary process completed");
@@ -5226,7 +5295,7 @@ class PaymentController {
               },
             }
           );
-    
+
           await db.extraPayment.update(
             { status: 1, updatedAt: moment(), updatedBy: req.userId },
             {
@@ -5321,7 +5390,7 @@ class PaymentController {
               },
             }
           );
-    
+
           await db.extraPayment.update(
             { status: 0, updatedAt: moment(), updatedBy: req.userId },
             {
@@ -5366,15 +5435,18 @@ class PaymentController {
         { id: 11, value: `${selectYear}-11`, label: `${selectYear}-11` },
         { id: 12, value: `${selectYear}-12`, label: `${selectYear}-12` },
         {
-          id: 1, value: `${parseInt(selectYear) + 1}-01`,
+          id: 1,
+          value: `${parseInt(selectYear) + 1}-01`,
           label: `${parseInt(selectYear) + 1}-01`,
         },
         {
-          id: 2, value: `${parseInt(selectYear) + 1}-02`,
+          id: 2,
+          value: `${parseInt(selectYear) + 1}-02`,
           label: `${parseInt(selectYear) + 1}-02`,
         },
         {
-          id: 3, value: `${parseInt(selectYear) + 1}-03`,
+          id: 3,
+          value: `${parseInt(selectYear) + 1}-03`,
           label: `${parseInt(selectYear) + 1}-03`,
         },
       ];
@@ -5385,15 +5457,14 @@ class PaymentController {
         raw: true,
       });
 
-      if(paySlips.length > 0) {
-
+      if (paySlips.length > 0) {
         // manage financial year month
         let modifiedMonths = [];
         months.map((item) => {
           const matchedItem = paySlips?.find((m) => {
             return item.id === m.paySlipMonth;
           });
-          if(matchedItem === undefined) {
+          if (matchedItem === undefined) {
             modifiedMonths.push(item);
           }
         });
@@ -5401,16 +5472,14 @@ class PaymentController {
         return respHelper(res, {
           status: 200,
           msg: Constant.DATA_FETCHED,
-          data: modifiedMonths
+          data: modifiedMonths,
         });
-      }
-      else {
+      } else {
         return respHelper(res, {
           status: 200,
           msg: Constant.DATA_FETCHED,
-          data: months
+          data: months,
         });
-
       }
     } catch (error) {
       logger.error(error);
@@ -5494,7 +5563,6 @@ function formatDate(year, month, day) {
 
 async function processSalary(data) {
   let { processId, req } = data;
-  // let { processId } = req.body;
   var errorArray = [];
   let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
   const result = await db.sequelize.query(queryForAllExecutableEmployee);
@@ -5508,19 +5576,33 @@ async function processSalary(data) {
       errorProcessed = [];
     let employees = employeeIds; //[484,560];//employeeIds
     for (const employee of employees) {
+      const actualWorkingDays = await paymentHelper.actualWorkingDays({
+        employeeId: employee,
+        year: result[0][0].payMonth.split("-")[0],
+        month: result[0][0].payMonth.split("-")[1],
+        totalWorkingDays: totalWorkingDays,
+      });
+
+      if (!actualWorkingDays) {
+        await db.payProcessDetails.update(
+          { payStatus: 101, payRemark: "Issue with Employee Date of Joining." },
+          {
+            where: {
+              EmployeeId: employee,
+              proceessId: processId,
+            },
+          }
+        );
+        continue;
+      }
       const queryForEmployeePayDetails = await paymentHelper.query(
         11,
         employee,
         { payMonth: result[0][0].payMonth }
       );
-      console.log(
-        "queryForEmployeePayDetails ::: " + queryForEmployeePayDetails
-      );
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
-      // console.log(employeeDetailsComponentWise[0]);
-      // return
       const queryForExtraDeductions = await paymentHelper.query(
         14,
         employee,
@@ -5645,16 +5727,7 @@ async function processSalary(data) {
           lwfAmount = lwfMappingDetails.lwfAmount || 0;
         }
       }
-      // const extraPaymentAmount = await db.extraPayment.findAll({
-      //   where: {
-      //     EmployeeId: employee,
-      //     paymentMonth: result[0][0].payMonth,
-      //   },
-      //   raw: true,
-      // });
-
       let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
-
       let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
       const ptAmount1 =
         ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
@@ -5666,23 +5739,6 @@ async function processSalary(data) {
         extraPaymentAmount[0].length > 0
           ? extraPaymentAmount[0][0]?.totalExtraPayment
           : 0;
-      // if (
-      //   ptDeducationDetails &&
-      //   ptDeducationDetails.ptApplicability == 1 &&
-      //   !ptDeducationDetails?.ptlocationmaster?.ptMapping?.ptAmount
-      // ) {
-      //   await db.payProcessDetails.update(
-      //     { payStatus: 101, payRemark: "Error with PT calculating" },
-      //     {
-      //       where: {
-      //         EmployeeId: employee,
-      //         proceessId: processId,
-      //       },
-      //     }
-      //   );
-
-      //   continue;
-      // }
       if (!lwfDeducationDetails) {
         await db.payProcessDetails.update(
           { payStatus: 101, payRemark: "Employee job details not found." },
@@ -5717,12 +5773,6 @@ async function processSalary(data) {
       const affectComponentCounts = await db.sequelize.query(
         queryForAffetElementCounts
       );
-      // const lopSingleUnit = employeeDetailsComponentWise[0][0].lopDays
-      //   ? ((employeeDetailsComponentWise[0][0].payPackageMonthlyCTC /
-      //       totalWorkingDays) *
-      //       employeeDetailsComponentWise[0][0].lopDays) /
-      //     affectComponentCounts[0][0].lopAffectCount
-      //   : 0;
       for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
         const queryForComponentConfiguration = await paymentHelper.query(
           12,
@@ -5743,16 +5793,12 @@ async function processSalary(data) {
             ? 1
             : 0;
         empCopntWiseDetl["includeInPackage"] = includeInPayPackage;
-        // empCopntWiseDetl["elementMonthlyAmount"] =
-        //   paymentHelper.getElementValue(
-        //     "Affect Loss Of Pay",
-        //     componentConfiguration[0]
-        //   ) == 1
-        //     ? parseFloat(
-        //         empCopntWiseDetl.payElementAmount - lopSingleUnit
-        //       ).toFixed(2)
-        //     : empCopntWiseDetl.payElementAmount;
-
+        empCopntWiseDetl["elementMonthlyAmount"] =
+          await paymentHelper.getActualMonthlyAmount(
+            empCopntWiseDetl.payElementAmount,
+            totalWorkingDays,
+            actualWorkingDays
+          );
         empCopntWiseDetl["elementMonthlyAmount"] =
           (await paymentHelper.getElementValue(
             "Affect Loss Of Pay",
@@ -5760,12 +5806,14 @@ async function processSalary(data) {
           )) == 1
             ? paymentHelper.customRound(
                 await paymentHelper.arrectLOP(
-                  empCopntWiseDetl.payElementAmount,
+                  empCopntWiseDetl["elementMonthlyAmount"],
                   employeeDetailsComponentWise[0][0].lopDays,
                   totalWorkingDays
                 )
               )
-            : paymentHelper.customRound(empCopntWiseDetl.payElementAmount);
+            : paymentHelper.customRound(
+                empCopntWiseDetl["elementMonthlyAmount"]
+              );
 
         empCopntWiseDetl["totalExtraDeduction"] = extraDeductonsDetails[0][0]
           .totalDeduction
@@ -5807,6 +5855,8 @@ async function processSalary(data) {
         empCopntWiseDetl["isEsicApplicableComponent"] = esicApplicableComponent;
         empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
           pfElementOnMorethan15000AndRestrictionNo;
+        empCopntWiseDetl["totalWorkingDays"] = totalWorkingDays;
+        empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
         //////////////////////////////PF-Applicablity Keys//////////////////////////////////
         let existDetails = await db.payMonthlyElements.findOne({
           where: {
@@ -5901,15 +5951,6 @@ async function generatePaySlip(data) {
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
-
-      // console.log(payElements[0])
-      // console.log(queryForPayMonthlyElementsForSalarySlip)
-      // return
-      // console.log(queryForPayMonthlyElementsForSalarySlip);
-      // console.log(payElements);
-
-      // return
-
       for (const payMonthlyElement of payElements[0]) {
         let isExistPaySlip = await db.paySlips.findOne({
           where: {
@@ -5991,8 +6032,9 @@ async function generatePaySlip(data) {
             paySlipFinancialYear: financialYearDetails?.financialYearName,
             financialYearId: financialYearDetails?.financialYearId,
             paySlipDuration: paySlipDuration,
-            paySlipTotalDays: totalWorkingDays,
-            paySlipWorkingDays: totalWorkingDays - payMonthlyElement.lopDays,
+            paySlipTotalDays: payMonthlyElement.totalWorkingDays,
+            paySlipWorkingDays:
+              payMonthlyElement.actualWorkingDays - payMonthlyElement.lopDays,
             paySlipAbsentDays: payMonthlyElement.lopDays,
             paySlipArrearDays: payMonthlyElement.arrearDays,
             paySlipGrossEarning: GrossPayAfterExtraPay,
@@ -6025,19 +6067,6 @@ async function generatePaySlip(data) {
               createdAt: new Date(),
             });
           }
-
-          // if (payMonthlyElement.totalExtraDeduction > 0) {
-          //   customeDeduction.push({
-          //     EmployeeId: payMonthlyElement.empId,
-          //     paySlipAutoId: paySlipAutoId,
-          //     salaryComponentAutoId: 0,
-          //     paySlipComponentName: "Extra Deduction",
-          //     paySlipComponentAmount: payMonthlyElement.totalExtraDeduction,
-          //     paySlipComponentType: "Deduction",
-          //     createdBy: req.userData.id,
-          //     createdAt: new Date(),
-          //   });
-          // }
 
           if (payMonthlyElement.ptAmount > 0) {
             customeDeduction.push({
