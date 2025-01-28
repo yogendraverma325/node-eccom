@@ -1153,6 +1153,9 @@ ADD COLUMN `paySlipType` VARCHAR(45) NULL DEFAULT 'Regular' AFTER `sendEmail`;
 ALTER TABLE `tara`.`paypackage` 
 ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `salaryStructureAutoId`;
 
+ALTER TABLE `tara`.`payslip` 
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `paySlipType`;
+
 
 
 
