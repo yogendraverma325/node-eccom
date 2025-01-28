@@ -139,9 +139,9 @@ const probationMasterSchema = Joi.object({
 });
 
 const companyLocationMasterSchema = Joi.object({
-  gstNo: Joi.string().trim().required().label("GST Number"),
+  gstNo: Joi.string().allow(null).label("GST Number"),
   companyId: Joi.number().required().label("Company"),
-  companyLocationCode: Joi.number().required().label("Company Location Code"),
+  companyLocationCode: Joi.string().required().label("Company Location Code"),
   countryId: Joi.number().required().label("Country"),
   stateId: Joi.number().required().label("State"),
   cityId: Joi.number().required().label("City"),
