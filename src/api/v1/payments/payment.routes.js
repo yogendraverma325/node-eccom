@@ -68,7 +68,7 @@ export default Express
     .put("/extraPayment/:id", authentication.authenticate, paymentController.updateExtraPayment)
     .delete("/extraPayment/:id", authentication.authenticate, paymentController.deleteExtraPayment)
 
-    // .post("/generateSinglePaySlip",authentication.authenticate,paymentController.generateSinglePaySlip)
+    .post("/generateSinglePaySlip",authentication.authenticate,paymentController.generateSinglePaySlip)
     .patch("/releaseSinglePaySlip/:id", authentication.authenticate, paymentController.releaseSinglePaySlip)
     .delete("/deleteSinglePaySlip/:id", authentication.authenticate, paymentController.deleteSinglePaySlip)
     .get("/getPayMonth/:EmployeeId", authentication.authenticate, paymentController.getPayMonth)
