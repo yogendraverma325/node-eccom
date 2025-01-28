@@ -888,9 +888,9 @@ class PaymentController {
             order: [["payPackageAutoId", "DESC"]],
             raw: true,
           });
-          employee["Effective Date"] = !isNaN(Employees[0]["Effective Date"])
+          employee["Effective Date"] = !isNaN(employee["Effective Date"])
             ? paymentHelper.getFromattedDate(employee["Effective Date"])
-            : Employees[0]["Effective Date"];
+            : employee["Effective Date"];
           const [day, month, year] = employee["Effective Date"]
             .split("-")
             .map(Number);
