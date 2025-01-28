@@ -1947,7 +1947,7 @@ const creditCompoff = async (inputObject) => {
 								compOffPolicyData?.comp_off_polices_auto_id,
 							pending_at: "",
 						};
-
+						comp_off_data.message = "Auto Approved Comp Off Request";
 						if (approvalRequired) {
 							comp_off_data.message = "Auto Generated Request for Approval";
 							let finalApprovalIds = [];
