@@ -18,7 +18,7 @@ class MasterController {
 			let departmentFIlter = {};
 			let designationFIlter = {};
 			const usersData = req.userData;
-			const status = req.query.status ? parseInt(req.query.status) : undefined;
+			const status = parseInt(req.query.status)
 
 			const limit = req.query.limit * 1 || 10;
 			const pageNo = req.query.page * 1 || 1;
@@ -124,11 +124,7 @@ class MasterController {
 					break;
 			}
 
-			let searchCondition = Object.assign(
-				status ? {
-					isActive: status,
-				} : {}
-			);
+			let searchCondition = {}
 
 			if (searchId) {
 				searchCondition = { id: searchId };
@@ -153,11 +149,6 @@ class MasterController {
 							},
 						},
 					],
-					[Op.and]: [
-						Object.assign(status ? {
-							isActive: status,
-						} : {})
-					],
 				};
 			}
 
@@ -165,7 +156,12 @@ class MasterController {
 				order: [["id", "desc"]],
 				limit,
 				offset,
-				where: searchCondition,
+				where: Object.assign(
+					searchCondition,
+					!Number.isNaN(status) ? {
+						isActive: status,
+					} : {}
+				),
 				attributes: [
 					"id",
 					"empCode",
