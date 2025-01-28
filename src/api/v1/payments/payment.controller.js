@@ -5808,7 +5808,7 @@ async function processSalary(data) {
                 await paymentHelper.arrectLOP(
                   empCopntWiseDetl["elementMonthlyAmount"],
                   employeeDetailsComponentWise[0][0].lopDays,
-                  totalWorkingDays
+                  actualWorkingDays
                 )
               )
             : paymentHelper.customRound(
