@@ -4683,16 +4683,10 @@ class PaymentController {
             });
           if(!actualWorkingDays)
             {
-              await db.payProcessDetails.update(
-                { payStatus: 101, payRemark: "Issue with Employee Date of Joining." },
-                {
-                  where: {
-                    EmployeeId: employee,
-                    proceessId: processId,
-                  },
-                }
-              );
-              continue;
+              return respHelper(res, {
+                status: 400,
+                msg: "Issue with Employee Date of Joining.",
+              });
             }
             const queryForEmployeePayDetails = await paymentHelper.query(
               11,
