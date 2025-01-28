@@ -4662,8 +4662,10 @@ class PaymentController {
         for (const employee of employees) {
           const actualWorkingDays = await paymentHelper.actualWorkingDays({
             employeeId: employee,
-            year: result[0][0].payMonth.split("-")[0],
-            month: result[0][0].payMonth.split("-")[1],
+            // year: result[0][0].payMonth.split("-")[0],
+            // month: result[0][0].payMonth.split("-")[1],
+            year: payMonth.split("-")[0],
+            month: payMonth.split("-")[1],
             totalWorkingDays:totalWorkingDays
           });
         if(!actualWorkingDays)
@@ -4975,6 +4977,8 @@ class PaymentController {
               esicApplicableComponent;
             empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
               pfElementOnMorethan15000AndRestrictionNo;
+              empCopntWiseDetl["totalWorkingDays"] = totalWorkingDays;
+              empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
             //////////////////////////////PF-Applicablity Keys//////////////////////////////////
             let existDetails = await db.payMonthlyElements.findOne({
               where: {
@@ -6180,7 +6184,7 @@ async function callSinglePaySlipFun(data) {
         financialYearId: financialYearDetails?.financialYearId,
         paySlipDuration: paySlipDuration,
         paySlipTotalDays: payMonthlyElement.totalWorkingDays,
-        paySlipWorkingDays: payMonthlyElement.actualWorkingDays - payMonthlyElement.lopDays,
+        paySlipWorkingDays:payMonthlyElement.actualWorkingDays - payMonthlyElement.lopDays,
         paySlipAbsentDays: payMonthlyElement.lopDays,
         paySlipArrearDays: payMonthlyElement.arrearDays,
         paySlipGrossEarning: GrossPayAfterExtraPay,
