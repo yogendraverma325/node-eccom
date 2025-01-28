@@ -1,7 +1,7 @@
 import moment from "moment";
 
 const regularizationRequestMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -49,14 +49,16 @@ const regularizationRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -73,13 +75,14 @@ const regularizationRequestMail = async (data) => {
                     >
                       <p>Hi <b>${data.managerName}</b>,</p>
                       <p>
-                        <b>${data.requesterName
-    }</b> has requested for Attendance
+                        <b>${
+													data.requesterName
+												}</b> has requested for Attendance
                         Request from ${moment(data.attendenceFromDate).format(
-      "MMMM D, YYYY",
-    )} to ${moment(data.attendenceToDate).format(
-      "MMMM D, YYYY",
-    )}. <br />
+													"MMMM D, YYYY",
+												)} to ${moment(data.attendenceToDate).format(
+													"MMMM D, YYYY",
+												)}. <br />
                       </p>
                       <p>
                         Request message : ${data.userRemark}
@@ -118,7 +121,7 @@ const regularizationRequestMail = async (data) => {
 };
 
 const leaveRequestMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -185,14 +188,16 @@ const leaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -215,16 +220,17 @@ const leaveRequestMail = async (data) => {
                               <p>
                                 <b>${data.requesterName}</b> has requested for
                                 ${data.leaveType} from ${moment(
-      data.leaveFromDate,
-    ).format("MMMM D, YYYY")} to ${moment(
-      data.leaveToDate,
-    ).format("MMMM D, YYYY")}. <br />
+																	data.leaveFromDate,
+																).format("MMMM D, YYYY")} to ${moment(
+																	data.leaveToDate,
+																).format("MMMM D, YYYY")}. <br />
                               </p>
                               <p>Request message : ${data.userRemark}</p>
                               <p>
                                 <a
-                                  href=${process.env.CLIENT_URL
-    }#/TaskBox?selectedTab=1&selectedMode=assignedToMe
+                                  href=${
+																		process.env.CLIENT_URL
+																	}#/TaskBox?selectedTab=1&selectedMode=assignedToMe
                                   style="
                                     padding: 5px 10px;
                                     background: #0173c5;
@@ -260,7 +266,7 @@ const leaveRequestMail = async (data) => {
 };
 
 const resetPasswordMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -338,7 +344,7 @@ const resetPasswordMail = async (data) => {
 };
 
 const revokeRegularizeMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -405,14 +411,16 @@ const revokeRegularizeMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -435,8 +443,8 @@ const revokeRegularizeMail = async (data) => {
                               <p>
                                 <b>${data.name}</b> has Revoked own
                                 attendance request of ${moment(
-      data.attendanceDate,
-    ).format("MMMM D, YYYY")}<br />
+																	data.attendanceDate,
+																).format("MMMM D, YYYY")}<br />
                               </p>
                               <p>
                                 <a
@@ -487,7 +495,7 @@ const revokeRegularizeMail = async (data) => {
 };
 
 const regularizationAcknowledgement = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -554,14 +562,16 @@ const regularizationAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -583,13 +593,14 @@ const regularizationAcknowledgement = async (data) => {
                               <p>Hi <b>${data.requesterName}</b>,</p>
                               
                               <p>
-                                <b>${data.managerName}</b> has ${data.status
-    } your Attendance
+                                <b>${data.managerName}</b> has ${
+																	data.status
+																} your Attendance
                                 Request from ${moment(data.fromDate).format(
-      "MMMM D, YYYY",
-    )} to ${moment(data.toDate).format(
-      "MMMM D, YYYY",
-    )}.
+																	"MMMM D, YYYY",
+																)} to ${moment(data.toDate).format(
+																	"MMMM D, YYYY",
+																)}.
                               </p>
                               <p>
                                 <a 
@@ -603,8 +614,9 @@ const regularizationAcknowledgement = async (data) => {
                                     display: inline-block;
                                   "
                                   target="_blank"
-                                href=${process.env.CLIENT_URL
-    }>Click Here</a> to view the
+                                href=${
+																	process.env.CLIENT_URL
+																}>Click Here</a> to view the
                                 full request. <br />
                               </p>
                               <p><br /></p>
@@ -639,7 +651,7 @@ const regularizationAcknowledgement = async (data) => {
 };
 
 const leaveAcknowledgement = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -706,14 +718,16 @@ const leaveAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -735,14 +749,15 @@ const leaveAcknowledgement = async (data) => {
                               <p>Hi <b>${data.requesterName}</b>,</p>
                              
                               <p>
-                                <b>${data.managerName}</b> has ${data.status
-    } your leave
+                                <b>${data.managerName}</b> has ${
+																	data.status
+																} your leave
                                 request ${data.leaveType} from ${moment(
-      data.fromDate,
-    ).format("MMMM D, YYYY")} to
+																	data.fromDate,
+																).format("MMMM D, YYYY")} to
                                 ${moment(data.toDate).format(
-      "MMMM D, YYYY",
-    )} <br />
+																	"MMMM D, YYYY",
+																)} <br />
                               </p>
                               <p>
                                 <a
@@ -793,7 +808,7 @@ const leaveAcknowledgement = async (data) => {
 };
 
 const forgotPasswordMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -867,7 +882,7 @@ const forgotPasswordMail = async (data) => {
 };
 
 const revokeLeaveRequestMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -934,14 +949,16 @@ const revokeLeaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/team-new.png"
                               alt="Logo"
                             />
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
                               alt="Logo"
                                style="float:right"
                             />
@@ -965,10 +982,10 @@ const revokeLeaveRequestMail = async (data) => {
                               <p>
                                 <b>${data.empName}</b> has Revoked the own leave
                                 request ${data.leaveType} from ${moment(
-      data.fromDate,
-    ).format("MMMM D, YYYY")} to ${moment(
-      data.toDate,
-    ).format("MMMM D, YYYY")}.<br />
+																	data.fromDate,
+																).format("MMMM D, YYYY")} to ${moment(
+																	data.toDate,
+																).format("MMMM D, YYYY")}.<br />
                               </p>
                               <p>
                                 <a
@@ -1019,7 +1036,7 @@ const revokeLeaveRequestMail = async (data) => {
 };
 
 const autoLeaveDeduction = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1086,14 +1103,16 @@ const autoLeaveDeduction = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${
+																				process.env.PROXY_URL
+																			}/api/uploads/assets/team-new.png"
                                       alt="Logo"
                                     />
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                                      src="${
+																				process.env.PROXY_URL
+																			}/api/uploads/assets/tara_small.png"
                                       alt="Logo"
                                       style="float: right"
                                     />
@@ -1177,10 +1196,11 @@ const autoLeaveDeduction = async (data) => {
                                   "
                                 >
                                   On ${moment(data.date).format(
-      "DD-MM-YYYY",
-    )}<br /><br />
-                                  ${data.leaveType} (${data.leaveDuration
-    }) has been generated by system and
+																		"DD-MM-YYYY",
+																	)}<br /><br />
+                                  ${data.leaveType} (${
+																		data.leaveDuration
+																	}) has been generated by system and
                                   ${data.leaveReason} because you have not
                                   satisfied the attendance policy.
                                 </p>
@@ -1193,23 +1213,24 @@ const autoLeaveDeduction = async (data) => {
                                   "
                                 >
                                   Assigned Shift : ${moment(
-      data.shiftStartTime,
-      "HH:mm:ss",
-    ).format("hh:mm:ss A")} - ${moment(
-      data.shiftEndTime,
-      "HH:mm:ss",
-    ).format("hh:mm:ss A")}
+																		data.shiftStartTime,
+																		"HH:mm:ss",
+																	).format("hh:mm:ss A")} - ${moment(
+																		data.shiftEndTime,
+																		"HH:mm:ss",
+																	).format("hh:mm:ss A")}
                                   <br />
-                                  Leave Type : ${data.leaveType} (${data.leaveDuration
-    }) <br />
+                                  Leave Type : ${data.leaveType} (${
+																		data.leaveDuration
+																	}) <br />
                                   Clock-in : ${moment(
-      data.punchInTime,
-      "HH:mm:ss",
-    ).format("hh:mm:ss A")} <br />
+																		data.punchInTime,
+																		"HH:mm:ss",
+																	).format("hh:mm:ss A")} <br />
                                   Clock-out : ${moment(
-      data.punchOutTime,
-      "HH:mm:ss",
-    ).format("hh:mm:ss A")} <br />
+																		data.punchOutTime,
+																		"HH:mm:ss",
+																	).format("hh:mm:ss A")} <br />
                                 </p>
                                 <p
                                   style="
@@ -1255,7 +1276,7 @@ const autoLeaveDeduction = async (data) => {
 };
 
 const initiateSeparation = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1403,7 +1424,7 @@ const initiateSeparation = async (data) => {
 };
 
 const separationAcknowledgementToUser = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1542,7 +1563,7 @@ const separationAcknowledgementToUser = async (data) => {
 };
 
 const separationApprovalAcknowledgementToUser = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1667,7 +1688,7 @@ const separationApprovalAcknowledgementToUser = async (data) => {
 };
 
 const separationRejectedByBUHR = async (data) => {
-  return `
+	return `
   <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -1820,7 +1841,7 @@ const separationRejectedByBUHR = async (data) => {
 };
 
 const managerRejectsSeparation = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -2035,7 +2056,7 @@ const managerRejectsSeparation = async (data) => {
 };
 
 const managerApprovesSeparation = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -2185,7 +2206,7 @@ const managerApprovesSeparation = async (data) => {
 };
 
 const separationApproveByBUHR = async (data) => {
-  return `
+	return `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -2253,14 +2274,16 @@ const separationApproveByBUHR = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${
+																				process.env.PROXY_URL
+																			}/api/uploads/assets/team-new.png"
                                       alt="Logo"
                                     />
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                                      src="${
+																				process.env.PROXY_URL
+																			}/api/uploads/assets/tara_small.png"
                                       alt="Logo"
                                       style="float: right"
                                     />
@@ -2298,17 +2321,18 @@ const separationApproveByBUHR = async (data) => {
                                     font-family: Arial;
                                   "
                                   >${moment(data.dateOfResignation).format(
-      "DD-MM-YYYY",
-    )}</span
+																		"DD-MM-YYYY",
+																	)}</span
                                 ></span
                               ><span style="font-size: 12px"
                                 ><span style="font-family: Arial"
-                                  >&nbsp;and your last working day in ${data.companyName
-    } would be&nbsp;</span
+                                  >&nbsp;and your last working day in ${
+																		data.companyName
+																	} would be&nbsp;</span
                                 ></span
                               ><b>${moment(data.lastWorkingDay).format(
-      "DD-MM-YYYY",
-    )}</b
+																"DD-MM-YYYY",
+															)}</b
                               ><span style="font-family: Georgia"
                                 ><span style="font-family: Arial">.</span></span
                               >
@@ -2666,7 +2690,7 @@ const separationApproveByBUHR = async (data) => {
 };
 
 const clearanceInitiated = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -2734,14 +2758,16 @@ const clearanceInitiated = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${
+																				process.env.PROXY_URL
+																			}/api/uploads/assets/team-new.png"
                                       alt="Logo"
                                     />
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/tara_small.png"
+                                      src="${
+																				process.env.PROXY_URL
+																			}/api/uploads/assets/tara_small.png"
                                       alt="Logo"
                                       style="float: right"
                                     />
@@ -2763,14 +2789,17 @@ const clearanceInitiated = async (data) => {
                               <br /><br />
 
                               <span>
-                              <b>${data.taskName
-    }</b> Form is pending with you to complete separation formalities for <b>${data.empName
-    }, ${data.empCode}, ${data.department
-    }</b> whose last working day is <b>${moment(
-      data.lastWorkingDay,
-    ).format(
-      "DD-MM-YYYY",
-    )}</b>. Please complete the task as early as possible. You can access the task under pending tasks on your dashboard.
+                              <b>${
+																data.taskName
+															}</b> Form is pending with you to complete separation formalities for <b>${
+																data.empName
+															}, ${data.empCode}, ${
+																data.department
+															}</b> whose last working day is <b>${moment(
+																data.lastWorkingDay,
+															).format(
+																"DD-MM-YYYY",
+															)}</b>. Please complete the task as early as possible. You can access the task under pending tasks on your dashboard.
                               </span>
                              
                             </div>
@@ -2860,15 +2889,15 @@ const clearanceInitiated = async (data) => {
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 >${moment(data.dateOfJoining).format(
-      "DD-MM-YYYY",
-    )}</span
+																	"DD-MM-YYYY",
+																)}</span
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 ><br /><span
                                   style="font-family: Calibri; font-size: 14px"
                                   >Date of Resignation: ${moment(
-      data.dateOfResignation,
-    ).format("DD-MM-YYYY")}</span
+																		data.dateOfResignation,
+																	).format("DD-MM-YYYY")}</span
                                 ></span
                               ><br /><span
                                 style="font-family: Calibri; font-size: 14px"
@@ -2876,8 +2905,8 @@ const clearanceInitiated = async (data) => {
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 >${moment(data.lastWorkingDay).format(
-      "DD-MM-YYYY",
-    )}</span
+																	"DD-MM-YYYY",
+																)}</span
                               ><span
                                 style="font-family: Calibri; font-size: 14px"
                                 ><br /></span
@@ -2941,7 +2970,7 @@ const clearanceInitiated = async (data) => {
 };
 
 const onboardingEmployee = async (data) => {
-  return `
+	return `
     <!DOCTYPE html>
 <html lang="en">
 
@@ -3067,7 +3096,7 @@ const onboardingEmployee = async (data) => {
 };
 
 const paymentDetailsApprovalRequestMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -3133,7 +3162,7 @@ const paymentDetailsApprovalRequestMail = async (data) => {
 };
 
 const paymentDetailsAdminApprovedMail = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -3202,7 +3231,7 @@ const paymentDetailsAdminApprovedMail = async (data) => {
 };
 
 const passwordExpiryNotification = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -3372,7 +3401,7 @@ const passwordExpiryNotification = async (data) => {
 };
 
 const postPasswordExpiryNotification = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -3537,7 +3566,7 @@ const postPasswordExpiryNotification = async (data) => {
 `;
 };
 const newJoinEmployeeMail = async (data) => {
-  return `
+	return `
   <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3597,13 +3626,13 @@ const newJoinEmployeeMail = async (data) => {
 </html>`;
 };
 const selfReviewConfirnation = async (data) => {
-  const dateOfProbationEnd = data?.dateOfProbationEnd;
+	const dateOfProbationEnd = data?.dateOfProbationEnd;
 
-  // Calculate the difference in days
-  const today = moment();
-  const endDate = moment(dateOfProbationEnd, "YYYY-MM-DD");
-  const daysDifference = endDate.diff(today, "days"); // Difference in days
-  return `<!DOCTYPE html>
+	// Calculate the difference in days
+	const today = moment();
+	const endDate = moment(dateOfProbationEnd, "YYYY-MM-DD");
+	const daysDifference = endDate.diff(today, "days"); // Difference in days
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -3688,11 +3717,11 @@ const selfReviewConfirnation = async (data) => {
 </html>`;
 };
 const confirmationEmailLetter = async (
-  data,
-  confiramtionData,
-  signatureAuthority,
+	data,
+	confiramtionData,
+	signatureAuthority,
 ) => {
-  return `
+	return `
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -3762,8 +3791,9 @@ const confirmationEmailLetter = async (
         <p>TMC: <strong>${data?.empCode}</strong></p>
         <p>Designation: <strong>${data?.designationmaster?.name}</strong></p>
         <p>SBU: <strong>${data?.sbumaster?.sbuname}</strong></p>
-        <p>Location: <strong>${data?.companylocationmaster?.address1
-    }</strong></p>
+        <p>Location: <strong>${
+					data?.companylocationmaster?.address1
+				}</strong></p>
       </div>
       <div class="subject">
         <h4 class="subjectText">Subject: Confirmation Letter</h4>
@@ -3779,8 +3809,8 @@ const confirmationEmailLetter = async (
           are happy to inform you that your services are being confirmed as
           <strong>${data?.designationmaster?.name}</strong> with effect from
           <strong>${moment(confiramtionData?.updatedAt).format(
-      "MM-DD-YYYY",
-    )}</strong>.
+						"MM-DD-YYYY",
+					)}</strong>.
         </p>
 
         <p>
@@ -3800,8 +3830,9 @@ const confirmationEmailLetter = async (
       <div class="signatureSection">
               <img
              class="signature"
-              src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature
-    }"
+              src="${process.env.PROXY_URL}/api/${
+								signatureAuthority?.signature
+							}"
               alt="signature"
               height="90"
               />
@@ -3822,11 +3853,11 @@ const confirmationEmailLetter = async (
 `;
 };
 const confirmationEmailBody = async (
-  data,
-  confiramtionData,
-  signatureAuthority,
+	data,
+	confiramtionData,
+	signatureAuthority,
 ) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -3890,7 +3921,7 @@ const confirmationEmailBody = async (
 </html>`;
 };
 const confirmationExtendEmailBody = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -3954,7 +3985,7 @@ const confirmationExtendEmailBody = async (data) => {
 </html>`;
 };
 const confirmationSLABreachEmailBody = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -4018,7 +4049,7 @@ const confirmationSLABreachEmailBody = async (data) => {
 </html>`;
 };
 const confirmationWorkFlownextLevel = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -4083,33 +4114,33 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 export default {
-  regularizationRequestMail,
-  resetPasswordMail,
-  revokeRegularizeMail,
-  leaveRequestMail,
-  regularizationAcknowledgement,
-  leaveAcknowledgement,
-  forgotPasswordMail,
-  revokeLeaveRequestMail,
-  autoLeaveDeduction,
-  initiateSeparation,
-  separationAcknowledgementToUser,
-  separationApprovalAcknowledgementToUser,
-  separationRejectedByBUHR,
-  managerRejectsSeparation,
-  managerApprovesSeparation,
-  separationApproveByBUHR,
-  clearanceInitiated,
-  onboardingEmployee,
-  paymentDetailsApprovalRequestMail,
-  paymentDetailsAdminApprovedMail,
-  passwordExpiryNotification,
-  postPasswordExpiryNotification,
-  newJoinEmployeeMail,
-  selfReviewConfirnation,
-  confirmationEmailLetter,
-  confirmationEmailBody,
-  confirmationExtendEmailBody,
-  confirmationSLABreachEmailBody,
-  confirmationWorkFlownextLevel,
+	regularizationRequestMail,
+	resetPasswordMail,
+	revokeRegularizeMail,
+	leaveRequestMail,
+	regularizationAcknowledgement,
+	leaveAcknowledgement,
+	forgotPasswordMail,
+	revokeLeaveRequestMail,
+	autoLeaveDeduction,
+	initiateSeparation,
+	separationAcknowledgementToUser,
+	separationApprovalAcknowledgementToUser,
+	separationRejectedByBUHR,
+	managerRejectsSeparation,
+	managerApprovesSeparation,
+	separationApproveByBUHR,
+	clearanceInitiated,
+	onboardingEmployee,
+	paymentDetailsApprovalRequestMail,
+	paymentDetailsAdminApprovedMail,
+	passwordExpiryNotification,
+	postPasswordExpiryNotification,
+	newJoinEmployeeMail,
+	selfReviewConfirnation,
+	confirmationEmailLetter,
+	confirmationEmailBody,
+	confirmationExtendEmailBody,
+	confirmationSLABreachEmailBody,
+	confirmationWorkFlownextLevel,
 };

@@ -1268,12 +1268,12 @@ const attendanceRosterSchema = Joi.array().items(
 		employeeId: Joi.number().required().label("Employee ID"),
 		attendanceDate: Joi.string().required().label("Date"),
 		shiftId: Joi.number().required().label("Shift").messages({
-			'number.base': '"Shift" is required',
-			'any.required': '"Shift" is required'
+			"number.base": '"Shift" is required',
+			"any.required": '"Shift" is required',
 		}),
 		weekOffId: Joi.number().required().label("Week Off").messages({
-			'number.base': '"Week Off" is required',
-			'any.required': '"Week Off" is required'
+			"number.base": '"Week Off" is required',
+			"any.required": '"Week Off" is required',
 		}),
 	}),
 );
@@ -1375,5 +1375,5 @@ export default {
 	// comp off leave
 	attendanceRosterSchema,
 	rosterUploadSchema,
-	updateCompOffRequest
+	updateCompOffRequest,
 };
