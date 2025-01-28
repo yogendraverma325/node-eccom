@@ -2541,7 +2541,21 @@ class AttendanceController {
 						markHalfDay = 1;
 						markHalfDayType = 2;
 					}
-					if (markHalfDay != null) {
+						if (markHalfDay != null &&
+			(
+			(singleEmp.weekOffMaster &&
+			singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
+			(singleEmp.attendanceroster &&
+			singleEmp.attendanceroster.weekOffMaster &&
+			singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
+			.length == 0)
+			&& (
+             singleEmp.holidaycompanylocationconfigurations &&
+			singleEmp.holidaycompanylocationconfigurations.length ==0
+			)
+			)
+
+			) {
 						let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
 						if (EMP_DATA) {
 							await helper.empMarkLeaveOfGivenDate(
@@ -2952,7 +2966,21 @@ class AttendanceController {
 						markHalfDayType = 2;
 					}
 
-					if (markHalfDay != null) {
+			if (markHalfDay != null &&
+			(
+			(singleEmp.weekOffMaster &&
+			singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
+			(singleEmp.attendanceroster &&
+			singleEmp.attendanceroster.weekOffMaster &&
+			singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
+			.length == 0)
+			&& (
+             singleEmp.holidaycompanylocationconfigurations &&
+			singleEmp.holidaycompanylocationconfigurations.length ==0
+			)
+			)
+
+			) {
 						let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
 						if (EMP_DATA) {
 							await helper.empMarkLeaveOfGivenDate(
