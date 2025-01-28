@@ -1037,6 +1037,10 @@ class PaymentController {
         });
       }
 
+      // fetch financial year id from year
+      let year = req.body.paymonth.split("-")[0];
+      let financialYearDetails = await db.financialYearMaster.findOne({ where : { 'year': year }, attributes: ['financialYearId'], raw: true }); 
+
       let ids = value.departmentId.split(",");
       let allEmployeeQuery = await paymentHelper.query(
         value.departmentId == 0 ? 25 : 19,
@@ -1085,7 +1089,7 @@ class PaymentController {
           isActive: 1,
           processFlowId: 1,
           companyId: value.companyId,
-          financialYearId: 3,
+          financialYearId: financialYearDetails?.financialYearId,
           filterType: value.departmentId === "0" ? 1 : 0,
         },
         { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
