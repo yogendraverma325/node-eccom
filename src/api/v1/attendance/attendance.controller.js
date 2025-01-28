@@ -887,6 +887,36 @@ class AttendanceController {
 				createdAt: moment(),
 			});
 
+			const empLeaveHeader = await db.EmployeeLeaveHeader.findOne({
+				where: {
+					employeeId: req.userId,
+					toDate: result.fromDate,
+					fromDate: result.fromDate,
+					source: "system_generated",
+					status: 'pending'
+				}
+			})
+
+			if (empLeaveHeader) {
+				await db.EmployeeLeaveHeader.update({
+					status: "revoked"
+				},
+					{
+						where: {
+							employeeleaveheaderID: empLeaveHeader.dataValues.employeeleaveheaderID
+						}
+					}
+				)
+
+				await db.employeeLeaveTransactions.update({
+					status: "revoked"
+				}, {
+					where: {
+						employeeleaveheaderID: empLeaveHeader.dataValues.employeeleaveheaderID
+					}
+				})
+			}
+
 			eventEmitter.emit(
 				"regularizeRequestMail",
 				JSON.stringify({
@@ -2381,7 +2411,7 @@ class AttendanceController {
 		if (
 			(singleEmp.weekOffMaster &&
 				singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) || (
-					singleEmp.attendanceroster &&
+				singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster && singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters.length > 0
 			)
 		) {
@@ -3035,7 +3065,7 @@ class AttendanceController {
 	async attedanceCron() {
 		try {
 			const start = performance.now();
-			console.log("start",start)
+			console.log("start", start)
 			const activeEmployees = await db.employeeMaster.findAll({
 				include: [
 					{
