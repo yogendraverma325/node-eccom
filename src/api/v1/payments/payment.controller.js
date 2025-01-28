@@ -5035,7 +5035,7 @@ class PaymentController {
         else {
           return respHelper(res, {
             status: 400,
-            msg: 'No data available.',
+            msg: 'Date of joining should be less than or equal to the selected month.',
           });
         }
         
