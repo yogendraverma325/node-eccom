@@ -169,6 +169,9 @@ export default (sequelize, Sequelize) => {
           actualWorkingDays:{
             type:Sequelize.INTEGER
           },
+          salaryComponentSequenceNo:{
+            type:Sequelize.INTEGER
+          }
 
     });
     return PayMonthlyElement ;

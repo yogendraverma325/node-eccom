@@ -41,6 +41,10 @@ export default (sequelize, Sequelize) => {
         fixedPayElementAmount:{
             type: Sequelize.INTEGER,
             default:null,
+        },
+        salaryComponentSequenceNo:{
+            type: Sequelize.INTEGER,
+            default:999
         }
     })
     return paySlipComponent

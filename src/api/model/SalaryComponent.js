@@ -52,7 +52,10 @@ export default (sequelize, Sequelize) => {
         },
         includeInPackage:{
             type: Sequelize.INTEGER  
-        }
+        },
+        salaryComponentSequenceNo:{
+            type: Sequelize.INTEGER  
+        },
     })
     return salaryComponent
 }
