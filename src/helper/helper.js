@@ -2192,6 +2192,68 @@ const actionOnLeaveCompOff = async (
 	}
 };
 
+const leaveCreditMonthCron = async() => {
+	const transaction = await db.sequelize.transaction();
+	try {
+	  const getMappedLeave = await db.leaveMapping.findAll({
+		attributes: ["EmployeeId", "leaveAutoId"],
+		where: { isActive: 1 },
+		include: [
+		  {
+			model: db.employeeMaster,
+			attributes: ["companyId"],
+			where: {
+			  isActive: 1,
+			  companyId: { [Op.ne]: null },
+			},
+		  },
+		],
+		raw: false,
+	  });
+	  for (const employee of getMappedLeave) {
+		const getIncrementValue = await db.leaveCompanyMapping.findOne({
+		  where: {
+			companyId: employee["employee.companyId"],
+			leaveAutoId: employee.leaveAutoId,
+			iterationDistribution: { [Op.ne]: parseFloat(0) },
+			creditDayOfMonth: moment().format("D"), 
+		  },
+		  transaction
+		});
+  
+		if (getIncrementValue) {
+		  await db.leaveMapping.increment(
+			{
+			  availableLeave: getIncrementValue.iterationDistribution,
+			  accruedThisYear: getIncrementValue.iterationDistribution,
+			},
+			{
+			  where: {
+				leaveAutoId: employee.leaveAutoId,
+				EmployeeId: employee.EmployeeId,
+			  },
+			  transaction
+			}
+		  );
+		} else {
+		  console.log("No iteration distribution found for", employee.EmployeeId);
+		}
+	  }
+  
+	  await transaction.commit();
+  
+	 return { 
+	  data:1
+	 }
+	} catch (error) {
+	  // Rollback the transaction in case of an error
+	  await transaction.rollback();
+	  console.error("Error during leave credit update:", error);
+	  return {
+		data:0
+	  };
+	}
+ }  
 ///COMPOFF
 
 export default {
@@ -2237,5 +2299,6 @@ export default {
 	checkLeaveClupEMPforDate,
 	reportieesofEmp,
 	actionOnLeaveCompOff,
+	leaveCreditMonthCron,
 	//COMPOFF
 };

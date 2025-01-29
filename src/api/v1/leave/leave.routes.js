@@ -34,6 +34,11 @@ export default Express.Router()
 		authentication.authenticate,
 		LeaveController.leaveAssignEmployee,
 	)
+	.post(
+		"/leaveAssignEmployeeToAll",
+		authentication.authenticate,
+		LeaveController.leaveAssignEmployeeToAll,
+	)
 	//BULK ACTION
 	.get(
 		"/leaveRequestListBulk",
