@@ -140,62 +140,127 @@ class PaymentController {
       const financialYearId = req.query.financialYearId;
       const type = parseInt(req.query.type);
 
+      // const paySlip = await db.paySlips.findAll({
+      //   where: {
+      //     EmployeeId: user ? user : req.userId,
+      //     financialYearId: financialYearId,
+      //     ...(type === 1 && { paySlipStatus: 1 }),
+      //   },
+      //  order: [["createdAt", "desc"]],
+      //   attributes: { exclude: ["createdAt", "createdBy"] },
+      //   include: [
+      //     {
+      //       model: db.employeeMaster,
+      //       attributes: [
+      //         "name",
+      //         "empCode",
+      //         "email",
+      //         "designation_id",
+      //         "departmentId",
+      //         "panNo",
+      //         "esicNo",
+      //         "uanNo",
+      //         "pfNo",
+      //         "employeeType",
+      //       ],
+      //       include: [
+      //         {
+      //           model: db.departmentMaster,
+      //           required: true,
+      //           attributes: ["departmentCode", "departmentName"],
+      //         },
+      //         {
+      //           model: db.designationMaster,
+      //           required: false,
+      //           attributes: ["name"],
+      //         },
+      //         {
+      //           model: db.jobDetails,
+      //           attributes: ["dateOfJoining"],
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       model: db.paySlipComponent,
+      //       order: [
+      //         [Sequelize.fn('CAST', Sequelize.col('salaryComponentSequenceNo'), 'INTEGER'), 'ASC'],
+      //       ],
+      //       attributes: {
+      //         exclude: [
+      //           "createdAt",
+      //           "createdBy",
+      //           "updatedBy",
+      //           "updatedAt",
+      //           "isActive",
+      //         ],
+      //       },
+     
+      //     },
+      //   ],
+      // });
+
+
       const paySlip = await db.paySlips.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
           financialYearId: financialYearId,
           ...(type === 1 && { paySlipStatus: 1 }),
         },
-        order: [["createdAt", "desc"]],
-        attributes: { exclude: ["createdAt", "createdBy"] },
+        order: [
+          [db.paySlipComponent, 'salaryComponentSequenceNo', 'ASC']
+        ],
+        attributes: { exclude: ['createdAt', 'createdBy'] },
         include: [
           {
             model: db.employeeMaster,
             attributes: [
-              "name",
-              "empCode",
-              "email",
-              "designation_id",
-              "departmentId",
-              "panNo",
-              "esicNo",
-              "uanNo",
-              "pfNo",
-              "employeeType",
+              'name',
+              'empCode',
+              'email',
+              'designation_id',
+              'departmentId',
+              'panNo',
+              'esicNo',
+              'uanNo',
+              'pfNo',
+              'employeeType',
             ],
             include: [
               {
                 model: db.departmentMaster,
                 required: true,
-                attributes: ["departmentCode", "departmentName"],
+                attributes: ['departmentCode', 'departmentName'],
               },
               {
                 model: db.designationMaster,
                 required: false,
-                attributes: ["name"],
+                attributes: ['name'],
               },
               {
                 model: db.jobDetails,
-                attributes: ["dateOfJoining"],
+                attributes: ['dateOfJoining'],
               },
             ],
           },
           {
             model: db.paySlipComponent,
-            order: [[Sequelize.literal("salaryComponentSequenceNo"), "ASC"]],
+            order: [
+              [Sequelize.col('salaryComponentSequenceNo'), 'ASC']  // Sorting here as well
+            ],
             attributes: {
               exclude: [
-                "createdAt",
-                "createdBy",
-                "updatedBy",
-                "updatedAt",
-                "isActive",
+                'createdAt',
+                'createdBy',
+                'updatedBy',
+                'updatedAt',
+                'isActive',
               ],
             },
-     
           },
         ],
       });
+      
+
 
       return respHelper(res, {
         status: 200,
