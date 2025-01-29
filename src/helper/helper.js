@@ -1566,20 +1566,24 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 						{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 					],
 				},
+				taken_on: {
+				[Op.eq]: null, // Check if expiry_date is null
+				},
 				status: 1,
 			},
 		});
 	} else {
-		result = await db.comp_off_credit_history.findOne({
-			attributes: [
-				[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
-			],
+		result = await db.comp_off_credit_history.count({
+			
 			where: {
 				expiry_date: {
 					[Op.or]: [
 						{ [Op.eq]: null }, // Check if expiry_date is null
 						{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 					],
+				},
+				taken_on: {
+				[Op.eq]: null, // Check if expiry_date is null
 				},
 				[Op.or]: [
 					{ pending_at: { [Op.like]: `${UserId},%` } }, // Check if userId is at the start
@@ -1593,9 +1597,14 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 		});
 	}
 
-	if (result && result.dataValues.total_balance != null) {
-		count = parseFloat(result.dataValues.total_balance);
+	if (status == "Approved") {
+			if (result && result.dataValues.total_balance != null) {
+			count = parseFloat(result.dataValues.total_balance);
+			}
+	}else{
+count=result;
 	}
+	
 	return count;
 };
 const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
