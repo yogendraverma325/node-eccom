@@ -1064,6 +1064,17 @@ class UserController {
 				createdAt: req.userId,
 			});
 
+			await db.jobDetails.update(
+				{
+					noticePeriodStatus: 1,
+				},
+				{
+					where: {
+						userId: user,
+					},
+				},
+			);
+
 			await db.separationTrail.create({
 				separationAutoId: createdData.dataValues.resignationAutoId,
 				separationStatus: 2,
@@ -1445,6 +1456,17 @@ class UserController {
 			};
 			const createdData = await db.separationMaster.create(onBehalfObject);
 
+			await db.jobDetails.update(
+				{
+					noticePeriodStatus: 1,
+				},
+				{
+					where: {
+						userId: user,
+					},
+				},
+			);
+
 			await db.separationTrail.create({
 				actionUserRole: req.userRole,
 				separationAutoId: createdData.dataValues.resignationAutoId,
@@ -1734,6 +1756,17 @@ class UserController {
 			};
 			const createdData = await db.separationMaster.create(onBehalfObject);
 
+			await db.jobDetails.update(
+				{
+					noticePeriodStatus: 1,
+				},
+				{
+					where: {
+						userId: user,
+					},
+				},
+			);
+
 			await db.separationTrail.create({
 				separationAutoId: createdData.dataValues.resignationAutoId,
 				actionUserRole: req.userRole,
@@ -1981,7 +2014,7 @@ class UserController {
 				include: [
 					{
 						model: db.employeeMaster,
-						attributes: ["empCode", "name", "email", "buHRId", "manager"],
+						attributes: ["id", "empCode", "name", "email", "buHRId", "manager"],
 						include: [
 							{
 								model: db.companyMaster,
@@ -2031,6 +2064,17 @@ class UserController {
 						resignationAutoId: result.resignationAutoId,
 					},
 				});
+
+				await db.jobDetails.update(
+					{
+						noticePeriodStatus: 0,
+					},
+					{
+						where: {
+							userId: resignationData.dataValues.employee.id,
+						},
+					},
+				);
 
 				const mailArray = [
 					{
@@ -2646,6 +2690,17 @@ class UserController {
 				createdBy: req.userId,
 				createdDt: moment(),
 			});
+
+			await db.jobDetails.update(
+				{
+					noticePeriodStatus: 0,
+				},
+				{
+					where: {
+						userId: req.userId,
+					},
+				},
+			);
 
 			return respHelper(res, {
 				status: 200,

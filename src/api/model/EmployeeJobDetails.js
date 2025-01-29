@@ -116,6 +116,9 @@ export default (sequelize, Sequelize) => {
 		confirmationDate: {
 			type: Sequelize.DATE,
 		},
+		noticePeriodStatus: {
+			type: Sequelize.BOOLEAN,
+		},
 		confirmationGenerated: {
 			type: Sequelize.INTEGER,
 		},

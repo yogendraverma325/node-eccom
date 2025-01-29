@@ -29,7 +29,11 @@ export default Express.Router()
 		masterExportController.allAttendancePunchDetails,
 	)
 	.get("/attendanceSummary", masterExportController.attendanceSummary)
-    .get("/employeeMasterExport",authentication.authenticate, masterExportController.employeeMasterExport)
+	.get(
+		"/employeeMasterExport",
+		authentication.authenticate,
+		masterExportController.employeeMasterExport,
+	)
 	.get("/sperationPending", masterExportController.sperationPending)
 	.get("/sperationApproved", masterExportController.sperationApproved)
 	.get(
