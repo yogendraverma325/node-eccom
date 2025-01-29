@@ -1750,6 +1750,8 @@ const leaveCountForUserForMonth = async (
 
 const creditCompoff = async (inputObject) => {
 	try {
+		let goAhead=true;
+		let  comp_off_hours=0;
 		let compofftype = inputObject.compofftype;
 		let attendance_auto_id = inputObject.attendance_auto_id;
 		let attendanceStartDate = inputObject.attendanceStartDate;
@@ -1763,10 +1765,20 @@ const creditCompoff = async (inputObject) => {
 			`${attendanceEndDate} ${shiftEndTime}`,
 		);
 		let empId = inputObject.empId;
+		let holiday = inputObject.holiday;
 
+		let weekoff = inputObject.weekoff;
 		let working_hours = inputObject.working_hours;
 
-		const timeWorkDuration = moment.duration(working_hours);
+		if (holiday.length > 0 && weekoff.length > 0) {
+		compofftype = "Weekly Off/Holiday";
+		} else if (holiday.length > 0 && weekoff.length == 0) {
+		compofftype = "Holiday";
+		} else if (holiday.length == 0 && weekoff.length > 0) {
+		compofftype = "Weekly Off";
+		}
+		if(compofftype == "Week Day"){
+			const timeWorkDuration = moment.duration(working_hours);
 
 		// Calculate the total minutes
 		const totaltimeWorkDuration =
@@ -1782,25 +1794,27 @@ const creditCompoff = async (inputObject) => {
 			alloweWorkingHours.minutes() +
 			alloweWorkingHours.seconds() / 60;
 
-			console.log("totaltimeWorkDuration",totaltimeWorkDuration)
-			console.log("totalalloweWorkingHours",totalalloweWorkingHours)
-		if (totaltimeWorkDuration > totalalloweWorkingHours) {
-			let comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
+			if (totaltimeWorkDuration > totalalloweWorkingHours ) {
+			comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
 
-			let holiday = inputObject.holiday;
-
-			let weekoff = inputObject.weekoff;
-
-			if (holiday.length > 0 && weekoff.length > 0) {
-				compofftype = "Weekly Off/Holiday";
-			} else if (holiday.length > 0 && weekoff.length == 0) {
-				compofftype = "Holiday";
-			} else if (holiday.length == 0 && weekoff.length > 0) {
-				compofftype = "Weekly Off";
+			}else{
+			goAhead=false
 			}
+	}else{
+		const timeWorkDuration = moment.duration(working_hours);
 
-			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
-console.log("compOffPolicyData",compOffPolicyData)
+		// Calculate the total minutes
+		const totaltimeWorkDuration =
+		timeWorkDuration.hours() * 60 +
+		timeWorkDuration.minutes() +
+		timeWorkDuration.seconds() / 60;
+		comp_off_hours=totaltimeWorkDuration;
+	}
+
+		
+
+		if (goAhead ) {
+          let compOffPolicyData = await checkCompOffPolicyForUser(empId);
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");

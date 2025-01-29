@@ -2629,7 +2629,11 @@ class AttendanceController {
 							empId: empId,
 							working_hours: working_hours,
 							holiday: singleEmp.holidaycompanylocationconfigurations,
-							weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+							weekoff: 	(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length == 0) ? singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters:
+									singleEmp.weekOffMaster?.weekOffDayMappingMasters,
 						};
 						await helper.creditCompoff(employeeData);
 					}
@@ -3050,7 +3054,11 @@ class AttendanceController {
 						empId: empId,
 						working_hours: working_hours,
 						holiday: singleEmp.holidaycompanylocationconfigurations,
-						weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+						weekoff: 	(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length == 0) ? singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters:
+									singleEmp.weekOffMaster?.weekOffDayMappingMasters,
 					};
 					await helper.creditCompoff(employeeData);
 				}
