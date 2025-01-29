@@ -800,7 +800,7 @@ class PaymentController {
         if (error) {
           errorArray.push({
             index: errorArray.length + 1,
-            employeeID: employee["Email/Employee ID"],
+            employeeID: employee["Employee ID"],
             errorDetails: error.details[0].message,
           });
           continue;
@@ -808,14 +808,14 @@ class PaymentController {
 
         let employeeDetails = await db.employeeMaster.findOne({
           where: {
-            empCode: employee["Email/Employee ID"],
+            empCode: employee["Employee ID"],
             isActive: 1,
           },
           raw: true,
           attributes: ["id", "name", "dateOfJoining"],
         });
 
-        // console.log("**"+employee["Email/Employee ID"]+"***");
+        // console.log("**"+employee["Employee ID"]+"***");
 
         // return
 
@@ -823,11 +823,11 @@ class PaymentController {
           console.log(
             "Employee not found or inactive" +
               " for empId : " +
-              employee["Email/Employee ID"]
+              employee["Employee ID"]
           );
           errorArray.push({
             index: errorArray.length + 1,
-            employeeID: employee["Email/Employee ID"],
+            employeeID: employee["Employee ID"],
             errorDetails: "Employee not found",
           });
           continue;
@@ -876,7 +876,7 @@ class PaymentController {
           }
         }
         console.log(
-          employee["Email/Employee ID"] + "--" + employee["CTC"],
+          employee["Employee ID"] + "--" + employee["CTC"],
           ctcFromComponent
         );
 
@@ -904,7 +904,7 @@ class PaymentController {
           ) {
             errorArray.push({
               index: errorArray.length + 1,
-              employeeID: employee["Email/Employee ID"],
+              employeeID: employee["Employee ID"],
               errorDetails:
                 "The current effective date can not be smaller than the last effective date.",
             });
@@ -916,7 +916,7 @@ class PaymentController {
           ) {
             errorArray.push({
               index: errorArray.length + 1,
-              employeeID: employee["Email/Employee ID"],
+              employeeID: employee["Employee ID"],
               errorDetails:
                 "Current Effective-Date can not be less than employee joining date",
             });
@@ -965,7 +965,7 @@ class PaymentController {
 
               let exisingPayElement = await db.payElements.findAll({
                 where: {
-                  EmployeeId: employee["Email/Employee ID"],
+                  EmployeeId: employee["Employee ID"],
                   payPackageAutoId: packageInserted.dataValues.payPackageAutoId,
                   salaryComponentAutoId:
                     salaryComponent[
@@ -996,14 +996,14 @@ class PaymentController {
             }
             successArray.push({
               index: successArray.length + 1,
-              employeeID: employee["Email/Employee ID"],
+              employeeID: employee["Employee ID"],
               successDetails: "CTC Uploaded Successfully",
             });
           }
         } else {
           errorArray.push({
             index: errorArray.length + 1,
-            employeeID: employee["Email/Employee ID"],
+            employeeID: employee["Employee ID"],
             errorDetails: "CTC not matched with component",
           });
           ////////////////Do not Matched the ctc///////
@@ -1510,7 +1510,7 @@ class PaymentController {
         successArray = [];
       for (const employeeArrears of arrearsDetais) {
         let earningArears = {
-          EmployeeId: employeeArrears["Email/Employee ID"],
+          EmployeeId: employeeArrears["Employee ID"],
           arrearMonth: employeeArrears["Arrear Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Month (YYYY-MM)'])),
           arrearPayMonth: employeeArrears["Arrear Pay Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Pay Month (YYYY-MM)'])),//employeeArrears['Arrear Pay Month (YYYY-MM)'],
           arearDays: employeeArrears["Arrear Days"],
@@ -1586,7 +1586,7 @@ class PaymentController {
       var tdsDetails = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
-      if (!tdsDetails[0]["Email/Employee ID"]) {
+      if (!tdsDetails[0]["Employee ID"]) {
         return respHelper(res, {
           status: 400,
           msg: "Invalid File Format",
@@ -1596,9 +1596,9 @@ class PaymentController {
       var errorArray = [],
         successArray = [];
       for (const employeeTds of tdsDetails) {
-        if (employeeTds["Email/Employee ID"]) {
+        if (employeeTds["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
-            where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
+            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
             raw: true,
             attributes: ["empCode", "id"],
           });
@@ -1607,7 +1607,7 @@ class PaymentController {
             errorArray.push({
               index: errorArray.length + 1,
               errorDetails: "Employee not found/ deactivated",
-              employeeID: employeeTds["Email/Employee ID"],
+              employeeID: employeeTds["Employee ID"],
             });
             continue;
           }
@@ -1616,7 +1616,7 @@ class PaymentController {
             EmployeeId: employeeDetais.id,
             tdsAmount: employeeTds["TDS Deductions"],
             tdsMonth: employeeTds["TDS Month (YYYY-MM)"],
-            empCode: employeeTds["Email/Employee ID"],
+            empCode: employeeTds["Employee ID"],
           };
           const { error } = await validator.tdsDeductionsSchema.validate(
             tdsDeductions
@@ -1685,7 +1685,7 @@ class PaymentController {
         workbookEmployee.Sheets[sheetNameEmployee]
       );
 
-      if (!tdsDetails[0]["Email/Employee ID"]) {
+      if (!tdsDetails[0]["Employee ID"]) {
         return respHelper(res, {
           status: 400,
           msg: "Invalid File Format",
@@ -1694,10 +1694,10 @@ class PaymentController {
       var errorArray = [],
         successArray = [];
       for (const employeeExtraPayment of tdsDetails) {
-        if (employeeExtraPayment["Email/Employee ID"]) {
+        if (employeeExtraPayment["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
             where: {
-              empCode: employeeExtraPayment["Email/Employee ID"],
+              empCode: employeeExtraPayment["Employee ID"],
               isActive: 1,
             },
             raw: true,
@@ -1708,7 +1708,7 @@ class PaymentController {
             errorArray.push({
               index: errorArray.length,
               errorDetails: "Employee not exist.",
-              employeeID: employeeExtraPayment["Email/Employee ID"],
+              employeeID: employeeExtraPayment["Employee ID"],
             });
             continue;
           }
@@ -1730,7 +1730,7 @@ class PaymentController {
                 "(" +
                 employeeExtraPayment["Category"] +
                 ")",
-              employeeID: employeeExtraPayment["Email/Employee ID"],
+              employeeID: employeeExtraPayment["Employee ID"],
             });
             continue;
           }
@@ -1740,7 +1740,7 @@ class PaymentController {
             paymentAmount: employeeExtraPayment["Amount"],
             paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
             category: employeeExtraPayment["Category"],
-            empCode: employeeExtraPayment["Email/Employee ID"],
+            empCode: employeeExtraPayment["Employee ID"],
             category: employeeExtraPayment["Category"],
             paymentCategoryId: extraPaymentCategory.compensationCategoryId,
           };
@@ -1752,7 +1752,7 @@ class PaymentController {
             errorArray.push({
               index: errorArray.length + 1,
               error: error.details[0].message,
-              employeeID: employeeExtraPayment["Email/Employee ID"],
+              employeeID: employeeExtraPayment["Employee ID"],
             });
           } else {
             let existTDSDetails = await db.extraPayment.findOne({
@@ -1817,7 +1817,7 @@ class PaymentController {
       var errorArray = [],
         successArray = [];
 
-      if (!lopDetails[0]["Email/Employee ID"]) {
+      if (!lopDetails[0]["Employee ID"]) {
         return respHelper(res, {
           status: 400,
           msg: "Invalid File Format",
@@ -1825,9 +1825,9 @@ class PaymentController {
       }
 
       for (const employeeTds of lopDetails) {
-        if (employeeTds["Email/Employee ID"]) {
+        if (employeeTds["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
-            where: { empCode: employeeTds["Email/Employee ID"], isActive: 1 },
+            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
             raw: true,
             attributes: ["empCode", "id"],
           });
@@ -1840,7 +1840,7 @@ class PaymentController {
             EmployeeId: employeeDetais.id,
             lopDays: employeeTds["LOP DAYS"],
             lopMonth: employeeTds["LOP Month (YYYY-MM)"],
-            empCode: employeeTds["Email/Employee ID"],
+            empCode: employeeTds["Employee ID"],
           };
           const { error } = await validator.lopValidateSchama.validate(
             lopDeductions
@@ -1916,7 +1916,7 @@ class PaymentController {
         workbookEmployee.Sheets[sheetNameEmployee]
       );
 
-      if (!extraDeductonsDetails[0]["Email/Employee ID"]) {
+      if (!extraDeductonsDetails[0]["Employee ID"]) {
         return respHelper(res, {
           status: 400,
           msg: "Invalid File Format",
@@ -1925,7 +1925,7 @@ class PaymentController {
 
       for (const employeeExtraDeduction of extraDeductonsDetails) {
 
-        if(employeeExtraDeduction["Email/Employee ID"])
+        if(employeeExtraDeduction["Employee ID"])
         {
           const { error } = await validator.extraDeductionSchema.validate(
             employeeExtraDeduction
@@ -1933,7 +1933,7 @@ class PaymentController {
           if (error) {
             errorArray.push({
               index: errorArray.length + 1,
-              employeeID: employeeExtraDeduction["Email/Employee ID"],
+              employeeID: employeeExtraDeduction["Employee ID"],
               errorDetails: error.details[0].message,
             });
             continue;
@@ -1954,14 +1954,14 @@ class PaymentController {
                 "(" +
                 employeeExtraDeduction["Advance Category"] +
                 ")",
-              employeeID: employeeExtraDeduction["Email/Employee ID"],
+              employeeID: employeeExtraDeduction["Employee ID"],
             });
             continue;
           }
   
           let employeeDetais = await db.employeeMaster.findOne({
             where: {
-              empCode: employeeExtraDeduction["Email/Employee ID"],
+              empCode: employeeExtraDeduction["Employee ID"],
               isActive: 1,
             },
             raw: true,
@@ -1971,7 +1971,7 @@ class PaymentController {
           if (!employeeDetais) {
             errorArray.push({
               index: errorArray.length + 1,
-              employeeID: employeeExtraDeduction["Email/Employee ID"],
+              employeeID: employeeExtraDeduction["Employee ID"],
               errorDetails: "Employee Not Exists or Acive Anymore.",
             });
             continue;
@@ -1979,7 +1979,7 @@ class PaymentController {
   
           let extraDeductions = {
             EmployeeId: employeeDetais.id,
-            empCode: employeeExtraDeduction["Email/Employee ID"],
+            empCode: employeeExtraDeduction["Employee ID"],
             deductionCategory: employeeExtraDeduction["Advance Category"],
             deductionName: employeeExtraDeduction["Advance Name"],
             deductionAmount:

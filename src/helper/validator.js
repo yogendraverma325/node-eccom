@@ -1263,7 +1263,7 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
     );
   }
   const dynamicFields = {
-    "Email/Employee ID": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+    "Employee ID": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Name":Joi.string().allow(null,''),
     "Effective Date": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
     "Event":Joi.string().allow('',null),
@@ -1357,10 +1357,10 @@ const employeesForPayrollProcess = Joi.object({
 });
 
 const extraDeductionSchema = Joi.object({
-  "Email/Employee ID": Joi.alternatives()
+  "Employee ID": Joi.alternatives()
   .try(Joi.string(), Joi.number().integer())
   .required()
-  .label("Email/Employee ID"),
+  .label("Employee ID"),
   "Advance Category": Joi.string()
     .required()
     .label("Advance Category"),
