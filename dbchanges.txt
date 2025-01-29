@@ -1160,7 +1160,13 @@ ALTER TABLE `tara`.`paymonthlyelement`
 ADD COLUMN `totalWorkingDays` INT GENERATED ALWAYS AS (0) VIRTUAL AFTER `extraPaymentCategories`,
 ADD COLUMN `actualWorkingDays` INT NULL DEFAULT 0 AFTER `totalWorkingDays`;
 
+29-01-2025
 
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '1');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '4');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '7');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '11');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '21');
 
 
 
