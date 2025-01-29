@@ -138,7 +138,7 @@ class PaymentController {
     try {
       const user = req.query.user;
       const financialYearId = req.query.financialYearId || "";
-      const financialYearName = req.query.financialYearName || "";
+      const financialYearName = req.query.financialYear || "";
       const type = parseInt(req.query.type);
 
       // const paySlip = await db.paySlips.findAll({
@@ -280,7 +280,7 @@ class PaymentController {
     try {
       const user = req.query.user;
       const financialYearId = req.query.financialYearId || "";
-      const financialYearName = req.query.financialYearName || "";
+      const financialYearName = req.query.financialYear || "";
 
       const payPackage = await db.payPackage.findAll({
         where: {
