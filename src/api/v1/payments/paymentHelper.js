@@ -169,7 +169,10 @@ const salaryPaySlip = async function (paySlipAutoId) {
       where: {
         paySlipAutoId: paySlipAutoId,
       },
-      order: [["createdAt", "desc"]],
+      // order: [["createdAt", "desc"]],
+      order: [
+        [db.paySlipComponent, 'salaryComponentSequenceNo', 'ASC']
+      ],
       attributes: { exclude: ["createdAt", "createdBy"] },
       include: [
         {
@@ -237,6 +240,9 @@ const salaryPaySlip = async function (paySlipAutoId) {
         },
         {
           model: db.paySlipComponent,
+          order: [
+            [Sequelize.col('salaryComponentSequenceNo'), 'ASC']  // Sorting here as well
+          ],    
           attributes: {
             exclude: [
               "createdAt",
@@ -249,7 +255,7 @@ const salaryPaySlip = async function (paySlipAutoId) {
         },
       ],
     });
-
+    // console.log(paySlip)
     return paySlip;
     // return respHelper(res, {
     //   status: 200,
