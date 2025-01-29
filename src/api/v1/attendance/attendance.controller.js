@@ -2544,7 +2544,7 @@ class AttendanceController {
 					if (
 						markHalfDay != null &&
 						((singleEmp.weekOffMaster &&
-							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
+							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) &&
 							(singleEmp.attendanceroster &&
 								singleEmp.attendanceroster.weekOffMaster &&
 								singleEmp.attendanceroster.weekOffMaster
@@ -2647,9 +2647,9 @@ class AttendanceController {
 							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
-						weekOffId: singleEmp.weekOffMaster
-							? singleEmp.weekOffMaster.weekOffId
-							: 0,
+						// weekOffId: singleEmp.weekOffMaster
+						// 	? singleEmp.weekOffMaster.weekOffId
+						// 	: 0,
 					},
 					{
 						where: {
@@ -2969,7 +2969,7 @@ class AttendanceController {
 					if (
 						markHalfDay != null &&
 						((singleEmp.weekOffMaster &&
-							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
+							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) &&
 							(singleEmp.attendanceroster &&
 								singleEmp.attendanceroster.weekOffMaster &&
 								singleEmp.attendanceroster.weekOffMaster
@@ -3069,9 +3069,6 @@ class AttendanceController {
 							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
-						weekOffId: singleEmp.weekOffMaster
-							? singleEmp.weekOffMaster.weekOffId
-							: 0,
 					},
 					{
 						where: {
@@ -3166,7 +3163,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1,
+					isActive: 1
 				},
 			});
 			let nightwala = 0;
@@ -3531,7 +3528,7 @@ class AttendanceController {
 							if (
 						markHalfDay != null &&
 						((singleEmp.weekOffMaster &&
-							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
+							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) &&
 							(singleEmp.attendanceroster &&
 								singleEmp.attendanceroster.weekOffMaster &&
 								singleEmp.attendanceroster.weekOffMaster
@@ -3981,9 +3978,9 @@ class AttendanceController {
 						attendanceShiftId: singleEmp.shiftId,
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
-						weekOffId: singleEmp.weekOffMaster
-							? singleEmp.weekOffMaster.weekOffId
-							: 0,
+						// weekOffId: singleEmp.weekOffMaster
+						// 	? singleEmp.weekOffMaster.weekOffId
+						// 	: 0,
 						holidayCompanyLocationConfigurationID: singleEmp.companyLocationId,
 					});
 				}

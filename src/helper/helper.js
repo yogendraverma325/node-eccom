@@ -2010,7 +2010,17 @@ const creditCompoff = async (inputObject) => {
 
 						// const records = Array(50).fill(null); // Create an array with 50 null placeholders
 						// for (const [index] of records.entries()) {
-						await db.comp_off_credit_history.create(comp_off_data);
+						if (comp_off_data.balance === 1) {
+							let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
+							let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
+
+							// Insert both objects into the database
+							await db.comp_off_credit_history.create(comp_off_data_1);
+							await db.comp_off_credit_history.create(comp_off_data_2);
+						}else{
+                     await db.comp_off_credit_history.create(comp_off_data);
+						}
+						
 						// }
 					}
 				}
