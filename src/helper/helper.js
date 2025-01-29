@@ -84,6 +84,7 @@ const checkActiveUser = async (data) => {
 				"confirmationDate",
 				"confirmationGenerated",
 				"dateOfJoining",
+				"noticePeriodStatus"
 			],
 		},
 	});
@@ -1781,6 +1782,8 @@ const creditCompoff = async (inputObject) => {
 			alloweWorkingHours.minutes() +
 			alloweWorkingHours.seconds() / 60;
 
+			console.log("totaltimeWorkDuration",totaltimeWorkDuration)
+			console.log("totalalloweWorkingHours",totalalloweWorkingHours)
 		if (totaltimeWorkDuration > totalalloweWorkingHours) {
 			let comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
 
@@ -1797,7 +1800,7 @@ const creditCompoff = async (inputObject) => {
 			}
 
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
-
+console.log("compOffPolicyData",compOffPolicyData)
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -1835,6 +1838,7 @@ const creditCompoff = async (inputObject) => {
 						isActive: 1,
 					},
 				});
+				console.log("leaveData",leaveData)
 				let compoffCredit = null;
 				let approvalRequired = null;
 				let approvalIds = [];

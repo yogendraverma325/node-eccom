@@ -536,6 +536,7 @@ class LeaveController {
 				EMP_DATA,
 			);
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
+			const onNoticePeriod = req.userData["employeejobdetail.confirmationDate"];
 			if (onProbation == null) {
 				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
@@ -559,7 +560,31 @@ class LeaveController {
 						});
 					}
 				}
-			}
+			} 
+			if (onNoticePeriod == null) {
+				if (leaveMasterData.maximum_leave_allowed_in_notice_period != 0) {
+					let probationLeaveCount = await helper.leaveCountForUserForMonth(
+						req.body.employeeId,
+						req.userData["employeejobdetail.dateOfJoining"],
+						req.body.leaveAutoId,
+						"YES",
+						toDateReq,
+					);
+					if (
+						probationLeaveCount >
+						leaveMasterData.maximum_leave_allowed_in_notice_period
+					) {
+						return respHelper(res, {
+							status: 404,
+							data: {},
+							msg: message.LEAVE.ON_NOTICE_LEAVE_COUNT.replace(
+								"#",
+								leaveMasterData.maximum_leave_allowed_in_notice_period,
+							),
+						});
+					}
+				}
+			} 
 			if (!leaveMasterData) {
 				return respHelper(res, {
 					status: 404,
@@ -705,6 +730,20 @@ class LeaveController {
 					msg: message.LEAVE.MAX_CONSECUTIVE.replace(
 						"#",
 						leaveMasterData?.max_consecutive_count,
+					),
+				});
+			}
+
+			if (
+				leaveMasterData?.minConsecutiveDay != 0 &&
+				workingdays < leaveMasterData?.minConsecutiveDay
+			) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.MIN_CONSECUTIVE.replace(
+						"#",
+						leaveMasterData?.minConsecutiveDay,
 					),
 				});
 			}

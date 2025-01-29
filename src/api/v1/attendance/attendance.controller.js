@@ -3386,6 +3386,7 @@ class AttendanceController {
 					isActive: 1,
 				},
 			});
+			console.log("existEmployees",existEmployees.length)
 
 			await Promise.all(
 				existEmployees.map(async (singleEmp) => {
@@ -3393,7 +3394,7 @@ class AttendanceController {
 
 					if (
 						singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
-						(singleEmp.attendanceroster.weekOffMaster &&
+						(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
 							singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
 								.length > 0)
 					) {
@@ -3519,7 +3520,17 @@ class AttendanceController {
 								markHalfDayType = 2;
 							}
 
-							if (markHalfDay != null) {
+							if (
+						markHalfDay != null &&
+						((singleEmp.weekOffMaster &&
+							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
+							(singleEmp.attendanceroster &&
+								singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length == 0 &&
+								singleEmp.holidaycompanylocationconfigurations &&
+								singleEmp.holidaycompanylocationconfigurations.length == 0))
+					)  {
 								let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
 								if (EMP_DATA) {
 									await helper.empMarkLeaveOfGivenDate(
@@ -3567,10 +3578,13 @@ class AttendanceController {
 								}
 							}
 
+							
 							if (
-								singleEmp.attendancemaster &&
-								singleEmp.attendancemaster.attendanceWorkingTime
+								singleEmp.attendancemaster.attendancePunchInTime &&
+							singleEmp.attendancemaster.attendancePunchOutTime
 							) {
+								console.log("employeeData here 1")
+
 								let compofftype = "Week Day";
 								let attendance_auto_id =
 									singleEmp.attendancemaster.attendanceAutoId;
@@ -3580,14 +3594,16 @@ class AttendanceController {
 									singleEmp.attendancemaster.attendanceShiftEndDate;
 								let shiftStartTime = singleEmp.shiftsmaster.shiftStartTime;
 								let shiftEndTime = singleEmp.shiftsmaster.shiftEndTime;
+							
 
 								let allowedTime = await helper.timeDifference(
 									`${attendanceStartDate} ${shiftStartTime}`,
 									`${attendanceEndDate} ${shiftEndTime}`,
 								);
+								
 								let working_hours =
 									singleEmp.attendancemaster.attendanceWorkingTime;
-
+									
 								const employeeData = {
 									compofftype: compofftype,
 									attendance_auto_id: attendance_auto_id,
@@ -3597,11 +3613,17 @@ class AttendanceController {
 									shiftStartTime: shiftStartTime,
 									shiftEndTime: shiftEndTime,
 									allowedTime: allowedTime,
-									empId: empId,
+									empId: singleEmp.id,
 									working_hours: working_hours,
 									holiday: singleEmp.holidaycompanylocationconfigurations,
-									weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+									weekoff: 
+									(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length == 0) ? singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters:
+									singleEmp.weekOffMaster?.weekOffDayMappingMasters,
 								};
+							
 								await helper.creditCompoff(employeeData);
 							}
 						} else {
