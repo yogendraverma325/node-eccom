@@ -82,7 +82,7 @@ class PaymentController {
               where: {
                 salaryComponentEarningType: { [Op.ne]: ["Deduction"] },
               },
-              order: ["includeInPackage", "DESC"],
+              order: ["salaryComponentSequenceNo", "ASC"],
               as: "salarycomponent",
               include: [
                 {
@@ -105,9 +105,20 @@ class PaymentController {
             },
           ],
         });
+
+    const filteredData = payElementsData.filter(item => 
+          item.salarycomponent.salaryComponentSequenceNo !== null
+      );
+      
+      // Sort the filtered array by `salaryComponentSequenceNo` in ascending order
+      const sortedData = filteredData.sort((a, b) => 
+          a.salarycomponent.salaryComponentSequenceNo - b.salarycomponent.salaryComponentSequenceNo
+      );
+      
+      console.log(sortedData);
         return respHelper(res, {
           status: 200,
-          data: payElementsData,
+          data: sortedData,
         });
       } else {
         return respHelper(res, {
@@ -129,60 +140,127 @@ class PaymentController {
       const financialYearId = req.query.financialYearId;
       const type = parseInt(req.query.type);
 
+      // const paySlip = await db.paySlips.findAll({
+      //   where: {
+      //     EmployeeId: user ? user : req.userId,
+      //     financialYearId: financialYearId,
+      //     ...(type === 1 && { paySlipStatus: 1 }),
+      //   },
+      //  order: [["createdAt", "desc"]],
+      //   attributes: { exclude: ["createdAt", "createdBy"] },
+      //   include: [
+      //     {
+      //       model: db.employeeMaster,
+      //       attributes: [
+      //         "name",
+      //         "empCode",
+      //         "email",
+      //         "designation_id",
+      //         "departmentId",
+      //         "panNo",
+      //         "esicNo",
+      //         "uanNo",
+      //         "pfNo",
+      //         "employeeType",
+      //       ],
+      //       include: [
+      //         {
+      //           model: db.departmentMaster,
+      //           required: true,
+      //           attributes: ["departmentCode", "departmentName"],
+      //         },
+      //         {
+      //           model: db.designationMaster,
+      //           required: false,
+      //           attributes: ["name"],
+      //         },
+      //         {
+      //           model: db.jobDetails,
+      //           attributes: ["dateOfJoining"],
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       model: db.paySlipComponent,
+      //       order: [
+      //         [Sequelize.fn('CAST', Sequelize.col('salaryComponentSequenceNo'), 'INTEGER'), 'ASC'],
+      //       ],
+      //       attributes: {
+      //         exclude: [
+      //           "createdAt",
+      //           "createdBy",
+      //           "updatedBy",
+      //           "updatedAt",
+      //           "isActive",
+      //         ],
+      //       },
+     
+      //     },
+      //   ],
+      // });
+
+
       const paySlip = await db.paySlips.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
           financialYearId: financialYearId,
           ...(type === 1 && { paySlipStatus: 1 }),
         },
-        order: [["createdAt", "desc"]],
-        attributes: { exclude: ["createdAt", "createdBy"] },
+        order: [
+          [db.paySlipComponent, 'salaryComponentSequenceNo', 'ASC']
+        ],
+        attributes: { exclude: ['createdAt', 'createdBy'] },
         include: [
           {
             model: db.employeeMaster,
             attributes: [
-              "name",
-              "empCode",
-              "email",
-              "designation_id",
-              "departmentId",
-              "panNo",
-              "esicNo",
-              "uanNo",
-              "pfNo",
-              "employeeType",
+              'name',
+              'empCode',
+              'email',
+              'designation_id',
+              'departmentId',
+              'panNo',
+              'esicNo',
+              'uanNo',
+              'pfNo',
+              'employeeType',
             ],
             include: [
               {
                 model: db.departmentMaster,
                 required: true,
-                attributes: ["departmentCode", "departmentName"],
+                attributes: ['departmentCode', 'departmentName'],
               },
               {
                 model: db.designationMaster,
                 required: false,
-                attributes: ["name"],
+                attributes: ['name'],
               },
               {
                 model: db.jobDetails,
-                attributes: ["dateOfJoining"],
+                attributes: ['dateOfJoining'],
               },
             ],
           },
           {
             model: db.paySlipComponent,
+            order: [
+              [Sequelize.col('salaryComponentSequenceNo'), 'ASC']  // Sorting here as well
+            ],
             attributes: {
               exclude: [
-                "createdAt",
-                "createdBy",
-                "updatedBy",
-                "updatedAt",
-                "isActive",
+                'createdAt',
+                'createdBy',
+                'updatedBy',
+                'updatedAt',
+                'isActive',
               ],
             },
           },
         ],
       });
+      
+
 
       return respHelper(res, {
         status: 200,
@@ -298,9 +376,17 @@ class PaymentController {
         },
       });
 
+      const filteredData = payElements.filter(item => 
+        item.salarycomponent.salaryComponentSequenceNo !== null
+    );
+    
+    // Sort the filtered array by `salaryComponentSequenceNo` in ascending order
+    const sortedData = filteredData.sort((a, b) => 
+        a.salarycomponent.salaryComponentSequenceNo - b.salarycomponent.salaryComponentSequenceNo
+    );
       return respHelper(res, {
         status: 200,
-        data: payElements,
+        data: sortedData,
       });
     } catch (error) {
       console.log(error);
@@ -3485,7 +3571,7 @@ class PaymentController {
       let { companyId ,year,month} = req.query;
       //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
       //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
-      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) <= ${year} AND MONTH(ejd.dateOfJoining) <= ${month});`;
+      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) < ${year} OR (YEAR(ejd.dateOfJoining) = ${year} AND MONTH(ejd.dateOfJoining) <= ${month}));`;
     
       console.log(employeeForProcessingQuery)
     
@@ -5358,6 +5444,7 @@ async function processSalary(data) {
       const employeeDetailsComponentWise = await db.sequelize.query(
         queryForEmployeePayDetails
       );
+      console.log("queryForEmployeePayDetails   ::: ",queryForEmployeePayDetails);
       const queryForExtraDeductions = await paymentHelper.query(
         14,
         employee,
@@ -5520,15 +5607,19 @@ async function processSalary(data) {
 
         continue;
       }
-      const queryForAffetElementCounts = await paymentHelper.query(
-        13,
-        employee,
-        null
-      );
-      const affectComponentCounts = await db.sequelize.query(
-        queryForAffetElementCounts
-      );
+      // const queryForAffetElementCounts = await paymentHelper.query(
+      //   13,
+      //   employee,
+      //   null
+      // );
+      // const affectComponentCounts = await db.sequelize.query(
+      //   queryForAffetElementCounts
+      // );
       for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
+        console.log("**********empCopntWiseDetl************");
+        console.log(empCopntWiseDetl);
+        console.log("**********empCopntWiseDetl************");
+
         const queryForComponentConfiguration = await paymentHelper.query(
           12,
           empCopntWiseDetl.salaryComponentAutoId,
@@ -5611,7 +5702,8 @@ async function processSalary(data) {
         empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
           pfElementOnMorethan15000AndRestrictionNo;
         empCopntWiseDetl["totalWorkingDays"] = totalWorkingDays;
-        empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
+        empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;   
+        empCopntWiseDetl["salaryComponentSequenceNo"] = empCopntWiseDetl['salaryComponentSequenceNo'];        
         //////////////////////////////PF-Applicablity Keys//////////////////////////////////
         let existDetails = await db.payMonthlyElements.findOne({
           where: {
@@ -5703,6 +5795,7 @@ async function generatePaySlip(data) {
         currentProcessStatus[0][0].payMonth,
         employeeIds
       );
+      console.log("queryForPayMonthlyElementsForSalarySlip  :: ",queryForPayMonthlyElementsForSalarySlip);
       let payElements = await db.sequelize.query(
         queryForPayMonthlyElementsForSalarySlip
       );
@@ -5820,6 +5913,7 @@ async function generatePaySlip(data) {
               paySlipComponentType: "Deduction",
               createdBy: req.userData.id,
               createdAt: new Date(),
+              salaryComponentSequenceNo:999
             });
           }
 
@@ -5833,6 +5927,7 @@ async function generatePaySlip(data) {
               paySlipComponentType: "Deduction",
               createdBy: req.userData.id,
               createdAt: new Date(),
+              salaryComponentSequenceNo:999
             });
           }
 
@@ -5846,6 +5941,7 @@ async function generatePaySlip(data) {
               paySlipComponentType: "Deduction",
               createdBy: req.userData.id,
               createdAt: new Date(),
+              salaryComponentSequenceNo:999
             });
           }
 
@@ -5872,6 +5968,7 @@ async function generatePaySlip(data) {
               paySlipComponentType: "Deduction",
               createdBy: req.userData.id,
               createdAt: new Date(),
+              salaryComponentSequenceNo:999
             });
           }
 
@@ -5885,6 +5982,7 @@ async function generatePaySlip(data) {
               paySlipComponentType: "Deduction",
               createdBy: req.userData.id,
               createdAt: new Date(),
+              salaryComponentSequenceNo:999
             });
           }
           let getExtraDeductions =
@@ -5934,6 +6032,7 @@ async function generatePaySlip(data) {
             createdBy: req.userData.id,
             createdAt: new Date(),
             fixedPayElementAmount: payMonthlyElement.payElementAmount,
+            salaryComponentSequenceNo:payMonthlyElement.salaryComponentSequenceNo
           });
         }
         await db.payProcessDetails.update(
