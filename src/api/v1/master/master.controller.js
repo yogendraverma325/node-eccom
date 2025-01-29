@@ -18,7 +18,7 @@ class MasterController {
 			let departmentFIlter = {};
 			let designationFIlter = {};
 			const usersData = req.userData;
-			const status = parseInt(req.query.status)
+			const status = parseInt(req.query.status);
 
 			const limit = req.query.limit * 1 || 10;
 			const pageNo = req.query.page * 1 || 1;
@@ -124,7 +124,7 @@ class MasterController {
 					break;
 			}
 
-			let searchCondition = {}
+			let searchCondition = {};
 
 			if (searchId) {
 				searchCondition = { id: searchId };
@@ -158,9 +158,11 @@ class MasterController {
 				offset,
 				where: Object.assign(
 					searchCondition,
-					!Number.isNaN(status) ? {
-						isActive: status,
-					} : {}
+					!Number.isNaN(status)
+						? {
+								isActive: status,
+							}
+						: {},
 				),
 				attributes: [
 					"id",
@@ -272,13 +274,13 @@ class MasterController {
 				where: Object.assign(
 					manager
 						? {
-							id: manager,
-							isActive: 1,
-						}
+								id: manager,
+								isActive: 1,
+							}
 						: {
-							manager: null,
-							isActive: 1,
-						},
+								manager: null,
+								isActive: 1,
+							},
 				),
 				attributes: { exclude: ["password", "role_id", "designation_id"] },
 				include: [
@@ -376,15 +378,89 @@ class MasterController {
 		}
 	}
 
+	// async bu(req, res) {
+	// 	try {
+	// 		const companyId = req.query.companyId;
+	// 		let query = {
+	// 			...(companyId && { companyId: companyId }), // Apply companyId filter only if it's provided
+
+	// 			...(req.userData.role_id == 4 && { buHrId: req.userId }),
+	// 		};
+	// 		let subQuery = { isActive: 1 };
+	// 		const buData = await db.buMapping.findAll({
+	// 			where: query,
+	// 			include: [
+	// 				{
+	// 					model: db.buMaster,
+	// 					where: subQuery,
+	// 					attributes: ["buId", "buName", "buCode"],
+	// 				},
+	// 			],
+	// 		});
+
+	// 		return respHelper(res, {
+	// 			status: 200,
+	// 			data: buData,
+	// 		});
+	// 	} catch (error) {
+	// 		logger.error("Error while getting bu list", error);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 		});
+	// 	}
+	// }
 	async bu(req, res) {
 		try {
+			const { search, filterType, filterValue } = req.query;
+			let buSearch = "";
+
+			if (filterType == "buSearch") {
+				buSearch = filterValue;
+			}
+			const isActive = req.query.isActive || 1;
+			let buFIlter = {};
+			const usersData = req.userData;
+
+			const activeQuery = { isActive: isActive };
+
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+			}
 			const companyId = req.query.companyId;
 			let query = {
-				...(companyId && { companyId: companyId }), // Apply companyId filter only if it's provided
-
-				...(req.userData.role_id == 4 && { buHrId: req.userId }),
+				companyId: companyId,
+				//...(req.userData.role_id == 4 && { buHrId: req.userId }),
 			};
-			let subQuery = { isActive: 1 };
+			let subQuery = {
+				isActive: 1,
+				...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
+				...buFIlter,
+			};
 			const buData = await db.buMapping.findAll({
 				where: query,
 				include: [
@@ -401,7 +477,6 @@ class MasterController {
 				data: buData,
 			});
 		} catch (error) {
-			logger.error("Error while getting bu list", error);
 			return respHelper(res, {
 				status: 500,
 			});
@@ -596,23 +671,23 @@ class MasterController {
 				where: Object.assign(
 					stateCode
 						? {
-							stateCode,
-						}
+								stateCode,
+							}
 						: {},
 					stateName
 						? {
-							stateName,
-						}
+								stateName,
+							}
 						: {},
 					countryId
 						? {
-							countryId,
-						}
+								countryId,
+							}
 						: {},
 					regionId
 						? {
-							regionId,
-						}
+								regionId,
+							}
 						: {},
 				),
 			});
@@ -642,8 +717,8 @@ class MasterController {
 				where: Object.assign(
 					countryId
 						? {
-							countryId,
-						}
+								countryId,
+							}
 						: {},
 				),
 			});
@@ -673,8 +748,8 @@ class MasterController {
 				where: Object.assign(
 					stateId
 						? {
-							stateId,
-						}
+								stateId,
+							}
 						: {},
 				),
 			});
@@ -821,19 +896,74 @@ class MasterController {
 		}
 	}
 
+	// async department(req, res) {
+	// 	try {
+	// 		const { sbuMappingId } = req.query;
+	// 		let query = { ...(sbuMappingId && { sbuMappingId: sbuMappingId }) };
+	// 		let subQuery = { isActive: 1 };
+
+	// 		const departmentData = await db.departmentMapping.findAll({
+	// 			where: query,
+	// 			include: [
+	// 				{
+	// 					model: db.departmentMaster,
+	// 					where: subQuery,
+	// 					attributes: ["departmentId", "departmentName", "departmentCode"],
+	// 				},
+	// 			],
+	// 		});
+
+	// 		return respHelper(res, {
+	// 			status: 200,
+	// 			data: departmentData,
+	// 		});
+	// 	} catch (error) {
+	// 		logger.error("Error while getting department list", error);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 		});
+	// 	}
+	// }
 	async department(req, res) {
 		try {
-			const { sbuMappingId } = req.query;
-			let query = { ...(sbuMappingId && { sbuMappingId: sbuMappingId }) };
-			let subQuery = { isActive: 1 };
+			let getDepartmentIds = [];
+			if (req.userData.role_id == 4) {
+				const getBuMappingId = await db.buMapping.findOne({
+					attributes: ["buMappingId"],
+					where: { buId: req.userData.buId, companyId: req.userData.companyId },
+				});
+				if (getBuMappingId) {
+					const getSbuMappingId = await db.sbuMapping.findAll({
+						attributes: ["sbuMappingId"],
+						where: { buMappingId: getBuMappingId.dataValues.buMappingId },
+					});
+					if (getSbuMappingId.length > 0) {
+						const sbuMappingIds = getSbuMappingId.map(
+							(e) => e.dataValues.sbuMappingId,
+						);
+						getDepartmentIds = await db.departmentMapping.findAll({
+							where: { sbuMappingId: { [Op.in]: sbuMappingIds } },
+						});
+					}
+				}
+			}
+
+			const departmentIds = getDepartmentIds.map(
+				(e) => e.dataValues.departmentId,
+			);
 
 			const departmentData = await db.departmentMapping.findAll({
-				where: query,
 				include: [
 					{
 						model: db.departmentMaster,
-						where: subQuery,
 						attributes: ["departmentId", "departmentName", "departmentCode"],
+						where: {
+							//departmentId:{[Op.in]:departmentIds},
+							...(departmentIds.length > 0 &&
+								req.userData.role_id == 4 && {
+									departmentId: { [Op.in]: departmentIds },
+								}),
+						},
 					},
 				],
 			});
@@ -843,7 +973,7 @@ class MasterController {
 				data: departmentData,
 			});
 		} catch (error) {
-			logger.error("Error while getting department list", error);
+			console.log("error>>>", error);
 			return respHelper(res, {
 				status: 500,
 			});
@@ -1016,27 +1146,27 @@ class MasterController {
 							: [["webPosition", "asc"]],
 						attributes: mobile
 							? [
-								"cardId",
-								"cardName",
-								"mobileUrl",
-								"isCardWorking",
-								"mobileLightFontColor",
-								"mobileIcon",
-								"mobileLightBackgroundColor",
-								"mobilePosition",
-								"mobileDarkFontColor",
-								"mobileDarkBackgroundColor",
-							]
+									"cardId",
+									"cardName",
+									"mobileUrl",
+									"isCardWorking",
+									"mobileLightFontColor",
+									"mobileIcon",
+									"mobileLightBackgroundColor",
+									"mobilePosition",
+									"mobileDarkFontColor",
+									"mobileDarkBackgroundColor",
+								]
 							: [
-								"cardId",
-								"cardName",
-								"isCardWorking",
-								"webUrl",
-								"webFontColor",
-								"webBackgroundColor",
-								"webIcon",
-								"webPosition",
-							],
+									"cardId",
+									"cardName",
+									"isCardWorking",
+									"webUrl",
+									"webFontColor",
+									"webBackgroundColor",
+									"webIcon",
+									"webPosition",
+								],
 					});
 
 					const dashboardJson = JSON.stringify(dashboardData);
@@ -1339,9 +1469,9 @@ class MasterController {
 					: query,
 				attributes: queryFormat
 					? [
-						["probationId", "value"],
-						["probationName", "label"],
-					]
+							["probationId", "value"],
+							["probationName", "label"],
+						]
 					: ["probationId", "probationName"],
 			});
 
@@ -1379,7 +1509,7 @@ class MasterController {
 
 	async reportModule(req, res) {
 		try {
-			const { } = req.query;
+			const {} = req.query;
 			let query = { isActive: 1 };
 			const reportModule = await db.reportModuleMaster.findAll({
 				where: query,
@@ -1407,7 +1537,7 @@ class MasterController {
 
 	async shiftMaster(req, res) {
 		try {
-			const { } = req.query;
+			const {} = req.query;
 			let query = { isActive: 1 };
 			const reportModule = await db.shiftMaster.findAll({});
 
@@ -1904,10 +2034,10 @@ class MasterController {
 				const maritalStatus = employee.employeebiographicaldetail?.dataValues
 					?.maritalStatus
 					? Object.keys(maritalStatusOptions).find(
-						(key) =>
-							maritalStatusOptions[key] ===
-							employee.employeebiographicaldetail.dataValues.maritalStatus,
-					) || ""
+							(key) =>
+								maritalStatusOptions[key] ===
+								employee.employeebiographicaldetail.dataValues.maritalStatus,
+						) || ""
 					: "";
 				return {
 					employee_id: employee.empCode || "",
@@ -1918,17 +2048,17 @@ class MasterController {
 						employee.designationmaster?.dataValues?.designation_with_code || "",
 					current_address: employee.employeeaddress?.dataValues
 						? [
-							employee.employeeaddress?.dataValues?.currentHouse,
-							employee.employeeaddress?.dataValues?.currentStreet,
-							employee.employeeaddress?.dataValues?.currentLandmark,
-							employee.employeeaddress?.dataValues?.currentcity?.cityName,
-							employee.employeeaddress?.dataValues?.currentstate?.stateName,
-							employee.employeeaddress?.dataValues?.currentcountry
-								?.countryName,
-							employee.employeeaddress?.dataValues?.currentpincode?.pincode,
-						]
-							.filter((item) => item && item !== null && item !== undefined)
-							.join(", ")
+								employee.employeeaddress?.dataValues?.currentHouse,
+								employee.employeeaddress?.dataValues?.currentStreet,
+								employee.employeeaddress?.dataValues?.currentLandmark,
+								employee.employeeaddress?.dataValues?.currentcity?.cityName,
+								employee.employeeaddress?.dataValues?.currentstate?.stateName,
+								employee.employeeaddress?.dataValues?.currentcountry
+									?.countryName,
+								employee.employeeaddress?.dataValues?.currentpincode?.pincode,
+							]
+								.filter((item) => item && item !== null && item !== undefined)
+								.join(", ")
 						: "",
 					current_city:
 						employee.employeeaddress?.dataValues?.currentcity?.cityName,
@@ -1983,17 +2113,17 @@ class MasterController {
 					full_name: employee.name || "",
 					permanent_address: employee.employeeaddress?.dataValues
 						? [
-							employee.employeeaddress?.dataValues?.permanentHouse,
-							employee.employeeaddress?.dataValues?.permanentStreet,
-							employee.employeeaddress?.dataValues?.permanentLandmark,
-							employee.employeeaddress?.dataValues?.permanentcity?.cityName,
-							employee.employeeaddress?.dataValues?.permanentstate?.stateName,
-							employee.employeeaddress?.dataValues?.permanentcountry
-								?.countryName,
-							employee.employeeaddress?.dataValues?.permanentpincode?.pincode,
-						]
-							.filter((item) => item && item !== null && item !== undefined)
-							.join(", ")
+								employee.employeeaddress?.dataValues?.permanentHouse,
+								employee.employeeaddress?.dataValues?.permanentStreet,
+								employee.employeeaddress?.dataValues?.permanentLandmark,
+								employee.employeeaddress?.dataValues?.permanentcity?.cityName,
+								employee.employeeaddress?.dataValues?.permanentstate?.stateName,
+								employee.employeeaddress?.dataValues?.permanentcountry
+									?.countryName,
+								employee.employeeaddress?.dataValues?.permanentpincode?.pincode,
+							]
+								.filter((item) => item && item !== null && item !== undefined)
+								.join(", ")
 						: "",
 					date_of_joining:
 						formatDate(employee.employeejobdetail?.dataValues?.dateOfJoining) ||
@@ -2012,17 +2142,21 @@ class MasterController {
 							?.countryName || "",
 					company_email_id: employee.email || "",
 					personal_email_id: employee.personalEmail || "",
-					base_office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-						?.cityName || ""
-						}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues
+					base_office_location: `${
+						employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+							?.cityName || ""
+					}-${
+						employee.companylocationmaster?.dataValues?.statemaster?.dataValues
 							?.stateName || ""
-						}`,
+					}`,
 					location_type: "Head Office",
-					office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-						?.cityName || ""
-						}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues
+					office_location: `${
+						employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+							?.cityName || ""
+					}-${
+						employee.companylocationmaster?.dataValues?.statemaster?.dataValues
 							?.stateName || ""
-						}`,
+					}`,
 					education_details: mappedEducationDetails || [],
 					pt_state: "", // Custom field
 					past_work_experience: "", //
@@ -2044,28 +2178,30 @@ class MasterController {
 							?.emergency_contact_country_code || "",
 					emergency_address: employee.employeeaddress?.dataValues
 						? [
-							employee.employeeaddress?.dataValues?.emergencyHouse,
-							employee.employeeaddress?.dataValues?.emergencyStreet,
-							employee.employeeaddress?.dataValues?.emergencyLandmark,
-							employee.employeeaddress?.dataValues?.emergencycity?.dataValues
-								?.cityName,
-							employee.employeeaddress?.dataValues?.emergencystate?.dataValues
-								?.stateName,
-							employee.employeeaddress?.dataValues?.emergencycountry
-								?.dataValues?.countryName,
-							employee.employeeaddress?.dataValues?.emergencypincode
-								?.dataValues?.pincode,
-						]
-							.filter((item) => item && item !== null && item !== undefined)
-							.join(", ")
+								employee.employeeaddress?.dataValues?.emergencyHouse,
+								employee.employeeaddress?.dataValues?.emergencyStreet,
+								employee.employeeaddress?.dataValues?.emergencyLandmark,
+								employee.employeeaddress?.dataValues?.emergencycity?.dataValues
+									?.cityName,
+								employee.employeeaddress?.dataValues?.emergencystate?.dataValues
+									?.stateName,
+								employee.employeeaddress?.dataValues?.emergencycountry
+									?.dataValues?.countryName,
+								employee.employeeaddress?.dataValues?.emergencypincode
+									?.dataValues?.pincode,
+							]
+								.filter((item) => item && item !== null && item !== undefined)
+								.join(", ")
 						: "",
 					//cost_center: `${employee.costcentermaster?.dataValues?.costCenterName || ""} (${employee.costcentermaster?.dataValues?.costCenterCode || ""})`,
 					cost_center:
 						employee.costcentermaster?.dataValues?.costCenterName ||
-							employee.costcentermaster?.dataValues?.costCenterCode
-							? `${employee.costcentermaster?.dataValues?.costCenterName || ""
-							} (${employee.costcentermaster?.dataValues?.costCenterCode || ""
-							})`
+						employee.costcentermaster?.dataValues?.costCenterCode
+							? `${
+									employee.costcentermaster?.dataValues?.costCenterName || ""
+								} (${
+									employee.costcentermaster?.dataValues?.costCenterCode || ""
+								})`
 							: "",
 					salary_stopped: "",
 					vpf_amount: "",

@@ -2446,6 +2446,499 @@ class LeaveController {
 			});
 		}
 	}
+
+	async leaveAssignEmployeeToAll(req, res) {
+		try {
+			const employees = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "employeeType", "companyId"],
+				where: {
+					isActive: 1,
+					//empCode : req.body.empCode
+					...(req.body.empCode && {
+						empCode: { [Op.in]: req.body.empCode.split(",") },
+					}),
+				},
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["companyName"],
+						required: true,
+						include: [
+							{
+								model: db.leaveCompanyMapping,
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"genderApplicable",
+									"defaultLeaveCount",
+									"maritalApplicable",
+								],
+							},
+						],
+					},
+					{
+						model: db.biographicalDetails,
+						attributes: ["biographicalId", "maritalStatus", "gender"],
+						required: true,
+					},
+				],
+			});
+
+			const leaveMaster = await db.leaveCompanyMapping.findAll({
+				attributes: ["leaveAutoId", "companyId", "defaultLeaveCount"],
+			});
+
+			const leaveMasterLookup = leaveMaster.reduce((acc, leave) => {
+				// Use a composite key combining leaveIdAutoId and companyId
+				const compositeKey = `${leave.leaveAutoId}-${leave.companyId}`;
+				acc[compositeKey] = leave.defaultLeaveCount;
+				return acc;
+			}, {});
+
+			for (const employee of employees) {
+				const { gender, maritalStatus } =
+					employee.dataValues.employeebiographicaldetail;
+				const leaveCompanyMappings =
+					employee.dataValues.companymaster?.leavecompanymappings || [];
+				const leaveAutoIds = leaveCompanyMappings.map(
+					(mapping) => mapping.leaveAutoId,
+				);
+				const genderNumber =
+					gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
+				const companyId = employee.dataValues.companyId;
+				const employeeId = employee.dataValues.id;
+
+				// if (employee.dataValues.employeeType != 3 && (gender === "Male" || gender === "Female") && (maritalStatus == 2 || maritalStatus == 3) ) {
+				if (employee.dataValues.employeeType != 3) {
+					if (
+						(genderNumber == 1 || genderNumber == 2) &&
+						(maritalStatus == 2 || maritalStatus == 3)
+					) {
+						console.log("Male || Female && single");
+
+						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
+							{
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"genderApplicable",
+									"defaultLeaveCount",
+									"maritalApplicable",
+								],
+								where: {
+									companyId: companyId,
+									genderApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" }, // Starts with "1,"
+											{ [Op.like]: "%,1,%" }, // Contains ",1,"
+											{ [Op.like]: "%,1" }, // Ends with ",1"
+											{ [Op.eq]: "1" }, // Exactly matches "1"
+											{ [Op.like]: "2,%" }, // Starts with "2,"
+											{ [Op.like]: "%,2,%" }, // Contains ",2,"
+											{ [Op.like]: "%,2" }, // Ends with ",2"
+											{ [Op.eq]: "2" }, // Exactly matches "2"
+										],
+									},
+									maritalApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "2,%" }, // Starts with "2,"
+											{ [Op.like]: "%,2,%" }, // Contains ",2,"
+											{ [Op.like]: "%,2" }, // Ends with ",2"
+											{ [Op.eq]: "2" }, // Exactly matches "2"
+											{ [Op.like]: "3,%" }, // Starts with "3,"
+											{ [Op.like]: "%,3,%" }, // Contains ",3,"
+											{ [Op.like]: "%,3" }, // Ends with ",3"
+											{ [Op.eq]: "3" }, // Exactly matches "3"
+											{ [Op.like]: "4,%" }, // Starts with "4,"
+											{ [Op.like]: "%,4,%" }, // Contains ",4,"
+											{ [Op.like]: "%,4" }, // Ends with ",4"
+											{ [Op.eq]: "4" }, // Exactly matches "4"
+											{ [Op.eq]: "5" }, // Exactly matches "5"
+										],
+									},
+									leaveAutoId: { [Op.notIn]: [3, 4] },
+								},
+
+								raw: true,
+							},
+						);
+
+						const existingMappedLeave = await db.leaveMapping.findAll({
+							attributes: ["leaveAutoId"],
+							where: {
+								isActive: 1,
+								EmployeeId: employeeId,
+							},
+						});
+
+						// Extract `leaveAutoId` values from both arrays
+						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+						const existingMappedLeaveIds = existingMappedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+
+						// Find common `leaveAutoId` values
+						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
+							(id) => !existingMappedLeaveIds.includes(id),
+						);
+
+						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+
+						// Update `isActive` to 0 for overlapping leaveAutoIds
+						await db.leaveMapping.update(
+							{ isActive: 0 },
+							{
+								where: {
+									EmployeeId: employee.dataValues.id,
+									leaveAutoId: [3, 4],
+									isActive: 1,
+								},
+							},
+						);
+
+						//         // Prepare new leave records for bulk insertion
+						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
+							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
+							return {
+								EmployeeId: employee.id,
+								leaveAutoId: leaveAutoId,
+								availableLeave: leaveMasterLookup[compositeKey] || 0,
+								accruedThisYear: leaveMasterLookup[compositeKey] || 0,
+								isActive: 1,
+							};
+						});
+
+						// Bulk insert new leave records
+						if (newLeaves.length > 0) {
+							await db.leaveMapping.bulkCreate(newLeaves);
+							console.log(
+								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							);
+						} else {
+							console.log(
+								`No new leaves to insert for Employee ID: ${employee.id}`,
+							);
+						}
+					}
+					if (genderNumber == 1 && maritalStatus == 1) {
+						console.log("Male && Married");
+						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
+							{
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"genderApplicable",
+									"defaultLeaveCount",
+									"maritalApplicable",
+								],
+								where: {
+									companyId: companyId,
+									genderApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" }, // Starts with "1,"
+											{ [Op.like]: "%,1,%" }, // Contains ",1,"
+											{ [Op.like]: "%,1" }, // Ends with ",1"
+											{ [Op.eq]: "1" }, // Exactly matches "1"
+										],
+									},
+									maritalApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" }, // Starts with "2,"
+											{ [Op.like]: "%,1,%" }, // Contains ",2,"
+											{ [Op.like]: "%,1" }, // Ends with ",2"
+											{ [Op.eq]: "1" }, // Exactly matches "2"
+											// { [Op.like]: "3,%" },    // Starts with "3,"
+											// { [Op.like]: "%,3,%" },  // Contains ",3,"
+											// { [Op.like]: "%,3" },    // Ends with ",3"
+											// { [Op.eq]: "3" },        // Exactly matches "3"
+											// { [Op.like]: "4,%" },    // Starts with "4,"
+											// { [Op.like]: "%,4,%" },  // Contains ",4,"
+											// { [Op.like]: "%,4" },    // Ends with ",4"
+											// { [Op.eq]: "4" },        // Exactly matches "4"
+											// { [Op.eq]: "5" },        // Exactly matches "5"
+										],
+									},
+									leaveAutoId: { [Op.notIn]: [5] },
+								},
+								raw: true,
+							},
+						);
+
+						const existingMappedLeave = await db.leaveMapping.findAll({
+							attributes: ["leaveAutoId"],
+							where: {
+								isActive: 1,
+								EmployeeId: employeeId,
+							},
+						});
+
+						// Extract `leaveAutoId` values from both arrays
+						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+						const existingMappedLeaveIds = existingMappedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+
+						// Find common `leaveAutoId` values
+						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
+							(id) => !existingMappedLeaveIds.includes(id),
+						);
+
+						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+
+						// Update `isActive` to 0 for overlapping leaveAutoIds
+						await db.leaveMapping.update(
+							{ isActive: 0 },
+							{
+								where: {
+									EmployeeId: employee.dataValues.id,
+									leaveAutoId: [5],
+									isActive: 1,
+								},
+							},
+						);
+
+						// Prepare new leave records for bulk insertion
+						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
+							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
+							return {
+								EmployeeId: employee.id,
+								leaveAutoId: leaveAutoId,
+								availableLeave: leaveMasterLookup[compositeKey] || 0,
+								accruedThisYear: leaveMasterLookup[compositeKey] || 0,
+								isActive: 1,
+							};
+						});
+
+						// Bulk insert new leave records
+						if (newLeaves.length > 0) {
+							await db.leaveMapping.bulkCreate(newLeaves);
+							console.log(
+								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							);
+						} else {
+							console.log(
+								`No new leaves to insert for Employee ID: ${employee.id}`,
+							);
+						}
+					}
+					console.log("Female && Married");
+					if (genderNumber == 2 && maritalStatus == 1) {
+						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
+							{
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"defaultLeaveCount",
+									"maritalApplicable",
+									"genderApplicable",
+								],
+								where: {
+									companyId: companyId,
+									genderApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "2,%" },
+											{ [Op.like]: "%,2,%" },
+											{ [Op.like]: "%,2" },
+											{ [Op.eq]: "2" },
+										],
+									},
+									maritalApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
+											// { [Op.like]: "3,%" },    // Starts with "3,"
+											// { [Op.like]: "%,3,%" },  // Contains ",3,"
+											// { [Op.like]: "%,3" },    // Ends with ",3"
+											// { [Op.eq]: "3" },        // Exactly matches "3"
+											// { [Op.like]: "4,%" },    // Starts with "4,"
+											// { [Op.like]: "%,4,%" },  // Contains ",4,"
+											// { [Op.like]: "%,4" },    // Ends with ",4"
+											// { [Op.eq]: "4" },        // Exactly matches "4"
+											// { [Op.eq]: "5" },        // Exactly matches "5"
+										],
+									},
+									leaveAutoId: { [Op.notIn]: [5] },
+								},
+								raw: true,
+							},
+						);
+
+						const existingMappedLeave = await db.leaveMapping.findAll({
+							attributes: ["leaveAutoId"],
+							where: {
+								isActive: 1,
+								EmployeeId: employeeId,
+							},
+						});
+
+						// Extract `leaveAutoId` values from both arrays
+						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						const existingMappedLeaveIds = existingMappedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+
+						// Find common `leaveAutoId` values
+						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
+							(id) => !existingMappedLeaveIds.includes(id),
+						);
+
+						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+
+						// Update `isActive` to 0 for overlapping leaveAutoIds
+						await db.leaveMapping.update(
+							{ isActive: 0 },
+							{
+								where: {
+									EmployeeId: employee.dataValues.id,
+									leaveAutoId: [5],
+									isActive: 1,
+								},
+							},
+						);
+
+						// Prepare new leave records for bulk insertion
+						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
+							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
+							return {
+								EmployeeId: employee.id,
+								leaveAutoId: leaveAutoId,
+								availableLeave: leaveMasterLookup[compositeKey] || 0,
+								accruedThisYear: leaveMasterLookup[compositeKey] || 0,
+								isActive: 1,
+							};
+						});
+
+						// Bulk insert new leave records
+						if (newLeaves.length > 0) {
+							await db.leaveMapping.bulkCreate(newLeaves);
+							console.log(
+								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							);
+						} else {
+							console.log(
+								`No new leaves to insert for Employee ID: ${employee.id}`,
+							);
+						}
+					}
+				}
+			}
+
+			return respHelper(res, {
+				status: 200,
+				message: "Leave updated successfully",
+				data: employees.length,
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+				message: "Internal Server Error",
+			});
+		}
+	}
+
+	// API to credit leave using cron on particular date
+
+	// async leaveCreditMonthCron(req, res) {
+	//   const transaction = await db.sequelize.transaction(); // Start a new transaction
+	//   try {
+	//     const getMappedLeave = await db.leaveMapping.findAll({
+	//       attributes: ["EmployeeId", "leaveAutoId"],
+	//       where: { isActive: 1 },
+	//       include: [
+	//         {
+	//           model: db.employeeMaster,
+	//           attributes: ["companyId"],
+	//           where: {
+	//             isActive: 1,
+	//             companyId: { [Op.ne]: null }, // Ensures companyId is not null
+	//           },
+	//         },
+	//       ],
+	//       raw: true,
+	//     });
+
+	//     // Loop over the employees
+	//     for (const employee of getMappedLeave) {
+	//       // Fetch the increment value based on the employee's company and leaveAutoId
+	//       const getIncrementValue = await db.leaveCompanyMapping.findOne({
+	//         where: {
+	//           companyId: employee["employee.companyId"],
+	//           leaveAutoId: employee.leaveAutoId,
+	//           iterationDistribution: { [Op.ne]: parseFloat(0) },
+	//           creditDayOfMonth: moment().format("D"),
+	//         },
+	//         transaction, // Ensure the query runs within the transaction
+	//       });
+
+	//       // If an increment value exists, update the leave data
+	//       if (getIncrementValue) {
+	//         await db.leaveMapping.increment(
+	//           {
+	//             availableLeave: getIncrementValue.iterationDistribution,
+	//             accruedThisYear: getIncrementValue.iterationDistribution,
+	//           },
+	//           {
+	//             where: {
+	//               leaveAutoId: employee.leaveAutoId,
+	//               EmployeeId: employee.EmployeeId,
+	//             },
+	//             transaction, // Ensure the increment runs within the transaction
+	//           }
+	//         );
+	//       } else {
+	//         console.log("No iteration distribution found for", employee.EmployeeId);
+	//       }
+	//     }
+
+	//     // Commit the transaction after all operations
+	//     await transaction.commit();
+
+	//     // Return the success response
+	//     return respHelper(res, {
+	//       status: 200,
+	//       message: "Leave updated successfully",
+	//       data: getMappedLeave.length, // Number of employees processed
+	//     });
+	//   } catch (error) {
+	//     // Rollback the transaction in case of an error
+	//     await transaction.rollback();
+	//     console.error("Error during leave credit update:", error);
+	//     return respHelper(res, {
+	//       status: 500,
+	//       message: "Internal Server Error",
+	//     });
+	//   }
+	// }
+
+	async leaveCreditMonthCron(req, res) {
+		const cronLeaveMapped = await helper.leaveCreditMonthCron();
+		return respHelper(res, {
+			status: cronLeaveMapped.status,
+			message: cronLeaveMapped.message,
+			data: cronLeaveMapped.data, // Number of employees processed
+		});
+	}
 }
 
 export default new LeaveController();

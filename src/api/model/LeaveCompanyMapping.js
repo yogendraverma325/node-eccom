@@ -113,6 +113,12 @@ export default (sequelize, Sequelize) => {
 		maximum_leave_allowed_in_probation: {
 			type: Sequelize.INTEGER,
 		},
+		genderApplicable: {
+			type: Sequelize.STRING, // 1= male 2= female
+		},
+		maritalApplicable: {
+			type: Sequelize.STRING, // Married: 1,Single: 2, Divorced: 3,Separated: 4, Widowed: 5, Others: 6,
+		},
 	});
 	return leaveCompanyMapping;
 };
