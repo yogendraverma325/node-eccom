@@ -5,7 +5,7 @@ import constant from "../constant/messages.js";
 
 class Authentication {
 	async authenticate(req, res, next) {
-		const token = req.headers["accesstoken"];
+		const token = req.headers["accesstoken"] || req.query.accessToken;
 		if (!token) {
 			return respHelper(res, {
 				status: 401,
