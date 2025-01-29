@@ -1310,4 +1310,13 @@ db.lwfMapping.hasOne(db.stateMaster, {
 });
 
 
+// added by jay
+db.stateMaster.hasMany(db.lwfMapping, {
+	foreignKey: "stateId",
+	sourceKey: 'stateId'
+});
+
+// end by jay
+
+
 export default db;
