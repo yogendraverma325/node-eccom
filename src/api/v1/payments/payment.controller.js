@@ -137,7 +137,8 @@ class PaymentController {
   async paySlips(req, res) {
     try {
       const user = req.query.user;
-      const financialYearId = req.query.financialYearId;
+      const financialYearId = req.query.financialYearId || "";
+      const financialYearName = req.query.financialYearName || "";
       const type = parseInt(req.query.type);
 
       // const paySlip = await db.paySlips.findAll({
@@ -203,7 +204,8 @@ class PaymentController {
       const paySlip = await db.paySlips.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
-          financialYearId: financialYearId,
+          ...(financialYearId && { financialYearId: financialYearId }),
+          ...(financialYearName && { paySlipFinancialYear: financialYearName }),
           ...(type === 1 && { paySlipStatus: 1 }),
         },
         order: [
@@ -277,12 +279,14 @@ class PaymentController {
   async payPackage(req, res) {
     try {
       const user = req.query.user;
-      const financialYearId = req.query.financialYearId;
+      const financialYearId = req.query.financialYearId || "";
+      const financialYearName = req.query.financialYearName || "";
 
       const payPackage = await db.payPackage.findAll({
         where: {
           EmployeeId: user ? user : req.userId,
-          financialYearId: financialYearId,
+          ...(financialYearId && { financialYearId: financialYearId }),
+          ...(financialYearName && { payPackageFinancialYear: financialYearName }),
           // isActive:1
         },
         order: [["createdAt", "desc"]],
