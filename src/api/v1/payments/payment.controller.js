@@ -1128,14 +1128,8 @@ class PaymentController {
       }
 
       // fetch financial year id from year
-      let year = req.body.paymonth.split("-")[0];
-      let currentFinancialYear = moment().year();
-     
-      if(year == currentFinancialYear) {
-        year = year - 1;
-      }
       
-      let financialYearDetails = await db.financialYearMaster.findOne({ where : { 'year': year }, attributes: ['financialYearId'], raw: true }); 
+      let financialYearDetails = await db.financialYearMaster.findOne({ where : { 'year': value.selectedYear }, attributes: ['financialYearId'], raw: true }); 
       
       let ids = value.departmentId.split(",");
       let allEmployeeQuery = await paymentHelper.query(

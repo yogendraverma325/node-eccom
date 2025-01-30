@@ -1354,6 +1354,7 @@ const employeesForPayrollProcess = Joi.object({
   paymonth: Joi.string().required(),
   processingType:Joi.number().required().valid(0,1),
   companyId:Joi.number(),
+  selectedYear: Joi.number().optional()
 });
 
 const extraDeductionSchema = Joi.object({
