@@ -118,12 +118,14 @@ class PaymentController {
       console.log(sortedData);
         return respHelper(res, {
           status: 200,
+          msg: Constant.DATA_FETCHED,
           data: sortedData,
         });
       } else {
         return respHelper(res, {
-          status: 404,
-          data: Constant.DATA_BLANK,
+          status: 200,
+          msg: Constant.DATA_BLANK,
+          data: []
         });
       }
     } catch (error) {
