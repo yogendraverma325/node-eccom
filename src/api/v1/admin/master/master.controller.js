@@ -538,12 +538,7 @@ class CommonController {
 			// };
 			let query = {
 				// isActive: 1,
-				...(search && {
-					[Op.or]: [
-						{ bankName: { [Op.like]: `%${search}%` } },
-						{ bankIfsc: { [Op.like]: `%${search}%` } },
-					],
-				}),
+				...(search && { bankName: { [Op.like]: `%${search}%` } }),
 			};
 
 			let aggregate = {
@@ -4228,47 +4223,45 @@ class CommonController {
 	async lwfMappingList(req, res) {
 		try {
 			let model = db.lwfMapping;
-			let page = parseInt(req.query.page) || 1;
 			let search = req.query.search || "";
-			let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
-
-			let lwfDesignationId = req.query.lwfDesignationId || "";
-			let stateId = req.query.stateId || "";
 
 			let query = { isActive: 1 };
-			if (stateId) {
-				query = { ...query, stateId: stateId };
-			}
 
-			if (lwfDesignationId) {
-				query = { ...query, lwfDesignationId: lwfDesignationId };
-			}
-
-			let mappingQuery = {
+			let stateQuery = {
 				isActive: 1,
 				...(search && { stateName: { [Op.like]: `%${search}%` } }),
 			};
 
 			let aggregate = {
 				where: query,
-				attributes: {
-					exclude: ["createdBy", "updatedBy", "updatedAt"],
-				},
-				order: [["lwfmappingId", "DESC"]],
-				limit: pageLimit,
-				offset: (page - 1) * pageLimit,
+				attributes: [
+					"stateId",
+					"lwfDesignationId",
+					[
+						db.Sequelize.fn("MAX", db.Sequelize.col("lwfMappingId")),
+						"maxStateId",
+					], // Get max stateId per state
+				],
 				include: [
 					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						where: mappingQuery,
+						model: db.stateMaster, // Joining with stateMaster
+						attributes: ["stateName"], // Selecting stateName
+						where: stateQuery,
 					},
 				],
+				group: [
+					"stateId",
+					"lwfDesignationId",
+					"stateMaster.stateId",
+					"stateMaster.stateName",
+				], // Must group by included attributes
 			};
 
 			let response = await service.aggregate(model, aggregate);
+
 			let count = await service.count(model, query);
 			let obj = { rows: response.data, count: count };
+
 			return respHelper(res, {
 				status: response.status,
 				msg: response.msg,
@@ -4337,6 +4330,34 @@ class CommonController {
 					exclude: ["createdBy", "updatedBy", "updatedAt"],
 				},
 				order: [["lwfDesignationId", "ASC"]],
+			};
+
+			let response = await service.aggregate(model, aggregate);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async lwfMappingDetails(req, res) {
+		try {
+			let model = db.stateMaster;
+			let { stateId, lwfDesignationId } = req.params;
+			let query = { stateId: stateId };
+
+			let aggregate = {
+				where: query,
+				include: [
+					{
+						model: db.lwfMapping,
+						attributes: {
+							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+						},
+						where: { lwfDesignationId: lwfDesignationId },
+					},
+				],
 			};
 
 			let response = await service.aggregate(model, aggregate);

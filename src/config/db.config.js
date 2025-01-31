@@ -1525,4 +1525,12 @@ db.EmployeeLeaveHeader.hasMany(db.employeeLeaveTransactions, {
 	foreignKey: "employeeleaveheaderID",
 	sourceKey: "employeeleaveheaderID",
 });
+// added by jay
+db.stateMaster.hasMany(db.lwfMapping, {
+	foreignKey: "stateId",
+	sourceKey: "stateId",
+});
+
+// end by jay
+
 export default db;
