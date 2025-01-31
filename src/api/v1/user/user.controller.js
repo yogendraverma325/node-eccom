@@ -687,7 +687,10 @@ class UserController {
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
 				where: {
 					employeeId: userid,
-					status: "pending",
+					status: "pending", 
+					source: {
+					[Op.ne]: "system_generated",
+				}
 				},
 			});
 			const pendingAttendanceCount = await db.attendanceHistory.count({

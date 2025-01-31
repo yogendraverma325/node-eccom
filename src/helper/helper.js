@@ -524,7 +524,9 @@ const empLeaveDetails = async function (userId, type) {
 					"totalLeaveCount",
 				],
 			],
-			where: { EmployeeId: userId, status: "pending", leaveAutoId: 6 },
+			where: { EmployeeId: userId, status: "pending", leaveAutoId: 6 ,source: {
+					[Op.ne]: "system_generated",
+				},},
 			raw: true,
 		});
 
@@ -548,6 +550,9 @@ const empLeaveDetails = async function (userId, type) {
 			where: {
 				status: "pending",
 				employeeId: userId,
+				source: {
+					[Op.ne]: "system_generated",
+				}
 			},
 			raw: true,
 		});
