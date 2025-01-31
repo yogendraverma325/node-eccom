@@ -2370,6 +2370,21 @@ class AttendanceController {
 						attendanceDate: lastDayDate,
 						needAttendanceCron: [0, 1],
 					},
+					 include: 
+						{
+							model: db.weekOffMaster,
+							required: false,
+							where: {
+							isActive: 1,
+							},
+							include: [
+							{
+							model: db.weekOffDayMappingMaster,
+							required: false,
+							where: occurrenceDayCondition,
+							},
+							],
+						},
 				},
 				{
 					model: db.employeeLeaveTransactions,
@@ -2416,8 +2431,8 @@ class AttendanceController {
 		let presentStatus = null;
 
 		if (
-			(singleEmp.weekOffMaster &&
-				singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) ||
+			(singleEmp?.attendancemaster?.weekOffMaster &&
+				singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters.length > 0) ||
 			(singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster &&
 				singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
@@ -2544,11 +2559,8 @@ class AttendanceController {
 					if (
 						markHalfDay != null &&
 						((singleEmp.weekOffMaster &&
-							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
-							(singleEmp.attendanceroster &&
-								singleEmp.attendanceroster.weekOffMaster &&
-								singleEmp.attendanceroster.weekOffMaster
-									.weekOffDayMappingMasters.length == 0 &&
+							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) &&
+							(!singleEmp.attendanceroster &&
 								singleEmp.holidaycompanylocationconfigurations &&
 								singleEmp.holidaycompanylocationconfigurations.length == 0))
 					) {
@@ -2584,8 +2596,8 @@ class AttendanceController {
 										singleEmp.attendancemaster.attendancePunchOutTime,
 									weekOffId: singleEmp.attendanceroster
 										? singleEmp.attendanceroster.weekOffId
-										: singleEmp.weekOffMaster
-											? singleEmp.weekOffMaster.weekOffId
+										: singleEmp?.attendancemaster?.weekOffMaster
+											? singleEmp?.attendancemaster?.weekOffMaster?.weekOffId
 											: 0,
 								},
 								"id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
@@ -2629,7 +2641,11 @@ class AttendanceController {
 							empId: empId,
 							working_hours: working_hours,
 							holiday: singleEmp.holidaycompanylocationconfigurations,
-							weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+							weekoff: 	(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length != 0) ? singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters:
+									singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters,
 						};
 						await helper.creditCompoff(employeeData);
 					}
@@ -2643,9 +2659,9 @@ class AttendanceController {
 							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
-						weekOffId: singleEmp.weekOffMaster
-							? singleEmp.weekOffMaster.weekOffId
-							: 0,
+						// weekOffId: singleEmp.weekOffMaster
+						// 	? singleEmp.weekOffMaster.weekOffId
+						// 	: 0,
 					},
 					{
 						where: {
@@ -2783,12 +2799,28 @@ class AttendanceController {
 					},
 				},
 				{
-					model: db.attendanceMaster,
+					model: db.attendanceMaster, 
 					required: false,
 					where: {
 						attendanceDate: lastDayDate,
 						needAttendanceCron: [0, 1],
 					},
+					include: 
+						{
+							model: db.weekOffMaster,
+							required: false,
+							where: {
+							isActive: 1,
+							},
+							include: [
+							{
+							model: db.weekOffDayMappingMaster,
+							required: false,
+							where: occurrenceDayCondition,
+							},
+							],
+						},
+					
 				},
 				{
 					model: db.employeeLeaveTransactions,
@@ -2833,12 +2865,13 @@ class AttendanceController {
 			},
 		});
 		console.log("EMPID", empId);
-		// console.log("EMPID weekoff", singleEmp);
+		
+	
 		let presentStatus = null;
 
 		if (
-			(singleEmp.weekOffMaster &&
-				singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0) ||
+			(singleEmp.attendancemaster && singleEmp?.attendancemaster?.weekOffMaster && 
+				singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters > 0) ||
 			(singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster &&
 				singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
@@ -2964,12 +2997,9 @@ class AttendanceController {
 
 					if (
 						markHalfDay != null &&
-						((singleEmp.weekOffMaster &&
-							singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0) ||
-							(singleEmp.attendanceroster &&
-								singleEmp.attendanceroster.weekOffMaster &&
-								singleEmp.attendanceroster.weekOffMaster
-									.weekOffDayMappingMasters.length == 0 &&
+						((singleEmp.attendancemaster.weekOffMaster &&
+							singleEmp.attendancemaster.weekOffMaster.weekOffDayMappingMasters.length == 0) &&
+							(!singleEmp.attendanceroster &&
 								singleEmp.holidaycompanylocationconfigurations &&
 								singleEmp.holidaycompanylocationconfigurations.length == 0))
 					) {
@@ -3003,8 +3033,8 @@ class AttendanceController {
 										singleEmp.attendancemaster.attendancePunchOutTime,
 									weekOffId: singleEmp.attendanceroster
 										? singleEmp.attendanceroster.weekOffId
-										: singleEmp.weekOffMaster
-											? singleEmp.weekOffMaster.weekOffId
+										: singleEmp.attendancemaster.weekOffMaster
+											? singleEmp.attendancemaster.weekOffMaster.weekOffId
 											: 0,
 								},
 								"id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
@@ -3050,7 +3080,11 @@ class AttendanceController {
 						empId: empId,
 						working_hours: working_hours,
 						holiday: singleEmp.holidaycompanylocationconfigurations,
-						weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+						weekoff: 	(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length != 0) ? singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters:
+									singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters,
 					};
 					await helper.creditCompoff(employeeData);
 				}
@@ -3061,9 +3095,6 @@ class AttendanceController {
 							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
-						weekOffId: singleEmp.weekOffMaster
-							? singleEmp.weekOffMaster.weekOffId
-							: 0,
 					},
 					{
 						where: {
@@ -3158,7 +3189,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1,
+					isActive: 1
 				},
 			});
 			let nightwala = 0;
@@ -3347,6 +3378,21 @@ class AttendanceController {
 							attendanceDate: lastDayDate,
 							attendanceAutoId: attendanceAutoId,
 						},
+						 include: 
+						{
+							model: db.weekOffMaster,
+							required: false,
+							where: {
+							isActive: 1,
+							},
+							include: [
+							{
+							model: db.weekOffDayMappingMaster,
+							required: false,
+							where: occurrenceDayCondition,
+							},
+							],
+						},
 					},
 					{
 						model: db.employeeLeaveTransactions,
@@ -3386,14 +3432,15 @@ class AttendanceController {
 					isActive: 1,
 				},
 			});
+			console.log("existEmployees",existEmployees.length)
 
 			await Promise.all(
 				existEmployees.map(async (singleEmp) => {
 					let presentStatus = null;
 
 					if (
-						singleEmp.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
-						(singleEmp.attendanceroster.weekOffMaster &&
+						singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
+						(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
 							singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
 								.length > 0)
 					) {
@@ -3473,6 +3520,7 @@ class AttendanceController {
 									timeWorkDuration.hours() * 60 +
 									timeWorkDuration.minutes() +
 									timeWorkDuration.seconds() / 60;
+									
 
 								if (
 									totalMinutesTotalHoursMinutes <
@@ -3485,7 +3533,7 @@ class AttendanceController {
 									isHalfDay_total_work = 0;
 									halfDayFor_total_work = 0;
 								} else if (
-									totalMinutesTotalHoursMinutes >
+									totalMinutesTotalHoursMinutes >=
 										singleEmp.attendancePolicymaster
 											.leaveDeductPolicyWorkDurationHalfDayTime &&
 									totalMinutesTotalHoursMinutes <
@@ -3519,7 +3567,18 @@ class AttendanceController {
 								markHalfDayType = 2;
 							}
 
-							if (markHalfDay != null) {
+							console.log("markHalfDay",markHalfDay)
+							console.log("singleEmp",singleEmp.weekOffMaster)
+							console.log("singleEmp Atteance",singleEmp.attendanceroster)
+								console.log("singleEmp Holiday",singleEmp.holidaycompanylocationconfigurations)
+							if (
+						markHalfDay != null &&
+						((singleEmp?.attendancemaster?.weekOffMaster &&
+							singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters.length == 0) &&
+							(!singleEmp.attendanceroster &&
+								singleEmp.holidaycompanylocationconfigurations &&
+								singleEmp.holidaycompanylocationconfigurations.length == 0))
+					)  {
 								let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
 								if (EMP_DATA) {
 									await helper.empMarkLeaveOfGivenDate(
@@ -3550,8 +3609,8 @@ class AttendanceController {
 											createdAt: moment(), // Replace with actual creation date
 											weekOffId: singleEmp.attendanceroster
 												? singleEmp.attendanceroster.weekOffId
-												: singleEmp.weekOffMaster
-													? singleEmp.weekOffMaster.weekOffId
+												: singleEmp?.attendancemaster?.weekOffMaster
+													? singleEmp?.attendancemaster?.weekOffMaster?.weekOffId
 													: 0,
 											punchInTime:
 												singleEmp.attendancemaster.attendancePunchInTime,
@@ -3567,10 +3626,13 @@ class AttendanceController {
 								}
 							}
 
+							
 							if (
-								singleEmp.attendancemaster &&
-								singleEmp.attendancemaster.attendanceWorkingTime
+								singleEmp.attendancemaster.attendancePunchInTime &&
+							singleEmp.attendancemaster.attendancePunchOutTime
 							) {
+								console.log("employeeData here 1")
+
 								let compofftype = "Week Day";
 								let attendance_auto_id =
 									singleEmp.attendancemaster.attendanceAutoId;
@@ -3580,14 +3642,16 @@ class AttendanceController {
 									singleEmp.attendancemaster.attendanceShiftEndDate;
 								let shiftStartTime = singleEmp.shiftsmaster.shiftStartTime;
 								let shiftEndTime = singleEmp.shiftsmaster.shiftEndTime;
+							
 
 								let allowedTime = await helper.timeDifference(
 									`${attendanceStartDate} ${shiftStartTime}`,
 									`${attendanceEndDate} ${shiftEndTime}`,
 								);
+								
 								let working_hours =
 									singleEmp.attendancemaster.attendanceWorkingTime;
-
+									
 								const employeeData = {
 									compofftype: compofftype,
 									attendance_auto_id: attendance_auto_id,
@@ -3597,11 +3661,17 @@ class AttendanceController {
 									shiftStartTime: shiftStartTime,
 									shiftEndTime: shiftEndTime,
 									allowedTime: allowedTime,
-									empId: empId,
+									empId: singleEmp.id,
 									working_hours: working_hours,
 									holiday: singleEmp.holidaycompanylocationconfigurations,
-									weekoff: singleEmp.weekOffMaster?.weekOffDayMappingMasters,
+									weekoff: 
+									(singleEmp.attendanceroster && singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length == 0) ? singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters:
+									singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters,
 								};
+							
 								await helper.creditCompoff(employeeData);
 							}
 						} else {
@@ -3845,7 +3915,7 @@ class AttendanceController {
 									isHalfDay_total_work = 0;
 									halfDayFor_total_work = 0;
 								} else if (
-									totalMinutesTotalHoursMinutes >
+									totalMinutesTotalHoursMinutes >=
 										singleEmp.attendancePolicymaster
 											.leaveDeductPolicyWorkDurationHalfDayTime &&
 									totalMinutesTotalHoursMinutes <
@@ -3951,9 +4021,9 @@ class AttendanceController {
 						attendanceShiftId: singleEmp.shiftId,
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
-						weekOffId: singleEmp.weekOffMaster
-							? singleEmp.weekOffMaster.weekOffId
-							: 0,
+						// weekOffId: singleEmp.weekOffMaster
+						// 	? singleEmp.weekOffMaster.weekOffId
+						// 	: 0,
 						holidayCompanyLocationConfigurationID: singleEmp.companyLocationId,
 					});
 				}

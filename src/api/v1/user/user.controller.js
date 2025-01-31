@@ -5754,6 +5754,7 @@ class UserController {
 			const result = await validator.updateCompOffRequest.validateAsync(
 				req.body,
 			);
+			const userId = req.userId;
 			let comp_off_credit_history_auto_ids =
 				req.body.comp_off_credit_history_auto_id.split(",");
 			const comp_off_credit_historyData =
@@ -5764,7 +5765,13 @@ class UserController {
 								{ [Op.eq]: null }, // Check if expiry_date is null
 								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 							],
-						},
+						}, 
+						[Op.or]: [
+							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
+							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
+							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
+							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
+						],
 						//employee_Id: req.userId,
 						status: 3,
 						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,

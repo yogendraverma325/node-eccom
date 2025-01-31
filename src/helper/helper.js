@@ -84,6 +84,7 @@ const checkActiveUser = async (data) => {
 				"confirmationDate",
 				"confirmationGenerated",
 				"dateOfJoining",
+				"noticePeriodStatus"
 			],
 		},
 	});
@@ -1566,20 +1567,24 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 						{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 					],
 				},
+				taken_on: {
+				[Op.eq]: null, // Check if expiry_date is null
+				},
 				status: 1,
 			},
 		});
 	} else {
-		result = await db.comp_off_credit_history.findOne({
-			attributes: [
-				[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
-			],
+		result = await db.comp_off_credit_history.count({
+			
 			where: {
 				expiry_date: {
 					[Op.or]: [
 						{ [Op.eq]: null }, // Check if expiry_date is null
 						{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 					],
+				},
+				taken_on: {
+				[Op.eq]: null, // Check if expiry_date is null
 				},
 				[Op.or]: [
 					{ pending_at: { [Op.like]: `${UserId},%` } }, // Check if userId is at the start
@@ -1593,9 +1598,14 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 		});
 	}
 
-	if (result && result.dataValues.total_balance != null) {
-		count = parseFloat(result.dataValues.total_balance);
+	if (status == "Approved") {
+			if (result && result.dataValues.total_balance != null) {
+			count = parseFloat(result.dataValues.total_balance);
+			}
+	}else{
+count=result;
 	}
+	
 	return count;
 };
 const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
@@ -1740,6 +1750,8 @@ const leaveCountForUserForMonth = async (
 
 const creditCompoff = async (inputObject) => {
 	try {
+		let goAhead=true;
+		let  comp_off_hours=0;
 		let compofftype = inputObject.compofftype;
 		let attendance_auto_id = inputObject.attendance_auto_id;
 		let attendanceStartDate = inputObject.attendanceStartDate;
@@ -1753,10 +1765,20 @@ const creditCompoff = async (inputObject) => {
 			`${attendanceEndDate} ${shiftEndTime}`,
 		);
 		let empId = inputObject.empId;
+		let holiday = inputObject.holiday;
 
+		let weekoff = inputObject.weekoff;
 		let working_hours = inputObject.working_hours;
 
-		const timeWorkDuration = moment.duration(working_hours);
+		if (holiday.length > 0 && weekoff.length > 0) {
+		compofftype = "Weekly Off/Holiday";
+		} else if (holiday.length > 0 && weekoff.length == 0) {
+		compofftype = "Holiday";
+		} else if (holiday.length == 0 && weekoff.length > 0) {
+		compofftype = "Weekly Off";
+		}
+		if(compofftype == "Week Day"){
+			const timeWorkDuration = moment.duration(working_hours);
 
 		// Calculate the total minutes
 		const totaltimeWorkDuration =
@@ -1772,23 +1794,27 @@ const creditCompoff = async (inputObject) => {
 			alloweWorkingHours.minutes() +
 			alloweWorkingHours.seconds() / 60;
 
-		if (totaltimeWorkDuration > totalalloweWorkingHours) {
-			let comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
+			if (totaltimeWorkDuration > totalalloweWorkingHours ) {
+			comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
 
-			let holiday = inputObject.holiday;
-
-			let weekoff = inputObject.weekoff;
-
-			if (holiday.length > 0 && weekoff.length > 0) {
-				compofftype = "Weekly Off/Holiday";
-			} else if (holiday.length > 0 && weekoff.length == 0) {
-				compofftype = "Holiday";
-			} else if (holiday.length == 0 && weekoff.length > 0) {
-				compofftype = "Weekly Off";
+			}else{
+			goAhead=false
 			}
+	}else{
+		const timeWorkDuration = moment.duration(working_hours);
 
-			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
+		// Calculate the total minutes
+		const totaltimeWorkDuration =
+		timeWorkDuration.hours() * 60 +
+		timeWorkDuration.minutes() +
+		timeWorkDuration.seconds() / 60;
+		comp_off_hours=totaltimeWorkDuration;
+	}
 
+		
+
+		if (goAhead ) {
+          let compOffPolicyData = await checkCompOffPolicyForUser(empId);
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -1826,6 +1852,7 @@ const creditCompoff = async (inputObject) => {
 						isActive: 1,
 					},
 				});
+				console.log("leaveData",leaveData)
 				let compoffCredit = null;
 				let approvalRequired = null;
 				let approvalIds = [];
@@ -1983,7 +2010,17 @@ const creditCompoff = async (inputObject) => {
 
 						// const records = Array(50).fill(null); // Create an array with 50 null placeholders
 						// for (const [index] of records.entries()) {
-						await db.comp_off_credit_history.create(comp_off_data);
+						if (comp_off_data.balance === 1) {
+							let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
+							let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
+
+							// Insert both objects into the database
+							await db.comp_off_credit_history.create(comp_off_data_1);
+							await db.comp_off_credit_history.create(comp_off_data_2);
+						}else{
+                     await db.comp_off_credit_history.create(comp_off_data);
+						}
+						
 						// }
 					}
 				}

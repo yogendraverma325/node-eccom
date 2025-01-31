@@ -70,15 +70,15 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								employeeId: req.userId,
-								source: { [Op.ne]: "system_generated" },
-								status: "pending",
-							}
+							employeeId: req.userId,
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 						: {
-								pendingAt: req.userId,
-								status: "pending",
-								...(user && { employeeId: user }),
-							},
+							pendingAt: req.userId,
+							status: "pending",
+							...(user && { employeeId: user }),
+						},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -191,18 +191,17 @@ class LeaveController {
 					});
 
 					if (existingRecord) {
-						// await db.attendanceMaster.update(
-						//   {
-						//     employeeLeaveTransactionsId: leaveID,
-						//     attendancePresentStatus: "leave",
-						//   },
-						//   {
-						//     where: {
-						//       attendanceDate: existingRecord.appliedFor,
-						//       employeeId: existingRecord.employeeId,
-						//     },
-						//   }
-						// );
+						await db.attendanceMaster.update(
+							{
+								attendanceLateBy: "00:00:00"
+							},
+							{
+								where: {
+									attendanceDate: existingRecord.dataValues.appliedFor,
+									employeeId: existingRecord.dataValues.employeeId,
+								},
+							}
+						);
 
 						if (
 							existingRecord.leaveAutoId === 6 ||
@@ -536,6 +535,7 @@ class LeaveController {
 				EMP_DATA,
 			);
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
+			const onNoticePeriod = req.userData["employeejobdetail.confirmationDate"];
 			if (onProbation == null) {
 				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
@@ -555,6 +555,30 @@ class LeaveController {
 							msg: message.LEAVE.ON_PRAOBATION_LEAVE_COUNT.replace(
 								"#",
 								leaveMasterData.maximum_leave_allowed_in_probation,
+							),
+						});
+					}
+				}
+			}
+			if (onNoticePeriod == null) {
+				if (leaveMasterData.maximum_leave_allowed_in_notice_period != 0) {
+					let probationLeaveCount = await helper.leaveCountForUserForMonth(
+						req.body.employeeId,
+						req.userData["employeejobdetail.dateOfJoining"],
+						req.body.leaveAutoId,
+						"YES",
+						toDateReq,
+					);
+					if (
+						probationLeaveCount >
+						leaveMasterData.maximum_leave_allowed_in_notice_period
+					) {
+						return respHelper(res, {
+							status: 404,
+							data: {},
+							msg: message.LEAVE.ON_NOTICE_LEAVE_COUNT.replace(
+								"#",
+								leaveMasterData.maximum_leave_allowed_in_notice_period,
 							),
 						});
 					}
@@ -705,6 +729,20 @@ class LeaveController {
 					msg: message.LEAVE.MAX_CONSECUTIVE.replace(
 						"#",
 						leaveMasterData?.max_consecutive_count,
+					),
+				});
+			}
+
+			if (
+				leaveMasterData?.minConsecutiveDay != 0 &&
+				workingdays < leaveMasterData?.minConsecutiveDay
+			) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.MIN_CONSECUTIVE.replace(
+						"#",
+						leaveMasterData?.minConsecutiveDay,
 					),
 				});
 			}
@@ -879,10 +917,10 @@ class LeaveController {
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
-										result.attachment,
-										`leaveAttachment_${uuid}`,
-										`uploads/${EMP_DATA.empCode}`,
-									)
+									result.attachment,
+									`leaveAttachment_${uuid}`,
+									`uploads/${EMP_DATA.empCode}`,
+								)
 								: null,
 						pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 						createdBy: req.userId, // Replace with actual creator user ID
@@ -976,10 +1014,10 @@ class LeaveController {
 				leaveAttachment:
 					result.attachment != ""
 						? await helper.fileUpload(
-								result.attachment,
-								`leaveAttachment_${uuid}`,
-								`uploads/${EMP_DATA.empCode}`,
-							)
+							result.attachment,
+							`leaveAttachment_${uuid}`,
+							`uploads/${EMP_DATA.empCode}`,
+						)
 						: null,
 				pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 				createdBy: req.userId, // Replace with actual creator user ID
@@ -2216,14 +2254,14 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								employeeId: { [Op.ne]: req.userId },
-								source: { [Op.ne]: "system_generated" },
-								status: "pending",
-							}
+							employeeId: { [Op.ne]: req.userId },
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 						: {
-								status: "pending",
-								employeeId: { [Op.ne]: req.userId },
-							},
+							status: "pending",
+							employeeId: { [Op.ne]: req.userId },
+						},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },

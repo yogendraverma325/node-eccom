@@ -113,6 +113,9 @@ export default (sequelize, Sequelize) => {
 		maximum_leave_allowed_in_probation: {
 			type: Sequelize.INTEGER,
 		},
+		maximum_leave_allowed_in_notice_period: {
+			type: Sequelize.INTEGER,
+		},
 		genderApplicable: {
 			type: Sequelize.STRING, // 1= male 2= female
 		},
