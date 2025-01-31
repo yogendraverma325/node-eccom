@@ -2509,6 +2509,7 @@ class CommonController {
         where: query,
         attributes: [
           "stateId",
+          "lwfDesignationId",
           [db.Sequelize.fn("MAX", db.Sequelize.col("lwfMappingId")), "maxStateId"], // Get max stateId per state
         ],
         include: [
@@ -2518,7 +2519,7 @@ class CommonController {
             where: stateQuery
           },
         ],
-        group: ["stateId", "stateMaster.stateId", "stateMaster.stateName"], // Must group by included attributes
+        group: ["stateId", "lwfDesignationId", "stateMaster.stateId", "stateMaster.stateName"], // Must group by included attributes
       };
 
       let response = await service.aggregate(model, aggregate);
@@ -2614,12 +2615,12 @@ class CommonController {
   async lwfMappingDetails(req, res) {
     try {
       let model = db.stateMaster;
-      let { stateId } = req.params;
+      let { stateId, lwfDesignationId } = req.params;
       let query = { 'stateId': stateId };
 
       let aggregate = {
         where: query,
-        include: [{ model: db.lwfMapping, attributes: { exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"] } }]
+        include: [{ model: db.lwfMapping, attributes: { exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"] }, where: { 'lwfDesignationId': lwfDesignationId } }]
       };
 
       let response = await service.aggregate(model, aggregate);
