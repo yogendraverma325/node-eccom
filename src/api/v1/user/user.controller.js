@@ -81,6 +81,7 @@ class UserController {
 							"dateOfProbationEnd",
 							"confirmationDate",
 							"confirmationGenerated",
+							"noticePeriodStatus"
 						],
 					},
 					{
