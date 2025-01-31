@@ -641,4 +641,9 @@ export default Express.Router()
 		"/lwf-designation",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfDesignationList,
+	)
+	.get(
+		"/lwf-mapping-details/:stateId/:lwfDesignationId",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.lwfMappingDetails,
 	);
