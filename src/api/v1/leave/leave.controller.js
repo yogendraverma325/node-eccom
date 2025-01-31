@@ -1566,13 +1566,14 @@ class LeaveController {
 			// Helper function to get the month name
 			const getMonthName = (month) => {
 				const date = new Date();
+				date.setDate(1);  // Ensure it doesn't overflow
 				date.setMonth(month - 1);
 				return date.toLocaleString("default", { month: "long" });
 			};
 
 			const leaveAutoIds = new Set();
 
-			const idFromLeaveTransaction = await db.employeeLeaveTransactions.findAll(
+			const idFromLeaveTransaction = await db.EmployeeLeaveHeader.findAll(
 				{
 					attributes: ["leaveAutoId"],
 					where: { employeeId: employeeId },
@@ -1647,6 +1648,7 @@ class LeaveController {
 				groupedData[month][item.leaveAutoId] = item.totalLeaveCount;
 			});
 
+			console.log("groupedData",groupedData)
 			// Create the result array
 			for (let month = 1; month <= 12; month++) {
 				const monthName = getMonthName(month);
@@ -1730,7 +1732,7 @@ class LeaveController {
 				employeeId: employeeId,
 				leaveAutoId: leaveAutoId,
 				status: "approved",
-				appliedFor: {
+				fromDate: {
 					[Op.and]: [
 						{ [Op.gte]: `${year}-${month}-01` },
 						{
@@ -1741,8 +1743,8 @@ class LeaveController {
 						},
 					],
 				},
-			};
-			const attendanceData = await db.employeeLeaveTransactions.findAll({
+			}; 
+			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
 					exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 				},
@@ -1754,7 +1756,7 @@ class LeaveController {
 						as: "leaveMasterDetails",
 					},
 				],
-				order: [["appliedFor", "desc"]],
+				order: [["employeeleaveheaderID", "desc"]],
 			});
 			return respHelper(res, {
 				status: 200,
