@@ -81,7 +81,7 @@ class UserController {
 							"dateOfProbationEnd",
 							"confirmationDate",
 							"confirmationGenerated",
-							"noticePeriodStatus"
+							"noticePeriodStatus",
 						],
 					},
 					{
@@ -5766,7 +5766,7 @@ class UserController {
 								{ [Op.eq]: null }, // Check if expiry_date is null
 								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 							],
-						}, 
+						},
 						[Op.or]: [
 							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
 							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle

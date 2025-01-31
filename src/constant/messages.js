@@ -71,16 +71,15 @@ const message = {
 		BACK_DATED_LEAVE_NOT_ALLOWED: "Back dated leave is not allowed",
 		BACK_DATED_LIMIT: "Back-dated leave is not allowed beyond # days.",
 		PREPOSTFIX: "Not allowed to apply Leave on # @",
-			MAX_CONSECUTIVE:
+		MAX_CONSECUTIVE:
 			"Not allowed to apply for leave exceeding # consecutive days",
-			MIN_CONSECUTIVE:
-			"Leave application must be for at least # days.",
+		MIN_CONSECUTIVE: "Leave application must be for at least # days.",
 		MAX_DAY_MONTH: "Not allowed to apply for leave exceeding # days in a month",
 		BALANCE_NOT_AVAILABLE: "Enough Leave Balance is not available",
 		CLUB_NOT_ALLOWED: "Clubbing with other leaves is not allowed",
 		ON_PRAOBATION_LEAVE_COUNT:
 			"Employees on probation are not allowed to take more than # leaves",
-			ON_NOTICE_LEAVE_COUNT:
+		ON_NOTICE_LEAVE_COUNT:
 			"Employees on notice period are not allowed to take more than # leaves",
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
