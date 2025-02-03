@@ -84,7 +84,7 @@ const checkActiveUser = async (data) => {
 				"confirmationDate",
 				"confirmationGenerated",
 				"dateOfJoining",
-				"noticePeriodStatus"
+				"noticePeriodStatus",
 			],
 		},
 	});
@@ -959,13 +959,29 @@ const remainingLeaveCount = async function (
 	endDate,
 	weekOffId,
 	companyLocationId,
+	companyId,
+	leaveAutoId,
 ) {
 	const daysDifferenceReq = moment(endDate).diff(moment(startDate), "days");
 	var workingCount = 0;
+	let total_working_dates = [];
+	let countInterveningWeekOff = await db.leaveCompanyMapping.findOne({
+		attributes: [
+			"countInterveningWeekOff",
+			"countInterveningHoliday",
+			"countInterveningNationalHoliday",
+		],
+		where: { companyId: companyId || 0, leaveAutoId: leaveAutoId || 0 },
+	});
+	const shouldCountWeekOffs =
+		countInterveningWeekOff?.countInterveningWeekOff === 1;
+	const shouldCountHolidays =
+		countInterveningWeekOff?.countInterveningHoliday === 1;
+	const shouldCountNationalHolidays =
+		countInterveningWeekOff?.countInterveningNationalHoliday === 1;
 
 	for (let i = 0; i <= daysDifferenceReq; i++) {
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
-
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
 		let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
 		let dayCode = parseInt(moment(appliedFor).format("d")) + 1;
@@ -973,6 +989,7 @@ const remainingLeaveCount = async function (
 		let dayOfMonth = parsedDate.date();
 		let occurrence = Math.ceil(dayOfMonth / 7);
 
+		console.log("appliedFor", i, appliedFor);
 		// Output the result
 		let occurrenceDayCondition = {};
 		switch (occurrence) {
@@ -1021,8 +1038,10 @@ const remainingLeaveCount = async function (
 				},
 			],
 		});
-
-		if (existEmployees.weekOffDayMappingMasters.length == 0) {
+		if (
+			existEmployees.weekOffDayMappingMasters.length == 0 ||
+			shouldCountWeekOffs
+		) {
 			let employeeHolidays =
 				await db.holidayCompanyLocationConfiguration.findOne({
 					where: { companyLocationId: companyLocationId },
@@ -1033,12 +1052,25 @@ const remainingLeaveCount = async function (
 						required: true,
 					},
 				});
+
+			let isNationalHoliday =
+				employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
+
+			if (isNationalHoliday == 1 && shouldCountNationalHolidays == true) {
+				total_working_dates.push(appliedFor);
+				workingCount += 1;
+			}
+			if (isNationalHoliday == 0 && shouldCountHolidays == true) {
+				total_working_dates.push(appliedFor);
+				workingCount += 1;
+			}
 			if (!employeeHolidays) {
+				total_working_dates.push(appliedFor);
 				workingCount += 1;
 			}
 		}
 	}
-	return workingCount;
+	return total_working_dates;
 };
 
 const isDayWorking = async function (startDate, weekOffId, companyLocationId) {
@@ -1568,14 +1600,13 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 					],
 				},
 				taken_on: {
-				[Op.eq]: null, // Check if expiry_date is null
+					[Op.eq]: null, // Check if expiry_date is null
 				},
 				status: 1,
 			},
 		});
 	} else {
 		result = await db.comp_off_credit_history.count({
-			
 			where: {
 				expiry_date: {
 					[Op.or]: [
@@ -1584,7 +1615,7 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 					],
 				},
 				taken_on: {
-				[Op.eq]: null, // Check if expiry_date is null
+					[Op.eq]: null, // Check if expiry_date is null
 				},
 				[Op.or]: [
 					{ pending_at: { [Op.like]: `${UserId},%` } }, // Check if userId is at the start
@@ -1599,13 +1630,13 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 	}
 
 	if (status == "Approved") {
-			if (result && result.dataValues.total_balance != null) {
+		if (result && result.dataValues.total_balance != null) {
 			count = parseFloat(result.dataValues.total_balance);
-			}
-	}else{
-count=result;
+		}
+	} else {
+		count = result;
 	}
-	
+
 	return count;
 };
 const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
@@ -1750,8 +1781,8 @@ const leaveCountForUserForMonth = async (
 
 const creditCompoff = async (inputObject) => {
 	try {
-		let goAhead=true;
-		let  comp_off_hours=0;
+		let goAhead = true;
+		let comp_off_hours = 0;
 		let compofftype = inputObject.compofftype;
 		let attendance_auto_id = inputObject.attendance_auto_id;
 		let attendanceStartDate = inputObject.attendanceStartDate;
@@ -1771,50 +1802,47 @@ const creditCompoff = async (inputObject) => {
 		let working_hours = inputObject.working_hours;
 
 		if (holiday.length > 0 && weekoff.length > 0) {
-		compofftype = "Weekly Off/Holiday";
+			compofftype = "Weekly Off/Holiday";
 		} else if (holiday.length > 0 && weekoff.length == 0) {
-		compofftype = "Holiday";
+			compofftype = "Holiday";
 		} else if (holiday.length == 0 && weekoff.length > 0) {
-		compofftype = "Weekly Off";
+			compofftype = "Weekly Off";
 		}
-		if(compofftype == "Week Day"){
+		if (compofftype == "Week Day") {
 			const timeWorkDuration = moment.duration(working_hours);
 
-		// Calculate the total minutes
-		const totaltimeWorkDuration =
-			timeWorkDuration.hours() * 60 +
-			timeWorkDuration.minutes() +
-			timeWorkDuration.seconds() / 60;
+			// Calculate the total minutes
+			const totaltimeWorkDuration =
+				timeWorkDuration.hours() * 60 +
+				timeWorkDuration.minutes() +
+				timeWorkDuration.seconds() / 60;
 
-		const alloweWorkingHours = moment.duration(allowedTime);
+			const alloweWorkingHours = moment.duration(allowedTime);
 
-		// Calculate the total minutes
-		const totalalloweWorkingHours =
-			alloweWorkingHours.hours() * 60 +
-			alloweWorkingHours.minutes() +
-			alloweWorkingHours.seconds() / 60;
+			// Calculate the total minutes
+			const totalalloweWorkingHours =
+				alloweWorkingHours.hours() * 60 +
+				alloweWorkingHours.minutes() +
+				alloweWorkingHours.seconds() / 60;
 
-			if (totaltimeWorkDuration > totalalloweWorkingHours ) {
-			comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
-
-			}else{
-			goAhead=false
+			if (totaltimeWorkDuration > totalalloweWorkingHours) {
+				comp_off_hours = totaltimeWorkDuration - totalalloweWorkingHours;
+			} else {
+				goAhead = false;
 			}
-	}else{
-		const timeWorkDuration = moment.duration(working_hours);
+		} else {
+			const timeWorkDuration = moment.duration(working_hours);
 
-		// Calculate the total minutes
-		const totaltimeWorkDuration =
-		timeWorkDuration.hours() * 60 +
-		timeWorkDuration.minutes() +
-		timeWorkDuration.seconds() / 60;
-		comp_off_hours=totaltimeWorkDuration;
-	}
+			// Calculate the total minutes
+			const totaltimeWorkDuration =
+				timeWorkDuration.hours() * 60 +
+				timeWorkDuration.minutes() +
+				timeWorkDuration.seconds() / 60;
+			comp_off_hours = totaltimeWorkDuration;
+		}
 
-		
-
-		if (goAhead ) {
-          let compOffPolicyData = await checkCompOffPolicyForUser(empId);
+		if (goAhead) {
+			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -1852,7 +1880,7 @@ const creditCompoff = async (inputObject) => {
 						isActive: 1,
 					},
 				});
-				console.log("leaveData",leaveData)
+				console.log("leaveData", leaveData);
 				let compoffCredit = null;
 				let approvalRequired = null;
 				let approvalIds = [];
@@ -2017,10 +2045,10 @@ const creditCompoff = async (inputObject) => {
 							// Insert both objects into the database
 							await db.comp_off_credit_history.create(comp_off_data_1);
 							await db.comp_off_credit_history.create(comp_off_data_2);
-						}else{
-                     await db.comp_off_credit_history.create(comp_off_data);
+						} else {
+							await db.comp_off_credit_history.create(comp_off_data);
 						}
-						
+
 						// }
 					}
 				}

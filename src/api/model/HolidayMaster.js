@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
 		holidayDate: {
 			type: Sequelize.DATE,
 		},
+		isNationalHoliday: {
+			type: Sequelize.INTEGER,
+		},
 		createdAt: {
 			type: Sequelize.DATE,
 		},

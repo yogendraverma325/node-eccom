@@ -70,15 +70,15 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-							employeeId: req.userId,
-							source: { [Op.ne]: "system_generated" },
-							status: "pending",
-						}
+								employeeId: req.userId,
+								source: { [Op.ne]: "system_generated" },
+								status: "pending",
+							}
 						: {
-							pendingAt: req.userId,
-							status: "pending",
-							...(user && { employeeId: user }),
-						},
+								pendingAt: req.userId,
+								status: "pending",
+								...(user && { employeeId: user }),
+							},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -193,14 +193,14 @@ class LeaveController {
 					if (existingRecord) {
 						await db.attendanceMaster.update(
 							{
-								attendanceLateBy: "00:00:00"
+								attendanceLateBy: "00:00:00",
 							},
 							{
 								where: {
 									attendanceDate: existingRecord.dataValues.appliedFor,
 									employeeId: existingRecord.dataValues.employeeId,
 								},
-							}
+							},
 						);
 
 						if (
@@ -523,19 +523,31 @@ class LeaveController {
 				moment(fromDateReq),
 				"days",
 			);
-			if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
-				return respHelper(res, {
-					status: 404,
-					data: {},
-					msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
-				});
-			}
+			// if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
+			// 	return respHelper(res, {
+			// 		status: 404,
+			// 		data: {},
+			// 		msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
+			// 	});
+			// }
 			const leaveMasterData = await helper.leaveDetailsMaster(
 				result.leaveAutoId,
 				EMP_DATA,
 			);
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
 			const onNoticePeriod = req.userData["employeejobdetail.confirmationDate"];
+
+			// Fetch employee details and leave counts in parallel
+
+			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
+				startDate,
+				endDate,
+				EMP_DATA.weekOffId,
+				EMP_DATA.companyLocationId,
+				EMP_DATA.companyId,
+				result.leaveAutoId,
+			);
+
 			if (onProbation == null) {
 				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
@@ -609,7 +621,7 @@ class LeaveController {
 			const currentDateOnly = moment().startOf("day");
 
 			// Calculate the difference in days
-			const differenceInDays = currentDateOnly.diff(fromDateOnly, "days");
+			const differenceInDays = remainingLeaveCountRESP.length;
 			if (differenceInDays > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
 					return respHelper(res, {
@@ -747,6 +759,54 @@ class LeaveController {
 				});
 			}
 
+			if (
+				leaveMasterData.attachmentRequired == true &&
+				result.attachment == ""
+			) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.ATTACHMENT_REQUIRED,
+				});
+			}
+			if (
+				leaveMasterData.attachmentRequiredafterdays != 0 &&
+				leaveMasterData.attachmentRequired == false &&
+				result.attachment == "" &&
+				workingdays >= leaveMasterData.attachmentRequiredafterdays
+			) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.ATTACHMENT_REQUIRED_DAYS.replace(
+						"#",
+						leaveMasterData.attachmentRequiredafterdays,
+					),
+				});
+			}
+			if (leaveMasterData.messageRequired == true && result.message == "") {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.MESSAGE_REQUIRED,
+				});
+			}
+			if (
+				leaveMasterData.messageRequired == false &&
+				leaveMasterData.messageRequiredafterdays != 0 &&
+				result.message == "" &&
+				workingdays >= leaveMasterData.messageRequiredafterdays
+			) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.MESSAGE_REQUIRED_DAYS.replace(
+						"#",
+						leaveMasterData.messageRequiredafterdays,
+					),
+				});
+			}
+
 			let monthCount = await helper.leaveCountForUserForMonth(
 				req.body.employeeId,
 				fromDateReq,
@@ -855,8 +915,14 @@ class LeaveController {
 				req.body.leaveAutoId,
 			);
 
-			const fromDate = req.body.fromDate;
-			const toDate = req.body.toDate;
+			console.log("remainingLeaveCountRESP dfff", remainingLeaveCountRESP);
+			const fromDate = remainingLeaveCountRESP[0];
+			const toDate =
+				remainingLeaveCountRESP.length == 1
+					? remainingLeaveCountRESP[0]
+					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
+			console.log("remainingLeaveCountRESP dfff", fromDate);
+			console.log("remainingLeaveCountRESP dfff", toDate);
 			let arr = [];
 			let leaveDays = 0;
 			let pendingLeaveCount = 0;
@@ -864,20 +930,20 @@ class LeaveController {
 			const daysDifference = moment(toDate).diff(moment(fromDate), "days");
 			let uuid =
 				"id_" + moment().format("YYYYMMDDHHmmss") + req.body.employeeId;
+			console.log("daysDifference", daysDifference);
 			for (let i = -1; i < daysDifference; i++) {
 				let appliedFor = moment(fromDate)
 					.add(i + 1, "days")
 					.format("YYYY-MM-DD");
 				let halfDayFor = 0;
 				let isHalfDay = 0;
-				let isDayWorking = await helper.isDayWorking(
-					appliedFor,
-					EMP_DATA.weekOffId,
-					EMP_DATA.companyLocationId,
-				);
-				if (isDayWorking == 0) {
-					//console.log("leave on this day");
-				} else {
+				// let isDayWorking = await helper.isDayWorking(
+				// 	appliedFor,
+				// 	EMP_DATA.weekOffId,
+				// 	EMP_DATA.companyLocationId,
+				// );
+
+				if (remainingLeaveCountRESP.includes(appliedFor)) {
 					if (daysDifference == 0) {
 						isHalfDay = req.body.firstDayHalf != 0 ? 1 : 0;
 						halfDayFor = req.body.firstDayHalf;
@@ -917,10 +983,10 @@ class LeaveController {
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
-									result.attachment,
-									`leaveAttachment_${uuid}`,
-									`uploads/${EMP_DATA.empCode}`,
-								)
+										result.attachment,
+										`leaveAttachment_${uuid}`,
+										`uploads/${EMP_DATA.empCode}`,
+									)
 								: null,
 						pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 						createdBy: req.userId, // Replace with actual creator user ID
@@ -1014,10 +1080,10 @@ class LeaveController {
 				leaveAttachment:
 					result.attachment != ""
 						? await helper.fileUpload(
-							result.attachment,
-							`leaveAttachment_${uuid}`,
-							`uploads/${EMP_DATA.empCode}`,
-						)
+								result.attachment,
+								`leaveAttachment_${uuid}`,
+								`uploads/${EMP_DATA.empCode}`,
+							)
 						: null,
 				pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 				createdBy: req.userId, // Replace with actual creator user ID
@@ -1034,6 +1100,7 @@ class LeaveController {
 					employeeleaveheaderID: headerInsert.employeeleaveheaderID,
 				}; // Add the new key-value pair
 			});
+
 			await db.employeeLeaveTransactions.bulkCreate(arr);
 
 			const employeeData = await db.employeeMaster.findOne({
@@ -1458,13 +1525,13 @@ class LeaveController {
 
 			const daysDifferenceReq = moment(endDate).diff(moment(startDate), "days");
 
-			if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
-				return respHelper(res, {
-					status: 404,
-					data: {},
-					msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
-				});
-			}
+			// if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
+			// 	return respHelper(res, {
+			// 		status: 404,
+			// 		data: {},
+			// 		msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
+			// 	});
+			// }
 
 			// const getCombinedVal = await helper.getCombineValue(
 			//   leaveFirstHalf,
@@ -1495,12 +1562,15 @@ class LeaveController {
 				]);
 
 			// Calculate total working days
-			const totalWorkingDays = await helper.remainingLeaveCount(
+			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				startDate,
 				endDate,
 				employeeWeekOfId.weekOffId,
 				employeeWeekOfId.companyLocationId,
+				employeeWeekOfId.companyId,
+				leaveAutoId,
 			);
+			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,
 				leaveSecondHalf,
@@ -1514,13 +1584,7 @@ class LeaveController {
 				(acc, el) => acc + parseFloat(el.leaveCount),
 				0,
 			);
-			console.log(
-				"pendingLeaveCount",
-				totalWorkingDays,
-				"pendingLeaveCount",
-				pendingLeaveCount,
-			);
-			console.log("getCombinedVal", getCombinedVal);
+
 			const totalWorkingDaysCalculated = Math.max(
 				0,
 				totalWorkingDays - getCombinedVal,
@@ -2254,14 +2318,14 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-							employeeId: { [Op.ne]: req.userId },
-							source: { [Op.ne]: "system_generated" },
-							status: "pending",
-						}
+								employeeId: { [Op.ne]: req.userId },
+								source: { [Op.ne]: "system_generated" },
+								status: "pending",
+							}
 						: {
-							status: "pending",
-							employeeId: { [Op.ne]: req.userId },
-						},
+								status: "pending",
+								employeeId: { [Op.ne]: req.userId },
+							},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },

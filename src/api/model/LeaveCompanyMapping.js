@@ -122,6 +122,27 @@ export default (sequelize, Sequelize) => {
 		maritalApplicable: {
 			type: Sequelize.STRING, // Married: 1,Single: 2, Divorced: 3,Separated: 4, Widowed: 5, Others: 6,
 		},
+		attachmentRequired: {
+			type: Sequelize.BOOLEAN,
+		},
+		messageRequired: {
+			type: Sequelize.BOOLEAN,
+		},
+		attachmentRequiredafterdays: {
+			type: Sequelize.INTEGER,
+		},
+		messageRequiredafterdays: {
+			type: Sequelize.INTEGER,
+		},
+		countInterveningWeekOff: {
+			type: Sequelize.INTEGER,
+		},
+		countInterveningHoliday: {
+			type: Sequelize.INTEGER,
+		},
+		countInterveningNationalHoliday: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveCompanyMapping;
 };

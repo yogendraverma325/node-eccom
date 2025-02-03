@@ -363,7 +363,7 @@ const leaveRequestSchema = Joi.object({
 	firstDayHalf: Joi.number().optional().valid(0, 1, 2),
 	lastDayHalf: Joi.number().optional().valid(0, 1, 2),
 	reason: Joi.string().optional().max(45),
-	message: Joi.string().trim().required().max(100).label("Message"),
+	message: Joi.string().trim().max(100).label("Message").allow(""),
 }).options({ abortEarly: false });
 
 const revoekLeaveRequest = Joi.object({
