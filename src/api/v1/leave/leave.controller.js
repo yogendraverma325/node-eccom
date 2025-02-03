@@ -70,15 +70,15 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								employeeId: req.userId,
-								source: { [Op.ne]: "system_generated" },
-								status: "pending",
-							}
+							employeeId: req.userId,
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 						: {
-								pendingAt: req.userId,
-								status: "pending",
-								...(user && { employeeId: user }),
-							},
+							pendingAt: req.userId,
+							status: "pending",
+							...(user && { employeeId: user }),
+						},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -192,9 +192,11 @@ class LeaveController {
 
 					if (existingRecord) {
 						await db.attendanceMaster.update(
-							{
-								attendanceLateBy: "00:00:00",
-							},
+							Object.assign(
+								(existingRecord.dataValues.isHalfDay === 0 || existingRecord.dataValues.halfDayFor === 1) ? {
+									attendanceLateBy: "00:00:00",
+								} : {}
+							),
 							{
 								where: {
 									attendanceDate: existingRecord.dataValues.appliedFor,
@@ -917,10 +919,10 @@ class LeaveController {
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
-										result.attachment,
-										`leaveAttachment_${uuid}`,
-										`uploads/${EMP_DATA.empCode}`,
-									)
+									result.attachment,
+									`leaveAttachment_${uuid}`,
+									`uploads/${EMP_DATA.empCode}`,
+								)
 								: null,
 						pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 						createdBy: req.userId, // Replace with actual creator user ID
@@ -1014,10 +1016,10 @@ class LeaveController {
 				leaveAttachment:
 					result.attachment != ""
 						? await helper.fileUpload(
-								result.attachment,
-								`leaveAttachment_${uuid}`,
-								`uploads/${EMP_DATA.empCode}`,
-							)
+							result.attachment,
+							`leaveAttachment_${uuid}`,
+							`uploads/${EMP_DATA.empCode}`,
+						)
 						: null,
 				pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 				createdBy: req.userId, // Replace with actual creator user ID
@@ -1648,7 +1650,7 @@ class LeaveController {
 				groupedData[month][item.leaveAutoId] = item.totalLeaveCount;
 			});
 
-			console.log("groupedData",groupedData)
+			console.log("groupedData", groupedData)
 			// Create the result array
 			for (let month = 1; month <= 12; month++) {
 				const monthName = getMonthName(month);
@@ -1743,7 +1745,7 @@ class LeaveController {
 						},
 					],
 				},
-			}; 
+			};
 			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
 					exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
@@ -2256,14 +2258,14 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								employeeId: { [Op.ne]: req.userId },
-								source: { [Op.ne]: "system_generated" },
-								status: "pending",
-							}
+							employeeId: { [Op.ne]: req.userId },
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 						: {
-								status: "pending",
-								employeeId: { [Op.ne]: req.userId },
-							},
+							status: "pending",
+							employeeId: { [Op.ne]: req.userId },
+						},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -2361,18 +2363,19 @@ class LeaveController {
 					});
 
 					if (existingRecord) {
-						// await db.attendanceMaster.update(
-						//   {
-						//     employeeLeaveTransactionsId: leaveID,
-						//     attendancePresentStatus: "leave",
-						//   },
-						//   {
-						//     where: {
-						//       attendanceDate: existingRecord.appliedFor,
-						//       employeeId: existingRecord.employeeId,
-						//     },
-						//   }
-						// );
+						await db.attendanceMaster.update(
+							Object.assign(
+								(existingRecord.dataValues.isHalfDay === 0 || existingRecord.dataValues.halfDayFor === 1) ? {
+									attendanceLateBy: "00:00:00",
+								} : {}
+							),
+							{
+								where: {
+									attendanceDate: existingRecord.dataValues.appliedFor,
+									employeeId: existingRecord.dataValues.employeeId,
+								},
+							},
+						);
 
 						if (existingRecord.leaveAutoId === 6) {
 							const lwpLeave = await db.leaveMapping.findOne({
