@@ -192,9 +192,14 @@ class LeaveController {
 
 					if (existingRecord) {
 						await db.attendanceMaster.update(
-							{
-								attendanceLateBy: "00:00:00",
-							},
+							Object.assign(
+								existingRecord.dataValues.isHalfDay === 0 ||
+									existingRecord.dataValues.halfDayFor === 1
+									? {
+											attendanceLateBy: "00:00:00",
+										}
+									: {},
+							),
 							{
 								where: {
 									attendanceDate: existingRecord.dataValues.appliedFor,
@@ -1630,19 +1635,18 @@ class LeaveController {
 			// Helper function to get the month name
 			const getMonthName = (month) => {
 				const date = new Date();
+				date.setDate(1); // Ensure it doesn't overflow
 				date.setMonth(month - 1);
 				return date.toLocaleString("default", { month: "long" });
 			};
 
 			const leaveAutoIds = new Set();
 
-			const idFromLeaveTransaction = await db.employeeLeaveTransactions.findAll(
-				{
-					attributes: ["leaveAutoId"],
-					where: { employeeId: employeeId },
-					raw: true,
-				},
-			);
+			const idFromLeaveTransaction = await db.EmployeeLeaveHeader.findAll({
+				attributes: ["leaveAutoId"],
+				where: { employeeId: employeeId },
+				raw: true,
+			});
 
 			idFromLeaveTransaction.forEach((item) =>
 				leaveAutoIds.add(item.leaveAutoId),
@@ -1711,6 +1715,7 @@ class LeaveController {
 				groupedData[month][item.leaveAutoId] = item.totalLeaveCount;
 			});
 
+			console.log("groupedData", groupedData);
 			// Create the result array
 			for (let month = 1; month <= 12; month++) {
 				const monthName = getMonthName(month);
@@ -1794,7 +1799,7 @@ class LeaveController {
 				employeeId: employeeId,
 				leaveAutoId: leaveAutoId,
 				status: "approved",
-				appliedFor: {
+				fromDate: {
 					[Op.and]: [
 						{ [Op.gte]: `${year}-${month}-01` },
 						{
@@ -1806,7 +1811,7 @@ class LeaveController {
 					],
 				},
 			};
-			const attendanceData = await db.employeeLeaveTransactions.findAll({
+			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
 					exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 				},
@@ -1818,7 +1823,7 @@ class LeaveController {
 						as: "leaveMasterDetails",
 					},
 				],
-				order: [["appliedFor", "desc"]],
+				order: [["employeeleaveheaderID", "desc"]],
 			});
 			return respHelper(res, {
 				status: 200,
@@ -2423,18 +2428,22 @@ class LeaveController {
 					});
 
 					if (existingRecord) {
-						// await db.attendanceMaster.update(
-						//   {
-						//     employeeLeaveTransactionsId: leaveID,
-						//     attendancePresentStatus: "leave",
-						//   },
-						//   {
-						//     where: {
-						//       attendanceDate: existingRecord.appliedFor,
-						//       employeeId: existingRecord.employeeId,
-						//     },
-						//   }
-						// );
+						await db.attendanceMaster.update(
+							Object.assign(
+								existingRecord.dataValues.isHalfDay === 0 ||
+									existingRecord.dataValues.halfDayFor === 1
+									? {
+											attendanceLateBy: "00:00:00",
+										}
+									: {},
+							),
+							{
+								where: {
+									attendanceDate: existingRecord.dataValues.appliedFor,
+									employeeId: existingRecord.dataValues.employeeId,
+								},
+							},
+						);
 
 						if (existingRecord.leaveAutoId === 6) {
 							const lwpLeave = await db.leaveMapping.findOne({

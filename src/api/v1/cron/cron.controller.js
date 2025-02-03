@@ -90,6 +90,7 @@ class CronController {
 	}
 
 	async EarnedLeaveCreditCron() {
+		console.log( moment('2024-08-01 13:00:00').format("D"))
 		const earnedLeaveDetails = await db.leaveMaster.findAll({
 			raw: true,
 			where: {
@@ -107,7 +108,7 @@ class CronController {
 					{
 						where: {
 							leaveAutoId: singleItem.leaveId,
-							EmployeeId: 3201,
+							EmployeeId: 1119,
 						},
 					},
 				);
