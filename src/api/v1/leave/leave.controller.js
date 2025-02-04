@@ -627,7 +627,9 @@ class LeaveController {
 
 			// Calculate the difference in days
 			const differenceInDays = remainingLeaveCountRESP.length;
-			if (differenceInDays > 0) {
+			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
+			console.log("differenceInDays",differenceInDays,"differenceInDaystotal",differenceInDaystotal)
+			if (differenceInDaystotal > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
 					return respHelper(res, {
 						status: 404,
@@ -635,7 +637,7 @@ class LeaveController {
 						msg: message.LEAVE.BACK_DATED_LEAVE_NOT_ALLOWED,
 					});
 				}
-				if (differenceInDays > leaveMasterData.back_days_max) {
+				if (differenceInDaystotal > leaveMasterData.back_days_max) {
 					return respHelper(res, {
 						status: 404,
 						data: {},
