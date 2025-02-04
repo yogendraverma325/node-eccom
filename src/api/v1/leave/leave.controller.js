@@ -540,7 +540,7 @@ class LeaveController {
 				EMP_DATA,
 			);
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
-			const onNoticePeriod = req.userData["employeejobdetail.confirmationDate"];
+			const onNoticePeriod = req.userData["employeejobdetail.noticePeriodStatus"];
 
 			// Fetch employee details and leave counts in parallel
 
@@ -577,7 +577,7 @@ class LeaveController {
 					}
 				}
 			}
-			if (onNoticePeriod == null) {
+			if (onNoticePeriod == 1 || onNoticePeriod == true || onNoticePeriod == 'true') {
 				if (leaveMasterData.maximum_leave_allowed_in_notice_period != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
 						req.body.employeeId,
@@ -615,7 +615,7 @@ class LeaveController {
 						data: {},
 						msg:
 							message.LEAVE.HALF_DAY_NOT_ALLOWED +
-							` for ${leaveMasterData.leaveName}`,
+							` for ${leaveMasterData?.companyleaveMasterDetails?.leaveName}`,
 					});
 				}
 			}

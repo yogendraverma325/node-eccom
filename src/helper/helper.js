@@ -1658,8 +1658,13 @@ const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
 					{ [Op.eq]: `${EMP_DATA?.employeeType}` },
 				],
 			},
-			isActive: 1,
+			isActive: 1, 
 		},
+		include:{
+							model: db.leaveMaster,
+							attributes: ["leaveId", "leaveName"],
+							as:"companyleaveMasterDetails"
+		}
 	});
 	return leaveData;
 };
