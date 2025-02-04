@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
-    const gratuityOverrides = sequelize.define("gratuityoverrides", {
-      gratuityAutoId: {
+    const lwfOverrides = sequelize.define("lwfoverrides", {
+      lwfDeductionAutoId: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
@@ -8,14 +8,11 @@ export default (sequelize, Sequelize) => {
       EmployeeId: {
         type: Sequelize.INTEGER,
       },
-      payMonth: {
+      lwfMonth: {
         type: Sequelize.STRING,
       },
-      gratuityDays: {
+      lwfAmount: {
         type: Sequelize.DECIMAL,
-      },
-      empCode: {
-        type: Sequelize.STRING
       },
       createdBy: {
         type: Sequelize.INTEGER,
@@ -38,6 +35,6 @@ export default (sequelize, Sequelize) => {
         default: 0,
       },
     });
-    return gratuityOverrides;
+    return lwfOverrides;
   };
   

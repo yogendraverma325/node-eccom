@@ -2,9 +2,7 @@ import db from "../../../config/db.config.js";
 import respHelper from "../../../helper/respHelper.js";
 import validator from "../../../helper/validator.js";
 import paymentHelper from "./fnfHelper.js";
-
-
-
+import pkg from "xlsx";
 
 class PaymentController {
 
@@ -145,52 +143,52 @@ class PaymentController {
             continue;
           }
 
-          let lopDeductions = {
+          let gratuityOverrides = {
             EmployeeId: employeeDetais.id,
-            lopDays: employeeTds["GRATUITY DAYS"],
-            lopMonth: employeeTds["LOP Month (YYYY-MM)"],
+            gratuityDays: employeeTds["GRATUITY DAYS"],
+            payMonth: employeeTds["PAY Month (YYYY-MM)"],
             empCode: employeeTds["Employee ID"],
           };
-          const { error } = await validator.lopValidateSchama.validate(
-            lopDeductions
+          const { error } = await validator.gratuityValidateSchama.validate(
+            gratuityOverrides
           );
           if (error) {
             errorArray.push({
               index: errorArray.length + 1,
               error: error.details[0].message,
-              employeeID: lopDeductions.empCode,
+              employeeID: gratuityOverrides.empCode,
             });
             // return respHelper(res, {
             //   status: 400,
             //   msg: error.details[0],
             // });
           } else {
-            let existTDSDetails = await db.lopDeductions.findOne({
+            let existTDSDetails = await db.gratuityOverrides.findOne({
               where: {
-                empCode: lopDeductions.empCode,
-                lopMonth: lopDeductions.lopMonth,
+                empCode: gratuityOverrides.empCode,
+                payMonth: gratuityOverrides.payMonth,
               },
               raw: true,
             });
             if (existTDSDetails) {
-              lopDeductions["updatedBy"] = req.userData.id;
-              lopDeductions["updatedAt"] = new Date();
+              gratuityOverrides["updatedBy"] = req.userData.id;
+              gratuityOverrides["updatedAt"] = new Date();
 
-              await db.lopDeductions.update(lopDeductions, {
+              await db.gratuityOverrides.update(gratuityOverrides, {
                 where: {
-                  EmployeeId: lopDeductions.EmployeeId,
-                  lopMonth: lopDeductions.lopMonth,
-                  empCode: lopDeductions.empCode,
+                  EmployeeId: gratuityOverrides.EmployeeId,
+                  payMonth: gratuityOverrides.payMonth,
+                  empCode: gratuityOverrides.empCode,
                 },
               });
-              lopDeductions["ACTION_TYPE"] = "UPDATE";
+              gratuityOverrides["ACTION_TYPE"] = "UPDATE";
             } else {
-              lopDeductions["createdBy"] = req.userData.id;
-              lopDeductions["createdAt"] = new Date();
-              await db.lopDeductions.create(lopDeductions);
-              lopDeductions["ACTION_TYPE"] = "CREATE";
+              gratuityOverrides["createdBy"] = req.userData.id;
+              gratuityOverrides["createdAt"] = new Date();
+              await db.gratuityOverrides.create(gratuityOverrides);
+              gratuityOverrides["ACTION_TYPE"] = "CREATE";
             }
-            successArray.push(lopDeductions);
+            successArray.push(gratuityOverrides);
           }
         }
       }
@@ -198,7 +196,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
-        msg: "Lop Uploaded Successfully.",
+        msg: "Gratuity Uploaded Successfully.",
       });
     } catch (error) {
       console.log(error);
@@ -206,9 +204,9 @@ class PaymentController {
         status: 500,
       });
     }
-  }  
+  }
   
-  async lopUpload(req, res) {
+  async uploadGratuity(req, res) {
     try {
       if (!req.file) {
         return respHelper(res, {
@@ -219,20 +217,20 @@ class PaymentController {
       ///////////////If File is provided by the users//////////////////
       const workbookEmployee = pkg.readFile(req.file.path);
       const sheetNameEmployee = workbookEmployee.SheetNames[0];
-      var lopDetails = pkg.utils.sheet_to_json(
+      var gratuityDetails = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
       var errorArray = [],
         successArray = [];
 
-      if (!lopDetails[0]["Employee ID"]) {
+      if (!gratuityDetails[0]["Employee ID"]) {
         return respHelper(res, {
           status: 400,
           msg: "Invalid File Format",
         });
       }
 
-      for (const employeeTds of lopDetails) {
+      for (const employeeTds of gratuityDetails) {
         if (employeeTds["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
             where: { empCode: employeeTds["Employee ID"], isActive: 1 },
@@ -244,52 +242,52 @@ class PaymentController {
             continue;
           }
 
-          let lopDeductions = {
+          let gratuityOverrides = {
             EmployeeId: employeeDetais.id,
-            lopDays: employeeTds["LOP DAYS"],
-            lopMonth: employeeTds["LOP Month (YYYY-MM)"],
+            gratuityDays: employeeTds["GRATUITY DAYS"],
+            payMonth: employeeTds["PAY Month (YYYY-MM)"],
             empCode: employeeTds["Employee ID"],
           };
-          const { error } = await validator.lopValidateSchama.validate(
-            lopDeductions
+          const { error } = await validator.gratuityValidateSchama.validate(
+            gratuityOverrides
           );
           if (error) {
             errorArray.push({
               index: errorArray.length + 1,
               error: error.details[0].message,
-              employeeID: lopDeductions.empCode,
+              employeeID: gratuityOverrides.empCode,
             });
             // return respHelper(res, {
             //   status: 400,
             //   msg: error.details[0],
             // });
           } else {
-            let existTDSDetails = await db.lopDeductions.findOne({
+            let existTDSDetails = await db.gratuityOverrides.findOne({
               where: {
-                empCode: lopDeductions.empCode,
-                lopMonth: lopDeductions.lopMonth,
+                empCode: gratuityOverrides.empCode,
+                payMonth: gratuityOverrides.payMonth,
               },
               raw: true,
             });
             if (existTDSDetails) {
-              lopDeductions["updatedBy"] = req.userData.id;
-              lopDeductions["updatedAt"] = new Date();
+              gratuityOverrides["updatedBy"] = req.userData.id;
+              gratuityOverrides["updatedAt"] = new Date();
 
-              await db.lopDeductions.update(lopDeductions, {
+              await db.gratuityOverrides.update(gratuityOverrides, {
                 where: {
-                  EmployeeId: lopDeductions.EmployeeId,
-                  lopMonth: lopDeductions.lopMonth,
-                  empCode: lopDeductions.empCode,
+                  EmployeeId: gratuityOverrides.EmployeeId,
+                  payMonth: gratuityOverrides.payMonth,
+                  empCode: gratuityOverrides.empCode,
                 },
               });
-              lopDeductions["ACTION_TYPE"] = "UPDATE";
+              gratuityOverrides["ACTION_TYPE"] = "UPDATE";
             } else {
-              lopDeductions["createdBy"] = req.userData.id;
-              lopDeductions["createdAt"] = new Date();
-              await db.lopDeductions.create(lopDeductions);
-              lopDeductions["ACTION_TYPE"] = "CREATE";
+              gratuityOverrides["createdBy"] = req.userData.id;
+              gratuityOverrides["createdAt"] = new Date();
+              await db.gratuityOverrides.create(gratuityOverrides);
+              gratuityOverrides["ACTION_TYPE"] = "CREATE";
             }
-            successArray.push(lopDeductions);
+            successArray.push(gratuityOverrides);
           }
         }
       }
@@ -297,7 +295,7 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
-        msg: "Lop Uploaded Successfully.",
+        msg: "Gratuity Uploaded Successfully.",
       });
     } catch (error) {
       console.log(error);
@@ -306,7 +304,6 @@ class PaymentController {
       });
     }
   }
-
 
   // End by jay
 }

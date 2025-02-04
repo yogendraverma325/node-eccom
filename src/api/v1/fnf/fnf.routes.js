@@ -7,8 +7,11 @@ export default Express
     .Router()
     .post("/employeesCountsForFnfProcess",authentication.authenticate,fnfController.employeesCountForProcess)
     .get("/employeesListForFnfProcessing",authentication.authenticate,fnfController.employeesListForFnfProcessing)
-    .post("/uploadGratutiy",authentication.authenticate,fnfController.uploadGratuity)
-    ;
+
+    // upload excel sheet routes
+    .post("/uploadGratutiy", upload.single('excelFile'), authentication.authenticate, fnfController.uploadGratuity)
+    // .post("/uploadLeaveEncashment", upload.single('excelFile'), authentication.authenticate, fnfController.leaveEncashment)
+
 
 
 
