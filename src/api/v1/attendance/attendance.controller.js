@@ -2430,9 +2430,8 @@ class AttendanceController {
 		let presentStatus = null;
 
 		if (
-			(singleEmp?.attendancemaster?.weekOffMaster &&
-				singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters
-					.length > 0) ||
+			(singleEmp?.weekOffMaster &&
+				singleEmp?.weekOffMaster?.weekOffDayMappingMasters.length > 0) ||
 			(singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster &&
 				singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
@@ -2596,8 +2595,8 @@ class AttendanceController {
 										singleEmp.attendancemaster.attendancePunchOutTime,
 									weekOffId: singleEmp.attendanceroster
 										? singleEmp.attendanceroster.weekOffId
-										: singleEmp?.attendancemaster?.weekOffMaster
-											? singleEmp?.attendancemaster?.weekOffMaster?.weekOffId
+										: singleEmp?.weekOffMaster
+											? singleEmp?.weekOffMaster?.weekOffId
 											: 0,
 								},
 								"id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
@@ -2648,8 +2647,7 @@ class AttendanceController {
 									.weekOffDayMappingMasters.length != 0
 									? singleEmp.attendanceroster.weekOffMaster
 											.weekOffDayMappingMasters
-									: singleEmp?.attendancemaster?.weekOffMaster
-											?.weekOffDayMappingMasters,
+									: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
 						};
 						await helper.creditCompoff(employeeData);
 					}
@@ -2872,9 +2870,8 @@ class AttendanceController {
 
 		if (
 			(singleEmp.attendancemaster &&
-				singleEmp?.attendancemaster?.weekOffMaster &&
-				singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters >
-					0) ||
+				singleEmp?.weekOffMaster &&
+				singleEmp?.weekOffMaster?.weekOffDayMappingMasters.length > 0) ||
 			(singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster &&
 				singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
@@ -3000,9 +2997,8 @@ class AttendanceController {
 
 					if (
 						markHalfDay != null &&
-						singleEmp.attendancemaster.weekOffMaster &&
-						singleEmp.attendancemaster.weekOffMaster.weekOffDayMappingMasters
-							.length == 0 &&
+						singleEmp.weekOffMaster &&
+						singleEmp.weekOffMaster.weekOffDayMappingMasters.length == 0 &&
 						!singleEmp.attendanceroster &&
 						singleEmp.holidaycompanylocationconfigurations &&
 						singleEmp.holidaycompanylocationconfigurations.length == 0
@@ -3037,8 +3033,8 @@ class AttendanceController {
 										singleEmp.attendancemaster.attendancePunchOutTime,
 									weekOffId: singleEmp.attendanceroster
 										? singleEmp.attendanceroster.weekOffId
-										: singleEmp.attendancemaster.weekOffMaster
-											? singleEmp.attendancemaster.weekOffMaster.weekOffId
+										: singleEmp.weekOffMaster
+											? singleEmp.weekOffMaster.weekOffId
 											: 0,
 								},
 								"id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
@@ -3091,8 +3087,7 @@ class AttendanceController {
 								.length != 0
 								? singleEmp.attendanceroster.weekOffMaster
 										.weekOffDayMappingMasters
-								: singleEmp?.attendancemaster?.weekOffMaster
-										?.weekOffDayMappingMasters,
+								: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
 					};
 					await helper.creditCompoff(employeeData);
 				}
@@ -3197,7 +3192,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1
+					isActive: 1,
 				},
 			});
 			let nightwala = 0;
