@@ -10,17 +10,9 @@ export default Express
 
     // upload excel sheet routes
     .post("/uploadGratutiy", upload.single('excelFile'), authentication.authenticate, fnfController.uploadGratuity)
-    // .post("/uploadLeaveEncashment", upload.single('excelFile'), authentication.authenticate, fnfController.leaveEncashment)
-
-
-
-
-
-
-
-
-
-    
-
+    .post("/uploadLeaveEncashment", upload.single('excelFile'), authentication.authenticate, fnfController.uploadLeaveEncashment)
+    .post("/uploadPT", upload.single('excelFile'), authentication.authenticate, fnfController.uploadPT)
+    .post("/uploadLWF", upload.single('excelFile'), authentication.authenticate, fnfController.uploadLWF)
+    .post("/uploadNoticeRecover", upload.single('excelFile'), authentication.authenticate, fnfController.uploadNoticeRecovery)
 
 

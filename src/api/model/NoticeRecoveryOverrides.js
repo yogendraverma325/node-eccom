@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
       recoveryDays: {
         type: Sequelize.DECIMAL,
       },
+      empCode: {
+        type: Sequelize.STRING
+      },
       createdBy: {
         type: Sequelize.INTEGER,
         default: null,

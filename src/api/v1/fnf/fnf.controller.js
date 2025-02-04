@@ -163,14 +163,14 @@ class PaymentController {
             //   msg: error.details[0],
             // });
           } else {
-            let existTDSDetails = await db.gratuityOverrides.findOne({
+            let existDetails = await db.gratuityOverrides.findOne({
               where: {
                 empCode: gratuityOverrides.empCode,
                 payMonth: gratuityOverrides.payMonth,
               },
               raw: true,
             });
-            if (existTDSDetails) {
+            if (existDetails) {
               gratuityOverrides["updatedBy"] = req.userData.id;
               gratuityOverrides["updatedAt"] = new Date();
 
@@ -206,7 +206,7 @@ class PaymentController {
     }
   }
   
-  async uploadGratuity(req, res) {
+  async uploadLeaveEncashment(req, res) {
     try {
       if (!req.file) {
         return respHelper(res, {
@@ -217,20 +217,20 @@ class PaymentController {
       ///////////////If File is provided by the users//////////////////
       const workbookEmployee = pkg.readFile(req.file.path);
       const sheetNameEmployee = workbookEmployee.SheetNames[0];
-      var gratuityDetails = pkg.utils.sheet_to_json(
+      var jsonArr = pkg.utils.sheet_to_json(
         workbookEmployee.Sheets[sheetNameEmployee]
       );
       var errorArray = [],
         successArray = [];
 
-      if (!gratuityDetails[0]["Employee ID"]) {
+      if (!jsonArr[0]["Employee ID"]) {
         return respHelper(res, {
           status: 400,
           msg: "Invalid File Format",
         });
       }
 
-      for (const employeeTds of gratuityDetails) {
+      for (const employeeTds of jsonArr) {
         if (employeeTds["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
             where: { empCode: employeeTds["Employee ID"], isActive: 1 },
@@ -242,52 +242,52 @@ class PaymentController {
             continue;
           }
 
-          let gratuityOverrides = {
+          let obj = {
             EmployeeId: employeeDetais.id,
-            gratuityDays: employeeTds["GRATUITY DAYS"],
+            leaveEncashmentDays: employeeTds["LEAVE ENCASHMENT DAYS"],
             payMonth: employeeTds["PAY Month (YYYY-MM)"],
             empCode: employeeTds["Employee ID"],
           };
-          const { error } = await validator.gratuityValidateSchama.validate(
-            gratuityOverrides
+          const { error } = await validator.leaveEncashmentValidateSchama.validate(
+            obj
           );
           if (error) {
             errorArray.push({
               index: errorArray.length + 1,
               error: error.details[0].message,
-              employeeID: gratuityOverrides.empCode,
+              employeeID: obj.empCode,
             });
             // return respHelper(res, {
             //   status: 400,
             //   msg: error.details[0],
             // });
           } else {
-            let existTDSDetails = await db.gratuityOverrides.findOne({
+            let existDetails = await db.leaveEncashmentOverrides.findOne({
               where: {
-                empCode: gratuityOverrides.empCode,
-                payMonth: gratuityOverrides.payMonth,
+                empCode: obj.empCode,
+                payMonth: obj.payMonth,
               },
               raw: true,
             });
-            if (existTDSDetails) {
-              gratuityOverrides["updatedBy"] = req.userData.id;
-              gratuityOverrides["updatedAt"] = new Date();
+            if (existDetails) {
+              obj["updatedBy"] = req.userData.id;
+              obj["updatedAt"] = new Date();
 
-              await db.gratuityOverrides.update(gratuityOverrides, {
+              await db.leaveEncashmentOverrides.update(obj, {
                 where: {
-                  EmployeeId: gratuityOverrides.EmployeeId,
-                  payMonth: gratuityOverrides.payMonth,
-                  empCode: gratuityOverrides.empCode,
+                  EmployeeId: obj.EmployeeId,
+                  payMonth: obj.payMonth,
+                  empCode: obj.empCode,
                 },
               });
-              gratuityOverrides["ACTION_TYPE"] = "UPDATE";
+              obj["ACTION_TYPE"] = "UPDATE";
             } else {
-              gratuityOverrides["createdBy"] = req.userData.id;
-              gratuityOverrides["createdAt"] = new Date();
-              await db.gratuityOverrides.create(gratuityOverrides);
-              gratuityOverrides["ACTION_TYPE"] = "CREATE";
+              obj["createdBy"] = req.userData.id;
+              obj["createdAt"] = new Date();
+              await db.leaveEncashmentOverrides.create(obj);
+              obj["ACTION_TYPE"] = "CREATE";
             }
-            successArray.push(gratuityOverrides);
+            successArray.push(obj);
           }
         }
       }
@@ -295,7 +295,304 @@ class PaymentController {
       return respHelper(res, {
         status: 200,
         data: { errorArray, successArray },
-        msg: "Gratuity Uploaded Successfully.",
+        msg: "Leave Encashment Uploaded Successfully.",
+      });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async uploadPT(req, res) {
+    try {
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      }
+      ///////////////If File is provided by the users//////////////////
+      const workbookEmployee = pkg.readFile(req.file.path);
+      const sheetNameEmployee = workbookEmployee.SheetNames[0];
+      var jsonArr = pkg.utils.sheet_to_json(
+        workbookEmployee.Sheets[sheetNameEmployee]
+      );
+      var errorArray = [],
+        successArray = [];
+
+      if (!jsonArr[0]["Employee ID"]) {
+        return respHelper(res, {
+          status: 400,
+          msg: "Invalid File Format",
+        });
+      }
+
+      for (const employeeTds of jsonArr) {
+        if (employeeTds["Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+            raw: true,
+            attributes: ["empCode", "id"],
+          });
+
+          if (!employeeDetais) {
+            continue;
+          }
+
+          let obj = {
+            EmployeeId: employeeDetais.id,
+            ptAmount: employeeTds["PT AMOUNT"],
+            ptMonth: employeeTds["PT Month (YYYY-MM)"],
+            empCode: employeeTds["Employee ID"],
+          };
+          const { error } = await validator.ptValidateSchama.validate(
+            obj
+          );
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              error: error.details[0].message,
+              employeeID: obj.empCode,
+            });
+            // return respHelper(res, {
+            //   status: 400,
+            //   msg: error.details[0],
+            // });
+          } else {
+            let existDetails = await db.PTOverrides.findOne({
+              where: {
+                empCode: obj.empCode,
+                ptMonth: obj.ptMonth,
+              },
+              raw: true,
+            });
+            if (existDetails) {
+              obj["updatedBy"] = req.userData.id;
+              obj["updatedAt"] = new Date();
+
+              await db.PTOverrides.update(obj, {
+                where: {
+                  EmployeeId: obj.EmployeeId,
+                  ptMonth: obj.ptMonth,
+                  empCode: obj.empCode,
+                },
+              });
+              obj["ACTION_TYPE"] = "UPDATE";
+            } else {
+              obj["createdBy"] = req.userData.id;
+              obj["createdAt"] = new Date();
+              await db.PTOverrides.create(obj);
+              obj["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(obj);
+          }
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: { errorArray, successArray },
+        msg: "Leave Encashment Uploaded Successfully.",
+      });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async uploadLWF(req, res) {
+    try {
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      }
+      ///////////////If File is provided by the users//////////////////
+      const workbookEmployee = pkg.readFile(req.file.path);
+      const sheetNameEmployee = workbookEmployee.SheetNames[0];
+      var jsonArr = pkg.utils.sheet_to_json(
+        workbookEmployee.Sheets[sheetNameEmployee]
+      );
+      var errorArray = [],
+        successArray = [];
+
+      if (!jsonArr[0]["Employee ID"]) {
+        return respHelper(res, {
+          status: 400,
+          msg: "Invalid File Format",
+        });
+      }
+
+      for (const employeeTds of jsonArr) {
+        if (employeeTds["Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+            raw: true,
+            attributes: ["empCode", "id"],
+          });
+
+          if (!employeeDetais) {
+            continue;
+          }
+
+          let obj = {
+            EmployeeId: employeeDetais.id,
+            lwfAmount: employeeTds["LWF AMOUNT"],
+            lwfMonth: employeeTds["LWF Month (YYYY-MM)"],
+            empCode: employeeTds["Employee ID"],
+          };
+          const { error } = await validator.lwfValidateSchama.validate(
+            obj
+          );
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              error: error.details[0].message,
+              employeeID: obj.empCode,
+            });
+            // return respHelper(res, {
+            //   status: 400,
+            //   msg: error.details[0],
+            // });
+          } else {
+            let existDetails = await db.LWFOverrides.findOne({
+              where: {
+                empCode: obj.empCode,
+                lwfMonth: obj.lwfMonth,
+              },
+              raw: true,
+            });
+            if (existDetails) {
+              obj["updatedBy"] = req.userData.id;
+              obj["updatedAt"] = new Date();
+
+              await db.LWFOverrides.update(obj, {
+                where: {
+                  EmployeeId: obj.EmployeeId,
+                  lwfMonth: obj.lwfMonth,
+                  empCode: obj.empCode,
+                },
+              });
+              obj["ACTION_TYPE"] = "UPDATE";
+            } else {
+              obj["createdBy"] = req.userData.id;
+              obj["createdAt"] = new Date();
+              await db.LWFOverrides.create(obj);
+              obj["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(obj);
+          }
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: { errorArray, successArray },
+        msg: "LWF Uploaded Successfully.",
+      });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
+  async uploadNoticeRecovery(req, res) {
+    try {
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      }
+      ///////////////If File is provided by the users//////////////////
+      const workbookEmployee = pkg.readFile(req.file.path);
+      const sheetNameEmployee = workbookEmployee.SheetNames[0];
+      var jsonArr = pkg.utils.sheet_to_json(
+        workbookEmployee.Sheets[sheetNameEmployee]
+      );
+      var errorArray = [],
+        successArray = [];
+
+      if (!jsonArr[0]["Employee ID"]) {
+        return respHelper(res, {
+          status: 400,
+          msg: "Invalid File Format",
+        });
+      }
+
+      for (const employeeTds of jsonArr) {
+        if (employeeTds["Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+            raw: true,
+            attributes: ["empCode", "id"],
+          });
+
+          if (!employeeDetais) {
+            continue;
+          }
+
+          let obj = {
+            EmployeeId: employeeDetais.id,
+            recoveryDays: employeeTds["RECOVERY DAYS"],
+            payMonth: employeeTds["PAY Month (YYYY-MM)"],
+            empCode: employeeTds["Employee ID"],
+          };
+          const { error } = await validator.noticeRecoveryValidateSchama.validate(
+            obj
+          );
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              error: error.details[0].message,
+              employeeID: obj.empCode,
+            });
+            // return respHelper(res, {
+            //   status: 400,
+            //   msg: error.details[0],
+            // });
+          } else {
+            let existDetails = await db.noticeRecoveryOverrides.findOne({
+              where: {
+                empCode: obj.empCode,
+                payMonth: obj.payMonth,
+              },
+              raw: true,
+            });
+            if (existDetails) {
+              obj["updatedBy"] = req.userData.id;
+              obj["updatedAt"] = new Date();
+
+              await db.noticeRecoveryOverrides.update(obj, {
+                where: {
+                  EmployeeId: obj.EmployeeId,
+                  payMonth: obj.payMonth,
+                  empCode: obj.empCode,
+                },
+              });
+              obj["ACTION_TYPE"] = "UPDATE";
+            } else {
+              obj["createdBy"] = req.userData.id;
+              obj["createdAt"] = new Date();
+              await db.noticeRecoveryOverrides.create(obj);
+              obj["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(obj);
+          }
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: { errorArray, successArray },
+        msg: "Notice Recovery Uploaded Successfully.",
       });
     } catch (error) {
       console.log(error);

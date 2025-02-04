@@ -1582,6 +1582,70 @@ const gratuityValidateSchama = Joi.object({
   .label("Employee Code"),
 });
 
+const leaveEncashmentValidateSchama = Joi.object({
+  gratuityAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+  EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+  payMonth: Joi.string().max(255).required(),
+  leaveEncashmentDays: Joi.number().precision(2).positive().required().label("Leave Encashment Days"), // Leave days must be non-negative.
+  createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+  updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+  isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+});
+
+const ptValidateSchama = Joi.object({
+  ptDeductionAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+  EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+  ptMonth: Joi.string().max(255).required(),
+  ptAmount: Joi.number().precision(2).positive().required().label("PT Amount"), // Leave days must be non-negative.
+  createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+  updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+  isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+});
+
+const lwfValidateSchama = Joi.object({
+  lwfDeductionAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+  EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+  lwfMonth: Joi.string().max(255).required(),
+  lwfAmount: Joi.number().precision(2).positive().required().label("LWF Amount"), // Leave days must be non-negative.
+  createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+  updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+  isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+});
+
+const noticeRecoveryValidateSchama = Joi.object({
+  recoveryDaysAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+  EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+  payMonth: Joi.string().max(255).required(),
+  recoveryDays: Joi.number().precision(2).positive().required().label("Recovery Days"), // Leave days must be non-negative.
+  createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+  updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+  updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+  isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+  empCode: Joi.alternatives()
+  .try(Joi.string(), Joi.number().integer())
+  .required()
+  .label("Employee Code"),
+});
+
 export default {
   loginSchema,
   userCreationSchema,
@@ -1657,5 +1721,10 @@ export default {
   extraDeductionFormSchema,
   extraPaymentFormSchema,
   generatePaySlipSchema,
-  gratuityValidateSchama
+  // F&F
+  gratuityValidateSchama,
+  leaveEncashmentValidateSchama,
+  ptValidateSchama,
+  lwfValidateSchama,
+  noticeRecoveryValidateSchama
 };
