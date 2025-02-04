@@ -4,7 +4,7 @@ import path from "path";
 import moment from "moment";
 import db from "../config/db.config.js";
 import sendGrid from "@sendgrid/mail";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";

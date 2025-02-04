@@ -77,7 +77,6 @@ class PaymentController {
     }
   }
 
-
   async employeesListForFnfProcessing(req, res) {
     try {
       let { companyId ,year,month} = req.query;
@@ -109,7 +108,6 @@ class PaymentController {
       });
     }
   }
-
 
   async uploadGratuity(req, res) {
     try {
@@ -149,7 +147,7 @@ class PaymentController {
 
           let lopDeductions = {
             EmployeeId: employeeDetais.id,
-            lopDays: employeeTds["LOP DAYS"],
+            lopDays: employeeTds["GRATUITY DAYS"],
             lopMonth: employeeTds["LOP Month (YYYY-MM)"],
             empCode: employeeTds["Employee ID"],
           };
@@ -208,7 +206,9 @@ class PaymentController {
         status: 500,
       });
     }
-  }  async lopUpload(req, res) {
+  }  
+  
+  async lopUpload(req, res) {
     try {
       if (!req.file) {
         return respHelper(res, {
