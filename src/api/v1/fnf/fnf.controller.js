@@ -611,8 +611,8 @@ class PaymentController {
       }   
       let ids = value.departmentId.split(",");
 
-      let allEmployeeQuery = await paymentHelper.query(
-        value.departmentId == 0 ? 25 : 19,
+      let allEmployeeQuery = await fnfHelper.query(
+        value.departmentId == 0 ? 6 : 5,
         value.processingType,
         {
           departmentId: ids,
@@ -630,9 +630,60 @@ class PaymentController {
 
       var totalGratuityDays = 0,
           uniqueEmployeeImpacted = 0;
-      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from tara.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = ${value.paymonth} GROUP BY EmployeeId, empCode;`;
+      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from tara.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
       
       let gratuities = await db.sequelize.query(allGratuityQuery);
+
+      for(const singleEmployee of gratuities[0]) {
+        totalGratuityDays += parseFloat(singleEmployee.gratuityDays || 0);
+        uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
+      }
+
+      return respHelper(res, { status: 200, 
+        data: {
+          impactedEmployee: uniqueEmployeeImpacted,
+          gratuityDays: totalGratuityDays.toFixed(2),
+          impactedEmployeeDetails: gratuities[0] 
+        }
+      })
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, { status: 500 });
+    }
+  }
+
+  async leaveEncashmentSyncing(req, res) {
+    try {
+      const { error, value } = validator.employeesForPayrollProcess.validate(req.body);
+      if(error) {
+        return respHelper(res, { status: 400, msg: error.details[0] });
+      }   
+      let ids = value.departmentId.split(",");
+
+      let allEmployeeQuery = await fnfHelper.query(
+        value.departmentId == 0 ? 6 : 5,
+        value.processingType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId
+        }
+      );
+
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if(result[0].length == 0) {
+        return respHelper(res, { status: 400, msg: "No data to progress.", data: [] });
+      }
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
+
+      var totalGratuityDays = 0,
+          uniqueEmployeeImpacted = 0;
+      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from tara.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      
+      let gratuities = await db.sequelize.query(allGratuityQuery);
+
       for(const singleEmployee of gratuities[0]) {
         totalGratuityDays += parseFloat(singleEmployee.gratuityDays || 0);
         uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
