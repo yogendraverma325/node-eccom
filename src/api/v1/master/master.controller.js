@@ -160,8 +160,8 @@ class MasterController {
 					searchCondition,
 					!Number.isNaN(status)
 						? {
-								isActive: status,
-							}
+							isActive: status,
+						}
 						: {},
 				),
 				attributes: [
@@ -274,13 +274,13 @@ class MasterController {
 				where: Object.assign(
 					manager
 						? {
-								id: manager,
-								isActive: 1,
-							}
+							id: manager,
+							isActive: 1,
+						}
 						: {
-								manager: null,
-								isActive: 1,
-							},
+							manager: null,
+							isActive: 1,
+						},
 				),
 				attributes: { exclude: ["password", "role_id", "designation_id"] },
 				include: [
@@ -477,6 +477,7 @@ class MasterController {
 				data: buData,
 			});
 		} catch (error) {
+			console.log(error)
 			return respHelper(res, {
 				status: 500,
 			});
@@ -671,23 +672,23 @@ class MasterController {
 				where: Object.assign(
 					stateCode
 						? {
-								stateCode,
-							}
+							stateCode,
+						}
 						: {},
 					stateName
 						? {
-								stateName,
-							}
+							stateName,
+						}
 						: {},
 					countryId
 						? {
-								countryId,
-							}
+							countryId,
+						}
 						: {},
 					regionId
 						? {
-								regionId,
-							}
+							regionId,
+						}
 						: {},
 				),
 			});
@@ -717,8 +718,8 @@ class MasterController {
 				where: Object.assign(
 					countryId
 						? {
-								countryId,
-							}
+							countryId,
+						}
 						: {},
 				),
 			});
@@ -748,8 +749,8 @@ class MasterController {
 				where: Object.assign(
 					stateId
 						? {
-								stateId,
-							}
+							stateId,
+						}
 						: {},
 				),
 			});
@@ -924,72 +925,72 @@ class MasterController {
 	// 		});
 	// 	}
 	// }
-		async department(req, res) {
+	async department(req, res) {
 		try {
-		 let getDepartmentIds = []
-		 let pemissionAccessIds = []
-		 if(req.userData.role_id == 4){
-		const buPermissionIds = await db.employeeMaster.findOne({
-			attributes:["permissionAndAccess"],
-			where: { id:req.userData.id} 
-		  })
-		if(buPermissionIds){
-		 if(buPermissionIds.dataValues.permissionAndAccess){
-			let ids = buPermissionIds.dataValues.permissionAndAccess.split(",")
-			 pemissionAccessIds = await db.permissoinandaccess.findAll({
-			attributes:["permissoinandaccessId","permissionType","permissionValue"],
-			where:{permissoinandaccessId:ids}
-		  })
-		 }
-		   const buIds = pemissionAccessIds.map((e)=>e.dataValues.permissionValue)
-			 const getBuMappingId = await db.buMapping.findAll({
-			attributes:["buMappingId"],
-			where:{buId:{[Op.in]:buIds}}
-		  })
-		  if(getBuMappingId.length > 0){
-			const buMappingIds= getBuMappingId.map((e)=>e.dataValues.buMappingId)
-	
-			const getSbuMappingId = await db.sbuMapping.findAll({attributes:['sbuMappingId'],where:{buMappingId:{[Op.in]:buMappingIds}}})
-			if(getSbuMappingId.length > 0) {
-			   const sbuMappingIds = getSbuMappingId.map((e)=>e.dataValues.sbuMappingId)
-			   getDepartmentIds = await db.departmentMapping.findAll({where:{sbuMappingId:{[Op.in]:sbuMappingIds}}})
-			}
-		  }
-		}
-	 }
-	
-	   const departmentIds = getDepartmentIds.map((e)=>e.dataValues.departmentId)
+			let getDepartmentIds = []
+			let pemissionAccessIds = []
+			if (req.userData.role_id == 4) {
+				const buPermissionIds = await db.employeeMaster.findOne({
+					attributes: ["permissionAndAccess"],
+					where: { id: req.userData.id }
+				})
+				if (buPermissionIds) {
+					if (buPermissionIds.dataValues.permissionAndAccess) {
+						let ids = buPermissionIds.dataValues.permissionAndAccess.split(",")
+						pemissionAccessIds = await db.permissoinandaccess.findAll({
+							attributes: ["permissoinandaccessId", "permissionType", "permissionValue"],
+							where: { permissoinandaccessId: ids }
+						})
+					}
+					const buIds = pemissionAccessIds.map((e) => e.dataValues.permissionValue)
+					const getBuMappingId = await db.buMapping.findAll({
+						attributes: ["buMappingId"],
+						where: { buId: { [Op.in]: buIds } }
+					})
+					if (getBuMappingId.length > 0) {
+						const buMappingIds = getBuMappingId.map((e) => e.dataValues.buMappingId)
 
-	   if (req.userData.role_id == 4 && departmentIds.length === 0) {
-		return respHelper(res, {
-		  status: 200,
-		  data: [],
-		});
-	  }	   
-		const departmentData = await db.departmentMapping.findAll({
-			include: [
-			  {
-				model: db.departmentMaster,
-				attributes: ["departmentId", "departmentName", "departmentCode"],
-				where:{
-				  //departmentId:{[Op.in]:departmentIds},
-				...(departmentIds.length > 0  && req.userData.role_id == 4 && { departmentId:{[Op.in]:departmentIds}})
+						const getSbuMappingId = await db.sbuMapping.findAll({ attributes: ['sbuMappingId'], where: { buMappingId: { [Op.in]: buMappingIds } } })
+						if (getSbuMappingId.length > 0) {
+							const sbuMappingIds = getSbuMappingId.map((e) => e.dataValues.sbuMappingId)
+							getDepartmentIds = await db.departmentMapping.findAll({ where: { sbuMappingId: { [Op.in]: sbuMappingIds } } })
+						}
+					}
 				}
-			  },
-			],
-		  });
-	
-		  return respHelper(res, {
-			status: 200,
-			data: departmentData,
-		  });
+			}
+
+			const departmentIds = getDepartmentIds.map((e) => e.dataValues.departmentId)
+
+			if (req.userData.role_id == 4 && departmentIds.length === 0) {
+				return respHelper(res, {
+					status: 200,
+					data: [],
+				});
+			}
+			const departmentData = await db.departmentMapping.findAll({
+				include: [
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentId", "departmentName", "departmentCode"],
+						where: {
+							//departmentId:{[Op.in]:departmentIds},
+							...(departmentIds.length > 0 && req.userData.role_id == 4 && { departmentId: { [Op.in]: departmentIds } })
+						}
+					},
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: departmentData,
+			});
 		} catch (error) {
-		  console.log("error>>>",error)
-		  return respHelper(res, {
-			status: 500,
-		  });
+			console.log("error>>>", error)
+			return respHelper(res, {
+				status: 500,
+			});
 		}
-	  }
+	}
 
 	async district(req, res) {
 		try {
@@ -1157,27 +1158,27 @@ class MasterController {
 							: [["webPosition", "asc"]],
 						attributes: mobile
 							? [
-									"cardId",
-									"cardName",
-									"mobileUrl",
-									"isCardWorking",
-									"mobileLightFontColor",
-									"mobileIcon",
-									"mobileLightBackgroundColor",
-									"mobilePosition",
-									"mobileDarkFontColor",
-									"mobileDarkBackgroundColor",
-								]
+								"cardId",
+								"cardName",
+								"mobileUrl",
+								"isCardWorking",
+								"mobileLightFontColor",
+								"mobileIcon",
+								"mobileLightBackgroundColor",
+								"mobilePosition",
+								"mobileDarkFontColor",
+								"mobileDarkBackgroundColor",
+							]
 							: [
-									"cardId",
-									"cardName",
-									"isCardWorking",
-									"webUrl",
-									"webFontColor",
-									"webBackgroundColor",
-									"webIcon",
-									"webPosition",
-								],
+								"cardId",
+								"cardName",
+								"isCardWorking",
+								"webUrl",
+								"webFontColor",
+								"webBackgroundColor",
+								"webIcon",
+								"webPosition",
+							],
 					});
 
 					const dashboardJson = JSON.stringify(dashboardData);
@@ -1480,9 +1481,9 @@ class MasterController {
 					: query,
 				attributes: queryFormat
 					? [
-							["probationId", "value"],
-							["probationName", "label"],
-						]
+						["probationId", "value"],
+						["probationName", "label"],
+					]
 					: ["probationId", "probationName"],
 			});
 
@@ -1520,7 +1521,7 @@ class MasterController {
 
 	async reportModule(req, res) {
 		try {
-			const {} = req.query;
+			const { } = req.query;
 			let query = { isActive: 1 };
 			const reportModule = await db.reportModuleMaster.findAll({
 				where: query,
@@ -1548,7 +1549,7 @@ class MasterController {
 
 	async shiftMaster(req, res) {
 		try {
-			const {} = req.query;
+			const { } = req.query;
 			let query = { isActive: 1 };
 			const reportModule = await db.shiftMaster.findAll({});
 
@@ -2045,10 +2046,10 @@ class MasterController {
 				const maritalStatus = employee.employeebiographicaldetail?.dataValues
 					?.maritalStatus
 					? Object.keys(maritalStatusOptions).find(
-							(key) =>
-								maritalStatusOptions[key] ===
-								employee.employeebiographicaldetail.dataValues.maritalStatus,
-						) || ""
+						(key) =>
+							maritalStatusOptions[key] ===
+							employee.employeebiographicaldetail.dataValues.maritalStatus,
+					) || ""
 					: "";
 				return {
 					employee_id: employee.empCode || "",
@@ -2059,17 +2060,17 @@ class MasterController {
 						employee.designationmaster?.dataValues?.designation_with_code || "",
 					current_address: employee.employeeaddress?.dataValues
 						? [
-								employee.employeeaddress?.dataValues?.currentHouse,
-								employee.employeeaddress?.dataValues?.currentStreet,
-								employee.employeeaddress?.dataValues?.currentLandmark,
-								employee.employeeaddress?.dataValues?.currentcity?.cityName,
-								employee.employeeaddress?.dataValues?.currentstate?.stateName,
-								employee.employeeaddress?.dataValues?.currentcountry
-									?.countryName,
-								employee.employeeaddress?.dataValues?.currentpincode?.pincode,
-							]
-								.filter((item) => item && item !== null && item !== undefined)
-								.join(", ")
+							employee.employeeaddress?.dataValues?.currentHouse,
+							employee.employeeaddress?.dataValues?.currentStreet,
+							employee.employeeaddress?.dataValues?.currentLandmark,
+							employee.employeeaddress?.dataValues?.currentcity?.cityName,
+							employee.employeeaddress?.dataValues?.currentstate?.stateName,
+							employee.employeeaddress?.dataValues?.currentcountry
+								?.countryName,
+							employee.employeeaddress?.dataValues?.currentpincode?.pincode,
+						]
+							.filter((item) => item && item !== null && item !== undefined)
+							.join(", ")
 						: "",
 					current_city:
 						employee.employeeaddress?.dataValues?.currentcity?.cityName,
@@ -2124,17 +2125,17 @@ class MasterController {
 					full_name: employee.name || "",
 					permanent_address: employee.employeeaddress?.dataValues
 						? [
-								employee.employeeaddress?.dataValues?.permanentHouse,
-								employee.employeeaddress?.dataValues?.permanentStreet,
-								employee.employeeaddress?.dataValues?.permanentLandmark,
-								employee.employeeaddress?.dataValues?.permanentcity?.cityName,
-								employee.employeeaddress?.dataValues?.permanentstate?.stateName,
-								employee.employeeaddress?.dataValues?.permanentcountry
-									?.countryName,
-								employee.employeeaddress?.dataValues?.permanentpincode?.pincode,
-							]
-								.filter((item) => item && item !== null && item !== undefined)
-								.join(", ")
+							employee.employeeaddress?.dataValues?.permanentHouse,
+							employee.employeeaddress?.dataValues?.permanentStreet,
+							employee.employeeaddress?.dataValues?.permanentLandmark,
+							employee.employeeaddress?.dataValues?.permanentcity?.cityName,
+							employee.employeeaddress?.dataValues?.permanentstate?.stateName,
+							employee.employeeaddress?.dataValues?.permanentcountry
+								?.countryName,
+							employee.employeeaddress?.dataValues?.permanentpincode?.pincode,
+						]
+							.filter((item) => item && item !== null && item !== undefined)
+							.join(", ")
 						: "",
 					date_of_joining:
 						formatDate(employee.employeejobdetail?.dataValues?.dateOfJoining) ||
@@ -2153,21 +2154,17 @@ class MasterController {
 							?.countryName || "",
 					company_email_id: employee.email || "",
 					personal_email_id: employee.personalEmail || "",
-					base_office_location: `${
-						employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+					base_office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
 							?.cityName || ""
-					}-${
-						employee.companylocationmaster?.dataValues?.statemaster?.dataValues
+						}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues
 							?.stateName || ""
-					}`,
+						}`,
 					location_type: "Head Office",
-					office_location: `${
-						employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+					office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
 							?.cityName || ""
-					}-${
-						employee.companylocationmaster?.dataValues?.statemaster?.dataValues
+						}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues
 							?.stateName || ""
-					}`,
+						}`,
 					education_details: mappedEducationDetails || [],
 					pt_state: "", // Custom field
 					past_work_experience: "", //
@@ -2189,30 +2186,28 @@ class MasterController {
 							?.emergency_contact_country_code || "",
 					emergency_address: employee.employeeaddress?.dataValues
 						? [
-								employee.employeeaddress?.dataValues?.emergencyHouse,
-								employee.employeeaddress?.dataValues?.emergencyStreet,
-								employee.employeeaddress?.dataValues?.emergencyLandmark,
-								employee.employeeaddress?.dataValues?.emergencycity?.dataValues
-									?.cityName,
-								employee.employeeaddress?.dataValues?.emergencystate?.dataValues
-									?.stateName,
-								employee.employeeaddress?.dataValues?.emergencycountry
-									?.dataValues?.countryName,
-								employee.employeeaddress?.dataValues?.emergencypincode
-									?.dataValues?.pincode,
-							]
-								.filter((item) => item && item !== null && item !== undefined)
-								.join(", ")
+							employee.employeeaddress?.dataValues?.emergencyHouse,
+							employee.employeeaddress?.dataValues?.emergencyStreet,
+							employee.employeeaddress?.dataValues?.emergencyLandmark,
+							employee.employeeaddress?.dataValues?.emergencycity?.dataValues
+								?.cityName,
+							employee.employeeaddress?.dataValues?.emergencystate?.dataValues
+								?.stateName,
+							employee.employeeaddress?.dataValues?.emergencycountry
+								?.dataValues?.countryName,
+							employee.employeeaddress?.dataValues?.emergencypincode
+								?.dataValues?.pincode,
+						]
+							.filter((item) => item && item !== null && item !== undefined)
+							.join(", ")
 						: "",
 					//cost_center: `${employee.costcentermaster?.dataValues?.costCenterName || ""} (${employee.costcentermaster?.dataValues?.costCenterCode || ""})`,
 					cost_center:
 						employee.costcentermaster?.dataValues?.costCenterName ||
-						employee.costcentermaster?.dataValues?.costCenterCode
-							? `${
-									employee.costcentermaster?.dataValues?.costCenterName || ""
-								} (${
-									employee.costcentermaster?.dataValues?.costCenterCode || ""
-								})`
+							employee.costcentermaster?.dataValues?.costCenterCode
+							? `${employee.costcentermaster?.dataValues?.costCenterName || ""
+							} (${employee.costcentermaster?.dataValues?.costCenterCode || ""
+							})`
 							: "",
 					salary_stopped: "",
 					vpf_amount: "",
