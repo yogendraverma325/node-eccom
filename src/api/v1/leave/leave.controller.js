@@ -2968,7 +2968,7 @@ class LeaveController {
 				message: "Internal Server Error",
 			});
 		}
-	}
+	} 
 
 	// API to credit leave using cron on particular date
 

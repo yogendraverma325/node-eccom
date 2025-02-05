@@ -77,6 +77,8 @@ class commonController {
 			});
 			await db.biographicalDetails.update(updateObj, {
 				where: { userId: userId },
+				silent: false, // 🔹 Ensure silent mode is off,
+				individualHooks: true // ✅ Ensure hooks trigger properly
 			});
 
 			if (result.salutationId) {
