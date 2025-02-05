@@ -2868,13 +2868,13 @@ class AttendanceController {
 				id: empId,
 			},
 		});
-		console.log("EMPID", empId);
+		console.log("EMPID", empId,"singleEmp",singleEmp);
 
 		let presentStatus = null;
 
 		if (
-			(singleEmp.attendancemaster &&
-				singleEmp?.weekOffMaster &&
+			(
+		    singleEmp?.weekOffMaster &&
 				singleEmp?.weekOffMaster?.weekOffDayMappingMasters.length > 0) ||
 			(singleEmp.attendanceroster &&
 				singleEmp.attendanceroster.weekOffMaster &&
@@ -3196,7 +3196,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1,
+					isActive: 1
 				},
 			});
 			let nightwala = 0;
