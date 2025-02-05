@@ -3444,7 +3444,7 @@ class AttendanceController {
 					let presentStatus = null;
 
 					if (
-						singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters
+						singleEmp?.weekOffMaster.weekOffDayMappingMasters
 							.length > 0 ||
 						(singleEmp.attendanceroster &&
 							singleEmp.attendanceroster.weekOffMaster &&
@@ -3575,8 +3575,8 @@ class AttendanceController {
 
 							if (
 								markHalfDay != null &&
-								singleEmp?.attendancemaster?.weekOffMaster &&
-								singleEmp?.attendancemaster?.weekOffMaster
+								singleEmp?.weekOffMaster &&
+								singleEmp?.weekOffMaster
 									.weekOffDayMappingMasters.length == 0 &&
 								!singleEmp.attendanceroster &&
 								singleEmp.holidaycompanylocationconfigurations &&
@@ -3612,8 +3612,8 @@ class AttendanceController {
 											createdAt: moment(), // Replace with actual creation date
 											weekOffId: singleEmp.attendanceroster
 												? singleEmp.attendanceroster.weekOffId
-												: singleEmp?.attendancemaster?.weekOffMaster
-													? singleEmp?.attendancemaster?.weekOffMaster
+												: singleEmp?.weekOffMaster
+													? singleEmp?.weekOffMaster
 														?.weekOffId
 													: 0,
 											punchInTime:
@@ -3671,7 +3671,7 @@ class AttendanceController {
 												.weekOffDayMappingMasters.length == 0
 											? singleEmp.attendanceroster.weekOffMaster
 												.weekOffDayMappingMasters
-											: singleEmp?.attendancemaster?.weekOffMaster
+											: singleEmp?.weekOffMaster
 												?.weekOffDayMappingMasters,
 								};
 
@@ -4855,7 +4855,7 @@ class AttendanceController {
 					await _this.attedanceCronManual(
 						regularizeData.attendanceAutoId,
 						regularizeData.regularizePunchInDate,
-					);
+					); 
 				} else {
 					await db.attendanceMaster.update(
 						{
