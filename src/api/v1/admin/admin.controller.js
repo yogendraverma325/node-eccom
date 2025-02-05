@@ -922,7 +922,6 @@ class AdminController {
 									},
 								);
 
-
 								let newEmployeeBioDetails = {
 									userId: createdUser.id,
 									nationality: employeeOnboardingDetails.nationality,

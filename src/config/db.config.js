@@ -1490,7 +1490,6 @@ db.lwfMapping.hasOne(db.stateMaster, {
 	sourceKey: "stateId",
 });
 
-
 db.buMaster.hasMany(db.buMapping, {
 	foreignKey: "buId",
 	sourceKey: "buId",
@@ -1532,11 +1531,10 @@ db.stateMaster.hasMany(db.lwfMapping, {
 	sourceKey: "stateId",
 });
 
-
 db.leaveCompanyMapping.hasOne(db.leaveMaster, {
-		foreignKey: "leaveId",
-		sourceKey: "leaveAutoId",
-		as: "companyleaveMasterDetails",
+	foreignKey: "leaveId",
+	sourceKey: "leaveAutoId",
+	as: "companyleaveMasterDetails",
 });
 
 // end by jay
