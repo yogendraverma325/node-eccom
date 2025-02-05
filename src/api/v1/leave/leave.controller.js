@@ -830,9 +830,11 @@ class LeaveController {
 				req.body.leaveAutoId,
 			);
 
+			console.log("monthCount",leaveMasterData?.max_month_count,monthCount)
+
 			if (
 				leaveMasterData?.max_month_count != 0 &&
-				monthCount > leaveMasterData?.max_month_count
+				monthCount >= leaveMasterData?.max_month_count
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -852,7 +854,7 @@ class LeaveController {
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
-				monthCountTo > leaveMasterData?.max_month_count
+				monthCountTo >= leaveMasterData?.max_month_count
 			) {
 				return respHelper(res, {
 					status: 404,
