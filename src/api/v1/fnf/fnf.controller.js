@@ -602,6 +602,41 @@ class PaymentController {
     }
   }
 
+  async gratuitySyncing(req, res) {
+    try {
+      const { error, value } = validator.employeesForPayrollProcess.validate(req.body);
+      if(error) {
+        return respHelper(res, { status: 400, msg: error.details[0] });
+      }   
+      let ids = value.departmentId.split(",");
+
+      let allEmployeeQuery = await paymentHelper.query(
+        value.departmentId == 0 ? 25 : 19,
+        value.processType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId
+        }
+      );
+
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if(result[0].length == 0) {
+        return respHelper(res, { status: 400, msg: "No data to progress.", data: [] });
+      }
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
+
+      var totalPaymentAmount = 0,
+          uniqueEmployeeImpacted = 0;
+      let allGratuityQuery = 'SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, sum'
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, { status: 500 });
+    }
+  }
+
   // End by jay
 }
 
@@ -641,9 +676,5 @@ async function availableEmployeeForProcessing(employeeIds, paymonth) {
     console.log(e);
   }
 }
-
-
-
-
 
 export default new PaymentController();

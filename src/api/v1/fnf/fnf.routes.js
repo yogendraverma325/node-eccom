@@ -15,4 +15,7 @@ export default Express
     .post("/uploadLWF", upload.single('excelFile'), authentication.authenticate, fnfController.uploadLWF)
     .post("/uploadNoticeRecover", upload.single('excelFile'), authentication.authenticate, fnfController.uploadNoticeRecovery)
 
+    // syncing routes
+    .post("/currentMonthGratuitySyncing", authentication.authenticate, fnfController.gratuitySyncing)
+
 
