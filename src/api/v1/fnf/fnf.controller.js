@@ -1,8 +1,9 @@
 import db from "../../../config/db.config.js";
 import respHelper from "../../../helper/respHelper.js";
 import validator from "../../../helper/validator.js";
-import paymentHelper from "./fnfHelper.js";
+import fnfHelper from "./fnfHelper.js";
 import pkg from "xlsx";
+import paymentHelper from "../payments/paymentHelper.js";
 
 class PaymentController {
 
@@ -21,7 +22,7 @@ class PaymentController {
       let ids = value.departmentId.split(",");
       console.log("Department ID :: " + value.departmentId);
 
-      let employeeForProcessingQuery = await paymentHelper.query(
+      let employeeForProcessingQuery = await fnfHelper.query(
         value.departmentId == 0 ? 2 : 1,
         value.processingType,
         {
@@ -612,7 +613,7 @@ class PaymentController {
 
       let allEmployeeQuery = await paymentHelper.query(
         value.departmentId == 0 ? 25 : 19,
-        value.processType,
+        value.processingType,
         {
           departmentId: ids,
           paymonth: value.paymonth,
@@ -627,9 +628,23 @@ class PaymentController {
       const employeeIds = result[0].map((employee) => employee.EmployeeId);
       let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
 
-      var totalPaymentAmount = 0,
+      var totalGratuityDays = 0,
           uniqueEmployeeImpacted = 0;
-      let allGratuityQuery = 'SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, sum'
+      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from tara.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = ${value.paymonth} GROUP BY EmployeeId, empCode;`;
+      
+      let gratuities = await db.sequelize.query(allGratuityQuery);
+      for(const singleEmployee of gratuities[0]) {
+        totalGratuityDays += parseFloat(singleEmployee.gratuityDays || 0);
+        uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
+      }
+
+      return respHelper(res, { status: 200, 
+        data: {
+          impactedEmployee: uniqueEmployeeImpacted,
+          gratuityDays: totalGratuityDays.toFixed(2),
+          impactedEmployeeDetails: gratuities[0] 
+        }
+      })
     }
     catch(error) {
       console.log(error);
@@ -643,12 +658,12 @@ class PaymentController {
 
 async function availableEmployeeForProcessing(employeeIds, paymonth) {
   try {
-    let queryForInProcess = await paymentHelper.query(
+    let queryForInProcess = await fnfHelper.query(
       3,
       employeeIds,
       paymonth
     );
-    let queryForProcessed = await paymentHelper.query(
+    let queryForProcessed = await fnfHelper.query(
       4,
       employeeIds,
       paymonth
