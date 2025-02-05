@@ -938,9 +938,7 @@ class AdminController {
 									createdBy: req.userId,
 									createdAt: moment(),
 								};
-								let empids=[createdUser.id];
-								await helper.leaveAssignEmployeeToAll(empids.join(','));
-
+								
 								const createdUserBioDetails =
 									await db.biographicalDetails.create(newEmployeeBioDetails);
 
@@ -1014,6 +1012,10 @@ class AdminController {
 									const createdUserPaymentDetails =
 										await db.paymentDetails.create(newEmployeePaymentDetails);
 								}
+								let empids=[createdUser.id];
+								console.log("empids",empids)
+								await helper.leaveAssignEmployeeToAll(empids.join(','));
+
 
 								eventEmitter.emit(
 									"onboardingEmployeeMail",
