@@ -2155,13 +2155,13 @@ class MasterController {
 					company_email_id: employee.email || "",
 					personal_email_id: employee.personalEmail || "",
 					base_office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-							?.cityName || ""
+						?.cityName || ""
 						}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues
 							?.stateName || ""
 						}`,
 					location_type: "Head Office",
 					office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-							?.cityName || ""
+						?.cityName || ""
 						}-${employee.companylocationmaster?.dataValues?.statemaster?.dataValues
 							?.stateName || ""
 						}`,
