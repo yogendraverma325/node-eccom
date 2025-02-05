@@ -909,6 +909,7 @@ class AdminController {
 								};
 
 								const createdUser = await db.employeeMaster.create(newEmployee);
+
 								await db.employeeTypeMaster.update(
 									{
 										startingIndex:
@@ -936,6 +937,8 @@ class AdminController {
 									createdBy: req.userId,
 									createdAt: moment(),
 								};
+								let empids = [createdUser.id];
+								await helper.leaveAssignEmployeeToAll(empids.join(","));
 
 								const createdUserBioDetails =
 									await db.biographicalDetails.create(newEmployeeBioDetails);

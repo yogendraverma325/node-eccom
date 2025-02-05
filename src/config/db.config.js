@@ -1531,6 +1531,12 @@ db.stateMaster.hasMany(db.lwfMapping, {
 	sourceKey: "stateId",
 });
 
+db.leaveCompanyMapping.hasOne(db.leaveMaster, {
+	foreignKey: "leaveId",
+	sourceKey: "leaveAutoId",
+	as: "companyleaveMasterDetails",
+});
+
 // end by jay
 
 export default db;

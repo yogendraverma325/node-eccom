@@ -78,14 +78,14 @@ const message = {
 		BALANCE_NOT_AVAILABLE: "Enough Leave Balance is not available",
 		CLUB_NOT_ALLOWED: "Clubbing with other leaves is not allowed",
 		ON_PRAOBATION_LEAVE_COUNT:
-			"Employees on probation are not allowed to take more than # leaves",
+			"Employees on probation are not allowed to take more than # leave(s)",
 		ON_NOTICE_LEAVE_COUNT:
-			"Employees on notice period are not allowed to take more than # leaves",
+			"Employees on notice period are not allowed to take more than # leave(s)",
 		ATTACHMENT_REQUIRED: "Attachement is required",
 		ATTACHMENT_REQUIRED_DAYS:
 			"Attachement is required in more than # days leaves",
 		MESSAGE_REQUIRED: "Message is required",
-		MESSAGE_REQUIRED_DAYS: "Message is required in more than # days leaves",
+		MESSAGE_REQUIRED_DAYS: "Message is required in more than # days leave(s)",
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
 	INVALID: "Invalid <module>",

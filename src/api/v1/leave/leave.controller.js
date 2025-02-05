@@ -540,7 +540,8 @@ class LeaveController {
 				EMP_DATA,
 			);
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
-			const onNoticePeriod = req.userData["employeejobdetail.confirmationDate"];
+			const onNoticePeriod =
+				req.userData["employeejobdetail.noticePeriodStatus"];
 
 			// Fetch employee details and leave counts in parallel
 
@@ -577,7 +578,11 @@ class LeaveController {
 					}
 				}
 			}
-			if (onNoticePeriod == null) {
+			if (
+				onNoticePeriod == 1 ||
+				onNoticePeriod == true ||
+				onNoticePeriod == "true"
+			) {
 				if (leaveMasterData.maximum_leave_allowed_in_notice_period != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
 						req.body.employeeId,
@@ -615,7 +620,7 @@ class LeaveController {
 						data: {},
 						msg:
 							message.LEAVE.HALF_DAY_NOT_ALLOWED +
-							` for ${leaveMasterData.leaveName}`,
+							` for ${leaveMasterData?.companyleaveMasterDetails?.leaveName}`,
 					});
 				}
 			}
@@ -627,7 +632,14 @@ class LeaveController {
 
 			// Calculate the difference in days
 			const differenceInDays = remainingLeaveCountRESP.length;
-			if (differenceInDays > 0) {
+			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
+			console.log(
+				"differenceInDays",
+				differenceInDays,
+				"differenceInDaystotal",
+				differenceInDaystotal,
+			);
+			if (differenceInDaystotal > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
 					return respHelper(res, {
 						status: 404,
@@ -635,7 +647,7 @@ class LeaveController {
 						msg: message.LEAVE.BACK_DATED_LEAVE_NOT_ALLOWED,
 					});
 				}
-				if (differenceInDays > leaveMasterData.back_days_max) {
+				if (differenceInDaystotal > leaveMasterData.back_days_max) {
 					return respHelper(res, {
 						status: 404,
 						data: {},
