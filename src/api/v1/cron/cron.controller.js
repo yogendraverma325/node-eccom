@@ -90,7 +90,7 @@ class CronController {
 	}
 
 	async EarnedLeaveCreditCron() {
-		console.log( moment('2024-08-01 13:00:00').format("D"))
+		console.log(moment("2024-08-01 13:00:00").format("D"));
 		const earnedLeaveDetails = await db.leaveMaster.findAll({
 			raw: true,
 			where: {
@@ -530,7 +530,10 @@ class CronController {
 								value: (row) =>
 									row.designationmaster ? row.designationmaster.name : "-",
 							},
-							{ label: "DateOfJoining", value: "dateOfJoining" },
+							{
+								label: "DateOfJoining",
+								value: (row) => moment(row.dateOfJoining).format("DD-MM-YYYY"),
+							},
 							{
 								label: "Office_City",
 								value: (row) =>
