@@ -2632,7 +2632,6 @@ class LeaveController {
 					gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
 				const companyId = employee.dataValues.companyId;
 				const employeeId = employee.dataValues.id;
-
 				// if (employee.dataValues.employeeType != 3 && (gender === "Male" || gender === "Female") && (maritalStatus == 2 || maritalStatus == 3) ) {
 				if (employee.dataValues.employeeType != 3) {
 					if (
@@ -2780,15 +2779,6 @@ class LeaveController {
 											{ [Op.like]: "%,1,%" }, // Contains ",2,"
 											{ [Op.like]: "%,1" }, // Ends with ",2"
 											{ [Op.eq]: "1" }, // Exactly matches "2"
-											// { [Op.like]: "3,%" },    // Starts with "3,"
-											// { [Op.like]: "%,3,%" },  // Contains ",3,"
-											// { [Op.like]: "%,3" },    // Ends with ",3"
-											// { [Op.eq]: "3" },        // Exactly matches "3"
-											// { [Op.like]: "4,%" },    // Starts with "4,"
-											// { [Op.like]: "%,4,%" },  // Contains ",4,"
-											// { [Op.like]: "%,4" },    // Ends with ",4"
-											// { [Op.eq]: "4" },        // Exactly matches "4"
-											// { [Op.eq]: "5" },        // Exactly matches "5"
 										],
 									},
 									leaveAutoId: { [Op.notIn]: [5] },
@@ -2828,7 +2818,7 @@ class LeaveController {
 							{
 								where: {
 									EmployeeId: employee.dataValues.id,
-									leaveAutoId: [5],
+									leaveAutoId: [3, 5],
 									isActive: 1,
 								},
 							},
@@ -2858,8 +2848,8 @@ class LeaveController {
 							);
 						}
 					}
-					console.log("Female && Married");
 					if (genderNumber == 2 && maritalStatus == 1) {
+						console.log("Female && Married");
 						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
 							{
 								attributes: [
@@ -2887,15 +2877,6 @@ class LeaveController {
 											{ [Op.like]: "%,1,%" },
 											{ [Op.like]: "%,1" },
 											{ [Op.eq]: "1" },
-											// { [Op.like]: "3,%" },    // Starts with "3,"
-											// { [Op.like]: "%,3,%" },  // Contains ",3,"
-											// { [Op.like]: "%,3" },    // Ends with ",3"
-											// { [Op.eq]: "3" },        // Exactly matches "3"
-											// { [Op.like]: "4,%" },    // Starts with "4,"
-											// { [Op.like]: "%,4,%" },  // Contains ",4,"
-											// { [Op.like]: "%,4" },    // Ends with ",4"
-											// { [Op.eq]: "4" },        // Exactly matches "4"
-											// { [Op.eq]: "5" },        // Exactly matches "5"
 										],
 									},
 									leaveAutoId: { [Op.notIn]: [5] },
@@ -2933,7 +2914,7 @@ class LeaveController {
 							{
 								where: {
 									EmployeeId: employee.dataValues.id,
-									leaveAutoId: [5],
+									leaveAutoId: [4, 5],
 									isActive: 1,
 								},
 							},
@@ -2962,6 +2943,29 @@ class LeaveController {
 								`No new leaves to insert for Employee ID: ${employee.id}`,
 							);
 						}
+					}
+				} else {
+					const compositeKey = `${6}-${employee.dataValues.companyId}`;
+					const offRoleObj = {
+						EmployeeId: employee.id,
+						leaveAutoId: 6,
+						availableLeave: leaveMasterLookup[compositeKey] || 0,
+						accruedThisYear: leaveMasterLookup[compositeKey] || 0,
+						isActive: 1,
+					};
+					const [created] = await db.leaveMapping.findOrCreate({
+						where: {
+							EmployeeId: employee.id,
+							leaveAutoId: 6,
+							isActive: 1,
+						},
+						defaults: offRoleObj, // Use this to provide the default values if the record is created
+					});
+
+					if (created) {
+						console.log("New record created:");
+					} else {
+						console.log("Record already exists:");
 					}
 				}
 			}
