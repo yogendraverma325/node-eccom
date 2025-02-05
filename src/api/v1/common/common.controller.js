@@ -1948,7 +1948,7 @@ class commonController {
 			let profileApprovalCount = await db.paymentDetails.findAll({
 				where: {
 					status: "pending",
-					pendingAt: req.userId,
+					//pendingAt: req.userId,
 				},
 				include: [
 					{

@@ -111,7 +111,7 @@ class LeaveController {
 		try {
 			const result = await validator.updateLeaveRequest.validateAsync(req.body);
 
-			let leaveIds = result.employeeLeaveTransactionsIds.split(",");
+			let leaveIds = result.employeeLeaveTransactionsIds.split(","); 
 			let countLeave = await db.EmployeeLeaveHeader.count({
 				where: {
 					status: "pending",
@@ -183,7 +183,7 @@ class LeaveController {
 							status,
 							remarks,
 							userId,
-						);
+						); 
 					}
 
 					const existingRecord = await db.employeeLeaveTransactions.findOne({
@@ -267,11 +267,14 @@ class LeaveController {
 				}
 			}
 
+
+			for (const leaveID of leaveIds) {
+			
 			const leaveTransactionDetails =
 				await db.employeeLeaveTransactions.findOne({
 					raw: true,
 					where: {
-						employeeleaveheaderID: leaveIds[0],
+						employeeleaveheaderID:leaveID
 					},
 					include: [
 						{
@@ -304,6 +307,7 @@ class LeaveController {
 				requesterName: leaveTransactionDetails["employee.name"],
 			};
 			eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
+		}
 
 			return respHelper(res, {
 				status: 200,
@@ -2442,6 +2446,25 @@ class LeaveController {
 					});
 
 					if (existingRecord) {
+
+						if (
+						existingRecord &&
+						existingRecord.leaveAutoId == 9
+					) {
+						const employeeId = existingRecord.employeeId;
+						const employeeLeaveTransactionsIds = leaveID;
+						const status = 1;
+						const remarks = result.remark != "" ? result.remark : null;
+						const userId = req.userId;
+
+						await helper.actionOnLeaveCompOff(
+							employeeId,
+							employeeLeaveTransactionsIds,
+							status,
+							remarks,
+							userId,
+						); 
+					}
 						await db.attendanceMaster.update(
 							Object.assign(
 								existingRecord.dataValues.isHalfDay === 0 ||
@@ -2457,7 +2480,7 @@ class LeaveController {
 									employeeId: existingRecord.dataValues.employeeId,
 								},
 							},
-						);
+						); 
 
 						if (existingRecord.leaveAutoId === 6) {
 							const lwpLeave = await db.leaveMapping.findOne({
@@ -2515,11 +2538,12 @@ class LeaveController {
 				}
 			}
 
+			for (const leaveID of leaveIds) {
 			const leaveTransactionDetails =
 				await db.employeeLeaveTransactions.findOne({
 					raw: true,
 					where: {
-						employeeleaveheaderID: leaveIds[0],
+						employeeleaveheaderID: leaveID
 					},
 					include: [
 						{
@@ -2552,6 +2576,7 @@ class LeaveController {
 				requesterName: leaveTransactionDetails["employee.name"],
 			};
 			eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
+		}
 
 			return respHelper(res, {
 				status: 200,

@@ -924,61 +924,72 @@ class MasterController {
 	// 		});
 	// 	}
 	// }
-	async department(req, res) {
+		async department(req, res) {
 		try {
-			let getDepartmentIds = [];
-			if (req.userData.role_id == 4) {
-				const getBuMappingId = await db.buMapping.findOne({
-					attributes: ["buMappingId"],
-					where: { buId: req.userData.buId, companyId: req.userData.companyId },
-				});
-				if (getBuMappingId) {
-					const getSbuMappingId = await db.sbuMapping.findAll({
-						attributes: ["sbuMappingId"],
-						where: { buMappingId: getBuMappingId.dataValues.buMappingId },
-					});
-					if (getSbuMappingId.length > 0) {
-						const sbuMappingIds = getSbuMappingId.map(
-							(e) => e.dataValues.sbuMappingId,
-						);
-						getDepartmentIds = await db.departmentMapping.findAll({
-							where: { sbuMappingId: { [Op.in]: sbuMappingIds } },
-						});
-					}
-				}
+		 let getDepartmentIds = []
+		 let pemissionAccessIds = []
+		 if(req.userData.role_id == 4){
+		const buPermissionIds = await db.employeeMaster.findOne({
+			attributes:["permissionAndAccess"],
+			where: { id:req.userData.id} 
+		  })
+		if(buPermissionIds){
+		 if(buPermissionIds.dataValues.permissionAndAccess){
+			let ids = buPermissionIds.dataValues.permissionAndAccess.split(",")
+			 pemissionAccessIds = await db.permissoinandaccess.findAll({
+			attributes:["permissoinandaccessId","permissionType","permissionValue"],
+			where:{permissoinandaccessId:ids}
+		  })
+		 }
+		   const buIds = pemissionAccessIds.map((e)=>e.dataValues.permissionValue)
+			 const getBuMappingId = await db.buMapping.findAll({
+			attributes:["buMappingId"],
+			where:{buId:{[Op.in]:buIds}}
+		  })
+		  if(getBuMappingId.length > 0){
+			const buMappingIds= getBuMappingId.map((e)=>e.dataValues.buMappingId)
+	
+			const getSbuMappingId = await db.sbuMapping.findAll({attributes:['sbuMappingId'],where:{buMappingId:{[Op.in]:buMappingIds}}})
+			if(getSbuMappingId.length > 0) {
+			   const sbuMappingIds = getSbuMappingId.map((e)=>e.dataValues.sbuMappingId)
+			   getDepartmentIds = await db.departmentMapping.findAll({where:{sbuMappingId:{[Op.in]:sbuMappingIds}}})
 			}
-
-			const departmentIds = getDepartmentIds.map(
-				(e) => e.dataValues.departmentId,
-			);
-
-			const departmentData = await db.departmentMapping.findAll({
-				include: [
-					{
-						model: db.departmentMaster,
-						attributes: ["departmentId", "departmentName", "departmentCode"],
-						where: {
-							//departmentId:{[Op.in]:departmentIds},
-							...(departmentIds.length > 0 &&
-								req.userData.role_id == 4 && {
-									departmentId: { [Op.in]: departmentIds },
-								}),
-						},
-					},
-				],
-			});
-
-			return respHelper(res, {
-				status: 200,
-				data: departmentData,
-			});
-		} catch (error) {
-			console.log("error>>>", error);
-			return respHelper(res, {
-				status: 500,
-			});
+		  }
 		}
-	}
+	 }
+	
+	   const departmentIds = getDepartmentIds.map((e)=>e.dataValues.departmentId)
+
+	   if (req.userData.role_id == 4 && departmentIds.length === 0) {
+		return respHelper(res, {
+		  status: 200,
+		  data: [],
+		});
+	  }	   
+		const departmentData = await db.departmentMapping.findAll({
+			include: [
+			  {
+				model: db.departmentMaster,
+				attributes: ["departmentId", "departmentName", "departmentCode"],
+				where:{
+				  //departmentId:{[Op.in]:departmentIds},
+				...(departmentIds.length > 0  && req.userData.role_id == 4 && { departmentId:{[Op.in]:departmentIds}})
+				}
+			  },
+			],
+		  });
+	
+		  return respHelper(res, {
+			status: 200,
+			data: departmentData,
+		  });
+		} catch (error) {
+		  console.log("error>>>",error)
+		  return respHelper(res, {
+			status: 500,
+		  });
+		}
+	  }
 
 	async district(req, res) {
 		try {

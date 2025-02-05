@@ -291,7 +291,8 @@ class MasterController {
 		}
 	}
 
-	async documentImport(req, res) {
+
+async documentImport(req, res) {
 		let transaction;
 		try {
 			if (!req.file) {
@@ -684,7 +685,6 @@ class MasterController {
 			});
 		}
 	}
-
 	async managerHistoryImport(req, res) {
 		try {
 			// Read Excel file
