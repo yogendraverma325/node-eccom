@@ -411,56 +411,13 @@ class MasterController {
 	// }
 	async bu(req, res) {
 		try {
-			const { search, filterType, filterValue } = req.query;
-			let buSearch = "";
-
-			if (filterType == "buSearch") {
-				buSearch = filterValue;
-			}
-			const isActive = req.query.isActive || 1;
-			let buFIlter = {};
-			const usersData = req.userData;
-
-			const activeQuery = { isActive: isActive };
-
-			if (usersData.role_id == 4) {
-				let permissionAssignTousers = [];
-				if (usersData.permissionAndAccess) {
-					permissionAssignTousers = usersData.permissionAndAccess
-						.split(",")
-						.map((el) => parseInt(el));
-				}
-				let permissionAndAccess = await db.permissoinandaccess.findAll({
-					where: {
-						role_id: usersData.role_id,
-						isActive: 1,
-						permissoinandaccessId: {
-							[Op.in]: permissionAssignTousers,
-						},
-					},
-				}); /// get all permission of access to fetch list with active status as per role
-
-				const buArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "BU")
-					.map((obj) => obj.permissionValue); // checking BU Access
-
-				if (buArrayForFilter.length > 0) {
-					buFIlter.buId = {
-						///appedning Bu to filter
-						[Op.in]: buArrayForFilter,
-					};
-				}
-			}
 			const companyId = req.query.companyId;
 			let query = {
-				companyId: companyId,
-				//...(req.userData.role_id == 4 && { buHrId: req.userId }),
+				...(companyId && { companyId: companyId }), // Apply companyId filter only if it's provided
+
+				...(req.userData.role_id == 4 && { buHrId: req.userId }),
 			};
-			let subQuery = {
-				isActive: 1,
-				...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
-				...buFIlter,
-			};
+			let subQuery = { isActive: 1 };
 			const buData = await db.buMapping.findAll({
 				where: query,
 				include: [
@@ -477,12 +434,13 @@ class MasterController {
 				data: buData,
 			});
 		} catch (error) {
-			console.log(error)
+			logger.error("Error while getting bu list", error);
 			return respHelper(res, {
 				status: 500,
 			});
 		}
 	}
+
 
 	async costCenter(req, res) {
 		try {
