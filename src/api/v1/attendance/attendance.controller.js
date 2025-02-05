@@ -1910,6 +1910,10 @@ class AttendanceController {
 				await validator.approveRegularizationRequestSchema.validateAsync(
 					req.body,
 				);
+				let respRegulariaeId=result.regularizeId.split(",");
+
+					for (const singleids of respRegulariaeId) {
+					result.regularizeId=singleids;
 			const regularizeData = await db.regularizationMaster.findOne({
 				raw: true,
 				where: {
@@ -2100,6 +2104,7 @@ class AttendanceController {
 				requesterName: regularizeData["attendancemaster.employee.name"],
 			};
 			eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
+		}
 
 			return respHelper(res, {
 				status: 200,
