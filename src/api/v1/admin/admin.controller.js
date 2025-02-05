@@ -922,7 +922,6 @@ class AdminController {
 									},
 								);
 
-
 								let newEmployeeBioDetails = {
 									userId: createdUser.id,
 									nationality: employeeOnboardingDetails.nationality,
@@ -938,8 +937,8 @@ class AdminController {
 									createdBy: req.userId,
 									createdAt: moment(),
 								};
-								let empids=[createdUser.id];
-								await helper.leaveAssignEmployeeToAll(empids.join(','));
+								let empids = [createdUser.id];
+								await helper.leaveAssignEmployeeToAll(empids.join(","));
 
 								const createdUserBioDetails =
 									await db.biographicalDetails.create(newEmployeeBioDetails);

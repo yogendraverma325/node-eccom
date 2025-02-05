@@ -90,7 +90,7 @@ class CronController {
 	}
 
 	async EarnedLeaveCreditCron() {
-		console.log( moment('2024-08-01 13:00:00').format("D"))
+		console.log(moment("2024-08-01 13:00:00").format("D"));
 		const earnedLeaveDetails = await db.leaveMaster.findAll({
 			raw: true,
 			where: {

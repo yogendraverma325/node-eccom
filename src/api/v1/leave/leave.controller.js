@@ -540,7 +540,8 @@ class LeaveController {
 				EMP_DATA,
 			);
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
-			const onNoticePeriod = req.userData["employeejobdetail.noticePeriodStatus"];
+			const onNoticePeriod =
+				req.userData["employeejobdetail.noticePeriodStatus"];
 
 			// Fetch employee details and leave counts in parallel
 
@@ -577,7 +578,11 @@ class LeaveController {
 					}
 				}
 			}
-			if (onNoticePeriod == 1 || onNoticePeriod == true || onNoticePeriod == 'true') {
+			if (
+				onNoticePeriod == 1 ||
+				onNoticePeriod == true ||
+				onNoticePeriod == "true"
+			) {
 				if (leaveMasterData.maximum_leave_allowed_in_notice_period != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
 						req.body.employeeId,
@@ -628,7 +633,12 @@ class LeaveController {
 			// Calculate the difference in days
 			const differenceInDays = remainingLeaveCountRESP.length;
 			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
-			console.log("differenceInDays",differenceInDays,"differenceInDaystotal",differenceInDaystotal)
+			console.log(
+				"differenceInDays",
+				differenceInDays,
+				"differenceInDaystotal",
+				differenceInDaystotal,
+			);
 			if (differenceInDaystotal > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
 					return respHelper(res, {
@@ -2968,7 +2978,7 @@ class LeaveController {
 				message: "Internal Server Error",
 			});
 		}
-	} 
+	}
 
 	// API to credit leave using cron on particular date
 

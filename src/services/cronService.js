@@ -32,7 +32,7 @@ cron.schedule("* * * * *", async () => {
 
 cron.schedule("0 8 * * *", async () => {
 	console.log("cron is running in very seconds");
-   await cronController.EarnedLeaveCreditCron();
+	await cronController.EarnedLeaveCreditCron();
 });
 
 //cron.schedule("*/10 * * * * *", async () => {

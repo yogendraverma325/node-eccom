@@ -60,20 +60,22 @@ export default (sequelize, Sequelize) => {
 		{
 			hooks: {
 				afterUpdate: async (user, options) => {
-						try {
-							 if(user.dataValues.gender!=user._previousDataValues.gender || 
-								user.dataValues.maritalStatus!=user._previousDataValues.maritalStatus 
-							){
-								let empids=[user.dataValues.userId];
-								await helper.leaveAssignEmployeeToAll(empids.join(','));
-							}
-						// Your existing logic
-						} catch (error) {
-						console.error("Error in afterUpdate hook:", error);
+					try {
+						if (
+							user.dataValues.gender != user._previousDataValues.gender ||
+							user.dataValues.maritalStatus !=
+								user._previousDataValues.maritalStatus
+						) {
+							let empids = [user.dataValues.userId];
+							await helper.leaveAssignEmployeeToAll(empids.join(","));
 						}
-				}
-			}
-		}
+						// Your existing logic
+					} catch (error) {
+						console.error("Error in afterUpdate hook:", error);
+					}
+				},
+			},
+		},
 	);
 	return employeeBiographicalDetails;
 };
