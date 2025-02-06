@@ -678,22 +678,22 @@ class PaymentController {
       const employeeIds = result[0].map((employee) => employee.EmployeeId);
       let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
 
-      var totalGratuityDays = 0,
+      var totalLeaveEncashmentDays = 0,
           uniqueEmployeeImpacted = 0;
-      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from tara.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(leaveEncashmentDays) AS leaveEncashmentDays from tara.leavencashmentoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
       
-      let gratuities = await db.sequelize.query(allGratuityQuery);
+      let allData = await db.sequelize.query(finalQuery);
 
-      for(const singleEmployee of gratuities[0]) {
-        totalGratuityDays += parseFloat(singleEmployee.gratuityDays || 0);
+      for(const singleEmployee of allData[0]) {
+        totalLeaveEncashmentDays += parseFloat(singleEmployee.leaveEncashmentDays || 0);
         uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
       }
 
       return respHelper(res, { status: 200, 
         data: {
           impactedEmployee: uniqueEmployeeImpacted,
-          gratuityDays: totalGratuityDays.toFixed(2),
-          impactedEmployeeDetails: gratuities[0] 
+          leaveEncashmentDays: totalLeaveEncashmentDays.toFixed(2),
+          impactedEmployeeDetails: allData[0] 
         }
       })
     }
