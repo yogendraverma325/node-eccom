@@ -5767,6 +5767,8 @@ async function generatePaySlip(data) {
 			let payElements = await db.sequelize.query(
 				queryForPayMonthlyElementsForSalarySlip,
 			);
+
+			console.log(payElements);
 			for (const payMonthlyElement of payElements[0]) {
 				let isExistPaySlip = await db.paySlips.findOne({
 					where: {
