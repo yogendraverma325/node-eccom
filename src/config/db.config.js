@@ -120,11 +120,6 @@ import Confimationpolicy from "../api/model/ConfirmatinoPolicy.js";
 import Confirmationassignment from "../api/model/ConfirmationAssignment.js";
 import Confirmationpolicyworkflow from "../api/model/ConfirmationPolicyWorkflow.js";
 import Signingauthority from "../api/model/signingAuthority.js";
-
-// import start by jay
-import LwfMapping from "../api/model/lwfMapping.js";
-// import end by jay
-
 //CONFIRMATION
 ///Payrol//////
 import SalaryComponentMapping from "../api/model/SalaryComponentElementMapping.js";

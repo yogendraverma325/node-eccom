@@ -96,4 +96,6 @@ export default Express.Router()
 	.get("/ifsc", masterController.ifsc)
 	.get("/employeeDataManupulation", masterController.employeeDataManupulation)
 	.get("/buRoleAndAccess", masterController.buRoleAndAccess)
-	.get("/departmentRoleAndAccess", masterController.departmentRoleAndAccess);
+	.get("/departmentRoleAndAccess", masterController.departmentRoleAndAccess)
+	.get("/financialYear", masterController.financialYear)
+	.get("/compensationCategory", masterController.compensationCategory);
