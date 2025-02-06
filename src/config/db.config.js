@@ -128,7 +128,7 @@ import LwfMapping from "../api/model/lwfMapping.js";
 //CONFIRMATION
 ///Payrol//////
 import SalaryComponentMapping from "../api/model/SalaryComponentElementMapping.js";
-import SalaryStructure  from "../api/model/SalaryStructures.js";
+import SalaryStructure from "../api/model/SalaryStructures.js";
 import SalaryComponentElement from "../api/model/SalaryComponentElement.js";
 import SalaryStructureComponentMapping from "../api/model/SalaryStructureComponentMapping.js";
 import EarningArears from "../api/model/EarningsArears.js";
@@ -143,10 +143,10 @@ import PayMonthlyElements from "../api/model/payMonthlyElements.js";
 import PtMapping from "../api/model/PtMapping.js";
 import LwfMapping from "../api/model/lwfMapping.js";
 import ExtraPayment from "../api/model/ExtraPayment.js";
-import ExportSheetMaster from '../api/model/exportSheetMaster.js'
-import ExportSheetMapping from '../api/model/exportSheetMapping.js'
-import FinancialYearMaster from '../api/model/FinancialYearMaster.js';
-import CompensationCategoryMaster from '../api/model/CompensationCategory.js';
+import ExportSheetMaster from "../api/model/exportSheetMaster.js";
+import ExportSheetMapping from "../api/model/exportSheetMapping.js";
+import FinancialYearMaster from "../api/model/FinancialYearMaster.js";
+import CompensationCategoryMaster from "../api/model/CompensationCategory.js";
 
 ////////////////////PAyroll////////////
 //Attendace Roster///
@@ -350,27 +350,30 @@ db.Signingauthority = Signingauthority(sequelize, Sequelize);
 //CONFIRMATION
 
 //Payroll///////////
-db.salarycomponentmapping=SalaryComponentMapping(sequelize,Sequelize);
-db.salaryStructure = SalaryStructure(sequelize,Sequelize);
-db.salarycomponentelement= SalaryComponentElement(sequelize,Sequelize);
-db.salarystructurecomponentmapping= SalaryStructureComponentMapping(sequelize,Sequelize)
-db.earningsArears = EarningArears(sequelize,Sequelize);
-db.tdsDeductions =TDSDeductions(sequelize,Sequelize);
-db.lopDeductions = LopDeductions(sequelize,Sequelize);
-db.extraDeduction = ExtraDeductions(sequelize,Sequelize);
-db.payProcessDetails = PayProcessDetail(sequelize,Sequelize);
-db.payProcessMaster = PayProcessMaster(sequelize,Sequelize);
-db.payProcessFlowMaster =PayProcessFlowMaster(sequelize,Sequelize);
-db.payStatusMaster =PayProcessStatusMaster(sequelize,Sequelize);
-db.payMonthlyElements = PayMonthlyElements(sequelize,Sequelize);
-db.ptMapping = PtMapping(sequelize,Sequelize)
-db.lwfMapping = LwfMapping(sequelize,Sequelize)
-db.extraPayment = ExtraPayment(sequelize,Sequelize)
-db.exportSheetMaster = ExportSheetMaster(sequelize,Sequelize)
-db.exportSheetMapping = ExportSheetMapping(sequelize,Sequelize)
+db.salarycomponentmapping = SalaryComponentMapping(sequelize, Sequelize);
+db.salaryStructure = SalaryStructure(sequelize, Sequelize);
+db.salarycomponentelement = SalaryComponentElement(sequelize, Sequelize);
+db.salarystructurecomponentmapping = SalaryStructureComponentMapping(
+	sequelize,
+	Sequelize,
+);
+db.earningsArears = EarningArears(sequelize, Sequelize);
+db.tdsDeductions = TDSDeductions(sequelize, Sequelize);
+db.lopDeductions = LopDeductions(sequelize, Sequelize);
+db.extraDeduction = ExtraDeductions(sequelize, Sequelize);
+db.payProcessDetails = PayProcessDetail(sequelize, Sequelize);
+db.payProcessMaster = PayProcessMaster(sequelize, Sequelize);
+db.payProcessFlowMaster = PayProcessFlowMaster(sequelize, Sequelize);
+db.payStatusMaster = PayProcessStatusMaster(sequelize, Sequelize);
+db.payMonthlyElements = PayMonthlyElements(sequelize, Sequelize);
+db.ptMapping = PtMapping(sequelize, Sequelize);
+db.lwfMapping = LwfMapping(sequelize, Sequelize);
+db.extraPayment = ExtraPayment(sequelize, Sequelize);
+db.exportSheetMaster = ExportSheetMaster(sequelize, Sequelize);
+db.exportSheetMapping = ExportSheetMapping(sequelize, Sequelize);
 
 // import by jay
-db.financialYearMaster = FinancialYearMaster(sequelize,Sequelize)
+db.financialYearMaster = FinancialYearMaster(sequelize, Sequelize);
 
 //////////////////Payroll///////////////////
 
@@ -395,7 +398,10 @@ db.EmployeeTypeEmploymentHistory = EmployeeTypeEmploymentHistory(
 	sequelize,
 	Sequelize,
 );
-db.CompensationCategoryMaster = CompensationCategoryMaster(sequelize, Sequelize);
+db.CompensationCategoryMaster = CompensationCategoryMaster(
+	sequelize,
+	Sequelize,
+);
 
 //Attendance Roster
 db.AttendanceRoster = AttendanceRoster(sequelize, Sequelize);
@@ -1412,65 +1418,61 @@ db.attendanceHistory.hasOne(db.companyLocationMaster, {
 
 ////Payroll/////////
 db.salaryStructure.hasMany(db.salarystructurecomponentmapping, {
-  foreignKey: "salaryStructureAutoId",
-  sourceKey: "salaryStructureAutoId",
-  as:"structureMappingDetails"
+	foreignKey: "salaryStructureAutoId",
+	sourceKey: "salaryStructureAutoId",
+	as: "structureMappingDetails",
 });
 
 db.salarystructurecomponentmapping.hasMany(db.salarycomponentmapping, {
-  foreignKey: "salaryStructurecomponentmappingAutoId",
-  as:"componentMappedDetails"
+	foreignKey: "salaryStructurecomponentmappingAutoId",
+	as: "componentMappedDetails",
 });
-
 
 // In salaryComponent model
 db.salarystructurecomponentmapping.hasOne(db.salaryComponent, {
-  foreignKey: 'salaryComponentAutoId',
-  sourceKey: "salaryComponentAutoId",
-  as: 'componentDetails',
+	foreignKey: "salaryComponentAutoId",
+	sourceKey: "salaryComponentAutoId",
+	as: "componentDetails",
 });
 
 db.salarycomponentmapping.belongsTo(db.salarycomponentelement, {
-  foreignKey: 'salaryComponentElementAutoId',
-  as: 'componentElementDetails', // This should match your query
+	foreignKey: "salaryComponentElementAutoId",
+	as: "componentElementDetails", // This should match your query
 });
 
 db.salaryStructure.hasOne(db.employeeMaster, {
-  foreignKey: "id",
-  sourceKey: "createdBy",
-  as: "salaryStructureCreater",
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "salaryStructureCreater",
 });
-
 
 db.salaryStructure.hasOne(db.employeeMaster, {
-  foreignKey: "id",
-  sourceKey: "updatedBy",
-  as: "salaryStructureUpdater",
+	foreignKey: "id",
+	sourceKey: "updatedBy",
+	as: "salaryStructureUpdater",
 });
 
-
-db.employeeMaster.hasOne(db.jobDetails,{
-
-  foreignKey:"userId",
-  sourceKey:"id",
-  as:"employeeJobDetails"
+db.employeeMaster.hasOne(db.jobDetails, {
+	foreignKey: "userId",
+	sourceKey: "id",
+	as: "employeeJobDetails",
 });
 
 db.employeeMaster.hasOne(db.payPackage, {
-  foreignKey: "EmployeeId",
-  sourceKey: "id",
-  as:"packageDetails"
+	foreignKey: "EmployeeId",
+	sourceKey: "id",
+	as: "packageDetails",
 });
 
 db.payPackage.hasOne(db.employeeMaster, {
-  foreignKey: "id",
-  sourceKey: "EmployeeId"
+	foreignKey: "id",
+	sourceKey: "EmployeeId",
 });
 
 db.payPackage.hasMany(db.payElements, {
-  foreignKey: "payPackageAutoId",
-  sourceKey: "payPackageAutoId",
-  as:"empPayElements"
+	foreignKey: "payPackageAutoId",
+	sourceKey: "payPackageAutoId",
+	as: "empPayElements",
 });
 
 // db.employeeMaster.hasOne(db.ptLocationMaster, {
@@ -1483,68 +1485,67 @@ db.payPackage.hasMany(db.payElements, {
 //   sourceKey: "lwfDesignationId",
 // });
 
-
 db.ptLocationMaster.hasOne(db.ptMapping, {
-  foreignKey: "ptLocationId",
-  sourceKey: "ptLocationId",
+	foreignKey: "ptLocationId",
+	sourceKey: "ptLocationId",
 });
 
 db.lwfDesignationMaster.hasOne(db.lwfMapping, {
-  foreignKey: "lwfDesignationId",
-  sourceKey: "lwfDesignationId",
+	foreignKey: "lwfDesignationId",
+	sourceKey: "lwfDesignationId",
 });
 
 db.paymentDetails.hasOne(db.ptLocationMaster, {
-  foreignKey: "ptLocationId",
-  sourceKey: "ptLocationId",
+	foreignKey: "ptLocationId",
+	sourceKey: "ptLocationId",
 });
 
 db.salaryComponent.hasOne(db.salarystructurecomponentmapping, {
-  foreignKey: "salaryComponentAutoId",
-  sourceKey: "salaryComponentAutoId",
+	foreignKey: "salaryComponentAutoId",
+	sourceKey: "salaryComponentAutoId",
 });
 /////////////////////////////Payroll///////////////////////////
 db.salarystructurecomponentmapping.hasOne(db.salarycomponentmapping, {
-  foreignKey: "salaryStructurecomponentmappingAutoId",
-  sourceKey: "salaryStructurecomponentmappingAutoId",
+	foreignKey: "salaryStructurecomponentmappingAutoId",
+	sourceKey: "salaryStructurecomponentmappingAutoId",
 });
 
 db.exportSheetMapping.hasMany(db.exportSheetMaster, {
-  foreignKey: "exportSheetAutoId",
-  sourceKey: "exportSheetAutoId"
+	foreignKey: "exportSheetAutoId",
+	sourceKey: "exportSheetAutoId",
 });
 
 // assign by jay
 
 db.financialYearMaster.hasMany(db.payProcessMaster, {
-  foreignKey: 'financialYearId',
-  sourceKey: 'financialYearId',
-  as: 'payprocessmaster'
+	foreignKey: "financialYearId",
+	sourceKey: "financialYearId",
+	as: "payprocessmaster",
 });
 
 db.payProcessMaster.hasMany(db.payProcessDetails, {
-  foreignKey: 'proceessId',
-  sourceKey: 'payProcessMasterAutoId'
-})
+	foreignKey: "proceessId",
+	sourceKey: "payProcessMasterAutoId",
+});
 
 db.paySlips.hasOne(db.employeeMaster, {
-  foreignKey: 'id',
-  sourceKey: 'EmployeeId'
-})
+	foreignKey: "id",
+	sourceKey: "EmployeeId",
+});
 
 db.payProcessMaster.hasOne(db.companyMaster, {
-  foreignKey: 'companyId',
-  sourceKey: 'companyId'
-})
+	foreignKey: "companyId",
+	sourceKey: "companyId",
+});
 
 db.extraDeduction.hasOne(db.CompensationCategoryMaster, {
-  foreignKey: 'compensationCategoryId',
-  sourceKey: 'deductionCategoryId'
+	foreignKey: "compensationCategoryId",
+	sourceKey: "deductionCategoryId",
 });
 
 db.extraPayment.hasOne(db.CompensationCategoryMaster, {
-  foreignKey: 'compensationCategoryId',
-  sourceKey: 'paymentCategoryId'
+	foreignKey: "compensationCategoryId",
+	sourceKey: "paymentCategoryId",
 });
 
 //ritak work

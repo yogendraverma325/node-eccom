@@ -1779,7 +1779,7 @@ const leaveCountForUserForMonth = async (
 		const fromMoment = moment(date);
 		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
 		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
-		console.log("monthStart",monthStart,"monthEnd",monthEnd)
+		console.log("monthStart", monthStart, "monthEnd", monthEnd);
 		result = await db.employeeLeaveTransactions.count({
 			where: {
 				employeeId: UserId,

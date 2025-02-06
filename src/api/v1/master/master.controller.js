@@ -931,7 +931,7 @@ class MasterController {
 	// 	 if(req.userData.role_id == 4){
 	// 	const buPermissionIds = await db.employeeMaster.findOne({
 	// 		attributes:["permissionAndAccess"],
-	// 		where: { id:req.userData.id} 
+	// 		where: { id:req.userData.id}
 	// 	  })
 	// 	if(buPermissionIds){
 	// 	 if(buPermissionIds.dataValues.permissionAndAccess){
@@ -948,7 +948,7 @@ class MasterController {
 	// 	  })
 	// 	  if(getBuMappingId.length > 0){
 	// 		const buMappingIds= getBuMappingId.map((e)=>e.dataValues.buMappingId)
-	
+
 	// 		const getSbuMappingId = await db.sbuMapping.findAll({attributes:['sbuMappingId'],where:{buMappingId:{[Op.in]:buMappingIds}}})
 	// 		if(getSbuMappingId.length > 0) {
 	// 		   const sbuMappingIds = getSbuMappingId.map((e)=>e.dataValues.sbuMappingId)
@@ -957,7 +957,7 @@ class MasterController {
 	// 	  }
 	// 	}
 	//  }
-	
+
 	//    const departmentIds = getDepartmentIds.map((e)=>e.dataValues.departmentId)
 
 	//    if (req.userData.role_id == 4 && departmentIds.length === 0) {
@@ -965,7 +965,7 @@ class MasterController {
 	// 	  status: 200,
 	// 	  data: [],
 	// 	});
-	//   }	   
+	//   }
 	// 	const departmentData = await db.departmentMapping.findAll({
 	// 		include: [
 	// 		  {
@@ -978,7 +978,7 @@ class MasterController {
 	// 		  },
 	// 		],
 	// 	  });
-	
+
 	// 	  return respHelper(res, {
 	// 		status: 200,
 	// 		data: departmentData,
@@ -2285,145 +2285,164 @@ class MasterController {
 	}
 	async buRoleAndAccess(req, res) {
 		try {
-		  const { search, filterType, filterValue } = req.query;
-		  let buSearch = "";
-	
-		  if (filterType == "buSearch") {
-			buSearch = filterValue;
-		  } 
-		  const isActive = req.query.isActive || 1;
-		  let buFIlter = {};
-		  const usersData = req.userData;
-	
-		  const activeQuery = { isActive: isActive };
-	
-		  if (usersData.role_id == 4) {
-			let permissionAssignTousers = [];
-			if (usersData.permissionAndAccess) {
-			  permissionAssignTousers = usersData.permissionAndAccess
-				.split(",")
-				.map((el) => parseInt(el));
-			}
-			let permissionAndAccess = await db.permissoinandaccess.findAll({
-			  where: {
-				role_id: usersData.role_id,
-				isActive: 1,
-				permissoinandaccessId: {
-				  [Op.in]: permissionAssignTousers,
-				},
-			  },
-			}); /// get all permission of access to fetch list with active status as per role
-	
-			const buArrayForFilter = permissionAndAccess
-			  .filter((obj) => obj.permissionType == "BU")
-			  .map((obj) => obj.permissionValue); // checking BU Access
-	
-			if (buArrayForFilter.length > 0) {
-			  buFIlter.buId = {
-				///appedning Bu to filter
-				[Op.in]: buArrayForFilter,
-			  };
-			}
-		  }
-		  const companyId = req.query.companyId;
-		  let query = {
-			companyId: companyId,
-			//...(req.userData.role_id == 4 && { buHrId: req.userId }),
-		  };
-		  let subQuery = { 
-			isActive: 1 ,
-			  ...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
-			  ...buFIlter      
-		  };
-		  const buData = await db.buMapping.findAll({
-			where: query,
-			include: [
-			  {
-				model: db.buMaster,
-				where: subQuery,
-				attributes: ["buId", "buName", "buCode"],
-			  },
-			],
-		  });
-	
-		  return respHelper(res, {
-			status: 200,
-			data: buData,
-		  });
-		} catch (error) {
-			console.log("error",error)
-		  return respHelper(res, {
-			status: 500,
-		  });
-		}
-	  }
+			const { search, filterType, filterValue } = req.query;
+			let buSearch = "";
 
+			if (filterType == "buSearch") {
+				buSearch = filterValue;
+			}
+			const isActive = req.query.isActive || 1;
+			let buFIlter = {};
+			const usersData = req.userData;
+
+			const activeQuery = { isActive: isActive };
+
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+			}
+			const companyId = req.query.companyId;
+			let query = {
+				companyId: companyId,
+				//...(req.userData.role_id == 4 && { buHrId: req.userId }),
+			};
+			let subQuery = {
+				isActive: 1,
+				...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
+				...buFIlter,
+			};
+			const buData = await db.buMapping.findAll({
+				where: query,
+				include: [
+					{
+						model: db.buMaster,
+						where: subQuery,
+						attributes: ["buId", "buName", "buCode"],
+					},
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: buData,
+			});
+		} catch (error) {
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 
 	async departmentRoleAndAccess(req, res) {
-	try {
-		let getDepartmentIds = []
-		let pemissionAccessIds = []
-		if(req.userData.role_id == 4){
-	const buPermissionIds = await db.employeeMaster.findOne({
-		attributes:["permissionAndAccess"],
-		where: { id:req.userData.id} 
-		})
-	if(buPermissionIds){
-		if(buPermissionIds.dataValues.permissionAndAccess){
-		let ids = buPermissionIds.dataValues.permissionAndAccess.split(",")
-			pemissionAccessIds = await db.permissoinandaccess.findAll({
-		attributes:["permissoinandaccessId","permissionType","permissionValue"],
-		where:{permissoinandaccessId:ids}
-		})
-		}
-		const buIds = pemissionAccessIds.map((e)=>e.dataValues.permissionValue)
-			const getBuMappingId = await db.buMapping.findAll({
-		attributes:["buMappingId"],
-		where:{buId:{[Op.in]:buIds}}
-		})
-		if(getBuMappingId.length > 0){
-		const buMappingIds= getBuMappingId.map((e)=>e.dataValues.buMappingId)
+		try {
+			let getDepartmentIds = [];
+			let pemissionAccessIds = [];
+			if (req.userData.role_id == 4) {
+				const buPermissionIds = await db.employeeMaster.findOne({
+					attributes: ["permissionAndAccess"],
+					where: { id: req.userData.id },
+				});
+				if (buPermissionIds) {
+					if (buPermissionIds.dataValues.permissionAndAccess) {
+						let ids = buPermissionIds.dataValues.permissionAndAccess.split(",");
+						pemissionAccessIds = await db.permissoinandaccess.findAll({
+							attributes: [
+								"permissoinandaccessId",
+								"permissionType",
+								"permissionValue",
+							],
+							where: { permissoinandaccessId: ids },
+						});
+					}
+					const buIds = pemissionAccessIds.map(
+						(e) => e.dataValues.permissionValue,
+					);
+					const getBuMappingId = await db.buMapping.findAll({
+						attributes: ["buMappingId"],
+						where: { buId: { [Op.in]: buIds } },
+					});
+					if (getBuMappingId.length > 0) {
+						const buMappingIds = getBuMappingId.map(
+							(e) => e.dataValues.buMappingId,
+						);
 
-		const getSbuMappingId = await db.sbuMapping.findAll({attributes:['sbuMappingId'],where:{buMappingId:{[Op.in]:buMappingIds}}})
-		if(getSbuMappingId.length > 0) {
-			const sbuMappingIds = getSbuMappingId.map((e)=>e.dataValues.sbuMappingId)
-			getDepartmentIds = await db.departmentMapping.findAll({where:{sbuMappingId:{[Op.in]:sbuMappingIds}}})
-		}
-		}
-	}
-	}
-
-	const departmentIds = getDepartmentIds.map((e)=>e.dataValues.departmentId)
-
-	if (req.userData.role_id == 4 && departmentIds.length === 0) {
-	return respHelper(res, {
-		status: 200,
-		data: [],
-	});
-	}	   
-	const departmentData = await db.departmentMapping.findAll({
-		include: [
-			{
-			model: db.departmentMaster,
-			attributes: ["departmentId", "departmentName", "departmentCode"],
-			where:{
-				//departmentId:{[Op.in]:departmentIds},
-			...(departmentIds.length > 0  && req.userData.role_id == 4 && { departmentId:{[Op.in]:departmentIds}})
+						const getSbuMappingId = await db.sbuMapping.findAll({
+							attributes: ["sbuMappingId"],
+							where: { buMappingId: { [Op.in]: buMappingIds } },
+						});
+						if (getSbuMappingId.length > 0) {
+							const sbuMappingIds = getSbuMappingId.map(
+								(e) => e.dataValues.sbuMappingId,
+							);
+							getDepartmentIds = await db.departmentMapping.findAll({
+								where: { sbuMappingId: { [Op.in]: sbuMappingIds } },
+							});
+						}
+					}
+				}
 			}
-			},
-		],
-		});
 
-		return respHelper(res, {
-		status: 200,
-		data: departmentData,
-		});
-	} catch (error) {
-		console.log("error>>>",error)
-		return respHelper(res, {
-		status: 500,
-		});
-	}
+			const departmentIds = getDepartmentIds.map(
+				(e) => e.dataValues.departmentId,
+			);
+
+			if (req.userData.role_id == 4 && departmentIds.length === 0) {
+				return respHelper(res, {
+					status: 200,
+					data: [],
+				});
+			}
+			const departmentData = await db.departmentMapping.findAll({
+				include: [
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentId", "departmentName", "departmentCode"],
+						where: {
+							//departmentId:{[Op.in]:departmentIds},
+							...(departmentIds.length > 0 &&
+								req.userData.role_id == 4 && {
+									departmentId: { [Op.in]: departmentIds },
+								}),
+						},
+					},
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: departmentData,
+			});
+		} catch (error) {
+			console.log("error>>>", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
 	}
 }
 

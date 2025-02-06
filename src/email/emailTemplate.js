@@ -4113,30 +4113,30 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 const salarySlipPdf = async (data) => {
-  const generateUnifiedTableRows = (earnings, deductions) => {
-    const maxRows = Math.max(earnings.length, deductions.length);
+	const generateUnifiedTableRows = (earnings, deductions) => {
+		const maxRows = Math.max(earnings.length, deductions.length);
 
-    let rows = "";
-    for (let i = 0; i < maxRows; i++) {
-      const earning = earnings[i] || {};
-      const deduction = deductions[i] || {};
-      rows += `
+		let rows = "";
+		for (let i = 0; i < maxRows; i++) {
+			const earning = earnings[i] || {};
+			const deduction = deductions[i] || {};
+			rows += `
         <tr>
-            <td>${earning.paySlipComponentName?earning.paySlipComponentName:''}</td>
+            <td>${earning.paySlipComponentName ? earning.paySlipComponentName : ""}</td>
             <td>${
-              earning.fixedPayElementAmount && earning.fixedPayElementAmount > 0
-                ? earning.fixedPayElementAmount
-                : ""
-            }</td>
-            <td>${earning.paySlipComponentAmount || '' }</td>
-            <td>${deduction.paySlipComponentName || ''}</td>
-            <td>${deduction.paySlipComponentAmount || '' }</td>
+							earning.fixedPayElementAmount && earning.fixedPayElementAmount > 0
+								? earning.fixedPayElementAmount
+								: ""
+						}</td>
+            <td>${earning.paySlipComponentAmount || ""}</td>
+            <td>${deduction.paySlipComponentName || ""}</td>
+            <td>${deduction.paySlipComponentAmount || ""}</td>
         </tr>`;
-    }
-    return rows;
-  };
+		}
+		return rows;
+	};
 
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -4215,12 +4215,12 @@ const salarySlipPdf = async (data) => {
     <div class="salary-slip">
         <div class="header">
             <img  src="${
-              process.env.PROXY_URL + "/api" + data.companyLogo
-            }" alt="Company Logo">
+							process.env.PROXY_URL + "/api" + data.companyLogo
+						}" alt="Company Logo">
     <div class="company-details" style="word-wrap: break-word; white-space: normal;">
     <p><b><font style="font-size: 16px; font-weight: 400;">${
-      data.companyName
-    }</font></b><br>${data.companyAddress}</p>
+			data.companyName
+		}</font></b><br>${data.companyAddress}</p>
 </div>
         </div>
 
@@ -4237,27 +4237,27 @@ const salarySlipPdf = async (data) => {
             </tr>
             <tr>
                 <td><strong>Designation:</strong></td>
-                <td>${data.designation }</td>
+                <td>${data.designation}</td>
                 <td><strong>Employee Code:</strong></td>
-                <td>${data.employeeCode }</td>
+                <td>${data.employeeCode}</td>
             </tr>
             <tr>
                 <td><strong>Department:</strong></td>
-                <td>${data.department }</td>
+                <td>${data.department}</td>
                 <td><strong>Working Days:</strong></td>
-                <td>${data.workingDays }</td>
+                <td>${data.workingDays}</td>
             </tr>
             <tr>
                 <td><strong>Date of Joining:</strong></td>
-                <td>${data.dateOfJoining }</td>
+                <td>${data.dateOfJoining}</td>
                 <td><strong>LOP:</strong></td>
-                <td>${data.lop }</td>
+                <td>${data.lop}</td>
             </tr>
             <tr>
                 <td><strong>Current Office Location:</strong></td>
-                <td>${data.currentOfficeLocation }</td>
+                <td>${data.currentOfficeLocation}</td>
                 <td><strong>PAN No:</strong></td>
-                <td>${data.panNo }</td>
+                <td>${data.panNo}</td>
             </tr>
             <tr>
               <td><strong>Duration:</strong></td>
@@ -4267,15 +4267,15 @@ const salarySlipPdf = async (data) => {
           </tr>
            <tr> 
               <td><strong>UAN No:</strong></td>
-              <td>${data.uanNo }</td>
+              <td>${data.uanNo}</td>
               <td><strong>Total Arrear Days:</strong></td>
-              <td>${data.totalArrearDays }</td>
+              <td>${data.totalArrearDays}</td>
           </tr>
            <tr> 
               <td><strong>Provident Fund:</strong></td>
-              <td>${data.providentFund }</td>
+              <td>${data.providentFund}</td>
               <td><strong>ESIC Number:</strong></td>
-              <td>${data.esicNo }</td>
+              <td>${data.esicNo}</td>
           </tr>
         </table>
 
@@ -4292,9 +4292,9 @@ const salarySlipPdf = async (data) => {
             </thead>
             <tbody>
                 ${generateUnifiedTableRows(
-                  data.paySlipComponent.earnings || [],
-                  data.paySlipComponent.deductions || []
-                )}
+									data.paySlipComponent.earnings || [],
+									data.paySlipComponent.deductions || [],
+								)}
             </tbody>
             <tfoot>
                 <tr>
@@ -4321,7 +4321,7 @@ const salarySlipPdf = async (data) => {
 };
 
 const releasePaySlip = async (data) => {
-  return `
+	return `
     <!DOCTYPE html>
       <html lang="en">
 
@@ -4407,6 +4407,6 @@ export default {
 	confirmationExtendEmailBody,
 	confirmationSLABreachEmailBody,
 	confirmationWorkFlownextLevel,
-  salarySlipPdf,
-  releasePaySlip,
+	salarySlipPdf,
+	releasePaySlip,
 };

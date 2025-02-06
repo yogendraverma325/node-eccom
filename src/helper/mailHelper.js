@@ -112,19 +112,17 @@ export default function getAllListeners(eventEmitter) {
 		await confirmationWorkflowNextLevel(input);
 	});
 	//confirmation
-	eventEmitter.on('x',async (input)=>{
-		await salarySlipPdf(input)
-		})
+	eventEmitter.on("x", async (input) => {
+		await salarySlipPdf(input);
+	});
 
-		//confirmation
+	//confirmation
 
+	// create method by jay
 
-		// create method by jay
-
-		eventEmitter.on("releasePaySlip", async (input) => {
+	eventEmitter.on("releasePaySlip", async (input) => {
 		await releasePaySlip(input);
-		})
-
+	});
 }
 
 async function regularizationRequestMail(input) {
@@ -545,44 +543,41 @@ async function confirmationWorkflowNextLevel(input) {
 }
 
 async function salarySlipPdf(input) {
-  try {
-    const inputData = JSON.parse(input);
-    let letter = await emailTemplate.salarySlipPdf(inputData);
+	try {
+		const inputData = JSON.parse(input);
+		let letter = await emailTemplate.salarySlipPdf(inputData);
 
-    let options = { format: "A4" };
-    let file = { content: letter };
+		let options = { format: "A4" };
+		let file = { content: letter };
 
-    let pdfBuffer = await html_to_pdf.generatePdf(file, options);
+		let pdfBuffer = await html_to_pdf.generatePdf(file, options);
 
-    res.set({
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="salary_slip.pdf"`,
-    });
-    return res.end(pdfBuffer);
-   
-  } catch (error) {
-    console.log(error);
-    logger.error(error);
-  }
+		res.set({
+			"Content-Type": "application/pdf",
+			"Content-Disposition": `attachment; filename="salary_slip.pdf"`,
+		});
+		return res.end(pdfBuffer);
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
 }
 ///confitmatoion
-
 
 // create function by jay
 
 async function releasePaySlip(input) {
-  try {
-    const userData = JSON.parse(input);
-    let response = await helper.mailService({
-      to: userData.email,
-      subject: `Payslip has been released`,
-      html: await emailTemplate.releasePaySlip(userData)
-    });
-    // console.log("mail helper", response);
-    return response;
-  }
-  catch(error) {
-    console.log(error);
-    error.log(error, "ERROR THROWING WHEN SEND MAIL FOR RELEASE SALARY SLIP");
-  }
+	try {
+		const userData = JSON.parse(input);
+		let response = await helper.mailService({
+			to: userData.email,
+			subject: `Payslip has been released`,
+			html: await emailTemplate.releasePaySlip(userData),
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "ERROR THROWING WHEN SEND MAIL FOR RELEASE SALARY SLIP");
+	}
 }

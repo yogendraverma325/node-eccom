@@ -1193,221 +1193,224 @@ const requestForProbationExtendvalidationSchema = Joi.object({
 ///Confirmation
 //Payroll///////
 const salaryStructureListSchema = Joi.object({
-  structureType: Joi.string().valid("LIST", "SINGLE").required(),
-  salaryStructureAutoId: Joi.number().integer().required(),
+	structureType: Joi.string().valid("LIST", "SINGLE").required(),
+	salaryStructureAutoId: Joi.number().integer().required(),
 });
 
 const salaryStructureCreateSchema = Joi.object({
-  hasAnnuallyProration: Joi.number().integer().required(),
-  hasMonthlyProration: Joi.number().integer().required(),
-  hasVariable: Joi.number().integer().required(),
-  salaryStructureAutoId: Joi.number().integer().required(),
-  salaryStructureName: Joi.string().required(),
-  salaryStructureDes: Joi.string().allow(null, ""),
-  createdAt: Joi.date().allow(null),
-  createdBy: Joi.string().required(),
-  updatedBy: Joi.string().required(),
-  updatedAt: Joi.date().allow(null),
-  isActive: Joi.boolean().required(),
-  structureMappingDetails: Joi.array()
-    .items(
-      Joi.object({
-        salaryComponentAutoId: Joi.number().integer().required(),
-        salaryComponentElementAutoId: Joi.number().integer().required(),
-        elementValue: Joi.alternatives()
-          .try(Joi.string(), Joi.number().integer())
-          .required(),
-      })
-    )
-    .required(),
+	hasAnnuallyProration: Joi.number().integer().required(),
+	hasMonthlyProration: Joi.number().integer().required(),
+	hasVariable: Joi.number().integer().required(),
+	salaryStructureAutoId: Joi.number().integer().required(),
+	salaryStructureName: Joi.string().required(),
+	salaryStructureDes: Joi.string().allow(null, ""),
+	createdAt: Joi.date().allow(null),
+	createdBy: Joi.string().required(),
+	updatedBy: Joi.string().required(),
+	updatedAt: Joi.date().allow(null),
+	isActive: Joi.boolean().required(),
+	structureMappingDetails: Joi.array()
+		.items(
+			Joi.object({
+				salaryComponentAutoId: Joi.number().integer().required(),
+				salaryComponentElementAutoId: Joi.number().integer().required(),
+				elementValue: Joi.alternatives()
+					.try(Joi.string(), Joi.number().integer())
+					.required(),
+			}),
+		)
+		.required(),
 });
 
 const earningArrearsSchema = Joi.object({
-  earningArrearAutoId: Joi.number().integer().positive().optional(), // Auto-incremented, typically not included in user input
-  EmployeeId: Joi.number().integer().positive().required(), // Required as it links to an employee
-  arrearMonth: Joi.string().max(45).required(), // String with a maximum length
-  arrearPayMonth: Joi.string().max(45).required(),
-  arearDays: Joi.number().integer().positive().required(),
-  arearType: Joi.string()
-    .allow(null)
-    .max(45)
-    .optional()
-    .valid("New Joinee", "LOP", "Increment"), // Optional, can be null
-  hasPF: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
-  computeESIC: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
-  isDeleteArrear: Joi.string()
-    .allow(null)
-    .max(45)
-    .optional()
-    .valid("Yes", "No"),
-  lopDate: Joi.date().allow(null).optional(),
-  createdBy: Joi.number().integer().positive().allow(null).optional(),
-  createdAt: Joi.date().allow(null).optional(),
-  updatedBy: Joi.number().integer().positive().allow(null).optional(),
-  updatedAt: Joi.date().allow(null).optional(),
-  isActive: Joi.boolean().default(false).optional(), // Defaults to false if not provided
+	earningArrearAutoId: Joi.number().integer().positive().optional(), // Auto-incremented, typically not included in user input
+	EmployeeId: Joi.number().integer().positive().required(), // Required as it links to an employee
+	arrearMonth: Joi.string().max(45).required(), // String with a maximum length
+	arrearPayMonth: Joi.string().max(45).required(),
+	arearDays: Joi.number().integer().positive().required(),
+	arearType: Joi.string()
+		.allow(null)
+		.max(45)
+		.optional()
+		.valid("New Joinee", "LOP", "Increment"), // Optional, can be null
+	hasPF: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
+	computeESIC: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
+	isDeleteArrear: Joi.string()
+		.allow(null)
+		.max(45)
+		.optional()
+		.valid("Yes", "No"),
+	lopDate: Joi.date().allow(null).optional(),
+	createdBy: Joi.number().integer().positive().allow(null).optional(),
+	createdAt: Joi.date().allow(null).optional(),
+	updatedBy: Joi.number().integer().positive().allow(null).optional(),
+	updatedAt: Joi.date().allow(null).optional(),
+	isActive: Joi.boolean().default(false).optional(), // Defaults to false if not provided
 });
 
 async function createDynamicPayPackageSchema(structureDetails, employee) {
-  let dynamicArray = [];
-  for (const salaryComponent of structureDetails) {
-    dynamicArray.push(
-      salaryComponent[
-        "structureMappingDetails.componentDetails.salaryComponentAlias"
-      ]
-        ? salaryComponent[
-            "structureMappingDetails.componentDetails.salaryComponentAlias"
-          ]
-        : salaryComponent[
-            "structureMappingDetails.componentDetails.salaryComponentCode"
-          ]
-    );
-  }
-  const dynamicFields = {
-    "Employee ID": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
-    "Name":Joi.string().allow(null,''),
-    "Effective Date": Joi.alternatives().try(Joi.string(), Joi.number()).required(),
-    "Event":Joi.string().allow('',null),
-    "Salary Structure":Joi.string().required(),
-    "CTC":Joi.number().required(),
-  };
+	let dynamicArray = [];
+	for (const salaryComponent of structureDetails) {
+		dynamicArray.push(
+			salaryComponent[
+				"structureMappingDetails.componentDetails.salaryComponentAlias"
+			]
+				? salaryComponent[
+						"structureMappingDetails.componentDetails.salaryComponentAlias"
+					]
+				: salaryComponent[
+						"structureMappingDetails.componentDetails.salaryComponentCode"
+					],
+		);
+	}
+	const dynamicFields = {
+		"Employee ID": Joi.alternatives()
+			.try(Joi.string(), Joi.number())
+			.required(),
+		Name: Joi.string().allow(null, ""),
+		"Effective Date": Joi.alternatives()
+			.try(Joi.string(), Joi.number())
+			.required(),
+		Event: Joi.string().allow("", null),
+		"Salary Structure": Joi.string().required(),
+		CTC: Joi.number().required(),
+	};
 
-  // console.log(dynamicArray);
+	// console.log(dynamicArray);
 
-  dynamicArray.forEach((field) => {
-    dynamicFields[field] = Joi.alternatives().try(
-      Joi.number()
-        .min(0)
-        .messages({
-          "number.base": `"${field}" must be a valid number`,
-          "number.min": `"${field}" must be 0 or greater`,
-        }).label('field'),
-      Joi.string()
-        .valid("")
-        .optional().label("PPP") // Allows empty string
-    ).default(0).custom((value, helpers) => {
-      if (value === "") {
-        return 0; // Assign 0 if it's an empty string
-      }
-      return value;
-    });
-  });
-  const payPackangeSchema = Joi.object(dynamicFields).unknown(true);
-  const { error ,value} = await payPackangeSchema.validate(employee);
-  // console.log(value);
-  // console.log("****"+error+"*************8");
-  return error;
+	dynamicArray.forEach((field) => {
+		dynamicFields[field] = Joi.alternatives()
+			.try(
+				Joi.number()
+					.min(0)
+					.messages({
+						"number.base": `"${field}" must be a valid number`,
+						"number.min": `"${field}" must be 0 or greater`,
+					})
+					.label("field"),
+				Joi.string().valid("").optional().label("PPP"), // Allows empty string
+			)
+			.default(0)
+			.custom((value, helpers) => {
+				if (value === "") {
+					return 0; // Assign 0 if it's an empty string
+				}
+				return value;
+			});
+	});
+	const payPackangeSchema = Joi.object(dynamicFields).unknown(true);
+	const { error, value } = await payPackangeSchema.validate(employee);
+	// console.log(value);
+	// console.log("****"+error+"*************8");
+	return error;
 }
 
 const tdsDeductionsSchema = Joi.object({
-  EmployeeId: Joi.number().integer().positive().required(),
-  tdsMonth: Joi.string().max(255).required(),
-  tdsAmount: Joi.number().precision(2).positive().required(),
-  createdBy: Joi.number().integer().positive().optional().allow(null),
-  createdAt: Joi.date().optional().allow(null),
-  updatedBy: Joi.number().integer().positive().optional().allow(null),
-  updatedAt: Joi.date().optional().allow(null),
-  isActive: Joi.boolean().optional(), // Defaults to false (0)
-  empCode: Joi.alternatives()
-  .try(Joi.string(), Joi.number().integer())
-  .required()
-  .label("Employee Code"),
+	EmployeeId: Joi.number().integer().positive().required(),
+	tdsMonth: Joi.string().max(255).required(),
+	tdsAmount: Joi.number().precision(2).positive().required(),
+	createdBy: Joi.number().integer().positive().optional().allow(null),
+	createdAt: Joi.date().optional().allow(null),
+	updatedBy: Joi.number().integer().positive().optional().allow(null),
+	updatedAt: Joi.date().optional().allow(null),
+	isActive: Joi.boolean().optional(), // Defaults to false (0)
+	empCode: Joi.alternatives()
+		.try(Joi.string(), Joi.number().integer())
+		.required()
+		.label("Employee Code"),
 });
 
 const extraPayment = Joi.object({
-  EmployeeId: Joi.number().integer().positive().required(),
-  paymentMonth: Joi.string().max(255).required(),
-  category: Joi.string().max(255).required(),
-  paymentAmount: Joi.number().precision(2).positive().required().label("Extra Payment Amount"),
-  createdBy: Joi.number().integer().positive().optional().allow(null),
-  createdAt: Joi.date().optional().allow(null),
-  updatedBy: Joi.number().integer().positive().optional().allow(null),
-  updatedAt: Joi.date().optional().allow(null),
-  isActive: Joi.boolean().optional(), // Defaults to false (0)
-  empCode: Joi.alternatives()
-  .try(Joi.string(), Joi.number().integer())
-  .required()
-  .label("Employee Code"),
-  type: Joi.string()
-    .allow(null)
-    .label("Type"),
-  paymentCategoryId:Joi.number().integer().positive().required(),
+	EmployeeId: Joi.number().integer().positive().required(),
+	paymentMonth: Joi.string().max(255).required(),
+	category: Joi.string().max(255).required(),
+	paymentAmount: Joi.number()
+		.precision(2)
+		.positive()
+		.required()
+		.label("Extra Payment Amount"),
+	createdBy: Joi.number().integer().positive().optional().allow(null),
+	createdAt: Joi.date().optional().allow(null),
+	updatedBy: Joi.number().integer().positive().optional().allow(null),
+	updatedAt: Joi.date().optional().allow(null),
+	isActive: Joi.boolean().optional(), // Defaults to false (0)
+	empCode: Joi.alternatives()
+		.try(Joi.string(), Joi.number().integer())
+		.required()
+		.label("Employee Code"),
+	type: Joi.string().allow(null).label("Type"),
+	paymentCategoryId: Joi.number().integer().positive().required(),
 });
 
 const lopValidateSchama = Joi.object({
-  lopAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
-  EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-  lopMonth: Joi.string().max(255).required(),
-  lopDays: Joi.number().precision(2).positive().required().label("LOP Days"), // Leave days must be non-negative.
-  createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
-  createdAt: Joi.date().optional().allow(null), // Optional, can be null.
-  updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
-  updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
-  isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
-  empCode: Joi.alternatives()
-  .try(Joi.string(), Joi.number().integer())
-  .required()
-  .label("Employee Code"),
+	lopAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+	lopMonth: Joi.string().max(255).required(),
+	lopDays: Joi.number().precision(2).positive().required().label("LOP Days"), // Leave days must be non-negative.
+	createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+	createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+	updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+	updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+	isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+	empCode: Joi.alternatives()
+		.try(Joi.string(), Joi.number().integer())
+		.required()
+		.label("Employee Code"),
 });
 
 const employeesForPayrollProcess = Joi.object({
-  departmentId: Joi.string().allow("",null), // Auto-incremented primary key, not required in most cases.
-  paymonth: Joi.string().required(),
-  processingType:Joi.number().required().valid(0,1),
-  companyId:Joi.number(),
-  selectedYear: Joi.number().optional()
+	departmentId: Joi.string().allow("", null), // Auto-incremented primary key, not required in most cases.
+	paymonth: Joi.string().required(),
+	processingType: Joi.number().required().valid(0, 1),
+	companyId: Joi.number(),
+	selectedYear: Joi.number().optional(),
 });
 
 const extraDeductionSchema = Joi.object({
-  "Employee ID": Joi.alternatives()
-  .try(Joi.string(), Joi.number().integer())
-  .required()
-  .label("Employee ID"),
-  "Advance Category": Joi.string()
-    .required()
-    .label("Advance Category"),
-  "Advance Name": Joi.string()
-    .required()
-    .label("Advance Name"),
-  "Total Amount/Percent/Hours/Days": Joi.number()
-    .positive()
-    .required()
-    .label("Total Amount/Percent/Hours/Days"),
-  "Start Month": Joi.string()
-    .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
-    .required()
-    .label("Start Month"),
-    "End Month": Joi.string()
-    .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
-    .label("End Month"),
-  "Number Of Deductions": Joi.number()
-    .integer()
-    .positive()
-    .required()
-    .label("Number Of Deductions"),
-    "Status (Open/Completed)": Joi.number()
-    .integer()
-    .positive()
-    .allow(null,)
-    .valid('Open','Completed')
-    .label("Status (Open/Completed)"),
-    "Reason for status change": Joi.string()
-    .allow(null,'')
-    .label("Reason for status change"),
+	"Employee ID": Joi.alternatives()
+		.try(Joi.string(), Joi.number().integer())
+		.required()
+		.label("Employee ID"),
+	"Advance Category": Joi.string().required().label("Advance Category"),
+	"Advance Name": Joi.string().required().label("Advance Name"),
+	"Total Amount/Percent/Hours/Days": Joi.number()
+		.positive()
+		.required()
+		.label("Total Amount/Percent/Hours/Days"),
+	"Start Month": Joi.string()
+		.pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+		.required()
+		.label("Start Month"),
+	"End Month": Joi.string()
+		.pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+		.label("End Month"),
+	"Number Of Deductions": Joi.number()
+		.integer()
+		.positive()
+		.required()
+		.label("Number Of Deductions"),
+	"Status (Open/Completed)": Joi.number()
+		.integer()
+		.positive()
+		.allow(null)
+		.valid("Open", "Completed")
+		.label("Status (Open/Completed)"),
+	"Reason for status change": Joi.string()
+		.allow(null, "")
+		.label("Reason for status change"),
 });
 
-
 const payMonthYearCheck = Joi.object({
-  pay_month: Joi.number()
-    .min(1)
-    .max(12)
-    .required()
-    .custom((value, helpers) => {
-      const formattedValue = value < 10 ? `0${value}` : `${value}`;
-      return formattedValue;
-    }, 'format single-digit month as two digits'),
-  pay_year: Joi.number().required(),
-  companyId: Joi.number().required(),
+	pay_month: Joi.number()
+		.min(1)
+		.max(12)
+		.required()
+		.custom((value, helpers) => {
+			const formattedValue = value < 10 ? `0${value}` : `${value}`;
+			return formattedValue;
+		}, "format single-digit month as two digits"),
+	pay_year: Joi.number().required(),
+	companyId: Joi.number().required(),
 });
 /////////////Payroll///////////////
 const addDesignationEmploymentSchema = Joi.object({
@@ -1533,88 +1536,71 @@ const updateCompOffLeaveRequest = Joi.object({
 });
 const payProcessCardSchema = Joi.object({
 	selectedYear: Joi.number().required(),
-	companyId: Joi.number().required()
-  });
-  
-  const extraDeductionFormSchema = Joi.object({
-	EmployeeId: Joi.number()
-	  .required()
-	  .label("Employee Id"),
-	deductionCategoryId: Joi.number()
-	  .required()
-	  .label("Deduction Category"),
-	deductionType: Joi.string()
-	  .required()
-	  .label("Deduction Type"),
-	deductionName: Joi.string()
-	  .required()
-	  .label("Deduction Name"),
-	deductionAmount: Joi.number()
-	  .positive()
-	  .required()
-	  .label("Deduction Amount"),
-	currencyCode: Joi.number()
-	  .required()
-	  .label("Currency Code"),
+	companyId: Joi.number().required(),
+});
+
+const extraDeductionFormSchema = Joi.object({
+	EmployeeId: Joi.number().required().label("Employee Id"),
+	deductionCategoryId: Joi.number().required().label("Deduction Category"),
+	deductionType: Joi.string().required().label("Deduction Type"),
+	deductionName: Joi.string().required().label("Deduction Name"),
+	deductionAmount: Joi.number().positive().required().label("Deduction Amount"),
+	currencyCode: Joi.number().required().label("Currency Code"),
 	startMonth: Joi.string()
-	  .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
-	  .required()
-	  .label("Start Month"),
+		.pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+		.required()
+		.label("Start Month"),
 	endMonth: Joi.string()
-	  .allow(null)
-	  .pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
-	  .label("End Month")
-	  .custom((value, helpers) => {
-		const { startMonth } = helpers.state.ancestors[0]; // Access startMonth from the object being validated
-		if (value && startMonth) {
-		  const start = new Date(`${startMonth}-01`);
-		  const end = new Date(`${value}-01`);
-		  if (end < start) {
-			return helpers.message(
-			  `"End Month" must be equal to or later than "Start Month"`
-			);
-		  }
-		}
-		return value;
-	  }),
+		.allow(null)
+		.pattern(/^\d{4}-\d{2}$/) // Matches YYYY-MM format
+		.label("End Month")
+		.custom((value, helpers) => {
+			const { startMonth } = helpers.state.ancestors[0]; // Access startMonth from the object being validated
+			if (value && startMonth) {
+				const start = new Date(`${startMonth}-01`);
+				const end = new Date(`${value}-01`);
+				if (end < start) {
+					return helpers.message(
+						`"End Month" must be equal to or later than "Start Month"`,
+					);
+				}
+			}
+			return value;
+		}),
 	numberOfDeductions: Joi.number()
-	  .integer()
-	  .positive()
-	  .required()
-	  .label("Number Of Deductions"),
-	financialYearId: Joi.number()
-	  .required()
-	  .label("Financial Year"),
+		.integer()
+		.positive()
+		.required()
+		.label("Number Of Deductions"),
+	financialYearId: Joi.number().required().label("Financial Year"),
 	// monthlyDeductionAmount: Joi.number()
 	//   .positive()
 	//   .required()
 	//   .label("Monthly Deduction Amount"),
-  });
-  
-  const extraPaymentFormSchema = Joi.object({
+});
+
+const extraPaymentFormSchema = Joi.object({
 	EmployeeId: Joi.number().integer().positive().required(),
 	paymentMonth: Joi.string().max(255).required().label("Payment Month"),
 	paymentCategoryId: Joi.number().required().label("Payment Category"),
-	paymentAmount: Joi.number().precision(2).positive().required().label("Extra Payment Amount"),
-	paymentType: Joi.string()
-	  .required()
-	  .label("Payment Type"),
-	financialYearId: Joi.number()
-	  .required()
-	  .label("Financial Year")
-  });
-  
-  const generatePaySlipSchema = Joi.object({
+	paymentAmount: Joi.number()
+		.precision(2)
+		.positive()
+		.required()
+		.label("Extra Payment Amount"),
+	paymentType: Joi.string().required().label("Payment Type"),
+	financialYearId: Joi.number().required().label("Financial Year"),
+});
+
+const generatePaySlipSchema = Joi.object({
 	EmployeeId: Joi.number().integer().positive().required(),
 	payMonth: Joi.string().max(10).required().label("Pay Month"),
 	paySlipType: Joi.string().required().label("Pay Slip Type"),
 	lopDays: Joi.number().required().label("Total Loss Of Pay"),
 	remarks: Joi.string().allow(null).label("Remarks"),
 	tdsAmount: Joi.number().required().label("TDS Amount"),
-	financialYearId: Joi.number()
-	  .required()
-	  .label("Financial Year"),
-  });
+	financialYearId: Joi.number().required().label("Financial Year"),
+});
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -1680,17 +1666,17 @@ export default {
 	rosterUploadSchema,
 	updateCompOffRequest,
 	payProcessCardSchema,
-  extraDeductionFormSchema,
-  extraPaymentFormSchema,
-  generatePaySlipSchema,
-  salaryStructureListSchema,
-salaryStructureCreateSchema,
-earningArrearsSchema,
-createDynamicPayPackageSchema,
-tdsDeductionsSchema,
-extraPayment,
-lopValidateSchama,
-employeesForPayrollProcess,
-extraDeductionSchema,
-payMonthYearCheck
+	extraDeductionFormSchema,
+	extraPaymentFormSchema,
+	generatePaySlipSchema,
+	salaryStructureListSchema,
+	salaryStructureCreateSchema,
+	earningArrearsSchema,
+	createDynamicPayPackageSchema,
+	tdsDeductionsSchema,
+	extraPayment,
+	lopValidateSchama,
+	employeesForPayrollProcess,
+	extraDeductionSchema,
+	payMonthYearCheck,
 };

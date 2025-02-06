@@ -232,10 +232,10 @@ export default (sequelize, Sequelize) => {
 		requiredAttendanceApproval: {
 			type: Sequelize.BOOLEAN,
 		},
-    payrollInclude:{
-      type: Sequelize.INTEGER,
-      defaultValue:0
-    }
+		payrollInclude: {
+			type: Sequelize.INTEGER,
+			defaultValue: 0,
+		},
 		// insuranceCardImg:{
 		//   type: Sequelize.STRING,
 		// }
