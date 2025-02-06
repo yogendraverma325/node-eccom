@@ -4,6 +4,6 @@ import commonController from "./common.controller.js";
 
 export default Express.Router()
 
-  .get("/getCalendar", commonController.getCalendar)
-  .get("/category", commonController.getCategory)
-  .get("/subCategory/:id", commonController.getSubcategory)
+	.get("/getCalendar", commonController.getCalendar)
+	.get("/category", commonController.getCategory)
+	.get("/subCategory/:id", commonController.getSubcategory);

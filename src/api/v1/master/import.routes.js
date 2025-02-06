@@ -1,10 +1,22 @@
-import Express from 'express';
-import masterImportController from './import.controller.js'
-import multer from 'multer';
+import Express from "express";
+import masterImportController from "./import.controller.js";
+import multer from "multer";
 
-const upload = multer({ dest: 'uploads/excel/' });
+const upload = multer({ dest: "uploads/excel/" });
 
-export default Express
-    .Router()
-    .post("/onboardingEmployee", upload.single('excelFile'), masterImportController.onboardingEmployeeImport)
-    .post("/documentImport", upload.single('file'), masterImportController.documentImport)
+export default Express.Router()
+	.post(
+		"/onboardingEmployee",
+		upload.single("excelFile"),
+		masterImportController.onboardingEmployeeImport,
+	)
+	.post(
+		"/documentImport",
+		upload.single("file"),
+		masterImportController.documentImport,
+	)
+	.post(
+		"/managerHistoryImport",
+		upload.single("file"),
+		masterImportController.managerHistoryImport,
+	);
