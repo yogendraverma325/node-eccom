@@ -21,7 +21,7 @@ import eventEmitter from "../../../services/eventService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+const dbName=process.env.DB_NAME;
 const financialMonth = {
   1: "January",
   2: "February",
@@ -2611,7 +2611,7 @@ class PaymentController {
       );
       var totaPaymentAmount = 0,
         uniqueEmployeeImpacted = 0;
-      let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM tara.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
+      let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
       let extraPayments = await db.sequelize.query(allDeductionQuery);
       for (const singleEmployeePayment of extraPayments[0]) {
         console.log(singleEmployeePayment);
@@ -2671,7 +2671,7 @@ class PaymentController {
         value.paymonth
       );
       var totalExtraDeductionsAmount = 0;
-      let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where EmployeeId in(${returnVAlue.avalialbleEmployees.join(
+      let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where EmployeeId in(${returnVAlue.avalialbleEmployees.join(
         ","
       )}) and startMonth='${value.paymonth}' GROUP BY empCode `;
 
@@ -3359,7 +3359,7 @@ class PaymentController {
         const employeeIdss = employeeIds.split(",");
         console.log(employeeIds);
         query = `
-        SELECT name,empCode FROM tara.employee where id in (${employeeIdss})`;
+        SELECT name,empCode FROM ${dbName}.employee where id in (${employeeIdss})`;
 
         if (query) {
           const [results] = await db.sequelize.query(query, { raw: true });
@@ -3379,21 +3379,21 @@ class PaymentController {
 
         //return
         const impactedEmployeeQueryObject = {
-          10: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM tara.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
+          10: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
             .map((id) => `'${id}'`)
             .join(", ")});`,
-          11: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM tara.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
+          11: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
             .map((id) => `'${id}'`)
             .join(", ")});`,
-          12: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM tara.extradeductions where empCode in(${employeeIdss
+          12: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where empCode in(${employeeIdss
             .map((id) => `'${id}'`)
             .join(", ")}) and startMonth='${payMonth}' GROUP BY empCode;`,
-          13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM tara.tdsdeductions where empCode in(${employeeIdss
+          13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM ${dbName}.tdsdeductions where empCode in(${employeeIdss
             .map((id) => `'${id}'`)
             .join(", ")}) and tdsMonth='${payMonth}';`,
-          14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
-          15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
-          16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM tara.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+          14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
+          15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
+          16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
         };
         query = impactedEmployeeQueryObject[exportSheetAutoId];
         if (query) {
@@ -3575,9 +3575,9 @@ class PaymentController {
   async employeesListForProcessing(req, res) {
     try {
       let { companyId ,year,month} = req.query;
-      //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
-      //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
-      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) < ${year} OR (YEAR(ejd.dateOfJoining) = ${year} AND MONTH(ejd.dateOfJoining) <= ${month}));`;
+      //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
+      //let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
+      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) < ${year} OR (YEAR(ejd.dateOfJoining) = ${year} AND MONTH(ejd.dateOfJoining) <= ${month}));`;
     
       console.log(employeeForProcessingQuery)
     
@@ -4699,7 +4699,7 @@ class PaymentController {
         // fetch employee details
         let employeeDetails = await db.employeeMaster.findOne({ where: { 'id': EmployeeId }, attributes: ['id', 'companyId'] });
         let yearMonth = payMonth.split("-");
-        let generatePaySlipQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${employeeDetails?.companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) < ${yearMonth[0]} OR (YEAR(ejd.dateOfJoining) = ${yearMonth[0]} AND MONTH(ejd.dateOfJoining) <= ${yearMonth[1]})) AND e.id = ${EmployeeId};`;
+        let generatePaySlipQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${employeeDetails?.companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) < ${yearMonth[0]} OR (YEAR(ejd.dateOfJoining) = ${yearMonth[0]} AND MONTH(ejd.dateOfJoining) <= ${yearMonth[1]})) AND e.id = ${EmployeeId};`;
         let queryResponse = await db.sequelize.query(generatePaySlipQuery);
         
         if(queryResponse[0].length > 0) {
