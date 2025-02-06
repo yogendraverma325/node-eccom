@@ -2235,6 +2235,8 @@ class AttendanceController {
 					},
 				);
 
+				console.log("regularizeData.dataValues.attendancemaster.attendanceAutoId",regularizeData.dataValues.attendancemaster.attendanceAutoId)
+				console.log("regularizeData.dataValues.attendancemaster.attendanceDate",regularizeData.dataValues.attendancemaster.attendanceDate)
 				_this.attedanceCronManual(
 					regularizeData.dataValues.attendancemaster.attendanceAutoId,
 					regularizeData.dataValues.attendancemaster.attendanceDate,
@@ -3468,7 +3470,9 @@ class AttendanceController {
 					} else {
 						presentStatus = "absent";
 					}
-
+console.log("singleEmp.attendancemaster",singleEmp.attendancemaster)
+console.log("singleEmp.attendancemaster.attendancePunchInTime",singleEmp.attendancemaster.attendancePunchInTime)
+console.log("singleEmp.attendancemaster.attendancePunchInTime",singleEmp.attendancemaster.attendancePunchOutTime)
 					if (singleEmp.attendancemaster) {
 						if (
 							singleEmp.attendancemaster.attendancePunchInTime &&
@@ -3682,10 +3686,19 @@ class AttendanceController {
 								await helper.creditCompoff(employeeData);
 							}
 						} else {
+
+						if (
+						!singleEmp.attendancemaster.attendancePunchInTime || 
+						!singleEmp.attendancemaster.attendancePunchOutTime
+						) {
+presentStatus='absent'
+						}else{
 							presentStatus =
-								lastDayDate === moment().format("YYYY-MM-DD")
-									? singleEmp.attendancemaster.attendancePresentStatus
-									: "singlePunchAbsent";
+							lastDayDate === moment().format("YYYY-MM-DD")
+							? singleEmp.attendancemaster.attendancePresentStatus
+							: "singlePunchAbsent";
+						}
+							
 						}
 						await db.attendanceMaster.update(
 							{
