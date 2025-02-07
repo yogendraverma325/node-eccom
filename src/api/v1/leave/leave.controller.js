@@ -543,9 +543,43 @@ class LeaveController {
 				result.leaveAutoId,
 				EMP_DATA,
 			);
+
+			if (!leaveMasterData) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.NO_LEAVE,
+				});
+			}
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
 			const onNoticePeriod =
 				req.userData["employeejobdetail.noticePeriodStatus"];
+
+				if(
+				result.leaveAutoId==3 || 
+				result.leaveAutoId==4 ||
+				result.leaveAutoId==5 || 
+				result.leaveAutoId==7){
+
+				const transactionCount = await db.EmployeeLeaveHeader.count({
+				where: {
+				employeeId: req.body.employeeId,
+				leaveAutoId:result.leaveAutoId,
+				status: ["approved", "pending"],
+				}
+				});
+				if(transactionCount >= leaveMasterData.tenureCount){
+					return respHelper(res, {
+							status: 404,
+							data: {},
+							msg: message.LEAVE.TENURE_LEAVE_COUNT.replace(
+								"#",
+								leaveMasterData.tenureCount,
+							),
+						});
+				}
+
+				}
 
 			// Fetch employee details and leave counts in parallel
 
@@ -610,13 +644,7 @@ class LeaveController {
 					}
 				}
 			}
-			if (!leaveMasterData) {
-				return respHelper(res, {
-					status: 404,
-					data: {},
-					msg: message.LEAVE.NO_LEAVE,
-				});
-			}
+			
 			if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
 				if (leaveMasterData.canTakeHalfDay == 0) {
 					return respHelper(res, {
@@ -751,7 +779,7 @@ class LeaveController {
 				}
 			}
 
-			let workingdays = daysDifferenceReq + 1;
+			let workingdays = differenceInDays;
 			if (
 				leaveMasterData?.max_consecutive_count != 0 &&
 				workingdays > leaveMasterData?.max_consecutive_count
@@ -790,11 +818,13 @@ class LeaveController {
 					msg: message.LEAVE.ATTACHMENT_REQUIRED,
 				});
 			}
+			console.log("workingdays",workingdays)
+			console.log("leaveMasterData.attachmentRequiredafterdays",leaveMasterData.attachmentRequiredafterdays)
 			if (
 				leaveMasterData.attachmentRequiredafterdays != 0 &&
 				leaveMasterData.attachmentRequired == false &&
 				result.attachment == "" &&
-				workingdays >= leaveMasterData.attachmentRequiredafterdays
+				workingdays > leaveMasterData.attachmentRequiredafterdays
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -816,7 +846,7 @@ class LeaveController {
 				leaveMasterData.messageRequired == false &&
 				leaveMasterData.messageRequiredafterdays != 0 &&
 				result.message == "" &&
-				workingdays >= leaveMasterData.messageRequiredafterdays
+				workingdays > leaveMasterData.messageRequiredafterdays
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -838,7 +868,7 @@ class LeaveController {
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
-				monthCount >= leaveMasterData?.max_month_count
+				monthCount > leaveMasterData?.max_month_count
 			) {
 				return respHelper(res, {
 					status: 404,

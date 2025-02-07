@@ -143,6 +143,15 @@ export default (sequelize, Sequelize) => {
 		countInterveningNationalHoliday: {
 			type: Sequelize.INTEGER,
 		},
+		tenureCount: {
+			type: Sequelize.INTEGER,
+		},
+		max_allowed_in_year: {
+			type: Sequelize.INTEGER,
+		},
+		carry_foward_un_used: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveCompanyMapping;
 };
