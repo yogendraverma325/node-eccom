@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-	const weekOffMaster = sequelize.define("weekOffMaster", {
+	const weekOffMaster = sequelize.define("weekoffmaster", {
 		weekOffId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
