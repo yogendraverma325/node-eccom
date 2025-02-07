@@ -4268,6 +4268,7 @@ class CommonController {
 				data: obj,
 			});
 		} catch (error) {
+			console.log(error);
 			logger.error(error);
 			return respHelper(res, {
 				status: 500,
