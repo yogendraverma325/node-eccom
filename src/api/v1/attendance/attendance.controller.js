@@ -599,8 +599,7 @@ class AttendanceController {
 									attendanceStatus: "Punch Out",
 									attendancePunchOutRemark: result.remark,
 									attendanceWorkingTime: await helper.timeDifference(
-										`${yerterdayDate.format("YYYY-MM-DD")} ${
-											lastDayAttendace.attendancePunchInTime
+										`${yerterdayDate.format("YYYY-MM-DD")} ${lastDayAttendace.attendancePunchInTime
 										}`,
 										`${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
 											"HH:mm:ss",
@@ -1794,11 +1793,11 @@ class AttendanceController {
 						daysDifference > 0 &&
 							daysDifference <= parseInt(process.env.REGULARIZE_DAYS_LIMIT)
 							? {
-									enableRegularize: true,
-								}
+								enableRegularize: true,
+							}
 							: {
-									enableRegularize: false,
-								},
+								enableRegularize: false,
+							},
 						{
 							attendanceAutoId: attendance.attendanceAutoId || 0,
 							employeeId: attendance.employeeId || 0,
@@ -1825,13 +1824,13 @@ class AttendanceController {
 							attendanceStatus: attendance.attendanceStatus || "NA",
 							attendancePresentStatus:
 								attendance.attendancePresentStatus !== undefined &&
-								attendance.attendancePresentStatus !== "weeklyOff" &&
-								attendance.attendancePresentStatus !== "holiday"
+									attendance.attendancePresentStatus !== "weeklyOff" &&
+									attendance.attendancePresentStatus !== "holiday"
 									? attendance.attendancePresentStatus
 									: (attendance.attendancePresentStatus == undefined &&
-												checkWeekOff !== null) ||
-										  attendance.attendancePresentStatus == "weeklyOff" ||
-										  holiday !== null
+										checkWeekOff !== null) ||
+										attendance.attendancePresentStatus == "weeklyOff" ||
+										holiday !== null
 										? null
 										: "NA",
 							// : checkWeekOff !== null
@@ -1971,14 +1970,14 @@ class AttendanceController {
 
 				let graceTime = moment(
 					regularizeData[
-						"attendancemaster.employee.shiftsmaster.shiftStartTime"
+					"attendancemaster.employee.shiftsmaster.shiftStartTime"
 					],
 					"HH:mm",
 				); // set shift start time
 
 				graceTime.add(
 					regularizeData[
-						"attendancemaster.employee.attendancePolicymaster.graceTimeClockIn"
+					"attendancemaster.employee.attendancePolicymaster.graceTimeClockIn"
 					],
 					"minutes",
 				); // Add buffer time  to the selected time if buffer allow
@@ -2139,13 +2138,13 @@ class AttendanceController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								createdBy: req.userId,
-								regularizeStatus: "Pending",
-							}
+							createdBy: req.userId,
+							regularizeStatus: "Pending",
+						}
 						: {
-								regularizeManagerId: req.userId,
-								regularizeStatus: "Pending",
-							},
+							regularizeManagerId: req.userId,
+							regularizeStatus: "Pending",
+						},
 				),
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
 				include: [
@@ -2494,21 +2493,21 @@ class AttendanceController {
 
 						if (
 							totalMinutesLateMinutes >=
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationHalfDayTime &&
 							totalMinutesLateMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationFullDayTime
 						) {
 							isHalfDay_late_by = 1;
 							halfDayFor_late_by = 1;
 						} else if (
 							totalMinutesLateMinutes >
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationHalfDayTime &&
 							totalMinutesLateMinutes >=
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationFullDayTime
 						) {
 							isHalfDay_late_by = 0;
 							halfDayFor_late_by = 0;
@@ -2532,21 +2531,21 @@ class AttendanceController {
 
 						if (
 							totalMinutesTotalHoursMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationHalfDayTime &&
 							totalMinutesTotalHoursMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationFullDayTime
 						) {
 							isHalfDay_total_work = 0;
 							halfDayFor_total_work = 0;
 						} else if (
 							totalMinutesTotalHoursMinutes >
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationHalfDayTime &&
 							totalMinutesTotalHoursMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationFullDayTime
 						) {
 							isHalfDay_total_work = 1;
 							halfDayFor_total_work = 1;
@@ -2655,11 +2654,11 @@ class AttendanceController {
 							holiday: singleEmp.holidaycompanylocationconfigurations,
 							weekoff:
 								singleEmp.attendanceroster &&
-								singleEmp.attendanceroster.weekOffMaster &&
-								singleEmp.attendanceroster.weekOffMaster
-									.weekOffDayMappingMasters.length != 0
+									singleEmp.attendanceroster.weekOffMaster &&
+									singleEmp.attendanceroster.weekOffMaster
+										.weekOffDayMappingMasters.length != 0
 									? singleEmp.attendanceroster.weekOffMaster
-											.weekOffDayMappingMasters
+										.weekOffDayMappingMasters
 									: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
 						};
 						await helper.creditCompoff(employeeData);
@@ -2933,21 +2932,21 @@ class AttendanceController {
 
 						if (
 							totalMinutesLateMinutes >=
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationHalfDayTime &&
 							totalMinutesLateMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationFullDayTime
 						) {
 							isHalfDay_late_by = 1;
 							halfDayFor_late_by = 1;
 						} else if (
 							totalMinutesLateMinutes >
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationHalfDayTime &&
 							totalMinutesLateMinutes >=
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyLateDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyLateDurationFullDayTime
 						) {
 							isHalfDay_late_by = 0;
 							halfDayFor_late_by = 0;
@@ -2970,21 +2969,21 @@ class AttendanceController {
 
 						if (
 							totalMinutesTotalHoursMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationHalfDayTime &&
 							totalMinutesTotalHoursMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationFullDayTime
 						) {
 							isHalfDay_total_work = 0;
 							halfDayFor_total_work = 0;
 						} else if (
 							totalMinutesTotalHoursMinutes >
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationHalfDayTime &&
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationHalfDayTime &&
 							totalMinutesTotalHoursMinutes <
-								singleEmp.attendancePolicymaster
-									.leaveDeductPolicyWorkDurationFullDayTime
+							singleEmp.attendancePolicymaster
+								.leaveDeductPolicyWorkDurationFullDayTime
 						) {
 							isHalfDay_total_work = 1;
 							halfDayFor_total_work = 1;
@@ -3094,11 +3093,11 @@ class AttendanceController {
 						holiday: singleEmp.holidaycompanylocationconfigurations,
 						weekoff:
 							singleEmp.attendanceroster &&
-							singleEmp.attendanceroster.weekOffMaster &&
-							singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
-								.length != 0
+								singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
+									.length != 0
 								? singleEmp.attendanceroster.weekOffMaster
-										.weekOffDayMappingMasters
+									.weekOffDayMappingMasters
 								: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
 					};
 					await helper.creditCompoff(employeeData);
@@ -3500,21 +3499,21 @@ class AttendanceController {
 
 								if (
 									totalMinutesLateMinutes >=
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationHalfDayTime &&
 									totalMinutesLateMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationFullDayTime
 								) {
 									isHalfDay_late_by = 1;
 									halfDayFor_late_by = 1;
 								} else if (
 									totalMinutesLateMinutes >
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationHalfDayTime &&
 									totalMinutesLateMinutes >=
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationFullDayTime
 								) {
 									isHalfDay_late_by = 0;
 									halfDayFor_late_by = 0;
@@ -3537,21 +3536,21 @@ class AttendanceController {
 
 								if (
 									totalMinutesTotalHoursMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationHalfDayTime &&
 									totalMinutesTotalHoursMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationFullDayTime
 								) {
 									isHalfDay_total_work = 0;
 									halfDayFor_total_work = 0;
 								} else if (
 									totalMinutesTotalHoursMinutes >=
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationHalfDayTime &&
 									totalMinutesTotalHoursMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationFullDayTime
 								) {
 									isHalfDay_total_work = 1;
 									halfDayFor_total_work = 1;
@@ -3671,11 +3670,11 @@ class AttendanceController {
 									holiday: singleEmp.holidaycompanylocationconfigurations,
 									weekoff:
 										singleEmp.attendanceroster &&
-										singleEmp.attendanceroster.weekOffMaster &&
-										singleEmp.attendanceroster.weekOffMaster
-											.weekOffDayMappingMasters.length == 0
+											singleEmp.attendanceroster.weekOffMaster &&
+											singleEmp.attendanceroster.weekOffMaster
+												.weekOffDayMappingMasters.length == 0
 											? singleEmp.attendanceroster.weekOffMaster
-													.weekOffDayMappingMasters
+												.weekOffDayMappingMasters
 											: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
 								};
 
@@ -3702,7 +3701,7 @@ class AttendanceController {
 					}
 				}),
 			);
-		} catch (error) {}
+		} catch (error) { }
 
 		// return respHelper(res, {
 		//   status: 200,
@@ -3876,21 +3875,21 @@ class AttendanceController {
 
 								if (
 									totalMinutesLateMinutes >=
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationHalfDayTime &&
 									totalMinutesLateMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationFullDayTime
 								) {
 									isHalfDay_late_by = 1;
 									halfDayFor_late_by = 1;
 								} else if (
 									totalMinutesLateMinutes >
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationHalfDayTime &&
 									totalMinutesLateMinutes >=
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyLateDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyLateDurationFullDayTime
 								) {
 									isHalfDay_late_by = 0;
 									halfDayFor_late_by = 0;
@@ -3913,21 +3912,21 @@ class AttendanceController {
 
 								if (
 									totalMinutesTotalHoursMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationHalfDayTime &&
 									totalMinutesTotalHoursMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationFullDayTime
 								) {
 									isHalfDay_total_work = 0;
 									halfDayFor_total_work = 0;
 								} else if (
 									totalMinutesTotalHoursMinutes >=
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationHalfDayTime &&
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationHalfDayTime &&
 									totalMinutesTotalHoursMinutes <
-										singleEmp.attendancePolicymaster
-											.leaveDeductPolicyWorkDurationFullDayTime
+									singleEmp.attendancePolicymaster
+										.leaveDeductPolicyWorkDurationFullDayTime
 								) {
 									isHalfDay_total_work = 1;
 									halfDayFor_total_work = 1;
@@ -4068,8 +4067,8 @@ class AttendanceController {
 						where: Object.assign(
 							!["ADMIN", "HR_OPS"].includes(req.userRole)
 								? {
-										manager: req.userId,
-									}
+									manager: req.userId,
+								}
 								: {},
 							{
 								isActive: 1,
@@ -4133,13 +4132,13 @@ class AttendanceController {
 				if (result.status) {
 					const attendanceData = await db.attendanceMaster.findOne({
 						where: {
-							attendanceDate: element.dataValues.date,
+							attendanceDate: (element.dataValues.status == "Punch Out" && element.shiftsmaster.isOverNight) ? moment(element.dataValues.date).subtract(1, 'days') : element.dataValues.date,
 							employeeId: element.dataValues.employeeId,
 						},
 					});
 
 					const dateTime = `${element.dataValues.date} ${element.dataValues.time}`;
-					const currentDate = moment(dateTime, "YYYY-MM-DD HH:mm:ss");
+					let currentDate = moment(dateTime, "YYYY-MM-DD HH:mm:ss");
 
 					if (element.dataValues.status == "Punch In") {
 						let graceTime = moment(
@@ -4247,6 +4246,8 @@ class AttendanceController {
 							`Punch In Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`,
 						);
 					} else if (element.dataValues.status == "Punch Out") {
+
+						currentDate = (element.shiftsmaster.isOverNight) ? currentDate.subtract(1, 'days') : currentDate;
 						if (!attendanceData) {
 							failedRecords.push(
 								`Punch In Data Not Available for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`,
@@ -4392,13 +4393,13 @@ class AttendanceController {
 				data: Object.assign(
 					successRecords.length > 0
 						? {
-								successRecords,
-							}
+							successRecords,
+						}
 						: {},
 					failedRecords.length > 0
 						? {
-								failedRecords,
-							}
+							failedRecords,
+						}
 						: {},
 				),
 			});
@@ -4674,16 +4675,16 @@ class AttendanceController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								createdBy: { [Op.not]: req.userId },
+							createdBy: { [Op.not]: req.userId },
 
-								//createdBy: req.userId,
-								regularizeStatus: "Pending",
-							}
+							//createdBy: req.userId,
+							regularizeStatus: "Pending",
+						}
 						: {
-								createdBy: { [Op.not]: req.userId },
-								//regularizeManagerId: req.userId,
-								regularizeStatus: "Pending",
-							},
+							createdBy: { [Op.not]: req.userId },
+							//regularizeManagerId: req.userId,
+							regularizeStatus: "Pending",
+						},
 				),
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
 				include: [
@@ -4793,14 +4794,14 @@ class AttendanceController {
 
 				let graceTime = moment(
 					regularizeData[
-						"attendancemaster.employee.shiftsmaster.shiftStartTime"
+					"attendancemaster.employee.shiftsmaster.shiftStartTime"
 					],
 					"HH:mm",
 				); // set shift start time
 
 				graceTime.add(
 					regularizeData[
-						"attendancemaster.employee.attendancePolicymaster.graceTimeClockIn"
+					"attendancemaster.employee.attendancePolicymaster.graceTimeClockIn"
 					],
 					"minutes",
 				); // Add buffer time  to the selected time if buffer allow
