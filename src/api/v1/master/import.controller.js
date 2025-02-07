@@ -291,8 +291,7 @@ class MasterController {
 		}
 	}
 
-
-async documentImport(req, res) {
+	async documentImport(req, res) {
 		let transaction;
 		try {
 			if (!req.file) {
