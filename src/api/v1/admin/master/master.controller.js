@@ -4252,8 +4252,8 @@ class CommonController {
 				group: [
 					"stateId",
 					"lwfDesignationId",
-					"statemaster.stateId",
-					"statemaster.stateName",
+					"stateMaster.stateId",
+					"stateMaster.stateName",
 				], // Must group by included attributes
 			};
 
@@ -4268,7 +4268,6 @@ class CommonController {
 				data: obj,
 			});
 		} catch (error) {
-			console.log(error);
 			logger.error(error);
 			return respHelper(res, {
 				status: 500,
