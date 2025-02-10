@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 // Get the current file URL
 const currentFileURL = import.meta.url;
@@ -11,6 +11,6 @@ const currentFilePath = fileURLToPath(currentFileURL);
 const currentDir = dirname(currentFilePath);
 
 // Set up the root path of the project directory
-const rootPath = join(currentDir, '..'); // Adjust as needed based on your project structure
+const rootPath = join(currentDir, ".."); // Adjust as needed based on your project structure
 
 export default rootPath;
