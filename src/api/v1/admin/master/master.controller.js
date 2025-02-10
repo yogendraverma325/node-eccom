@@ -4252,8 +4252,8 @@ class CommonController {
 				group: [
 					"stateId",
 					"lwfDesignationId",
-					"stateMaster.stateId",
-					"stateMaster.stateName",
+					"statemaster.stateId",
+					"statemaster.stateName",
 				], // Must group by included attributes
 			};
 
