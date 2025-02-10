@@ -78,13 +78,11 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("paymentDetailsApprovalRequestMail", async (input) => {
 		await paymentDetailsApprovalRequest(input);
 	});
+	
 	eventEmitter.on("paymentDetailsAdminApprovedMail", async (input) => {
 		await paymentDetailsAdminApproval(input);
 	});
 
-	eventEmitter.on("prePasswordExpiry", async (input) => {
-		await prePasswordExpiryNotification(input);
-	});
 	eventEmitter.on("prePasswordExpiry", async (input) => {
 		await prePasswordExpiryNotification(input);
 	});
