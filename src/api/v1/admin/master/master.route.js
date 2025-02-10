@@ -646,4 +646,20 @@ export default Express.Router()
 		"/lwf-mapping-details/:stateId/:lwfDesignationId",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfMappingDetails,
+	)
+	.put(
+		"/functional-area-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.updateFunctionalAreaMapping,
+	)
+
+	.put(
+		"/job-level-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.updateJobLevelMapping,
+	)
+	.put(
+		"/department-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.updateDepartmentMapping,
 	);
