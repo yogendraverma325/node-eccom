@@ -1498,6 +1498,7 @@ class AttendanceController {
 								"regularizeManagerRemark",
 								"regularizeId",
 								"createdAt",
+								"updatedAt",
 							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
 						},
@@ -1525,6 +1526,7 @@ class AttendanceController {
 								"reason",
 								"leaveAutoId",
 								"createdAt",
+								"updatedAt",
 							],
 							where: {
 								status: ["pending", "approved"],
@@ -4156,13 +4158,17 @@ class AttendanceController {
 				if (result.status) {
 					const attendanceData = await db.attendanceMaster.findOne({
 						where: {
-							attendanceDate: element.dataValues.date,
+							attendanceDate:
+								element.dataValues.status == "Punch Out" &&
+								element.shiftsmaster.isOverNight
+									? moment(element.dataValues.date).subtract(1, "days")
+									: element.dataValues.date,
 							employeeId: element.dataValues.employeeId,
 						},
 					});
 
 					const dateTime = `${element.dataValues.date} ${element.dataValues.time}`;
-					const currentDate = moment(dateTime, "YYYY-MM-DD HH:mm:ss");
+					let currentDate = moment(dateTime, "YYYY-MM-DD HH:mm:ss");
 
 					if (element.dataValues.status == "Punch In") {
 						let graceTime = moment(
@@ -4270,6 +4276,9 @@ class AttendanceController {
 							`Punch In Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`,
 						);
 					} else if (element.dataValues.status == "Punch Out") {
+						currentDate = element.shiftsmaster.isOverNight
+							? currentDate.subtract(1, "days")
+							: currentDate;
 						if (!attendanceData) {
 							failedRecords.push(
 								`Punch In Data Not Available for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`,

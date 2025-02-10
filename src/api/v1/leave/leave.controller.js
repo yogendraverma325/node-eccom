@@ -541,9 +541,42 @@ class LeaveController {
 				result.leaveAutoId,
 				EMP_DATA,
 			);
+
+			if (!leaveMasterData) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.NO_LEAVE,
+				});
+			}
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
 			const onNoticePeriod =
 				req.userData["employeejobdetail.noticePeriodStatus"];
+
+			if (
+				result.leaveAutoId == 3 ||
+				result.leaveAutoId == 4 ||
+				result.leaveAutoId == 5 ||
+				result.leaveAutoId == 7
+			) {
+				const transactionCount = await db.EmployeeLeaveHeader.count({
+					where: {
+						employeeId: req.body.employeeId,
+						leaveAutoId: result.leaveAutoId,
+						status: ["approved", "pending"],
+					},
+				});
+				if (transactionCount >= leaveMasterData.tenureCount) {
+					return respHelper(res, {
+						status: 404,
+						data: {},
+						msg: message.LEAVE.TENURE_LEAVE_COUNT.replace(
+							"#",
+							leaveMasterData.tenureCount,
+						),
+					});
+				}
+			}
 
 			// Fetch employee details and leave counts in parallel
 
@@ -608,13 +641,7 @@ class LeaveController {
 					}
 				}
 			}
-			if (!leaveMasterData) {
-				return respHelper(res, {
-					status: 404,
-					data: {},
-					msg: message.LEAVE.NO_LEAVE,
-				});
-			}
+
 			if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
 				if (leaveMasterData.canTakeHalfDay == 0) {
 					return respHelper(res, {
@@ -749,7 +776,7 @@ class LeaveController {
 				}
 			}
 
-			let workingdays = daysDifferenceReq + 1;
+			let workingdays = differenceInDays;
 			if (
 				leaveMasterData?.max_consecutive_count != 0 &&
 				workingdays > leaveMasterData?.max_consecutive_count
@@ -788,11 +815,16 @@ class LeaveController {
 					msg: message.LEAVE.ATTACHMENT_REQUIRED,
 				});
 			}
+			console.log("workingdays", workingdays);
+			console.log(
+				"leaveMasterData.attachmentRequiredafterdays",
+				leaveMasterData.attachmentRequiredafterdays,
+			);
 			if (
 				leaveMasterData.attachmentRequiredafterdays != 0 &&
 				leaveMasterData.attachmentRequired == false &&
 				result.attachment == "" &&
-				workingdays >= leaveMasterData.attachmentRequiredafterdays
+				workingdays > leaveMasterData.attachmentRequiredafterdays
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -814,7 +846,7 @@ class LeaveController {
 				leaveMasterData.messageRequired == false &&
 				leaveMasterData.messageRequiredafterdays != 0 &&
 				result.message == "" &&
-				workingdays >= leaveMasterData.messageRequiredafterdays
+				workingdays > leaveMasterData.messageRequiredafterdays
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -836,7 +868,7 @@ class LeaveController {
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
-				monthCount >= leaveMasterData?.max_month_count
+				monthCount > leaveMasterData?.max_month_count
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -2627,17 +2659,46 @@ class LeaveController {
 						attributes: ["biographicalId", "maritalStatus", "gender"],
 						required: true,
 					},
+					{
+						model: db.jobDetails,
+						attributes: ["jobId", "dateOfJoining"],
+						where: { dateOfJoining: { [Op.ne]: null } },
+						required: true,
+					},
 				],
 			});
 
 			const leaveMaster = await db.leaveCompanyMapping.findAll({
-				attributes: ["leaveAutoId", "companyId", "defaultLeaveCount"],
+				attributes: [
+					"leaveAutoId",
+					"companyId",
+					"defaultLeaveCount",
+					"startCalculatingLeaveFromJoiningDate",
+					"creditOnProRataBasis",
+					"creditHalfAfter15Day",
+					"creditFullAfter15dDay",
+					"startCalculateLeaveAfterProbation",
+					"roundingInProRataBalance",
+					"creditOnAccuralBasis",
+				],
 			});
 
 			const leaveMasterLookup = leaveMaster.reduce((acc, leave) => {
 				// Use a composite key combining leaveIdAutoId and companyId
 				const compositeKey = `${leave.leaveAutoId}-${leave.companyId}`;
-				acc[compositeKey] = leave.defaultLeaveCount;
+				//acc[compositeKey] = leave.defaultLeaveCount;
+				acc[compositeKey] = {
+					defaultLeaveCount: leave.defaultLeaveCount,
+					creditOnProRataBasis: leave.creditOnProRataBasis,
+					startCalculatingLeaveFromJoiningDate:
+						leave.startCalculatingLeaveFromJoiningDate,
+					creditHalfAfter15Day: leave.creditHalfAfter15Day,
+					creditFullAfter15dDay: leave.creditFullAfter15dDay,
+					startCalculateLeaveAfterProbation:
+						leave.startCalculateLeaveAfterProbation,
+					roundingInProRataBalance: leave.roundingInProRataBalance,
+					creditOnAccuralBasis: leave.creditOnAccuralBasis,
+				};
 				return acc;
 			}, {});
 
@@ -2653,7 +2714,10 @@ class LeaveController {
 					gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
 				const companyId = employee.dataValues.companyId;
 				const employeeId = employee.dataValues.id;
-				// if (employee.dataValues.employeeType != 3 && (gender === "Male" || gender === "Female") && (maritalStatus == 2 || maritalStatus == 3) ) {
+				const dateOfJoining =
+					employee.dataValues.employeejobdetail?.dateOfJoining;
+
+				console.log("dateOfJoining", dateOfJoining);
 				if (employee.dataValues.employeeType != 3) {
 					if (
 						(genderNumber == 1 || genderNumber == 2) &&
@@ -2676,31 +2740,31 @@ class LeaveController {
 									companyId: companyId,
 									genderApplicable: {
 										[Op.or]: [
-											{ [Op.like]: "1,%" }, // Starts with "1,"
-											{ [Op.like]: "%,1,%" }, // Contains ",1,"
-											{ [Op.like]: "%,1" }, // Ends with ",1"
-											{ [Op.eq]: "1" }, // Exactly matches "1"
-											{ [Op.like]: "2,%" }, // Starts with "2,"
-											{ [Op.like]: "%,2,%" }, // Contains ",2,"
-											{ [Op.like]: "%,2" }, // Ends with ",2"
-											{ [Op.eq]: "2" }, // Exactly matches "2"
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
+											{ [Op.like]: "2,%" },
+											{ [Op.like]: "%,2,%" },
+											{ [Op.like]: "%,2" },
+											{ [Op.eq]: "2" },
 										],
 									},
 									maritalApplicable: {
 										[Op.or]: [
-											{ [Op.like]: "2,%" }, // Starts with "2,"
-											{ [Op.like]: "%,2,%" }, // Contains ",2,"
-											{ [Op.like]: "%,2" }, // Ends with ",2"
-											{ [Op.eq]: "2" }, // Exactly matches "2"
-											{ [Op.like]: "3,%" }, // Starts with "3,"
-											{ [Op.like]: "%,3,%" }, // Contains ",3,"
-											{ [Op.like]: "%,3" }, // Ends with ",3"
-											{ [Op.eq]: "3" }, // Exactly matches "3"
-											{ [Op.like]: "4,%" }, // Starts with "4,"
-											{ [Op.like]: "%,4,%" }, // Contains ",4,"
-											{ [Op.like]: "%,4" }, // Ends with ",4"
-											{ [Op.eq]: "4" }, // Exactly matches "4"
-											{ [Op.eq]: "5" }, // Exactly matches "5"
+											{ [Op.like]: "2,%" },
+											{ [Op.like]: "%,2,%" },
+											{ [Op.like]: "%,2" },
+											{ [Op.eq]: "2" },
+											{ [Op.like]: "3,%" },
+											{ [Op.like]: "%,3,%" },
+											{ [Op.like]: "%,3" },
+											{ [Op.eq]: "3" },
+											{ [Op.like]: "4,%" },
+											{ [Op.like]: "%,4,%" },
+											{ [Op.like]: "%,4" },
+											{ [Op.eq]: "4" },
+											{ [Op.eq]: "5" },
 										],
 									},
 									leaveAutoId: { [Op.notIn]: [3, 4] },
@@ -2746,19 +2810,99 @@ class LeaveController {
 								},
 							},
 						);
+						const firstDate = moment(dateOfJoining)
+							.startOf("month")
+							.format("YYYY-MM-DD"); // "01"
+						const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+						const lastDate = moment(dateOfJoining)
+							.endOf("month")
+							.format("YYYY-MM-DD");
+						console.log(firstDate, midDate, lastDate);
 
-						//         // Prepare new leave records for bulk insertion
+						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+						const monthsLeft = 12 - currentMonth + 1; // Including the current month
+
+						// Check if joiningDate is valid
+						if (!joiningDate.isValid()) {
+							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+						} else {
+							console.log("✅ dateOfJoining is valid");
+						}
+						// Check if the joining date is between firstDate and midDate
+						const isJoinedEarly = joiningDate.isBetween(
+							firstDate,
+							midDate,
+							null,
+							"[]",
+						);
+
+						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+
 						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
 							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
-							return {
-								EmployeeId: employee.id,
-								leaveAutoId: leaveAutoId,
-								availableLeave: leaveMasterLookup[compositeKey] || 0,
-								accruedThisYear: leaveMasterLookup[compositeKey] || 0,
-								isActive: 1,
-							};
+							const defaultLeaveCount =
+								leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
+							const creditHalfAfter15Day =
+								leaveMasterLookup[compositeKey]?.creditHalfAfter15Day;
+							const creditOnAccuralBasis =
+								leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
+							const creditOnProRataBasis =
+								leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
+							return (() => {
+								if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										accruedThisYear: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										// availableLeave: defaultLeaveCount*12,
+										// accruedThisYear:  defaultLeaveCount*12,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 1 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										accruedThisYear:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 0 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount * monthsLeft,
+										accruedThisYear: defaultLeaveCount * monthsLeft,
+										isActive: 1,
+									};
+								} else {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount,
+										accruedThisYear: defaultLeaveCount,
+										isActive: 1,
+									};
+								}
+							})();
 						});
-
 						// Bulk insert new leave records
 						if (newLeaves.length > 0) {
 							await db.leaveMapping.bulkCreate(newLeaves);
@@ -2788,18 +2932,18 @@ class LeaveController {
 									companyId: companyId,
 									genderApplicable: {
 										[Op.or]: [
-											{ [Op.like]: "1,%" }, // Starts with "1,"
-											{ [Op.like]: "%,1,%" }, // Contains ",1,"
-											{ [Op.like]: "%,1" }, // Ends with ",1"
-											{ [Op.eq]: "1" }, // Exactly matches "1"
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
 										],
 									},
 									maritalApplicable: {
 										[Op.or]: [
-											{ [Op.like]: "1,%" }, // Starts with "2,"
-											{ [Op.like]: "%,1,%" }, // Contains ",2,"
-											{ [Op.like]: "%,1" }, // Ends with ",2"
-											{ [Op.eq]: "1" }, // Exactly matches "2"
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
 										],
 									},
 									leaveAutoId: { [Op.notIn]: [5] },
@@ -2844,17 +2988,101 @@ class LeaveController {
 								},
 							},
 						);
+						const firstDate = moment(dateOfJoining)
+							.startOf("month")
+							.format("YYYY-MM-DD"); // "01"
+						const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+						const lastDate = moment(dateOfJoining)
+							.endOf("month")
+							.format("YYYY-MM-DD");
+						console.log(firstDate, midDate, lastDate);
 
-						// Prepare new leave records for bulk insertion
+						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+						const monthsLeft = 12 - currentMonth + 1; // Including the current month
+
+						console.log(">>>>>>>>>>>>>", monthsLeft);
+
+						// Check if joiningDate is valid
+						if (!joiningDate.isValid()) {
+							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+						} else {
+							console.log("✅ dateOfJoining is valid");
+						}
+
+						// Check if the joining date is between firstDate and midDate
+						const isJoinedEarly = joiningDate.isBetween(
+							firstDate,
+							midDate,
+							null,
+							"[]",
+						);
+
+						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+
 						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
 							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
-							return {
-								EmployeeId: employee.id,
-								leaveAutoId: leaveAutoId,
-								availableLeave: leaveMasterLookup[compositeKey] || 0,
-								accruedThisYear: leaveMasterLookup[compositeKey] || 0,
-								isActive: 1,
-							};
+							const defaultLeaveCount =
+								leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
+							const creditHalfAfter15Day =
+								leaveMasterLookup[compositeKey]?.creditHalfAfter15Day;
+							const creditOnAccuralBasis =
+								leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
+							const creditOnProRataBasis =
+								leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
+							return (() => {
+								if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										accruedThisYear: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										//   availableLeave: defaultLeaveCount*12,
+										//   accruedThisYear:  defaultLeaveCount*12,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 1 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										accruedThisYear:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 0 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount * monthsLeft,
+										accruedThisYear: defaultLeaveCount * monthsLeft,
+										isActive: 1,
+									};
+								} else {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount,
+										accruedThisYear: defaultLeaveCount,
+										isActive: 1,
+									};
+								}
+							})();
 						});
 
 						// Bulk insert new leave records
@@ -2871,6 +3099,7 @@ class LeaveController {
 					}
 					if (genderNumber == 2 && maritalStatus == 1) {
 						console.log("Female && Married");
+
 						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
 							{
 								attributes: [
@@ -2940,17 +3169,99 @@ class LeaveController {
 								},
 							},
 						);
+						const firstDate = moment(dateOfJoining)
+							.startOf("month")
+							.format("YYYY-MM-DD"); // "01"
+						const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+						const lastDate = moment(dateOfJoining)
+							.endOf("month")
+							.format("YYYY-MM-DD");
+						console.log(firstDate, midDate, lastDate);
 
-						// Prepare new leave records for bulk insertion
+						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+						const monthsLeft = 12 - currentMonth + 1; // Including the current month
+
+						console.log(">>>>>>>>>>>>>", monthsLeft);
+
+						// Check if joiningDate is valid
+						if (!joiningDate.isValid()) {
+							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+						} else {
+							console.log("✅ dateOfJoining is valid");
+						}
+
+						// Check if the joining date is between firstDate and midDate
+						const isJoinedEarly = joiningDate.isBetween(
+							firstDate,
+							midDate,
+							null,
+							"[]",
+						);
+
+						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+
 						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
 							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
-							return {
-								EmployeeId: employee.id,
-								leaveAutoId: leaveAutoId,
-								availableLeave: leaveMasterLookup[compositeKey] || 0,
-								accruedThisYear: leaveMasterLookup[compositeKey] || 0,
-								isActive: 1,
-							};
+							const defaultLeaveCount =
+								leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
+							const creditHalfAfter15Day =
+								leaveMasterLookup[compositeKey]?.creditHalfAfter15Day;
+							const creditOnAccuralBasis =
+								leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
+							const creditOnProRataBasis =
+								leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
+							return (() => {
+								if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										accruedThisYear: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 1 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										accruedThisYear:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 0 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount * monthsLeft,
+										accruedThisYear: defaultLeaveCount * monthsLeft,
+										isActive: 1,
+									};
+								} else {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount,
+										accruedThisYear: defaultLeaveCount,
+										isActive: 1,
+									};
+								}
+							})();
 						});
 
 						// Bulk insert new leave records
@@ -2970,8 +3281,10 @@ class LeaveController {
 					const offRoleObj = {
 						EmployeeId: employee.id,
 						leaveAutoId: 6,
-						availableLeave: leaveMasterLookup[compositeKey] || 0,
-						accruedThisYear: leaveMasterLookup[compositeKey] || 0,
+						availableLeave:
+							leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0,
+						accruedThisYear:
+							leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0,
 						isActive: 1,
 					};
 					const [created] = await db.leaveMapping.findOrCreate({
@@ -2990,7 +3303,6 @@ class LeaveController {
 					}
 				}
 			}
-
 			return respHelper(res, {
 				status: 200,
 				message: "Leave updated successfully",
