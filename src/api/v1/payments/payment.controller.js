@@ -5182,6 +5182,12 @@ class PaymentController {
 				let deletedCount3 = await db.paySlips.destroy({
 					where: { paySlipAutoId: id },
 				});
+				let deletedCount4 = await db.payProcessDetails.destroy({
+					where: {
+						EmployeeId: paySlipDetails?.EmployeeId,
+						payMonth: paySlipDetails?.payMonth,
+					},
+				});
 
 				if (deletedCount1 > 0 && deletedCount2 && deletedCount3) {
 					// update status of extra payment and extra deduction
