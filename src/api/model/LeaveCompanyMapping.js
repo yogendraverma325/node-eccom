@@ -113,45 +113,54 @@ export default (sequelize, Sequelize) => {
 		maximum_leave_allowed_in_probation: {
 			type: Sequelize.INTEGER,
 		},
+		genderApplicable:{
+				type: Sequelize.STRING // 1= male 2= female 3= others
+		},
+		maritalApplicable : {
+				type: Sequelize.STRING // Married: 1,Single: 2, Divorced: 3,Separated: 4, Widowed: 5, Others: 6,
+		},
+		countInterveningWeekOff:{
+			type: Sequelize.INTEGER,
+		},
+		countInterveningHoliday:{
+			type: Sequelize.INTEGER
+		},
+		countInterveningNationalHoliday:{
+			type: Sequelize.INTEGER
+		},
+		messageRequiredafterdays:{
+			type: Sequelize.STRING
+		},
 		maximum_leave_allowed_in_notice_period: {
-			type: Sequelize.INTEGER,
-		},
-		genderApplicable: {
-			type: Sequelize.STRING, // 1= male 2= female
-		},
-		maritalApplicable: {
-			type: Sequelize.STRING, // Married: 1,Single: 2, Divorced: 3,Separated: 4, Widowed: 5, Others: 6,
-		},
-		attachmentRequired: {
-			type: Sequelize.BOOLEAN,
-		},
-		messageRequired: {
-			type: Sequelize.BOOLEAN,
-		},
-		attachmentRequiredafterdays: {
-			type: Sequelize.INTEGER,
-		},
-		messageRequiredafterdays: {
-			type: Sequelize.INTEGER,
-		},
-		countInterveningWeekOff: {
-			type: Sequelize.INTEGER,
-		},
-		countInterveningHoliday: {
-			type: Sequelize.INTEGER,
-		},
-		countInterveningNationalHoliday: {
-			type: Sequelize.INTEGER,
-		},
-		tenureCount: {
-			type: Sequelize.INTEGER,
-		},
-		max_allowed_in_year: {
 			type: Sequelize.INTEGER,
 		},
 		carry_foward_un_used: {
 			type: Sequelize.INTEGER,
 		},
+		creditOn:{
+			type: Sequelize.INTEGER
+		},
+		creditOnProRataBasis:{
+			type: Sequelize.INTEGER
+		},
+		creditHalfAfter15Day:{
+			type: Sequelize.INTEGER
+		},
+		creditFullAfter15dDay:{
+			type: Sequelize.INTEGER
+		},
+		startCalculatingLeaveFromJoiningDate:{
+			type: Sequelize.INTEGER
+		},
+		startCalculateLeaveAfterProbation:{
+			type: Sequelize.INTEGER
+		},
+		roundingInProRataBalance:{
+			type: Sequelize.INTEGER
+		},
+		creditOnAccuralBasis:{
+			type: Sequelize.INTEGER
+		}
 	});
 	return leaveCompanyMapping;
 };
