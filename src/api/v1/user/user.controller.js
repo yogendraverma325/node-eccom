@@ -160,6 +160,9 @@ class UserController {
 					{
 						model: db.employeeMaster,
 						as: "reportie",
+						where: {
+							isActive: 1,
+						},
 						// required: false,
 						attributes: {
 							exclude: ["password", "role_id", "designation_id"],

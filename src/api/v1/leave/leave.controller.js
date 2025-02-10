@@ -553,31 +553,30 @@ class LeaveController {
 			const onNoticePeriod =
 				req.userData["employeejobdetail.noticePeriodStatus"];
 
-				if(
-				result.leaveAutoId==3 || 
-				result.leaveAutoId==4 ||
-				result.leaveAutoId==5 || 
-				result.leaveAutoId==7){
-
+			if (
+				result.leaveAutoId == 3 ||
+				result.leaveAutoId == 4 ||
+				result.leaveAutoId == 5 ||
+				result.leaveAutoId == 7
+			) {
 				const transactionCount = await db.EmployeeLeaveHeader.count({
-				where: {
-				employeeId: req.body.employeeId,
-				leaveAutoId:result.leaveAutoId,
-				status: ["approved", "pending"],
-				}
+					where: {
+						employeeId: req.body.employeeId,
+						leaveAutoId: result.leaveAutoId,
+						status: ["approved", "pending"],
+					},
 				});
-				if(transactionCount >= leaveMasterData.tenureCount){
+				if (transactionCount >= leaveMasterData.tenureCount) {
 					return respHelper(res, {
-							status: 404,
-							data: {},
-							msg: message.LEAVE.TENURE_LEAVE_COUNT.replace(
-								"#",
-								leaveMasterData.tenureCount,
-							),
-						});
+						status: 404,
+						data: {},
+						msg: message.LEAVE.TENURE_LEAVE_COUNT.replace(
+							"#",
+							leaveMasterData.tenureCount,
+						),
+					});
 				}
-
-				}
+			}
 
 			// Fetch employee details and leave counts in parallel
 
@@ -642,7 +641,7 @@ class LeaveController {
 					}
 				}
 			}
-			
+
 			if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
 				if (leaveMasterData.canTakeHalfDay == 0) {
 					return respHelper(res, {
@@ -816,8 +815,11 @@ class LeaveController {
 					msg: message.LEAVE.ATTACHMENT_REQUIRED,
 				});
 			}
-			console.log("workingdays",workingdays)
-			console.log("leaveMasterData.attachmentRequiredafterdays",leaveMasterData.attachmentRequiredafterdays)
+			console.log("workingdays", workingdays);
+			console.log(
+				"leaveMasterData.attachmentRequiredafterdays",
+				leaveMasterData.attachmentRequiredafterdays,
+			);
 			if (
 				leaveMasterData.attachmentRequiredafterdays != 0 &&
 				leaveMasterData.attachmentRequired == false &&
@@ -2623,541 +2625,697 @@ class LeaveController {
 
 	async leaveAssignEmployeeToAll(req, res) {
 		try {
-		  const employees = await db.employeeMaster.findAll({
-			attributes: ["id", "empCode", "employeeType", "companyId"],
-			where: {
-			  isActive: 1,
-			  //empCode : req.body.empCode
-			  ...(req.body.empCode && { empCode: { [Op.in]: req.body.empCode.split(",") } })
-			},
-			include: [
-			  {
-				model: db.companyMaster,
-				attributes: ["companyName"],
-				required: true,
+			const employees = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "employeeType", "companyId"],
+				where: {
+					isActive: 1,
+					//empCode : req.body.empCode
+					...(req.body.empCode && {
+						empCode: { [Op.in]: req.body.empCode.split(",") },
+					}),
+				},
 				include: [
-				  {
-					model: db.leaveCompanyMapping,
-					attributes: ["leaveCompanyId","leaveAutoId", "companyId","empType","genderApplicable","defaultLeaveCount","maritalApplicable"],
-				  },
+					{
+						model: db.companyMaster,
+						attributes: ["companyName"],
+						required: true,
+						include: [
+							{
+								model: db.leaveCompanyMapping,
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"genderApplicable",
+									"defaultLeaveCount",
+									"maritalApplicable",
+								],
+							},
+						],
+					},
+					{
+						model: db.biographicalDetails,
+						attributes: ["biographicalId", "maritalStatus", "gender"],
+						required: true,
+					},
+					{
+						model: db.jobDetails,
+						attributes: ["jobId", "dateOfJoining"],
+						where: { dateOfJoining: { [Op.ne]: null } },
+						required: true,
+					},
 				],
-			  },
-			  {
-				model: db.biographicalDetails,
-				attributes: ["biographicalId", "maritalStatus", "gender"],
-				required: true,
-			  },
-			  {
-				model: db.jobDetails,
-				attributes: ["jobId","dateOfJoining"],
-				where:{dateOfJoining:{[Op.ne]:null}},
-				required: true,
-			  },
-			],
-		  });
-	  
-		  const leaveMaster = await db.leaveCompanyMapping.findAll({
-			attributes: ["leaveAutoId", "companyId","defaultLeaveCount","startCalculatingLeaveFromJoiningDate","creditOnProRataBasis","creditHalfAfter15Day","creditFullAfter15dDay","startCalculateLeaveAfterProbation","roundingInProRataBalance","creditOnAccuralBasis"],
-		  });
-		  
-		  const leaveMasterLookup = leaveMaster.reduce((acc, leave) => {
-			// Use a composite key combining leaveIdAutoId and companyId
-			const compositeKey = `${leave.leaveAutoId}-${leave.companyId}`;
-			//acc[compositeKey] = leave.defaultLeaveCount;
-			acc[compositeKey] = {
-				defaultLeaveCount: leave.defaultLeaveCount,
-				creditOnProRataBasis:leave.creditOnProRataBasis,
-				startCalculatingLeaveFromJoiningDate: leave.startCalculatingLeaveFromJoiningDate,
-				creditHalfAfter15Day:leave.creditHalfAfter15Day,
-				creditFullAfter15dDay:leave.creditFullAfter15dDay,
-				startCalculateLeaveAfterProbation:leave.startCalculateLeaveAfterProbation,
-				roundingInProRataBalance:leave.roundingInProRataBalance,
-				creditOnAccuralBasis:leave.creditOnAccuralBasis
-			  };
-			return acc;
-		  }, {});
-	
-		  for (const employee of employees) {
-			const { gender, maritalStatus } = employee.dataValues.employeebiographicaldetail;
-			const leaveCompanyMappings = employee.dataValues.companymaster?.leavecompanymappings || [];
-			const leaveAutoIds = leaveCompanyMappings.map((mapping) => mapping.leaveAutoId);
-			const genderNumber = gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
-			const companyId = employee.dataValues.companyId
-			const employeeId = employee.dataValues.id
-			const dateOfJoining = employee.dataValues.employeejobdetail?.dateOfJoining
-			
-			console.log("dateOfJoining",dateOfJoining)
-		   if (employee.dataValues.employeeType != 3) {
-			 if((genderNumber == 1 || genderNumber == 2) && (maritalStatus == 2 || maritalStatus == 3)){
-			  console.log("Male || Female && single");
-	
-			  const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll({
-				attributes: ["leaveCompanyId","leaveAutoId", "companyId","empType","genderApplicable","defaultLeaveCount","maritalApplicable"],
-				where: {
-				  companyId: companyId,
-				  genderApplicable: {
-					[Op.or]: [
-					  { [Op.like]: "1,%" }, 
-					  { [Op.like]: "%,1,%" },
-					  { [Op.like]: "%,1" },
-					  { [Op.eq]: "1" }, 
-					  { [Op.like]: "2,%" },
-					  { [Op.like]: "%,2,%" },
-					  { [Op.like]: "%,2" },
-					  { [Op.eq]: "2" }
-					],
-				  },
-				  maritalApplicable: {
-					[Op.or]: [
-					  { [Op.like]: "2,%" },    
-					  { [Op.like]: "%,2,%" },  
-					  { [Op.like]: "%,2" },    
-					  { [Op.eq]: "2" },        
-					  { [Op.like]: "3,%" },    
-					  { [Op.like]: "%,3,%" },  
-					  { [Op.like]: "%,3" },    
-					  { [Op.eq]: "3" },        
-					  { [Op.like]: "4,%" },    
-					  { [Op.like]: "%,4,%" },  
-					  { [Op.like]: "%,4" },    
-					  { [Op.eq]: "4" },        
-					  { [Op.eq]: "5" }
-					],
-				  },
-				  leaveAutoId: { [Op.notIn]: [3, 4] },
-				},
-				
-				raw:true
-			  });
-			  
-			  const existingMappedLeave = await db.leaveMapping.findAll({
-				attributes:['leaveAutoId'],
-				where:{
-				  isActive:1,
-				  EmployeeId:employeeId
-				}
-			  })
-	
-			   // Extract `leaveAutoId` values from both arrays
-			   const genderBasedLeaveIds = getAllGenderBasedLeave.map((leave) => leave.leaveAutoId);
-			   console.log("genderBasedLeaveIds",genderBasedLeaveIds)
-			   const existingMappedLeaveIds = existingMappedLeave.map((leave) => leave.leaveAutoId);
-			   console.log("existingMappedLeaveIds",existingMappedLeaveIds)
-	
-			   // Find common `leaveAutoId` values
-			   const commonLeaveAutoIds = genderBasedLeaveIds.filter((id) =>
-				 !existingMappedLeaveIds.includes(id)
-			   );
-	 
-			   console.log("Common leaveAutoIds:", commonLeaveAutoIds);
-	
-			  // Update `isActive` to 0 for overlapping leaveAutoIds
-			  await db.leaveMapping.update(
-				{ isActive: 0 },
-				{
-				  where: {
-					EmployeeId: employee.dataValues.id,
-					leaveAutoId: [3,4],
-					isActive: 1,
-				  },
-				}
-			  );
-			  const firstDate = moment(dateOfJoining).startOf("month").format("YYYY-MM-DD"); // "01"
-			  const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
-			  const lastDate = moment(dateOfJoining).endOf("month").format("YYYY-MM-DD");
-			  console.log(firstDate,midDate,lastDate);
-              
-			  const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
-			  const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
-			  const monthsLeft = (12 - currentMonth) + 1; // Including the current month
-			  			  			  
-			  // Check if joiningDate is valid
-			  if (!joiningDate.isValid()) {
-				console.error("❌ Invalid dateOfJoining:", dateOfJoining);
-			  } else {
-				console.log("✅ dateOfJoining is valid");
-			  }
-			  // Check if the joining date is between firstDate and midDate
-			  const isJoinedEarly = joiningDate.isBetween(firstDate,midDate, null, "[]");
-			  
-			  console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
-              
-			  const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
-				const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
-				const defaultLeaveCount = leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
-				const creditHalfAfter15Day =leaveMasterLookup[compositeKey]?.creditHalfAfter15Day
-				const creditOnAccuralBasis = leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
-				const creditOnProRataBasis= leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
-				return (() => {
+			});
 
-					if(creditOnAccuralBasis==0 && creditOnProRataBasis==0 ){
-					return {
-						EmployeeId: employee.id,
-						leaveAutoId: leaveAutoId,
-						availableLeave: [3, 4, 5].includes(leaveAutoId) ? parseInt(defaultLeaveCount*12) : defaultLeaveCount*12,
-						accruedThisYear: [3, 4, 5].includes(leaveAutoId) ? parseInt(defaultLeaveCount*12) : defaultLeaveCount*12,
-						// availableLeave: defaultLeaveCount*12,
-						// accruedThisYear:  defaultLeaveCount*12,
-						isActive: 1,
-						};
-					}
-					else if(creditOnAccuralBasis==1 && creditOnProRataBasis==1 ){
-						return {
-							EmployeeId: employee.id,
-							leaveAutoId: leaveAutoId,
-							availableLeave: isJoinedEarly && creditHalfAfter15Day == 1 ? defaultLeaveCount : defaultLeaveCount / 2,
-							accruedThisYear: isJoinedEarly && creditHalfAfter15Day == 1 ? defaultLeaveCount : defaultLeaveCount / 2,
-							isActive: 1,
-						  };
+			const leaveMaster = await db.leaveCompanyMapping.findAll({
+				attributes: [
+					"leaveAutoId",
+					"companyId",
+					"defaultLeaveCount",
+					"startCalculatingLeaveFromJoiningDate",
+					"creditOnProRataBasis",
+					"creditHalfAfter15Day",
+					"creditFullAfter15dDay",
+					"startCalculateLeaveAfterProbation",
+					"roundingInProRataBalance",
+					"creditOnAccuralBasis",
+				],
+			});
 
-					}
-					else if(creditOnAccuralBasis==0 && creditOnProRataBasis==1 ){
-						return {
-							EmployeeId: employee.id,
-							leaveAutoId: leaveAutoId,
-							availableLeave: defaultLeaveCount * monthsLeft,
-							accruedThisYear:defaultLeaveCount * monthsLeft,
-							isActive: 1,
-						  };
-
-					}else{
-						return {
-							EmployeeId: employee.id,
-							leaveAutoId: leaveAutoId,
-							availableLeave: defaultLeaveCount,
-							accruedThisYear: defaultLeaveCount,
-							isActive: 1,
-						  };
-					}	
-				  })();	
-			})
-			  // Bulk insert new leave records
-			  if (newLeaves.length > 0) {
-				await db.leaveMapping.bulkCreate(newLeaves);
-				console.log(`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`);
-			  } else {
-				console.log(`No new leaves to insert for Employee ID: ${employee.id}`);
-			  }
-			 }
-			 if(genderNumber == 1 && maritalStatus == 1){
-				console.log("Male && Married")
-				const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll({
-				  attributes: ["leaveCompanyId","leaveAutoId", "companyId","empType","genderApplicable","defaultLeaveCount","maritalApplicable"],
-				  where: {
-					companyId: companyId,
-					genderApplicable: {
-					  [Op.or]: [
-						{ [Op.like]: "1,%" }, 
-						{ [Op.like]: "%,1,%" },
-						{ [Op.like]: "%,1" },
-						{ [Op.eq]: "1" },
-					  ]
-					},
-					maritalApplicable: {
-					  [Op.or]: [
-						{ [Op.like]: "1,%" },    
-						{ [Op.like]: "%,1,%" },
-						{ [Op.like]: "%,1" },
-						{ [Op.eq]: "1" }
-					  ],
-					},
-					leaveAutoId: { [Op.notIn]: [5] },
-				  },
-				  raw:true
-				});
-				
-				const existingMappedLeave = await db.leaveMapping.findAll({
-				  attributes:['leaveAutoId'],
-				  where:{
-					isActive:1,
-					EmployeeId:employeeId
-				  }
-				})
-	  
-				 // Extract `leaveAutoId` values from both arrays
-				 const genderBasedLeaveIds = getAllGenderBasedLeave.map((leave) => leave.leaveAutoId);
-				 console.log("genderBasedLeaveIds",genderBasedLeaveIds)
-				 const existingMappedLeaveIds = existingMappedLeave.map((leave) => leave.leaveAutoId);
-				 console.log("existingMappedLeaveIds",existingMappedLeaveIds)
-	  
-				 // Find common `leaveAutoId` values
-				 const commonLeaveAutoIds = genderBasedLeaveIds.filter((id) =>
-				   !existingMappedLeaveIds.includes(id)
-				 );
-	   
-				 console.log("Common leaveAutoIds:", commonLeaveAutoIds);
-	  
-						 // Update `isActive` to 0 for overlapping leaveAutoIds
-				await db.leaveMapping.update(
-				  { isActive: 0 },
-				  {
-					where: {
-					  EmployeeId: employee.dataValues.id,
-					  leaveAutoId: [3,5],
-					  isActive: 1,
-					},
-				  }
-				);
-				const firstDate = moment(dateOfJoining).startOf("month").format("YYYY-MM-DD"); // "01"
-				const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
-				const lastDate = moment(dateOfJoining).endOf("month").format("YYYY-MM-DD");
-				console.log(firstDate,midDate,lastDate);
-				
-				const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
-				const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
-				const monthsLeft = (12 - currentMonth) + 1; // Including the current month
-				
-				console.log(">>>>>>>>>>>>>",monthsLeft);
-							  
-				// Check if joiningDate is valid
-				if (!joiningDate.isValid()) {
-				  console.error("❌ Invalid dateOfJoining:", dateOfJoining);
-				} else {
-				  console.log("✅ dateOfJoining is valid");
-				}
-				
-				// Check if the joining date is between firstDate and midDate
-				const isJoinedEarly = joiningDate.isBetween(firstDate,midDate, null, "[]");
-				
-				console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
-				
-				const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
-				  const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
-				  const defaultLeaveCount = leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
-				  const creditHalfAfter15Day =leaveMasterLookup[compositeKey]?.creditHalfAfter15Day
-				  const creditOnAccuralBasis = leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
-				  const creditOnProRataBasis= leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
-				  return (() => {
-  
-					if(creditOnAccuralBasis==0 && creditOnProRataBasis==0 ){
-					  return {
-						  EmployeeId: employee.id,
-						  leaveAutoId: leaveAutoId,
-						  availableLeave: [3, 4, 5].includes(leaveAutoId) ? parseInt(defaultLeaveCount*12) : defaultLeaveCount*12,
-						  accruedThisYear: [3, 4, 5].includes(leaveAutoId) ? parseInt(defaultLeaveCount*12) : defaultLeaveCount*12,
-						//   availableLeave: defaultLeaveCount*12,
-						//   accruedThisYear:  defaultLeaveCount*12,
-						  isActive: 1,
-						  };
-					  }
-					  else if(creditOnAccuralBasis==1 && creditOnProRataBasis==1 ){
-						  return {
-							  EmployeeId: employee.id,
-							  leaveAutoId: leaveAutoId,
-							  availableLeave: isJoinedEarly && creditHalfAfter15Day == 1 ? defaultLeaveCount : defaultLeaveCount / 2,
-							  accruedThisYear: isJoinedEarly && creditHalfAfter15Day == 1 ? defaultLeaveCount : defaultLeaveCount / 2,
-							  isActive: 1,
-							};
-  
-					  }
-					  else if(creditOnAccuralBasis==0 && creditOnProRataBasis==1 ){
-						  return {
-							  EmployeeId: employee.id,
-							  leaveAutoId: leaveAutoId,
-							  availableLeave: defaultLeaveCount * monthsLeft,
-							  accruedThisYear:defaultLeaveCount * monthsLeft,
-							  isActive: 1,
-							};
-  
-					  }else{
-						  return {
-							  EmployeeId: employee.id,
-							  leaveAutoId: leaveAutoId,
-							  availableLeave: defaultLeaveCount,
-							  accruedThisYear: defaultLeaveCount,
-							  isActive: 1,
-							};
-					  }	
-					})();  
-				  
-			  })
-				
-				// Bulk insert new leave records
-				if (newLeaves.length > 0) {
-				  await db.leaveMapping.bulkCreate(newLeaves);
-				  console.log(`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`);
-				} else {
-				  console.log(`No new leaves to insert for Employee ID: ${employee.id}`);
-				}	
-			 }
-			 if(genderNumber == 2 && maritalStatus == 1){
-				console.log("Female && Married")
-	
-			  const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll({
-				attributes: ["leaveCompanyId","leaveAutoId", "companyId","empType","defaultLeaveCount","maritalApplicable","genderApplicable"],
-				where: {
-				  companyId: companyId,
-				  genderApplicable: {
-					[Op.or]: [
-					  { [Op.like]: "2,%" }, 
-					  { [Op.like]: "%,2,%" },
-					  { [Op.like]: "%,2" },
-					  { [Op.eq]: "2" },
-					]
-				  },
-				  maritalApplicable: {
-					[Op.or]: [
-					  { [Op.like]: "1,%" },   
-					  { [Op.like]: "%,1,%" },
-					  { [Op.like]: "%,1" }, 
-					  { [Op.eq]: "1" }
-					],
-				  },
-				  leaveAutoId: { [Op.notIn]: [5] },
-				},
-				raw:true
-			  });
-			  
-			  const existingMappedLeave = await db.leaveMapping.findAll({
-				attributes:['leaveAutoId'],
-				where:{
-				  isActive:1,
-				  EmployeeId:employeeId
-				}
-			  })
-	
-			   // Extract `leaveAutoId` values from both arrays
-			   const genderBasedLeaveIds = getAllGenderBasedLeave.map((leave) => leave.leaveAutoId);
-			   const existingMappedLeaveIds = existingMappedLeave.map((leave) => leave.leaveAutoId);
-	
-			   // Find common `leaveAutoId` values
-			   const commonLeaveAutoIds = genderBasedLeaveIds.filter((id) =>
-				 !existingMappedLeaveIds.includes(id)
-			   );
-	 
-			   console.log("Common leaveAutoIds:", commonLeaveAutoIds);
-	
-			// Update `isActive` to 0 for overlapping leaveAutoIds
-			  await db.leaveMapping.update(
-				{ isActive: 0 },
-				{
-				  where: {
-					EmployeeId: employee.dataValues.id,
-					leaveAutoId: [4,5],
-					isActive: 1,
-				  },
-				}
-			  );
-			  const firstDate = moment(dateOfJoining).startOf("month").format("YYYY-MM-DD"); // "01"
-			  const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
-			  const lastDate = moment(dateOfJoining).endOf("month").format("YYYY-MM-DD");
-			  console.log(firstDate,midDate,lastDate);
-			  
-			  const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
-			  const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
-			  const monthsLeft = (12 - currentMonth) + 1; // Including the current month
-			  
-			  console.log(">>>>>>>>>>>>>",monthsLeft);
-							
-			  // Check if joiningDate is valid
-			  if (!joiningDate.isValid()) {
-				console.error("❌ Invalid dateOfJoining:", dateOfJoining);
-			  } else {
-				console.log("✅ dateOfJoining is valid");
-			  }
-			  
-			  // Check if the joining date is between firstDate and midDate
-			  const isJoinedEarly = joiningDate.isBetween(firstDate,midDate, null, "[]");
-			  
-			  console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
-			  
-			  const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
-				const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
-				const defaultLeaveCount = leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
-				const creditHalfAfter15Day =leaveMasterLookup[compositeKey]?.creditHalfAfter15Day
-				const creditOnAccuralBasis = leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
-				const creditOnProRataBasis= leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
-				return (() => {
-
-				  if(creditOnAccuralBasis==0 && creditOnProRataBasis==0 ){
-					return {
-						EmployeeId: employee.id,
-						leaveAutoId: leaveAutoId,
-						availableLeave: [3, 4, 5].includes(leaveAutoId) ? parseInt(defaultLeaveCount*12) : defaultLeaveCount*12,
-						accruedThisYear: [3, 4, 5].includes(leaveAutoId) ? parseInt(defaultLeaveCount*12) : defaultLeaveCount*12,
-						isActive: 1,
-						};
-					}
-					else if(creditOnAccuralBasis==1 && creditOnProRataBasis==1 ){
-						return {
-							EmployeeId: employee.id,
-							leaveAutoId: leaveAutoId,
-							availableLeave: isJoinedEarly && creditHalfAfter15Day == 1 ? defaultLeaveCount : defaultLeaveCount / 2,
-							accruedThisYear: isJoinedEarly && creditHalfAfter15Day == 1 ? defaultLeaveCount : defaultLeaveCount / 2,
-							isActive: 1,
-						  };
-
-					}
-					else if(creditOnAccuralBasis==0 && creditOnProRataBasis==1 ){
-						return {
-							EmployeeId: employee.id,
-							leaveAutoId: leaveAutoId,
-							availableLeave: defaultLeaveCount * monthsLeft,
-							accruedThisYear:defaultLeaveCount * monthsLeft,
-							isActive: 1,
-						  };
-
-					}else{
-						return {
-							EmployeeId: employee.id,
-							leaveAutoId: leaveAutoId,
-							availableLeave: defaultLeaveCount,
-							accruedThisYear: defaultLeaveCount,
-							isActive: 1,
-						  };
-					}	
-				  })();  			
-			  })
-			  
-			  // Bulk insert new leave records
-			  if (newLeaves.length > 0) {
-				await db.leaveMapping.bulkCreate(newLeaves);
-				console.log(`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`);
-			  } else {
-				console.log(`No new leaves to insert for Employee ID: ${employee.id}`);
-			  }			
-			 }
-			}
-			else{
-				const compositeKey = `${6}-${employee.dataValues.companyId}`;
-				const offRoleObj = {
-					EmployeeId: employee.id,
-					leaveAutoId: 6,
-					availableLeave: leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0,
-					accruedThisYear: leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0,
-					isActive: 1,
+			const leaveMasterLookup = leaveMaster.reduce((acc, leave) => {
+				// Use a composite key combining leaveIdAutoId and companyId
+				const compositeKey = `${leave.leaveAutoId}-${leave.companyId}`;
+				//acc[compositeKey] = leave.defaultLeaveCount;
+				acc[compositeKey] = {
+					defaultLeaveCount: leave.defaultLeaveCount,
+					creditOnProRataBasis: leave.creditOnProRataBasis,
+					startCalculatingLeaveFromJoiningDate:
+						leave.startCalculatingLeaveFromJoiningDate,
+					creditHalfAfter15Day: leave.creditHalfAfter15Day,
+					creditFullAfter15dDay: leave.creditFullAfter15dDay,
+					startCalculateLeaveAfterProbation:
+						leave.startCalculateLeaveAfterProbation,
+					roundingInProRataBalance: leave.roundingInProRataBalance,
+					creditOnAccuralBasis: leave.creditOnAccuralBasis,
 				};
-				const [created] = await db.leaveMapping.findOrCreate({
-					where: {
+				return acc;
+			}, {});
+
+			for (const employee of employees) {
+				const { gender, maritalStatus } =
+					employee.dataValues.employeebiographicaldetail;
+				const leaveCompanyMappings =
+					employee.dataValues.companymaster?.leavecompanymappings || [];
+				const leaveAutoIds = leaveCompanyMappings.map(
+					(mapping) => mapping.leaveAutoId,
+				);
+				const genderNumber =
+					gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
+				const companyId = employee.dataValues.companyId;
+				const employeeId = employee.dataValues.id;
+				const dateOfJoining =
+					employee.dataValues.employeejobdetail?.dateOfJoining;
+
+				console.log("dateOfJoining", dateOfJoining);
+				if (employee.dataValues.employeeType != 3) {
+					if (
+						(genderNumber == 1 || genderNumber == 2) &&
+						(maritalStatus == 2 || maritalStatus == 3)
+					) {
+						console.log("Male || Female && single");
+
+						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
+							{
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"genderApplicable",
+									"defaultLeaveCount",
+									"maritalApplicable",
+								],
+								where: {
+									companyId: companyId,
+									genderApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
+											{ [Op.like]: "2,%" },
+											{ [Op.like]: "%,2,%" },
+											{ [Op.like]: "%,2" },
+											{ [Op.eq]: "2" },
+										],
+									},
+									maritalApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "2,%" },
+											{ [Op.like]: "%,2,%" },
+											{ [Op.like]: "%,2" },
+											{ [Op.eq]: "2" },
+											{ [Op.like]: "3,%" },
+											{ [Op.like]: "%,3,%" },
+											{ [Op.like]: "%,3" },
+											{ [Op.eq]: "3" },
+											{ [Op.like]: "4,%" },
+											{ [Op.like]: "%,4,%" },
+											{ [Op.like]: "%,4" },
+											{ [Op.eq]: "4" },
+											{ [Op.eq]: "5" },
+										],
+									},
+									leaveAutoId: { [Op.notIn]: [3, 4] },
+								},
+
+								raw: true,
+							},
+						);
+
+						const existingMappedLeave = await db.leaveMapping.findAll({
+							attributes: ["leaveAutoId"],
+							where: {
+								isActive: 1,
+								EmployeeId: employeeId,
+							},
+						});
+
+						// Extract `leaveAutoId` values from both arrays
+						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+						const existingMappedLeaveIds = existingMappedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+
+						// Find common `leaveAutoId` values
+						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
+							(id) => !existingMappedLeaveIds.includes(id),
+						);
+
+						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+
+						// Update `isActive` to 0 for overlapping leaveAutoIds
+						await db.leaveMapping.update(
+							{ isActive: 0 },
+							{
+								where: {
+									EmployeeId: employee.dataValues.id,
+									leaveAutoId: [3, 4],
+									isActive: 1,
+								},
+							},
+						);
+						const firstDate = moment(dateOfJoining)
+							.startOf("month")
+							.format("YYYY-MM-DD"); // "01"
+						const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+						const lastDate = moment(dateOfJoining)
+							.endOf("month")
+							.format("YYYY-MM-DD");
+						console.log(firstDate, midDate, lastDate);
+
+						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+						const monthsLeft = 12 - currentMonth + 1; // Including the current month
+
+						// Check if joiningDate is valid
+						if (!joiningDate.isValid()) {
+							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+						} else {
+							console.log("✅ dateOfJoining is valid");
+						}
+						// Check if the joining date is between firstDate and midDate
+						const isJoinedEarly = joiningDate.isBetween(
+							firstDate,
+							midDate,
+							null,
+							"[]",
+						);
+
+						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+
+						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
+							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
+							const defaultLeaveCount =
+								leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
+							const creditHalfAfter15Day =
+								leaveMasterLookup[compositeKey]?.creditHalfAfter15Day;
+							const creditOnAccuralBasis =
+								leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
+							const creditOnProRataBasis =
+								leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
+							return (() => {
+								if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										accruedThisYear: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										// availableLeave: defaultLeaveCount*12,
+										// accruedThisYear:  defaultLeaveCount*12,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 1 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										accruedThisYear:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 0 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount * monthsLeft,
+										accruedThisYear: defaultLeaveCount * monthsLeft,
+										isActive: 1,
+									};
+								} else {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount,
+										accruedThisYear: defaultLeaveCount,
+										isActive: 1,
+									};
+								}
+							})();
+						});
+						// Bulk insert new leave records
+						if (newLeaves.length > 0) {
+							await db.leaveMapping.bulkCreate(newLeaves);
+							console.log(
+								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							);
+						} else {
+							console.log(
+								`No new leaves to insert for Employee ID: ${employee.id}`,
+							);
+						}
+					}
+					if (genderNumber == 1 && maritalStatus == 1) {
+						console.log("Male && Married");
+						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
+							{
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"genderApplicable",
+									"defaultLeaveCount",
+									"maritalApplicable",
+								],
+								where: {
+									companyId: companyId,
+									genderApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
+										],
+									},
+									maritalApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
+										],
+									},
+									leaveAutoId: { [Op.notIn]: [5] },
+								},
+								raw: true,
+							},
+						);
+
+						const existingMappedLeave = await db.leaveMapping.findAll({
+							attributes: ["leaveAutoId"],
+							where: {
+								isActive: 1,
+								EmployeeId: employeeId,
+							},
+						});
+
+						// Extract `leaveAutoId` values from both arrays
+						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+						const existingMappedLeaveIds = existingMappedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+
+						// Find common `leaveAutoId` values
+						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
+							(id) => !existingMappedLeaveIds.includes(id),
+						);
+
+						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+
+						// Update `isActive` to 0 for overlapping leaveAutoIds
+						await db.leaveMapping.update(
+							{ isActive: 0 },
+							{
+								where: {
+									EmployeeId: employee.dataValues.id,
+									leaveAutoId: [3, 5],
+									isActive: 1,
+								},
+							},
+						);
+						const firstDate = moment(dateOfJoining)
+							.startOf("month")
+							.format("YYYY-MM-DD"); // "01"
+						const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+						const lastDate = moment(dateOfJoining)
+							.endOf("month")
+							.format("YYYY-MM-DD");
+						console.log(firstDate, midDate, lastDate);
+
+						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+						const monthsLeft = 12 - currentMonth + 1; // Including the current month
+
+						console.log(">>>>>>>>>>>>>", monthsLeft);
+
+						// Check if joiningDate is valid
+						if (!joiningDate.isValid()) {
+							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+						} else {
+							console.log("✅ dateOfJoining is valid");
+						}
+
+						// Check if the joining date is between firstDate and midDate
+						const isJoinedEarly = joiningDate.isBetween(
+							firstDate,
+							midDate,
+							null,
+							"[]",
+						);
+
+						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+
+						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
+							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
+							const defaultLeaveCount =
+								leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
+							const creditHalfAfter15Day =
+								leaveMasterLookup[compositeKey]?.creditHalfAfter15Day;
+							const creditOnAccuralBasis =
+								leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
+							const creditOnProRataBasis =
+								leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
+							return (() => {
+								if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										accruedThisYear: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										//   availableLeave: defaultLeaveCount*12,
+										//   accruedThisYear:  defaultLeaveCount*12,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 1 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										accruedThisYear:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 0 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount * monthsLeft,
+										accruedThisYear: defaultLeaveCount * monthsLeft,
+										isActive: 1,
+									};
+								} else {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount,
+										accruedThisYear: defaultLeaveCount,
+										isActive: 1,
+									};
+								}
+							})();
+						});
+
+						// Bulk insert new leave records
+						if (newLeaves.length > 0) {
+							await db.leaveMapping.bulkCreate(newLeaves);
+							console.log(
+								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							);
+						} else {
+							console.log(
+								`No new leaves to insert for Employee ID: ${employee.id}`,
+							);
+						}
+					}
+					if (genderNumber == 2 && maritalStatus == 1) {
+						console.log("Female && Married");
+
+						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
+							{
+								attributes: [
+									"leaveCompanyId",
+									"leaveAutoId",
+									"companyId",
+									"empType",
+									"defaultLeaveCount",
+									"maritalApplicable",
+									"genderApplicable",
+								],
+								where: {
+									companyId: companyId,
+									genderApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "2,%" },
+											{ [Op.like]: "%,2,%" },
+											{ [Op.like]: "%,2" },
+											{ [Op.eq]: "2" },
+										],
+									},
+									maritalApplicable: {
+										[Op.or]: [
+											{ [Op.like]: "1,%" },
+											{ [Op.like]: "%,1,%" },
+											{ [Op.like]: "%,1" },
+											{ [Op.eq]: "1" },
+										],
+									},
+									leaveAutoId: { [Op.notIn]: [5] },
+								},
+								raw: true,
+							},
+						);
+
+						const existingMappedLeave = await db.leaveMapping.findAll({
+							attributes: ["leaveAutoId"],
+							where: {
+								isActive: 1,
+								EmployeeId: employeeId,
+							},
+						});
+
+						// Extract `leaveAutoId` values from both arrays
+						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+						const existingMappedLeaveIds = existingMappedLeave.map(
+							(leave) => leave.leaveAutoId,
+						);
+
+						// Find common `leaveAutoId` values
+						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
+							(id) => !existingMappedLeaveIds.includes(id),
+						);
+
+						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+
+						// Update `isActive` to 0 for overlapping leaveAutoIds
+						await db.leaveMapping.update(
+							{ isActive: 0 },
+							{
+								where: {
+									EmployeeId: employee.dataValues.id,
+									leaveAutoId: [4, 5],
+									isActive: 1,
+								},
+							},
+						);
+						const firstDate = moment(dateOfJoining)
+							.startOf("month")
+							.format("YYYY-MM-DD"); // "01"
+						const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+						const lastDate = moment(dateOfJoining)
+							.endOf("month")
+							.format("YYYY-MM-DD");
+						console.log(firstDate, midDate, lastDate);
+
+						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+						const monthsLeft = 12 - currentMonth + 1; // Including the current month
+
+						console.log(">>>>>>>>>>>>>", monthsLeft);
+
+						// Check if joiningDate is valid
+						if (!joiningDate.isValid()) {
+							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+						} else {
+							console.log("✅ dateOfJoining is valid");
+						}
+
+						// Check if the joining date is between firstDate and midDate
+						const isJoinedEarly = joiningDate.isBetween(
+							firstDate,
+							midDate,
+							null,
+							"[]",
+						);
+
+						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+
+						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
+							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
+							const defaultLeaveCount =
+								leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0;
+							const creditHalfAfter15Day =
+								leaveMasterLookup[compositeKey]?.creditHalfAfter15Day;
+							const creditOnAccuralBasis =
+								leaveMasterLookup[compositeKey]?.creditOnAccuralBasis;
+							const creditOnProRataBasis =
+								leaveMasterLookup[compositeKey]?.creditOnProRataBasis;
+							return (() => {
+								if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										accruedThisYear: [3, 4, 5].includes(leaveAutoId)
+											? parseInt(defaultLeaveCount * 12)
+											: defaultLeaveCount * 12,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 1 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										accruedThisYear:
+											isJoinedEarly && creditHalfAfter15Day == 1
+												? defaultLeaveCount
+												: defaultLeaveCount / 2,
+										isActive: 1,
+									};
+								} else if (
+									creditOnAccuralBasis == 0 &&
+									creditOnProRataBasis == 1
+								) {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount * monthsLeft,
+										accruedThisYear: defaultLeaveCount * monthsLeft,
+										isActive: 1,
+									};
+								} else {
+									return {
+										EmployeeId: employee.id,
+										leaveAutoId: leaveAutoId,
+										availableLeave: defaultLeaveCount,
+										accruedThisYear: defaultLeaveCount,
+										isActive: 1,
+									};
+								}
+							})();
+						});
+
+						// Bulk insert new leave records
+						if (newLeaves.length > 0) {
+							await db.leaveMapping.bulkCreate(newLeaves);
+							console.log(
+								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							);
+						} else {
+							console.log(
+								`No new leaves to insert for Employee ID: ${employee.id}`,
+							);
+						}
+					}
+				} else {
+					const compositeKey = `${6}-${employee.dataValues.companyId}`;
+					const offRoleObj = {
 						EmployeeId: employee.id,
 						leaveAutoId: 6,
+						availableLeave:
+							leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0,
+						accruedThisYear:
+							leaveMasterLookup[compositeKey]?.defaultLeaveCount || 0,
 						isActive: 1,
-					},
-					defaults: offRoleObj, // Use this to provide the default values if the record is created
-				});
+					};
+					const [created] = await db.leaveMapping.findOrCreate({
+						where: {
+							EmployeeId: employee.id,
+							leaveAutoId: 6,
+							isActive: 1,
+						},
+						defaults: offRoleObj, // Use this to provide the default values if the record is created
+					});
 
-				if (created) {
-					console.log("New record created:");
-				} else {
-					console.log("Record already exists:");
+					if (created) {
+						console.log("New record created:");
+					} else {
+						console.log("Record already exists:");
+					}
 				}
-
 			}
-		  }
-		  return respHelper(res, {
-			status: 200,
-			message: "Leave updated successfully",
-			data: employees.length,
-		  });
+			return respHelper(res, {
+				status: 200,
+				message: "Leave updated successfully",
+				data: employees.length,
+			});
 		} catch (error) {
-		  console.log(error);
-		  return respHelper(res, {
-			status: 500,
-			message: "Internal Server Error",
-		  });
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+				message: "Internal Server Error",
+			});
 		}
-	  }
-
+	}
 
 	// API to credit leave using cron on particular date
 
