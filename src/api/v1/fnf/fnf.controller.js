@@ -4,6 +4,8 @@ import validator from "../../../helper/validator.js";
 import fnfHelper from "./fnfHelper.js";
 import pkg from "xlsx";
 import paymentHelper from "../payments/paymentHelper.js";
+const dbName = process.env.DB_NAME;
+
 
 class PaymentController {
 
@@ -79,8 +81,7 @@ class PaymentController {
   async employeesListForFnfProcessing(req, res) {
     try {
       let { companyId ,year,month} = req.query;
-      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM tara.employee e JOIN tara.paypackage p ON e.id = p.EmployeeId JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
-      console.log(employeeForProcessingQuery)
+      let employeeForProcessingQuery =  `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
     
       let employeeForProcessing = await db.sequelize.query(
         employeeForProcessingQuery
@@ -630,7 +631,7 @@ class PaymentController {
 
       var totalGratuityDays = 0,
           uniqueEmployeeImpacted = 0;
-      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from tara.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
       
       let gratuities = await db.sequelize.query(allGratuityQuery);
 
@@ -680,7 +681,157 @@ class PaymentController {
 
       var totalLeaveEncashmentDays = 0,
           uniqueEmployeeImpacted = 0;
-      let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(leaveEncashmentDays) AS leaveEncashmentDays from tara.leavencashmentoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(leaveEncashmentDays) AS leaveEncashmentDays from ${dbName}.leavencashmentoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      
+      let allData = await db.sequelize.query(finalQuery);
+
+      for(const singleEmployee of allData[0]) {
+        totalLeaveEncashmentDays += parseFloat(singleEmployee.leaveEncashmentDays || 0);
+        uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
+      }
+
+      return respHelper(res, { status: 200, 
+        data: {
+          impactedEmployee: uniqueEmployeeImpacted,
+          leaveEncashmentDays: totalLeaveEncashmentDays.toFixed(2),
+          impactedEmployeeDetails: allData[0] 
+        }
+      })
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, { status: 500 });
+    }
+  }
+
+  async PTSyncing(req, res) {
+    try {
+      const { error, value } = validator.employeesForPayrollProcess.validate(req.body);
+      if(error) {
+        return respHelper(res, { status: 400, msg: error.details[0] });
+      }   
+      let ids = value.departmentId.split(",");
+
+      let allEmployeeQuery = await fnfHelper.query(
+        value.departmentId == 0 ? 6 : 5,
+        value.processingType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId
+        }
+      );
+
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if(result[0].length == 0) {
+        return respHelper(res, { status: 400, msg: "No data to progress.", data: [] });
+      }
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
+
+      var totalLeaveEncashmentDays = 0,
+          uniqueEmployeeImpacted = 0;
+      let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(ptAmount) AS ptAmount from ${dbName}.ptoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND ptMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      
+      let allData = await db.sequelize.query(finalQuery);
+
+      for(const singleEmployee of allData[0]) {
+        totalLeaveEncashmentDays += parseFloat(singleEmployee.leaveEncashmentDays || 0);
+        uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
+      }
+
+      return respHelper(res, { status: 200, 
+        data: {
+          impactedEmployee: uniqueEmployeeImpacted,
+          leaveEncashmentDays: totalLeaveEncashmentDays.toFixed(2),
+          impactedEmployeeDetails: allData[0] 
+        }
+      })
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, { status: 500 });
+    }
+  }
+
+  async LWFSyncing(req, res) {
+    try {
+      const { error, value } = validator.employeesForPayrollProcess.validate(req.body);
+      if(error) {
+        return respHelper(res, { status: 400, msg: error.details[0] });
+      }   
+      let ids = value.departmentId.split(",");
+
+      let allEmployeeQuery = await fnfHelper.query(
+        value.departmentId == 0 ? 6 : 5,
+        value.processingType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId
+        }
+      );
+
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if(result[0].length == 0) {
+        return respHelper(res, { status: 400, msg: "No data to progress.", data: [] });
+      }
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
+
+      var totalLeaveEncashmentDays = 0,
+          uniqueEmployeeImpacted = 0;
+      let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(lwfAmount) AS lwfAmount from ${dbName}.lwfoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND lwfMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      
+      let allData = await db.sequelize.query(finalQuery);
+
+      for(const singleEmployee of allData[0]) {
+        totalLeaveEncashmentDays += parseFloat(singleEmployee.leaveEncashmentDays || 0);
+        uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
+      }
+
+      return respHelper(res, { status: 200, 
+        data: {
+          impactedEmployee: uniqueEmployeeImpacted,
+          leaveEncashmentDays: totalLeaveEncashmentDays.toFixed(2),
+          impactedEmployeeDetails: allData[0] 
+        }
+      })
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, { status: 500 });
+    }
+  }
+
+  async noticeRecoverySyncing(req, res) {
+    try {
+      const { error, value } = validator.employeesForPayrollProcess.validate(req.body);
+      if(error) {
+        return respHelper(res, { status: 400, msg: error.details[0] });
+      }   
+      let ids = value.departmentId.split(",");
+
+      let allEmployeeQuery = await fnfHelper.query(
+        value.departmentId == 0 ? 6 : 5,
+        value.processingType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId
+        }
+      );
+
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if(result[0].length == 0) {
+        return respHelper(res, { status: 400, msg: "No data to progress.", data: [] });
+      }
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
+
+      var totalLeaveEncashmentDays = 0,
+          uniqueEmployeeImpacted = 0;
+      let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(recoveryDays) AS recoveryDays from ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
       
       let allData = await db.sequelize.query(finalQuery);
 

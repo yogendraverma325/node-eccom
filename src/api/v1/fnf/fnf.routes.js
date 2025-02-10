@@ -18,5 +18,8 @@ export default Express
     // syncing routes
     .post("/currentMonthGratuitySyncing", authentication.authenticate, fnfController.gratuitySyncing)
     .post("/currentMonthLeaveEncashmentSyncing", authentication.authenticate, fnfController.leaveEncashmentSyncing)
+    .post("/currentMonthPTSyncing", authentication.authenticate, fnfController.PTSyncing)
+    .post("/currentMonthLWFSyncing", authentication.authenticate, fnfController.LWFSyncing)
+    .post("/currentMonthNoticeRecoverySyncing", authentication.authenticate, fnfController.noticeRecoverySyncing)
 
 
