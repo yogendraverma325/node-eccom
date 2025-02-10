@@ -85,9 +85,6 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("prePasswordExpiry", async (input) => {
 		await prePasswordExpiryNotification(input);
 	});
-	eventEmitter.on("prePasswordExpiry", async (input) => {
-		await prePasswordExpiryNotification(input);
-	});
 
 	eventEmitter.on("postPasswordExpiry", async (input) => {
 		await postPasswordExpiryNotification(input);
