@@ -62,15 +62,15 @@ export default (sequelize, Sequelize) => {
 		isActive: {
 			type: Sequelize.BOOLEAN,
 		},
-		payMonth:{
-			type:Sequelize.STRING
+		payMonth: {
+			type: Sequelize.STRING,
 		},
-		payMonth:{
-			type:Sequelize.STRING
+		payMonth: {
+			type: Sequelize.STRING,
 		},
-		paySlipStatus:{
-			type:Sequelize.INTEGER
-		}
+		paySlipStatus: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return paySlips;
 };

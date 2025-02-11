@@ -3246,33 +3246,48 @@ class AttendanceController {
 
 	async attendenceDetails(req, res) {
 		try {
-			let attendanceData = await db.attendanceMaster.findOne({
+			const existUser = await db.employeeMaster.findOne({
+				where: {
+					id: req.userId,
+				},
+				attributes: ["id", "name", "empCode"],
+				include: [
+					{
+						model: db.shiftMaster,
+						attributes: ["shiftStartTime", "shiftEndTime", "isOverNight"],
+					},
+					{
+						model: db.attendancePolicymaster,
+						attributes: [
+							"graceTimeClockIn",
+							"graceTimeClockOut",
+							"allowBufferTime",
+							"bufferTimePre",
+							"bufferTimePost",
+						],
+					},
+				],
+			});
+
+			const shiftEndDate = moment(`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`).format("YYYY-MM-DD HH:mm:ss");
+
+			const shiftStartDate = moment(`${(existUser.shiftsmaster.dataValues.isOverNight && moment().isAfter(shiftEndDate)) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`).format("YYYY-MM-DD HH:mm:ss");
+
+			let attendanceData = await db.attendanceHistory.findOne({
 				where: {
 					employeeId: req.userId,
-					attendanceDate: moment().format("YYYY-MM-DD"),
+					date: {
+						[Op.gte]: new Date(shiftStartDate),
+						[Op.lte]: new Date(shiftEndDate),
+					}
 				},
 			});
 
-			attendanceData = await db.attendanceHistory.findOne({
-				where: {
-					employeeId: req.userId,
-					date: moment().format("YYYY-MM-DD"),
-				},
+			return respHelper(res, {
+				status: 200,
+				msg: message.ATTENDANCE_NOT_AVAILABLE,
+				data: attendanceData
 			});
-
-			if (!attendanceData) {
-				return respHelper(res, {
-					status: 200,
-					msg: message.ATTENDANCE_NOT_AVAILABLE,
-					data: null,
-				});
-			} else {
-				return respHelper(res, {
-					status: 200,
-					data: attendanceData,
-					msg: message.ATTENDANCE_NOT_AVAILABLE,
-				});
-			}
 		} catch (error) {
 			console.log(error);
 			if (error.isJoi === true) {
@@ -4155,7 +4170,11 @@ class AttendanceController {
 				if (result.status) {
 					const attendanceData = await db.attendanceMaster.findOne({
 						where: {
-							attendanceDate: (element.dataValues.status == "Punch Out" && element.shiftsmaster.isOverNight) ? moment(element.dataValues.date).subtract(1, 'days') : element.dataValues.date,
+							attendanceDate:
+								element.dataValues.status == "Punch Out" &&
+									element.shiftsmaster.isOverNight
+									? moment(element.dataValues.date).subtract(1, "days")
+									: element.dataValues.date,
 							employeeId: element.dataValues.employeeId,
 						},
 					});
@@ -4269,8 +4288,9 @@ class AttendanceController {
 							`Punch In Data Updated for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`,
 						);
 					} else if (element.dataValues.status == "Punch Out") {
-
-						currentDate = (element.shiftsmaster.isOverNight) ? currentDate.subtract(1, 'days') : currentDate;
+						currentDate = element.shiftsmaster.isOverNight
+							? currentDate.subtract(1, "days")
+							: currentDate;
 						if (!attendanceData) {
 							failedRecords.push(
 								`Punch In Data Not Available for ${element.dataValues.employee.firstName} (${element.dataValues.employee.empCode}) on ${element.dataValues.date}`,
