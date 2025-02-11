@@ -210,7 +210,7 @@ class LeaveController {
 
 						if (
 							existingRecord.leaveAutoId === 6 ||
-							existingRecord.leaveAutoId === 9
+							existingRecord.leaveAutoId === 9 
 						) {
 							const lwpLeave = await db.leaveMapping.findOne({
 								where: {
@@ -918,7 +918,7 @@ class LeaveController {
 						[Op.between]: [req.body.fromDate, req.body.toDate],
 					},
 					status: {
-						[Op.ne]: "revoked",
+						[Op.notIn]: ["revoked", "rejected"],
 					},
 					employeeId: req.body.employeeId,
 				},
@@ -2534,7 +2534,7 @@ class LeaveController {
 						if (
 
 existingRecord.leaveAutoId === 6 ||
-existingRecord.leaveAutoId === 9
+existingRecord.leaveAutoId === 9 
 
 						) {
 							const lwpLeave = await db.leaveMapping.findOne({
