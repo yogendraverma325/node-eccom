@@ -569,8 +569,6 @@ class LeaveController {
 						status: ["approved", "pending"],
 					},
 				});
-				console.log("transactionCount",transactionCount)
-				console.log(" leaveMasterData.tenureCount", leaveMasterData)
 				if (transactionCount >= leaveMasterData.tenureCount) {
 					return respHelper(res, {
 						status: 404,
@@ -581,11 +579,8 @@ class LeaveController {
 						),
 					});
 				}
-			}
 
-			// Fetch employee details and leave counts in parallel
-
-			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
+const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				startDate,
 				endDate,
 				EMP_DATA.weekOffId,
@@ -594,6 +589,68 @@ class LeaveController {
 				result.leaveAutoId,
 				EMP_DATA
 			);
+
+			
+
+			const fromDate = remainingLeaveCountRESP[0];
+			const toDate =
+				remainingLeaveCountRESP.length == 1
+					? remainingLeaveCountRESP[0]
+					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
+
+			// Start and End of the Year
+if(leaveMasterData.max_allowed_in_year != 0){
+			const fromMoment = moment(fromDate);
+			const yearStart1 = fromMoment.clone().startOf("year").format("YYYY-MM-DD");   // 2025-01-01
+			const yearEnd1 = fromMoment.clone().endOf("year").format("YYYY-MM-DD");
+
+			const tomoment = moment(toDate);
+			const yearStart2 = tomoment.clone().startOf("year").format("YYYY-MM-DD");   // 2025-01-01
+			const yearEnd2 = tomoment.clone().endOf("year").format("YYYY-MM-DD");
+				const transactionCountYearWise = await db.EmployeeLeaveHeader.count({
+					where: {
+						employeeId: req.body.employeeId,
+						leaveAutoId: result.leaveAutoId,
+						status: ["approved", "pending"],
+				[Op.or]: [
+				{
+				fromDate: {
+				[Op.between]: [yearStart1, yearEnd1],  // First range for fromDate
+				},
+				toDate: {
+				[Op.between]: [yearStart1, yearEnd1],  // First range for toDate
+				},
+				},
+				{
+				fromDate: {
+				[Op.between]: [yearStart2, yearEnd2],  // Second range for fromDate
+				},
+				toDate: {
+				[Op.between]: [yearStart2, yearEnd2],  // Second range for toDate
+				},
+				},
+				],
+
+					},
+				});
+				console.log("transactionCountYearWise",transactionCountYearWise)
+				if ((transactionCountYearWise >= leaveMasterData.max_allowed_in_year)) {
+					return respHelper(res, {
+						status: 404,
+						data: {},
+						msg: message.LEAVE.YEAR_LEAVE_COUNT.replace(
+							"#",
+							leaveMasterData.max_allowed_in_year,
+						),
+					});
+				}
+			}
+			}
+			
+
+			// Fetch employee details and leave counts in parallel
+
+			
 
 				const differenceInDays = remainingLeaveCountRESP.length;
 

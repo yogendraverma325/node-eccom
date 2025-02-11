@@ -164,6 +164,9 @@ export default (sequelize, Sequelize) => {
 		tenureCount: {
 			type: Sequelize.INTEGER,
 		},
+		max_allowed_in_year: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveCompanyMapping;
 };
