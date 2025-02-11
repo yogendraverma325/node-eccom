@@ -21,5 +21,9 @@ export default Express
     .post("/currentMonthPTSyncing", authentication.authenticate, fnfController.PTSyncing)
     .post("/currentMonthLWFSyncing", authentication.authenticate, fnfController.LWFSyncing)
     .post("/currentMonthNoticeRecoverySyncing", authentication.authenticate, fnfController.noticeRecoverySyncing)
+    .post("/initiateFnf", authentication.authenticate, fnfController.initiateFnf)
+    .post("/processingFNF", authentication.authenticate, fnfController.processingFNF)
+    .post("/exportFnfSalaryRegister",authentication.authenticate,fnfController.exportFnfSalaryRegister)
+    .post("/updateNextStatus",authentication.authenticate,fnfController.updateNextStatus);
 
 
