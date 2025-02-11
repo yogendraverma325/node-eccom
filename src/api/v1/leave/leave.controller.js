@@ -247,6 +247,7 @@ class LeaveController {
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
+										isActive:1
 									},
 								},
 							);
@@ -256,6 +257,7 @@ class LeaveController {
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
+										isActive:1
 									},
 								},
 							);
@@ -568,7 +570,7 @@ class LeaveController {
 					},
 				});
 				console.log("transactionCount",transactionCount)
-				console.log(" leaveMasterData.tenureCount", leaveMasterData.tenureCount)
+				console.log(" leaveMasterData.tenureCount", leaveMasterData)
 				if (transactionCount >= leaveMasterData.tenureCount) {
 					return respHelper(res, {
 						status: 404,
@@ -2570,6 +2572,7 @@ existingRecord.leaveAutoId === 9
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
+										isActive:1
 									},
 								},
 							);
@@ -2579,6 +2582,7 @@ existingRecord.leaveAutoId === 9
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
+										isActive:1
 									},
 								},
 							);

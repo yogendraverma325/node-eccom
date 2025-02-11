@@ -87,7 +87,7 @@ const message = {
 		MESSAGE_REQUIRED: "Message is required",
 		MESSAGE_REQUIRED_DAYS: "Message is required in more than # days leave(s)",
 		TENURE_LEAVE_COUNT:
-			"You are allowed a maximum of #  leave(s) during your entire tenure",
+			"You are allowed a maximum of # time(s) leave during your entire tenure",
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
 	INVALID: "Invalid <module>",

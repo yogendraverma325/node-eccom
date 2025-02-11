@@ -1755,6 +1755,9 @@ const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
 			model: db.leaveMaster,
 			attributes: ["leaveId", "leaveName"],
 			as: "companyleaveMasterDetails",
+			where: {
+				isActive: 1,
+			}
 		},
 	});
 	return leaveData;

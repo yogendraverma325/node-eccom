@@ -161,6 +161,9 @@ export default (sequelize, Sequelize) => {
 		creditOnAccuralBasis: {
 			type: Sequelize.INTEGER,
 		},
+		tenureCount: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveCompanyMapping;
 };
