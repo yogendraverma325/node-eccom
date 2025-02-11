@@ -5,6 +5,7 @@ import fnfHelper from "./fnfHelper.js";
 import pkg from "xlsx";
 import paymentHelper from "../payments/paymentHelper.js";
 const dbName = process.env.DB_NAME;
+import { Op, where } from "sequelize";
 
 
 class PaymentController {
@@ -135,7 +136,7 @@ class PaymentController {
       for (const employeeTds of gratuityDetails) {
         if (employeeTds["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
-            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+            where: { empCode: employeeTds["Employee ID"], isActive: 0 },
             raw: true,
             attributes: ["empCode", "id"],
           });
@@ -234,7 +235,7 @@ class PaymentController {
       for (const employeeTds of jsonArr) {
         if (employeeTds["Employee ID"]) {
           let employeeDetais = await db.employeeMaster.findOne({
-            where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+            where: { empCode: employeeTds["Employee ID"], isActive: 0 },
             raw: true,
             attributes: ["empCode", "id"],
           });
@@ -642,7 +643,7 @@ class PaymentController {
       return respHelper(res, { status: 200, 
         data: {
           impactedEmployee: uniqueEmployeeImpacted,
-          gratuityDays: totalGratuityDays.toFixed(2),
+          paymentAmount: totalGratuityDays.toFixed(2),
           impactedEmployeeDetails: gratuities[0] 
         }
       })
@@ -692,7 +693,7 @@ class PaymentController {
       return respHelper(res, { status: 200, 
         data: {
           impactedEmployee: uniqueEmployeeImpacted,
-          leaveEncashmentDays: totalLeaveEncashmentDays.toFixed(2),
+          paymentAmount: totalLeaveEncashmentDays.toFixed(2),
           impactedEmployeeDetails: allData[0] 
         }
       })
@@ -962,8 +963,446 @@ class PaymentController {
     }
   }
 
-
   // End by jay
+
+  // start sync lop, tds, extra payment and extra deduction by jay
+
+  async lopSyncing(req, res) {
+		try {
+			const { error, value } =
+				await validator.employeesForPayrollProcess.validate(req.body);
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					msg: error.details[0],
+				});
+			}
+			let workingDaysOfMonth = await paymentHelper.getDaysInCurrentMonth({
+				year: value.paymonth.split("-")[0],
+				month: value.paymonth.split("-")[1],
+			});
+			let ids = value.departmentId.split(",");
+
+			// get financial year
+			let financialYearDetails = await paymentHelper.getFinancialYear();
+
+			let allEmployeeQuery = await fnfHelper.query(
+				value.departmentId == 0 ? 6 : 5,
+				value.processingType,
+				{
+					departmentId: ids,
+					paymonth: value.paymonth,
+					companyId: value.companyId,
+				},
+			);
+    
+			const result = await db.sequelize.query(allEmployeeQuery);
+			if (result[0].length == 0) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+			}
+			const employeeIds = result[0].map((employee) => employee.EmployeeId);
+			let returnVAlue = await availableEmployeeForProcessing(
+				employeeIds,
+				value.paymonth,
+			);
+			var totalLopAmount = 0,
+				totalLOPDays = 0;
+			let lopDeductions = await db.lopDeductions.findAll({
+				where: {
+					EmployeeId: { [Op.in]: returnVAlue.avalialbleEmployees },
+					lopMonth: req.body.paymonth,
+				},
+				raw: true,
+			});
+
+			for (const lopSingleDetails of lopDeductions) {
+				let payPackageDetails = await db.payPackage.findOne({
+					where: {
+						EmployeeId: lopSingleDetails.EmployeeId,
+						payPackageFinancialYear: financialYearDetails?.financialYearName,
+					},
+					attributes: ["payPackageMonthlyCTC"],
+					raw: true,
+				});
+				let lopAmount =
+					(payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
+					lopSingleDetails.lopDays;
+				totalLopAmount = lopAmount + totalLopAmount;
+				totalLOPDays =
+					parseFloat(lopSingleDetails.lopDays) + parseFloat(totalLOPDays);
+			}
+			return respHelper(res, {
+				status: 200,
+				data: {
+					impactedEmployee: lopDeductions.length,
+					lopAmount: totalLopAmount.toFixed(2),
+					totalLOPDays: parseFloat(totalLOPDays).toFixed(1),
+					impactedEmployeeDetails: lopDeductions,
+				},
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+  async extraPaymentSyncing(req, res) {
+		try {
+			const { error, value } =
+				await validator.employeesForPayrollProcess.validate(req.body);
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					msg: error.details[0],
+				});
+			}
+			let ids = value.departmentId.split(",");
+			let allEmployeeQuery = await fnfHelper.query(
+				value.departmentId == 0 ? 6 : 5,
+				value.processingType,
+				{
+					departmentId: ids,
+					paymonth: value.paymonth,
+					companyId: value.companyId,
+				},
+			);
+			const result = await db.sequelize.query(allEmployeeQuery);
+			if (result[0].length == 0) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+			}
+			const employeeIds = result[0].map((employee) => employee.EmployeeId);
+			let returnVAlue = await availableEmployeeForProcessing(
+				employeeIds,
+				value.paymonth,
+			);
+			var totaPaymentAmount = 0,
+				uniqueEmployeeImpacted = 0;
+			let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
+			let extraPayments = await db.sequelize.query(allDeductionQuery);
+			for (const singleEmployeePayment of extraPayments[0]) {
+				console.log(singleEmployeePayment);
+				totaPaymentAmount += parseFloat(
+					singleEmployeePayment.paymentAmount || 0,
+				);
+				uniqueEmployeeImpacted =
+					singleEmployeePayment.uniqueEmployeeImpacted + uniqueEmployeeImpacted;
+			}
+			return respHelper(res, {
+				status: 200,
+				data: {
+					impactedEmployee: uniqueEmployeeImpacted,
+					paymentAmount: totaPaymentAmount.toFixed(2),
+					impactedEmployeeDetails: extraPayments[0],
+				},
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async extraDeductionSyncing(req, res) {
+		try {
+			const { error, value } =
+				await validator.employeesForPayrollProcess.validate(req.body);
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					msg: error.details[0],
+				});
+			}
+			let ids = value.departmentId.split(",");
+			let allEmployeeQuery = await fnfHelper.query(
+				value.departmentId == 0 ? 6 : 5,
+				value.processingType,
+				{
+					departmentId: ids,
+					paymonth: value.paymonth,
+					companyId: value.companyId,
+				},
+			);
+			const result = await db.sequelize.query(allEmployeeQuery);
+			if (result[0].length == 0) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+			}
+			const employeeIds = result[0].map((employee) => employee.EmployeeId);
+			let returnVAlue = await availableEmployeeForProcessing(
+				employeeIds,
+				value.paymonth,
+			);
+			var totalExtraDeductionsAmount = 0;
+			let allDeductionQuery = `SELECT empCode AS EmployeeId, SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where EmployeeId in(${returnVAlue.avalialbleEmployees.join(
+				",",
+			)}) and startMonth='${value.paymonth}' GROUP BY empCode `;
+
+			console.log("Deduction Query ::" + allDeductionQuery);
+
+			if (employeeIds.length > 0) {
+				let extraDeductions = await db.sequelize.query(allDeductionQuery);
+				console.log(extraDeductions[0]);
+				for (const extraDeductionSingleDetails of extraDeductions[0]) {
+					totalExtraDeductionsAmount += parseFloat(
+						extraDeductionSingleDetails.TotalDeductionAmount || 0,
+					);
+				}
+				return respHelper(res, {
+					status: 200,
+					data: {
+						impactedEmployee: extraDeductions[0].length,
+						extraDeductionAmount: totalExtraDeductionsAmount.toFixed(2),
+						impactedEmployeeDetatils: extraDeductions[0],
+					},
+				});
+			} else {
+				return respHelper(res, {
+					status: 200,
+					data: {
+						impactedEmployee: 0,
+						extraDeductionAmount: 0,
+					},
+				});
+			}
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async tdsSyncing(req, res) {
+		try {
+			const { error, value } =
+				await validator.employeesForPayrollProcess.validate(req.body);
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					msg: error.details[0],
+				});
+			}
+			let ids = value.departmentId.split(",");
+			let allEmployeeQuery = await fnfHelper.query(
+				value.departmentId == 0 ? 6 : 5,
+				value.processingType,
+				{
+					departmentId: ids,
+					paymonth: value.paymonth,
+					companyId: value.companyId,
+				},
+			);
+			const result = await db.sequelize.query(allEmployeeQuery);
+			if (result[0].length == 0) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+			}
+			const employeeIds = result[0].map((employee) => employee.EmployeeId);
+			let returnVAlue = await availableEmployeeForProcessing(
+				employeeIds,
+				value.paymonth,
+			);
+			var totalTdsAmount = 0,
+				totalLOPDays = 0;
+
+			let tdsDeductions = await db.tdsDeductions.findAll({
+				where: {
+					EmployeeId: { [Op.in]: returnVAlue.avalialbleEmployees },
+					tdsMonth: req.body.paymonth,
+				},
+				raw: true,
+			});
+
+			console.log(tdsDeductions);
+			for (const tdsSingleDetails of tdsDeductions) {
+				console.log(tdsSingleDetails);
+
+				totalTdsAmount += parseFloat(tdsSingleDetails.tdsAmount || 0);
+			}
+			return respHelper(res, {
+				status: 200,
+				data: {
+					impactedEmployee: tdsDeductions.length,
+					tdsAmount: totalTdsAmount.toFixed(2),
+					impactedEmployeeDetails: tdsDeductions,
+				},
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+  // end sync lop, tds, extra payment and extra deduction by jay
+
+  async uploadExtraBenefit(req, res) {
+    try {
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      }
+      ///////////////If File is provided by the users//////////////////
+      const workbookEmployee = pkg.readFile(req.file.path);
+      const sheetNameEmployee = workbookEmployee.SheetNames[0];
+      var gratuityDetails = pkg.utils.sheet_to_json(
+        workbookEmployee.Sheets[sheetNameEmployee]
+      );
+      var errorArray = [],
+        successArray = [];
+
+      if (!gratuityDetails[0]["Employee ID"]) {
+        return respHelper(res, {
+          status: 400,
+          msg: "Invalid File Format",
+        });
+      }
+
+      for (const employeeTds of gratuityDetails) {
+        if (employeeTds["Employee ID"]) {
+          let employeeDetais = await db.employeeMaster.findOne({
+            where: { empCode: employeeTds["Employee ID"], isActive: 0 },
+            raw: true,
+            attributes: ["empCode", "id"],
+          });
+
+          if (!employeeDetais) {
+            continue;
+          }
+
+          let obj = {
+            EmployeeId: employeeDetais.id,
+            benefitAmount: employeeTds["BENEFIT AMOUNT"],
+            payMonth: employeeTds["PAY Month (YYYY-MM)"],
+            empCode: employeeTds["Employee ID"],
+          };
+          const { error } = await validator.extraBenefitValidateSchama.validate(
+            obj
+          );
+          if (error) {
+            errorArray.push({
+              index: errorArray.length + 1,
+              error: error.details[0].message,
+              employeeID: obj.empCode,
+            });
+            // return respHelper(res, {
+            //   status: 400,
+            //   msg: error.details[0],
+            // });
+          } else {
+            let existDetails = await db.ExtraBenefits.findOne({
+              where: {
+                empCode: obj.empCode,
+                payMonth: obj.payMonth,
+              },
+              raw: true,
+            });
+            if (existDetails) {
+              obj["updatedBy"] = req.userData.id;
+              obj["updatedAt"] = new Date();
+
+              await db.ExtraBenefits.update(obj, {
+                where: {
+                  EmployeeId: obj.EmployeeId,
+                  payMonth: obj.payMonth,
+                  empCode: obj.empCode,
+                },
+              });
+              obj["ACTION_TYPE"] = "UPDATE";
+            } else {
+              obj["createdBy"] = req.userData.id;
+              obj["createdAt"] = new Date();
+              await db.ExtraBenefits.create(obj);
+              obj["ACTION_TYPE"] = "CREATE";
+            }
+            successArray.push(obj);
+          }
+        }
+      }
+
+      return respHelper(res, {
+        status: 200,
+        data: { errorArray, successArray },
+        msg: "Extra benefit Uploaded Successfully.",
+      });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+  
+  async extraBenefitSyncing(req, res) {
+    try {
+      const { error, value } = validator.employeesForPayrollProcess.validate(req.body);
+      if(error) {
+        return respHelper(res, { status: 400, msg: error.details[0] });
+      }   
+      let ids = value.departmentId.split(",");
+
+      let allEmployeeQuery = await fnfHelper.query(
+        value.departmentId == 0 ? 6 : 5,
+        value.processingType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId
+        }
+      );
+
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if(result[0].length == 0) {
+        return respHelper(res, { status: 400, msg: "No data to progress.", data: [] });
+      }
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnValue = await availableEmployeeForProcessing(employeeIds, value.paymonth);
+
+      var totalExtraBenefit = 0,
+          uniqueEmployeeImpacted = 0;
+      let allExtraBenefitQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(benefitAmount) AS benefitAmount from ${dbName}.extrabenefit WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+      
+      let extraBenefits = await db.sequelize.query(allExtraBenefitQuery);
+
+      for(const singleEmployee of extraBenefits[0]) {
+        totalExtraBenefit += parseFloat(singleEmployee.benefitAmount || 0);
+        uniqueEmployeeImpacted = singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted 
+      }
+
+      return respHelper(res, { status: 200, 
+        data: {
+          impactedEmployee: uniqueEmployeeImpacted,
+          paymentAmount: totalExtraBenefit.toFixed(2),
+          impactedEmployeeDetails: extraBenefits[0] 
+        }
+      })
+    }
+    catch(error) {
+      console.log(error);
+      return respHelper(res, { status: 500 });
+    }
+  }
+
 }
 
 

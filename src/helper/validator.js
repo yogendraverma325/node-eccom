@@ -1355,7 +1355,7 @@ const lopValidateSchama = Joi.object({
 	empCode: Joi.alternatives()
 		.try(Joi.string(), Joi.number().integer())
 		.required()
-		.label("Employee Code"),
+		.label("Employee Code")
 });
 
 const employeesForPayrollProcess = Joi.object({
@@ -1682,6 +1682,23 @@ const gratuityValidateSchama = Joi.object({
 	.required()
 	.label("Employee Code"),
   });
+
+  const extraBenefitValidateSchama = Joi.object({
+	extraBenefitAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
+	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
+	payMonth: Joi.string().max(255).required(),
+	benefitAmount: Joi.number().precision(2).positive().required().label("Benefit Amount"), // Leave days must be non-negative.
+	createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+	createdAt: Joi.date().optional().allow(null), // Optional, can be null.
+	updatedBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.
+	updatedAt: Joi.date().optional().allow(null), // Optional, can be null.
+	isActive: Joi.boolean().optional(), // Optional boolean, defaults to false (0).
+	empCode: Joi.alternatives()
+	.try(Joi.string(), Joi.number().integer())
+	.required()
+	.label("Employee Code"),
+  });
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -1760,10 +1777,11 @@ export default {
 	employeesForPayrollProcess,
 	extraDeductionSchema,
 	payMonthYearCheck,
-	  // F&F
-	  gratuityValidateSchama,
-	  leaveEncashmentValidateSchama,
-	  ptValidateSchama,
-	  lwfValidateSchama,
-	  noticeRecoveryValidateSchama
+	// F&F
+	gratuityValidateSchama,
+	leaveEncashmentValidateSchama,
+	ptValidateSchama,
+	lwfValidateSchama,
+	noticeRecoveryValidateSchama,
+	extraBenefitValidateSchama
 };

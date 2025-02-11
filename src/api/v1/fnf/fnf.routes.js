@@ -9,6 +9,7 @@ export default Express
     .get("/employeesListForFnfProcessing",authentication.authenticate,fnfController.employeesListForFnfProcessing)
 
     // upload excel sheet routes
+
     .post("/uploadGratutiy", upload.single('excelFile'), authentication.authenticate, fnfController.uploadGratuity)
     .post("/uploadLeaveEncashment", upload.single('excelFile'), authentication.authenticate, fnfController.uploadLeaveEncashment)
     .post("/uploadPT", upload.single('excelFile'), authentication.authenticate, fnfController.uploadPT)
@@ -22,4 +23,13 @@ export default Express
     .post("/currentMonthLWFSyncing", authentication.authenticate, fnfController.LWFSyncing)
     .post("/currentMonthNoticeRecoverySyncing", authentication.authenticate, fnfController.noticeRecoverySyncing)
 
+    // sync lop, tds, extra payment and extra deduction
 
+    .post("/currentonthLopSyncing", authentication.authenticate, fnfController.lopSyncing)
+    .post("/currentonthExtraPaymentSyncing", authentication.authenticate, fnfController.extraPaymentSyncing)
+    .post("/extraDeductionSyncing", authentication.authenticate, fnfController.extraDeductionSyncing)
+    .post("/currentonthTdsSyncing", authentication.authenticate, fnfController.tdsSyncing)
+
+    // upload and sync extra benefits
+    .post("/uploadExtraBenefit", upload.single('excelFile'), authentication.authenticate, fnfController.uploadExtraBenefit)
+    .post("/currentMonthExtraBenefitSyncing", authentication.authenticate, fnfController.extraBenefitSyncing)

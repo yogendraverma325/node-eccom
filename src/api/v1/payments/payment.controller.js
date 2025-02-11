@@ -1674,6 +1674,8 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
+
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -1692,7 +1694,7 @@ class PaymentController {
 			for (const employeeTds of tdsDetails) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: isActive },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -1771,6 +1773,8 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
+
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -1791,7 +1795,7 @@ class PaymentController {
 					let employeeDetais = await db.employeeMaster.findOne({
 						where: {
 							empCode: employeeExtraPayment["Employee ID"],
-							isActive: 1,
+							isActive: isActive,
 						},
 						raw: true,
 						attributes: ["empCode", "id"],
@@ -1901,6 +1905,7 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -1920,7 +1925,7 @@ class PaymentController {
 			for (const employeeTds of lopDetails) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: isActive },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -2001,6 +2006,7 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -2052,7 +2058,7 @@ class PaymentController {
 					let employeeDetais = await db.employeeMaster.findOne({
 						where: {
 							empCode: employeeExtraDeduction["Employee ID"],
-							isActive: 1,
+							isActive: isActive,
 						},
 						raw: true,
 						attributes: ["empCode", "id"],
@@ -3270,7 +3276,13 @@ class PaymentController {
 				customSheetName = "Payroll Processing Employees";
 			}
 
-			console.log(req.query);
+			if (exportSheetAutoId === '6') {
+				customSheetName = "Extra Benefit Sample";
+			} else if (exportSheetAutoId === '7') {
+				customSheetName = "Leave Encashment Sample";
+			} else if (exportSheetAutoId === '8') {
+				customSheetName = "Gratuity Sample";
+			}
 
 			const sheetName = {
 				"TDS Deduction Sample": 1,
@@ -3350,7 +3362,7 @@ class PaymentController {
 			}
 			// return
 			let employeeData = [];
-			if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
+			if (salalryStructureAutoId == 0 && exportSheetAutoId == 9) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
 				console.log(employeeIds);
