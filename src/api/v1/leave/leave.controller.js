@@ -221,7 +221,7 @@ class LeaveController {
 
 							if (lwpLeave) {
 								await db.leaveMapping.increment(
-									{ utilizedThisYear: parseFloat(existingRecord.leaveCount) },
+									{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
 									{
 										where: {
 											EmployeeId: existingRecord.employeeId,
@@ -234,7 +234,7 @@ class LeaveController {
 									EmployeeId: existingRecord.employeeId,
 									leaveAutoId: existingRecord.leaveAutoId,
 									availableLeave: 0,
-									utilizedThisYear: parseFloat(existingRecord.leaveCount),
+									utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount),
 									creditedFromLastYear: 0,
 									annualAllotment: 0,
 									accruedThisYear: 0,
@@ -242,7 +242,7 @@ class LeaveController {
 							}
 						} else {
 							await db.leaveMapping.increment(
-								{ utilizedThisYear: parseFloat(existingRecord.leaveCount) },
+								{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
@@ -251,7 +251,7 @@ class LeaveController {
 								},
 							);
 							await db.leaveMapping.increment(
-								{ availableLeave: -parseFloat(existingRecord.leaveCount) },
+								{ availableLeave: -parseFloat(leaveHeaderSingleRecords.leaveCount) },
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
@@ -550,6 +550,7 @@ class LeaveController {
 				});
 			}
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
+			const onProbationGenerated = req.userData["employeejobdetail.confirmationGenerated"];
 			const onNoticePeriod =
 				req.userData["employeejobdetail.noticePeriodStatus"];
 
@@ -566,6 +567,8 @@ class LeaveController {
 						status: ["approved", "pending"],
 					},
 				});
+				console.log("transactionCount",transactionCount)
+				console.log(" leaveMasterData.tenureCount", leaveMasterData.tenureCount)
 				if (transactionCount >= leaveMasterData.tenureCount) {
 					return respHelper(res, {
 						status: 404,
@@ -587,8 +590,12 @@ class LeaveController {
 				EMP_DATA.companyLocationId,
 				EMP_DATA.companyId,
 				result.leaveAutoId,
+				EMP_DATA
 			);
 
+				const differenceInDays = remainingLeaveCountRESP.length;
+
+			
 			if (onProbation == null) {
 				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
@@ -598,8 +605,9 @@ class LeaveController {
 						"YES",
 						toDateReq,
 					);
+					
 					if (
-						probationLeaveCount >
+						(probationLeaveCount+differenceInDays) >
 						leaveMasterData.maximum_leave_allowed_in_probation
 					) {
 						return respHelper(res, {
@@ -613,6 +621,7 @@ class LeaveController {
 					}
 				}
 			}
+			
 			if (
 				onNoticePeriod == 1 ||
 				onNoticePeriod == true ||
@@ -627,7 +636,8 @@ class LeaveController {
 						toDateReq,
 					);
 					if (
-						probationLeaveCount >
+		
+						(probationLeaveCount+differenceInDays) >
 						leaveMasterData.maximum_leave_allowed_in_notice_period
 					) {
 						return respHelper(res, {
@@ -641,6 +651,7 @@ class LeaveController {
 					}
 				}
 			}
+			
 
 			if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
 				if (leaveMasterData.canTakeHalfDay == 0) {
@@ -660,7 +671,7 @@ class LeaveController {
 			const currentDateOnly = moment().startOf("day");
 
 			// Calculate the difference in days
-			const differenceInDays = remainingLeaveCountRESP.length;
+		
 			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
 			console.log(
 				"differenceInDays",
@@ -1099,13 +1110,14 @@ class LeaveController {
 					.subtract(1, "day")
 					.format("YYYY-MM-DD");
 				let suffixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
-				console.log("prefixDate", prefixDate, "suffixDate", suffixDate);
+				
 
 				let leaveCount = await helper.checkLeaveClupEMPforDate(
 					[prefixDate, suffixDate],
 					req.body.leaveAutoId,
 					EMP_DATA,
 				);
+				console.log("leaveCount",leaveCount,"prefixDate",prefixDate,"suffixDate",suffixDate)
 				if (leaveCount != 0) {
 					return respHelper(res, {
 						status: 400,
@@ -1615,6 +1627,8 @@ class LeaveController {
 				]);
 
 			// Calculate total working days
+			let EMP_DATA = await helper.getEmpProfile(employeeId);
+
 			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				startDate,
 				endDate,
@@ -1622,6 +1636,7 @@ class LeaveController {
 				employeeWeekOfId.companyLocationId,
 				employeeWeekOfId.companyId,
 				leaveAutoId,
+				EMP_DATA
 			);
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
@@ -2475,6 +2490,12 @@ class LeaveController {
 						where: { employeeleaveheaderID: leaveID },
 					});
 
+					let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+						where: {
+							employeeleaveheaderID: leaveID,
+						},
+					});
+
 					if (existingRecord) {
 						if (existingRecord && existingRecord.leaveAutoId == 9) {
 							const employeeId = existingRecord.employeeId;
@@ -2508,7 +2529,12 @@ class LeaveController {
 							},
 						);
 
-						if (existingRecord.leaveAutoId === 6) {
+						if (
+
+existingRecord.leaveAutoId === 6 ||
+existingRecord.leaveAutoId === 9
+
+						) {
 							const lwpLeave = await db.leaveMapping.findOne({
 								where: {
 									EmployeeId: existingRecord.employeeId,
@@ -2518,7 +2544,7 @@ class LeaveController {
 
 							if (lwpLeave) {
 								await db.leaveMapping.increment(
-									{ utilizedThisYear: parseFloat(existingRecord.leaveCount) },
+									{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
 									{
 										where: {
 											EmployeeId: existingRecord.employeeId,
@@ -2531,7 +2557,7 @@ class LeaveController {
 									EmployeeId: existingRecord.employeeId,
 									leaveAutoId: existingRecord.leaveAutoId,
 									availableLeave: 0,
-									utilizedThisYear: parseFloat(existingRecord.leaveCount),
+									utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount),
 									creditedFromLastYear: 0,
 									annualAllotment: 0,
 									accruedThisYear: 0,
@@ -2539,7 +2565,7 @@ class LeaveController {
 							}
 						} else {
 							await db.leaveMapping.increment(
-								{ utilizedThisYear: parseFloat(existingRecord.leaveCount) },
+								{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
@@ -2548,7 +2574,7 @@ class LeaveController {
 								},
 							);
 							await db.leaveMapping.increment(
-								{ availableLeave: -parseFloat(existingRecord.leaveCount) },
+								{ availableLeave: -parseFloat(leaveHeaderSingleRecords.leaveCount) },
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,

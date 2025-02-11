@@ -971,6 +971,7 @@ const remainingLeaveCount = async function (
 	companyLocationId,
 	companyId,
 	leaveAutoId,
+	EMP_DATA,
 ) {
 	const daysDifferenceReq = moment(endDate).diff(moment(startDate), "days");
 	var workingCount = 0;
@@ -990,7 +991,55 @@ const remainingLeaveCount = async function (
 	const shouldCountNationalHolidays =
 		countInterveningWeekOff?.countInterveningNationalHoliday === 1;
 
-	for (let i = 0; i <= daysDifferenceReq; i++) {
+
+		const leaveMasterData = await leaveDetailsMaster(
+				leaveAutoId,
+				EMP_DATA
+			);
+
+			console.log("leaveMasterData",leaveMasterData.weekly_prefix_policy)
+			console.log("startDate",startDate)
+			console.log("endDate",endDate);
+
+		if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
+		if (leaveMasterData.weekly_prefix_policy == 0) {
+			let prefixDate = moment(startDate)
+			.subtract(1, "day")
+			.format("YYYY-MM-DD");
+
+			let checkWeekOff = await checkWeekOffOfEMPforData(
+			EMP_DATA?.weekOffId,
+			prefixDate,
+			);
+			if (checkWeekOff > 0) {
+				if (!total_working_dates.includes(prefixDate)) {
+				total_working_dates.push(prefixDate);
+				workingCount += 1;
+				}
+			}
+		}
+		if (leaveMasterData.holiday_prefix_policy == 2) {
+					let prefixDate = moment(startDate)
+						.subtract(1, "day")
+						.format("YYYY-MM-DD");
+
+					let leaveCheck = await checkHolidayEMPforData(
+						EMP_DATA?.companyLocationId,
+						prefixDate,
+					);
+					if (leaveCheck) {
+						if (!total_working_dates.includes(prefixDate)) {
+						total_working_dates.push(prefixDate);
+						workingCount += 1;
+						}
+					}
+				}
+		}
+		
+
+				
+
+	for (let i = 0; i <= daysDifferenceReq; i++) { 
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
 		let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
@@ -998,8 +1047,6 @@ const remainingLeaveCount = async function (
 
 		let dayOfMonth = parsedDate.date();
 		let occurrence = Math.ceil(dayOfMonth / 7);
-
-		console.log("appliedFor", i, appliedFor);
 		// Output the result
 		let occurrenceDayCondition = {};
 		switch (occurrence) {
@@ -1067,19 +1114,58 @@ const remainingLeaveCount = async function (
 				employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
 
 			if (isNationalHoliday == 1 && shouldCountNationalHolidays == true) {
+				if (!total_working_dates.includes(appliedFor)) {
 				total_working_dates.push(appliedFor);
 				workingCount += 1;
+				}
+				
 			}
 			if (isNationalHoliday == 0 && shouldCountHolidays == true) {
+				if (!total_working_dates.includes(appliedFor)) {
 				total_working_dates.push(appliedFor);
 				workingCount += 1;
+				}
 			}
 			if (!employeeHolidays) {
+				if (!total_working_dates.includes(appliedFor)) {
 				total_working_dates.push(appliedFor);
 				workingCount += 1;
+				}
 			}
 		}
 	}
+
+	if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
+
+		if (leaveMasterData.holiday_suffix_policy == 0) {
+					let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
+
+					let leaveCheck = await checkHolidayEMPforData(
+						EMP_DATA?.companyLocationId,
+						subfixDate,
+					);
+					if (leaveCheck) {
+					if (!total_working_dates.includes(subfixDate)) {
+						total_working_dates.push(subfixDate);
+						workingCount += 1;
+						}
+					}
+				}
+		if (leaveMasterData.weekly_suffix_policy == 0) {
+					let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
+					let checkWeekOff = await checkWeekOffOfEMPforData(
+						EMP_DATA?.weekOffId,
+						subfixDate,
+					);
+					if (checkWeekOff > 0) {
+						if (!total_working_dates.includes(subfixDate)) {
+						total_working_dates.push(subfixDate);
+						workingCount += 1;
+						}
+					}
+				}
+		}
+		console.log("total_working_dates",total_working_dates)
 	return total_working_dates;
 };
 
