@@ -206,9 +206,9 @@ class PaymentController {
         status: 500,
       });
     }
-  }
+  }  
   
-  async uploadLeaveEncashment(req, res) {
+  async lopUpload(req, res) {
     try {
       if (!req.file) {
         return respHelper(res, {
@@ -853,6 +853,116 @@ class PaymentController {
       return respHelper(res, { status: 500 });
     }
   }
+
+  async initiateFnf(req, res) {
+    try {
+      const { error, value } =
+        await validator.employeesForPayrollProcess.validate(req.body);
+      if (error) {
+        return respHelper(res, {
+          status: 400,
+          msg: error.details[0],
+        });
+      }
+      let financialYearDetails = await db.financialYearMaster.findOne({ where : { 'year': value.selectedYear }, attributes: ['financialYearId'], raw: true }); 
+      let ids = value.departmentId.split(",");
+      let allEmployeeQuery = await paymentHelper.query(
+        value.departmentId == 0 ? 5 : 6,
+        value.processingType,
+        {
+          departmentId: ids,
+          paymonth: value.paymonth,
+          companyId: value.companyId,
+        }
+      );
+      // console.log(allEmployeeQuery);
+      const result = await db.sequelize.query(allEmployeeQuery);
+      if (result[0].length == 0) {
+        return respHelper(res, {
+          status: 400,
+          data: [],
+          msg: "No data to process.",
+        });
+      }
+
+
+      // return respHelper(res, {
+      //   status: 200,
+      //   data: result,
+      //   msg: "No data to process.",
+      // });
+
+      const employeeIds = result[0].map((employee) => employee.EmployeeId);
+      let returnVAlue = await availableEmployeeForProcessing(
+        employeeIds,
+        value.paymonth
+      );
+
+      if (returnVAlue.length == 0) {
+        return respHelper(res, {
+          status: 400,
+          data: [],
+          msg: "No data to process.",
+        });
+      }
+      const newArray = result[0].filter((item) =>
+        returnVAlue.avalialbleEmployees.includes(item.EmployeeId)
+      );
+
+      console.log(newArray);
+
+      let newProcess = await db.payProcessMaster.create(
+        {
+          name: "Initial FNF Process",
+          description: "Initial FNF Procesd Details Description",
+          status: 1,
+          payMonth: req.body.paymonth,
+          createdBy: req.userData.id,
+          createdAt: new Date(),
+          isActive: 1,
+          processFlowId: 1,
+          companyId: value.companyId,
+          financialYearId: financialYearDetails?.financialYearId,
+          filterType: value.departmentId === "0" ? 1 : 0,
+        },
+        { raw: true, attributes: ["payProcessAutoId", "payMonth"] }
+      );
+      console.log(newProcess);
+      const updatedArray = await newArray.map((item) => ({
+        EmployeeId: item.EmployeeId,
+        EmployeeName: item.EmployeeName,
+        createdBy: req.userData.id,
+        createdAt: new Date(),
+        proceessId: newProcess.dataValues.payProcessMasterAutoId,
+        payStatus: 1,
+        isActive: 1,
+        payRemark: "FNF Initiated",
+        salaryMonth: newProcess.dataValues.payMonth,
+        payMonth: newProcess.dataValues.payMonth,
+        companyId: value.companyId,
+      }));
+      await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
+        // processSalary({
+        //   processId: newProcess.dataValues.payProcessMasterAutoId,
+        //   req,
+        // });
+      });
+
+      return respHelper(res, {
+        status: 200,
+        msg: "Successfully Initiated Salary Process",
+        data: {
+          proceessId: newProcess.dataValues.payProcessMasterAutoId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return respHelper(res, {
+        status: 500,
+      });
+    }
+  }
+
 
   // End by jay
 }
