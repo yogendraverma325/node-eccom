@@ -9,7 +9,6 @@ const dbName = process.env.DB_NAME;
 
 class PaymentController {
 
-
   async employeesCountForProcess(req, res) {
     try {
       const { error, value } =
@@ -208,7 +207,7 @@ class PaymentController {
     }
   }  
   
-  async lopUpload(req, res) {
+  async uploadLeaveEncashment(req, res) {
     try {
       if (!req.file) {
         return respHelper(res, {
