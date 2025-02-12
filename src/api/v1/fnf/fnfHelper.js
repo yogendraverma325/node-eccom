@@ -90,6 +90,15 @@ async function query(caseId, data, data2) {
 		case 22:
 			return `SELECT sscm.salaryComponentAutoId, sscm.salaryStructureAutoId, scm.salaryComponentElementAutoId, scm.elementValue, sce.salaryComponentElementName, sce.salaryComponentElementCode FROM ${dbName}.salarystructurecomponentmapping sscm JOIN ${dbName}.salarycomponentmapping scm ON sscm.salaryStructurecomponentmappingAutoId = scm.salaryStructurecomponentmappingAutoId JOIN ${dbName}.salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sscm.salaryComponentAutoId = ${data} AND sscm.salaryStructureAutoId = ${data2};`;
 			break;
+		case 23:
+			return `SELECT COUNT(CASE WHEN scm.salaryComponentElementAutoId = 1 AND scm.elementValue = 1 THEN 1 END) AS lopAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 2 AND scm.elementValue = 1 THEN 1 END) AS arrearAffectCount, COUNT(CASE WHEN scm.salaryComponentElementAutoId = 3 AND scm.elementValue = 1 THEN 1 END) AS leaveEncashmentCount FROM paypackage pp LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId LEFT JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId WHERE pp.EmployeeId = ${data}`;
+			break;
+		case 24:
+			return `SELECT ppm.payMonth, ppm.payProcessMasterAutoId, ppfm.currentstatus, ps.name as statusName FROM ${dbName}.payprocessmaster ppm JOIN ${dbName}.payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN ${dbName}.paystatusmaster ps ON ppfm.currentstatus = ps.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`;
+			break;
+		case 25:
+			return `SELECT sscm.salaryComponentAutoId, sscm.salaryStructureAutoId, scm.salaryComponentElementAutoId, scm.elementValue, sce.salaryComponentElementName, sce.salaryComponentElementCode FROM ${dbName}.salarystructurecomponentmapping sscm JOIN ${dbName}.salarycomponentmapping scm ON sscm.salaryStructurecomponentmappingAutoId = scm.salaryStructurecomponentmappingAutoId JOIN ${dbName}.salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sscm.salaryComponentAutoId = ${data} AND sscm.salaryStructureAutoId = ${data2};`;
+			break;
 		default:
 	}
 }

@@ -2061,7 +2061,7 @@ async function generatePaySlip(data) {
 		let financialYearDetails = await fnfHelper.getFinancialYear();
 
 		let queryForCurrentProcessStatus = await fnfHelper.query(
-			13,
+			23,
 			processId,
 			null,
 		);
@@ -2071,7 +2071,7 @@ async function generatePaySlip(data) {
 
 		if (currentProcessStatus[0][0].currentstatus == 6) {
 			let queryForAllEmployeeInProcess = await fnfHelper.query(
-				14,
+			21,
 				processId,
 				null,
 			);
@@ -2080,7 +2080,7 @@ async function generatePaySlip(data) {
 			);
 			const employeeIds = employeeInProcess[0].map((item) => item.EmployeeId);
 			let queryForPayMonthlyElementsForSalarySlip = await fnfHelper.query(
-				15,
+				24,
 				currentProcessStatus[0][0].payMonth,
 				employeeIds,
 			);
