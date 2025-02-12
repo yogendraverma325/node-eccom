@@ -1119,14 +1119,14 @@ class FnfController {
 					msg: error.details[0],
 				});
 			}
-			let workingDaysOfMonth = await paymentHelper.getDaysInCurrentMonth({
+			let workingDaysOfMonth = await fnfHelper.getDaysInCurrentMonth({
 				year: value.paymonth.split("-")[0],
 				month: value.paymonth.split("-")[1],
 			});
 			let ids = value.departmentId.split(",");
 
 			// get financial year
-			let financialYearDetails = await paymentHelper.getFinancialYear();
+			let financialYearDetails = await fnfHelper.getFinancialYear();
 
 			let allEmployeeQuery = await fnfHelper.query(
 				value.departmentId == 0 ? 6 : 5,
