@@ -18,28 +18,28 @@ async function query(caseId, data, data2) {
 		case 4:
 			return `SELECT EmployeeId FROM ${dbName}.payprocessdetails  where payStatus in(8,9)   and payMonth='${data2}' and EmployeeId  in (${data});`;
 			break;
-		// case 5:
-		// 	return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
-		// 		data == 1 ? "buId" : "empCode"
-		// 	} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")}
-        //   ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
-		// 				data2.paymonth
-		// 			}' OR (ppd.payStatus in (101,4))));;`;
-		// 	break;
-		// case 6:
-		// 	return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
-		// 	break;
 		case 5:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) <= MONTH(CURDATE()) OR YEAR(e.dateOfexit) <= YEAR(CURDATE())) AND e.isActive=0 AND p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
-			break;
-		case 6:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) <= MONTH(CURDATE()) OR YEAR(e.dateOfexit) <= YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
 				data == 1 ? "buId" : "empCode"
 			} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")}
-            ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
-							data2.paymonth
-						}' OR (ppd.payStatus in (101,4))));;`;
+          ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
+						data2.paymonth
+					}' OR (ppd.payStatus in (101,4))));;`;
 			break;
+		case 6:
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
+			break;
+		// case 5:
+		// 	return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) <= MONTH(CURDATE()) OR YEAR(e.dateOfexit) <= YEAR(CURDATE())) AND e.isActive=0 AND p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
+		// 	break;
+		// case 6:
+		// 	return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) <= MONTH(CURDATE()) OR YEAR(e.dateOfexit) <= YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
+		// 		data == 1 ? "buId" : "empCode"
+		// 	} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")}
+        //     ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
+		// 					data2.paymonth
+		// 				}' OR (ppd.payStatus in (101,4))));;`;
+		// 	break;
 
 		case 7:
 			return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentSequenceNo,sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}  and pp.isActive=1;`; //11
@@ -58,7 +58,7 @@ async function query(caseId, data, data2) {
           return `SELECT p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`//1
           break;
           case 12:
-            return `SELECT pf.refferenceFlowId, ps.currentRemark FROM ${dbName}.payprocessflowmaster pf INNER JOIN ${dbName}.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.nextstatus = ${data2} AND pf.currentstatus = ${data}`;6
+            return `SELECT pf.refferenceFlowId, ps.currentRemark FROM ${dbName}.payprocessflowmaster pf INNER JOIN ${dbName}.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.nextstatus = ${data2} AND pf.currentstatus = ${data}`;//6
             break;
             case 13:
               return `SELECT ppm.payMonth, ppm.payProcessMasterAutoId, ppfm.currentstatus, ps.name as statusName FROM ${dbName}.payprocessmaster ppm JOIN ${dbName}.payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN ${dbName}.paystatusmaster ps ON ppfm.currentstatus = ps.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`//13
@@ -69,6 +69,18 @@ async function query(caseId, data, data2) {
                 case 15:
                   return `SELECT salaryComponentSequenceNo,actualWorkingDays,totalWorkingDays,payElementAmount,pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM ${dbName}.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`//16
                   break;
+				  case 16:
+					return `SELECT ppm.payProcessMasterAutoId AS processId,ppm.payMonth as payMonth, psm.payProcessStatusAutoId AS currentStatusId, psm.name AS statusName FROM payprocessmaster ppm JOIN payprocessflowmaster ppfm ON ppm.processFlowId = ppfm.payProcessFlowMasterAutoId JOIN paystatusmaster psm ON ppfm.currentstatus = psm.payProcessStatusAutoId WHERE ppm.payProcessMasterAutoId = ${data};`//9
+					break;
+					case 17:
+			return `SELECT ppm.payProcessMasterAutoId, COUNT(CASE WHEN ppd.payStatus = 2 THEN 1 END) AS successfullyProcessed, COUNT(CASE WHEN ppd.payStatus in(101) THEN 1 END) AS processedWithError, COUNT(CASE WHEN ppd.payStatus = 1 THEN 1 END) AS pendingForProcess, COUNT(CASE WHEN ppd.payStatus != 1 THEN 1 END) * 100.0 / COUNT(*) AS totalProcessedPercentage, COUNT(CASE WHEN ppd.payStatus not in(1) THEN 1 END) AS totalProcessed FROM payprocessmaster ppm JOIN payprocessdetails ppd ON ppm.payProcessMasterAutoId = ppd.proceessId WHERE ppm.payProcessMasterAutoId = ${data} GROUP BY ppm.payProcessMasterAutoId;`//8
+			break;
+			case 18:
+				return `SELECT pm.payProcessMasterAutoId, pd.ctc, pd.lopDays, pd.totalWorkingDays, pd.tdsdeductions, pd.netPay, pd.deductionAmount, pd.arrearAmount, pd.loanAmont, pd.salaryMonth, pd.deductionName, pd.lopdeductions, pp.payPackageEffectiveDate, pe.salaryComponentAutoId, pe.payElementAmount, sc.includeInPackage, sc.includeInPackage, sc.salaryComponentEarningType FROM payprocessmaster pm JOIN payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId JOIN paypackage pp ON pd.EmployeeId = pp.EmployeeId JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE pm.payProcessMasterAutoId = 1 AND pd.payStatus = 2 AND pd.EmployeeId = 484`;//10
+				break;
+				case 19:
+					return `SELECT (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data} and payStatus=7) AS paySlipGenerated, (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data} and payStatus!=101) AS totalEmployees, (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data} AND ps.paySlipStatus = 1) AS paySlipReleased, CASE WHEN (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}) = 0 THEN 0 ELSE (SELECT COUNT(*) FROM payslip ps JOIN payprocessdetails ppd ON ppd.EmployeeId = ps.EmployeeId AND ppd.payMonth = ps.payMonth WHERE ppd.proceessId = ${data} and payStatus!=101) * 100.0 / (SELECT COUNT(*) FROM payprocessdetails ppd WHERE ppd.proceessId = ${data}   and payStatus!=101) END AS paySlipPercentage;`//18
+					break;
 		default:
 	}
 }

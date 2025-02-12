@@ -35,3 +35,4 @@ export default Express
     // upload and sync extra benefits
     .post("/uploadExtraBenefit", upload.single('excelFile'), authentication.authenticate, fnfController.uploadExtraBenefit)
     .post("/currentMonthExtraBenefitSyncing", authentication.authenticate, fnfController.extraBenefitSyncing)
+    .post("/getFnfProcessDetails", authentication.authenticate, fnfController.getFnfProcessDetails);

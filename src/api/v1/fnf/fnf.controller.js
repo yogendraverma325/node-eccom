@@ -1554,6 +1554,51 @@ class FnfController {
 			return respHelper(res, { status: 500 });
 		}
 	}
+
+  async getFnfProcessDetails(req, res) {
+		try {
+			let { processId } = req.body;
+			if (!processId) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "Process Id Not Available",
+				});
+			}
+			let stepperDataQuery = null;
+			const queryForProcessStatus = await fnfHelper.query(
+				16,
+				processId,
+				null,
+			);
+			const currentProcessStatus = await db.sequelize.query(
+				queryForProcessStatus,
+			);
+      console.log(queryForProcessStatus);
+			console.log("currentProcessStatus", currentProcessStatus);
+			if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
+				stepperDataQuery = await fnfHelper.query(17, processId, null);
+			} else if (currentProcessStatus[0][0].currentStatusId == 3) {
+				stepperDataQuery = await fnfHelper.query(18, processId, null);
+			} else if (
+				[6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)
+			) {
+				stepperDataQuery = await fnfHelper.query(19, processId, null);
+				console.log(stepperDataQuery);
+			}
+			const stepperData = await db.sequelize.query(stepperDataQuery);
+			return respHelper(res, {
+				status: 200,
+				data: {
+					currentStatusId: currentProcessStatus[0][0].currentStatusId,
+					stepperData: stepperData[0],
+				},
+				msg: "Status List Fetched Successfully",
+			});
+		} catch (e) {
+			console.log(e);
+		}
+	}
 }
 
 const groupByEmployeeId = (data) => {
@@ -1964,6 +2009,9 @@ async function processFnf(data) {
 	} else {
 		console.log("NO Data For Processing >>>>>>>>>");
 	}
+
+
+  
 }
 
 // End by jay
