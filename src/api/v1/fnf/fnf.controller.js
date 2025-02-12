@@ -5,6 +5,7 @@ import fnfHelper from "./fnfHelper.js";
 import pkg from "xlsx";
 const dbName = process.env.DB_NAME;
 import { Op, where } from "sequelize";
+import moment from 'moment';
 
 class FnfController {
 	async employeesCountForProcess(req, res) {
@@ -647,7 +648,7 @@ class FnfController {
 				status: 200,
 				data: {
 					impactedEmployee: uniqueEmployeeImpacted,
-					gratuityDays: totalGratuityDays.toFixed(2),
+					paymentAmount: totalGratuityDays.toFixed(2),
 					impactedEmployeeDetails: gratuities[0],
 				},
 			});
@@ -709,7 +710,7 @@ class FnfController {
 				status: 200,
 				data: {
 					impactedEmployee: uniqueEmployeeImpacted,
-					leaveEncashmentDays: totalLeaveEncashmentDays.toFixed(2),
+					paymentAmount: totalLeaveEncashmentDays.toFixed(2),
 					impactedEmployeeDetails: allData[0],
 				},
 			});
