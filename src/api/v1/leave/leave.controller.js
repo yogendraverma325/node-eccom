@@ -580,7 +580,15 @@ class LeaveController {
 					});
 				}
 
-const remainingLeaveCountRESP = await helper.remainingLeaveCount(
+
+
+			// Start and End of the Year
+			}
+			
+
+			// Fetch employee details and leave counts in parallel
+
+			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				startDate,
 				endDate,
 				EMP_DATA.weekOffId,
@@ -597,14 +605,6 @@ const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				remainingLeaveCountRESP.length == 1
 					? remainingLeaveCountRESP[0]
 					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
-
-			// Start and End of the Year
-			}
-			
-
-			// Fetch employee details and leave counts in parallel
-
-			
 
 				const differenceInDays = remainingLeaveCountRESP.length;
 
@@ -992,12 +992,7 @@ const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				req.body.leaveAutoId,
 			);
 
-			console.log("remainingLeaveCountRESP dfff", remainingLeaveCountRESP);
-			const fromDate = remainingLeaveCountRESP[0];
-			const toDate =
-				remainingLeaveCountRESP.length == 1
-					? remainingLeaveCountRESP[0]
-					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
+			
 			console.log("remainingLeaveCountRESP dfff", fromDate);
 			console.log("remainingLeaveCountRESP dfff", toDate);
 			let arr = [];
