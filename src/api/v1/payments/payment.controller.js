@@ -1239,7 +1239,7 @@ class PaymentController {
 
 		let { processId } = req.body;
 		var errorArray = [];
-		let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
+		let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM ${dbName}.payprocessdetails pd JOIN  ${dbName}.payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
 		const result = await db.sequelize.query(queryForAllExecutableEmployee);
 		if (result[0].length > 0) {
 			const employeeIds = result[0].map((item) => item.EmployeeId);
@@ -3387,9 +3387,9 @@ class PaymentController {
 					13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM ${dbName}.tdsdeductions where empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")}) and tdsMonth='${payMonth}';`,
-					14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
-					15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
-					16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+					14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
+					15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
+					16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
 				};
 				query = impactedEmployeeQueryObject[exportSheetAutoId];
 				if (query) {
@@ -4325,7 +4325,7 @@ class PaymentController {
 							[
 								Sequelize.literal(
 									`(SELECT COUNT(proceessId) 
-                   FROM payprocessdetails pd 
+                   FROM ${dbName}.payprocessdetails pd 
                    WHERE pd.payMonth = payprocessmaster.payMonth 
                    AND pd.companyId = payprocessmaster.companyId
                   )`,
@@ -4868,7 +4868,7 @@ class PaymentController {
 							}
 						}
 
-						let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
+						let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
 
 						let extraPaymentAmount =
 							await db.sequelize.query(allDeductionQuery);
@@ -5374,7 +5374,7 @@ function formatDate(year, month, day) {
 async function processSalary(data) {
 	let { processId, req } = data;
 	var errorArray = [];
-	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
+	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM ${dbName}.payprocessdetails pd JOIN  ${dbName}.payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
 	const result = await db.sequelize.query(queryForAllExecutableEmployee);
 	if (result[0].length > 0) {
 		const employeeIds = result[0].map((item) => item.EmployeeId);
@@ -5541,7 +5541,7 @@ async function processSalary(data) {
 					lwfAmount = lwfMappingDetails.lwfAmount || 0;
 				}
 			}
-			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
+			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
 			const ptAmount1 =
 				ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
