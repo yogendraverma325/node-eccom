@@ -118,6 +118,8 @@ class FnfController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
+
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -137,7 +139,7 @@ class FnfController {
 			for (const employeeTds of gratuityDetails) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: isActive },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -216,6 +218,8 @@ class FnfController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
+
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -235,7 +239,7 @@ class FnfController {
 			for (const employeeTds of jsonArr) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: isActive },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -1405,6 +1409,8 @@ class FnfController {
 					msg: "File is required!",
 				});
 			}
+			let isActive = parseInt(req.query.isActive);
+
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
@@ -1424,7 +1430,7 @@ class FnfController {
 			for (const employeeTds of gratuityDetails) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 0 },
+						where: { empCode: employeeTds["Employee ID"], isActive: isActive },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -1574,8 +1580,9 @@ class FnfController {
 			const currentProcessStatus = await db.sequelize.query(
 				queryForProcessStatus,
 			);
-      console.log(queryForProcessStatus);
+            console.log(queryForProcessStatus);
 			console.log("currentProcessStatus", currentProcessStatus);
+			// return;
 			if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
 				stepperDataQuery = await fnfHelper.query(17, processId, null);
 			} else if (currentProcessStatus[0][0].currentStatusId == 3) {
@@ -1586,6 +1593,7 @@ class FnfController {
 				stepperDataQuery = await fnfHelper.query(19, processId, null);
 				console.log(stepperDataQuery);
 			}
+			console.log(stepperDataQuery);
 			const stepperData = await db.sequelize.query(stepperDataQuery);
 			return respHelper(res, {
 				status: 200,
