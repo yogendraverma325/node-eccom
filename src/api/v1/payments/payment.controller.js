@@ -3276,11 +3276,11 @@ class PaymentController {
 				customSheetName = "Payroll Processing Employees";
 			}
 
-			if (exportSheetAutoId === '6') {
+			if (exportSheetAutoId === "6") {
 				customSheetName = "Extra Benefit Sample";
-			} else if (exportSheetAutoId === '7') {
+			} else if (exportSheetAutoId === "7") {
 				customSheetName = "Leave Encashment Sample";
-			} else if (exportSheetAutoId === '8') {
+			} else if (exportSheetAutoId === "8") {
 				customSheetName = "Gratuity Sample";
 			}
 
@@ -6475,6 +6475,5 @@ async function addUpdateTDSDeductionAndLOPDeduction(req, result) {
 		}
 	}
 }
-
 
 export default new PaymentController();

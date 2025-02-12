@@ -5,7 +5,7 @@ import fnfHelper from "./fnfHelper.js";
 import pkg from "xlsx";
 const dbName = process.env.DB_NAME;
 import { Op, where } from "sequelize";
-import moment from 'moment';
+import moment from "moment";
 
 class FnfController {
 	async employeesCountForProcess(req, res) {
@@ -945,7 +945,7 @@ class FnfController {
 				});
 			}
 			const employeeIds = result[0].map((employee) => employee.EmployeeId);
-			
+
 			let returnVAlue = await availableEmployeeForProcessing(
 				employeeIds,
 				value.paymonth,
@@ -991,8 +991,10 @@ class FnfController {
 				companyId: value.companyId,
 			}));
 			await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
-	
-				 processFnf({ processId: newProcess.dataValues.payProcessMasterAutoId, req });
+				processFnf({
+					processId: newProcess.dataValues.payProcessMasterAutoId,
+					req,
+				});
 			});
 
 			return respHelper(res, {
@@ -1562,7 +1564,7 @@ class FnfController {
 		}
 	}
 
-  async getFnfProcessDetails(req, res) {
+	async getFnfProcessDetails(req, res) {
 		try {
 			let { processId } = req.body;
 			if (!processId) {
@@ -1573,15 +1575,11 @@ class FnfController {
 				});
 			}
 			let stepperDataQuery = null;
-			const queryForProcessStatus = await fnfHelper.query(
-				16,
-				processId,
-				null,
-			);
+			const queryForProcessStatus = await fnfHelper.query(16, processId, null);
 			const currentProcessStatus = await db.sequelize.query(
 				queryForProcessStatus,
 			);
-            console.log(queryForProcessStatus);
+			console.log(queryForProcessStatus);
 			console.log("currentProcessStatus", currentProcessStatus);
 			// return;
 			if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
@@ -2018,9 +2016,6 @@ async function processFnf(data) {
 	} else {
 		console.log("NO Data For Processing >>>>>>>>>");
 	}
-
-
-  
 }
 
 // End by jay
@@ -2080,7 +2075,7 @@ async function generatePaySlip(data) {
 			let employeeInProcess = await db.sequelize.query(
 				queryForAllEmployeeInProcess,
 			);
-			
+
 			const employeeIds = employeeInProcess[0].map((item) => item.EmployeeId);
 			let queryForPayMonthlyElementsForSalarySlip = await fnfHelper.query(
 				15,
@@ -2148,9 +2143,7 @@ async function generatePaySlip(data) {
 						parseFloat(
 							payMonthlyElement.lwfAmount ? payMonthlyElement.lwfAmount : 0,
 						);
-					totalPayslipDeductons = fnfHelper.customRound(
-						totalPayslipDeductons,
-					);
+					totalPayslipDeductons = fnfHelper.customRound(totalPayslipDeductons);
 					let PaySlipNetPay =
 						parseFloat(payMonthlyElement.paySlipGrossEarning) +
 						parseFloat(
@@ -2168,9 +2161,7 @@ async function generatePaySlip(data) {
 								? payMonthlyElement.extrapaymentAmount
 								: 0,
 						);
-					GrossPayAfterExtraPay = fnfHelper.customRound(
-						GrossPayAfterExtraPay,
-					);
+					GrossPayAfterExtraPay = fnfHelper.customRound(GrossPayAfterExtraPay);
 					isExistPaySlip = await db.paySlips.create({
 						EmployeeId: payMonthlyElement.empId,
 						paySlipMonth: payMonthlyElement.payMonth.split("-")[1],
@@ -2283,13 +2274,12 @@ async function generatePaySlip(data) {
 							salaryComponentSequenceNo: 999,
 						});
 					}
-					let getExtraDeductions =
-						await fnfHelper.getExtraDeductionsElements(
-							payMonthlyElement.payMonth,
-							payMonthlyElement.empId,
-							paySlipAutoId,
-							req.userData.id,
-						);
+					let getExtraDeductions = await fnfHelper.getExtraDeductionsElements(
+						payMonthlyElement.payMonth,
+						payMonthlyElement.empId,
+						paySlipAutoId,
+						req.userData.id,
+					);
 					let getExtraEarnings = await fnfHelper.getExtraEarningElements(
 						payMonthlyElement.payMonth,
 						payMonthlyElement.empId,
@@ -2322,9 +2312,7 @@ async function generatePaySlip(data) {
 						salaryComponentAutoId: payMonthlyElement.salaryComponentAutoId,
 						paySlipComponentName: payMonthlyElement.paySlipComponentName,
 						paySlipComponentAmount: payMonthlyElement.elementMonthlyAmount
-							? fnfHelper.customRound(
-									payMonthlyElement.elementMonthlyAmount,
-								)
+							? fnfHelper.customRound(payMonthlyElement.elementMonthlyAmount)
 							: payMonthlyElement.elementMonthlyAmount,
 						paySlipComponentType: payMonthlyElement.salaryComponentEarningType,
 						createdBy: req.userData.id,
@@ -2351,7 +2339,6 @@ async function generatePaySlip(data) {
 		console.log(e);
 	}
 }
-
 
 async function releasePaySlip(data) {
 	try {
