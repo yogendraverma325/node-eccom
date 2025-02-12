@@ -25,10 +25,8 @@ export default Express
     .post("/initiateFnf", authentication.authenticate, fnfController.initiateFnf)
     .post("/processingFNF", authentication.authenticate, fnfController.processingFNF)
     .post("/exportFnfSalaryRegister",authentication.authenticate,fnfController.exportFnfSalaryRegister)
-    .post("/updateNextStatus",authentication.authenticate,fnfController.updateNextStatus);
-
+    .post("/updateNextStatus",authentication.authenticate,fnfController.updateNextStatus)
     // sync lop, tds, extra payment and extra deduction
-
     .post("/currentonthLopSyncing", authentication.authenticate, fnfController.lopSyncing)
     .post("/currentonthExtraPaymentSyncing", authentication.authenticate, fnfController.extraPaymentSyncing)
     .post("/extraDeductionSyncing", authentication.authenticate, fnfController.extraDeductionSyncing)

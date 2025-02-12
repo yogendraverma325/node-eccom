@@ -3,7 +3,6 @@ import respHelper from "../../../helper/respHelper.js";
 import validator from "../../../helper/validator.js";
 import fnfHelper from "./fnfHelper.js";
 import pkg from "xlsx";
-import { fn, Op, where } from "sequelize";
 const dbName = process.env.DB_NAME;
 import { Op, where } from "sequelize";
 
