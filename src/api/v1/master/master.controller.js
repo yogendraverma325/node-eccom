@@ -17,6 +17,7 @@ class MasterController {
 			let functionAreaFIlter = {};
 			let departmentFIlter = {};
 			let designationFIlter = {};
+			let companyFIlter = {};
 			const usersData = req.userData;
 			const status = parseInt(req.query.status);
 
@@ -93,6 +94,17 @@ class MasterController {
 					designationFIlter.designationId = {
 						///appedning SBU to filter
 						[Op.in]: designationArrayForFilter,
+					};
+				}
+
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
 					};
 				}
 			}
@@ -245,8 +257,11 @@ class MasterController {
 					},
 					{
 						model: db.companyLocationMaster,
-						required: false,
+						required: true,
 						attributes: ["address1", "address2"],
+						where:{
+							...companyFIlter
+						}
 					},
 				],
 			});

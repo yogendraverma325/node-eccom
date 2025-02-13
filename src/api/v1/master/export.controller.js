@@ -2633,6 +2633,7 @@ class MasterController {
 			let functionAreaFIlter = {};
 			let departmentFIlter = {};
 			let designationFIlter = {};
+			let companyFIlter={};
 			const usersData = req.userData;
 
 			let employeeDataExisting = [];
@@ -2704,6 +2705,17 @@ class MasterController {
 						[Op.in]: designationArrayForFilter,
 					};
 				}
+
+				const comapnyArrayForFilter = permissionAndAccess
+                    .filter((obj) => obj.permissionType == "COMPANY")
+                    .map((obj) => obj.permissionValue); // checking SBU Access
+
+                if (comapnyArrayForFilter.length > 0) {
+                    companyFIlter.companyId = {
+                        ///appedning SBU to filter
+                        [Op.in]: comapnyArrayForFilter,
+                    };
+                }
 			}
 
 			employeeDataExisting = await db.employeeMaster.findAll({
@@ -2882,6 +2894,9 @@ class MasterController {
 							{ model: db.cityMaster, attributes: ["cityName"] },
 							{ model: db.pinCodeMaster, attributes: ["pincodeId", "pincode"] },
 						],
+						where:{
+							...companyFIlter
+						}
 					},
 					{
 						model: db.companyMaster,
