@@ -1,5 +1,9 @@
 import Joi from "joi";
 
+const months = [
+	'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'jan', 'feb', 'mar'
+];
+
 const companyTypeMasterSchema = Joi.object({
 	typeName: Joi.string().trim().required().label("Company Type Name"),
 });
@@ -296,34 +300,44 @@ const companyLocationMasterSchema = Joi.object({
 	isActive: Joi.boolean().allow(null),
 });
 
-const lwfMappingMasterSchema = Joi.array()
-	.items(
-		Joi.array().items(
-			Joi.object({
-				lwfDesignationId: Joi.number().required().label("LWF Designation"),
-				contributorType: Joi.string().required().label("Contributor Type"),
-				stateId: Joi.number().required().label("State Name"),
-				apr: Joi.string().required().label("Apr"),
-				may: Joi.string().required().label("May"),
-				jun: Joi.string().required().label("Jun"),
-				jul: Joi.string().required().label("Jul"),
-				aug: Joi.string().required().label("Aug"),
-				sep: Joi.string().required().label("Sep"),
-				oct: Joi.string().required().label("Oct"),
-				nov: Joi.string().required().label("Nov"),
-				dec: Joi.string().required().label("Dec"),
-				jan: Joi.string().required().label("Jan"),
-				feb: Joi.string().required().label("Feb"),
-				mar: Joi.string().required().label("Mar"),
-				lwfmappingId: Joi.number().allow(null),
-			}),
+const lwfMappingMasterSchema = Joi.object({
+	lwfmappings: Joi.array().items(
+	  Joi.object({
+		contributors: Joi.array().items(
+		  Joi.object(
+			Object.assign(
+				{
+					lwfMappingId: Joi.number().optional().messages({
+						'string.empty': 'Mapping ID is required',
+					}),
+				},
+				{
+					contributorType: Joi.string().required().messages({
+					'string.empty': 'Contributor Type is required',
+					}),
+				},
+				{
+					lwfDesignationId: Joi.number().required().messages({
+						'string.empty': 'LWF designation is required',
+					}),
+				},
+				{
+					stateId: Joi.number().required().messages({
+						'string.empty': 'State is required',
+					}),
+				},
+				months.reduce((acc, month) => {
+				acc[month] = Joi.string().required().messages({
+					'string.empty': `${month} value is required`,
+				});
+				return acc;
+				}, {})
+			)
+		  )
 		),
-	)
-	.messages({
-		"array.base": "Please enter value for employee and employer",
-		"array.includes": "Each inner array must contain valid objects",
-	})
-	.required();
+	  })
+	),
+});
 
 // End schema by jay
 
