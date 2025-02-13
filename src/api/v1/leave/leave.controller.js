@@ -49,7 +49,7 @@ class LeaveController {
 	async leaveMapping(req, res) {
 		try {
 			const userId = req.query.user || req.userId;
-			let leaveData = await helper.empLeaveDetails(userId, 0);
+			let leaveData = await helper.empLeaveDetails(userId, 0); 
 			return respHelper(res, {
 				status: 200,
 				data: leaveData,

@@ -594,7 +594,7 @@ const empLeaveDetails = async function (userId, type) {
 		});
 		let count = await this.compOffbalabceForUser(userId);
 		// Check if leaveData is an array and process each item
-		leaveData.forEach((item) => {
+			for (const item of leaveData) {
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
 				item.leavemaster.dataValues.countPending = totalLeaveCountPending;
@@ -604,10 +604,25 @@ const empLeaveDetails = async function (userId, type) {
 			}
 			if (item.leaveAutoId === 9 && item.leavemaster) {
 				item.dataValues.availableLeave = count;
-			} else {
+			} 
+			else if (item.leaveAutoId === 3 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:3
+					}
+					});
+					console.log("userId",userId)
+					console.log("leaveCount",leaveCount)
+
+				item.dataValues.addOn = [
+				{"KEY":"Subcategory","DATA":`Child ${leaveCount}`}
+			];
+			}else {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
-		});
+		}
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
 			where: {
@@ -631,6 +646,7 @@ const empLeaveDetails = async function (userId, type) {
 			leaveData.dataValues.availableLeave =
 				await this.compOffbalabceForUser(userId);
 		}
+		
 		if (leaveData && leaveData.leaveAutoId === 6 && leaveData.leavemaster) {
 			let countApproved = await db.employeeLeaveTransactions.findAll({
 				attributes: [
@@ -691,6 +707,7 @@ const empLeaveDetails = async function (userId, type) {
 				totalLeaveCountSystemDeducting;
 			leaveData.leavemaster.dataValues.totalPendingLeaveCount =
 				countPendingLeave; // Add totalPendingLeaveCount here
+				
 		}
 	}
 
