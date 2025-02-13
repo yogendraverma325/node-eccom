@@ -520,6 +520,8 @@ class LeaveController {
 		try {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
+
+
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
 
 			const fromDateReq = req.body.fromDate;

@@ -182,7 +182,7 @@ class MasterController {
 					{
 						model: db.designationMaster,
 						seperate: true,
-						required: false,
+						required: true,
 						attributes: ["name"],
 						where: {
 							...(designation && {
@@ -194,7 +194,7 @@ class MasterController {
 					{
 						model: db.departmentMaster,
 						seperate: true,
-						required: false,
+						required: true,
 						attributes: ["departmentName"],
 						where: {
 							...(department && {
@@ -206,7 +206,7 @@ class MasterController {
 					{
 						model: db.buMaster,
 						seperate: true,
-						required: false,
+						required: true,
 						attributes: ["buName", "buCode"],
 						where: {
 							...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
@@ -216,7 +216,7 @@ class MasterController {
 					{
 						model: db.sbuMaster,
 						seperate: true,
-						required: false,
+						required: true,
 						attributes: ["sbuname", "code"],
 						where: {
 							...(sbuSearch && {
@@ -228,7 +228,7 @@ class MasterController {
 					{
 						model: db.functionalAreaMaster,
 						seperate: true,
-						required: false,
+						required: true,
 						attributes: ["functionalAreaName"],
 						where: {
 							...(areaSearch && {
@@ -239,7 +239,7 @@ class MasterController {
 					},
 					{
 						model: db.employeeMaster,
-						required: false,
+						required: true,
 						as: "managerData",
 						attributes: ["id", "name", "email", "empCode"],
 					},
