@@ -617,7 +617,9 @@ const empLeaveDetails = async function (userId, type) {
 					console.log("leaveCount",leaveCount)
 
 				item.dataValues.addOn = [
-				{"KEY":"Subcategory","DATA":`Child ${leaveCount}`}
+				{"KEY":"Subcategory","DATA":`Child ${leaveCount}`},
+				{"KEY":"Total Application Allowed","DATA":`${leaveCount}`},
+				{"KEY":"Remaining  Application","DATA":`${leaveCount}`}
 			];
 			}else {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
