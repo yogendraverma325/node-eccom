@@ -1658,6 +1658,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				employeeWeekOfId.companyLocationId,
 				employeeWeekOfId.weekOffId,
 			);
+			console.log("getCombinedVal",getCombinedVal)
 			// Calculate pending leave count
 			const pendingLeaveCount = pendingLeaveCountList.reduce(
 				(acc, el) => acc + parseFloat(el.leaveCount),
@@ -1791,7 +1792,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				groupedData[month][item.leaveAutoId] = item.totalLeaveCount;
 			});
 
-			console.log("groupedData", groupedData);
+			//console.log("groupedData", groupedData);
 			// Create the result array
 			for (let month = 1; month <= 12; month++) {
 				const monthName = getMonthName(month);
@@ -1859,7 +1860,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				},
 			});
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			return respHelper(res, {
 				status: 500,
 			});
@@ -1906,7 +1907,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				data: attendanceData,
 			});
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			return respHelper(res, {
 				status: 500,
 			});
@@ -1948,7 +1949,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				});
 			}
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			return respHelper(res, {
 				status: 500,
 				message: "Internal Server Error",
@@ -1993,7 +1994,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				});
 			}
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			return respHelper(res, {
 				status: 500,
 				message: "Internal Server Error",
@@ -2055,7 +2056,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				data: filteredEmployees.length,
 			});
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			return respHelper(res, {
 				status: 500,
 				message: "Internal Server Error",
@@ -2651,7 +2652,7 @@ existingRecord.leaveAutoId === 9
 				msg: message.UPDATE_SUCCESS.replace("<module>", "Leave"),
 			});
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
 					status: 422,
@@ -2758,13 +2759,13 @@ existingRecord.leaveAutoId === 9
 				const dateOfJoining =
 					employee.dataValues.employeejobdetail?.dateOfJoining;
 
-				console.log("dateOfJoining", dateOfJoining);
+				//console.log("dateOfJoining", dateOfJoining);
 				if (employee.dataValues.employeeType != 3) {
 					if (
 						(genderNumber == 1 || genderNumber == 2) &&
 						(maritalStatus == 2 || maritalStatus == 3)
 					) {
-						console.log("Male || Female && single");
+						//console.log("Male || Female && single");
 
 						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
 							{
@@ -2827,18 +2828,18 @@ existingRecord.leaveAutoId === 9
 						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
 							(leave) => leave.leaveAutoId,
 						);
-						console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+						//console.log("genderBasedLeaveIds", genderBasedLeaveIds);
 						const existingMappedLeaveIds = existingMappedLeave.map(
 							(leave) => leave.leaveAutoId,
 						);
-						console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+						//console.log("existingMappedLeaveIds", existingMappedLeaveIds);
 
 						// Find common `leaveAutoId` values
 						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
 							(id) => !existingMappedLeaveIds.includes(id),
 						);
 
-						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+						//console.log("Common leaveAutoIds:", commonLeaveAutoIds);
 
 						// Update `isActive` to 0 for overlapping leaveAutoIds
 						await db.leaveMapping.update(
@@ -2858,7 +2859,7 @@ existingRecord.leaveAutoId === 9
 						const lastDate = moment(dateOfJoining)
 							.endOf("month")
 							.format("YYYY-MM-DD");
-						console.log(firstDate, midDate, lastDate);
+						//console.log(firstDate, midDate, lastDate);
 
 						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
 						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
@@ -2866,9 +2867,9 @@ existingRecord.leaveAutoId === 9
 
 						// Check if joiningDate is valid
 						if (!joiningDate.isValid()) {
-							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+							//console.error("❌ Invalid dateOfJoining:", dateOfJoining);
 						} else {
-							console.log("✅ dateOfJoining is valid");
+							//console.log("✅ dateOfJoining is valid");
 						}
 						// Check if the joining date is between firstDate and midDate
 						const isJoinedEarly = joiningDate.isBetween(
@@ -2878,7 +2879,7 @@ existingRecord.leaveAutoId === 9
 							"[]",
 						);
 
-						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+						//console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
 
 						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
 							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
@@ -2947,17 +2948,17 @@ existingRecord.leaveAutoId === 9
 						// Bulk insert new leave records
 						if (newLeaves.length > 0) {
 							await db.leaveMapping.bulkCreate(newLeaves);
-							console.log(
-								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
-							);
+							// console.log(
+							// 	`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							// );
 						} else {
-							console.log(
-								`No new leaves to insert for Employee ID: ${employee.id}`,
-							);
+							// console.log(
+							// 	`No new leaves to insert for Employee ID: ${employee.id}`,
+							// );
 						}
 					}
 					if (genderNumber == 1 && maritalStatus == 1) {
-						console.log("Male && Married");
+						//console.log("Male && Married");
 						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
 							{
 								attributes: [
@@ -3005,18 +3006,18 @@ existingRecord.leaveAutoId === 9
 						const genderBasedLeaveIds = getAllGenderBasedLeave.map(
 							(leave) => leave.leaveAutoId,
 						);
-						console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+						//console.log("genderBasedLeaveIds", genderBasedLeaveIds);
 						const existingMappedLeaveIds = existingMappedLeave.map(
 							(leave) => leave.leaveAutoId,
 						);
-						console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+						//console.log("existingMappedLeaveIds", existingMappedLeaveIds);
 
 						// Find common `leaveAutoId` values
 						const commonLeaveAutoIds = genderBasedLeaveIds.filter(
 							(id) => !existingMappedLeaveIds.includes(id),
 						);
 
-						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+						//console.log("Common leaveAutoIds:", commonLeaveAutoIds);
 
 						// Update `isActive` to 0 for overlapping leaveAutoIds
 						await db.leaveMapping.update(
@@ -3036,19 +3037,19 @@ existingRecord.leaveAutoId === 9
 						const lastDate = moment(dateOfJoining)
 							.endOf("month")
 							.format("YYYY-MM-DD");
-						console.log(firstDate, midDate, lastDate);
+						//console.log(firstDate, midDate, lastDate);
 
 						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
 						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
 						const monthsLeft = 12 - currentMonth + 1; // Including the current month
 
-						console.log(">>>>>>>>>>>>>", monthsLeft);
+						//console.log(">>>>>>>>>>>>>", monthsLeft);
 
 						// Check if joiningDate is valid
 						if (!joiningDate.isValid()) {
-							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+							//console.error("❌ Invalid dateOfJoining:", dateOfJoining);
 						} else {
-							console.log("✅ dateOfJoining is valid");
+							//console.log("✅ dateOfJoining is valid");
 						}
 
 						// Check if the joining date is between firstDate and midDate
@@ -3059,7 +3060,7 @@ existingRecord.leaveAutoId === 9
 							"[]",
 						);
 
-						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+						//console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
 
 						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
 							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
@@ -3129,17 +3130,17 @@ existingRecord.leaveAutoId === 9
 						// Bulk insert new leave records
 						if (newLeaves.length > 0) {
 							await db.leaveMapping.bulkCreate(newLeaves);
-							console.log(
-								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
-							);
+							// console.log(
+							// 	`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							// );
 						} else {
-							console.log(
-								`No new leaves to insert for Employee ID: ${employee.id}`,
-							);
+							// console.log(
+							// 	`No new leaves to insert for Employee ID: ${employee.id}`,
+							// );
 						}
 					}
 					if (genderNumber == 2 && maritalStatus == 1) {
-						console.log("Female && Married");
+						//console.log("Female && Married");
 
 						const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll(
 							{
@@ -3197,7 +3198,7 @@ existingRecord.leaveAutoId === 9
 							(id) => !existingMappedLeaveIds.includes(id),
 						);
 
-						console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+						//console.log("Common leaveAutoIds:", commonLeaveAutoIds);
 
 						// Update `isActive` to 0 for overlapping leaveAutoIds
 						await db.leaveMapping.update(
@@ -3217,19 +3218,19 @@ existingRecord.leaveAutoId === 9
 						const lastDate = moment(dateOfJoining)
 							.endOf("month")
 							.format("YYYY-MM-DD");
-						console.log(firstDate, midDate, lastDate);
+						//console.log(firstDate, midDate, lastDate);
 
 						const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
 						const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
 						const monthsLeft = 12 - currentMonth + 1; // Including the current month
 
-						console.log(">>>>>>>>>>>>>", monthsLeft);
+						//console.log(">>>>>>>>>>>>>", monthsLeft);
 
 						// Check if joiningDate is valid
 						if (!joiningDate.isValid()) {
-							console.error("❌ Invalid dateOfJoining:", dateOfJoining);
+							//console.error("❌ Invalid dateOfJoining:", dateOfJoining);
 						} else {
-							console.log("✅ dateOfJoining is valid");
+							//console.log("✅ dateOfJoining is valid");
 						}
 
 						// Check if the joining date is between firstDate and midDate
@@ -3240,7 +3241,7 @@ existingRecord.leaveAutoId === 9
 							"[]",
 						);
 
-						console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
+						//console.log("👉 isJoinedEarly:", isJoinedEarly); // Should be true or false
 
 						const newLeaves = commonLeaveAutoIds.map((leaveAutoId) => {
 							const compositeKey = `${leaveAutoId}-${employee.dataValues.companyId}`;
@@ -3308,13 +3309,13 @@ existingRecord.leaveAutoId === 9
 						// Bulk insert new leave records
 						if (newLeaves.length > 0) {
 							await db.leaveMapping.bulkCreate(newLeaves);
-							console.log(
-								`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
-							);
+							// console.log(
+							// 	`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+							// );
 						} else {
-							console.log(
-								`No new leaves to insert for Employee ID: ${employee.id}`,
-							);
+							// console.log(
+							// 	`No new leaves to insert for Employee ID: ${employee.id}`,
+							// );
 						}
 					}
 				} else {
@@ -3338,9 +3339,9 @@ existingRecord.leaveAutoId === 9
 					});
 
 					if (created) {
-						console.log("New record created:");
+						//console.log("New record created:");
 					} else {
-						console.log("Record already exists:");
+						//console.log("Record already exists:");
 					}
 				}
 			}
@@ -3350,7 +3351,7 @@ existingRecord.leaveAutoId === 9
 				data: employees.length,
 			});
 		} catch (error) {
-			console.log(error);
+			//console.log(error);
 			return respHelper(res, {
 				status: 500,
 				message: "Internal Server Error",

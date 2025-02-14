@@ -1061,16 +1061,13 @@ const remainingLeaveCount = async function (
 	const shouldCountNationalHolidays =
 		countInterveningWeekOff?.countInterveningNationalHoliday === 1;
 
-
+console.log("leaveAutoId",EMP_DATA)
 		const leaveMasterData = await leaveDetailsMaster(
 				leaveAutoId,
 				EMP_DATA
 			);
 
-			console.log("leaveMasterData",leaveMasterData.weekly_prefix_policy)
-			console.log("startDate",startDate)
-			console.log("endDate",endDate);
-
+			
 		if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
 		if (leaveMasterData.weekly_prefix_policy == 0) {
 			let prefixDate = moment(startDate)
@@ -1088,7 +1085,7 @@ const remainingLeaveCount = async function (
 				}
 			}
 		}
-		if (leaveMasterData.holiday_prefix_policy == 2) {
+		if (leaveMasterData.holiday_prefix_policy == 0) {
 					let prefixDate = moment(startDate)
 						.subtract(1, "day")
 						.format("YYYY-MM-DD");
@@ -1106,9 +1103,10 @@ const remainingLeaveCount = async function (
 				}
 		}
 		
+		//console.log("total_working_dates",total_working_dates)
 
 				
-
+  console.log("========= daysDifferenceReq",daysDifferenceReq)
 	for (let i = 0; i <= daysDifferenceReq; i++) { 
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
@@ -1118,6 +1116,8 @@ const remainingLeaveCount = async function (
 		let dayOfMonth = parsedDate.date();
 		let occurrence = Math.ceil(dayOfMonth / 7);
 		// Output the result
+
+	
 		let occurrenceDayCondition = {};
 		switch (occurrence) {
 			case 1:
@@ -1165,12 +1165,8 @@ const remainingLeaveCount = async function (
 				},
 			],
 		});
-		if (
-			existEmployees.weekOffDayMappingMasters.length == 0 ||
-			shouldCountWeekOffs
-		) {
-			let employeeHolidays =
-				await db.holidayCompanyLocationConfiguration.findOne({
+
+		let employeeHolidays =await db.holidayCompanyLocationConfiguration.findOne({
 					where: { companyLocationId: companyLocationId },
 					include: {
 						model: db.holidayMaster,
@@ -1179,34 +1175,65 @@ const remainingLeaveCount = async function (
 						required: true,
 					},
 				});
+         let isNationalHoliday =employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
+console.log("employeeHolidays",(employeeHolidays)?'yes':'no')
+	console.log("appliedFor",appliedFor,"day",i)
+		if(daysDifferenceReq==0){
+			if(existEmployees.weekOffDayMappingMasters.length==0 && !employeeHolidays){
+				if (!total_working_dates.includes(appliedFor)) {
+				total_working_dates.push(appliedFor);
+				workingCount += 1;
+				}
+			}
+			console.log("single daya")
 
-			let isNationalHoliday =
-				employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
-
-			if (isNationalHoliday == 1 && shouldCountNationalHolidays == true) {
-				if (!total_working_dates.includes(appliedFor)) {
-				total_working_dates.push(appliedFor);
-				workingCount += 1;
-				}
-				
-			}
-			if (isNationalHoliday == 0 && shouldCountHolidays == true) {
-				if (!total_working_dates.includes(appliedFor)) {
-				total_working_dates.push(appliedFor);
-				workingCount += 1;
-				}
-			}
-			if (!employeeHolidays) {
-				if (!total_working_dates.includes(appliedFor)) {
-				total_working_dates.push(appliedFor);
-				workingCount += 1;
-				}
-			}
 		}
+		else{
+			if(i==0 || i==daysDifferenceReq){
+				console.log("first and last")
+					
+				if(existEmployees.weekOffDayMappingMasters.length==0 && !employeeHolidays){
+				if (!total_working_dates.includes(appliedFor)) {
+				total_working_dates.push(appliedFor);
+				workingCount += 1;
+				}
+				}
+			}else{
+
+				if(shouldCountWeekOffs && existEmployees.weekOffDayMappingMasters.length>0){
+				if (!total_working_dates.includes(appliedFor)) {
+				total_working_dates.push(appliedFor);
+				workingCount += 1;
+				}	
+				}else if(isNationalHoliday == 1 && shouldCountNationalHolidays == true && employeeHolidays){
+					if (!total_working_dates.includes(appliedFor)) {
+					total_working_dates.push(appliedFor);
+					workingCount += 1;
+					}
+				}else if(isNationalHoliday == 0 && shouldCountHolidays == true && employeeHolidays){
+					if (!total_working_dates.includes(appliedFor)) {
+					total_working_dates.push(appliedFor);
+					workingCount += 1;
+					}
+				}else if (!employeeHolidays && existEmployees.weekOffDayMappingMasters.length==0){
+						if (!total_working_dates.includes(appliedFor)) {
+					total_working_dates.push(appliedFor);
+					workingCount += 1;
+					}
+
+				}
+				console.log(" middle week off",existEmployees.weekOffDayMappingMasters.length,"shouldCountWeekOffs",shouldCountWeekOffs,"occurrence",occurrence)
+				
+		
+			
+			}
+
+		}
+		console.log("============")
+		
 	}
 
 	if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
-
 		if (leaveMasterData.holiday_suffix_policy == 0) {
 					let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
 
@@ -1235,13 +1262,12 @@ const remainingLeaveCount = async function (
 					}
 				}
 		}
-		console.log("total_working_dates",total_working_dates)
 	return total_working_dates;
 };
 
 const isDayWorking = async function (startDate, weekOffId, companyLocationId) {
 	let appliedFor = moment(startDate).add(0, "days").format("YYYY-MM-DD");
-	console.log("appliedFor", appliedFor);
+	//console.log("appliedFor", appliedFor);
 	let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
 	let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
 	let dayCode = parseInt(moment(appliedFor).format("d")) + 1;
@@ -1314,7 +1340,7 @@ const isDayWorking = async function (startDate, weekOffId, companyLocationId) {
 			workingCount += 1;
 		}
 	}
-	console.log("workingCountworkingCount", workingCount);
+	//console.log("workingCountworkingCount", workingCount);
 	return workingCount;
 };
 
@@ -1324,7 +1350,7 @@ const isDayWorkingForReport = async function (
 	companyLocationId,
 ) {
 	let appliedFor = moment(startDate).add(0, "days").format("YYYY-MM-DD");
-	console.log("appliedFor", appliedFor);
+	//console.log("appliedFor", appliedFor);
 
 	let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
 	let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
@@ -1550,10 +1576,10 @@ const compareImages = async function (base64Image, folderImagePath) {
 			}
 
 			if (isIdentical) {
-				console.log("Images are identical");
+				//console.log("Images are identical");
 				return true;
 			} else {
-				console.log("Images are different");
+				//console.log("Images are different");
 				return false;
 			}
 		}
@@ -1564,7 +1590,7 @@ const compareImages = async function (base64Image, folderImagePath) {
 };
 ///CONFIRMATION
 const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
-	console.log("inputLevel", inputLevel);
+	//console.log("inputLevel", inputLevel);
 	let levelData = null;
 	let level = inputLevel;
 	let levelFound = false;
@@ -1922,7 +1948,7 @@ const leaveCountForUserForMonth = async (
 	if (overAll == "YES") {
 		const fromMoment = moment(date).format("YYYY-MM-DD");
 		const todayDate = moment(lastDate).format("YYYY-MM-DD"); // Today's date
-		console.log("fromMoment", fromMoment, "todayDate", todayDate);
+		//console.log("fromMoment", fromMoment, "todayDate", todayDate);
 
 		result= await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
@@ -2058,7 +2084,7 @@ const creditCompoff = async (inputObject) => {
 						isActive: 1,
 					},
 				});
-				console.log("leaveData", leaveData);
+				//console.log("leaveData", leaveData);
 				let compoffCredit = null;
 				let approvalRequired = null;
 				let approvalIds = [];
@@ -2289,13 +2315,13 @@ const actionOnLeaveCompOff = async (
 	userId,
 ) => {
 	try {
-		console.log({
-			employeeId,
-			employeeLeaveTransactionsIds,
-			status,
-			remarks,
-			userId,
-		});
+		// console.log({
+		// 	employeeId,
+		// 	employeeLeaveTransactionsIds,
+		// 	status,
+		// 	remarks,
+		// 	userId,
+		// });
 		const getLeaveRequest = await db.EmployeeLeaveHeader.findOne({
 			attributes: ["employeeId", "leaveAutoId", "leaveCount"],
 			where: {
@@ -2305,14 +2331,14 @@ const actionOnLeaveCompOff = async (
 			},
 			raw: false,
 		});
-		console.log("getLeaveRequest");
+		//console.log("getLeaveRequest");
 
 		if (!getLeaveRequest) {
 			return {
 				data: 0,
 			};
 		}
-		console.log("getLeaveRequest checked");
+		//console.log("getLeaveRequest checked");
 
 		const compOffHistory = await db.comp_off_credit_history.findAll({
 			attributes: [
@@ -2334,27 +2360,27 @@ const actionOnLeaveCompOff = async (
 			order: [["expiry_date", "ASC"]],
 			raw: true,
 		});
-		console.log("compOffHistory list");
+		//console.log("compOffHistory list");
 
 		if (compOffHistory.length === 0) {
 			return {
 				data: 0,
 			};
 		}
-		console.log("compOffHistory checked");
+		//console.log("compOffHistory checked");
 
 		const totalBalance = compOffHistory.reduce(
 			(sum, record) => sum + parseFloat(record.balance),
 			0,
 		);
-		console.log("totalBalance");
+		//console.log("totalBalance");
 
 		if (totalBalance < parseFloat(getLeaveRequest.leaveCount)) {
 			return {
 				data: 0,
 			};
 		}
-		console.log("totalBalance checked");
+		//console.log("totalBalance checked");
 
 		const appliedForData = await db.EmployeeLeaveHeader.findOne({
 			where: { employeeleaveheaderID: employeeLeaveTransactionsIds },
@@ -2366,24 +2392,24 @@ const actionOnLeaveCompOff = async (
 				},
 			],
 		});
-		console.log("appliedForData");
+		//console.log("appliedForData");
 
 		if (!appliedForData || !appliedForData.employeeleavetransactions) {
 			return {
 				data: 0,
 			};
 		}
-		console.log("appliedForData checked");
+		//console.log("appliedForData checked");
 
 		const appliedDates = appliedForData.employeeleavetransactions.map((e) => ({
 			appliedFor: e.appliedFor,
 			leaveCount: parseFloat(e.leaveCount),
 		}));
 
-		console.log("appliedDates");
+		//console.log("appliedDates");
 
 		let leaveToDeduct = parseFloat(getLeaveRequest.leaveCount);
-		console.log("appliedDates checked", appliedDates.length);
+		//console.log("appliedDates checked", appliedDates.length);
 
 		for (const date of appliedDates) {
 			let remainingForDate = date.leaveCount;
@@ -2393,7 +2419,7 @@ const actionOnLeaveCompOff = async (
 					(record) => parseFloat(record.balance) > 0,
 				);
 				if (!eligibleRecord) {
-					console.log("No more eligible comp-off records to process.");
+					//console.log("No more eligible comp-off records to process.");
 					break;
 				}
 
@@ -2479,7 +2505,7 @@ const leaveCreditMonthCron = async () => {
 					},
 				);
 			} else {
-				console.log("No iteration distribution found for", employee.EmployeeId);
+				//console.log("No iteration distribution found for", employee.EmployeeId);
 			}
 		}
 
@@ -2565,7 +2591,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					(genderNumber == 1 || genderNumber == 2) &&
 					(maritalStatus == 2 || maritalStatus == 3)
 				) {
-					console.log("Male || Female && single");
+					//("Male || Female && single");
 
 					const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll({
 						attributes: [
@@ -2626,18 +2652,18 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					const genderBasedLeaveIds = getAllGenderBasedLeave.map(
 						(leave) => leave.leaveAutoId,
 					);
-					console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+					//console.log("genderBasedLeaveIds", genderBasedLeaveIds);
 					const existingMappedLeaveIds = existingMappedLeave.map(
 						(leave) => leave.leaveAutoId,
 					);
-					console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+					//console.log("existingMappedLeaveIds", existingMappedLeaveIds);
 
 					// Find common `leaveAutoId` values
 					const commonLeaveAutoIds = genderBasedLeaveIds.filter(
 						(id) => !existingMappedLeaveIds.includes(id),
 					);
 
-					console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+					//console.log("Common leaveAutoIds:", commonLeaveAutoIds);
 
 					// Update `isActive` to 0 for overlapping leaveAutoIds
 					await db.leaveMapping.update(
@@ -2666,17 +2692,17 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					// Bulk insert new leave records
 					if (newLeaves.length > 0) {
 						await db.leaveMapping.bulkCreate(newLeaves);
-						console.log(
-							`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
-						);
+						// console.log(
+						// 	`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+						// );
 					} else {
-						console.log(
-							`No new leaves to insert for Employee ID: ${employee.id}`,
-						);
+						// console.log(
+						// 	`No new leaves to insert for Employee ID: ${employee.id}`,
+						// );
 					}
 				}
 				if (genderNumber == 1 && maritalStatus == 1) {
-					console.log("Male && Married");
+					//console.log("Male && Married");
 					const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll({
 						attributes: [
 							"leaveCompanyId",
@@ -2722,18 +2748,18 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					const genderBasedLeaveIds = getAllGenderBasedLeave.map(
 						(leave) => leave.leaveAutoId,
 					);
-					console.log("genderBasedLeaveIds", genderBasedLeaveIds);
+					//console.log("genderBasedLeaveIds", genderBasedLeaveIds);
 					const existingMappedLeaveIds = existingMappedLeave.map(
 						(leave) => leave.leaveAutoId,
 					);
-					console.log("existingMappedLeaveIds", existingMappedLeaveIds);
+					//console.log("existingMappedLeaveIds", existingMappedLeaveIds);
 
 					// Find common `leaveAutoId` values
 					const commonLeaveAutoIds = genderBasedLeaveIds.filter(
 						(id) => !existingMappedLeaveIds.includes(id),
 					);
 
-					console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+					//console.log("Common leaveAutoIds:", commonLeaveAutoIds);
 
 					// Update `isActive` to 0 for overlapping leaveAutoIds
 					await db.leaveMapping.update(
@@ -2762,17 +2788,17 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					// Bulk insert new leave records
 					if (newLeaves.length > 0) {
 						await db.leaveMapping.bulkCreate(newLeaves);
-						console.log(
-							`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
-						);
+						// console.log(
+						// 	`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+						// );
 					} else {
-						console.log(
-							`No new leaves to insert for Employee ID: ${employee.id}`,
-						);
+						// console.log(
+						// 	`No new leaves to insert for Employee ID: ${employee.id}`,
+						// );
 					}
 				}
 				if (genderNumber == 2 && maritalStatus == 1) {
-					console.log("Female && Married");
+					//console.log("Female && Married");
 					const getAllGenderBasedLeave = await db.leaveCompanyMapping.findAll({
 						attributes: [
 							"leaveCompanyId",
@@ -2827,7 +2853,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						(id) => !existingMappedLeaveIds.includes(id),
 					);
 
-					console.log("Common leaveAutoIds:", commonLeaveAutoIds);
+					//console.log("Common leaveAutoIds:", commonLeaveAutoIds);
 
 					// Update `isActive` to 0 for overlapping leaveAutoIds
 					await db.leaveMapping.update(
@@ -2856,13 +2882,13 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					// Bulk insert new leave records
 					if (newLeaves.length > 0) {
 						await db.leaveMapping.bulkCreate(newLeaves);
-						console.log(
-							`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
-						);
+						// console.log(
+						// 	`Inserted ${newLeaves.length} new leaves for Employee ID: ${employee.id}`,
+						// );
 					} else {
-						console.log(
-							`No new leaves to insert for Employee ID: ${employee.id}`,
-						);
+						// console.log(
+						// 	`No new leaves to insert for Employee ID: ${employee.id}`,
+						// );
 					}
 				}
 			} else {
@@ -2884,9 +2910,9 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 				});
 
 				if (created) {
-					console.log("New record created:");
+					//console.log("New record created:");
 				} else {
-					console.log("Record already exists:");
+					//console.log("Record already exists:");
 				}
 			}
 		}
