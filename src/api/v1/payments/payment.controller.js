@@ -5151,14 +5151,42 @@ class PaymentController {
 		try {
 			let model = db.paySlips;
 			let query = { paySlipAutoId: req.params.id };
+
+			let companyDetails = await db.paySlips.findOne({ 
+				where: query,
+				attributes: ['paySlipAutoId', 'EmployeeId', 'payMonth'],
+				include: [
+					{ model: db.employeeMaster, attributes: ['id'], 
+						include: [{ model: db.companyMaster, attributes: ['companyId', 'companyLogo'] }]
+					}
+				],
+				raw: true
+			});
+
 			let metaData = {
 				paySlipStatus: 1,
 				updatedAt: moment(),
 				updatedBy: req.userId,
 			};
 			let response = await service.update(model, metaData, query);
+
+			// send confirmation mail to employee after salary slip release
+						
+			if (companyDetails) {
+				let payMonth = companyDetails.payMonth;
+				let companyLogo = companyDetails["employee.companymaster.companyLogo"];
+				let employeeId = [companyDetails["employee.id"]];
+				
+				sendMailAfterSalarySlipRelease(
+					employeeId,
+					payMonth,
+					companyLogo,
+				);
+			}
+
 			return respHelper(res, response);
 		} catch (error) {
+			console.log(error);
 			logger.error(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
