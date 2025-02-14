@@ -156,6 +156,17 @@ import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
 import status_master from "../api/model/StatusMaster.js";
 import LeaveCompanyMapping from "../api/model/LeaveCompanyMapping.js";
 //COMP OFF
+
+//////////////////Start F&F by jay/////////////////
+import GratuityOverrides from "../api/model/GratuityOverrides.js";
+import LeaveEncashmentOverrides from "../api/model/LeaveEncashmentOverrides.js";
+import PTOverrides from "../api/model/PTOverrides.js";
+import LWFOverrides from "../api/model/LWFOverrides.js";
+import NoticeRecoveryOverrides from "../api/model/NoticeRecoveryOverrides.js";
+import ExtraBenefits from "../api/model/ExtraBenefits.js";
+
+//////////////////End F&F by jay/////////////////
+
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -369,6 +380,15 @@ db.exportSheetMapping = ExportSheetMapping(sequelize, Sequelize);
 
 // import by jay
 db.financialYearMaster = FinancialYearMaster(sequelize, Sequelize);
+
+// import F&F by jay
+
+db.gratuityOverrides = GratuityOverrides(sequelize, Sequelize);
+db.leaveEncashmentOverrides = LeaveEncashmentOverrides(sequelize, Sequelize);
+db.PTOverrides = PTOverrides(sequelize, Sequelize);
+db.LWFOverrides = LWFOverrides(sequelize, Sequelize);
+db.noticeRecoveryOverrides = NoticeRecoveryOverrides(sequelize, Sequelize);
+db.ExtraBenefits = ExtraBenefits(sequelize, Sequelize);
 
 //////////////////Payroll///////////////////
 

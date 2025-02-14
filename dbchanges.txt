@@ -1248,6 +1248,98 @@ CREATE TABLE `tara`.`financialyear` (
 fixedPayElementAmount
 
 
+--------------------Add Below Tables ---------------------
+
+---Eargings ----
+
+gratuityOverrides
+CREATE TABLE `gratuityOverrides` (
+  `gratuityAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int NOT NULL,
+  `payMonth` varchar(45) NOT NULL,
+  `gratuityDays` decimal(10,2) NOT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`gratuityAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.gratuityOverrides;
+
+leavEncashmentOverrides
+
+CREATE TABLE `leavEncashmentOverrides` (
+  `leaveEncashmentAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int NOT NULL,
+  `payMonth` varchar(45) NOT NULL,
+  `leaveEncashmentDays` decimal(10,2) NOT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`leaveEncashmentAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.leavEncashmentOverrides;
+
+
+---   flexiClaimOverrides
+
+------Deductions------------
+
+---  loansOverrides
+ptOverrides
+CREATE TABLE `ptOverrides` (
+  `ptDeductionAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int DEFAULT NULL,
+  `ptMonth` varchar(255) DEFAULT NULL,
+  `ptAmount` decimal(10,2) DEFAULT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`ptDeductionAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+lwfOverrides
+CREATE TABLE `lwfOverrides` (
+  `lwfDeductionAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int DEFAULT NULL,
+  `lwfMonth` varchar(255) DEFAULT NULL,
+  `lwfAmount` decimal(10,2) DEFAULT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`lwfDeductionAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+recoveryOvrrides
+
+CREATE TABLE `noticerecoveryOvrrides` (
+  `recoveryDaysAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int NOT NULL,
+  `payMonth` varchar(45) NOT NULL,
+  `recoveryDays` decimal(10,2) NOT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`recoveryDaysAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.noticerecoveryOvrrides;
+
+--------------------------------------------
+
+
 
 
 
