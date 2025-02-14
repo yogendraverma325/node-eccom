@@ -2499,6 +2499,24 @@ class MasterController {
 		}
 	}
 
+	async financialYear(req, res) {
+		try {
+			let query = { isActive: 1 };
+			const docs = await db.financialYearMaster.findAll({
+				where: query,
+				attributes: ["financialYearId", "financialYearName", "year"],
+				order: [["financialYearId", "DESC"]],
+			});
+			return respHelper(res, {
+				status: 200,
+				data: docs,
+			});
+		} catch (error) {
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 
 	async financialYear(req, res) {
 		try {
