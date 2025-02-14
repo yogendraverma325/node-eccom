@@ -1617,6 +1617,21 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 			//   companyLocationId
 			// );
 			const employeeId = employeeFor == 0 ? req.userId : employeeFor;
+			let EMP_DATA = await helper.getEmpProfile(employeeId);
+			const leaveMasterData = await helper.leaveDetailsMaster(
+			leaveAutoId,
+			EMP_DATA,
+			);
+
+			
+
+			if (!leaveMasterData) {
+				return respHelper(res, {
+					status: 404,
+					data: {},
+					msg: message.LEAVE.NO_LEAVE,
+				});
+			}
 
 			// Fetch employee details and leave counts in parallel
 			const [employeeWeekOfId, pendingLeaveCountList, availableLeaveCount] =
@@ -1638,7 +1653,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				]);
 
 			// Calculate total working days
-			let EMP_DATA = await helper.getEmpProfile(employeeId);
+		
 
 			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				startDate,
@@ -1648,7 +1663,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				employeeWeekOfId.companyId,
 				leaveAutoId,
 				EMP_DATA
-			);
+			); 
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,

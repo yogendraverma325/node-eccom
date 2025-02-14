@@ -604,6 +604,33 @@ const empLeaveDetails = async function (userId, type) {
 		
 		// Check if leaveData is an array and process each item
 			for (const item of leaveData) {
+				let adddon=[];
+				let policy=[];
+
+				const leaveMasterData = await leaveDetailsMaster(
+				item.leaveAutoId,
+				EMP_DATA,
+				);
+				if(leaveMasterData){
+					if(leaveMasterData?.countInterveningWeekOff==1){
+				   policy.push(
+						{"KEY":"Week offs","DATA":`within leave are counted`},
+					);
+					}
+					if(leaveMasterData?.countInterveningHoliday==1){
+				   policy.push(
+						{"KEY":"Holiday","DATA":`within leave are counted`},
+					);
+					}
+					if(leaveMasterData?.countInterveningNationalHoliday==1){
+				   policy.push(
+						{"KEY":"National Holiday","DATA":`within leave are counted`},
+					);
+					}
+					
+
+				}
+
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
 				item.leavemaster.dataValues.countPending = totalLeaveCountPending;
@@ -624,7 +651,7 @@ const empLeaveDetails = async function (userId, type) {
 					}
 					});
 
-				item.dataValues.addOn = [
+				 adddon = [
 				{"KEY":"Subcategory","DATA":`Child ${leaveCount+1}`},
 				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
 				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
@@ -639,7 +666,7 @@ const empLeaveDetails = async function (userId, type) {
 					}
 					});
 
-				item.dataValues.addOn = [
+				  adddon = [
 				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
 				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
 			];
@@ -653,7 +680,7 @@ const empLeaveDetails = async function (userId, type) {
 					}
 					});
 
-				item.dataValues.addOn = [
+				adddon = [
 				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
 				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
 			];
@@ -667,7 +694,7 @@ const empLeaveDetails = async function (userId, type) {
 					}
 					});
 
-				item.dataValues.addOn = [
+				adddon = [
 				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
 				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
 			];
@@ -675,6 +702,11 @@ const empLeaveDetails = async function (userId, type) {
 			else {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
+
+			if (item.leaveAutoId && item.leavemaster) {
+				item.dataValues.addOn =[...policy,...adddon];
+			}
+			
 		}
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
@@ -1061,7 +1093,7 @@ const remainingLeaveCount = async function (
 	const shouldCountNationalHolidays =
 		countInterveningWeekOff?.countInterveningNationalHoliday === 1;
 
-console.log("leaveAutoId",EMP_DATA)
+
 		const leaveMasterData = await leaveDetailsMaster(
 				leaveAutoId,
 				EMP_DATA
