@@ -428,7 +428,7 @@ db.lwfMapping = LwfMapping(sequelize, Sequelize);
 /// Leave Approval FLow //////
 db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
 db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
-db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize)
+db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
 /// Leave Approval FLow //////
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -1743,12 +1743,12 @@ db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
 db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
 	foreignKey: "approvalFlow_Auto_Id",
 	sourceKey: "approvalFlowAutoId",
-})
+});
 
 db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 	foreignKey: "id",
 	sourceKey: "pendingOn",
-})
+});
 
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",

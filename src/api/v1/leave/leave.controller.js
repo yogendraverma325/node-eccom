@@ -71,30 +71,30 @@ class LeaveController {
 			const mainCondition =
 				query === "raisedByMe"
 					? {
-						employeeId: req.userId,
-						source: { [Op.ne]: "system_generated" },
-						status: "pending",
-					}
+							employeeId: req.userId,
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 					: {
-						pendingAt: req.userId,
-						status: "pending",
-						...(user && { employeeId: user }),
-					};
+							pendingAt: req.userId,
+							status: "pending",
+							...(user && { employeeId: user }),
+						};
 
 			const leaveApprovalCondition =
 				query === "raisedByMe"
 					? {
-						createdBy: req.userId,
-						isApproved: 0,
-						isPending: 1,
-					}
+							createdBy: req.userId,
+							isApproved: 0,
+							isPending: 1,
+						}
 					: {
-						...(user && { createdBy: user }),
-						isVisible: true,
-						pendingOn: req.userId,
-						isApproved: 0,
-						isPending: 1,
-					};
+							...(user && { createdBy: user }),
+							isVisible: true,
+							pendingOn: req.userId,
+							isApproved: 0,
+							isPending: 1,
+						};
 
 			const regularizeList = await db.EmployeeLeaveHeader.findAll({
 				where: {
@@ -122,11 +122,13 @@ class LeaveController {
 						model: db.leaveApprovalTrails,
 						required: false,
 						where: leaveApprovalCondition,
-						include: [{
-							model: db.employeeMaster,
-							attributes: ['id', 'empCode', 'name']
-						}]
-					}
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "empCode", "name"],
+							},
+						],
+					},
 				],
 			});
 
@@ -160,9 +162,7 @@ class LeaveController {
 				});
 			}
 			if (result.status == "approved") {
-
 				for (const leaveID of leaveIds) {
-
 					let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
 						where: {
 							employeeleaveheaderID: leaveID,
@@ -172,17 +172,24 @@ class LeaveController {
 					const leaveTrails = await db.leaveApprovalTrails.findOne({
 						where: {
 							leaveHeaderAutoId: leaveID,
-							pendingOn: req.userId
+							pendingOn: req.userId,
 						},
-						include: [{
-							model: db.leaveApprovalFlow,
-							attributes: ['maxApprovalLevel']
-						}]
-					})
+						include: [
+							{
+								model: db.leaveApprovalFlow,
+								attributes: ["maxApprovalLevel"],
+							},
+						],
+					});
 
 					await db.employeeLeaveTransactions.update(
 						{
-							status: (leaveTrails && leaveTrails.dataValues.level === leaveTrails.dataValues.approval_flow.maxApprovalLevel) ? "approved" : "pending",
+							status:
+								leaveTrails &&
+								leaveTrails.dataValues.level ===
+									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+									? "approved"
+									: "pending",
 							updatedBy: req.userId,
 							managerRemark: result.remark != "" ? result.remark : null,
 							updatedAt: moment(),
@@ -195,7 +202,12 @@ class LeaveController {
 					);
 					await db.EmployeeLeaveHeader.update(
 						{
-							status: (leaveTrails && leaveTrails.dataValues.level === leaveTrails.dataValues.approval_flow.maxApprovalLevel) ? "approved" : "pending",
+							status:
+								leaveTrails &&
+								leaveTrails.dataValues.level ===
+									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+									? "approved"
+									: "pending",
 							updatedBy: req.userId,
 							managerRemark: result.remark != "" ? result.remark : null,
 							updatedAt: moment(),
@@ -230,40 +242,56 @@ class LeaveController {
 						where: { employeeleaveheaderID: leaveID },
 					});
 
-					await db.leaveApprovalTrails.update({
-						isVisible: 0,
-						isPending: 0,
-						isApproved: 1,
-						remark: result.remark != "" ? result.remark : null
-					},
+					await db.leaveApprovalTrails.update(
+						{
+							isVisible: 0,
+							isPending: 0,
+							isApproved: 1,
+							remark: result.remark != "" ? result.remark : null,
+						},
 						{
 							where: {
-								leaveTrailAutoId: leaveTrails.dataValues.leaveTrailAutoId
-							}
-						}
-					)
+								leaveTrailAutoId: leaveTrails.dataValues.leaveTrailAutoId,
+							},
+						},
+					);
 
-					if (leaveTrails && leaveTrails.dataValues.level < leaveTrails.dataValues.approval_flow.maxApprovalLevel) {
-						const nextLevel = (leaveTrails.dataValues.level < leaveTrails.dataValues.approval_flow.maxApprovalLevel) ? leaveTrails.dataValues.level + 1 : leaveTrails.dataValues.level
-						await db.leaveApprovalTrails.update({
-							isVisible: 1,
-						}, {
-							where: {
-								leaveHeaderAutoId: leaveID,
-								level: nextLevel
-							}
-						})
+					if (
+						leaveTrails &&
+						leaveTrails.dataValues.level <
+							leaveTrails.dataValues.approval_flow.maxApprovalLevel
+					) {
+						const nextLevel =
+							leaveTrails.dataValues.level <
+							leaveTrails.dataValues.approval_flow.maxApprovalLevel
+								? leaveTrails.dataValues.level + 1
+								: leaveTrails.dataValues.level;
+						await db.leaveApprovalTrails.update(
+							{
+								isVisible: 1,
+							},
+							{
+								where: {
+									leaveHeaderAutoId: leaveID,
+									level: nextLevel,
+								},
+							},
+						);
 					}
 
-					if (leaveTrails && leaveTrails.dataValues.level === leaveTrails.dataValues.approval_flow.maxApprovalLevel) {
+					if (
+						leaveTrails &&
+						leaveTrails.dataValues.level ===
+							leaveTrails.dataValues.approval_flow.maxApprovalLevel
+					) {
 						if (existingRecord) {
 							await db.attendanceMaster.update(
 								Object.assign(
 									existingRecord.dataValues.isHalfDay === 0 ||
 										existingRecord.dataValues.halfDayFor === 1
 										? {
-											attendanceLateBy: "00:00:00",
-										}
+												attendanceLateBy: "00:00:00",
+											}
 										: {},
 								),
 								{
@@ -358,28 +386,33 @@ class LeaveController {
 				);
 
 				for (const leaveID of leaveIds) {
+					await db.leaveApprovalTrails.update(
+						{
+							isVisible: 0,
+							isPending: 0,
+							isApproved: 2,
+						},
+						{
+							where: {
+								leaveHeaderAutoId: leaveID,
+							},
+						},
+					);
 
-					await db.leaveApprovalTrails.update({
-						isVisible: 0,
-						isPending: 0,
-						isApproved: 2
-					}, {
-						where: {
-							leaveHeaderAutoId: leaveID
-						}
-					})
-
-					await db.leaveApprovalTrails.update({
-						isVisible: 0,
-						isPending: 0,
-						isApproved: 2,
-						remark: result.remark != "" ? result.remark : null,
-					}, {
-						where: {
-							leaveHeaderAutoId: leaveID,
-							pendingOn: req.userId
-						}
-					})
+					await db.leaveApprovalTrails.update(
+						{
+							isVisible: 0,
+							isPending: 0,
+							isApproved: 2,
+							remark: result.remark != "" ? result.remark : null,
+						},
+						{
+							where: {
+								leaveHeaderAutoId: leaveID,
+								pendingOn: req.userId,
+							},
+						},
+					);
 				}
 			}
 
@@ -635,7 +668,7 @@ class LeaveController {
 	async requestForLeave(req, res) {
 		try {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
-			console.log(result)
+			console.log(result);
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
 
 			const fromDateReq = req.body.fromDate;
@@ -1120,10 +1153,10 @@ class LeaveController {
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
-									result.attachment,
-									`leaveAttachment_${uuid}`,
-									`uploads/${EMP_DATA.empCode}`,
-								)
+										result.attachment,
+										`leaveAttachment_${uuid}`,
+										`uploads/${EMP_DATA.empCode}`,
+									)
 								: null,
 						pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 						createdBy: req.userId, // Replace with actual creator user ID
@@ -1217,10 +1250,10 @@ class LeaveController {
 				leaveAttachment:
 					result.attachment != ""
 						? await helper.fileUpload(
-							result.attachment,
-							`leaveAttachment_${uuid}`,
-							`uploads/${EMP_DATA.empCode}`,
-						)
+								result.attachment,
+								`leaveAttachment_${uuid}`,
+								`uploads/${EMP_DATA.empCode}`,
+							)
 						: null,
 				// pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 				createdBy: req.userId, // Replace with actual creator user ID
@@ -1237,11 +1270,13 @@ class LeaveController {
 					approvalFlow_Auto_Id: leaveMasterData.approvalFlow,
 				},
 			});
-			const leaveTrails = []
+			const leaveTrails = [];
 
 			for (const leaveApprover of leaveApprovalLevel) {
-				for (const leaveApproverGroup of leaveApprover.dataValues.approval_group.split(",")) {
-					if (leaveApproverGroup === 'MANAGER') {
+				for (const leaveApproverGroup of leaveApprover.dataValues.approval_group.split(
+					",",
+				)) {
+					if (leaveApproverGroup === "MANAGER") {
 						leaveTrails.push({
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
 							level: leaveApprover.dataValues.level,
@@ -1252,17 +1287,16 @@ class LeaveController {
 							isPending: 1,
 							isActive: 1,
 							createdAt: moment(),
-							createdBy: req.userId
-						})
-					} else if (leaveApproverGroup === 'BUHR') {
-
+							createdBy: req.userId,
+						});
+					} else if (leaveApproverGroup === "BUHR") {
 						const buhr = await db.buMapping.findAll({
 							where: {
 								buId: EMP_DATA.buId,
-								companyId: EMP_DATA.companyId
+								companyId: EMP_DATA.companyId,
 							},
-							attributes: ['buHrId']
-						})
+							attributes: ["buHrId"],
+						});
 
 						for (const buHrIds of buhr) {
 							leaveTrails.push({
@@ -1275,10 +1309,10 @@ class LeaveController {
 								isApproved: 0,
 								isActive: 1,
 								createdAt: moment(),
-								createdBy: req.userId
-							})
+								createdBy: req.userId,
+							});
 						}
-					} else if (leaveApproverGroup === 'L2_MANAGER') {
+					} else if (leaveApproverGroup === "L2_MANAGER") {
 						leaveTrails.push({
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
 							isPending: 1,
@@ -1289,13 +1323,13 @@ class LeaveController {
 							isApproved: 0,
 							isActive: 1,
 							createdAt: moment(),
-							createdBy: req.userId
-						})
+							createdBy: req.userId,
+						});
 					}
 				}
 			}
 
-			await db.leaveApprovalTrails.bulkCreate(leaveTrails)
+			await db.leaveApprovalTrails.bulkCreate(leaveTrails);
 
 			arr = arr.map((obj) => {
 				return {
@@ -2521,14 +2555,14 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-							employeeId: { [Op.ne]: req.userId },
-							source: { [Op.ne]: "system_generated" },
-							status: "pending",
-						}
+								employeeId: { [Op.ne]: req.userId },
+								source: { [Op.ne]: "system_generated" },
+								status: "pending",
+							}
 						: {
-							status: "pending",
-							employeeId: { [Op.ne]: req.userId },
-						},
+								status: "pending",
+								employeeId: { [Op.ne]: req.userId },
+							},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -2646,8 +2680,8 @@ class LeaveController {
 								existingRecord.dataValues.isHalfDay === 0 ||
 									existingRecord.dataValues.halfDayFor === 1
 									? {
-										attendanceLateBy: "00:00:00",
-									}
+											attendanceLateBy: "00:00:00",
+										}
 									: {},
 							),
 							{
