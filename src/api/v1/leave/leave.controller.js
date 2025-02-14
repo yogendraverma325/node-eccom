@@ -10,6 +10,11 @@ import { Op } from "sequelize";
 var _this = this;
 
 class LeaveController {
+	constructor(){
+	this.workingday=0;
+     this.leaveRemainingCount = this.leaveRemainingCount.bind(this);
+	 this.requestForLeave=this.requestForLeave.bind(this);
+	}
 	async history(req, res) {
 		try {
 			const user = req.query.user;
@@ -49,7 +54,7 @@ class LeaveController {
 	async leaveMapping(req, res) {
 		try {
 			const userId = req.query.user || req.userId;
-			let leaveData = await helper.empLeaveDetails(userId, 0);
+			let leaveData = await helper.empLeaveDetails(userId, 0); 
 			return respHelper(res, {
 				status: 200,
 				data: leaveData,
@@ -523,6 +528,7 @@ class LeaveController {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
+			console.log("this.workingday",this.workingday)
 
 			const fromDateReq = req.body.fromDate;
 			const toDateReq = req.body.toDate;
@@ -544,6 +550,8 @@ class LeaveController {
 				EMP_DATA,
 			);
 
+			
+
 			if (!leaveMasterData) {
 				return respHelper(res, {
 					status: 404,
@@ -551,6 +559,27 @@ class LeaveController {
 					msg: message.LEAVE.NO_LEAVE,
 				});
 			}
+
+			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
+				startDate,
+				endDate,
+				EMP_DATA.weekOffId,
+				EMP_DATA.companyLocationId,
+				EMP_DATA.companyId,
+				result.leaveAutoId,
+				EMP_DATA
+			);
+
+			
+console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
+			const fromDate = remainingLeaveCountRESP[0];
+			const toDate =
+				remainingLeaveCountRESP.length == 1
+					? remainingLeaveCountRESP[0]
+					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
+
+				const differenceInDays = remainingLeaveCountRESP.length;
+
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
 			const onProbationGenerated = req.userData["employeejobdetail.confirmationGenerated"];
 			const onNoticePeriod =
@@ -588,25 +617,7 @@ class LeaveController {
 
 			// Fetch employee details and leave counts in parallel
 
-			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
-				startDate,
-				endDate,
-				EMP_DATA.weekOffId,
-				EMP_DATA.companyLocationId,
-				EMP_DATA.companyId,
-				result.leaveAutoId,
-				EMP_DATA
-			);
-
 			
-
-			const fromDate = remainingLeaveCountRESP[0];
-			const toDate =
-				remainingLeaveCountRESP.length == 1
-					? remainingLeaveCountRESP[0]
-					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
-
-				const differenceInDays = remainingLeaveCountRESP.length;
 
 			
 			if (onProbation == null) {
@@ -620,7 +631,7 @@ class LeaveController {
 					);
 					
 					if (
-						(probationLeaveCount+differenceInDays) >
+						(probationLeaveCount+this.workingday) >
 						leaveMasterData.maximum_leave_allowed_in_probation
 					) {
 						return respHelper(res, {
@@ -650,7 +661,7 @@ class LeaveController {
 					);
 					if (
 		
-						(probationLeaveCount+differenceInDays) >
+						(probationLeaveCount+this.workingday) >
 						leaveMasterData.maximum_leave_allowed_in_notice_period
 					) {
 						return respHelper(res, {
@@ -803,7 +814,7 @@ class LeaveController {
 			let workingdays = differenceInDays;
 			if (
 				leaveMasterData?.max_consecutive_count != 0 &&
-				workingdays > leaveMasterData?.max_consecutive_count
+				this.workingday > leaveMasterData?.max_consecutive_count
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -817,7 +828,7 @@ class LeaveController {
 
 			if (
 				leaveMasterData?.minConsecutiveDay != 0 &&
-				workingdays < leaveMasterData?.minConsecutiveDay
+				this.workingday < leaveMasterData?.minConsecutiveDay
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -839,16 +850,12 @@ class LeaveController {
 					msg: message.LEAVE.ATTACHMENT_REQUIRED,
 				});
 			}
-			console.log("workingdays", workingdays);
-			console.log(
-				"leaveMasterData.attachmentRequiredafterdays",
-				leaveMasterData.attachmentRequiredafterdays,
-			);
+			
 			if (
 				leaveMasterData.attachmentRequiredafterdays != 0 &&
 				leaveMasterData.attachmentRequired == false &&
 				result.attachment == "" &&
-				workingdays > leaveMasterData.attachmentRequiredafterdays
+				this.workingday > leaveMasterData.attachmentRequiredafterdays
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -870,7 +877,7 @@ class LeaveController {
 				leaveMasterData.messageRequired == false &&
 				leaveMasterData.messageRequiredafterdays != 0 &&
 				result.message == "" &&
-				workingdays > leaveMasterData.messageRequiredafterdays
+				this.workingday > leaveMasterData.messageRequiredafterdays
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -887,8 +894,6 @@ class LeaveController {
 				fromDateReq,
 				req.body.leaveAutoId,
 			);
-
-			console.log("monthCount", leaveMasterData?.max_month_count, monthCount);
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
@@ -992,9 +997,7 @@ class LeaveController {
 				req.body.leaveAutoId,
 			);
 
-			
-			console.log("remainingLeaveCountRESP dfff", fromDate);
-			console.log("remainingLeaveCountRESP dfff", toDate);
+		
 			let arr = [];
 			let leaveDays = 0;
 			let pendingLeaveCount = 0;
@@ -1677,6 +1680,8 @@ class LeaveController {
 			if (leaveAutoId == 6 || leaveAutoId == 9) {
 				b = a;
 			}
+
+			this.workingday=a;
 
 			return respHelper(res, {
 				status: 200,

@@ -499,6 +499,7 @@ const getEmpProfile = async (EMP_ID) => {
 const empLeaveDetails = async function (userId, type) {
 	let leaveData = 0;
 	if (type == 0) {
+			let EMP_DATA = await getEmpProfile(userId);
 		let countApproved = await db.employeeLeaveTransactions.findAll({
 			attributes: [
 				[
@@ -590,11 +591,19 @@ const empLeaveDetails = async function (userId, type) {
 						],
 					},
 				},
+				{
+					model: db.leaveCompanyMapping,
+					as:'leaveCompanyDetails',
+					where:{
+						companyId:1
+					}
+					
+				},
 			],
 		});
-		let count = await this.compOffbalabceForUser(userId);
+		
 		// Check if leaveData is an array and process each item
-		leaveData.forEach((item) => {
+			for (const item of leaveData) {
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
 				item.leavemaster.dataValues.countPending = totalLeaveCountPending;
@@ -603,11 +612,70 @@ const empLeaveDetails = async function (userId, type) {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
 			if (item.leaveAutoId === 9 && item.leavemaster) {
+				let count = await this.compOffbalabceForUser(userId);
 				item.dataValues.availableLeave = count;
-			} else {
+			} 
+			else if (item.leaveAutoId === 3 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:3
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Subcategory","DATA":`Child ${leaveCount+1}`},
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+			else if (item.leaveAutoId === 4 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:4
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+			else if (item.leaveAutoId === 5 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:5
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+				else if (item.leaveAutoId === 7 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:7
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+			else {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
-		});
+		}
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
 			where: {
@@ -631,6 +699,7 @@ const empLeaveDetails = async function (userId, type) {
 			leaveData.dataValues.availableLeave =
 				await this.compOffbalabceForUser(userId);
 		}
+		
 		if (leaveData && leaveData.leaveAutoId === 6 && leaveData.leavemaster) {
 			let countApproved = await db.employeeLeaveTransactions.findAll({
 				attributes: [
@@ -691,6 +760,7 @@ const empLeaveDetails = async function (userId, type) {
 				totalLeaveCountSystemDeducting;
 			leaveData.leavemaster.dataValues.totalPendingLeaveCount =
 				countPendingLeave; // Add totalPendingLeaveCount here
+				
 		}
 	}
 
@@ -1849,36 +1919,39 @@ const leaveCountForUserForMonth = async (
 	lastDate = null,
 ) => {
 	let result = 0;
-	console.log("overAll", overAll);
 	if (overAll == "YES") {
 		const fromMoment = moment(date).format("YYYY-MM-DD");
 		const todayDate = moment(lastDate).format("YYYY-MM-DD"); // Today's date
 		console.log("fromMoment", fromMoment, "todayDate", todayDate);
 
-		result = await db.employeeLeaveTransactions.count({
+		result= await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
-				employeeId: UserId,
-				fromDate: {
-					[Op.between]: [fromMoment, todayDate],
-				},
-				status: ["approved", "pending"],
+			employeeId: UserId,
+			fromDate: {
+			[Op.between]: [monthStart, monthEnd],
 			},
-		});
+			status: {
+			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+			},
+			},
+			});
 	} else {
 		const fromMoment = moment(date);
 		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
 		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
-		console.log("monthStart", monthStart, "monthEnd", monthEnd);
-		result = await db.employeeLeaveTransactions.count({
+
+			result= await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
-				employeeId: UserId,
-				leaveAutoId: leaveId,
-				fromDate: {
-					[Op.between]: [monthStart, monthEnd],
-				},
-				status: ["approved", "pending"],
+			employeeId: UserId,
+			leaveAutoId: leaveId,
+			fromDate: {
+			[Op.between]: [monthStart, monthEnd],
 			},
-		});
+			status: {
+			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+			},
+			},
+			});
 	}
 
 	return result;
