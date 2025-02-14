@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const message = {
 	SOMETHING_WENT_WRONG: "Something Went Wrong",
 	INTERNAL_SERVER_ERROR: "Internal Server Error",
@@ -51,7 +52,6 @@ const message = {
 	PAYMENT_REQUEST_FOR_APPROVAL: "Request Sent For Approval",
 	PAYMENT_REQUEST_APPROVED: "Payment Details has Updated Successfully",
 	PAYMENT_REQUEST_REJECTED: "Payment Details has Rejected",
-
 	SHIFT: {
 		NO_SHIFT: "No Shift Is assign to you, you can't mark attendance",
 		SHIFT_TIME_INVALID: "Invalid Shift Time",

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import Sequelize from "sequelize";
 import logger from "../helper/logger.js";
 import Employee from "../api/model/Employee.js";
@@ -155,6 +156,13 @@ import comp_off_polices from "../api/model/comp_off_polices.js";
 import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
 import status_master from "../api/model/StatusMaster.js";
 import LeaveCompanyMapping from "../api/model/LeaveCompanyMapping.js";
+
+// Leave Approval Flow ////
+import LeaveApprovalFlow from "../api/model/LeaveApprovalFlow.js";
+import LeaveApprovalLevel from "../api/model/LeaveApprovalLevel.js";
+import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
+// Leave Approval Flow ////
+
 //COMP OFF
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -416,6 +424,12 @@ db.leaveCompanyMapping = LeaveCompanyMapping(sequelize, Sequelize);
 // start lwf mapping by jay
 db.lwfMapping = LwfMapping(sequelize, Sequelize);
 // end lwf mapping by jay
+
+/// Leave Approval FLow //////
+db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
+db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
+db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize)
+/// Leave Approval FLow //////
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -1720,5 +1734,25 @@ db.leaveCompanyMapping.hasOne(db.leaveMaster, {
 });
 
 // end by jay
+
+db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
+	foreignKey: "leaveHeaderAutoId",
+	sourceKey: "employeeleaveheaderID",
+});
+
+db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
+	foreignKey: "approvalFlow_Auto_Id",
+	sourceKey: "approvalFlowAutoId",
+})
+
+db.leaveApprovalTrails.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "pendingOn",
+})
+
+// db.leaveApprovalTrails.hasOne(db.employeeMaster, {
+// 	foreignKey: "id",
+// 	sourceKey: "pendingOn",
+// })
 
 export default db;

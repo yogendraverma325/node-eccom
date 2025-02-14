@@ -41,9 +41,6 @@ export default (sequelize, Sequelize) => {
 		attachmentRequired: {
 			type: Sequelize.BOOLEAN,
 		},
-		attachmentRequiredafterdays: {
-			type: Sequelize.STRING,
-		},
 		messageRequired: {
 			type: Sequelize.BOOLEAN,
 		},
@@ -122,12 +119,6 @@ export default (sequelize, Sequelize) => {
 		maritalApplicable: {
 			type: Sequelize.STRING, // Married: 1,Single: 2, Divorced: 3,Separated: 4, Widowed: 5, Others: 6,
 		},
-		attachmentRequired: {
-			type: Sequelize.BOOLEAN,
-		},
-		messageRequired: {
-			type: Sequelize.BOOLEAN,
-		},
 		attachmentRequiredafterdays: {
 			type: Sequelize.INTEGER,
 		},
@@ -141,6 +132,9 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.INTEGER,
 		},
 		countInterveningNationalHoliday: {
+			type: Sequelize.INTEGER,
+		},
+		approvalFlow: {
 			type: Sequelize.INTEGER,
 		},
 	});
