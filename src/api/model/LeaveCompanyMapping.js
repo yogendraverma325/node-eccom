@@ -33,7 +33,8 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 		minConsecutiveDay: {
-			type: Sequelize.INTEGER,
+			type: Sequelize.DECIMAL(10, 1),
+			defaltValue: 0,
 		},
 		maxConsecutiveDay: {
 			type: Sequelize.INTEGER,
