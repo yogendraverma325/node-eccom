@@ -992,9 +992,7 @@ class LeaveController {
 				req.body.leaveAutoId,
 			);
 
-			
-			console.log("remainingLeaveCountRESP dfff", fromDate);
-			console.log("remainingLeaveCountRESP dfff", toDate);
+		
 			let arr = [];
 			let leaveDays = 0;
 			let pendingLeaveCount = 0;

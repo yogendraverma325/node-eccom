@@ -1719,6 +1719,12 @@ db.leaveCompanyMapping.hasOne(db.leaveMaster, {
 	as: "companyleaveMasterDetails",
 });
 
+db.leaveMapping.hasOne(db.leaveCompanyMapping, {
+	foreignKey: "leaveAutoId",
+	sourceKey: "leaveAutoId",
+	as:"leaveCompanyDetails"
+});
+
 // end by jay
 
 export default db;

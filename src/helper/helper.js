@@ -499,6 +499,7 @@ const getEmpProfile = async (EMP_ID) => {
 const empLeaveDetails = async function (userId, type) {
 	let leaveData = 0;
 	if (type == 0) {
+			let EMP_DATA = await getEmpProfile(userId);
 		let countApproved = await db.employeeLeaveTransactions.findAll({
 			attributes: [
 				[
@@ -590,9 +591,17 @@ const empLeaveDetails = async function (userId, type) {
 						],
 					},
 				},
+				{
+					model: db.leaveCompanyMapping,
+					as:'leaveCompanyDetails',
+					where:{
+						companyId:1
+					}
+					
+				},
 			],
 		});
-		let count = await this.compOffbalabceForUser(userId);
+		
 		// Check if leaveData is an array and process each item
 			for (const item of leaveData) {
 			if (item.leaveAutoId === 6 && item.leavemaster) {
@@ -603,6 +612,7 @@ const empLeaveDetails = async function (userId, type) {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
 			if (item.leaveAutoId === 9 && item.leavemaster) {
+				let count = await this.compOffbalabceForUser(userId);
 				item.dataValues.availableLeave = count;
 			} 
 			else if (item.leaveAutoId === 3 && item.leavemaster) {
@@ -613,15 +623,56 @@ const empLeaveDetails = async function (userId, type) {
 					leaveAutoId:3
 					}
 					});
-					console.log("userId",userId)
-					console.log("leaveCount",leaveCount)
 
 				item.dataValues.addOn = [
-				{"KEY":"Subcategory","DATA":`Child ${leaveCount}`},
-				{"KEY":"Total Application Allowed","DATA":`${leaveCount}`},
-				{"KEY":"Remaining  Application","DATA":`${leaveCount}`}
+				{"KEY":"Subcategory","DATA":`Child ${leaveCount+1}`},
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
 			];
-			}else {
+			}
+			else if (item.leaveAutoId === 4 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:4
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+			else if (item.leaveAutoId === 5 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:5
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+				else if (item.leaveAutoId === 7 && item.leavemaster) {
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+					status: { [Op.in]: ["pending", "approved"] },
+					employeeId: userId,
+					leaveAutoId:7
+					}
+					});
+
+				item.dataValues.addOn = [
+				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
+				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
+			];
+			}
+			else {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
 		}
