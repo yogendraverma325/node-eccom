@@ -4174,7 +4174,7 @@ class CommonController {
 
 					for (let j = 0; j < result1.length; j++) {
 						let query = {
-							lwfDesignationId: result1[j]?.lwfDesignationId,
+							lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
 							contributorType: result1[j]?.contributorType,
 							stateId: result1[j]?.stateId,
 						};
@@ -4184,6 +4184,7 @@ class CommonController {
 						if (response.status == 200) {
 							let updateObj = {
 								...result1[j],
+								lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
 								updatedBy: req.userId,
 						        updatedAt: moment().format("YYYY-MM-DD")
 							}
@@ -4192,6 +4193,7 @@ class CommonController {
 						} else {
 							arr.push({
 								...result1[j],
+							    lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
 								createdBy: req.userId,
 								isActive: 1,
 								createdAt: moment().format("YYYY-MM-DD"),
