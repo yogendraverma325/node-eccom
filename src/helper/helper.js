@@ -1919,36 +1919,39 @@ const leaveCountForUserForMonth = async (
 	lastDate = null,
 ) => {
 	let result = 0;
-	console.log("overAll", overAll);
 	if (overAll == "YES") {
 		const fromMoment = moment(date).format("YYYY-MM-DD");
 		const todayDate = moment(lastDate).format("YYYY-MM-DD"); // Today's date
 		console.log("fromMoment", fromMoment, "todayDate", todayDate);
 
-		result = await db.employeeLeaveTransactions.count({
+		result= await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
-				employeeId: UserId,
-				fromDate: {
-					[Op.between]: [fromMoment, todayDate],
-				},
-				status: ["approved", "pending"],
+			employeeId: UserId,
+			fromDate: {
+			[Op.between]: [monthStart, monthEnd],
 			},
-		});
+			status: {
+			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+			},
+			},
+			});
 	} else {
 		const fromMoment = moment(date);
 		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
 		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
-		console.log("monthStart", monthStart, "monthEnd", monthEnd);
-		result = await db.employeeLeaveTransactions.count({
+
+			result= await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
-				employeeId: UserId,
-				leaveAutoId: leaveId,
-				fromDate: {
-					[Op.between]: [monthStart, monthEnd],
-				},
-				status: ["approved", "pending"],
+			employeeId: UserId,
+			leaveAutoId: leaveId,
+			fromDate: {
+			[Op.between]: [monthStart, monthEnd],
 			},
-		});
+			status: {
+			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+			},
+			},
+			});
 	}
 
 	return result;
