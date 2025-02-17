@@ -4181,18 +4181,20 @@ class CommonController {
 
 							let isFindQuery = {
 								[Op.and]: [
-								  { lwfDesignationId: { [Op.not]: lwfmappings[i]?.lwfDesignationId } },
-								  { stateId: { [Op.not]: result1[j]?.stateId } }
+								  { lwfDesignationId: lwfmappings[i]?.lwfDesignationId },
+								  { stateId: result1[j]?.stateId },
+								  { [Op.not]: { lwfMappingId: result1[j]?.lwfMappingId }}
 								]
 							  };
 	
-							let response = await service.details(model, isFindQuery);
-							if(response.status === 200) {
-								return respHelper(res, {
-									status: 400,
-									msg: constant.ALREADY_EXISTS.replace("<module>", "LWF"),
-									data: {},
-								});
+							let existingData = await db.lwfMapping.findAll({ where: isFindQuery, attributes: ['lwfMappingId'] });
+							if(existingData.length > 1) {
+								j++;
+								// return respHelper(res, {
+								// 	status: 400,
+								// 	msg: constant.ALREADY_EXISTS.replace("<module>", "LWF"),
+								// 	data: {},
+								// });
 							}
 							else {
 								let updateObj = {
