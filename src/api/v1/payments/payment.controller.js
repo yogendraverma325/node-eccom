@@ -3276,14 +3276,6 @@ class PaymentController {
 				customSheetName = "Payroll Processing Employees";
 			}
 
-			if (exportSheetAutoId === "6") {
-				customSheetName = "Extra Benefit Sample";
-			} else if (exportSheetAutoId === "7") {
-				customSheetName = "Leave Encashment Sample";
-			} else if (exportSheetAutoId === "8") {
-				customSheetName = "Gratuity Sample";
-			}
-
 			const sheetName = {
 				"TDS Deduction Sample": 1,
 				"LOP Deduction Sample": 2,
@@ -3301,6 +3293,9 @@ class PaymentController {
 				"Total Processed": 14,
 				"Successfully Processed": 15,
 				"Failed in Process": 16,
+				"Extra Benefit Sample": 17,
+				"Leave Encashment Sample": 18,
+				"Gratuity Sample": 19
 			};
 
 			const getKeyByValue = async (value) => {
