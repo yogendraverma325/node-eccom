@@ -2778,6 +2778,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 										annualAllotment:singleLeave?.leave_allowed_in_year,
 									};
 								}
+								console.log("leaveObj",leaveObj)
 			 await db.leaveMapping.findOrCreate({
 			where: {
 			EmployeeId: leaveObj.EmployeeId,
@@ -2787,7 +2788,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 			availableLeave: leaveObj?.availableLeave,
 			accruedThisYear: leaveObj?.accruedThisYear,
 			isActive: 1,
-			annualAllotment:leaveObj?.leave_allowed_in_year,
+			annualAllotment:leaveObj?.annualAllotment,
 			},
 			});
 
