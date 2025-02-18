@@ -1985,9 +1985,9 @@ const leaveCountForUserForMonth = async (
 		result= await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
 			employeeId: UserId,
-			fromDate: {
-			[Op.between]: [monthStart, monthEnd],
-			},
+			// fromDate: {
+			// [Op.between]: [monthStart, monthEnd],
+			// },
 			status: {
 			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
 			},

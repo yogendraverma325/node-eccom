@@ -826,10 +826,15 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				});
 			}
 
+			
+
+let minConsecutiveDay = parseFloat(leaveMasterData?.minConsecutiveDay) || 0;
+let workingDay = parseFloat(this.workingday) || 0;
+
 			if (
-				leaveMasterData?.minConsecutiveDay != 0 &&
-				this.workingday < leaveMasterData?.minConsecutiveDay
+				minConsecutiveDay > 0 && workingDay < minConsecutiveDay
 			) {
+				console.log("all set jhhj")
 				return respHelper(res, {
 					status: 404,
 					data: {},
@@ -839,6 +844,8 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 					),
 				});
 			}
+
+			
 
 			if (
 				leaveMasterData.attachmentRequired == true &&
