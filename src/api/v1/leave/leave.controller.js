@@ -2698,7 +2698,7 @@ existingRecord.leaveAutoId === 9
 			return respHelper(res, {
 				status: 200,
 				message: "Leave updated successfully",
-				data: employees.length,
+				data: empids.length,
 			});
 		} catch (error) {
 			console.log(error);
