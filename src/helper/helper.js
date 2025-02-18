@@ -2736,6 +2736,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 										availableLeave: singleLeave?.leave_allowed_in_year,
 										accruedThisYear:  singleLeave?.leave_allowed_in_year,
 										isActive: 1,
+										annualAllotment:singleLeave?.leave_allowed_in_year,
 									};
 								} else if (
 									creditOnAccuralBasis == 1 &&
@@ -2753,6 +2754,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 												?  singleLeave?.defaultLeaveCount / 2
 												: singleLeave?.defaultLeaveCount,
 										isActive: 1,
+										annualAllotment:singleLeave?.leave_allowed_in_year,
 									};
 								} else if (
 									creditOnAccuralBasis == 0 &&
@@ -2764,6 +2766,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 										availableLeave: singleLeave?.defaultLeaveCount * monthsLeft,
 										accruedThisYear: singleLeave?.defaultLeaveCount * monthsLeft,
 										isActive: 1,
+										annualAllotment:singleLeave?.leave_allowed_in_year,
 									};
 								} else {
 									 leaveObj= {
@@ -2772,6 +2775,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 										availableLeave: singleLeave?.defaultLeaveCount,
 										accruedThisYear: singleLeave?.defaultLeaveCount,
 										isActive: 1,
+										annualAllotment:singleLeave?.leave_allowed_in_year,
 									};
 								}
 			 await db.leaveMapping.findOrCreate({
