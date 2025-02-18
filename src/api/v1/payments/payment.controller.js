@@ -3276,6 +3276,8 @@ class PaymentController {
 				customSheetName = "Payroll Processing Employees";
 			}
 
+			console.log(req.query);
+
 			const sheetName = {
 				"TDS Deduction Sample": 1,
 				"LOP Deduction Sample": 2,
@@ -3295,7 +3297,7 @@ class PaymentController {
 				"Failed in Process": 16,
 				"Extra Benefit Sample": 17,
 				"Leave Encashment Sample": 18,
-				"Gratuity Sample": 19
+				"Gratuity Sample": 19 
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3357,7 +3359,7 @@ class PaymentController {
 			}
 			// return
 			let employeeData = [];
-			if (salalryStructureAutoId == 0 && exportSheetAutoId == 9) {
+			if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
 				console.log(employeeIds);
