@@ -168,6 +168,10 @@ export default (sequelize, Sequelize) => {
 		max_allowed_in_year: {
 			type: Sequelize.INTEGER,
 		},
+		leave_allowed_in_year: {
+			type: Sequelize.DECIMAL(10, 1),
+			defaltValue: 0,
+		},
 	});
 	return leaveCompanyMapping;
 };
