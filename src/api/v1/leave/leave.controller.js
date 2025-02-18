@@ -2750,11 +2750,7 @@ existingRecord.leaveAutoId === 9
 					employee.dataValues.employeejobdetail?.dateOfJoining;
 					
 
-				console.log("dateOfJoining", dateOfJoining);
-				console.log("genderNumber",genderNumber)
-				console.log("maritalStatus",maritalStatus)
-				console.log("employee.dataValues.employeeType",employee.dataValues.employeeType)
-
+				
 
 					const leaveMaster = await db.leaveCompanyMapping.findAll({
 				attributes: [
@@ -2865,7 +2861,6 @@ const creditOnAccuralBasis =singleLeave?.creditOnAccuralBasis;
 const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 
 				if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
-					console.log("case 1");
 									 leaveObj= {
 										EmployeeId: employee.id,
 										leaveAutoId: singleLeave?.leaveAutoId,
@@ -2877,7 +2872,6 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 									creditOnAccuralBasis == 1 &&
 									creditOnProRataBasis == 1
 								) {
-									console.log("case 2");
 									 leaveObj= {
 										EmployeeId: employee.id,
 										leaveAutoId: singleLeave?.leaveAutoId,
@@ -2895,7 +2889,6 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 									creditOnAccuralBasis == 0 &&
 									creditOnProRataBasis == 1
 								) {
-									console.log("case 3");
 									 leaveObj= {
 										EmployeeId: employee.id,
 										leaveAutoId: singleLeave?.leaveAutoId,
@@ -2904,7 +2897,6 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 										isActive: 1,
 									};
 								} else {
-									console.log("case 4");
 									 leaveObj= {
 										EmployeeId: employee.id,
 										leaveAutoId:  singleLeave?.leaveAutoId,
