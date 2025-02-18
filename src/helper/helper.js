@@ -2787,6 +2787,7 @@ const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
 			availableLeave: leaveObj?.availableLeave,
 			accruedThisYear: leaveObj?.accruedThisYear,
 			isActive: 1,
+			annualAllotment:leaveObj?.leave_allowed_in_year,
 			},
 			});
 
