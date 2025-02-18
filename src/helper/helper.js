@@ -499,7 +499,7 @@ const getEmpProfile = async (EMP_ID) => {
 const empLeaveDetails = async function (userId, type) {
 	let leaveData = 0;
 	if (type == 0) {
-			let EMP_DATA = await getEmpProfile(userId);
+		let EMP_DATA = await getEmpProfile(userId);
 		let countApproved = await db.employeeLeaveTransactions.findAll({
 			attributes: [
 				[
@@ -593,43 +593,37 @@ const empLeaveDetails = async function (userId, type) {
 				},
 				{
 					model: db.leaveCompanyMapping,
-					as:'leaveCompanyDetails',
-					where:{
-						companyId:1
-					}
-					
+					as: "leaveCompanyDetails",
+					where: {
+						companyId: 1,
+					},
 				},
 			],
 		});
-		
-		// Check if leaveData is an array and process each item
-			for (const item of leaveData) {
-				let adddon=[];
-				let policy=[];
 
-				const leaveMasterData = await leaveDetailsMaster(
+		// Check if leaveData is an array and process each item
+		for (const item of leaveData) {
+			let adddon = [];
+			let policy = [];
+
+			const leaveMasterData = await leaveDetailsMaster(
 				item.leaveAutoId,
 				EMP_DATA,
-				);
-				if(leaveMasterData){
-					if(leaveMasterData?.countInterveningWeekOff==1){
-				   policy.push(
-						{"KEY":"Week offs","DATA":`within leave are counted`},
-					);
-					}
-					if(leaveMasterData?.countInterveningHoliday==1){
-				   policy.push(
-						{"KEY":"Holiday","DATA":`within leave are counted`},
-					);
-					}
-					if(leaveMasterData?.countInterveningNationalHoliday==1){
-				   policy.push(
-						{"KEY":"National Holiday","DATA":`within leave are counted`},
-					);
-					}
-					
-
+			);
+			if (leaveMasterData) {
+				if (leaveMasterData?.countInterveningWeekOff == 1) {
+					policy.push({ KEY: "Week offs", DATA: `within leave are counted` });
 				}
+				if (leaveMasterData?.countInterveningHoliday == 1) {
+					policy.push({ KEY: "Holiday", DATA: `within leave are counted` });
+				}
+				if (leaveMasterData?.countInterveningNationalHoliday == 1) {
+					policy.push({
+						KEY: "National Holiday",
+						DATA: `within leave are counted`,
+					});
+				}
+			}
 
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
@@ -641,72 +635,90 @@ const empLeaveDetails = async function (userId, type) {
 			if (item.leaveAutoId === 9 && item.leavemaster) {
 				let count = await this.compOffbalabceForUser(userId);
 				item.dataValues.availableLeave = count;
-			} 
-			else if (item.leaveAutoId === 3 && item.leavemaster) {
-					let leaveCount = await db.EmployeeLeaveHeader.count({
+			} else if (item.leaveAutoId === 3 && item.leavemaster) {
+				let leaveCount = await db.EmployeeLeaveHeader.count({
 					where: {
-					status: { [Op.in]: ["pending", "approved"] },
-					employeeId: userId,
-					leaveAutoId:3
-					}
-					});
-
-				 adddon = [
-				{"KEY":"Subcategory","DATA":`Child ${leaveCount+1}`},
-				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
-				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
-			];
-			}
-			else if (item.leaveAutoId === 4 && item.leavemaster) {
-					let leaveCount = await db.EmployeeLeaveHeader.count({
-					where: {
-					status: { [Op.in]: ["pending", "approved"] },
-					employeeId: userId,
-					leaveAutoId:4
-					}
-					});
-
-				  adddon = [
-				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
-				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
-			];
-			}
-			else if (item.leaveAutoId === 5 && item.leavemaster) {
-					let leaveCount = await db.EmployeeLeaveHeader.count({
-					where: {
-					status: { [Op.in]: ["pending", "approved"] },
-					employeeId: userId,
-					leaveAutoId:5
-					}
-					});
+						status: { [Op.in]: ["pending", "approved"] },
+						employeeId: userId,
+						leaveAutoId: 3,
+					},
+				});
 
 				adddon = [
-				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
-				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
-			];
-			}
-				else if (item.leaveAutoId === 7 && item.leavemaster) {
-					let leaveCount = await db.EmployeeLeaveHeader.count({
+					{ KEY: "Subcategory", DATA: `Child ${leaveCount + 1}` },
+					{
+						KEY: "Total Application Allowed",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount}`,
+					},
+					{
+						KEY: "Remaining  Application",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount - leaveCount}`,
+					},
+				];
+			} else if (item.leaveAutoId === 4 && item.leavemaster) {
+				let leaveCount = await db.EmployeeLeaveHeader.count({
 					where: {
-					status: { [Op.in]: ["pending", "approved"] },
-					employeeId: userId,
-					leaveAutoId:7
-					}
-					});
+						status: { [Op.in]: ["pending", "approved"] },
+						employeeId: userId,
+						leaveAutoId: 4,
+					},
+				});
 
 				adddon = [
-				{"KEY":"Total Application Allowed","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount}`},
-				{"KEY":"Remaining  Application","DATA":`${item?.dataValues?.leaveCompanyDetails?.tenureCount-leaveCount}`}
-			];
-			}
-			else {
+					{
+						KEY: "Total Application Allowed",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount}`,
+					},
+					{
+						KEY: "Remaining  Application",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount - leaveCount}`,
+					},
+				];
+			} else if (item.leaveAutoId === 5 && item.leavemaster) {
+				let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+						status: { [Op.in]: ["pending", "approved"] },
+						employeeId: userId,
+						leaveAutoId: 5,
+					},
+				});
+
+				adddon = [
+					{
+						KEY: "Total Application Allowed",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount}`,
+					},
+					{
+						KEY: "Remaining  Application",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount - leaveCount}`,
+					},
+				];
+			} else if (item.leaveAutoId === 7 && item.leavemaster) {
+				let leaveCount = await db.EmployeeLeaveHeader.count({
+					where: {
+						status: { [Op.in]: ["pending", "approved"] },
+						employeeId: userId,
+						leaveAutoId: 7,
+					},
+				});
+
+				adddon = [
+					{
+						KEY: "Total Application Allowed",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount}`,
+					},
+					{
+						KEY: "Remaining  Application",
+						DATA: `${item?.dataValues?.leaveCompanyDetails?.tenureCount - leaveCount}`,
+					},
+				];
+			} else {
 				item.dataValues.totalPendingLeaveCount = countPendingLeave;
 			}
 
 			if (item.leaveAutoId && item.leavemaster) {
-				item.dataValues.addOn =[...policy,...adddon];
+				item.dataValues.addOn = [...policy, ...adddon];
 			}
-			
 		}
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
@@ -731,7 +743,7 @@ const empLeaveDetails = async function (userId, type) {
 			leaveData.dataValues.availableLeave =
 				await this.compOffbalabceForUser(userId);
 		}
-		
+
 		if (leaveData && leaveData.leaveAutoId === 6 && leaveData.leavemaster) {
 			let countApproved = await db.employeeLeaveTransactions.findAll({
 				attributes: [
@@ -792,7 +804,6 @@ const empLeaveDetails = async function (userId, type) {
 				totalLeaveCountSystemDeducting;
 			leaveData.leavemaster.dataValues.totalPendingLeaveCount =
 				countPendingLeave; // Add totalPendingLeaveCount here
-				
 		}
 	}
 
@@ -1093,53 +1104,47 @@ const remainingLeaveCount = async function (
 	const shouldCountNationalHolidays =
 		countInterveningWeekOff?.countInterveningNationalHoliday === 1;
 
+	const leaveMasterData = await leaveDetailsMaster(leaveAutoId, EMP_DATA);
 
-		const leaveMasterData = await leaveDetailsMaster(
-				leaveAutoId,
-				EMP_DATA
-			);
-
-			
-		if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
+	if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
 		if (leaveMasterData.weekly_prefix_policy == 0) {
 			let prefixDate = moment(startDate)
-			.subtract(1, "day")
-			.format("YYYY-MM-DD");
+				.subtract(1, "day")
+				.format("YYYY-MM-DD");
 
 			let checkWeekOff = await checkWeekOffOfEMPforData(
-			EMP_DATA?.weekOffId,
-			prefixDate,
+				EMP_DATA?.weekOffId,
+				prefixDate,
 			);
 			if (checkWeekOff > 0) {
 				if (!total_working_dates.includes(prefixDate)) {
-				total_working_dates.push(prefixDate);
-				workingCount += 1;
+					total_working_dates.push(prefixDate);
+					workingCount += 1;
 				}
 			}
 		}
 		if (leaveMasterData.holiday_prefix_policy == 0) {
-					let prefixDate = moment(startDate)
-						.subtract(1, "day")
-						.format("YYYY-MM-DD");
+			let prefixDate = moment(startDate)
+				.subtract(1, "day")
+				.format("YYYY-MM-DD");
 
-					let leaveCheck = await checkHolidayEMPforData(
-						EMP_DATA?.companyLocationId,
-						prefixDate,
-					);
-					if (leaveCheck) {
-						if (!total_working_dates.includes(prefixDate)) {
-						total_working_dates.push(prefixDate);
-						workingCount += 1;
-						}
-					}
+			let leaveCheck = await checkHolidayEMPforData(
+				EMP_DATA?.companyLocationId,
+				prefixDate,
+			);
+			if (leaveCheck) {
+				if (!total_working_dates.includes(prefixDate)) {
+					total_working_dates.push(prefixDate);
+					workingCount += 1;
 				}
+			}
 		}
-		
-		//console.log("total_working_dates",total_working_dates)
+	}
 
-				
-  console.log("========= daysDifferenceReq",daysDifferenceReq)
-	for (let i = 0; i <= daysDifferenceReq; i++) { 
+	//console.log("total_working_dates",total_working_dates)
+
+	console.log("========= daysDifferenceReq", daysDifferenceReq);
+	for (let i = 0; i <= daysDifferenceReq; i++) {
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
 		let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
@@ -1149,7 +1154,6 @@ const remainingLeaveCount = async function (
 		let occurrence = Math.ceil(dayOfMonth / 7);
 		// Output the result
 
-	
 		let occurrenceDayCondition = {};
 		switch (occurrence) {
 			case 1:
@@ -1198,102 +1202,123 @@ const remainingLeaveCount = async function (
 			],
 		});
 
-		let employeeHolidays =await db.holidayCompanyLocationConfiguration.findOne({
-					where: { companyLocationId: companyLocationId },
-					include: {
-						model: db.holidayMaster,
-						where: { holidayDate: appliedFor },
-						as: "holidayDetails",
-						required: true,
-					},
-				});
-         let isNationalHoliday =employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
-console.log("employeeHolidays",(employeeHolidays)?'yes':'no')
-	console.log("appliedFor",appliedFor,"day",i)
-		if(daysDifferenceReq==0){
-			if(existEmployees.weekOffDayMappingMasters.length==0 && !employeeHolidays){
+		let employeeHolidays = await db.holidayCompanyLocationConfiguration.findOne(
+			{
+				where: { companyLocationId: companyLocationId },
+				include: {
+					model: db.holidayMaster,
+					where: { holidayDate: appliedFor },
+					as: "holidayDetails",
+					required: true,
+				},
+			},
+		);
+		let isNationalHoliday =
+			employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
+		console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
+		console.log("appliedFor", appliedFor, "day", i);
+		if (daysDifferenceReq == 0) {
+			if (
+				existEmployees.weekOffDayMappingMasters.length == 0 &&
+				!employeeHolidays
+			) {
 				if (!total_working_dates.includes(appliedFor)) {
-				total_working_dates.push(appliedFor);
-				workingCount += 1;
+					total_working_dates.push(appliedFor);
+					workingCount += 1;
 				}
 			}
-			console.log("single daya")
+			console.log("single daya");
+		} else {
+			if (i == 0 || i == daysDifferenceReq) {
+				console.log("first and last");
 
-		}
-		else{
-			if(i==0 || i==daysDifferenceReq){
-				console.log("first and last")
-					
-				if(existEmployees.weekOffDayMappingMasters.length==0 && !employeeHolidays){
-				if (!total_working_dates.includes(appliedFor)) {
-				total_working_dates.push(appliedFor);
-				workingCount += 1;
-				}
-				}
-			}else{
-
-				if(shouldCountWeekOffs && existEmployees.weekOffDayMappingMasters.length>0){
-				if (!total_working_dates.includes(appliedFor)) {
-				total_working_dates.push(appliedFor);
-				workingCount += 1;
-				}	
-				}else if(isNationalHoliday == 1 && shouldCountNationalHolidays == true && employeeHolidays){
+				if (
+					existEmployees.weekOffDayMappingMasters.length == 0 &&
+					!employeeHolidays
+				) {
 					if (!total_working_dates.includes(appliedFor)) {
-					total_working_dates.push(appliedFor);
-					workingCount += 1;
+						total_working_dates.push(appliedFor);
+						workingCount += 1;
 					}
-				}else if(isNationalHoliday == 0 && shouldCountHolidays == true && employeeHolidays){
-					if (!total_working_dates.includes(appliedFor)) {
-					total_working_dates.push(appliedFor);
-					workingCount += 1;
-					}
-				}else if (!employeeHolidays && existEmployees.weekOffDayMappingMasters.length==0){
-						if (!total_working_dates.includes(appliedFor)) {
-					total_working_dates.push(appliedFor);
-					workingCount += 1;
-					}
-
 				}
-				console.log(" middle week off",existEmployees.weekOffDayMappingMasters.length,"shouldCountWeekOffs",shouldCountWeekOffs,"occurrence",occurrence)
-				
-		
-			
+			} else {
+				if (
+					shouldCountWeekOffs &&
+					existEmployees.weekOffDayMappingMasters.length > 0
+				) {
+					if (!total_working_dates.includes(appliedFor)) {
+						total_working_dates.push(appliedFor);
+						workingCount += 1;
+					}
+				} else if (
+					isNationalHoliday == 1 &&
+					shouldCountNationalHolidays == true &&
+					employeeHolidays
+				) {
+					if (!total_working_dates.includes(appliedFor)) {
+						total_working_dates.push(appliedFor);
+						workingCount += 1;
+					}
+				} else if (
+					isNationalHoliday == 0 &&
+					shouldCountHolidays == true &&
+					employeeHolidays
+				) {
+					if (!total_working_dates.includes(appliedFor)) {
+						total_working_dates.push(appliedFor);
+						workingCount += 1;
+					}
+				} else if (
+					!employeeHolidays &&
+					existEmployees.weekOffDayMappingMasters.length == 0
+				) {
+					if (!total_working_dates.includes(appliedFor)) {
+						total_working_dates.push(appliedFor);
+						workingCount += 1;
+					}
+				}
+				console.log(
+					" middle week off",
+					existEmployees.weekOffDayMappingMasters.length,
+					"shouldCountWeekOffs",
+					shouldCountWeekOffs,
+					"occurrence",
+					occurrence,
+				);
 			}
-
 		}
-		console.log("============")
-		
+		console.log("============");
 	}
 
 	if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
 		if (leaveMasterData.holiday_suffix_policy == 0) {
-					let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
+			let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
 
-					let leaveCheck = await checkHolidayEMPforData(
-						EMP_DATA?.companyLocationId,
-						subfixDate,
-					);
-					if (leaveCheck) {
-					if (!total_working_dates.includes(subfixDate)) {
-						total_working_dates.push(subfixDate);
-						workingCount += 1;
-						}
-					}
+			let leaveCheck = await checkHolidayEMPforData(
+				EMP_DATA?.companyLocationId,
+				subfixDate,
+			);
+			if (leaveCheck) {
+				if (!total_working_dates.includes(subfixDate)) {
+					total_working_dates.push(subfixDate);
+					workingCount += 1;
 				}
-		if (leaveMasterData.weekly_suffix_policy == 0) {
-					let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
-					let checkWeekOff = await checkWeekOffOfEMPforData(
-						EMP_DATA?.weekOffId,
-						subfixDate,
-					);
-					if (checkWeekOff > 0) {
-						if (!total_working_dates.includes(subfixDate)) {
-						total_working_dates.push(subfixDate);
-						workingCount += 1;
-						}
-					}
-				}
+			}
 		}
+		if (leaveMasterData.weekly_suffix_policy == 0) {
+			let subfixDate = moment(endDate).add(1, "day").format("YYYY-MM-DD");
+			let checkWeekOff = await checkWeekOffOfEMPforData(
+				EMP_DATA?.weekOffId,
+				subfixDate,
+			);
+			if (checkWeekOff > 0) {
+				if (!total_working_dates.includes(subfixDate)) {
+					total_working_dates.push(subfixDate);
+					workingCount += 1;
+				}
+			}
+		}
+	}
 	return total_working_dates;
 };
 
@@ -1885,7 +1910,7 @@ const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
 			as: "companyleaveMasterDetails",
 			where: {
 				isActive: 1,
-			}
+			},
 		},
 	});
 	return leaveData;
@@ -1982,34 +2007,34 @@ const leaveCountForUserForMonth = async (
 		const todayDate = moment(lastDate).format("YYYY-MM-DD"); // Today's date
 		//console.log("fromMoment", fromMoment, "todayDate", todayDate);
 
-		result= await db.employeeLeaveTransactions.sum("leaveCount", {
+		result = await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
-			employeeId: UserId,
-			// fromDate: {
-			// [Op.between]: [monthStart, monthEnd],
-			// },
-			status: {
-			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+				employeeId: UserId,
+				// fromDate: {
+				// [Op.between]: [monthStart, monthEnd],
+				// },
+				status: {
+					[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+				},
 			},
-			},
-			});
+		});
 	} else {
 		const fromMoment = moment(date);
 		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
 		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
 
-			result= await db.employeeLeaveTransactions.sum("leaveCount", {
+		result = await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
-			employeeId: UserId,
-			leaveAutoId: leaveId,
-			fromDate: {
-			[Op.between]: [monthStart, monthEnd],
+				employeeId: UserId,
+				leaveAutoId: leaveId,
+				fromDate: {
+					[Op.between]: [monthStart, monthEnd],
+				},
+				status: {
+					[Op.in]: ["approved", "pending"], // ✅ Fix status condition
+				},
 			},
-			status: {
-			[Op.in]: ["approved", "pending"], // ✅ Fix status condition
-			},
-			},
-			});
+		});
 	}
 
 	return result;
@@ -2496,21 +2521,94 @@ const actionOnLeaveCompOff = async (
 const leaveCreditMonthCron = async () => {
 	const transaction = await db.sequelize.transaction();
 	try {
-		const getMappedLeave = await db.leaveMapping.findAll({
-			attributes: ["EmployeeId", "leaveAutoId"],
-			where: { isActive: 1 },
-			include: [
-				{
-					model: db.employeeMaster,
-					attributes: ["companyId"],
+		const today = moment("2025-02-01");
+		const firstDayOfMonth = today.clone().startOf("month").format("D");
+		const lastDayOfMonth = today.clone().endOf("month").format("D");
+		const currentDay = today.clone().format("D");
+
+		let leaves = [];
+		let effectedEmpS = [];
+		if (currentDay == firstDayOfMonth) {
+			leaves = await db.leaveCompanyMapping.findAll({
+				where: {
+					iterationDistribution: { [Op.ne]: parseFloat(0) },
+					creditOnAccuralBasis: 1,
+					isActive: 1,
+					creditOn: 0,
+					//creditDayOfMonth: moment().format("D"),
+				},
+				transaction,
+			});
+			for (const singleLeaves of leaves) {
+				console.log("start day of month  company", singleLeaves.companyId);
+				console.log("start day of month emp type", singleLeaves.empType);
+
+				effectedEmpS = await db.employeeMaster.findAll({
+					attributes: ["id", "empCode"],
+					include: [
+						{
+							model: db.jobDetails,
+							required: true,
+							attributes: [
+								"dateOfJoining",
+								"dateOfProbationEnd",
+								"confirmationDate",
+								"confirmationGenerated",
+								"noticePeriodStatus",
+							],
+						},
+					],
 					where: {
 						isActive: 1,
-						companyId: { [Op.ne]: null },
+						companyId: singleLeaves.companyId,
+						empCode: "13675",
+						employeeType: singleLeaves.empType.split(","),
 					},
-				},
-			],
-			raw: false,
-		});
+					limit: 1,
+				});
+				for (const singleeffectedEmp of effectedEmpS) {
+					console.log("singleeffectedEmp id", singleeffectedEmp.id);
+					console.log(
+						"singleeffectedEmp DOJ",
+						singleeffectedEmp.employeejobdetail.dateOfJoining,
+					);
+					let dateOfJoining = singleeffectedEmp.employeejobdetail.dateOfJoining;
+
+					await db.leaveMapping.increment(
+						{
+							availableLeave: singleLeaves.iterationDistribution,
+							accruedThisYear: singleLeaves.iterationDistribution,
+						},
+						{
+							where: {
+								EmployeeId: singleeffectedEmp.id,
+								leaveAutoId: singleLeaves.leaveAutoId,
+							},
+						},
+					);
+				}
+			}
+		}
+
+		return effectedEmpS;
+
+		// const getMappedLeave = await db.leaveMapping.findAll({
+		// 	attributes: ["EmployeeId", "leaveAutoId"],
+		// 	where: { isActive: 1 },
+		// 	include: [
+		// 		{
+		// 			model: db.employeeMaster,
+		// 			attributes: ["companyId"],
+		// 			where: {
+		// 				isActive: 1,
+		// 				companyId: { [Op.ne]: null },
+		// 			},
+		// 		},
+		// 	],
+		// 	raw: false,
+		// });
+
+		return;
 		for (const employee of getMappedLeave) {
 			const getIncrementValue = await db.leaveCompanyMapping.findOne({
 				where: {
@@ -2558,70 +2656,64 @@ const leaveCreditMonthCron = async () => {
 ///COMPOFF
 
 //LEAVE ASSIGNMENT
-const leaveAssignEmployeeToAll = async (empIdsInput) => { 
+const leaveAssignEmployeeToAll = async (empIdsInput) => {
 	try {
 		let empIds = empIdsInput.split(",");
 		const employees = await db.employeeMaster.findAll({
-				attributes: ["id", "empCode", "employeeType", "companyId"],
-				where: {
-					isActive: 1,
-					id: empIds,
+			attributes: ["id", "empCode", "employeeType", "companyId"],
+			where: {
+				isActive: 1,
+				id: empIds,
+			},
+			include: [
+				{
+					model: db.companyMaster,
+					attributes: ["companyName"],
+					required: true,
+					include: [
+						{
+							model: db.leaveCompanyMapping,
+							attributes: [
+								"leaveCompanyId",
+								"leaveAutoId",
+								"companyId",
+								"empType",
+								"genderApplicable",
+								"defaultLeaveCount",
+								"maritalApplicable",
+							],
+						},
+					],
 				},
-				include: [
-					{
-						model: db.companyMaster,
-						attributes: ["companyName"],
-						required: true,
-						include: [
-							{
-								model: db.leaveCompanyMapping,
-								attributes: [
-									"leaveCompanyId",
-									"leaveAutoId",
-									"companyId",
-									"empType",
-									"genderApplicable",
-									"defaultLeaveCount",
-									"maritalApplicable",
-								],
-							},
-						],
-					},
-					{
-						model: db.biographicalDetails,
-						attributes: ["biographicalId", "maritalStatus", "gender"],
-						required: true,
-					},
-					{
-						model: db.jobDetails,
-						attributes: ["jobId", "dateOfJoining"],
-						where: { dateOfJoining: { [Op.ne]: null } },
-						required: true,
-					},
-				],
-			});
+				{
+					model: db.biographicalDetails,
+					attributes: ["biographicalId", "maritalStatus", "gender"],
+					required: true,
+				},
+				{
+					model: db.jobDetails,
+					attributes: ["jobId", "dateOfJoining"],
+					where: { dateOfJoining: { [Op.ne]: null } },
+					required: true,
+				},
+			],
+		});
 
-		
+		for (const employee of employees) {
+			const { gender, maritalStatus } =
+				employee.dataValues.employeebiographicaldetail;
+			const leaveCompanyMappings =
+				employee.dataValues.companymaster?.leavecompanymappings || [];
+			const leaveAutoIds = leaveCompanyMappings.map(
+				(mapping) => mapping.leaveAutoId,
+			);
+			const genderNumber = gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
+			const companyId = employee.dataValues.companyId;
+			const employeeId = employee.dataValues.id;
+			const dateOfJoining =
+				employee.dataValues.employeejobdetail?.dateOfJoining;
 
-			for (const employee of employees) {
-				const { gender, maritalStatus } =
-					employee.dataValues.employeebiographicaldetail;
-				const leaveCompanyMappings =
-					employee.dataValues.companymaster?.leavecompanymappings || [];
-				const leaveAutoIds = leaveCompanyMappings.map(
-					(mapping) => mapping.leaveAutoId,
-				);
-				const genderNumber =
-					gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
-				const companyId = employee.dataValues.companyId;
-				const employeeId = employee.dataValues.id;
-				const dateOfJoining =
-					employee.dataValues.employeejobdetail?.dateOfJoining;
-					
-
-				
-
-					const leaveMaster = await db.leaveCompanyMapping.findAll({
+			const leaveMaster = await db.leaveCompanyMapping.findAll({
 				attributes: [
 					"leaveAutoId",
 					"companyId",
@@ -2633,177 +2725,168 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					"startCalculateLeaveAfterProbation",
 					"roundingInProRataBalance",
 					"creditOnAccuralBasis",
-					"leave_allowed_in_year"
+					"leave_allowed_in_year",
 				],
-					where: {
-						[Op.and]: [
-							{
-								genderApplicable: {
-									[Op.or]: [
-										{
-											[Op.like]: `${genderNumber},%`,
-										},
-										{
-											[Op.like]: `%,${genderNumber},%`,
-										},
-										{
-											[Op.like]: `%,${genderNumber}`,
-										},
-										{
-											[Op.eq]: `${genderNumber}`,
-										},
-									],
-								},
+				where: {
+					[Op.and]: [
+						{
+							genderApplicable: {
+								[Op.or]: [
+									{
+										[Op.like]: `${genderNumber},%`,
+									},
+									{
+										[Op.like]: `%,${genderNumber},%`,
+									},
+									{
+										[Op.like]: `%,${genderNumber}`,
+									},
+									{
+										[Op.eq]: `${genderNumber}`,
+									},
+								],
 							},
-							{
-								maritalApplicable: {
-									[Op.or]: [
-										{
-											[Op.like]: `${maritalStatus},%`,
-										},
-										{
-											[Op.like]: `%,${maritalStatus},%`,
-										},
-										{
-											[Op.like]: `%,${maritalStatus}`,
-										},
-										{
-											[Op.eq]: `${maritalStatus}`,
-										},
-									],
-								},
+						},
+						{
+							maritalApplicable: {
+								[Op.or]: [
+									{
+										[Op.like]: `${maritalStatus},%`,
+									},
+									{
+										[Op.like]: `%,${maritalStatus},%`,
+									},
+									{
+										[Op.like]: `%,${maritalStatus}`,
+									},
+									{
+										[Op.eq]: `${maritalStatus}`,
+									},
+								],
 							},
-							{
-								empType: {
-									[Op.or]: [
-										{
-											[Op.like]: `${employee.dataValues.employeeType},%`,
-										},
-										{
-											[Op.like]: `%,${employee.dataValues.employeeType},%`,
-										},
-										{
-											[Op.like]: `%,${employee.dataValues.employeeType}`,
-										},
-										{
-											[Op.eq]: `${employee.dataValues.employeeType}`,
-										},
-									],
-								},
+						},
+						{
+							empType: {
+								[Op.or]: [
+									{
+										[Op.like]: `${employee.dataValues.employeeType},%`,
+									},
+									{
+										[Op.like]: `%,${employee.dataValues.employeeType},%`,
+									},
+									{
+										[Op.like]: `%,${employee.dataValues.employeeType}`,
+									},
+									{
+										[Op.eq]: `${employee.dataValues.employeeType}`,
+									},
+								],
 							},
-							{
-								isActive:1,
-								companyId:companyId
-							}
-						],
-					},
+						},
+						{
+							isActive: 1,
+							companyId: companyId,
+						},
+					],
+				},
 			});
 
-			
-		const firstDate = moment(dateOfJoining)
-		.startOf("month")
-		.format("YYYY-MM-DD"); // "01"
-		const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
+			const firstDate = moment(dateOfJoining)
+				.startOf("month")
+				.format("YYYY-MM-DD"); // "01"
+			const midDate = moment(dateOfJoining).date(15).format("YYYY-MM-DD");
 
-
-	const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
-	const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
-	const monthsLeft = 12 - currentMonth + 1; // Including the current month
+			const joiningDate = moment(dateOfJoining, "YYYY-MM-DD"); // Parse it
+			const currentMonth = new Date(joiningDate).getMonth() + 1; // Get current month (1-based)
+			const monthsLeft = 12 - currentMonth + 1; // Including the current month
 
 			const isJoinedEarly = joiningDate.isBetween(
-			firstDate,
-			midDate,
-			null,
-			"[]",
+				firstDate,
+				midDate,
+				null,
+				"[]",
 			);
-		await db.leaveMapping.update(
-		{ isActive: 0 },
-		{
-		where: { EmployeeId:employee.id, },
-		}
-		);
+			await db.leaveMapping.update(
+				{ isActive: 0 },
+				{
+					where: { EmployeeId: employee.id },
+				},
+			);
 
 			for (const singleLeave of leaveMaster) {
-				var leaveObj={};
+				var leaveObj = {};
 
-const creditOnAccuralBasis =singleLeave?.creditOnAccuralBasis;
-const creditOnProRataBasis =singleLeave?.creditOnProRataBasis;
+				const creditOnAccuralBasis = singleLeave?.creditOnAccuralBasis;
+				const creditOnProRataBasis = singleLeave?.creditOnProRataBasis;
 
 				if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 0) {
-									 leaveObj= {
-										EmployeeId: employee.id,
-										leaveAutoId: singleLeave?.leaveAutoId,
-										availableLeave: singleLeave?.leave_allowed_in_year,
-										accruedThisYear:  singleLeave?.leave_allowed_in_year,
-										isActive: 1,
-										annualAllotment:singleLeave?.leave_allowed_in_year,
-									};
-								} else if (
-									creditOnAccuralBasis == 1 &&
-									creditOnProRataBasis == 1
-								) {
-									 leaveObj= {
-										EmployeeId: employee.id,
-										leaveAutoId: singleLeave?.leaveAutoId,
-										availableLeave:
-											!isJoinedEarly && singleLeave?.creditHalfAfter15Day == 1
-												?  singleLeave?.defaultLeaveCount / 2
-												: singleLeave?.defaultLeaveCount,
-										accruedThisYear:
-											!isJoinedEarly && singleLeave?.creditHalfAfter15Day == 1
-												?  singleLeave?.defaultLeaveCount / 2
-												: singleLeave?.defaultLeaveCount,
-										isActive: 1,
-										annualAllotment:singleLeave?.leave_allowed_in_year,
-									};
-								} else if (
-									creditOnAccuralBasis == 0 &&
-									creditOnProRataBasis == 1
-								) {
-									 leaveObj= {
-										EmployeeId: employee.id,
-										leaveAutoId: singleLeave?.leaveAutoId,
-										availableLeave: singleLeave?.defaultLeaveCount * monthsLeft,
-										accruedThisYear: singleLeave?.defaultLeaveCount * monthsLeft,
-										isActive: 1,
-										annualAllotment:singleLeave?.leave_allowed_in_year,
-									};
-								} else {
-									 leaveObj= {
-										EmployeeId: employee.id,
-										leaveAutoId:  singleLeave?.leaveAutoId,
-										availableLeave: singleLeave?.defaultLeaveCount,
-										accruedThisYear: singleLeave?.defaultLeaveCount,
-										isActive: 1,
-										annualAllotment:singleLeave?.leave_allowed_in_year,
-									};
-								}
-								console.log("leaveObj",leaveObj)
-			 await db.leaveMapping.findOrCreate({
-			where: {
-			EmployeeId: leaveObj.EmployeeId,
-			leaveAutoId: leaveObj?.leaveAutoId,
-			},
-			defaults: {
-			availableLeave: leaveObj?.availableLeave,
-			accruedThisYear: leaveObj?.accruedThisYear,
-			isActive: 1,
-			annualAllotment:leaveObj?.annualAllotment,
-			},
-			});
+					leaveObj = {
+						EmployeeId: employee.id,
+						leaveAutoId: singleLeave?.leaveAutoId,
+						availableLeave: singleLeave?.leave_allowed_in_year,
+						accruedThisYear: singleLeave?.leave_allowed_in_year,
+						isActive: 1,
+						annualAllotment: singleLeave?.leave_allowed_in_year,
+					};
+				} else if (creditOnAccuralBasis == 1 && creditOnProRataBasis == 1) {
+					leaveObj = {
+						EmployeeId: employee.id,
+						leaveAutoId: singleLeave?.leaveAutoId,
+						availableLeave:
+							!isJoinedEarly && singleLeave?.creditHalfAfter15Day == 1
+								? singleLeave?.defaultLeaveCount / 2
+								: singleLeave?.defaultLeaveCount,
+						accruedThisYear:
+							!isJoinedEarly && singleLeave?.creditHalfAfter15Day == 1
+								? singleLeave?.defaultLeaveCount / 2
+								: singleLeave?.defaultLeaveCount,
+						isActive: 1,
+						annualAllotment: singleLeave?.leave_allowed_in_year,
+					};
+				} else if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 1) {
+					leaveObj = {
+						EmployeeId: employee.id,
+						leaveAutoId: singleLeave?.leaveAutoId,
+						availableLeave: singleLeave?.defaultLeaveCount * monthsLeft,
+						accruedThisYear: singleLeave?.defaultLeaveCount * monthsLeft,
+						isActive: 1,
+						annualAllotment: singleLeave?.leave_allowed_in_year,
+					};
+				} else {
+					leaveObj = {
+						EmployeeId: employee.id,
+						leaveAutoId: singleLeave?.leaveAutoId,
+						availableLeave: singleLeave?.defaultLeaveCount,
+						accruedThisYear: singleLeave?.defaultLeaveCount,
+						isActive: 1,
+						annualAllotment: singleLeave?.leave_allowed_in_year,
+					};
+				}
+				console.log("leaveObj", leaveObj);
+				await db.leaveMapping.findOrCreate({
+					where: {
+						EmployeeId: leaveObj.EmployeeId,
+						leaveAutoId: leaveObj?.leaveAutoId,
+					},
+					defaults: {
+						availableLeave: leaveObj?.availableLeave,
+						accruedThisYear: leaveObj?.accruedThisYear,
+						isActive: 1,
+						annualAllotment: leaveObj?.annualAllotment,
+					},
+				});
 
-			await db.leaveMapping.update(
-			{ isActive: 1 },
-			{
-			where: { 
-			EmployeeId:leaveObj.EmployeeId,
-			leaveAutoId: leaveObj?.leaveAutoId,
-			},
+				await db.leaveMapping.update(
+					{ isActive: 1 },
+					{
+						where: {
+							EmployeeId: leaveObj.EmployeeId,
+							leaveAutoId: leaveObj?.leaveAutoId,
+						},
+					},
+				);
 			}
-			);
-			}
-			
-			}
+		}
 	} catch (error) {}
 };
 //LEAVE ASSIGNMENT

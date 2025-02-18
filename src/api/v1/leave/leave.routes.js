@@ -49,5 +49,10 @@ export default Express.Router()
 		"/updateLeaveRequestBulk",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		LeaveController.updateLeaveRequestBulk,
+	)
+	.post(
+		"/leaveCreditToEmp",
+		authentication.authenticate,
+		LeaveController.leaveCreditMonthCron,
 	);
 //BULK ACTION

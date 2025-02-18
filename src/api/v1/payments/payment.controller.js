@@ -16,7 +16,7 @@ import emailTemplate from "../../../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
 import path from "path"; // Import the path module
 import moment from "moment";
-import puppeteer from "puppeteer";
+//import puppeteer from "puppeteer";
 import eventEmitter from "../../../services/eventService.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -3297,7 +3297,7 @@ class PaymentController {
 				"Failed in Process": 16,
 				"Extra Benefit Sample": 17,
 				"Leave Encashment Sample": 18,
-				"Gratuity Sample": 19 
+				"Gratuity Sample": 19,
 			};
 
 			const getKeyByValue = async (value) => {
@@ -5149,15 +5149,22 @@ class PaymentController {
 			let model = db.paySlips;
 			let query = { paySlipAutoId: req.params.id };
 
-			let companyDetails = await db.paySlips.findOne({ 
+			let companyDetails = await db.paySlips.findOne({
 				where: query,
-				attributes: ['paySlipAutoId', 'EmployeeId', 'payMonth'],
+				attributes: ["paySlipAutoId", "EmployeeId", "payMonth"],
 				include: [
-					{ model: db.employeeMaster, attributes: ['id'], 
-						include: [{ model: db.companyMaster, attributes: ['companyId', 'companyLogo'] }]
-					}
+					{
+						model: db.employeeMaster,
+						attributes: ["id"],
+						include: [
+							{
+								model: db.companyMaster,
+								attributes: ["companyId", "companyLogo"],
+							},
+						],
+					},
 				],
-				raw: true
+				raw: true,
 			});
 
 			let metaData = {
@@ -5168,17 +5175,13 @@ class PaymentController {
 			let response = await service.update(model, metaData, query);
 
 			// send confirmation mail to employee after salary slip release
-						
+
 			if (companyDetails) {
 				let payMonth = companyDetails.payMonth;
 				let companyLogo = companyDetails["employee.companymaster.companyLogo"];
 				let employeeId = [companyDetails["employee.id"]];
-				
-				sendMailAfterSalarySlipRelease(
-					employeeId,
-					payMonth,
-					companyLogo,
-				);
+
+				sendMailAfterSalarySlipRelease(employeeId, payMonth, companyLogo);
 			}
 
 			return respHelper(res, response);

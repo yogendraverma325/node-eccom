@@ -10,10 +10,10 @@ import { Op } from "sequelize";
 var _this = this;
 
 class LeaveController {
-	constructor(){
-	this.workingday=0;
-     this.leaveRemainingCount = this.leaveRemainingCount.bind(this);
-	 this.requestForLeave=this.requestForLeave.bind(this);
+	constructor() {
+		this.workingday = 0;
+		this.leaveRemainingCount = this.leaveRemainingCount.bind(this);
+		this.requestForLeave = this.requestForLeave.bind(this);
 	}
 	async history(req, res) {
 		try {
@@ -54,7 +54,7 @@ class LeaveController {
 	async leaveMapping(req, res) {
 		try {
 			const userId = req.query.user || req.userId;
-			let leaveData = await helper.empLeaveDetails(userId, 0); 
+			let leaveData = await helper.empLeaveDetails(userId, 0);
 			return respHelper(res, {
 				status: 200,
 				data: leaveData,
@@ -215,7 +215,7 @@ class LeaveController {
 
 						if (
 							existingRecord.leaveAutoId === 6 ||
-							existingRecord.leaveAutoId === 9 
+							existingRecord.leaveAutoId === 9
 						) {
 							const lwpLeave = await db.leaveMapping.findOne({
 								where: {
@@ -226,7 +226,11 @@ class LeaveController {
 
 							if (lwpLeave) {
 								await db.leaveMapping.increment(
-									{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
+									{
+										utilizedThisYear: parseFloat(
+											leaveHeaderSingleRecords.leaveCount,
+										),
+									},
 									{
 										where: {
 											EmployeeId: existingRecord.employeeId,
@@ -239,7 +243,9 @@ class LeaveController {
 									EmployeeId: existingRecord.employeeId,
 									leaveAutoId: existingRecord.leaveAutoId,
 									availableLeave: 0,
-									utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount),
+									utilizedThisYear: parseFloat(
+										leaveHeaderSingleRecords.leaveCount,
+									),
 									creditedFromLastYear: 0,
 									annualAllotment: 0,
 									accruedThisYear: 0,
@@ -247,22 +253,30 @@ class LeaveController {
 							}
 						} else {
 							await db.leaveMapping.increment(
-								{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
+								{
+									utilizedThisYear: parseFloat(
+										leaveHeaderSingleRecords.leaveCount,
+									),
+								},
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
-										isActive:1
+										isActive: 1,
 									},
 								},
 							);
 							await db.leaveMapping.increment(
-								{ availableLeave: -parseFloat(leaveHeaderSingleRecords.leaveCount) },
+								{
+									availableLeave: -parseFloat(
+										leaveHeaderSingleRecords.leaveCount,
+									),
+								},
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
-										isActive:1
+										isActive: 1,
 									},
 								},
 							);
@@ -528,7 +542,7 @@ class LeaveController {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
-			console.log("this.workingday",this.workingday)
+			console.log("this.workingday", this.workingday);
 
 			const fromDateReq = req.body.fromDate;
 			const toDateReq = req.body.toDate;
@@ -550,8 +564,6 @@ class LeaveController {
 				EMP_DATA,
 			);
 
-			
-
 			if (!leaveMasterData) {
 				return respHelper(res, {
 					status: 404,
@@ -567,21 +579,21 @@ class LeaveController {
 				EMP_DATA.companyLocationId,
 				EMP_DATA.companyId,
 				result.leaveAutoId,
-				EMP_DATA
+				EMP_DATA,
 			);
 
-			
-console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
+			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
 			const fromDate = remainingLeaveCountRESP[0];
 			const toDate =
 				remainingLeaveCountRESP.length == 1
 					? remainingLeaveCountRESP[0]
 					: remainingLeaveCountRESP[remainingLeaveCountRESP.length - 1];
 
-				const differenceInDays = remainingLeaveCountRESP.length;
+			const differenceInDays = remainingLeaveCountRESP.length;
 
 			const onProbation = req.userData["employeejobdetail.confirmationDate"];
-			const onProbationGenerated = req.userData["employeejobdetail.confirmationGenerated"];
+			const onProbationGenerated =
+				req.userData["employeejobdetail.confirmationGenerated"];
 			const onNoticePeriod =
 				req.userData["employeejobdetail.noticePeriodStatus"];
 
@@ -609,17 +621,11 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 					});
 				}
 
-
-
-			// Start and End of the Year
+				// Start and End of the Year
 			}
-			
 
 			// Fetch employee details and leave counts in parallel
 
-			
-
-			
 			if (onProbation == null) {
 				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
@@ -629,9 +635,9 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 						"YES",
 						toDateReq,
 					);
-					
+
 					if (
-						(probationLeaveCount+this.workingday) >
+						probationLeaveCount + this.workingday >
 						leaveMasterData.maximum_leave_allowed_in_probation
 					) {
 						return respHelper(res, {
@@ -645,7 +651,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 					}
 				}
 			}
-			
+
 			if (
 				onNoticePeriod == 1 ||
 				onNoticePeriod == true ||
@@ -660,8 +666,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 						toDateReq,
 					);
 					if (
-		
-						(probationLeaveCount+this.workingday) >
+						probationLeaveCount + this.workingday >
 						leaveMasterData.maximum_leave_allowed_in_notice_period
 					) {
 						return respHelper(res, {
@@ -675,7 +680,6 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 					}
 				}
 			}
-			
 
 			if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
 				if (leaveMasterData.canTakeHalfDay == 0) {
@@ -695,7 +699,7 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 			const currentDateOnly = moment().startOf("day");
 
 			// Calculate the difference in days
-		
+
 			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
 			console.log(
 				"differenceInDays",
@@ -826,15 +830,12 @@ console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 				});
 			}
 
-			
+			let minConsecutiveDay =
+				parseFloat(leaveMasterData?.minConsecutiveDay) || 0;
+			let workingDay = parseFloat(this.workingday) || 0;
 
-let minConsecutiveDay = parseFloat(leaveMasterData?.minConsecutiveDay) || 0;
-let workingDay = parseFloat(this.workingday) || 0;
-
-			if (
-				minConsecutiveDay > 0 && workingDay < minConsecutiveDay
-			) {
-				console.log("all set jhhj")
+			if (minConsecutiveDay > 0 && workingDay < minConsecutiveDay) {
+				console.log("all set jhhj");
 				return respHelper(res, {
 					status: 404,
 					data: {},
@@ -844,8 +845,6 @@ let workingDay = parseFloat(this.workingday) || 0;
 					),
 				});
 			}
-
-			
 
 			if (
 				leaveMasterData.attachmentRequired == true &&
@@ -857,7 +856,7 @@ let workingDay = parseFloat(this.workingday) || 0;
 					msg: message.LEAVE.ATTACHMENT_REQUIRED,
 				});
 			}
-			
+
 			if (
 				leaveMasterData.attachmentRequiredafterdays != 0 &&
 				leaveMasterData.attachmentRequired == false &&
@@ -1004,7 +1003,6 @@ let workingDay = parseFloat(this.workingday) || 0;
 				req.body.leaveAutoId,
 			);
 
-		
 			let arr = [];
 			let leaveDays = 0;
 			let pendingLeaveCount = 0;
@@ -1128,14 +1126,20 @@ let workingDay = parseFloat(this.workingday) || 0;
 					.subtract(1, "day")
 					.format("YYYY-MM-DD");
 				let suffixDate = moment(toDateReq).add(1, "day").format("YYYY-MM-DD");
-				
 
 				let leaveCount = await helper.checkLeaveClupEMPforDate(
 					[prefixDate, suffixDate],
 					req.body.leaveAutoId,
 					EMP_DATA,
 				);
-				console.log("leaveCount",leaveCount,"prefixDate",prefixDate,"suffixDate",suffixDate)
+				console.log(
+					"leaveCount",
+					leaveCount,
+					"prefixDate",
+					prefixDate,
+					"suffixDate",
+					suffixDate,
+				);
 				if (leaveCount != 0) {
 					return respHelper(res, {
 						status: 400,
@@ -1626,11 +1630,9 @@ let workingDay = parseFloat(this.workingday) || 0;
 			const employeeId = employeeFor == 0 ? req.userId : employeeFor;
 			let EMP_DATA = await helper.getEmpProfile(employeeId);
 			const leaveMasterData = await helper.leaveDetailsMaster(
-			leaveAutoId,
-			EMP_DATA,
+				leaveAutoId,
+				EMP_DATA,
 			);
-
-			
 
 			if (!leaveMasterData) {
 				return respHelper(res, {
@@ -1660,7 +1662,6 @@ let workingDay = parseFloat(this.workingday) || 0;
 				]);
 
 			// Calculate total working days
-		
 
 			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
 				startDate,
@@ -1669,8 +1670,8 @@ let workingDay = parseFloat(this.workingday) || 0;
 				employeeWeekOfId.companyLocationId,
 				employeeWeekOfId.companyId,
 				leaveAutoId,
-				EMP_DATA
-			); 
+				EMP_DATA,
+			);
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,
@@ -1680,7 +1681,7 @@ let workingDay = parseFloat(this.workingday) || 0;
 				employeeWeekOfId.companyLocationId,
 				employeeWeekOfId.weekOffId,
 			);
-			console.log("getCombinedVal",getCombinedVal)
+			console.log("getCombinedVal", getCombinedVal);
 			// Calculate pending leave count
 			const pendingLeaveCount = pendingLeaveCountList.reduce(
 				(acc, el) => acc + parseFloat(el.leaveCount),
@@ -1704,7 +1705,7 @@ let workingDay = parseFloat(this.workingday) || 0;
 				b = a;
 			}
 
-			this.workingday=a;
+			this.workingday = a;
 
 			return respHelper(res, {
 				status: 200,
@@ -2566,10 +2567,8 @@ let workingDay = parseFloat(this.workingday) || 0;
 						);
 
 						if (
-
-existingRecord.leaveAutoId === 6 ||
-existingRecord.leaveAutoId === 9 
-
+							existingRecord.leaveAutoId === 6 ||
+							existingRecord.leaveAutoId === 9
 						) {
 							const lwpLeave = await db.leaveMapping.findOne({
 								where: {
@@ -2580,7 +2579,11 @@ existingRecord.leaveAutoId === 9
 
 							if (lwpLeave) {
 								await db.leaveMapping.increment(
-									{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
+									{
+										utilizedThisYear: parseFloat(
+											leaveHeaderSingleRecords.leaveCount,
+										),
+									},
 									{
 										where: {
 											EmployeeId: existingRecord.employeeId,
@@ -2593,7 +2596,9 @@ existingRecord.leaveAutoId === 9
 									EmployeeId: existingRecord.employeeId,
 									leaveAutoId: existingRecord.leaveAutoId,
 									availableLeave: 0,
-									utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount),
+									utilizedThisYear: parseFloat(
+										leaveHeaderSingleRecords.leaveCount,
+									),
 									creditedFromLastYear: 0,
 									annualAllotment: 0,
 									accruedThisYear: 0,
@@ -2601,22 +2606,30 @@ existingRecord.leaveAutoId === 9
 							}
 						} else {
 							await db.leaveMapping.increment(
-								{ utilizedThisYear: parseFloat(leaveHeaderSingleRecords.leaveCount) },
+								{
+									utilizedThisYear: parseFloat(
+										leaveHeaderSingleRecords.leaveCount,
+									),
+								},
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
-										isActive:1
+										isActive: 1,
 									},
 								},
 							);
 							await db.leaveMapping.increment(
-								{ availableLeave: -parseFloat(leaveHeaderSingleRecords.leaveCount) },
+								{
+									availableLeave: -parseFloat(
+										leaveHeaderSingleRecords.leaveCount,
+									),
+								},
 								{
 									where: {
 										EmployeeId: existingRecord.employeeId,
 										leaveAutoId: existingRecord.leaveAutoId,
-										isActive:1
+										isActive: 1,
 									},
 								},
 							);
@@ -2689,12 +2702,9 @@ existingRecord.leaveAutoId === 9
 
 	async leaveAssignEmployeeToAll(req, res) {
 		try {
-
-			
-
 			let empids = [req.body.empCode];
 			await helper.leaveAssignEmployeeToAll(empids.join(","));
-			
+
 			return respHelper(res, {
 				status: 200,
 				message: "Leave updated successfully",
@@ -2786,10 +2796,14 @@ existingRecord.leaveAutoId === 9
 	async leaveCreditMonthCron(req, res) {
 		const cronLeaveMapped = await helper.leaveCreditMonthCron();
 		return respHelper(res, {
-			status: cronLeaveMapped.status,
-			message: cronLeaveMapped.message,
-			data: cronLeaveMapped.data, // Number of employees processed
+			status: 200,
+			data: cronLeaveMapped,
 		});
+		// return respHelper(res, {
+		// 	status: cronLeaveMapped.status,
+		// 	message: cronLeaveMapped.message,
+		// 	data: cronLeaveMapped.data, // Number of employees processed
+		// });
 	}
 }
 
