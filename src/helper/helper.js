@@ -2558,7 +2558,7 @@ const leaveCreditMonthCron = async () => {
 ///COMPOFF
 
 //LEAVE ASSIGNMENT
-const leaveAssignEmployeeToAll = async (empIdsInput) => {
+const leaveAssignEmployeeToAll = async (empIdsInput) => { 
 	try {
 		let empIds = empIdsInput.split(",");
 		const employees = await db.employeeMaster.findAll({
