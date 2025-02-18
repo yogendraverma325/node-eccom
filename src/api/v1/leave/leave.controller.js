@@ -1700,7 +1700,7 @@ let workingDay = parseFloat(this.workingday) || 0;
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
 
-			if (leaveAutoId == 6 || leaveAutoId == 9) {
+			if (leaveAutoId == 6) {
 				b = a;
 			}
 
