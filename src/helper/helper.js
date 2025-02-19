@@ -2537,6 +2537,8 @@ const leaveCreditMonthCron = async () => {
 
 		let leaves = [];
 		let effectedEmpS = [];
+		console.log("currentDay",currentDay)
+		console.log("firstDayOfMonth",firstDayOfMonth)
 		if (currentDay == firstDayOfMonth) {
 			leaves = await db.leaveCompanyMapping.findAll({
 				where: {
@@ -2545,6 +2547,7 @@ const leaveCreditMonthCron = async () => {
 					isActive: 1,
 				},
 			});
+			console.log("leaves",leaves.length)
 			for (const singleLeaves of leaves) {
 				effectedEmpS = await db.employeeMaster.findAll({
 					attributes: ["id", "empCode"],
@@ -2570,6 +2573,7 @@ const leaveCreditMonthCron = async () => {
 				});
 
 				for (const singleeffectedEmp of effectedEmpS) {
+					console.log("singleLeaves.leaveAutoId",singleLeaves.leaveAutoId)
 					let leaveCount = 0;
 					let dateOfJoining = singleeffectedEmp.employeejobdetail.dateOfJoining;
 					if (singleLeaves.creditOn == 0) {
@@ -2621,7 +2625,9 @@ const leaveCreditMonthCron = async () => {
 				}
 			}
 		}
-	} catch (error) {}
+	} catch (error) {
+		console.log("error",error)
+	}
 };
 ///COMPOFF
 
