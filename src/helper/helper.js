@@ -2519,12 +2519,21 @@ const actionOnLeaveCompOff = async (
 };
 
 const leaveCreditMonthCron = async () => {
-	const transaction = await db.sequelize.transaction();
 	try {
+		console.log("run leave credit");
 		const today = moment("2025-02-01");
 		const firstDayOfMonth = today.clone().startOf("month").format("D");
-		const lastDayOfMonth = today.clone().endOf("month").format("D");
 		const currentDay = today.clone().format("D");
+
+		const startOfLastMonth = today
+			.subtract(1, "months")
+			.startOf("month")
+			.format("YYYY-MM-DD");
+
+		// Get the last day of the last month
+		const endOfLastMonth = moment(startOfLastMonth)
+			.endOf("month")
+			.format("YYYY-MM-DD");
 
 		let leaves = [];
 		let effectedEmpS = [];
@@ -2534,15 +2543,9 @@ const leaveCreditMonthCron = async () => {
 					iterationDistribution: { [Op.ne]: parseFloat(0) },
 					creditOnAccuralBasis: 1,
 					isActive: 1,
-					creditOn: 0,
-					//creditDayOfMonth: moment().format("D"),
 				},
-				transaction,
 			});
 			for (const singleLeaves of leaves) {
-				console.log("start day of month  company", singleLeaves.companyId);
-				console.log("start day of month emp type", singleLeaves.empType);
-
 				effectedEmpS = await db.employeeMaster.findAll({
 					attributes: ["id", "empCode"],
 					include: [
@@ -2561,23 +2564,52 @@ const leaveCreditMonthCron = async () => {
 					where: {
 						isActive: 1,
 						companyId: singleLeaves.companyId,
-						empCode: "13675",
+						empCode: ["15629", "20884"],
 						employeeType: singleLeaves.empType.split(","),
 					},
-					limit: 1,
 				});
+
 				for (const singleeffectedEmp of effectedEmpS) {
-					console.log("singleeffectedEmp id", singleeffectedEmp.id);
-					console.log(
-						"singleeffectedEmp DOJ",
-						singleeffectedEmp.employeejobdetail.dateOfJoining,
-					);
+					let leaveCount = 0;
 					let dateOfJoining = singleeffectedEmp.employeejobdetail.dateOfJoining;
+					if (singleLeaves.creditOn == 0) {
+						leaveCount = singleLeaves.iterationDistribution;
+					} else {
+						const isWithinLastMonth = moment(dateOfJoining).isBetween(
+							startOfLastMonth,
+							endOfLastMonth,
+							null,
+							"[]",
+						);
+						if (isWithinLastMonth) {
+							const firstDate = moment(dateOfJoining)
+								.startOf("month")
+								.format("YYYY-MM-DD"); // "01"
+							const midDate = moment(dateOfJoining)
+								.date(15)
+								.format("YYYY-MM-DD");
+							const joiningDate = moment(dateOfJoining, "YYYY-MM-DD");
+							const isJoinedEarly = joiningDate.isBetween(
+								firstDate,
+								midDate,
+								null,
+								"[]",
+							);
+
+							if (!isJoinedEarly && singleLeaves?.creditHalfAfter15Day == 1) {
+								leaveCount = singleLeaves.iterationDistribution / 2;
+							} else {
+								leaveCount = singleLeaves.iterationDistribution;
+							}
+						} else {
+							leaveCount = singleLeaves.iterationDistribution;
+						}
+					}
 
 					await db.leaveMapping.increment(
 						{
-							availableLeave: singleLeaves.iterationDistribution,
-							accruedThisYear: singleLeaves.iterationDistribution,
+							availableLeave: leaveCount,
+							accruedThisYear: leaveCount,
 						},
 						{
 							where: {
@@ -2589,69 +2621,7 @@ const leaveCreditMonthCron = async () => {
 				}
 			}
 		}
-
-		return effectedEmpS;
-
-		// const getMappedLeave = await db.leaveMapping.findAll({
-		// 	attributes: ["EmployeeId", "leaveAutoId"],
-		// 	where: { isActive: 1 },
-		// 	include: [
-		// 		{
-		// 			model: db.employeeMaster,
-		// 			attributes: ["companyId"],
-		// 			where: {
-		// 				isActive: 1,
-		// 				companyId: { [Op.ne]: null },
-		// 			},
-		// 		},
-		// 	],
-		// 	raw: false,
-		// });
-
-		return;
-		for (const employee of getMappedLeave) {
-			const getIncrementValue = await db.leaveCompanyMapping.findOne({
-				where: {
-					companyId: employee["employee.companyId"],
-					leaveAutoId: employee.leaveAutoId,
-					iterationDistribution: { [Op.ne]: parseFloat(0) },
-					creditDayOfMonth: moment().format("D"),
-				},
-				transaction,
-			});
-
-			if (getIncrementValue) {
-				await db.leaveMapping.increment(
-					{
-						availableLeave: getIncrementValue.iterationDistribution,
-						accruedThisYear: getIncrementValue.iterationDistribution,
-					},
-					{
-						where: {
-							leaveAutoId: employee.leaveAutoId,
-							EmployeeId: employee.EmployeeId,
-						},
-						transaction,
-					},
-				);
-			} else {
-				//console.log("No iteration distribution found for", employee.EmployeeId);
-			}
-		}
-
-		await transaction.commit();
-
-		return {
-			data: 1,
-		};
-	} catch (error) {
-		// Rollback the transaction in case of an error
-		await transaction.rollback();
-		console.error("Error during leave credit update:", error);
-		return {
-			data: 0,
-		};
-	}
+	} catch (error) {}
 };
 ///COMPOFF
 
