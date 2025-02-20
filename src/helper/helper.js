@@ -381,7 +381,7 @@ const getEmpProfile = async (EMP_ID) => {
 			{
 				model: db.employeeMaster,
 				required: false,
-				attributes: ["id", "name", "profileImage", "email"],
+				attributes: ["id", "name", "profileImage", "email", "manager"],
 				as: "managerData",
 				include: [
 					{
@@ -1889,7 +1889,6 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 	return count;
 };
 const leaveDetailsMaster = async (leaveId, EMP_DATA) => {
-	//console.log("EMP_DATA", EMP_DATA);
 	const leaveData = await db.leaveCompanyMapping.findOne({
 		where: {
 			leaveAutoId: leaveId,
@@ -2321,7 +2320,9 @@ const creditCompoff = async (inputObject) => {
 				}
 			}
 		}
-	} catch (error) {}
+	} catch (error) {
+		console.log(error);
+	}
 };
 const checkLeaveClupEMPforDate = async (Date, leaveID, EMP_DATA) => {
 	const leaveClup = await db.leaveCompanyMapping.findOne({
@@ -2518,6 +2519,7 @@ const actionOnLeaveCompOff = async (
 			data: 1,
 		};
 	} catch (error) {
+		console.log(error);
 		return {
 			data: 0,
 		};
@@ -2876,7 +2878,9 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 				);
 			}
 		}
-	} catch (error) {}
+	} catch (error) {
+		console.log(error);
+	}
 };
 //LEAVE ASSIGNMENT
 

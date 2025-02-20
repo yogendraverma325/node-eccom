@@ -42,9 +42,6 @@ export default (sequelize, Sequelize) => {
 		attachmentRequired: {
 			type: Sequelize.BOOLEAN,
 		},
-		attachmentRequiredafterdays: {
-			type: Sequelize.STRING,
-		},
 		messageRequired: {
 			type: Sequelize.BOOLEAN,
 		},

@@ -1,4 +1,60 @@
-<<<<<<< HEAD
+// ----------------------------------------- 2025-02-12 -----------------------------------------------//
+CREATE TABLE leave_assignment_filters (
+  leave_assignment_filters_auto_id INT NOT NULL AUTO_INCREMENT,
+  leave_workflow_id INT DEFAULT NULL,
+  filter_type VARCHAR(45) DEFAULT 'INCLUDE',
+  filter_column VARCHAR(45) DEFAULT NULL,
+  filter_data VARCHAR(45) DEFAULT NULL,
+  updatedAt DATE DEFAULT NULL,
+  updatedBy INT DEFAULT NULL,
+  createdAt DATE NOT NULL,
+  createdBy INT NOT NULL,
+  isActive BOOLEAN DEFAULT 1,
+  PRIMARY KEY (leave_assignment_filters_auto_id)
+);
+
+
+CREATE TABLE approval_flow (
+  approvalFlow_Auto_Id INT NOT NULL AUTO_INCREMENT,
+  approvalFlow_Name VARCHAR(255) NOT NULL,
+  approvalFlow_Code VARCHAR(255) NOT NULL,
+  maxApprovalLevel INT NOT NULL,
+  ccUsers VARCHAR(255) DEFAULT NULL,
+  updatedAt DATE DEFAULT NULL,
+  updatedBy INT DEFAULT NULL,
+  createdAt DATE NOT NULL,
+  createdBy INT NOT NULL,
+  isActive BOOLEAN DEFAULT 1,
+  PRIMARY KEY (approvalFlow_Auto_Id)
+);
+
+
+ALTER TABLE `leavecompanymapping` 
+ADD COLUMN `approvalFlow` TINYINT NULL DEFAULT 0 AFTER `creditOnAccuralBasis`;
+
+
+CREATE TABLE leave_approval_levels (
+  leaveApprovalLevelAutoId INT NOT NULL AUTO_INCREMENT,
+  approvalFlow_Auto_Id INT NOT NULL,
+  assignmentFilter VARCHAR(255) DEFAULT NULL,
+  allowRevoke BOOLEAN DEFAULT NULL,
+  includeOthers BOOLEAN DEFAULT NULL,
+  empId INT NOT NULL,
+  updatedAt DATE DEFAULT NULL,
+  updatedBy INT DEFAULT NULL,
+  createdAt DATE NOT NULL,
+  createdBy INT NOT NULL,
+  isActive BOOLEAN DEFAULT 1,
+  PRIMARY KEY (leaveApprovalLevelAutoId)
+);
+
+
+ALTER TABLE `tara_live`.`leaveapprovaltrails` 
+ADD COLUMN `approvalFlowAutoId` INT NULL DEFAULT NULL AFTER `leaveHeaderAutoId`;
+
+
+
+
 //------------------------------------------2024-12-19--------------------------------------------------//
 ALTER TABLE `tara`.`paypackage` 
 ADD COLUMN `salaryStructureAutoId` INT NULL DEFAULT '0' AFTER `isActive`;
@@ -88,9 +144,7 @@ ALTER TABLE `tara_hrms_live`.`attendancehistory`
 ADD COLUMN `locationType` VARCHAR(45) NULL DEFAULT NULL AFTER `isApproved`,
 ADD COLUMN `userRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `locationType`,
 ADD COLUMN `managerRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `userRemark`;
-=======
 // ----------------------------------- 2025-01-02 (Attendance Roster) -------------------------------------------------//
->>>>>>> main_live_06_02_2025_for_payroll
 
 ALTER TABLE `tara_hrms_live`.`attendancepolicymaster` 
 ADD COLUMN `attendaceRosterLimitForPreviousDays` INT NULL DEFAULT NULL AFTER `leaveDeductPolicyWorkDurationLeaveType`;
