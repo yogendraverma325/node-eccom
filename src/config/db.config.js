@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import Sequelize from "sequelize";
 import logger from "../helper/logger.js";
 import Employee from "../api/model/Employee.js";
@@ -438,6 +439,12 @@ db.leavemanager = leavemanager(sequelize, Sequelize);
 // start lwf mapping by jay
 db.lwfMapping = LwfMapping(sequelize, Sequelize);
 // end lwf mapping by jay
+
+/// Leave Approval FLow //////
+db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
+db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
+db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
+/// Leave Approval FLow //////
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -1748,5 +1755,25 @@ db.leaveMapping.hasOne(db.leaveCompanyMapping, {
 });
 
 // end by jay
+
+db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
+	foreignKey: "leaveHeaderAutoId",
+	sourceKey: "employeeleaveheaderID",
+});
+
+db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
+	foreignKey: "approvalFlow_Auto_Id",
+	sourceKey: "approvalFlowAutoId",
+});
+
+db.leaveApprovalTrails.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "pendingOn",
+});
+
+// db.leaveApprovalTrails.hasOne(db.employeeMaster, {
+// 	foreignKey: "id",
+// 	sourceKey: "pendingOn",
+// })
 
 export default db;

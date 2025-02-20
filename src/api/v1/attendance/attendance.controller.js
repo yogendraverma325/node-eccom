@@ -3248,68 +3248,66 @@ class AttendanceController {
 	}
 
 	async attendenceDetails(req, res) {
-    try {
-      const existUser = await db.employeeMaster.findOne({
-        where: {
-          id: req.userId,
-        },
-        attributes: ["id", "name", "empCode"],
-        include: [
-          {
-            model: db.shiftMaster,
-            attributes: ["shiftStartTime", "shiftEndTime", "isOverNight"],
-          },
-          {
-            model: db.attendancePolicymaster,
-            attributes: [
-              "graceTimeClockIn",
-              "graceTimeClockOut",
-              "allowBufferTime",
-              "bufferTimePre",
-              "bufferTimePost",
-            ],
-          },
-        ],
-      });
+		try {
+			const existUser = await db.employeeMaster.findOne({
+				where: {
+					id: req.userId,
+				},
+				attributes: ["id", "name", "empCode"],
+				include: [
+					{
+						model: db.shiftMaster,
+						attributes: ["shiftStartTime", "shiftEndTime", "isOverNight"],
+					},
+					{
+						model: db.attendancePolicymaster,
+						attributes: [
+							"graceTimeClockIn",
+							"graceTimeClockOut",
+							"allowBufferTime",
+							"bufferTimePre",
+							"bufferTimePost",
+						],
+					},
+				],
+			});
 
-      const shiftEndDate = moment(
-        `${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`,
-      ).format("YYYY-MM-DD HH:mm:ss");
+			const shiftEndDate = moment(
+				`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`,
+			).format("YYYY-MM-DD HH:mm:ss");
 
-      const shiftStartDate = moment(
-        `${existUser.shiftsmaster.dataValues.isOverNight && moment().isAfter(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`,
-      ).format("YYYY-MM-DD HH:mm:ss");
+			const shiftStartDate = moment(
+				`${existUser.shiftsmaster.dataValues.isOverNight && moment().isBefore(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`,
+			).format("YYYY-MM-DD HH:mm:ss");
 
-      let attendanceData = await db.attendanceHistory.findOne({
-        where: {
-          employeeId: req.userId,
-          date: {
-            [Op.gte]: new Date(shiftStartDate),
-            [Op.lte]: new Date(shiftEndDate),
-          },
-        },
-      });
+			let attendanceData = await db.attendanceHistory.findOne({
+				where: {
+					employeeId: req.userId,
+					createdAt: {
+						[Op.gte]: new Date(shiftStartDate),
+						[Op.lte]: new Date(shiftEndDate),
+					},
+				},
+			});
 
-      return respHelper(res, {
-        status: 200,
-        msg: message.ATTENDANCE_NOT_AVAILABLE,
-        data: attendanceData,
-      });
-    } catch (error) {
-      console.log(error);
-      if (error.isJoi === true) {
-        return respHelper(res, {
-          status: 422,
-          msg: error.details[0].message,
-        });
-      }
-      return respHelper(res, {
-        status: 500,
-      });
-    }
-  }
-
-
+			return respHelper(res, {
+				status: 200,
+				msg: message.ATTENDANCE_NOT_AVAILABLE,
+				data: attendanceData,
+			});
+		} catch (error) {
+			console.log(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 	async attedanceCronManual(attendanceAutoId, date) {
 		try {
 			let lastDayDate = moment(date).format("YYYY-MM-DD");
