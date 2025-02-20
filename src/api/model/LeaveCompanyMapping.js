@@ -170,8 +170,8 @@ export default (sequelize, Sequelize) => {
 			defaltValue: 0,
 		},
 		approvalFlow:{
-			type: Sequelize.INTEGER,
-		}
+            type: Sequelize.INTEGER,
+        }
 	});
 	return leaveCompanyMapping;
 };
