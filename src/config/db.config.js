@@ -441,9 +441,9 @@ db.lwfMapping = LwfMapping(sequelize, Sequelize);
 // end lwf mapping by jay
 
 /// Leave Approval FLow //////
-db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
-db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
-db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
+// db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
+// db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
+// db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
 /// Leave Approval FLow //////
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -1756,20 +1756,20 @@ db.leaveMapping.hasOne(db.leaveCompanyMapping, {
 
 // end by jay
 
-db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
-	foreignKey: "leaveHeaderAutoId",
-	sourceKey: "employeeleaveheaderID",
-});
+// db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
+// 	foreignKey: "leaveHeaderAutoId",
+// 	sourceKey: "employeeleaveheaderID",
+// });
 
-db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
-	foreignKey: "approvalFlow_Auto_Id",
-	sourceKey: "approvalFlowAutoId",
-});
+// db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
+// 	foreignKey: "approvalFlow_Auto_Id",
+// 	sourceKey: "approvalFlowAutoId",
+// });
 
-db.leaveApprovalTrails.hasOne(db.employeeMaster, {
-	foreignKey: "id",
-	sourceKey: "pendingOn",
-});
+// db.leaveApprovalTrails.hasOne(db.employeeMaster, {
+// 	foreignKey: "id",
+// 	sourceKey: "pendingOn",
+// });
 
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",
