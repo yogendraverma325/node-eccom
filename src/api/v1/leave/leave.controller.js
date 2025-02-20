@@ -817,15 +817,15 @@ class LeaveController {
 
 			let workingdays = differenceInDays;
 			if (
-				leaveMasterData?.max_consecutive_count != 0 &&
-				this.workingday > leaveMasterData?.max_consecutive_count
+				leaveMasterData?.maxConsecutiveDay != 0 &&
+				this.workingday > leaveMasterData?.maxConsecutiveDay
 			) {
 				return respHelper(res, {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.MAX_CONSECUTIVE.replace(
 						"#",
-						leaveMasterData?.max_consecutive_count,
+						leaveMasterData?.maxConsecutiveDay,
 					),
 				});
 			}
@@ -900,6 +900,8 @@ class LeaveController {
 				fromDateReq,
 				req.body.leaveAutoId,
 			);
+			console.log("leaveMasterData?.max_month_count",leaveMasterData?.max_month_count)
+			console.log("monthCount",monthCount)
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
@@ -920,6 +922,7 @@ class LeaveController {
 				toDateReq,
 				req.body.leaveAutoId,
 			);
+			console.log("monthCountTo",monthCountTo)
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
