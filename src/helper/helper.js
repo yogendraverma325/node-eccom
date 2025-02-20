@@ -2889,6 +2889,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 
 			for (const singleLeave of leaveMaster) {
 				var leaveObj = {};
+				let leave_activation_date = null;
 				let is_active_for_application = 0;
 				if (
 					singleLeave?.probation_period_leave_validity == 0 &&
@@ -2896,6 +2897,45 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 				) {
 					is_active_for_application = 1;
 				}
+				if (
+					singleLeave?.probation_period_leave_validity == 0 &&
+					singleLeave?.probation_period_leave_validity_duration != 0
+				) {
+					const clonedDate = joiningDate.clone(); // Clone before modification
+
+					switch (singleLeave?.probation_period_leave_validity_duration_type) {
+						case "YEAR":
+							leave_activation_date = clonedDate
+								.clone()
+								.add(
+									singleLeave?.probation_period_leave_validity_duration,
+									"year",
+								)
+								.format("YYYY-MM-DD"); // Add  YEAR
+							break;
+
+						case "MONTH":
+							leave_activation_date = clonedDate
+								.clone()
+								.add(
+									singleLeave?.probation_period_leave_validity_duration,
+									"months",
+								)
+								.format("YYYY-MM-DD"); // Add  months
+
+							break;
+						case "DAY":
+							leave_activation_date = clonedDate
+								.clone()
+								.add(
+									singleLeave?.probation_period_leave_validity_duration,
+									"days",
+								)
+								.format("YYYY-MM-DD");
+							break;
+					}
+				}
+
 				const creditOnAccuralBasis = singleLeave?.creditOnAccuralBasis;
 				const creditOnProRataBasis = singleLeave?.creditOnProRataBasis;
 
@@ -2908,6 +2948,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
 						is_active_for_application: is_active_for_application,
+						leave_activation_date: leave_activation_date,
 					};
 				} else if (creditOnAccuralBasis == 1 && creditOnProRataBasis == 1) {
 					leaveObj = {
@@ -2924,6 +2965,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
 						is_active_for_application: is_active_for_application,
+						leave_activation_date: leave_activation_date,
 					};
 				} else if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 1) {
 					leaveObj = {
@@ -2934,6 +2976,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
 						is_active_for_application: is_active_for_application,
+						leave_activation_date: leave_activation_date,
 					};
 				} else {
 					leaveObj = {
@@ -2944,6 +2987,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
 						is_active_for_application: is_active_for_application,
+						leave_activation_date: leave_activation_date,
 					};
 				}
 
@@ -2958,6 +3002,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						isActive: 1,
 						annualAllotment: leaveObj?.annualAllotment,
 						is_active_for_application: leaveObj?.is_active_for_application,
+						leave_activation_date: leaveObj?.leave_activation_date,
 					},
 				});
 

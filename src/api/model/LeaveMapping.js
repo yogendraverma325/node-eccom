@@ -26,6 +26,9 @@ export default (sequelize, Sequelize) => {
 		utilizedThisYear: {
 			type: Sequelize.DECIMAL(10, 2),
 		},
+		leave_activation_date: {
+			type: Sequelize.DATE,
+		},
 		createdBy: {
 			type: Sequelize.INTEGER,
 		},
