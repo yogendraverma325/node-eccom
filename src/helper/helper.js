@@ -2937,7 +2937,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						is_active_for_application: confirmationDate ? 1 : 0,
 					};
 				}
-				console.log("leaveObj", leaveObj);
+
 				await db.leaveMapping.findOrCreate({
 					where: {
 						EmployeeId: leaveObj.EmployeeId,
@@ -2951,6 +2951,16 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						is_active_for_application: leaveObj?.is_active_for_application,
 					},
 				});
+
+				if (leaveObj?.availableLeave != 0) {
+					await db.leavemanager.create({
+						EmployeeId: leaveObj.EmployeeId,
+						leaveAutoId: leaveObj?.leaveAutoId,
+						leaveCount: leaveObj?.availableLeave,
+						transaction_for: "CREDIT",
+						createdBy: 1,
+					});
+				}
 
 				await db.leaveMapping.update(
 					{ isActive: 1 },
