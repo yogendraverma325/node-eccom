@@ -169,6 +169,9 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DECIMAL(10, 1),
 			defaltValue: 0,
 		},
+		approvalFlow:{
+			type: Sequelize.INTEGER,
+		}
 	});
 	return leaveCompanyMapping;
 };
