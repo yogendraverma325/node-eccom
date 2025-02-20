@@ -1721,6 +1721,11 @@ db.EmployeeLeaveHeader.hasMany(db.employeeLeaveTransactions, {
 	foreignKey: "employeeleaveheaderID",
 	sourceKey: "employeeleaveheaderID",
 });
+
+db.employeeLeaveTransactions.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
 // added by jay
 db.stateMaster.hasMany(db.lwfMapping, {
 	foreignKey: "stateId",
@@ -1739,6 +1744,12 @@ db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
 	foreignKey: "leaveHeaderAutoId",
 	sourceKey: "employeeleaveheaderID",
 });
+
+db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
+	foreignKey: "leaveHeaderAutoId",
+	sourceKey: "employeeleaveheaderID",
+	as:"trails"
+}); 
 
 db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
 	foreignKey: "approvalFlow_Auto_Id",

@@ -719,9 +719,17 @@ class UserController {
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
-					pendingAt: userid,
+					// pendingAt: userid,
 					status: "pending",
 				},
+				include:[{
+					model:db.leaveApprovalTrails,
+					where:{
+					pendingOn: req.userId,
+					isPending: 1,
+					//isApproved:0
+					}
+				}]
 			});
 
 			let assignedAttCount = await db.regularizationMaster.count({
@@ -2938,6 +2946,17 @@ class UserController {
 				const createdAtOrder = orderByOn === "0" ? "desc" : "asc";
 				order.push(["appliedOn", createdAtOrder]);
 			}
+			const leaveApprovalCondition =
+			type === "self"
+					? {
+							//createdBy: req.userId,
+							isApproved:[1,2]
+							// isPending: 1,
+					  }
+					: {
+						     isPending:0,
+						    //  isApproved:[1,2]
+					 };
 
 			const { count, rows: leaveRequests } =
 				await db.EmployeeLeaveHeader.findAndCountAll({
@@ -2954,12 +2973,11 @@ class UserController {
 							}),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-									[Op.or]: [
-										{
-											pendingAt: req.userId,
-											source: { [Op.ne]: "system_generated" },
-										},
-									],
+								[Op.or]: [
+								 { //pendingAt: req.userId, 
+									source: { [Op.ne]: "system_generated" 
+									} },
+								],
 								}
 							: type === "all" && isSystemGenerated == 1
 								? {
@@ -2971,6 +2989,10 @@ class UserController {
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
+						{
+                           model:db.employeeLeaveTransactions,
+						   where:type === 'all' && isSystemGenerated == 0 ? { pendingAt: req.userId }:{}
+						},
 						{
 							model: db.employeeMaster,
 							attributes: ["id", "name", "empCode"],
@@ -2987,10 +3009,24 @@ class UserController {
 							as: "leaveUpdatedBy",
 							required: false,
 						},
+						{
+							model: db.leaveApprovalTrails,
+							required: false,
+    						separate: true, 
+					     	order: [["leaveTrailAutoId", "ASC"]],
+							where: leaveApprovalCondition,
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+								},
+							],
+						},
 					],
 					limit,
 					offset,
 					order,
+					distinct: true,
 				});
 
 			return respHelper(res, {
@@ -5423,6 +5459,23 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "leaveUpdatedBy",
 							required: false,
+						},
+						{
+							model: db.leaveApprovalTrails,
+							required: false,
+							separate: true, // Ensures sorting is applied properly
+					     	order: [["leaveTrailAutoId", "ASC"]],
+							where: {							
+								isApproved: {
+									[Op.notIn]: [0]
+								  },
+							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+								},
+							]
 						},
 					],
 					limit,

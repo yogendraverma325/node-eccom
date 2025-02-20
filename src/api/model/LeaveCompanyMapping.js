@@ -83,9 +83,9 @@ export default (sequelize, Sequelize) => {
 		holiday_suffix_policy: {
 			type: Sequelize.INTEGER,
 		},
-		max_consecutive_count: {
-			type: Sequelize.INTEGER,
-		},
+		// max_consecutive_count: {
+		// 	type: Sequelize.INTEGER,
+		// },
 		max_month_count: {
 			type: Sequelize.INTEGER,
 		},

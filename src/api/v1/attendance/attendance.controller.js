@@ -1452,6 +1452,7 @@ class AttendanceController {
 				monthDays,
 				employeeLeaveTransactions,
 				shiftMasters,
+				//leaveLevelApproval
 			] = await Promise.all([
 				db.holidayCompanyLocationConfiguration.findAll({
 					where: { companyLocationId: companyLocationId },
@@ -1574,12 +1575,27 @@ class AttendanceController {
 							],
 						},
 					},
-					include: {
+					include: [{
 						model: db.leaveMaster,
 						required: false,
 						as: "leaveMasterDetails",
 						attributes: ["leaveName", "leaveCode"],
-					},
+					},{
+						model:db.EmployeeLeaveHeader,
+						attributes:['employeeleaveheaderID'],
+						include:[{
+							model: db.leaveApprovalTrails,
+							required: false,
+							separate: true, // Ensures sorting is applied properly
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+								},
+							],
+							order: [["leaveTrailAutoId", "ASC"]]							
+						}]
+					}],
 					order: [["employeeLeaveTransactionsId", "desc"]],
 					//limit: 1
 				}),
@@ -1591,7 +1607,7 @@ class AttendanceController {
 						"shiftEndTime",
 						"shiftRemark",
 					],
-				}),
+				})
 			]);
 
 			// Create a map for shiftMaster data
@@ -1736,7 +1752,6 @@ class AttendanceController {
 							},
 						],
 					});
-
 					const weekOffId = attendaceRoster
 						? attendaceRoster.dataValues.weekOffId
 						: companyWeekShift
@@ -1871,6 +1886,7 @@ class AttendanceController {
 							attendanceShiftEmployee: attendaceRoster
 								? attendaceRoster.dataValues.shiftsmaster
 								: shiftMaster,
+								//leaveapprovaltrails:leaveLevelTrail?leaveLevelTrail.leaveapprovaltrails:[]
 						},
 					);
 				}),
