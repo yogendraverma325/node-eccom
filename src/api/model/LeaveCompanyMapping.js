@@ -135,9 +135,9 @@ export default (sequelize, Sequelize) => {
 		maximum_leave_allowed_in_notice_period: {
 			type: Sequelize.INTEGER,
 		},
-		carry_foward_un_used: {
-			type: Sequelize.INTEGER,
-		},
+		// carry_foward_un_used: {
+		// 	type: Sequelize.INTEGER,
+		// },
 		creditOn: {
 			type: Sequelize.INTEGER,
 		},

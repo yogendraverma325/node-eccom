@@ -900,8 +900,11 @@ class LeaveController {
 				fromDateReq,
 				req.body.leaveAutoId,
 			);
-			console.log("leaveMasterData?.max_month_count",leaveMasterData?.max_month_count)
-			console.log("monthCount",monthCount)
+			console.log(
+				"leaveMasterData?.max_month_count",
+				leaveMasterData?.max_month_count,
+			);
+			console.log("monthCount", monthCount);
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
@@ -922,7 +925,7 @@ class LeaveController {
 				toDateReq,
 				req.body.leaveAutoId,
 			);
-			console.log("monthCountTo",monthCountTo)
+			console.log("monthCountTo", monthCountTo);
 
 			if (
 				leaveMasterData?.max_month_count != 0 &&
@@ -2798,6 +2801,18 @@ class LeaveController {
 
 	async leaveCreditMonthCron(req, res) {
 		const cronLeaveMapped = await helper.leaveCreditMonthCron();
+		return respHelper(res, {
+			status: 200,
+			data: cronLeaveMapped,
+		});
+		// return respHelper(res, {
+		// 	status: cronLeaveMapped.status,
+		// 	message: cronLeaveMapped.message,
+		// 	data: cronLeaveMapped.data, // Number of employees processed
+		// });
+	}
+	async leaveLapse(req, res) {
+		const cronLeaveMapped = await helper.leaveLapse();
 		return respHelper(res, {
 			status: 200,
 			data: cronLeaveMapped,

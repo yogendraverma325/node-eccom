@@ -2022,10 +2022,10 @@ const leaveCountForUserForMonth = async (
 		const fromMoment = moment(date);
 		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
 		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
-		console.log("monthStart",monthStart)
-		console.log("monthEnd",monthEnd)
-		console.log("leaveId",leaveId)
-		console.log("UserId",UserId)
+		console.log("monthStart", monthStart);
+		console.log("monthEnd", monthEnd);
+		console.log("leaveId", leaveId);
+		console.log("UserId", UserId);
 
 		let leaves = await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
@@ -2039,8 +2039,8 @@ const leaveCountForUserForMonth = async (
 				},
 			},
 		});
-		console.log("leaves",leaves)
-		 result = leaves || 0;
+		console.log("leaves", leaves);
+		result = leaves || 0;
 	}
 
 	return result;
@@ -2543,8 +2543,8 @@ const leaveCreditMonthCron = async () => {
 
 		let leaves = [];
 		let effectedEmpS = [];
-		console.log("currentDay",currentDay)
-		console.log("firstDayOfMonth",firstDayOfMonth)
+		console.log("currentDay", currentDay);
+		console.log("firstDayOfMonth", firstDayOfMonth);
 		if (currentDay == firstDayOfMonth) {
 			leaves = await db.leaveCompanyMapping.findAll({
 				where: {
@@ -2553,7 +2553,7 @@ const leaveCreditMonthCron = async () => {
 					isActive: 1,
 				},
 			});
-			console.log("leaves",leaves.length)
+			console.log("leaves", leaves.length);
 			for (const singleLeaves of leaves) {
 				effectedEmpS = await db.employeeMaster.findAll({
 					attributes: ["id", "empCode"],
@@ -2579,7 +2579,7 @@ const leaveCreditMonthCron = async () => {
 				});
 
 				for (const singleeffectedEmp of effectedEmpS) {
-					console.log("singleLeaves.leaveAutoId",singleLeaves.leaveAutoId)
+					console.log("singleLeaves.leaveAutoId", singleLeaves.leaveAutoId);
 					let leaveCount = 0;
 					let dateOfJoining = singleeffectedEmp.employeejobdetail.dateOfJoining;
 					if (singleLeaves.creditOn == 0) {
@@ -2615,7 +2615,13 @@ const leaveCreditMonthCron = async () => {
 							leaveCount = singleLeaves.iterationDistribution;
 						}
 					}
-
+					await db.leavemanager.create({
+						EmployeeId: singleeffectedEmp.id,
+						leaveAutoId: singleLeaves.leaveAutoId,
+						leaveCount: leaveCount,
+						transaction_for: "CREDIT",
+						createdBy: 1,
+					});
 					await db.leaveMapping.increment(
 						{
 							availableLeave: leaveCount,
@@ -2632,7 +2638,86 @@ const leaveCreditMonthCron = async () => {
 			}
 		}
 	} catch (error) {
-		console.log("error",error)
+		console.log("error", error);
+	}
+};
+const leaveLapse = async () => {
+	try {
+		const today = moment("2025-01-01"); // Replace with any date
+		const isFirstDayOfYear = today.isSame(today.clone().startOf("year"), "day");
+		if (isFirstDayOfYear) {
+			let leaves = [];
+			let effectedEmpS = [];
+
+			leaves = await db.leaveCompanyMapping.findAll({
+				where: {
+					isActive: 1,
+				},
+			});
+
+			for (const singleLeaves of leaves) {
+				effectedEmpS = await db.employeeMaster.findAll({
+					attributes: ["id", "empCode"],
+					where: {
+						isActive: 1,
+						companyId: singleLeaves.companyId,
+						empCode: ["15543"],
+						employeeType: singleLeaves.empType.split(","),
+					},
+				});
+
+				for (const singleeffectedEmp of effectedEmpS) {
+					const leaveRecordOfuserForLeave = await db.leaveMapping.findOne({
+						where: {
+							EmployeeId: singleeffectedEmp.id,
+							leaveAutoId: singleLeaves.leaveAutoId,
+						},
+					});
+
+					if (leaveRecordOfuserForLeave) {
+						if (
+							singleLeaves?.canCarryForwardAhead == 1 &&
+							singleLeaves?.tenureCount == 0
+						) {
+							await leaveRecordOfuserForLeave.update({
+								availableLeave: leaveRecordOfuserForLeave?.availableLeave,
+								accruedThisYear: 0,
+								creditedFromLastYear: leaveRecordOfuserForLeave?.availableLeave,
+								utilizedThisYear: 0,
+							});
+						} else if (
+							singleLeaves?.canCarryForwardAhead == 0 &&
+							singleLeaves?.tenureCount == 0
+						) {
+							if (leaveRecordOfuserForLeave?.availableLeave > 0) {
+								await db.leavemanager.create({
+									EmployeeId: singleeffectedEmp.id,
+									leaveAutoId: singleLeaves.leaveAutoId,
+									leaveCount: leaveRecordOfuserForLeave?.availableLeave,
+									transaction_for: "LAPES",
+									createdBy: 1,
+								});
+							}
+
+							await leaveRecordOfuserForLeave.update({
+								availableLeave: 0,
+								accruedThisYear: 0,
+								creditedFromLastYear: 0,
+								utilizedThisYear: 0,
+							});
+						} else {
+							await leaveRecordOfuserForLeave.update({
+								accruedThisYear: 0,
+								creditedFromLastYear: 0,
+								utilizedThisYear: 0,
+							});
+						}
+					}
+				}
+			}
+		}
+	} catch (error) {
+		console.log("error", error);
 	}
 };
 ///COMPOFF
@@ -2674,7 +2759,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 				},
 				{
 					model: db.jobDetails,
-					attributes: ["jobId", "dateOfJoining","confirmationDate"],
+					attributes: ["jobId", "dateOfJoining", "confirmationDate"],
 					where: { dateOfJoining: { [Op.ne]: null } },
 					required: true,
 				},
@@ -2693,9 +2778,9 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 			const companyId = employee.dataValues.companyId;
 			const employeeId = employee.dataValues.id;
 			const dateOfJoining =
-			employee.dataValues.employeejobdetail?.dateOfJoining;
+				employee.dataValues.employeejobdetail?.dateOfJoining;
 			const confirmationDate =
-			employee.dataValues.employeejobdetail?.confirmationDate;
+				employee.dataValues.employeejobdetail?.confirmationDate;
 
 			const leaveMaster = await db.leaveCompanyMapping.findAll({
 				attributes: [
@@ -2811,7 +2896,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						accruedThisYear: singleLeave?.leave_allowed_in_year,
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
-						is_active_for_application:(confirmationDate)?1:0
+						is_active_for_application: confirmationDate ? 1 : 0,
 					};
 				} else if (creditOnAccuralBasis == 1 && creditOnProRataBasis == 1) {
 					leaveObj = {
@@ -2827,7 +2912,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 								: singleLeave?.defaultLeaveCount,
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
-						is_active_for_application:(confirmationDate)?1:0
+						is_active_for_application: confirmationDate ? 1 : 0,
 					};
 				} else if (creditOnAccuralBasis == 0 && creditOnProRataBasis == 1) {
 					leaveObj = {
@@ -2837,7 +2922,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						accruedThisYear: singleLeave?.defaultLeaveCount * monthsLeft,
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
-						is_active_for_application:(confirmationDate)?1:0
+						is_active_for_application: confirmationDate ? 1 : 0,
 					};
 				} else {
 					leaveObj = {
@@ -2847,7 +2932,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						accruedThisYear: singleLeave?.defaultLeaveCount,
 						isActive: 1,
 						annualAllotment: singleLeave?.leave_allowed_in_year,
-						is_active_for_application:(confirmationDate)?1:0
+						is_active_for_application: confirmationDate ? 1 : 0,
 					};
 				}
 				console.log("leaveObj", leaveObj);
@@ -2861,7 +2946,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 						accruedThisYear: leaveObj?.accruedThisYear,
 						isActive: 1,
 						annualAllotment: leaveObj?.annualAllotment,
-						is_active_for_application:leaveObj?.is_active_for_application
+						is_active_for_application: leaveObj?.is_active_for_application,
 					},
 				});
 
@@ -2924,6 +3009,7 @@ export default {
 	reportieesofEmp,
 	actionOnLeaveCompOff,
 	leaveCreditMonthCron,
+	leaveLapse,
 	//COMPOFF
 	//LEAVE ASSIGNMENT
 	leaveAssignEmployeeToAll,

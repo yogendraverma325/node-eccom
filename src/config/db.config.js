@@ -155,6 +155,7 @@ import comp_off_polices from "../api/model/comp_off_polices.js";
 import comp_off_credit_history from "../api/model/CompOffCreditHistory.js";
 import status_master from "../api/model/StatusMaster.js";
 import LeaveCompanyMapping from "../api/model/LeaveCompanyMapping.js";
+import leavemanager from "../api/model/LeaveManager.js";
 //COMP OFF
 
 //////////////////Start F&F by jay/////////////////
@@ -432,6 +433,7 @@ db.comp_off_polices = comp_off_polices(sequelize, Sequelize);
 db.comp_off_credit_history = comp_off_credit_history(sequelize, Sequelize);
 db.status_master = status_master(sequelize, Sequelize);
 db.leaveCompanyMapping = LeaveCompanyMapping(sequelize, Sequelize);
+db.leavemanager = leavemanager(sequelize, Sequelize);
 //COMP OFF
 // start lwf mapping by jay
 db.lwfMapping = LwfMapping(sequelize, Sequelize);
@@ -1742,7 +1744,7 @@ db.leaveCompanyMapping.hasOne(db.leaveMaster, {
 db.leaveMapping.hasOne(db.leaveCompanyMapping, {
 	foreignKey: "leaveAutoId",
 	sourceKey: "leaveAutoId",
-	as:"leaveCompanyDetails"
+	as: "leaveCompanyDetails",
 });
 
 // end by jay

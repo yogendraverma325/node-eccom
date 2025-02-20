@@ -6,6 +6,9 @@ cron.schedule("30 1 * * *", async () => {
 	await attendanceController.attedanceCron();
 });
 cron.schedule("10 2 * * *", async () => {
+	await helper.leaveLapse();
+});
+cron.schedule("10 3 * * *", async () => {
 	await helper.leaveCreditMonthCron();
 });
 
