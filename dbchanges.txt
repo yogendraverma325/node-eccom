@@ -1,3 +1,8 @@
+//------------------------------------------2025-02-17-------------------------------------------------//
+
+ALTER TABLE `tara`.`employeeleaveheader` 
+ADD COLUMN `approvalFlowExist` INT NULL DEFAULT 0 AFTER `source`;
+
 // ----------------------------------------- 2025-02-12 -----------------------------------------------//
 CREATE TABLE leave_assignment_filters (
   leave_assignment_filters_auto_id INT NOT NULL AUTO_INCREMENT,

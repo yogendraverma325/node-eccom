@@ -167,6 +167,12 @@ import LWFOverrides from "../api/model/LWFOverrides.js";
 import NoticeRecoveryOverrides from "../api/model/NoticeRecoveryOverrides.js";
 import ExtraBenefits from "../api/model/ExtraBenefits.js";
 
+// Leave Approval Flow ////
+import LeaveApprovalFlow from "../api/model/LeaveApprovalFlow.js";
+import LeaveApprovalLevel from "../api/model/LeaveApprovalLevel.js";
+import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
+// Leave Approval Flow ////
+
 //////////////////End F&F by jay/////////////////
 
 import literal from "sequelize";
@@ -441,9 +447,9 @@ db.lwfMapping = LwfMapping(sequelize, Sequelize);
 // end lwf mapping by jay
 
 /// Leave Approval FLow //////
-// db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
-// db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
-// db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
+db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
+db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
+db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
 /// Leave Approval FLow //////
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -1736,6 +1742,11 @@ db.EmployeeLeaveHeader.hasMany(db.employeeLeaveTransactions, {
 	foreignKey: "employeeleaveheaderID",
 	sourceKey: "employeeleaveheaderID",
 });
+
+db.employeeLeaveTransactions.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
 // added by jay
 db.stateMaster.hasMany(db.lwfMapping, {
 	foreignKey: "stateId",
@@ -1756,20 +1767,26 @@ db.leaveMapping.hasOne(db.leaveCompanyMapping, {
 
 // end by jay
 
-// db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
-// 	foreignKey: "leaveHeaderAutoId",
-// 	sourceKey: "employeeleaveheaderID",
-// });
+db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
+	foreignKey: "leaveHeaderAutoId",
+	sourceKey: "employeeleaveheaderID",
+});
 
-// db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
-// 	foreignKey: "approvalFlow_Auto_Id",
-// 	sourceKey: "approvalFlowAutoId",
-// });
+db.EmployeeLeaveHeader.hasMany(db.leaveApprovalTrails, {
+	foreignKey: "leaveHeaderAutoId",
+	sourceKey: "employeeleaveheaderID",
+	as: "trails",
+});
 
-// db.leaveApprovalTrails.hasOne(db.employeeMaster, {
-// 	foreignKey: "id",
-// 	sourceKey: "pendingOn",
-// });
+db.leaveApprovalTrails.hasOne(db.leaveApprovalFlow, {
+	foreignKey: "approvalFlow_Auto_Id",
+	sourceKey: "approvalFlowAutoId",
+});
+
+db.leaveApprovalTrails.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "pendingOn",
+});
 
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",

@@ -24,7 +24,7 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.INTEGER,
 		},
 		isApproved: {
-			type: Sequelize.BOOLEAN,
+			type: Sequelize.INTEGER,
 		},
 		remark: {
 			type: Sequelize.STRING(255),
