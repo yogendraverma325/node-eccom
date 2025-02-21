@@ -6,6 +6,7 @@ cron.schedule("30 1 * * *", async () => {
 	await attendanceController.attedanceCron();
 });
 cron.schedule("10 2 * * *", async () => {
+	await cronController.leaveActivation();
 	await helper.leaveLapse();
 });
 cron.schedule("10 3 * * *", async () => {
@@ -35,21 +36,6 @@ cron.schedule("* * * * *", async () => {
 cron.schedule("* * * * *", async () => {
 	cronController.updateActiveStatus();
 });
-
-cron.schedule("0 8 * * *", async () => {
-	console.log("cron is running in very seconds");
-	//await cronController.EarnedLeaveCreditCron();
-});
-
-//cron.schedule("*/10 * * * * *", async () => {
-//console.log("cron is running in seconds");
-//cronController.EarnedLeaveCreditCron();
-//});
-
-// cron.schedule("*/10 * * * * *", async () => {
-//   console.log("cron is running in seconds>>>>");
-//    cronController.onBoardLeaveMapping();
-// });
 
 cron.schedule("0 0 * * *", async () => {
 	await cronController.blockAccess();

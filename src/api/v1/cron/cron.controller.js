@@ -1142,6 +1142,17 @@ class CronController {
 					},
 				);
 
+				await db.leaveMapping.update(
+					{ is_active_for_application: 1 },
+					{
+						where: {
+							EmployeeId: SingleConfirmationDateIsTodayList?.employeeId,
+							is_active_for_application: 0,
+							isActive: 1,
+						},
+					},
+				);
+
 				const employeeData = await db.jobDetails.findOne({
 					where: {
 						userId: SingleConfirmationDateIsTodayList?.employeeId,
@@ -1774,6 +1785,28 @@ class CronController {
 					},
 				);
 			}
+		}
+	}
+
+	async leaveActivation() {
+		let leavesForActivation = await db.leaveMapping.findAll({
+			where: {
+				leave_activation_date: {
+					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+				},
+				is_active_for_application: 0,
+			},
+		});
+		for (const SIngleleavesForActivation of leavesForActivation) {
+			await db.leaveMapping.update(
+				{ is_active_for_application: 1 },
+				{
+					where: {
+						leaveMappingId: SIngleleavesForActivation?.leaveMappingId,
+						isActive: 1,
+					},
+				},
+			);
 		}
 	}
 }
