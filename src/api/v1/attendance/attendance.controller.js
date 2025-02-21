@@ -3277,6 +3277,8 @@ class AttendanceController {
 				`${existUser.shiftsmaster.dataValues.isOverNight && moment().isBefore(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`,
 			).format("YYYY-MM-DD HH:mm:ss");
 
+			console.log(`user->${req.userId} shiftStartDate->${shiftStartDate} shiftEndDate->${shiftEndDate}`);
+
 			let attendanceData = await db.attendanceHistory.findOne({
 				where: {
 					employeeId: req.userId,
