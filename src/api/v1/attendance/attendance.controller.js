@@ -1582,10 +1582,10 @@ class AttendanceController {
 						required: false,
 						as: "leaveMasterDetails",
 						attributes: ["leaveName", "leaveCode"],
-					},{
-						model:db.EmployeeLeaveHeader,
-						attributes:['employeeleaveheaderID'],
-						include:[{
+					}, {
+						model: db.EmployeeLeaveHeader,
+						attributes: ['employeeleaveheaderID'],
+						include: [{
 							model: db.leaveApprovalTrails,
 							required: false,
 							separate: true, // Ensures sorting is applied properly
@@ -1595,7 +1595,7 @@ class AttendanceController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
-							order: [["leaveTrailAutoId", "ASC"]]							
+							order: [["leaveTrailAutoId", "ASC"]]
 						}]
 					}],
 					order: [["employeeLeaveTransactionsId", "desc"]],
@@ -1888,7 +1888,7 @@ class AttendanceController {
 							attendanceShiftEmployee: attendaceRoster
 								? attendaceRoster.dataValues.shiftsmaster
 								: shiftMaster,
-								//leaveapprovaltrails:leaveLevelTrail?leaveLevelTrail.leaveapprovaltrails:[]
+							//leaveapprovaltrails:leaveLevelTrail?leaveLevelTrail.leaveapprovaltrails:[]
 						},
 					);
 				}),
@@ -3296,6 +3296,8 @@ class AttendanceController {
 				`${existUser.shiftsmaster.dataValues.isOverNight && moment().isBefore(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`,
 			).format("YYYY-MM-DD HH:mm:ss");
 
+			console.log(`user->${req.userId} shiftStartDate->${shiftStartDate} shiftEndDate->${shiftEndDate}`);
+
 			let attendanceData = await db.attendanceHistory.findOne({
 				where: {
 					employeeId: req.userId,
@@ -3305,6 +3307,8 @@ class AttendanceController {
 					},
 				},
 			});
+
+			console.log("attendanceData", attendanceData);
 
 			return respHelper(res, {
 				status: 200,
