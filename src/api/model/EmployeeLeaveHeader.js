@@ -84,9 +84,12 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		approvalFlowExist:{
-			type: Sequelize.INTEGER,	
-		}
+		approvalFlowExist: {
+			type: Sequelize.INTEGER,
+		},
+		tenureChecked: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return employeeleaveheader;
 };

@@ -3033,6 +3033,187 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 };
 //LEAVE ASSIGNMENT
 
+const leaveRefil = async () => {
+	try {
+		const leaveWhichNeedToRefillForAll = await db.leaveCompanyMapping.findAll({
+			attributes: [
+				"leaveCompanyId",
+				"leaveAutoId",
+				"leave_allowed_in_year",
+				"tenureCount",
+				"empType",
+				"maritalApplicable",
+				"companyId",
+			],
+			where: { tenureCount: { [Op.ne]: 0 }, isActive: 1 },
+		});
+
+		const today = moment().format("YYYY-MM-DD"); // Replace with any date
+		for (const singleleaveWhichNeedToRefillForAll of leaveWhichNeedToRefillForAll) {
+			let empTyes = singleleaveWhichNeedToRefillForAll?.empType;
+			let empTypesArray = empTyes.split(",").map(Number);
+
+			let maritaltypes = singleleaveWhichNeedToRefillForAll?.maritalApplicable;
+			let maritaltypesArray = maritaltypes.split(",").map(Number);
+
+			let leavesForRefill = await db.EmployeeLeaveHeader.findAll({
+				attributes: ["employeeId", "leaveAutoId", "employeeleaveheaderID"],
+				where: {
+					toDate: {
+						[Op.lte]: today, // Fetch records where to date is less than today
+					},
+					leaveAutoId: singleleaveWhichNeedToRefillForAll?.leaveAutoId,
+					status: "approved",
+					tenureChecked: 0,
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["empCode", "name", "employeeType", "companyId"],
+						required: true,
+						where: {
+							employeeType: { [Op.in]: empTypesArray },
+							companyId: singleleaveWhichNeedToRefillForAll?.companyId,
+						},
+						include: {
+							model: db.biographicalDetails,
+							attributes: ["biographicalId", "maritalStatus", "gender"],
+							required: true,
+							where: {
+								maritalStatus: { [Op.in]: maritaltypesArray },
+							},
+						},
+					},
+				],
+			});
+			for (const singleleaveForRefill of leavesForRefill) {
+				const { gender, maritalStatus } =
+					singleleaveForRefill?.employee?.employeebiographicaldetail;
+				const genderNumber =
+					gender === "Male" ? 1 : gender === "Female" ? 2 : 3;
+				const empType = singleleaveForRefill?.employee?.employeeType;
+				const companyId = singleleaveForRefill?.employee?.companyId;
+
+				const leaveMaster = await db.leaveCompanyMapping.findOne({
+					attributes: ["leaveAutoId", "leave_allowed_in_year", "tenureCount"],
+					where: {
+						[Op.and]: [
+							{
+								genderApplicable: {
+									[Op.or]: [
+										{
+											[Op.like]: `${genderNumber},%`,
+										},
+										{
+											[Op.like]: `%,${genderNumber},%`,
+										},
+										{
+											[Op.like]: `%,${genderNumber}`,
+										},
+										{
+											[Op.eq]: `${genderNumber}`,
+										},
+									],
+								},
+							},
+							{
+								maritalApplicable: {
+									[Op.or]: [
+										{
+											[Op.like]: `${maritalStatus},%`,
+										},
+										{
+											[Op.like]: `%,${maritalStatus},%`,
+										},
+										{
+											[Op.like]: `%,${maritalStatus}`,
+										},
+										{
+											[Op.eq]: `${maritalStatus}`,
+										},
+									],
+								},
+							},
+							{
+								empType: {
+									[Op.or]: [
+										{
+											[Op.like]: `${empType},%`,
+										},
+										{
+											[Op.like]: `%,${empType},%`,
+										},
+										{
+											[Op.like]: `%,${empType}`,
+										},
+										{
+											[Op.eq]: `${empType}`,
+										},
+									],
+								},
+							},
+							{
+								isActive: 1,
+								companyId: companyId,
+								leaveAutoId: singleleaveForRefill?.leaveAutoId,
+								tenureCount: { [Op.ne]: 0 }, // tenureCount != 0
+								leaveCompanyId:
+									singleleaveWhichNeedToRefillForAll?.leaveCompanyId,
+							},
+						],
+					},
+				});
+				if (leaveMaster) {
+					let tenureCountAvailable = leaveMaster?.tenureCount;
+					let leaveFillable = leaveMaster?.leave_allowed_in_year;
+					await db.EmployeeLeaveHeader.update(
+						{ tenureChecked: 1 },
+						{
+							where: {
+								employeeleaveheaderID:
+									singleleaveForRefill?.employeeleaveheaderID,
+							},
+						},
+					);
+					let leaveCount = await db.EmployeeLeaveHeader.count({
+						where: {
+							leaveAutoId: singleleaveForRefill?.leaveAutoId,
+							status: "approved",
+							employeeId: singleleaveForRefill.employeeId,
+						},
+					});
+					if (tenureCountAvailable > leaveCount) {
+						await db.leavemanager.create({
+							EmployeeId: singleleaveForRefill?.employeeId,
+							leaveAutoId: singleleaveForRefill?.leaveAutoId,
+							leaveCount: leaveFillable,
+							transaction_for: "CREDIT",
+							createdBy: 1,
+						});
+						await db.leaveMapping.increment(
+							{
+								availableLeave: leaveFillable,
+								accruedThisYear: leaveFillable,
+							},
+							{
+								where: {
+									EmployeeId: singleleaveForRefill?.employeeId,
+									leaveAutoId: singleleaveForRefill?.leaveAutoId,
+								},
+							},
+						);
+					}
+				}
+			}
+			console.log("leavesForRefill", leavesForRefill.length);
+		}
+
+		return leaveWhichNeedToRefillForAll;
+	} catch (error) {
+		console.log("error", error);
+	}
+};
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -3078,6 +3259,7 @@ export default {
 	actionOnLeaveCompOff,
 	leaveCreditMonthCron,
 	leaveLapse,
+	leaveRefil,
 	//COMPOFF
 	//LEAVE ASSIGNMENT
 	leaveAssignEmployeeToAll,

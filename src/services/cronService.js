@@ -11,6 +11,7 @@ cron.schedule("10 2 * * *", async () => {
 });
 cron.schedule("10 3 * * *", async () => {
 	await helper.leaveCreditMonthCron();
+	await helper.leaveRefil();
 });
 
 cron.schedule("0 6 * * *", async () => {
