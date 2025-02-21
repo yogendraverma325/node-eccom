@@ -21,18 +21,18 @@ class AttendanceController {
 			const result = await validator.attendanceSchema.validateAsync(req.body);
 			if (result.locationType == "Office") {
 				const distanceQuery = `
-    SELECT 
-        companyLocationId, 
-        (6371 * acos(
-            cos(radians(:userLat)) *
-            cos(radians(latitude)) *
-            cos(radians(longitude) - radians(:userLon)) +
-            sin(radians(:userLat)) *
-            sin(radians(latitude))
-        )) AS distance
-    FROM companylocationmaster
-    HAVING distance <= ${process.env.RADIUS_LIMIT / 1000}; -- 0.5 km = 500 meters
-`;
+					SELECT 
+					companyLocationId, 
+					(6371 * acos(
+					cos(radians(:userLat)) *
+					cos(radians(latitude)) *
+					cos(radians(longitude) - radians(:userLon)) +
+					sin(radians(:userLat)) *
+					sin(radians(latitude))
+					)) AS distance
+					FROM companylocationmaster
+					HAVING distance <= ${process.env.RADIUS_LIMIT / 1000}; -- 0.5 km = 500 meters
+				`;
 				let userLat = result.latitude;
 				let userLon = result.longitude;
 				const withInLocatoinRange = await db.sequelize.query(distanceQuery, {
@@ -129,11 +129,7 @@ class AttendanceController {
 				});
 			}
 
-			if (
-				(existEmployee.attendanceroster
-					? existEmployee.attendanceroster.shiftsmaster.isOverNight
-					: existEmployee.shiftsmaster.isOverNight) == 0
-			) {
+			if ((existEmployee.attendanceroster ? existEmployee.attendanceroster.shiftsmaster.isOverNight : existEmployee.shiftsmaster.isOverNight) == 0) {
 				const checkAttendance = await db.attendanceMaster.findOne({
 					raw: true,
 					where: {
@@ -251,17 +247,10 @@ class AttendanceController {
 						await db.attendanceMaster.create(creationObject);
 					}
 
-					const attendanceHistoryData = await db.attendanceHistory.findOne({
-						where: {
-							date: currentDate.format("YYYY-MM-DD"),
-							employeeId: req.userId,
-						},
-					});
-
 					await db.attendanceHistory.create({
 						date: currentDate.format("YYYY-MM-DD"),
 						time: currentDate.format("HH:mm:ss"),
-						status: !attendanceHistoryData ? "Punch In" : "Punch Out",
+						status: "Punch In",
 						employeeId: req.userId,
 						location: result.location,
 						locationType: result.locationType,
@@ -287,9 +276,7 @@ class AttendanceController {
 
 					return respHelper(res, {
 						status: 200,
-						msg: !attendanceHistoryData
-							? message.PUNCH_IN_SUCCESS
-							: message.PUNCH_OUT_SUCCESS,
+						msg: message.PUNCH_IN_SUCCESS
 					});
 				} else {
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
@@ -321,17 +308,10 @@ class AttendanceController {
 						);
 					}
 
-					const attendanceHistoryData = await db.attendanceHistory.findOne({
-						where: {
-							date: currentDate.format("YYYY-MM-DD"),
-							employeeId: req.userId,
-						},
-					});
-
 					await db.attendanceHistory.create({
 						date: currentDate.format("YYYY-MM-DD"),
 						time: currentDate.format("HH:mm:ss"),
-						status: !attendanceHistoryData ? "Punch In" : "Punch Out",
+						status: "Punch Out",
 						employeeId: req.userId,
 						location: result.location,
 						locationType: result.locationType,
@@ -357,9 +337,7 @@ class AttendanceController {
 
 					return respHelper(res, {
 						status: 200,
-						msg: !attendanceHistoryData
-							? message.PUNCH_IN_SUCCESS
-							: message.PUNCH_OUT_SUCCESS,
+						msg: message.PUNCH_OUT_SUCCESS,
 					});
 				}
 			} else {
@@ -444,17 +422,10 @@ class AttendanceController {
 							);
 						}
 
-						const attendanceHistoryData = await db.attendanceHistory.findOne({
-							where: {
-								date: currentDate.format("YYYY-MM-DD"),
-								employeeId: req.userId,
-							},
-						});
-
 						await db.attendanceHistory.create({
 							date: currentDate.format("YYYY-MM-DD"),
 							time: currentDate.format("HH:mm:ss"),
-							status: !attendanceHistoryData ? "Punch In" : "Punch Out",
+							status: "Punch Out",
 							employeeId: req.userId,
 							location: result.location,
 							lat: result.latitude,
@@ -480,9 +451,7 @@ class AttendanceController {
 
 						return respHelper(res, {
 							status: 200,
-							msg: !attendanceHistoryData
-								? message.PUNCH_IN_SUCCESS
-								: message.PUNCH_OUT_SUCCESS,
+							msg: message.PUNCH_OUT_SUCCESS,
 						});
 					} else {
 						const assignedShiftStartTime = existEmployee.attendanceroster
@@ -532,17 +501,10 @@ class AttendanceController {
 							await db.attendanceMaster.create(creationObject);
 						}
 
-						const attendanceHistoryData = await db.attendanceHistory.findOne({
-							where: {
-								date: currentDate.format("YYYY-MM-DD"),
-								employeeId: req.userId,
-							},
-						});
-
 						await db.attendanceHistory.create({
 							date: currentDate.format("YYYY-MM-DD"),
 							time: currentDate.format("HH:mm:ss"),
-							status: !attendanceHistoryData ? "Punch In" : "Punch Out",
+							status: "Punch In",
 							employeeId: req.userId,
 							location: result.location,
 							locationType: result.locationType,
@@ -568,9 +530,7 @@ class AttendanceController {
 
 						return respHelper(res, {
 							status: 200,
-							msg: !attendanceHistoryData
-								? message.PUNCH_IN_SUCCESS
-								: message.PUNCH_OUT_SUCCESS,
+							msg: message.PUNCH_IN_SUCCESS
 						});
 					}
 				} else {
@@ -620,17 +580,10 @@ class AttendanceController {
 							);
 						}
 
-						const attendanceHistoryData = await db.attendanceHistory.findOne({
-							where: {
-								date: yerterdayDate.format("YYYY-MM-DD"),
-								employeeId: req.userId,
-							},
-						});
-
 						await db.attendanceHistory.create({
 							date: currentDate.format("YYYY-MM-DD"),
 							time: currentDate.format("HH:mm:ss"),
-							status: !attendanceHistoryData ? "Punch In" : "Punch Out",
+							status: "Punch Out",
 							employeeId: req.userId,
 							location: result.location,
 							lat: result.latitude,
@@ -656,9 +609,7 @@ class AttendanceController {
 
 						return respHelper(res, {
 							status: 200,
-							msg: !attendanceHistoryData
-								? message.PUNCH_IN_SUCCESS
-								: message.PUNCH_OUT_SUCCESS,
+							msg: message.PUNCH_OUT_SUCCESS,
 						});
 					} else {
 						const assignedShiftStartTime = existEmployee.attendanceroster
@@ -705,17 +656,10 @@ class AttendanceController {
 							punchInSource: req.device,
 						};
 
-						const attendanceHistoryData = await db.attendanceHistory.findOne({
-							where: {
-								date: yerterdayDate.format("YYYY-MM-DD"),
-								employeeId: req.userId,
-							},
-						});
-
 						await db.attendanceHistory.create({
-							date: currentDate.format("YYYY-MM-DD"),
-							time: currentDate.format("HH:mm:ss"),
-							status: !attendanceHistoryData ? "Punch In" : "Punch Out",
+							date: yerterdayDate.format("YYYY-MM-DD"),
+							time: yerterdayDate.format("HH:mm:ss"),
+							status: "Punch In",
 							employeeId: req.userId,
 							location: result.location,
 							lat: result.latitude,
@@ -745,9 +689,7 @@ class AttendanceController {
 
 						return respHelper(res, {
 							status: 200,
-							msg: !attendanceHistoryData
-								? message.PUNCH_IN_SUCCESS
-								: message.PUNCH_OUT_SUCCESS,
+							msg: message.PUNCH_IN_SUCCESS
 						});
 					}
 				}
@@ -3269,23 +3211,35 @@ class AttendanceController {
 				],
 			});
 
-			const shiftEndDate = moment(
-				`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`,
-			).format("YYYY-MM-DD HH:mm:ss");
+			const shiftEndDate = moment(`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`);
 
-			const shiftStartDate = moment(
-				`${existUser.shiftsmaster.dataValues.isOverNight && moment().isBefore(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`,
-			).format("YYYY-MM-DD HH:mm:ss");
+			shiftEndDate.add(
+				existUser.attendancePolicymaster.allowBufferTime == 1
+					? existUser.attendancePolicymaster.bufferTimePost
+					: 0,
+				"minutes",
+			);
 
-			console.log(`user->${req.userId} shiftStartDate->${shiftStartDate} shiftEndDate->${shiftEndDate}`);
+			const shiftStartDate = moment(`${existUser.shiftsmaster.dataValues.isOverNight && moment().isAfter(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`);
+
+			shiftStartDate.subtract(
+				existUser.attendancePolicymaster.allowBufferTime == 1
+					? existUser.attendancePolicymaster.bufferTimePre
+					: 0,
+				"minutes",
+			);
 
 			let attendanceData = await db.attendanceHistory.findOne({
 				where: {
 					employeeId: req.userId,
-					createdAt: {
-						[Op.gte]: new Date(shiftStartDate),
-						[Op.lte]: new Date(shiftEndDate),
-					},
+					[Op.and]: [
+						db.Sequelize.where(
+							db.Sequelize.fn('concat', db.Sequelize.col('date'), ' ', db.Sequelize.col('time')),
+							{
+								[Op.between]: [new Date(shiftStartDate), new Date(shiftEndDate)]
+							}
+						)
+					]
 				},
 			});
 
