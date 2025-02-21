@@ -2575,7 +2575,7 @@ const leaveCreditMonthCron = async () => {
 					where: {
 						isActive: 1,
 						companyId: singleLeaves.companyId,
-						empCode: ["15629", "20884"],
+						empCode: ["15629", "20884", "20920"],
 						employeeType: singleLeaves.empType.split(","),
 					},
 				});
