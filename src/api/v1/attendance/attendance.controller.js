@@ -3230,7 +3230,7 @@ class AttendanceController {
 				],
 			});
 
-			const shiftEndDate = moment(`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`);
+			let shiftEndDate = moment(`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftEndTime}`);
 
 			shiftEndDate.add(
 				existUser.attendancePolicymaster.allowBufferTime == 1
@@ -3239,7 +3239,9 @@ class AttendanceController {
 				"minutes",
 			);
 
-			const shiftStartDate = moment(`${existUser.shiftsmaster.dataValues.isOverNight && moment().isAfter(shiftEndDate) ? moment().subtract(1, "day").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`);
+			let shiftStartDate
+
+			shiftStartDate = moment(`${moment().format("YYYY-MM-DD")} ${existUser.shiftsmaster.dataValues.shiftStartTime}`);
 
 			shiftStartDate.subtract(
 				existUser.attendancePolicymaster.allowBufferTime == 1
@@ -3248,7 +3250,8 @@ class AttendanceController {
 				"minutes",
 			);
 
-			console.log(`user->${req.userId} shiftStartDate->${shiftStartDate} shiftEndDate->${shiftEndDate}`);
+			shiftStartDate = (existUser.shiftsmaster.dataValues.isOverNight && moment().isBefore(shiftStartDate)) ? shiftStartDate.subtract(1, "day") : shiftStartDate
+			shiftEndDate = (existUser.shiftsmaster.dataValues.isOverNight && moment().isAfter(shiftStartDate)) ? shiftEndDate.add(1, "day") : shiftEndDate
 
 			let attendanceData = await db.attendanceHistory.findOne({
 				where: {
@@ -3263,8 +3266,6 @@ class AttendanceController {
 					]
 				},
 			});
-
-			console.log("attendanceData", attendanceData);
 
 			return respHelper(res, {
 				status: 200,
