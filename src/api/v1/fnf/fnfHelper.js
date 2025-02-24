@@ -87,6 +87,9 @@ async function query(caseId, data, data2) {
 		case 21:
 			return `SELECT EmployeeId FROM ${dbName}.payprocessdetails where proceessId=${data} and payStatus in(6);`; //23
 			break;
+		case 22:
+			return `SELECT SUM(deductionAmount) AS totalDeduction, GROUP_CONCAT(deductionCategory,'(',deductionAmount,')'  ORDER BY deductionCategory SEPARATOR ' | ') AS deductionCategories FROM ${dbName}.extradeductions WHERE startMonth = '${data2}' AND EmployeeId = ${data};`; //14
+			break;
 	}
 }
 
@@ -306,6 +309,29 @@ async function arrectLOP(componentAmount, lopDays, totalWorkingdays) {
 	return componentAmount - amountAfterLop;
 }
 
+async function calculateGratuity(
+	basicAmount,
+	dateOfJoining,
+	dateOfExit,
+	gratuityMinYears,
+) {
+	const startDate = moment(dateOfJoining);
+	const endDate = moment(dateOfExit);
+
+	let years = endDate.diff(startDate, "years");
+	startDate.add(years, "years"); // Adjust startDate forward by counted years
+	const months = endDate.diff(startDate, "months");
+	startDate.add(months, "months"); // Adjust startDate forward by counted months
+	const days = endDate.diff(startDate, "days");
+	years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
+	console.log(`${years} years, ${months} months, and ${days} days`);
+	return {
+		years,
+		gratuityAmount:
+			years >= gratuityMinYears ? ((basicAmount * 15) / 26) * years : 0,
+	};
+}
+
 export default {
 	query,
 	getDaysInCurrentMonth,
@@ -320,4 +346,5 @@ export default {
 	getExtraDeductionsElements,
 	getFinancialYear,
 	arrectLOP,
+	calculateGratuity,
 };
