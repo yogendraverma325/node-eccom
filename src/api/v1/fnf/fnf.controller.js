@@ -936,8 +936,11 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-			// console.log(allEmployeeQuery);
+		
 			const result = await db.sequelize.query(allEmployeeQuery);
+			// console.log(result[0]);
+			// return;
+
 			if (result[0].length == 0) {
 				return respHelper(res, {
 					status: 400,
@@ -990,6 +993,8 @@ class FnfController {
 				salaryMonth: newProcess.dataValues.payMonth,
 				payMonth: newProcess.dataValues.payMonth,
 				companyId: value.companyId,
+				dateOfJoining:item.dateOfJoining,
+				dateOfexit:item.dateOfexit,
 			}));
 			await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
 				processFnf({
@@ -1676,6 +1681,7 @@ async function processFnf(data) {
 	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
 	const result = await db.sequelize.query(queryForAllExecutableEmployee);
 	// console.log(queryForAllExecutableEmployee)
+	// return 
 	if (result[0].length > 0) {
 		const employeeIds = result[0].map((item) => item.EmployeeId);
 		const totalWorkingDays = await fnfHelper.getDaysInCurrentMonth({
@@ -1727,8 +1733,8 @@ async function processFnf(data) {
 			  continue;
 			}
 
-			console.log(employeeDetailsComponentWise);
-			return;
+			// console.log(queryForEmployeePayDetails);
+			// return;
 
 			const payPackageMonthlyCTC =
 			parseFloat(
@@ -1885,21 +1891,13 @@ async function processFnf(data) {
 
 
 			/////////////////////////Extra-Payment Extraction//////////////////Verified
-
+			
 			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
 			const extraPaymentAmount1 =
 			  extraPaymentAmount[0].length > 0
 			    ? extraPaymentAmount[0][0]?.totalExtraPayment
 			    : 0;
-			/////////////////////////Extra-Payment Extraction//////////////////Verified
-			let gratuityAmount = await fnfHelper.calculateGratuity(44200,'2020-08-17','2025-03-08 15:15:52',5);
-			console.log(gratuityAmount);
-
-			
-			return;
-
-
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
 				const queryForComponentConfiguration = await fnfHelper.query(
 					9,
@@ -1973,6 +1971,12 @@ async function processFnf(data) {
 						"Affect PF >15000 No Restriction",
 						componentConfiguration[0],
 					);
+
+				let isGratuityApplicable =
+					fnfHelper.getElementValue(
+						"Gratuity Applicable",
+						componentConfiguration[0],
+				);
 				empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
 				empCopntWiseDetl["isPfApplicable"] = lwfDeducationDetails.pfApplicability;
 				empCopntWiseDetl["isPfRestriction"] = lwfDeducationDetails.pfRestricted;
@@ -1984,6 +1988,9 @@ async function processFnf(data) {
 				empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
 				empCopntWiseDetl["salaryComponentSequenceNo"] =
 				empCopntWiseDetl["salaryComponentSequenceNo"];
+				empCopntWiseDetl['isGratuityApplicable']=isGratuityApplicable;
+				console.log(empCopntWiseDetl);
+
 				// //////////////////////////////PF-Applicablity Keys//////////////////////////////////
 				let existDetails = await db.payMonthlyElements.findOne({
 					where: {
@@ -1996,10 +2003,7 @@ async function processFnf(data) {
 				if (!existDetails) {
 					await db.payMonthlyElements.create(empCopntWiseDetl);
 				}
-				//console.log(empCopntWiseDetl);
-				// return;
-			}
-
+			}	
 			let payElementComponents = await db.payMonthlyElements.findAll({
 				where: {
 					empId: employee,
@@ -2011,12 +2015,14 @@ async function processFnf(data) {
 			/////////////////Calculation And Updation of PF Amount //////////////////////
 			let calculatedPF = await fnfHelper.getCalculatedPF(payElementComponents);
 			let getCalculatedESIC = await fnfHelper.getCalculatedESIC(payElementComponents);
+			let getCalculatedGratuity = await fnfHelper.calculateGratuity(payElementComponents,result[0][0].dateOfJoining,result[0][0].dateOfexit,5);
 			await db.payMonthlyElements.update(
 				{
 					esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
 					esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
 					pfEmployeeAmount: calculatedPF,
 					pfEmployerAmount: calculatedPF,
+					gratuityAmount:getCalculatedGratuity.gratuityAmount>0?fnfHelper.customRound(getCalculatedGratuity.gratuityAmount):0
 				},
 				{ where: { empId: employee, payMonth: result[0][0].payMonth } },
 			);

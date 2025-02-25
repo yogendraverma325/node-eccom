@@ -19,7 +19,7 @@ async function query(caseId, data, data2) {
 			return `SELECT EmployeeId FROM ${dbName}.payprocessdetails  where payStatus in(8,9)   and payMonth='${data2}' and EmployeeId  in (${data});`;
 			break;
 		case 5:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName, e.dateOfexit, ejd.dateOfJoining  FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
 				data == 1 ? "buId" : "empCode"
 			} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")}
           ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
@@ -27,7 +27,7 @@ async function query(caseId, data, data2) {
 					}' OR (ppd.payStatus in (101,4))));;`;
 			break;
 		case 6:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName, e.dateOfexit, ejd.dateOfJoining FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN tara.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
 			break;
 		// case 5:
 		// 	return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) <= MONTH(CURDATE()) OR YEAR(e.dateOfexit) <= YEAR(CURDATE())) AND e.isActive=0 AND p.payPackageAutoId IS NOT NULL AND e.companyId=${data2.companyId} AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth}' OR (ppd.payStatus in (101,4))));`;
@@ -315,9 +315,15 @@ async function calculateGratuity(
 	dateOfExit,
 	gratuityMinYears,
 ) {
+	let gratuityAmountToCalculate =0;
+	for (const element of basicAmount) {
+		if(element.isGratuityApplicable==1)
+		{
+			gratuityAmountToCalculate=parseFloat(gratuityAmountToCalculate)+parseFloat(element.payElementAmount);
+		}
+	}
 	const startDate = moment(dateOfJoining);
 	const endDate = moment(dateOfExit);
-
 	let years = endDate.diff(startDate, "years");
 	startDate.add(years, "years"); // Adjust startDate forward by counted years
 	const months = endDate.diff(startDate, "months");
@@ -328,7 +334,7 @@ async function calculateGratuity(
 	return {
 		years,
 		gratuityAmount:
-			years >= gratuityMinYears ? ((basicAmount * 15) / 26) * years : 0,
+			years >= gratuityMinYears ? ((gratuityAmountToCalculate * 15) / 26) * years : 0,
 	};
 }
 

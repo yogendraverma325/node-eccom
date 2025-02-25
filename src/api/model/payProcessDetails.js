@@ -96,6 +96,14 @@ export default (sequelize, Sequelize) => {
 			allowNull: false,
 			defaultValue: false,
 		},
+		dateOfexit: {
+			type: Sequelize.DATE,
+			allowNull: true,
+		},
+		dateOfJoining: {
+			type: Sequelize.DATE,
+			allowNull: true,
+		},
 	});
 	return payProcessDetails;
 };

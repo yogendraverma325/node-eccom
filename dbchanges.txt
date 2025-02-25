@@ -1340,7 +1340,16 @@ SELECT * FROM tara.noticerecoveryOvrrides;
 --------------------------------------------
 
 
+//////////////payprocessdetails/////////24-02-2025///////
 
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `dateOfexit` DATE NULL DEFAULT NULL AFTER `companyId`,
+ADD COLUMN `dateOfJoining` DATE NULL DEFAULT NULL AFTER `dateOfexit`;
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `isGratuityApplicable` INT NULL DEFAULT '0' AFTER `salaryComponentSequenceNo`;
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `gratuityAmount` DECIMAL(10,2) NULL DEFAULT 0.00 AFTER `isGratuityApplicable`;
 
 
 

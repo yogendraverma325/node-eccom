@@ -172,6 +172,13 @@ export default (sequelize, Sequelize) => {
 		salaryComponentSequenceNo: {
 			type: Sequelize.INTEGER,
 		},
+		isGratuityApplicable: {
+			type: Sequelize.INTEGER,
+		},
+		gratuityAmount: {
+			type: Sequelize.DECIMAL(10, 2),
+			allowNull: true,
+		},
 	});
 	return PayMonthlyElement;
 };
