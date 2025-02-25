@@ -1044,7 +1044,7 @@ const importOnboardEmployeeSchema = Joi.object({
 	department: Joi.string().required().label("Department"),
 	company: Joi.string().required().label("Company"),
 	attendancePolicy: Joi.string().allow(null).label("Attendance Policy"),
-	companyLocation: Joi.number().required().label("Company Location"),
+	companyLocation: Joi.string().required().label("Company Location"),
 	weekOff: Joi.string().allow(null).label("Week Off"),
 	gender: Joi.string()
 		.valid("Male", "Female", "Do not want to disclose", "Transgender", "Other")

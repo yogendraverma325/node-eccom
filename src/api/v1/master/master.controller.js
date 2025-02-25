@@ -17,7 +17,11 @@ class MasterController {
 			let functionAreaFIlter = {};
 			let departmentFIlter = {};
 			let designationFIlter = {};
+<<<<<<< HEAD
 			let companyFIlter={};
+=======
+			let companyFIlter = {};
+>>>>>>> main_live_jay_employee_type_06_02_2025_for_payroll
 			const usersData = req.userData;
 			const status = parseInt(req.query.status);
 
@@ -1079,10 +1083,16 @@ class MasterController {
 			const limit = req.query.limit * 1 || 10;
 			const pageNo = req.query.page * 1 || 1;
 			const offset = (pageNo - 1) * limit;
+			let companyId = req.query.companyId || "";
+			let query = { "isActive": 1 };
+			if(companyId) {
+				query = { ...query, 'companyId': companyId };
+			}
 
 			const employeeTypeData = await db.employeeTypeMaster.findAndCountAll({
 				limit,
 				offset,
+				where: query
 			});
 
 			return respHelper(res, {

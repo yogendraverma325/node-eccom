@@ -74,6 +74,7 @@ class MasterController {
 							const isValidCompany = await validateCompany(obj.company);
 							const isValidEmployeeType = await validateEmployeeType(
 								obj.employeeType,
+								isValidCompany
 							);
 							const isValidProbation = await validateProbation(obj.probation);
 							const isValidManager = await validateManager(obj.manager);
@@ -812,7 +813,7 @@ const createObj = (obj) => {
 		department: obj.Department_Name,
 		company: obj.Company_Name,
 		attendancePolicy: replaceNAWithNull(obj.Attendance_Policy_Name),
-		companyLocation: obj.Company_Location_Name,
+		companyLocation: obj.Company_Location_Name.toString(),
 		weekOff: replaceNAWithNull(obj.Week_Off_Name),
 		jobLevel: obj.Job_Level_Name,
 
@@ -1046,9 +1047,9 @@ const validateCompany = async (name) => {
 	}
 };
 
-const validateEmployeeType = async (name) => {
+const validateEmployeeType = async (name, isValidCompany) => {
 	let isVerify = await db.employeeTypeMaster.findOne({
-		where: { emptypename: name },
+		where: { emptypename: name, companyId: isValidCompany?.data?.companyId },
 		attributes: ["empTypeId"],
 	});
 	if (isVerify) {

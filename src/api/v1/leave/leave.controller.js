@@ -1585,6 +1585,8 @@ class LeaveController {
 		try {
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
 
+
+
 			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
 			console.log("this.workingday", this.workingday);
 
