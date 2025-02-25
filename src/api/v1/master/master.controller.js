@@ -17,11 +17,7 @@ class MasterController {
 			let functionAreaFIlter = {};
 			let departmentFIlter = {};
 			let designationFIlter = {};
-<<<<<<< HEAD
 			let companyFIlter={};
-=======
-			let companyFIlter = {};
->>>>>>> main_live_jay_employee_type_06_02_2025_for_payroll
 			const usersData = req.userData;
 			const status = parseInt(req.query.status);
 
