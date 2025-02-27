@@ -893,9 +893,7 @@ class UserController {
 					email: result.email,
 					isActive: 1,
 				},
-			});
-
-			console.log(getEmployee.dataValues.officeMobileNumber)
+			})
 
 			if (getEmployee) {
 				const otp = await helper.generateOTP(6);
@@ -907,12 +905,14 @@ class UserController {
 					}),
 				);
 
-				eventEmitter.emit('forgotPasswordSMS',
-					JSON.stringify({
-						mobile: getEmployee.dataValues.officeMobileNumber.split(','),
-						otp: otp,
-					})
-				)
+				if (getEmployee.dataValues.officeMobileNumber) {
+					eventEmitter.emit('forgotPasswordSMS',
+						JSON.stringify({
+							mobile: getEmployee.dataValues.officeMobileNumber.split(','),
+							otp: otp,
+						})
+					)
+				}
 
 				const deocdeOTP = await helper.generateJwtOTPEncrypt({
 					id: getEmployee.id,
