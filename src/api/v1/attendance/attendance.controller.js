@@ -2678,6 +2678,7 @@ class AttendanceController {
 	}
 
 	async manageDayShiftForEmp(empId) {
+		console.log("EMPID", empId);
 		let lastDayDate = moment().subtract(1, "day").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment()
 			.subtract(1, "day")
@@ -3111,7 +3112,7 @@ class AttendanceController {
 	async attedanceCron() {
 		try {
 			const start = performance.now();
-			console.log("start", start);
+			console.log("start", start, moment().subtract(1, "day").format("YYYY-MM-DD"));
 			const activeEmployees = await db.employeeMaster.findAll({
 				include: [
 					{
@@ -3168,7 +3169,7 @@ class AttendanceController {
 					},
 					{
 						model: db.holidayCompanyLocationConfiguration,
-						required: true,
+						required: false,
 					},
 				],
 				where: {
@@ -3177,6 +3178,7 @@ class AttendanceController {
 			});
 			let nightwala = 0;
 			let daywala = 0;
+			
 			for (const activeEmployeeSingleItem of activeEmployees) {
 				if (
 					activeEmployeeSingleItem.attendanceroster
@@ -3186,6 +3188,7 @@ class AttendanceController {
 					nightwala++;
 					await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
 				} else {
+					console.log("day wala")
 					daywala++;
 					await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
 				}
