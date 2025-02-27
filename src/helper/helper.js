@@ -176,6 +176,8 @@ const smsService = async (data) => {
 		}),
 	});
 
+	console.log("SMS Data", data);
+
 	axiosInstance.post(`${process.env.CENTRAL_MAIL_API}/process`, {
 		"template_code": data.template,
 		"template_customer_number": data.mobile,
@@ -187,6 +189,7 @@ const smsService = async (data) => {
 			"source": "TARA"
 		}
 	}).then((response) => {
+		console.log("SMS Response", response.data);
 		return true
 	}).catch((error) => {
 		console.log("Error ->", error)
