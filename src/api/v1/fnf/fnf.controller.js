@@ -2079,7 +2079,7 @@ async function availableEmployeeForProcessing(employeeIds, paymonth) {
 }
 
 async function generatePaySlip(data) {
-	console.log("generate pay slip");
+	console.log("generate pay slip:::::");
 	try {
 		let { processId, req } = data;
 
@@ -2118,7 +2118,7 @@ async function generatePaySlip(data) {
 				queryForPayMonthlyElementsForSalarySlip,
 			);
 
-			// console.log(payElements);
+			// console.log(queryForPayMonthlyElementsForSalarySlip);
 			// return
 			for (const payMonthlyElement of payElements[0]) {
 				let isExistPaySlip = await db.paySlips.findOne({
@@ -2189,6 +2189,11 @@ async function generatePaySlip(data) {
 								? payMonthlyElement.extrapaymentAmount
 								: 0,
 						);
+					GrossPayAfterExtraPay =  GrossPayAfterExtraPay + 	parseFloat(
+						payMonthlyElement.gratuityAmount
+							? payMonthlyElement.gratuityAmount
+							: 0,
+					);
 					GrossPayAfterExtraPay = fnfHelper.customRound(GrossPayAfterExtraPay);
 					isExistPaySlip = await db.paySlips.create({
 						EmployeeId: payMonthlyElement.empId,
@@ -2289,6 +2294,19 @@ async function generatePaySlip(data) {
 						});
 					}
 
+					if (payMonthlyElement.gratuityAmount > 0) {
+						customeDeduction.push({
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: "Gratuity",
+							paySlipComponentAmount: payMonthlyElement.gratuityAmount,
+							paySlipComponentType: "Earning",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: 999,
+						});
+					}
 					if (payMonthlyElement.pfEmployeeAmount > 0) {
 						customeDeduction.push({
 							EmployeeId: payMonthlyElement.empId,
