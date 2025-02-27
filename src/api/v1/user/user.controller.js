@@ -720,6 +720,12 @@ class UserController {
 				],
 			});
 
+			const countLeaveAssginedForExistingFlow = await db.EmployeeLeaveHeader.count(({
+				where: {
+					pendingAt: userid,
+					status: "pending",
+				},
+			}))
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
 					// pendingAt: userid,
@@ -729,10 +735,16 @@ class UserController {
 					{
 						model: db.leaveApprovalTrails,
 						where: {
+							isVisible: true,
 							pendingOn: req.userId,
+							isApproved: 0,
 							isPending: 1,
+							// pendingOn: req.userId,
+							// isPending: 1,
+							// isVisible:1
 							//isApproved:0
 						},
+						//required:false
 					},
 				],
 			});
@@ -788,14 +800,14 @@ class UserController {
 					},
 					mobile: {
 						raisedByMe: {
-							leaveData: countLeavePending,
+							leaveData: countLeavePending ,
 							attedanceData: pendingAttCount,
 							seperationCount: 0,
 							pendingAttendanceCount: 0,
 							compOffCount: 0,
 						},
 						assignedToMe: {
-							leaveData: countLeaveAssgined,
+							leaveData: countLeaveAssgined + countLeaveAssginedForExistingFlow,
 							attedanceData: assignedAttCount,
 							seperationCount: pendingSeperationCount,
 							pendingAttendanceCount,
@@ -2955,7 +2967,8 @@ class UserController {
 				type === "self"
 					? {
 							//createdBy: req.userId,
-							isApproved: [1, 2],
+							isPending:0,
+							isApproved: [1, 2,0],
 							// isPending: 1,
 						}
 					: {
@@ -5438,7 +5451,7 @@ class UserController {
 							? {
 									[Op.or]: [
 										{
-											updatedBy: req.userId,
+											//updatedBy: req.userId,
 											source: { [Op.ne]: "system_generated" },
 										},
 									],
@@ -5453,6 +5466,13 @@ class UserController {
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
+						{
+							model: db.employeeLeaveTransactions,
+							// where:
+							// 	type === "all" && isSystemGenerated == 0
+							// 		? { pendingAt: req.userId }
+							// 		: {},
+						},
 						{
 							model: db.employeeMaster,
 							attributes: ["id", "name", "empCode"],
@@ -5471,13 +5491,14 @@ class UserController {
 						},
 						{
 							model: db.leaveApprovalTrails,
-							required: false,
-							separate: true, // Ensures sorting is applied properly
+							required: true,
+							//separate: true, // Ensures sorting is applied properly
 							order: [["leaveTrailAutoId", "ASC"]],
 							where: {
-								isApproved: {
-									[Op.notIn]: [0],
-								},
+								// isApproved: {
+								// 	[Op.notIn]: [0],
+								// },
+								...(type === "all" && isSystemGenerated == 0 && { updatedBy: req.userId }),
 							},
 							include: [
 								{
@@ -5490,6 +5511,7 @@ class UserController {
 					limit,
 					offset,
 					order,
+					distinct: true,
 				});
 
 			return respHelper(res, {
