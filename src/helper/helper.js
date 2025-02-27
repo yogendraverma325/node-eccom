@@ -76,21 +76,23 @@ const checkActiveUser = async (data) => {
 			isActive: 1,
 			isLoginActive: 1,
 		},
-		include: [{
-			model: db.jobDetails,
-			required: true,
-			attributes: [
-				"dateOfProbationEnd",
-				"confirmationDate",
-				"confirmationGenerated",
-				"dateOfJoining",
-				"noticePeriodStatus",
-			],
-		},
-		{
-			model:db.roleMaster,
-			attributes:['name']
-		}]
+		include: [
+			{
+				model: db.jobDetails,
+				required: true,
+				attributes: [
+					"dateOfProbationEnd",
+					"confirmationDate",
+					"confirmationGenerated",
+					"dateOfJoining",
+					"noticePeriodStatus",
+				],
+			},
+			{
+				model: db.roleMaster,
+				attributes: ["name"],
+			},
+		],
 	});
 	return existUser;
 };
@@ -2271,6 +2273,7 @@ const creditCompoff = async (inputObject) => {
 							comp_off_polices_auto_id_history:
 								compOffPolicyData?.comp_off_polices_auto_id,
 							pending_at: "",
+							credit_for_date: attendanceDate,
 						};
 						comp_off_data.message = "Auto Approved Comp Off Request";
 						if (approvalRequired) {
