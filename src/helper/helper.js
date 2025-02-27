@@ -2582,7 +2582,7 @@ const actionOnLeaveCompOff = async (
 const leaveCreditMonthCron = async () => {
 	try {
 		console.log("run leave credit");
-		const today = moment("2025-02-01");
+		const today = moment();
 		const firstDayOfMonth = today.clone().startOf("month").format("D");
 		const currentDay = today.clone().format("D");
 
@@ -2628,7 +2628,6 @@ const leaveCreditMonthCron = async () => {
 					where: {
 						isActive: 1,
 						companyId: singleLeaves.companyId,
-						empCode: ["15629", "20884", "20920"],
 						employeeType: singleLeaves.empType.split(","),
 					},
 				});
