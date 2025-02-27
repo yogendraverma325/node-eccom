@@ -60,6 +60,9 @@ export default (sequelize, Sequelize) => {
 		pending_at: {
 			type: Sequelize.STRING,
 		},
+		credit_for_date: {
+			type: Sequelize.DATE,
+		},
 		createdBy: {
 			type: Sequelize.INTEGER,
 			allowNull: false,
