@@ -2705,7 +2705,6 @@ class MasterController {
 						[Op.in]: designationArrayForFilter,
 					};
 				}
-
 				const comapnyArrayForFilter = permissionAndAccess
 					.filter((obj) => obj.permissionType == "COMPANY")
 					.map((obj) => obj.permissionValue); // checking SBU Access

@@ -708,8 +708,8 @@ class UserController {
 						where: Object.assign(
 							!["ADMIN", "HR_OPS"].includes(req.userRole)
 								? {
-									manager: req.userId,
-								}
+										manager: req.userId,
+									}
 								: {},
 							{
 								isActive: 1,
@@ -720,12 +720,13 @@ class UserController {
 				],
 			});
 
-			const countLeaveAssginedForExistingFlow = await db.EmployeeLeaveHeader.count(({
-				where: {
-					pendingAt: userid,
-					status: "pending",
-				},
-			}))
+			const countLeaveAssginedForExistingFlow =
+				await db.EmployeeLeaveHeader.count({
+					where: {
+						pendingAt: userid,
+						status: "pending",
+					},
+				});
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
 					// pendingAt: userid,
@@ -895,7 +896,7 @@ class UserController {
 				},
 			});
 
-			console.log(getEmployee.dataValues.officeMobileNumber)
+			console.log(getEmployee.dataValues.officeMobileNumber);
 
 			if (getEmployee) {
 				const otp = await helper.generateOTP(6);
@@ -907,12 +908,13 @@ class UserController {
 					}),
 				);
 
-				eventEmitter.emit('forgotPasswordSMS',
+				eventEmitter.emit(
+					"forgotPasswordSMS",
 					JSON.stringify({
-						mobile: getEmployee.dataValues.officeMobileNumber.split(','),
+						mobile: getEmployee.dataValues.officeMobileNumber.split(","),
 						otp: otp,
-					})
-				)
+					}),
+				);
 
 				const deocdeOTP = await helper.generateJwtOTPEncrypt({
 					id: getEmployee.id,
@@ -1092,10 +1094,10 @@ class UserController {
 				finalStatus: 2,
 				empAttachment: result.attachment
 					? await helper.fileUpload(
-						result.attachment,
-						`separation_attachment_${d}`,
-						`uploads/${existUser.dataValues.empCode}`,
-					)
+							result.attachment,
+							`separation_attachment_${d}`,
+							`uploads/${existUser.dataValues.empCode}`,
+						)
 					: null,
 				empSubmissionDate: moment(),
 				createdDt: moment(),
@@ -1299,10 +1301,10 @@ class UserController {
 					l1Remark: result.l1Remark,
 					l1Attachment: result.attachment
 						? await helper.fileUpload(
-							result.attachment,
-							`separation_attachment_${d}`,
-							`uploads/${separationData.dataValues.employee.empCode}`,
-						)
+								result.attachment,
+								`separation_attachment_${d}`,
+								`uploads/${separationData.dataValues.employee.empCode}`,
+							)
 						: null,
 					l1SubmissionDate: moment(),
 					pendingAt: separationData.dataValues.employee.buHRId,
@@ -2397,10 +2399,10 @@ class UserController {
 					l2Remark: result.l2Remark,
 					l2Attachment: result.attachment
 						? await helper.fileUpload(
-							result.attachment,
-							`separation_attachment_${d}`,
-							`uploads/${separationData.dataValues.employee.empCode}`,
-						)
+								result.attachment,
+								`separation_attachment_${d}`,
+								`uploads/${separationData.dataValues.employee.empCode}`,
+							)
 						: null,
 					l2SubmissionDate: moment(),
 					l2RequestStatus: "Approved",
@@ -2881,10 +2883,10 @@ class UserController {
 						regularizeStatus: { [Op.ne]: "Pending" },
 						...(fromDate &&
 							extendedToDate && {
-							createdAt: {
-								[db.Sequelize.Op.between]: [fromDate, extendedToDate],
-							},
-						}),
+								createdAt: {
+									[db.Sequelize.Op.between]: [fromDate, extendedToDate],
+								},
+							}),
 					},
 					include: [
 						{
@@ -2904,11 +2906,11 @@ class UserController {
 										...(search && { name: { [Op.like]: `%${search}%` } }),
 										...(type === "all"
 											? {
-												[Op.or]: [
-													//{ id: req.userId },
-													{ manager: req.userId },
-												],
-											}
+													[Op.or]: [
+														//{ id: req.userId },
+														{ manager: req.userId },
+													],
+												}
 											: { id: req.userId }),
 									},
 									include: [
@@ -2975,15 +2977,15 @@ class UserController {
 			const leaveApprovalCondition =
 				type === "self"
 					? {
-						//createdBy: req.userId,
-						isPending: 0,
-						isApproved: [1, 2, 0],
-						// isPending: 1,
-					}
+							//createdBy: req.userId,
+							isPending: 0,
+							isApproved: [1, 2, 0],
+							// isPending: 1,
+						}
 					: {
-						isPending: 0,
-						//  isApproved:[1,2]
-					};
+							isPending: 0,
+							//  isApproved:[1,2]
+						};
 
 			const { count, rows: leaveRequests } =
 				await db.EmployeeLeaveHeader.findAndCountAll({
@@ -2994,26 +2996,26 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(fromDate &&
 							toDate && {
-							appliedFor: {
-								[db.Sequelize.Op.between]: [fromDate, toDate],
-							},
-						}),
+								appliedFor: {
+									[db.Sequelize.Op.between]: [fromDate, toDate],
+								},
+							}),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-								[Op.or]: [
-									{
-										//pendingAt: req.userId,
-										source: { [Op.ne]: "system_generated" },
-									},
-								],
-							}
-							: type === "all" && isSystemGenerated == 1
-								? {
 									[Op.or]: [
-										{ employeeId: req.userId },
-										{ pendingAt: req.userId, source: "system_generated" },
+										{
+											//pendingAt: req.userId,
+											source: { [Op.ne]: "system_generated" },
+										},
 									],
 								}
+							: type === "all" && isSystemGenerated == 1
+								? {
+										[Op.or]: [
+											{ employeeId: req.userId },
+											{ pendingAt: req.userId, source: "system_generated" },
+										],
+									}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -5458,20 +5460,20 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-								[Op.or]: [
-									{
-										//updatedBy: req.userId,
-										source: { [Op.ne]: "system_generated" },
-									},
-								],
-							}
-							: type === "all" && isSystemGenerated == 1
-								? {
 									[Op.or]: [
-										{ employeeId: req.userId },
-										{ updatedBy: req.userId, source: "system_generated" },
+										{
+											//updatedBy: req.userId,
+											source: { [Op.ne]: "system_generated" },
+										},
 									],
 								}
+							: type === "all" && isSystemGenerated == 1
+								? {
+										[Op.or]: [
+											{ employeeId: req.userId },
+											{ updatedBy: req.userId, source: "system_generated" },
+										],
+									}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -5507,7 +5509,8 @@ class UserController {
 								// isApproved: {
 								// 	[Op.notIn]: [0],
 								// },
-								...(type === "all" && isSystemGenerated == 0 && { updatedBy: req.userId }),
+								...(type === "all" &&
+									isSystemGenerated == 0 && { updatedBy: req.userId }),
 							},
 							include: [
 								{
@@ -5786,7 +5789,7 @@ class UserController {
 						"updatedBy",
 						"createdAt",
 						"updatedAt",
-							"source",
+						"source",
 						"credit_for_date",
 					],
 					where: {
@@ -5936,39 +5939,39 @@ class UserController {
 				where: Object.assign(
 					!["ADMIN", "HR_OPS"].includes(req.userRole)
 						? {
-							manager: req.userId,
-						}
+								manager: req.userId,
+							}
 						: {},
 					{
 						isActive: 1,
 					},
 					search || search != ""
 						? {
-							[Op.or]: [
-								{
-									empCode: {
-										[Op.like]: `%${search}%`,
+								[Op.or]: [
+									{
+										empCode: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-								{
-									name: {
-										[Op.like]: `%${search}%`,
+									{
+										name: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-								{
-									email: {
-										[Op.like]: `%${search}%`,
+									{
+										email: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-							],
-						}
+								],
+							}
 						: {},
 					selectedUser.length > 0
 						? {
-							id: {
-								[Op.notIn]: selectedUser,
-							},
-						}
+								id: {
+									[Op.notIn]: selectedUser,
+								},
+							}
 						: {},
 				),
 				attributes: ["id", "empCode", "name", "profileImage"],
@@ -6138,7 +6141,7 @@ class UserController {
 					name: user.dataValues.name,
 					rosterLimit: user.dataValues.attendancePolicymaster
 						? user.dataValues.attendancePolicymaster
-							.attendaceRosterLimitForPreviousDays
+								.attendaceRosterLimitForPreviousDays
 						: 0,
 					attendanceRosterData: await rosterData(),
 				});

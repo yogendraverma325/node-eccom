@@ -44,9 +44,9 @@ export default (sequelize, Sequelize) => {
 		createdBy: {
 			type: Sequelize.INTEGER,
 		},
-		employeeId:{
+		employeeId: {
 			type: Sequelize.INTEGER,
-		}
+		},
 	});
 	return leaveApprovalTrails;
 };

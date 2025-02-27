@@ -1411,7 +1411,7 @@ const payMonthYearCheck = Joi.object({
 		}, "format single-digit month as two digits"),
 	pay_year: Joi.number().required(),
 	companyId: Joi.number().required(),
-	processType: Joi.string().optional()
+	processType: Joi.string().optional(),
 });
 /////////////Payroll///////////////
 const addDesignationEmploymentSchema = Joi.object({
@@ -1538,7 +1538,7 @@ const updateCompOffLeaveRequest = Joi.object({
 const payProcessCardSchema = Joi.object({
 	selectedYear: Joi.number().required(),
 	companyId: Joi.number().required(),
-	processType: Joi.string().optional()
+	processType: Joi.string().optional(),
 });
 
 const extraDeductionFormSchema = Joi.object({

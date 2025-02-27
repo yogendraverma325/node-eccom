@@ -78,7 +78,7 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("paymentDetailsApprovalRequestMail", async (input) => {
 		await paymentDetailsApprovalRequest(input);
 	});
-	
+
 	eventEmitter.on("paymentDetailsAdminApprovedMail", async (input) => {
 		await paymentDetailsAdminApproval(input);
 	});

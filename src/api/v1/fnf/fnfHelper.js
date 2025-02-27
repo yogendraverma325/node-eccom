@@ -32,9 +32,9 @@ async function query(caseId, data, data2) {
 		// case 7:
 		// 	return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentSequenceNo,sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}  and pp.isActive=1;`; //11
 		// 	break;
-			case 7:
-				return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentSequenceNo,sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage, le.leaveEncashmentDays, gor.gratuityYears FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN leavencashmentoverrides le ON e.id = le.EmployeeId AND le.payMonth = "${data2.payMonth}" LEFT JOIN gratuityoverrides gor ON e.id = gor.EmployeeId AND gor.payMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}  and pp.isActive=1;`; //11
-				break;
+		case 7:
+			return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentSequenceNo,sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage, le.leaveEncashmentDays, gor.gratuityYears FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN leavencashmentoverrides le ON e.id = le.EmployeeId AND le.payMonth = "${data2.payMonth}" LEFT JOIN gratuityoverrides gor ON e.id = gor.EmployeeId AND gor.payMonth = "${data2.payMonth}" LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}  and pp.isActive=1;`; //11
+			break;
 		case 8:
 			return `SELECT userId, dateOfJoining FROM employeejobdetails WHERE YEAR(dateOfJoining)=${data2.payYear} AND MONTH(dateOfJoining)=${data2.payMonth} AND userId=${data};`; //26
 			break;
@@ -305,27 +305,27 @@ async function calculateGratuity(
 	dateOfJoining,
 	dateOfExit,
 	gratuityMinYears,
-	gratuityYears
+	gratuityYears,
 ) {
-	let gratuityAmountToCalculate =0;
+	let gratuityAmountToCalculate = 0;
 	for (const element of basicAmount) {
-		if(element.isGratuityApplicable==1)
-		{
-			gratuityAmountToCalculate=parseFloat(gratuityAmountToCalculate)+parseFloat(element.payElementAmount);
+		if (element.isGratuityApplicable == 1) {
+			gratuityAmountToCalculate =
+				parseFloat(gratuityAmountToCalculate) +
+				parseFloat(element.payElementAmount);
 		}
 	}
-	if(gratuityYears)
-	{
+	if (gratuityYears) {
 		//console.log("GRATUITY CALCULATION BY OVERRIDE YEARS")
-		gratuityYears=customRound(gratuityYears);
+		gratuityYears = customRound(gratuityYears);
 		return {
 			gratuityYears,
 			gratuityAmount:
-			gratuityYears >= gratuityMinYears ? ((gratuityAmountToCalculate * 15) / 26) * gratuityYears : 0,
+				gratuityYears >= gratuityMinYears
+					? ((gratuityAmountToCalculate * 15) / 26) * gratuityYears
+					: 0,
 		};
-	}
-	else
-	{
+	} else {
 		//console.log("GRATUITY CALCULATION BY SYSTEM YEARS")
 		const startDate = moment(dateOfJoining);
 		const endDate = moment(dateOfExit);
@@ -339,33 +339,33 @@ async function calculateGratuity(
 		return {
 			years,
 			gratuityAmount:
-				years >= gratuityMinYears ? ((gratuityAmountToCalculate * 15) / 26) * years : 0,
+				years >= gratuityMinYears
+					? ((gratuityAmountToCalculate * 15) / 26) * years
+					: 0,
 		};
 	}
-
 }
 
-
-async function leaveEncashmentAmount(
-	applicableComponents,
-	encashmentDays
-) {
-	if(!encashmentDays){
+async function leaveEncashmentAmount(applicableComponents, encashmentDays) {
+	if (!encashmentDays) {
 		return 0;
 	}
-	let encashmentApplicableAmount =0;
+	let encashmentApplicableAmount = 0;
 	for (const element of applicableComponents) {
-		if(element.isLeaveEncashmentApplicable==1)
-		{
-			encashmentApplicableAmount=parseFloat(encashmentApplicableAmount)+parseFloat(element.payElementAmount);
+		if (element.isLeaveEncashmentApplicable == 1) {
+			encashmentApplicableAmount =
+				parseFloat(encashmentApplicableAmount) +
+				parseFloat(element.payElementAmount);
 		}
 	}
-	console.log("Leave Encashment Applicable Amount :: ",encashmentApplicableAmount)
-	encashmentApplicableAmount=(encashmentApplicableAmount/30)*encashmentDays;
+	console.log(
+		"Leave Encashment Applicable Amount :: ",
+		encashmentApplicableAmount,
+	);
+	encashmentApplicableAmount =
+		(encashmentApplicableAmount / 30) * encashmentDays;
 	return encashmentApplicableAmount;
 }
-
-
 
 export default {
 	query,
@@ -382,5 +382,5 @@ export default {
 	getFinancialYear,
 	arrectLOP,
 	calculateGratuity,
-	leaveEncashmentAmount
+	leaveEncashmentAmount,
 };

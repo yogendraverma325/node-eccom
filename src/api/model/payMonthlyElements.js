@@ -179,14 +179,14 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DECIMAL(10, 2),
 			allowNull: true,
 		},
-		isLeaveEncashmentApplicable:{
+		isLeaveEncashmentApplicable: {
 			type: Sequelize.INTEGER,
-			default:0
+			default: 0,
 		},
-		leaveEncashmentAmount:{
+		leaveEncashmentAmount: {
 			type: Sequelize.DECIMAL(10, 2),
 			allowNull: true,
-		}
+		},
 	});
 	return PayMonthlyElement;
 };

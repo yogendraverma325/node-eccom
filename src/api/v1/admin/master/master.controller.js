@@ -4177,46 +4177,47 @@ class CommonController {
 							stateId: result1[j]?.stateId,
 						};
 
-						if(result1[j]?.lwfMappingId) {
-
+						if (result1[j]?.lwfMappingId) {
 							let isFindQuery = {
 								[Op.and]: [
-								  { lwfDesignationId: lwfmappings[i]?.lwfDesignationId },
-								  { stateId: result1[j]?.stateId },
-								  { [Op.not]: { lwfMappingId: result1[j]?.lwfMappingId }}
-								]
-							  };
-	
-							let existingData = await db.lwfMapping.findAll({ where: isFindQuery, attributes: ['lwfMappingId'] });
-							if(existingData.length > 1) {
+									{ lwfDesignationId: lwfmappings[i]?.lwfDesignationId },
+									{ stateId: result1[j]?.stateId },
+									{ [Op.not]: { lwfMappingId: result1[j]?.lwfMappingId } },
+								],
+							};
+
+							let existingData = await db.lwfMapping.findAll({
+								where: isFindQuery,
+								attributes: ["lwfMappingId"],
+							});
+							if (existingData.length > 1) {
 								j++;
 								// return respHelper(res, {
 								// 	status: 400,
 								// 	msg: constant.ALREADY_EXISTS.replace("<module>", "LWF"),
 								// 	data: {},
 								// });
-							}
-							else {
+							} else {
 								let updateObj = {
 									...result1[j],
 									lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
 									updatedBy: req.userId,
-									updatedAt: moment().format("YYYY-MM-DD")
-								}
-								
-								await db.lwfMapping.update(updateObj, { where: { lwfMappingId: result1[j].lwfMappingId } });
+									updatedAt: moment().format("YYYY-MM-DD"),
+								};
+
+								await db.lwfMapping.update(updateObj, {
+									where: { lwfMappingId: result1[j].lwfMappingId },
+								});
 							}
-						}
-						else {
+						} else {
 							let response = await service.details(model, query);
-							if(response.status === 200) {
+							if (response.status === 200) {
 								return respHelper(res, {
 									status: 400,
 									msg: constant.ALREADY_EXISTS.replace("<module>", "LWF"),
 									data: {},
 								});
-							}
-							else {
+							} else {
 								arr.push({
 									...result1[j],
 									lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
@@ -4236,11 +4237,10 @@ class CommonController {
 					msg: constant.UPDATE_SUCCESS.replace("<module>", "LWF"),
 					data: {},
 				});
-			}
-			else {
+			} else {
 				return respHelper(res, {
 					status: 400,
-					msg: "Bad request"
+					msg: "Bad request",
 				});
 			}
 		} catch (error) {
@@ -4263,9 +4263,9 @@ class CommonController {
 			let model = db.stateMaster;
 			let search = req.query.search || "";
 
-			let query = { 
+			let query = {
 				isActive: 1,
-				...(search && { stateName: { [Op.like]: `%${search}%` } })
+				...(search && { stateName: { [Op.like]: `%${search}%` } }),
 			};
 
 			let response = await service.list(model, query);
@@ -4322,7 +4322,7 @@ class CommonController {
 						model: db.lwfMapping,
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
-						}
+						},
 					},
 				],
 			};
@@ -4332,18 +4332,22 @@ class CommonController {
 			// change response format
 			let lwfMappingArr = response.data[0].lwfmappings;
 			let groupByLwfDesignationId = lwfMappingArr.reduce((acc, item) => {
-                acc[item.lwfDesignationId] = acc[item.lwfDesignationId] || [];
+				acc[item.lwfDesignationId] = acc[item.lwfDesignationId] || [];
 				acc[item.lwfDesignationId].push(item);
 				return acc;
 			}, {});
 
-			let allData = { 
+			let allData = {
 				stateId: response.data[0]?.stateId,
 				stateName: response.data[0]?.stateName,
-				lwfmappings: groupByLwfDesignationId
+				lwfmappings: groupByLwfDesignationId,
 			};
 
-			return respHelper(res, { status: response.status, msg: response.message, data: allData });
+			return respHelper(res, {
+				status: response.status,
+				msg: response.message,
+				data: allData,
+			});
 		} catch (error) {
 			logger.error(error);
 			return respHelper(res, {
