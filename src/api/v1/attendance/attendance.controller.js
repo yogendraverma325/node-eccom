@@ -2678,7 +2678,6 @@ class AttendanceController {
 	}
 
 	async manageDayShiftForEmp(empId) {
-		console.log("EMPID", empId);
 		let lastDayDate = moment().subtract(1, "day").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment()
 			.subtract(1, "day")
@@ -2846,7 +2845,7 @@ class AttendanceController {
 				id: empId,
 			},
 		});
-		console.log("EMPID", empId, "singleEmp", singleEmp);
+	
 
 		let presentStatus = null;
 
@@ -3034,6 +3033,7 @@ class AttendanceController {
 					singleEmp.attendancemaster &&
 					singleEmp.attendancemaster.attendanceWorkingTime
 				) {
+					
 					let compofftype = "Week Day";
 					let attendance_auto_id = singleEmp.attendancemaster.attendanceAutoId;
 					let attendanceStartDate =
@@ -3173,7 +3173,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1,
+					isActive: 1
 				},
 			});
 			let nightwala = 0;
@@ -3188,7 +3188,6 @@ class AttendanceController {
 					nightwala++;
 					await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
 				} else {
-					console.log("day wala")
 					daywala++;
 					await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
 				}

@@ -1751,6 +1751,7 @@ const checkCompOffPolicyForUser = async (UserId) => {
 		BAND: "bandId",
 		GRADE: "gradeId",
 		EMPID: "id",
+		EMP_TYPE: "employeeType",
 	};
 
 	const compOffAissgments = await db.comp_off_assignment.findAll({
@@ -2080,6 +2081,7 @@ const creditCompoff = async (inputObject) => {
 		} else if (holiday.length == 0 && weekoff.length > 0) {
 			compofftype = "Weekly Off";
 		}
+		
 		if (compofftype == "Week Day") {
 			const timeWorkDuration = moment.duration(working_hours);
 
@@ -2112,9 +2114,13 @@ const creditCompoff = async (inputObject) => {
 				timeWorkDuration.seconds() / 60;
 			comp_off_hours = totaltimeWorkDuration;
 		}
+		console.log("goAhead",goAhead)
+
+
 
 		if (goAhead) {
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
+			console.log('compOffPolicyData',compOffPolicyData)
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -2142,9 +2148,19 @@ const creditCompoff = async (inputObject) => {
 				totalCount += parseFloat(result.dataValues.total_balance);
 			}
 
+		
+
+			let creditCompGo=false;
+			if(compOffPolicyData.per_month_comp_off_limit==0){
+             creditCompGo=true;
+			}else{
+				if(compOffPolicyData.per_month_comp_off_limit > totalCount){
+					 creditCompGo=true;
+				}
+
+			}
 			if (
-				compOffPolicyData &&
-				compOffPolicyData.per_month_comp_off_limit > totalCount
+				compOffPolicyData && creditCompGo
 			) {
 				const leaveData = await db.leaveMaster.findOne({
 					where: {
