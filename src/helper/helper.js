@@ -176,6 +176,8 @@ const smsService = async (data) => {
 		}),
 	});
 
+	console.log("SMS Data", data);
+
 	axiosInstance
 		.post(
 			`${process.env.CENTRAL_MAIL_API}/process`,
@@ -193,6 +195,7 @@ const smsService = async (data) => {
 			},
 		)
 		.then((response) => {
+			console.log("SMS Response", response.data);
 			return true;
 		})
 		.catch((error) => {
