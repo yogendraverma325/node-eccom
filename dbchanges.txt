@@ -1206,6 +1206,12 @@ UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exp
   ALTER TABLE `tara_hrms_live`.`ptlocationmaster` 
   ADD COLUMN `frequency` VARCHAR(45) NULL DEFAULT 'Monthly' AFTER `stateId`;
 
+27-02-2025
+
+  ALTER TABLE `tara_hrms_live`.`payprocessmaster` 
+ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `filterType`;
+
+
 
 
 

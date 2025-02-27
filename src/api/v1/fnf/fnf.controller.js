@@ -973,6 +973,7 @@ class FnfController {
 					companyId: value.companyId,
 					financialYearId: financialYearDetails?.financialYearId,
 					filterType: value.departmentId === "0" ? 1 : 0,
+					processType: 'FnF'
 				},
 				{ raw: true, attributes: ["payProcessAutoId", "payMonth"] },
 			);
