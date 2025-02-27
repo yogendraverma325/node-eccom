@@ -1584,7 +1584,7 @@ class AttendanceController {
 						attributes: ["leaveName", "leaveCode"],
 					},{
 						model:db.EmployeeLeaveHeader,
-						attributes:['employeeleaveheaderID'],
+						attributes:['employeeleaveheaderID','role'],
 						include:[{
 							model: db.leaveApprovalTrails,
 							required: false,
@@ -1596,7 +1596,14 @@ class AttendanceController {
 								},
 							],
 							order: [["leaveTrailAutoId", "ASC"]]							
-						}]
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveUpdatedBy",
+							required: false,
+						},
+					]
 					}],
 					order: [["employeeLeaveTransactionsId", "desc"]],
 					//limit: 1
