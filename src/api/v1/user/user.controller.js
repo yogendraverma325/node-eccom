@@ -906,15 +906,6 @@ class UserController {
 					}),
 				);
 
-<<<<<<< HEAD
-				eventEmitter.emit(
-					"forgotPasswordSMS",
-					JSON.stringify({
-						mobile: getEmployee.dataValues.officeMobileNumber.split(","),
-						otp: otp,
-					}),
-				);
-=======
 				if (getEmployee.dataValues.officeMobileNumber) {
 					eventEmitter.emit('forgotPasswordSMS',
 						JSON.stringify({
@@ -923,7 +914,6 @@ class UserController {
 						})
 					)
 				}
->>>>>>> sms_implementation
 
 				const deocdeOTP = await helper.generateJwtOTPEncrypt({
 					id: getEmployee.id,
