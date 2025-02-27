@@ -936,11 +936,9 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-		
 			const result = await db.sequelize.query(allEmployeeQuery);
 			// console.log(result[0]);
 			// return;
-
 			if (result[0].length == 0) {
 				return respHelper(res, {
 					status: 400,
@@ -1654,6 +1652,9 @@ const groupByEmployeeId = (data) => {
 				"ESIC Employee": item["ESIC Employee"],
 				"PF Employee": item["PF Employee"],
 				"PF Employer": item["PF Employer"],
+				"Gratuity":item['gratuityAmount'],
+				"Leave Encashment":item['leaveEncashmentAmount'],
+				
 			};
 			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
 		}
@@ -1712,13 +1713,14 @@ async function processFnf(data) {
 			}
 
 			////////////////Verification for PayPackage Assigned/////////////
-
 			const queryForEmployeePayDetails = await fnfHelper.query(7, employee, {
 				payMonth: result[0][0].payMonth,
 			});
 			const employeeDetailsComponentWise = await db.sequelize.query(
 				queryForEmployeePayDetails,
 			);
+			const leaveEncashmentDays=employeeDetailsComponentWise[0][0]['leaveEncashmentDays'];
+			const gratuityYears=employeeDetailsComponentWise[0][0]['gratuityYears'];
 		if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
 			  await db.payProcessDetails.update(
 			    { payStatus: 101, payRemark: "Pay Package Not Assigned." },
@@ -1888,8 +1890,6 @@ async function processFnf(data) {
 				continue;
 			  }
 			////////////////////LWF-PT Variable validate and initialize////////////Verified
-
-
 			/////////////////////////Extra-Payment Extraction//////////////////Verified
 			
 			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
@@ -1977,6 +1977,11 @@ async function processFnf(data) {
 						"Gratuity Applicable",
 						componentConfiguration[0],
 				);
+				let isLeaveEncashmentApplicable =
+				fnfHelper.getElementValue(
+					"Affects Leave Encashments",
+					componentConfiguration[0],
+			);
 				empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
 				empCopntWiseDetl["isPfApplicable"] = lwfDeducationDetails.pfApplicability;
 				empCopntWiseDetl["isPfRestriction"] = lwfDeducationDetails.pfRestricted;
@@ -1989,7 +1994,8 @@ async function processFnf(data) {
 				empCopntWiseDetl["salaryComponentSequenceNo"] =
 				empCopntWiseDetl["salaryComponentSequenceNo"];
 				empCopntWiseDetl['isGratuityApplicable']=isGratuityApplicable;
-				console.log(empCopntWiseDetl);
+				empCopntWiseDetl['isLeaveEncashmentApplicable']=isLeaveEncashmentApplicable;
+				// console.log(empCopntWiseDetl);
 
 				// //////////////////////////////PF-Applicablity Keys//////////////////////////////////
 				let existDetails = await db.payMonthlyElements.findOne({
@@ -2015,18 +2021,23 @@ async function processFnf(data) {
 			/////////////////Calculation And Updation of PF Amount //////////////////////
 			let calculatedPF = await fnfHelper.getCalculatedPF(payElementComponents);
 			let getCalculatedESIC = await fnfHelper.getCalculatedESIC(payElementComponents);
-			let getCalculatedGratuity = await fnfHelper.calculateGratuity(payElementComponents,result[0][0].dateOfJoining,result[0][0].dateOfexit,5);
+			let getCalculatedGratuity = await fnfHelper.calculateGratuity(payElementComponents,result[0][0].dateOfJoining,result[0][0].dateOfexit,5,gratuityYears);
+			let leaveEncashmentAmount = await fnfHelper.leaveEncashmentAmount(payElementComponents,leaveEncashmentDays);
+			//console.log(getCalculatedGratuity);
+			/////////////////Calculation And Updation of PF Amount //////////////////////
+			//console.log('Encanshment Amount :: '+fnfHelper.customRound(leaveEncashmentAmount));
 			await db.payMonthlyElements.update(
 				{
 					esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
 					esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
 					pfEmployeeAmount: calculatedPF,
 					pfEmployerAmount: calculatedPF,
-					gratuityAmount:getCalculatedGratuity.gratuityAmount>0?fnfHelper.customRound(getCalculatedGratuity.gratuityAmount):0
+					gratuityAmount:getCalculatedGratuity.gratuityAmount>0?fnfHelper.customRound(getCalculatedGratuity.gratuityAmount):0,
+					leaveEncashmentAmount:fnfHelper.customRound(leaveEncashmentAmount),
 				},
 				{ where: { empId: employee, payMonth: result[0][0].payMonth } },
 			);
-			/////////////////Calculation And Updation of ESIC Amount //////////////////////
+			// /////////////////Calculation And Updation of ESIC Amount //////////////////////
 			await db.payProcessDetails.update(
 				{ payStatus: 2, payRemark: "Salary Processed." },
 				{
@@ -2194,6 +2205,12 @@ async function generatePaySlip(data) {
 							? payMonthlyElement.gratuityAmount
 							: 0,
 					);
+					GrossPayAfterExtraPay =  GrossPayAfterExtraPay + 	parseFloat(
+						payMonthlyElement.leaveEncashmentAmount
+							? payMonthlyElement.leaveEncashmentAmount
+							: 0,
+					);
+					
 					GrossPayAfterExtraPay = fnfHelper.customRound(GrossPayAfterExtraPay);
 					isExistPaySlip = await db.paySlips.create({
 						EmployeeId: payMonthlyElement.empId,
@@ -2301,6 +2318,19 @@ async function generatePaySlip(data) {
 							salaryComponentAutoId: 0,
 							paySlipComponentName: "Gratuity",
 							paySlipComponentAmount: payMonthlyElement.gratuityAmount,
+							paySlipComponentType: "Earning",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: 999,
+						});
+					}
+					if (payMonthlyElement.leaveEncashmentAmount > 0) {
+						customeDeduction.push({
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: "Leave Encashment",
+							paySlipComponentAmount: payMonthlyElement.leaveEncashmentAmount,
 							paySlipComponentType: "Earning",
 							createdBy: req.userData.id,
 							createdAt: new Date(),

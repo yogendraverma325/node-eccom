@@ -11,7 +11,7 @@ export default (sequelize, Sequelize) => {
 		payMonth: {
 			type: Sequelize.STRING,
 		},
-		gratuityDays: {
+		gratuityYears: {
 			type: Sequelize.DECIMAL,
 		},
 		empCode: {
