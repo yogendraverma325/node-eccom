@@ -87,6 +87,9 @@ export default (sequelize, Sequelize) => {
 		approvalFlowExist: {
 			type: Sequelize.INTEGER,
 		},
+		role: {
+			type: Sequelize.STRING,
+		},
 		tenureChecked: {
 			type: Sequelize.INTEGER,
 		},
