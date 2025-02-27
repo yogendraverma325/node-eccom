@@ -5035,7 +5035,7 @@ class LeaveController {
 									// isApproved: 1,
 									// remark: result.remark !== "" ? result.remark : null,
 									updatedBy:req.userId,
-									updatedAt:moment()
+									//updatedAt:moment()
 								},
 								{
 									where: { leaveTrailAutoId: trail.leaveTrailAutoId,isApproved:0 },
