@@ -11,8 +11,7 @@ import eventEmitter from "../../../services/eventService.js";
 import commonController from "../common/common.controller.js";
 import moment from "moment";
 import { Op } from "sequelize";
-import ssh2 from 'ssh2'
-import mysql from 'mysql2'
+
 
 class AdminController {
 	async addEmployee(req, res) {
@@ -2299,108 +2298,7 @@ class AdminController {
 		}
 	}
 
-	async biometricAttendance(req, res) {
-		try {
-			const sshConfig = {
-				host: process.env.SSH_HOST,
-				port: process.env.SSH_PORT,
-				username: process.env.SSH_USERNAME,
-				password: process.env.SSH_PASSWORD,
-			};
 
-			const mysqlConfig = {
-				host: process.env.SERVER_DB_HOST,
-				port: process.env.SERVER_DB_PORT,
-				user: process.env.SERVER_DB_USER,
-				password: process.env.SERVER_DB_PASSWORD,
-				database: process.env.SERVER_DB_NAME,
-			};
-
-			const sshClient = new ssh2.Client();
-			sshClient.on('ready', () => {
-				console.log('SSH Connection established');
-				sshClient.forwardOut(process.env.SERVER_DB_HOST, process.env.SERVER_DB_PORT, process.env.SERVER_DB_HOST, process.env.SERVER_DB_PORT, (err, stream) => {
-					if (err) {
-						console.error('Error forwarding MySQL port:', err);
-						return sshClient.end();
-					}
-					const connection = mysql.createConnection({
-						...mysqlConfig,
-						stream,
-					});
-					connection.connect((err) => {
-						if (err) {
-							console.error('Error connecting to MySQL:', err);
-							return;
-						}
-
-						console.log('Connected to MySQL via SSH tunnel');
-						connection.query(`SELECT distinct(TMC) FROM biometric_db.attendance where AutoIncrementID>0`, async (err, results) => {
-							if (err) {
-								console.error('Error running query:', err);
-								return;
-							}
-
-							for (const element of results) {
-
-								console.log('incoming data of tmcs--->>', element);
-
-
-								// console.log("employeeData", employeeData);
-
-								// connection.query('SELECT * FROM biometric_db.attendance WHERE AutoIncrementID = ?', [incomingAttendanceData.tmc], async (err, results) => {
-								// 	if (err) {
-								// 		console.error('Error running query:', err);
-								// 	}
-
-								// 	console.log('results', results);
-
-								// const incomingAttendanceData = {
-								// 	autoId: element.AutoIncrementID,
-								// 	deviceName: element.Device_Name,
-								// 	deviceCode: element.Device_Code,
-								// 	tmc: element.TMC,
-								// 	empName: element.EmployeeName,
-								// 	date: element.Date,
-								// 	time: element.Time,
-								// 	punchType: element.Punch_type,
-								// 	officeLocation: element.Office_Location,
-								// 	createdDate: element.CreatedDate,
-								// 	isRead: element.IsRead
-								// }
-
-								// // console.log('attendanceData', attendanceData);
-
-								// const employeeData = await db.employeeMaster.findOne({
-								// 	where: {
-								// 		empCode: incomingAttendanceData.tmc,
-								// 		isActive: 1,
-								// 	},
-								// 	attributes: ['id', 'empCode', 'name'],
-								// })
-
-								// })
-
-
-							}
-						});
-
-						connection.end();
-					});
-					sshClient.end()
-				}
-				);
-			}).on('error', (err) => {
-				console.error('SSH connection error:', err);
-			}).connect(sshConfig);
-
-
-			// return sshClient.end();
-
-		} catch (error) {
-			console.log(error)
-		}
-	}
 }
 
 export default new AdminController();

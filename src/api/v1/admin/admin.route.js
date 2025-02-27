@@ -217,8 +217,4 @@ export default Express.Router()
 		adminController.requiredAttendanceApproval,
 	)
 	// EMPLOYMENT END ROUTES
-
-	//Spectra
-	.get("/biometricAttendance", adminController.biometricAttendance)
-	//Spectra
 	

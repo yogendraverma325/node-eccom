@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { Op, fn, col } from "sequelize";
 import db from "../../../config/db.config.js";
 import moment from "moment";
@@ -9,6 +10,9 @@ import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
 import emailTemplate from "../../../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
+import attendanceController from "../attendance/attendance.controller.js";
+import ssh2 from 'ssh2'
+import mysql from 'mysql2'
 
 class CronController {
 	async updateAttendance() {
@@ -1807,6 +1811,104 @@ class CronController {
 					},
 				},
 			);
+		}
+	}
+
+	async biometricAttendance() {
+		try {
+			const sshConfig = Object.assign({
+				host: process.env.SSH_HOST,
+				port: process.env.SSH_PORT,
+				username: process.env.SSH_USERNAME,
+
+			}, (parseInt(process.env.SSH_LOGIN_WITH_KEY)) ?
+				{
+					privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+				} : {
+					password: process.env.SSH_PASSWORD,
+				}
+			)
+
+			const mysqlConfig = {
+				host: process.env.SERVER_DB_HOST,
+				port: process.env.SERVER_DB_PORT,
+				user: process.env.SERVER_DB_USER,
+				password: process.env.SERVER_DB_PASSWORD,
+				database: process.env.SERVER_DB_NAME,
+			};
+
+			const sshClient = new ssh2.Client();
+			sshClient.on('ready', () => {
+				logger.info(`SSH Connection established to ${process.env.SERVER_DB_HOST}:${process.env.SERVER_DB_PORT} at ${moment().format("YYYY-MM-DD HH:mm:ss")}`);
+				console.log('SSH Connection established');
+				sshClient.forwardOut(process.env.SERVER_DB_HOST, process.env.SERVER_DB_PORT, process.env.SERVER_DB_HOST, process.env.SERVER_DB_PORT, (err, stream) => {
+					if (err) {
+						logger.error(`Error forwarding MySQL port: ${err}`);
+						console.error('Error forwarding MySQL port:', err);
+						return sshClient.end();
+					}
+					const connection = mysql.createConnection({
+						...mysqlConfig,
+						stream,
+					});
+					connection.connect((err) => {
+						if (err) {
+							logger.error(`Error connecting to MySQL: ${err}`);
+							console.error('Error connecting to MySQL:', err);
+							return;
+						}
+
+						connection.query(`SELECT * FROM ${process.env.SERVER_DB_NAME}.attendance WHERE  AutoIncrementID >0 order by AutoIncrementID asc`, async (err, result) => {
+							if (err) {
+								logger.error(`Error running query: ${err}`);
+								console.error('Error running query:', err);
+							}
+
+
+							for (const element of result) {
+								const incomingAttendanceData = {
+									autoId: element.AutoIncrementID,
+									deviceName: element.Device_Name,
+									deviceCode: element.Device_Code,
+									tmc: element.TMC,
+									empName: element.EmployeeName,
+									date: element.Date,
+									time: element.Time,
+									punchType: element.Punch_type,
+									location: element.Office_Location,
+									createdDate: element.CreatedDate,
+									isRead: element.IsRead
+								}
+
+								const employeeData = await db.employeeMaster.findOne({
+									where: {
+										empCode: incomingAttendanceData.tmc,
+										isActive: 1,
+									},
+									attributes: ['id', 'empCode', 'name'],
+								})
+
+								if (!employeeData) {
+									logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
+									continue
+								}
+
+								const updatedAttendance = await attendanceController.markBioMetricAttendance(incomingAttendanceData)
+
+								console.log(updatedAttendance)
+							}
+						})
+					});
+				});
+				// sshClient.end()
+			}).on('error', (err) => {
+				logger.error(`SSH connection error: ${err}`);
+				console.error('SSH connection error:', err);
+			}).connect(sshConfig);
+
+		} catch (error) {
+			logger.error(`Error while connecting ${process.env.SERVER_DB_HOST}:${process.env.SERVER_DB_PORT} at ${moment().format("YYYY-MM-DD HH:mm:ss")}: ${error}`);
+			console.log(error)
 		}
 	}
 }
