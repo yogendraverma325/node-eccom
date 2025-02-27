@@ -65,12 +65,19 @@ export default (sequelize, Sequelize) => {
 		payMonth: {
 			type: Sequelize.STRING,
 		},
-		payMonth: {
-			type: Sequelize.STRING,
-		},
 		paySlipStatus: {
 			type: Sequelize.INTEGER,
 		},
+		sendEmail: {
+            type: Sequelize.INTEGER
+        },
+        paySlipType: {
+            type: Sequelize.STRING,
+            default: 'Regular'
+        },
+        financialYearId: {
+            type: Sequelize.INTEGER
+        }
 	});
 	return paySlips;
 };
