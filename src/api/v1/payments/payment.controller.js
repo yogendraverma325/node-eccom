@@ -1188,6 +1188,7 @@ class PaymentController {
 					companyId: value.companyId,
 					financialYearId: financialYearDetails?.financialYearId,
 					filterType: value.departmentId === "0" ? 1 : 0,
+					processType: 'Payroll'
 				},
 				{ raw: true, attributes: ["payProcessAutoId", "payMonth"] },
 			);
@@ -3012,7 +3013,7 @@ class PaymentController {
 			const queryForMappedEmployeeList = await paymentHelper.query(
 				4,
 				[1, 2, 3, 4, 5, 6, 7, 8, 9],
-				{ paymonth: paymonth, companyId: value.companyId },
+				{ paymonth: paymonth, companyId: value.companyId, processType: value.processType },
 			);
 
 			const pendingProcessList = await db.sequelize.query(
@@ -4307,6 +4308,7 @@ class PaymentController {
 			let model = db.financialYearMaster;
 			let financialYear = parseInt(req.body.selectedYear) || "";
 			let companyId = req.body.companyId || "";
+			let processType = req.body.processType;
 
 			let query = {
 				isActive: 1,
@@ -4316,7 +4318,10 @@ class PaymentController {
 			let processQuery = {
 				isActive: 1,
 				...(companyId && { companyId: companyId }),
+				'processType': processType
 			};
+
+			console.log(processQuery);
 
 			let attribute = { exclude: ["createdBy", "updatedBy", "updatedAt"] };
 

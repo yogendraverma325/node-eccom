@@ -1265,6 +1265,12 @@ UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exp
   ALTER TABLE `tara_hrms_live`.`ptlocationmaster` 
   ADD COLUMN `frequency` VARCHAR(45) NULL DEFAULT 'Monthly' AFTER `stateId`;
 
+27-02-2025
+
+  ALTER TABLE `tara_hrms_live`.`payprocessmaster` 
+ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `filterType`;
+
+
 
 
 
@@ -1398,6 +1404,27 @@ SELECT * FROM tara.noticerecoveryOvrrides;
 
 --------------------------------------------
 
+
+//////////////payprocessdetails/////////24-02-2025///////
+
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `dateOfexit` DATE NULL DEFAULT NULL AFTER `companyId`,
+ADD COLUMN `dateOfJoining` DATE NULL DEFAULT NULL AFTER `dateOfexit`;
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `isGratuityApplicable` INT NULL DEFAULT '0' AFTER `salaryComponentSequenceNo`;
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `gratuityAmount` DECIMAL(10,2) NULL DEFAULT 0.00 AFTER `isGratuityApplicable`;
+
+
+////////////////////////fnf-process//////27-02-2025/////////////////
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `isLeaveEncashmentApplicable` INT NULL DEFAULT 0 AFTER `gratuityAmount`,
+ADD COLUMN `leaveEncashmentAmount` DECIMAL(10,2) NULL DEFAULT 0.00 AFTER `isLeaveEncashmentApplicable`;
+
+ALTER TABLE `tara`.`gratuityoverrides` 
+CHANGE COLUMN `gratuityDays` `gratuityYears` DECIMAL(10,2) NOT NULL ;
 
 
 

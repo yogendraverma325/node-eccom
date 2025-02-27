@@ -925,6 +925,7 @@ class FnfController {
 				attributes: ["financialYearId"],
 				raw: true,
 			});
+			//console.log(financialYearDetails);
 			let ids = value.departmentId.split(",");
 			let allEmployeeQuery = await fnfHelper.query(
 				value.departmentId == 0 ? 5 : 6,
@@ -935,8 +936,9 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-			console.log(allEmployeeQuery);
 			const result = await db.sequelize.query(allEmployeeQuery);
+			// console.log(result[0]);
+			// return;
 			if (result[0].length == 0) {
 				return respHelper(res, {
 					status: 400,
@@ -973,6 +975,7 @@ class FnfController {
 					companyId: value.companyId,
 					financialYearId: financialYearDetails?.financialYearId,
 					filterType: value.departmentId === "0" ? 1 : 0,
+					processType: 'FnF'
 				},
 				{ raw: true, attributes: ["payProcessAutoId", "payMonth"] },
 			);
@@ -989,6 +992,8 @@ class FnfController {
 				salaryMonth: newProcess.dataValues.payMonth,
 				payMonth: newProcess.dataValues.payMonth,
 				companyId: value.companyId,
+				dateOfJoining:item.dateOfJoining,
+				dateOfexit:item.dateOfexit,
 			}));
 			await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
 				processFnf({
@@ -1648,6 +1653,9 @@ const groupByEmployeeId = (data) => {
 				"ESIC Employee": item["ESIC Employee"],
 				"PF Employee": item["PF Employee"],
 				"PF Employer": item["PF Employer"],
+				"Gratuity":item['gratuityAmount'],
+				"Leave Encashment":item['leaveEncashmentAmount'],
+				
 			};
 			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
 		}
@@ -1675,17 +1683,16 @@ async function processFnf(data) {
 	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
 	const result = await db.sequelize.query(queryForAllExecutableEmployee);
 	// console.log(queryForAllExecutableEmployee)
+	// return 
 	if (result[0].length > 0) {
 		const employeeIds = result[0].map((item) => item.EmployeeId);
 		const totalWorkingDays = await fnfHelper.getDaysInCurrentMonth({
 			year: result[0][0].payMonth.split("-")[0],
 			month: result[0][0].payMonth.split("-")[1],
 		});
-
 		const salaryRegisterArray = [],
 			errorProcessed = [];
 		let employees = employeeIds; //[484,560];//
-		console.log(employees);
 		for (const employee of employees) {
 			const actualWorkingDays = await fnfHelper.actualWorkingDays({
 				employeeId: employee,
@@ -1706,176 +1713,192 @@ async function processFnf(data) {
 				continue;
 			}
 
+			////////////////Verification for PayPackage Assigned/////////////
 			const queryForEmployeePayDetails = await fnfHelper.query(7, employee, {
 				payMonth: result[0][0].payMonth,
 			});
 			const employeeDetailsComponentWise = await db.sequelize.query(
 				queryForEmployeePayDetails,
 			);
-			console.log(employeeDetailsComponentWise);
-			// const queryForExtraDeductions = await fnfHelper.query(
-			//   14,
-			//   employee,
-			//   result[0][0].payMonth,
-			// );
-			// const extraDeductonsDetails = await db.sequelize.query(
-			//   queryForExtraDeductions,
-			// );
+			const leaveEncashmentDays=employeeDetailsComponentWise[0][0]['leaveEncashmentDays'];
+			const gratuityYears=employeeDetailsComponentWise[0][0]['gratuityYears'];
+		if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
+			  await db.payProcessDetails.update(
+			    { payStatus: 101, payRemark: "Pay Package Not Assigned." },
+			    {
+			      where: {
+			        EmployeeId: employee,
+			        proceessId: processId,
+			      },
+			    },
+			  );
+
+			  continue;
+			}
+
+			// console.log(queryForEmployeePayDetails);
+			// return;
+
 			const payPackageMonthlyCTC =
-				parseFloat(
-					employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC,
-				) || 0;
+			parseFloat(
+				employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC,
+			) || 0;
+			const lopDays =
+			parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
+			////////////////Verification for PayPackage Assigned/////////////
 
-			// const lopDays =
-			//   parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
 
-			// const lopMonthWiseCalculation =
-			//   totalWorkingDays > 0
-			//     ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
-			//     : "0.00";
-			// const deductionOfLopMonthAmount = Math.max(
-			//   0,
-			//   payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation),
-			// );
-			// async function getMonthAbbreviation(month) {
-			//   const monthNames = [
-			//     "jan",
-			//     "feb",
-			//     "mar",
-			//     "apr",
-			//     "may",
-			//     "jun",
-			//     "jul",
-			//     "aug",
-			//     "sep",
-			//     "oct",
-			//     "nov",
-			//     "dec",
-			//   ];
+			//////////////////Extra Deduciton Verification/////////////
+			const queryForExtraDeductions = await fnfHelper.query(
+			  22,
+			  employee,
+			  result[0][0].payMonth,
+			);
+			const extraDeductonsDetails = await db.sequelize.query(
+			  queryForExtraDeductions,
+			);
 
-			//   const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
-			//   return monthNames[monthIndex] || "";
-			// }
+			//////////////////Extra Deduciton Verification/////////////
 
-			// const month = result[0][0].payMonth.split("-")[1];
-			// const currentMonth = await getMonthAbbreviation(month);
+			//////Verified Till here////////
 
-			// const ptDynamicAttribute = [currentMonth, "ptAmount"];
-			// const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
-			// const ptDeducationDetails = await db.paymentDetails.findOne({
-			//   attributes: [
-			//     "paymentId",
-			//     "userId",
-			//     "ptLocationId",
-			//     "ptApplicability",
-			//     "ptStateId",
-			//   ],
-			//   where: { userId: employee },
-			//   raw: true,
-			//   nest: true,
-			//   include: [
-			//     {
-			//       model: db.ptLocationMaster,
-			//       attributes: ["ptLocationId", "ptLocationCode", "stateId"],
-			//       include: [
-			//         {
-			//           model: db.ptMapping,
-			//           attributes: [
-			//             "ptmappingId",
-			//             "minValue",
-			//             "maxValue",
-			//             ptDynamicAttribute,
-			//           ],
-			//           required: false,
-			//           where: {
-			//             [Op.and]: [
-			//               { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
-			//               { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
-			//             ],
-			//           },
-			//         },
-			//       ],
-			//     },
-			//   ],
-			// });
+		    ///////////////////PT/Extraction-Calculation Section////////////// Verified
+			const lopMonthWiseCalculation =
+			  totalWorkingDays > 0
+			    ? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
+			    : "0.00";
+			const deductionOfLopMonthAmount = Math.max(
+			  0,
+			  payPackageMonthlyCTC - parseFloat(lopMonthWiseCalculation),
+			);
+			async function getMonthAbbreviation(month) {
+			  const monthNames = [
+			    "jan",
+			    "feb",
+			    "mar",
+			    "apr",
+			    "may",
+			    "jun",
+			    "jul",
+			    "aug",
+			    "sep",
+			    "oct",
+			    "nov",
+			    "dec",
+			  ];
 
-			// const lwfDeducationDetails = await db.jobDetails.findOne({
-			//   attributes: [
-			//     "jobId",
-			//     "lwfApplicable",
-			//     "pfApplicability",
-			//     "pfRestricted",
-			//     "esicApplicable",
-			//     "lwfDesignation",
-			//     "lwfState",
-			//   ],
-			//   where: {
-			//     userId: employee,
-			//   },
-			//   raw: true,
-			// });
+			  const monthIndex = parseInt(month, 10) - 1; // Convert to zero-based index
+			  return monthNames[monthIndex] || "";
+			}
+			const month = result[0][0].payMonth.split("-")[1];
+			const currentMonth = await getMonthAbbreviation(month);
+			const ptDynamicAttribute = [currentMonth, "ptAmount"];
+			const lwfDynamicAttribute = [currentMonth, "lwfAmount"];
+			const ptDeducationDetails = await db.paymentDetails.findOne({
+			  attributes: [
+			    "paymentId",
+			    "userId",
+			    "ptLocationId",
+			    "ptApplicability",
+			    "ptStateId",
+			  ],
+			  where: { userId: employee },
+			  raw: true,
+			  nest: true,
+			  include: [
+			    {
+			      model: db.ptLocationMaster,
+			      attributes: ["ptLocationId", "ptLocationCode", "stateId"],
+			      include: [
+			        {
+			          model: db.ptMapping,
+			          attributes: [
+			            "ptmappingId",
+			            "minValue",
+			            "maxValue",
+			            ptDynamicAttribute,
+			          ],
+			          required: false,
+			          where: {
+			            [Op.and]: [
+			              { minValue: { [Op.lte]: deductionOfLopMonthAmount } },
+			              { maxValue: { [Op.gte]: deductionOfLopMonthAmount } },
+			            ],
+			          },
+			        },
+			      ],
+			    },
+			  ],
+			});
+			const lwfDeducationDetails = await db.jobDetails.findOne({
+			  attributes: [
+			    "jobId",
+			    "lwfApplicable",
+			    "pfApplicability",
+			    "pfRestricted",
+			    "esicApplicable",
+			    "lwfDesignation",
+			    "lwfState",
+			  ],
+			  where: {
+			    userId: employee,
+			  },
+			  raw: true,
+			});
+			///////////////////PT/Extraction-Calculation Section////////////Verified
 
-			// let lwfAmount = 0;
-			// let lwfMappingDetails = null;
 
-			// if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
-			//   lwfMappingDetails = await db.lwfMapping.findOne({
-			//     attributes: [
-			//       "lwfmappingId",
-			//       "lwfDesignationId",
-			//       "stateId",
-			//       lwfDynamicAttribute,
-			//     ], // Include the dynamic attribute here
-			//     where: {
-			//       lwfDesignationId: lwfDeducationDetails.lwfDesignation,
-			//       stateId: lwfDeducationDetails.lwfState,
-			//     },
-			//     raw: true,
-			//   });
+			////////////////////LWF-PT Variable validate and initialize////////////Verified
+			let lwfAmount = 0;
+			let lwfMappingDetails = null;
+			if (lwfDeducationDetails && lwfDeducationDetails.lwfApplicable === 1) {
+			  lwfMappingDetails = await db.lwfMapping.findOne({
+			    attributes: [
+			      "lwfmappingId",
+			      "lwfDesignationId",
+			      "stateId",
+			      lwfDynamicAttribute,
+			    ], // Include the dynamic attribute here
+			    where: {
+			      lwfDesignationId: lwfDeducationDetails.lwfDesignation,
+			      stateId: lwfDeducationDetails.lwfState,
+			    },
+			    raw: true,
+			  });
 
-			//   if (lwfMappingDetails) {
-			//     lwfAmount = lwfMappingDetails.lwfAmount || 0;
-			//   }
-			// }
-			// let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
-			// let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
-			// const ptAmount1 =
-			//   ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
-			//     ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
-			//     : 0;
-			// const lwfAmount1 = lwfAmount;
+			  if (lwfMappingDetails) {
+			    lwfAmount = lwfMappingDetails.lwfAmount || 0;
+			  }
+			}
 
-			// const extraPaymentAmount1 =
-			//   extraPaymentAmount[0].length > 0
-			//     ? extraPaymentAmount[0][0]?.totalExtraPayment
-			//     : 0;
-			// if (!lwfDeducationDetails) {
-			//   await db.payProcessDetails.update(
-			//     { payStatus: 101, payRemark: "Employee job details not found." },
-			//     {
-			//       where: {
-			//         EmployeeId: employee,
-			//         proceessId: processId,
-			//       },
-			//     },
-			//   );
+			const ptAmount1 =
+			  ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
+			    ? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
+			    : 0;
+			const lwfAmount1 = lwfAmount;
 
-			//   continue;
-			// }
-			// if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
-			//   await db.payProcessDetails.update(
-			//     { payStatus: 101, payRemark: "Pay Package Not Assigned." },
-			//     {
-			//       where: {
-			//         EmployeeId: employee,
-			//         proceessId: processId,
-			//       },
-			//     },
-			//   );
-
-			//   continue;
-			// }
-
+			if (!lwfDeducationDetails) {
+				await db.payProcessDetails.update(
+				  { payStatus: 101, payRemark: "Employee job details not found." },
+				  {
+					where: {
+					  EmployeeId: employee,
+					  proceessId: processId,
+					},
+				  },
+				);
+  
+				continue;
+			  }
+			////////////////////LWF-PT Variable validate and initialize////////////Verified
+			/////////////////////////Extra-Payment Extraction//////////////////Verified
+			
+			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
+			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
+			const extraPaymentAmount1 =
+			  extraPaymentAmount[0].length > 0
+			    ? extraPaymentAmount[0][0]?.totalExtraPayment
+			    : 0;
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
 				const queryForComponentConfiguration = await fnfHelper.query(
 					9,
@@ -1916,23 +1939,23 @@ async function processFnf(data) {
 							)
 						: fnfHelper.customRound(empCopntWiseDetl["elementMonthlyAmount"]);
 
-				empCopntWiseDetl["totalExtraDeduction"] = 0;
-				// extraDeductonsDetails[0][0]
-				//   .totalDeduction
-				//   ? extraDeductonsDetails[0][0].totalDeduction
-				//   : 0;
+				empCopntWiseDetl["totalExtraDeduction"] =
+				extraDeductonsDetails[0][0]
+				  .totalDeduction
+				  ? extraDeductonsDetails[0][0].totalDeduction
+				  : 0;
 				empCopntWiseDetl["extraDeductionCategories"] =
-					"Extra Deduction Categories";
-				// extraDeductonsDetails[0][0].deductionCategories
-				//   ? extraDeductonsDetails[0][0].deductionCategories
-				//   : "";
+			
+				extraDeductonsDetails[0][0].deductionCategories
+				  ? extraDeductonsDetails[0][0].deductionCategories
+				  : "";
 				empCopntWiseDetl["createdAt"] = new Date();
 				empCopntWiseDetl["createdBy"] = req.userData.id;
 				empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
-				empCopntWiseDetl["ptAmount"] = 0; //ptAmount1;
-				empCopntWiseDetl["lwfAmount"] = 0; //lwfAmount1;
-				empCopntWiseDetl["extraPaymentAmount"] = 0; //extraPaymentAmount1;
-				empCopntWiseDetl["extraPaymentCategories"] = "Extra Payment Category"; //extraPaymentAmount[0][0]?.paymentCategories;
+				empCopntWiseDetl["ptAmount"] = ptAmount1;
+				empCopntWiseDetl["lwfAmount"] =lwfAmount1;
+				empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
+				empCopntWiseDetl["extraPaymentCategories"] =extraPaymentAmount[0][0]?.paymentCategories;
 				empCopntWiseDetl["processId"] = processId;
 
 				////////////////////////////////PF-Applicablity Keys////////////////////////
@@ -1949,17 +1972,32 @@ async function processFnf(data) {
 						"Affect PF >15000 No Restriction",
 						componentConfiguration[0],
 					);
+
+				let isGratuityApplicable =
+					fnfHelper.getElementValue(
+						"Gratuity Applicable",
+						componentConfiguration[0],
+				);
+				let isLeaveEncashmentApplicable =
+				fnfHelper.getElementValue(
+					"Affects Leave Encashments",
+					componentConfiguration[0],
+			);
 				empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
-				empCopntWiseDetl["isPfApplicable"] = 0; //lwfDeducationDetails.pfApplicability;
-				empCopntWiseDetl["isPfRestriction"] = 0; // lwfDeducationDetails.pfRestricted;
-				empCopntWiseDetl["isEsicApplicable"] = 0; //lwfDeducationDetails.esicApplicable;
+				empCopntWiseDetl["isPfApplicable"] = lwfDeducationDetails.pfApplicability;
+				empCopntWiseDetl["isPfRestriction"] = lwfDeducationDetails.pfRestricted;
+				empCopntWiseDetl["isEsicApplicable"] =lwfDeducationDetails.esicApplicable;
 				empCopntWiseDetl["isEsicApplicableComponent"] = esicApplicableComponent;
 				empCopntWiseDetl["pfApplicable15000AndNoRestriction"] =
 					pfElementOnMorethan15000AndRestrictionNo;
 				empCopntWiseDetl["totalWorkingDays"] = totalWorkingDays;
 				empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
 				empCopntWiseDetl["salaryComponentSequenceNo"] =
-					empCopntWiseDetl["salaryComponentSequenceNo"];
+				empCopntWiseDetl["salaryComponentSequenceNo"];
+				empCopntWiseDetl['isGratuityApplicable']=isGratuityApplicable;
+				empCopntWiseDetl['isLeaveEncashmentApplicable']=isLeaveEncashmentApplicable;
+				// console.log(empCopntWiseDetl);
+
 				// //////////////////////////////PF-Applicablity Keys//////////////////////////////////
 				let existDetails = await db.payMonthlyElements.findOne({
 					where: {
@@ -1972,10 +2010,7 @@ async function processFnf(data) {
 				if (!existDetails) {
 					await db.payMonthlyElements.create(empCopntWiseDetl);
 				}
-
-				console.log(empCopntWiseDetl);
-			}
-
+			}	
 			let payElementComponents = await db.payMonthlyElements.findAll({
 				where: {
 					empId: employee,
@@ -1984,21 +2019,26 @@ async function processFnf(data) {
 				},
 				raw: true,
 			});
-			// ///////////////Calculation And Updation of PF Amount //////////////////////
+			/////////////////Calculation And Updation of PF Amount //////////////////////
 			let calculatedPF = await fnfHelper.getCalculatedPF(payElementComponents);
-			let getCalculatedESIC =
-				await fnfHelper.getCalculatedESIC(payElementComponents);
+			let getCalculatedESIC = await fnfHelper.getCalculatedESIC(payElementComponents);
+			let getCalculatedGratuity = await fnfHelper.calculateGratuity(payElementComponents,result[0][0].dateOfJoining,result[0][0].dateOfexit,5,gratuityYears);
+			let leaveEncashmentAmount = await fnfHelper.leaveEncashmentAmount(payElementComponents,leaveEncashmentDays);
+			//console.log(getCalculatedGratuity);
+			/////////////////Calculation And Updation of PF Amount //////////////////////
+			//console.log('Encanshment Amount :: '+fnfHelper.customRound(leaveEncashmentAmount));
 			await db.payMonthlyElements.update(
 				{
 					esicEmployerAmount: getCalculatedESIC.calculatedEmployerESIC,
 					esicEmployeeAmount: getCalculatedESIC.calculatedEmployeeESIC,
 					pfEmployeeAmount: calculatedPF,
 					pfEmployerAmount: calculatedPF,
+					gratuityAmount:getCalculatedGratuity.gratuityAmount>0?fnfHelper.customRound(getCalculatedGratuity.gratuityAmount):0,
+					leaveEncashmentAmount:fnfHelper.customRound(leaveEncashmentAmount),
 				},
 				{ where: { empId: employee, payMonth: result[0][0].payMonth } },
 			);
-			// ///////////////Calculation And Updation of ESIC Amount //////////////////////
-
+			// /////////////////Calculation And Updation of ESIC Amount //////////////////////
 			await db.payProcessDetails.update(
 				{ payStatus: 2, payRemark: "Salary Processed." },
 				{
@@ -2051,7 +2091,7 @@ async function availableEmployeeForProcessing(employeeIds, paymonth) {
 }
 
 async function generatePaySlip(data) {
-	console.log("generate pay slip");
+	console.log("generate pay slip:::::");
 	try {
 		let { processId, req } = data;
 
@@ -2090,7 +2130,7 @@ async function generatePaySlip(data) {
 				queryForPayMonthlyElementsForSalarySlip,
 			);
 
-			// console.log(payElements);
+			// console.log(queryForPayMonthlyElementsForSalarySlip);
 			// return
 			for (const payMonthlyElement of payElements[0]) {
 				let isExistPaySlip = await db.paySlips.findOne({
@@ -2161,6 +2201,17 @@ async function generatePaySlip(data) {
 								? payMonthlyElement.extrapaymentAmount
 								: 0,
 						);
+					GrossPayAfterExtraPay =  GrossPayAfterExtraPay + 	parseFloat(
+						payMonthlyElement.gratuityAmount
+							? payMonthlyElement.gratuityAmount
+							: 0,
+					);
+					GrossPayAfterExtraPay =  GrossPayAfterExtraPay + 	parseFloat(
+						payMonthlyElement.leaveEncashmentAmount
+							? payMonthlyElement.leaveEncashmentAmount
+							: 0,
+					);
+					
 					GrossPayAfterExtraPay = fnfHelper.customRound(GrossPayAfterExtraPay);
 					isExistPaySlip = await db.paySlips.create({
 						EmployeeId: payMonthlyElement.empId,
@@ -2261,6 +2312,32 @@ async function generatePaySlip(data) {
 						});
 					}
 
+					if (payMonthlyElement.gratuityAmount > 0) {
+						customeDeduction.push({
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: "Gratuity",
+							paySlipComponentAmount: payMonthlyElement.gratuityAmount,
+							paySlipComponentType: "Earning",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: 999,
+						});
+					}
+					if (payMonthlyElement.leaveEncashmentAmount > 0) {
+						customeDeduction.push({
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: "Leave Encashment",
+							paySlipComponentAmount: payMonthlyElement.leaveEncashmentAmount,
+							paySlipComponentType: "Earning",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: 999,
+						});
+					}
 					if (payMonthlyElement.pfEmployeeAmount > 0) {
 						customeDeduction.push({
 							EmployeeId: payMonthlyElement.empId,
