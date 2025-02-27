@@ -334,11 +334,15 @@ class LeaveController {
 						});
 						if (leaveTrails.length > 0) {
 							// Find the highest approval level among all trails
-							const maxApprovalLevel = leaveTrails[0].approval_flow.maxApprovalLevel;
-							const currentLevel = Math.max(...leaveTrails.map(trail => trail.level));
-					
-							const newStatus = currentLevel === maxApprovalLevel ? "approved" : "pending";
-					        
+							const maxApprovalLevel =
+								leaveTrails[0].approval_flow.maxApprovalLevel;
+							const currentLevel = Math.max(
+								...leaveTrails.map((trail) => trail.level),
+							);
+
+							const newStatus =
+								currentLevel === maxApprovalLevel ? "approved" : "pending";
+
 							await db.employeeLeaveTransactions.update(
 								{
 									status: newStatus,
@@ -5009,52 +5013,13 @@ class LeaveController {
 									leaveHeaderAutoId: leaveID,
 									...(req.userData.role_id !== 2 && { pendingOn: req.userId }),
 								},
-							],
-						});
-	
-						// Determine if leave should be marked as approved
-						const isFinalApproval = leaveTrails.some(trail => 
-							trail.level === trail.approval_flow.maxApprovalLevel
-						);
-	
-						await db.employeeLeaveTransactions.update(
-							{
-								status: isFinalApproval ? "approved" : "pending",
-								updatedBy: req.userId,
-								managerRemark: result.remark !== "" ? result.remark : null,
-								updatedAt: moment(),
-							},
-							{
-								where: { employeeleaveheaderID: leaveID },
-							}
-						);
-	
-						await db.EmployeeLeaveHeader.update(
-							{
-								status: isFinalApproval ? "approved" : "pending",
-								updatedBy: req.userId,
-								managerRemark: result.remark !== "" ? result.remark : null,
-								updatedAt: moment(),
-								role:req.userData['role.name']
-							},
-							{
-								where: { employeeleaveheaderID: leaveID },
-							}
-						);
-	
-						if (existingRecordNew && existingRecordNew.leaveAutoId == 9) {
-							await helper.actionOnLeaveCompOff(
-								existingRecordNew.employeeId,
-								leaveID,
-								1,
-								result.remark !== "" ? result.remark : null,
-								req.userId
-							);
-						}
-	
-						const existingRecord = await db.employeeLeaveTransactions.findOne({
-							where: { employeeleaveheaderID: leaveID },
-						});
+								include: [
+									{
+										model: db.leaveApprovalFlow,
+										attributes: ["maxApprovalLevel"],
+									},
+								],
+							});
 
 							// Determine if leave should be marked as approved
 							const isFinalApproval = leaveTrails.some(
@@ -5079,6 +5044,7 @@ class LeaveController {
 									updatedBy: req.userId,
 									managerRemark: result.remark !== "" ? result.remark : null,
 									updatedAt: moment(),
+									role: req.userData["role.name"],
 								},
 								{
 									where: { employeeleaveheaderID: leaveID },
