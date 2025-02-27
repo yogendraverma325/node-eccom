@@ -5777,6 +5777,8 @@ class UserController {
 						"updatedBy",
 						"createdAt",
 						"updatedAt",
+							"source",
+						"credit_for_date",
 					],
 					where: {
 						expiry_date: {
