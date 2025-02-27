@@ -76,21 +76,23 @@ const checkActiveUser = async (data) => {
 			isActive: 1,
 			isLoginActive: 1,
 		},
-		include: [{
-			model: db.jobDetails,
-			required: true,
-			attributes: [
-				"dateOfProbationEnd",
-				"confirmationDate",
-				"confirmationGenerated",
-				"dateOfJoining",
-				"noticePeriodStatus",
-			],
-		},
-		{
-			model:db.roleMaster,
-			attributes:['name']
-		}]
+		include: [
+			{
+				model: db.jobDetails,
+				required: true,
+				attributes: [
+					"dateOfProbationEnd",
+					"confirmationDate",
+					"confirmationGenerated",
+					"dateOfJoining",
+					"noticePeriodStatus",
+				],
+			},
+			{
+				model: db.roleMaster,
+				attributes: ["name"],
+			},
+		],
 	});
 	return existUser;
 };

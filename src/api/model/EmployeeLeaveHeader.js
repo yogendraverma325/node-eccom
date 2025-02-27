@@ -84,12 +84,12 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		approvalFlowExist:{
-			type: Sequelize.INTEGER,	
+		approvalFlowExist: {
+			type: Sequelize.INTEGER,
 		},
-		role:{
-			type: Sequelize.STRING
-		}
+		role: {
+			type: Sequelize.STRING,
+		},
 	});
 	return employeeleaveheader;
 };

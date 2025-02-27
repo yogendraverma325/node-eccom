@@ -720,12 +720,13 @@ class UserController {
 				],
 			});
 
-			const countLeaveAssginedForExistingFlow = await db.EmployeeLeaveHeader.count(({
-				where: {
-					pendingAt: userid,
-					status: "pending",
-				},
-			}))
+			const countLeaveAssginedForExistingFlow =
+				await db.EmployeeLeaveHeader.count({
+					where: {
+						pendingAt: userid,
+						status: "pending",
+					},
+				});
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
 					// pendingAt: userid,
@@ -800,7 +801,7 @@ class UserController {
 					},
 					mobile: {
 						raisedByMe: {
-							leaveData: countLeavePending ,
+							leaveData: countLeavePending,
 							attedanceData: pendingAttCount,
 							seperationCount: 0,
 							pendingAttendanceCount: 0,
@@ -2967,8 +2968,8 @@ class UserController {
 				type === "self"
 					? {
 							//createdBy: req.userId,
-							isPending:0,
-							isApproved: [1, 2,0],
+							isPending: 0,
+							isApproved: [1, 2, 0],
 							// isPending: 1,
 						}
 					: {
@@ -5498,7 +5499,8 @@ class UserController {
 								// isApproved: {
 								// 	[Op.notIn]: [0],
 								// },
-								...(type === "all" && isSystemGenerated == 0 && { updatedBy: req.userId }),
+								...(type === "all" &&
+									isSystemGenerated == 0 && { updatedBy: req.userId }),
 							},
 							include: [
 								{
