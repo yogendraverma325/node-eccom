@@ -332,14 +332,13 @@ class LeaveController {
 								},
 							],
 						});
-						console.log(">>>>>>>>>",leaveTrails)
 						if (leaveTrails.length > 0) {
 							// Find the highest approval level among all trails
 							const maxApprovalLevel = leaveTrails[0].approval_flow.maxApprovalLevel;
 							const currentLevel = Math.max(...leaveTrails.map(trail => trail.level));
 					
 							const newStatus = currentLevel === maxApprovalLevel ? "approved" : "pending";
-					
+					        
 							await db.employeeLeaveTransactions.update(
 								{
 									status: newStatus,
@@ -4957,7 +4956,6 @@ class LeaveController {
 					},
 				},
 			);
-			console.log("leaveIds",leaveIds)
 			if (result.status == "approved") {
 				for (const leaveID of leaveIds) {
 					const existingRecordNew = await db.EmployeeLeaveHeader.findOne({
@@ -5004,6 +5002,7 @@ class LeaveController {
 								updatedBy: req.userId,
 								managerRemark: result.remark !== "" ? result.remark : null,
 								updatedAt: moment(),
+								role:req.userData['role.name']
 							},
 							{
 								where: { employeeleaveheaderID: leaveID },
