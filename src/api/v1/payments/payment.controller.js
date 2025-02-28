@@ -16,7 +16,7 @@ import emailTemplate from "../../../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
 import path from "path"; // Import the path module
 import moment from "moment";
-import puppeteer from "puppeteer";
+// import puppeteer from "puppeteer";
 import eventEmitter from "../../../services/eventService.js";
 
 const __filename = fileURLToPath(import.meta.url);
