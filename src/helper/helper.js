@@ -2784,7 +2784,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 			attributes: ["id", "empCode", "employeeType", "companyId"],
 			where: {
 				isActive: 1,
-				//id: empIds,
+				id: empIds,
 			},
 			include: [
 				{
