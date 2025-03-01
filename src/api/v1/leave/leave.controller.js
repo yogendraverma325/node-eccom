@@ -173,32 +173,32 @@ class LeaveController {
 			const mainCondition =
 				query === "raisedByMe"
 					? {
-							employeeId: req.userId,
-							source: { [Op.ne]: "system_generated" },
-							status: "pending",
-						}
+						employeeId: req.userId,
+						source: { [Op.ne]: "system_generated" },
+						status: "pending",
+					}
 					: {
-							pendingAt: req.userId,
-							status: "pending",
-							...(user && { employeeId: user }),
-						};
+						pendingAt: req.userId,
+						status: "pending",
+						...(user && { employeeId: user }),
+					};
 
 			const leaveApprovalCondition =
 				query === "raisedByMe"
 					? {
-							employeeId: req.userId,
-							isApproved: {
-								[Op.notIn]: [2],
-							},
-							//isPending: 1,
-						}
+						employeeId: req.userId,
+						isApproved: {
+							[Op.notIn]: [2],
+						},
+						//isPending: 1,
+					}
 					: {
-							...(user && { createdBy: user }),
-							isVisible: true,
-							pendingOn: req.userId,
-							isApproved: 0,
-							isPending: 1,
-						};
+						...(user && { createdBy: user }),
+						isVisible: true,
+						pendingOn: req.userId,
+						isApproved: 0,
+						isPending: 1,
+					};
 			// console.log("mainCondition", mainCondition);
 			// console.log("leaveApprovalCondition", leaveApprovalCondition);
 
@@ -795,8 +795,8 @@ class LeaveController {
 											existingRecord.dataValues.isHalfDay === 0 ||
 												existingRecord.dataValues.halfDayFor === 1
 												? {
-														attendanceLateBy: "00:00:00",
-													}
+													attendanceLateBy: "00:00:00",
+												}
 												: {},
 										),
 										{
@@ -2860,10 +2860,10 @@ class LeaveController {
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
-										result.attachment,
-										`leaveAttachment_${uuid}`,
-										`uploads/${EMP_DATA.empCode}`,
-									)
+									result.attachment,
+									`leaveAttachment_${uuid}`,
+									`uploads/${EMP_DATA.empCode}`,
+								)
 								: null,
 						pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 						createdBy: req.userId, // Replace with actual creator user ID
@@ -2970,10 +2970,10 @@ class LeaveController {
 				leaveAttachment:
 					result.attachment != ""
 						? await helper.fileUpload(
-								result.attachment,
-								`leaveAttachment_${uuid}`,
-								`uploads/${EMP_DATA.empCode}`,
-							)
+							result.attachment,
+							`leaveAttachment_${uuid}`,
+							`uploads/${EMP_DATA.empCode}`,
+						)
 						: null,
 				//pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 				createdBy: req.userId, // Replace with actual creator user ID
@@ -2983,7 +2983,7 @@ class LeaveController {
 				fromDate: req.body.fromDate,
 				toDate: req.body.toDate,
 				source: req.device,
-				approvalFlowExist: leaveApprovalLevel.length == 0 ? 0 : 1,
+				approvalFlowExist: 1,
 				pendingAt:
 					leaveApprovalLevel.length == 0 ? EMP_DATA.managerData.id : null, // Replace with actual pending at value
 			});
@@ -4294,14 +4294,14 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								employeeId: { [Op.ne]: req.userId },
-								source: { [Op.ne]: "system_generated" },
-								status: "pending",
-							}
+							employeeId: { [Op.ne]: req.userId },
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 						: {
-								status: "pending",
-								employeeId: { [Op.ne]: req.userId },
-							},
+							status: "pending",
+							employeeId: { [Op.ne]: req.userId },
+						},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -5215,7 +5215,7 @@ class LeaveController {
 								{
 									status:
 										leaveTrails &&
-										leaveTrails.dataValues.level ===
+											leaveTrails.dataValues.level ===
 											leaveTrails.dataValues.approval_flow.maxApprovalLevel
 											? "approved"
 											: "pending",
@@ -5233,7 +5233,7 @@ class LeaveController {
 								{
 									status:
 										leaveTrails &&
-										leaveTrails.dataValues.level ===
+											leaveTrails.dataValues.level ===
 											leaveTrails.dataValues.approval_flow.maxApprovalLevel
 											? "approved"
 											: "pending",
@@ -5294,11 +5294,11 @@ class LeaveController {
 							if (
 								leaveTrails &&
 								leaveTrails.dataValues.level <
-									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+								leaveTrails.dataValues.approval_flow.maxApprovalLevel
 							) {
 								const nextLevel =
 									leaveTrails.dataValues.level <
-									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+										leaveTrails.dataValues.approval_flow.maxApprovalLevel
 										? leaveTrails.dataValues.level + 1
 										: leaveTrails.dataValues.level;
 								await db.leaveApprovalTrails.update(
@@ -5317,7 +5317,7 @@ class LeaveController {
 							if (
 								leaveTrails &&
 								leaveTrails.dataValues.level ===
-									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+								leaveTrails.dataValues.approval_flow.maxApprovalLevel
 							) {
 								if (existingRecord) {
 									await db.attendanceMaster.update(
@@ -5325,8 +5325,8 @@ class LeaveController {
 											existingRecord.dataValues.isHalfDay === 0 ||
 												existingRecord.dataValues.halfDayFor === 1
 												? {
-														attendanceLateBy: "00:00:00",
-													}
+													attendanceLateBy: "00:00:00",
+												}
 												: {},
 										),
 										{
@@ -5431,8 +5431,8 @@ class LeaveController {
 									existingRecord.dataValues.isHalfDay === 0 ||
 										existingRecord.dataValues.halfDayFor === 1
 										? {
-												attendanceLateBy: "00:00:00",
-											}
+											attendanceLateBy: "00:00:00",
+										}
 										: {},
 								),
 								{

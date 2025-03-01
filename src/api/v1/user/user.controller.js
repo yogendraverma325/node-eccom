@@ -720,13 +720,13 @@ class UserController {
 				],
 			});
 
-			const countLeaveAssginedForExistingFlow =
-				await db.EmployeeLeaveHeader.count({
-					where: {
-						pendingAt: userid,
-						status: "pending",
-					},
-				});
+			// const countLeaveAssginedForExistingFlow =
+			// 	await db.EmployeeLeaveHeader.count({
+			// 		where: {
+			// 			pendingAt: userid,
+			// 			status: "pending",
+			// 		},
+			// 	});
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
 					// pendingAt: userid,
@@ -808,7 +808,7 @@ class UserController {
 							compOffCount: 0,
 						},
 						assignedToMe: {
-							leaveData: countLeaveAssgined + countLeaveAssginedForExistingFlow,
+							leaveData: countLeaveAssgined,
 							attedanceData: assignedAttCount,
 							seperationCount: pendingSeperationCount,
 							pendingAttendanceCount,
