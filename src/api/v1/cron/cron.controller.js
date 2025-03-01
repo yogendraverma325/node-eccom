@@ -1847,6 +1847,7 @@ class CronController {
 						console.error('Error forwarding MySQL port:', err);
 						return sshClient.end();
 					}
+
 					const connection = mysql.createConnection({
 						...mysqlConfig,
 						stream,
@@ -1858,44 +1859,56 @@ class CronController {
 							return;
 						}
 
-						connection.query(`SELECT * FROM ${process.env.SERVER_DB_NAME}.attendance WHERE  AutoIncrementID >0 order by AutoIncrementID asc`, async (err, result) => {
+						connection.query(`SELECT * FROM ${process.env.SERVER_DB_NAME}.TARA WHERE IS_UNREAD=0 order by ID asc`, async (err, result) => {
 							if (err) {
 								logger.error(`Error running query: ${err}`);
 								console.error('Error running query:', err);
 							}
 
+							if (result.length > 0) {
+								for (const element of result) {
+									const incomingAttendanceData = {
+										autoId: element.ID,
+										deviceName: element.DeviceName,
+										deviceCode: element.DeviceID,
+										tmc: element.EmployeeCode,
+										empName: element.EmployeeName,
+										date: element.PunchDate,
+										time: element.PunchTime,
+										punchType: element.PunchType,
+										location: element.OfficeLocation,
+										createdDate: element.SYSDATE,
+										isRead: element.IS_UNREAD
+									}
 
-							for (const element of result) {
-								const incomingAttendanceData = {
-									autoId: element.AutoIncrementID,
-									deviceName: element.Device_Name,
-									deviceCode: element.Device_Code,
-									tmc: element.TMC,
-									empName: element.EmployeeName,
-									date: element.Date,
-									time: element.Time,
-									punchType: element.Punch_type,
-									location: element.Office_Location,
-									createdDate: element.CreatedDate,
-									isRead: element.IsRead
+									const employeeData = await db.employeeMaster.findOne({
+										where: {
+											empCode: incomingAttendanceData.tmc,
+											isActive: 1,
+										},
+										attributes: ['id', 'empCode', 'name'],
+									})
+
+									if (!employeeData) {
+										logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
+										continue
+									}
+
+									const updatedAttendance = await attendanceController.markBioMetricAttendance(incomingAttendanceData)
+
+									console.log(updatedAttendance)
+
+
+									connection.query(`UPDATE ${process.env.SERVER_DB_NAME}.TARA SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
+										if (err) {
+											logger.error(`Error ${err}`)
+											console.log(err)
+										}
+
+										console.log(result)
+									})
 								}
 
-								const employeeData = await db.employeeMaster.findOne({
-									where: {
-										empCode: incomingAttendanceData.tmc,
-										isActive: 1,
-									},
-									attributes: ['id', 'empCode', 'name'],
-								})
-
-								if (!employeeData) {
-									logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
-									continue
-								}
-
-								const updatedAttendance = await attendanceController.markBioMetricAttendance(incomingAttendanceData)
-
-								console.log(updatedAttendance)
 							}
 						})
 					});
