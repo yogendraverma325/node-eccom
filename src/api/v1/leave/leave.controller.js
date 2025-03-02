@@ -510,7 +510,6 @@ class LeaveController {
 							}
 						}
 					}
-					
 					else {
 						let leaveIds = result.employeeLeaveTransactionsIds.split(",");
 						let countLeave = await db.EmployeeLeaveHeader.count({
@@ -772,6 +771,7 @@ class LeaveController {
 							isVisible: 0,
 							isPending: 0,
 							isApproved: 2,
+							updatedBy:req.userId,
 							updatedAt: moment(),
 							updatedBy: req.userId,
 						},
@@ -4801,6 +4801,7 @@ class LeaveController {
 					updatedBy: req.userId,
 					managerRemark: result.remark != "" ? result.remark : null,
 					updatedAt: moment(),
+					role: req.userData.role_id == 2?req.userData["role.name"]:null,
 				},
 				{
 					where: {
@@ -5326,6 +5327,28 @@ class LeaveController {
 					//  else {
 					// await db.User.create(record, { transaction });
 					// }
+				}
+			}
+			if(result.status == "rejected"){
+				for (const leaveID of leaveIds) {
+					if (req.userData.role_id == 2) {
+					await db.leaveApprovalTrails.update(
+						{
+							isVisible: 0,
+							isPending: 0,
+							// isApproved: 1,
+							// remark: result.remark !== "" ? result.remark : null,
+							updatedBy: req.userId,
+							//updatedAt:moment()
+						},
+						{
+							where: {
+								leaveHeaderAutoId: leaveID,
+								isApproved: 0,
+							},
+						},
+					);
+				 }
 				}
 			}
 
