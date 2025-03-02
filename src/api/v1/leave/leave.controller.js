@@ -510,198 +510,6 @@ class LeaveController {
 							}
 						}
 					}
-					// 	if(leaveHeaderSingleRecords.approvalFlowExist == 1){
-					// 	const leaveTrails = await db.leaveApprovalTrails.findAll({
-					// 		where: {
-					// 			isApproved:0,
-					// 			leaveHeaderAutoId: leaveID,
-					// 			pendingOn: req.userId,
-					// 		},
-					// 		include: [
-					// 			{
-					// 				model: db.leaveApprovalFlow,
-					// 				attributes: ["maxApprovalLevel"],
-					// 			},
-					// 		],
-					// 	});
-
-					// 	await db.employeeLeaveTransactions.update(
-					// 		{
-					// 			status:
-					// 				leaveTrails &&
-					// 				leaveTrails.dataValues.level ===
-					// 					leaveTrails.dataValues.approval_flow.maxApprovalLevel
-					// 					? "approved"
-					// 					: "pending",
-					// 			updatedBy: req.userId,
-					// 			managerRemark: result.remark != "" ? result.remark : null,
-					// 			updatedAt: moment(),
-					// 		},
-					// 		{
-					// 			where: {
-					// 				employeeleaveheaderID: leaveID,
-					// 			},
-					// 		},
-					// 	);
-					// 	await db.EmployeeLeaveHeader.update(
-					// 		{
-					// 			status:
-					// 				leaveTrails &&
-					// 				leaveTrails.dataValues.level ===
-					// 					leaveTrails.dataValues.approval_flow.maxApprovalLevel
-					// 					? "approved"
-					// 					: "pending",
-					// 			updatedBy: req.userId,
-					// 			managerRemark: result.remark != "" ? result.remark : null,
-					// 			updatedAt: moment(),
-					// 		},
-					// 		{
-					// 			where: {
-					// 				employeeleaveheaderID: leaveID,
-					// 			},
-					// 		},
-					// 	);
-
-					// 	if (
-					// 		leaveHeaderSingleRecords &&
-					// 		leaveHeaderSingleRecords.leaveAutoId == 9
-					// 	) {
-					// 		const employeeId = leaveHeaderSingleRecords.employeeId;
-					// 		const employeeLeaveTransactionsIds = leaveID;
-					// 		const status = 1;
-					// 		const remarks = result.remark != "" ? result.remark : null;
-					// 		const userId = req.userId;
-
-					// 		await helper.actionOnLeaveCompOff(
-					// 			employeeId,
-					// 			employeeLeaveTransactionsIds,
-					// 			status,
-					// 			remarks,
-					// 			userId,
-					// 		);
-					// 	}
-
-					// 	const existingRecord = await db.EmployeeLeaveHeader.findOne({
-					// 		where: { employeeleaveheaderID: leaveID },
-					// 	});
-
-					// 	await db.leaveApprovalTrails.update(
-					// 		{
-					// 			isVisible: 0,
-					// 			isPending: 0,
-					// 			isApproved: 1,
-					// 			remark: result.remark != "" ? result.remark : null,
-					// 			updatedBy:req.userId,
-					// 			updatedAt:moment()
-					// 		},
-					// 		{
-					// 			where: {
-					// 				leaveTrailAutoId: leaveTrails.dataValues.leaveTrailAutoId,
-					// 			},
-					// 		},
-					// 	);
-
-					// 	if (
-					// 		leaveTrails &&
-					// 		leaveTrails.dataValues.level <
-					// 			leaveTrails.dataValues.approval_flow.maxApprovalLevel
-					// 	) {
-					// 		const nextLevel =
-					// 			leaveTrails.dataValues.level <
-					// 			leaveTrails.dataValues.approval_flow.maxApprovalLevel
-					// 				? leaveTrails.dataValues.level + 1
-					// 				: leaveTrails.dataValues.level;
-					// 		await db.leaveApprovalTrails.update(
-					// 			{
-					// 				isVisible: 1,
-					// 			},
-					// 			{
-					// 				where: {
-					// 					leaveHeaderAutoId: leaveID,
-					// 					level: nextLevel,
-					// 				},
-					// 			},
-					// 		);
-					// 	}
-
-					// 	if (
-					// 		leaveTrails &&
-					// 		leaveTrails.dataValues.level ===
-					// 			leaveTrails.dataValues.approval_flow.maxApprovalLevel
-					// 	) {
-					// 		if (existingRecord) {
-					// 			await db.attendanceMaster.update(
-					// 				Object.assign(
-					// 					existingRecord.dataValues.isHalfDay === 0 ||
-					// 						existingRecord.dataValues.halfDayFor === 1
-					// 						? {
-					// 								attendanceLateBy: "00:00:00",
-					// 							}
-					// 						: {},
-					// 				),
-					// 				{
-					// 					where: {
-					// 						attendanceDate: existingRecord.dataValues.appliedFor,
-					// 						employeeId: existingRecord.dataValues.employeeId,
-					// 					},
-					// 				},
-					// 			);
-
-					// 			if (
-					// 				existingRecord.leaveAutoId === 6 ||
-					// 				existingRecord.leaveAutoId === 9
-					// 			) {
-					// 				const lwpLeave = await db.leaveMapping.findOne({
-					// 					where: {
-					// 						EmployeeId: existingRecord.employeeId,
-					// 						leaveAutoId: existingRecord.leaveAutoId,
-					// 					},
-					// 				});
-
-					// 				if (lwpLeave) {
-					// 					await db.leaveMapping.increment(
-					// 						{ utilizedThisYear: parseFloat(existingRecord.leaveCount) },
-					// 						{
-					// 							where: {
-					// 								EmployeeId: existingRecord.employeeId,
-					// 								leaveAutoId: existingRecord.leaveAutoId,
-					// 							},
-					// 						},
-					// 					);
-					// 				} else {
-					// 					await db.leaveMapping.create({
-					// 						EmployeeId: existingRecord.employeeId,
-					// 						leaveAutoId: existingRecord.leaveAutoId,
-					// 						availableLeave: 0,
-					// 						utilizedThisYear: parseFloat(existingRecord.leaveCount),
-					// 						creditedFromLastYear: 0,
-					// 						annualAllotment: 0,
-					// 						accruedThisYear: 0,
-					// 					});
-					// 				}
-					// 			} else {
-					// 				await db.leaveMapping.increment(
-					// 					{ utilizedThisYear: parseFloat(existingRecord.leaveCount) },
-					// 					{
-					// 						where: {
-					// 							EmployeeId: existingRecord.employeeId,
-					// 							leaveAutoId: existingRecord.leaveAutoId,
-					// 						},
-					// 					},
-					// 				);
-					// 				await db.leaveMapping.increment(
-					// 					{ availableLeave: -parseFloat(existingRecord.leaveCount) },
-					// 					{
-					// 						where: {
-					// 							EmployeeId: existingRecord.employeeId,
-					// 							leaveAutoId: existingRecord.leaveAutoId,
-					// 						},
-					// 					},
-					// 				);
-					// 			}
-					// 		}
-					// 	}
-					//  }
 					else {
 						let leaveIds = result.employeeLeaveTransactionsIds.split(",");
 						let countLeave = await db.EmployeeLeaveHeader.count({
@@ -963,6 +771,7 @@ class LeaveController {
 							isVisible: 0,
 							isPending: 0,
 							isApproved: 2,
+							updatedBy:req.userId,
 							updatedAt: moment(),
 						},
 						{
@@ -4991,6 +4800,7 @@ class LeaveController {
 					updatedBy: req.userId,
 					managerRemark: result.remark != "" ? result.remark : null,
 					updatedAt: moment(),
+					role: req.userData.role_id == 2?req.userData["role.name"]:null,
 				},
 				{
 					where: {
@@ -5516,6 +5326,28 @@ class LeaveController {
 					//  else {
 					// await db.User.create(record, { transaction });
 					// }
+				}
+			}
+			if(result.status == "rejected"){
+				for (const leaveID of leaveIds) {
+					if (req.userData.role_id == 2) {
+					await db.leaveApprovalTrails.update(
+						{
+							isVisible: 0,
+							isPending: 0,
+							// isApproved: 1,
+							// remark: result.remark !== "" ? result.remark : null,
+							updatedBy: req.userId,
+							//updatedAt:moment()
+						},
+						{
+							where: {
+								leaveHeaderAutoId: leaveID,
+								isApproved: 0,
+							},
+						},
+					);
+				 }
 				}
 			}
 
