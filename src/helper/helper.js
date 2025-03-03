@@ -2780,6 +2780,7 @@ const leaveLapse = async () => {
 const leaveAssignEmployeeToAll = async (empIdsInput) => {
 	try {
 		let empIds = empIdsInput.split(",");
+		console.log("empIds",empIds)
 		const employees = await db.employeeMaster.findAll({
 			attributes: ["id", "empCode", "employeeType", "companyId"],
 			where: {
