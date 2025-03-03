@@ -19,4 +19,4 @@ export default Express.Router()
 		"/managerHistoryImport",
 		upload.single("file"),
 		masterImportController.managerHistoryImport,
-	);
+	).post("/reAndCustomerCodeImport", upload.single('file'), masterImportController.reAndCustomerCodeImport);

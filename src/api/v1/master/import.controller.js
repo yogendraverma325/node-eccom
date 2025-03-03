@@ -763,6 +763,92 @@ class MasterController {
 			});
 		}
 	}
+	async reAndCustomerCodeImport(req, res) {
+    let transaction;
+    try {
+      if (!req.file) {
+        return respHelper(res, {
+          status: 400,
+          msg: "File is required!",
+        });
+      }
+  
+      const originalPath = req.file.path;
+      const newPath = path.join(
+        path.dirname(originalPath),
+        `${path.basename(originalPath, path.extname(originalPath))}_${moment().format("YYYY-MM-DD")}.xlsx`
+      );
+      fs.renameSync(originalPath, newPath);
+  
+      // Read Excel file
+      const workbookEmployee = pkg.readFile(newPath);
+  
+      // Log available sheet names
+      console.log("Available sheets:", workbookEmployee.SheetNames);
+  
+      // Check if 'Sheet1' exists, else use the first available sheet
+      let sheetNameEmployee = "Sheet1";
+      if (!workbookEmployee.Sheets[sheetNameEmployee]) {
+        sheetNameEmployee = workbookEmployee.SheetNames[0]; // Use first sheet dynamically
+        console.log(`Using sheet: ${sheetNameEmployee}`);
+      }
+  
+      if (!workbookEmployee.Sheets[sheetNameEmployee]) {
+        return respHelper(res, {
+          status: 400,
+          msg: `Sheet '${sheetNameEmployee}' not found in the uploaded file!`,
+        });
+      }
+  
+      // Convert sheet data to JSON
+      const Employees = pkg.utils.sheet_to_json(workbookEmployee.Sheets[sheetNameEmployee]);
+  
+      transaction = await db.sequelize.transaction();
+      const empNotFound = [];
+  
+      for (const emp of Employees) {
+        const employeeId = emp['Employee Id']; // Adjust column name as per your Excel
+        if (!employeeId) continue;
+  
+        const employee = await db.employeeMaster.findOne({
+          where: { empCode: employeeId },
+          attributes: ["id"],
+          transaction,
+        });
+  
+        if (employee) {
+          const residentEng = emp['Updated RE Tagging'] === "Yes" ? 1 : 0;
+          const customerName = emp['Updated Customer Name'] || null;
+          const customerCode = emp['Updated Customer Code'] || null;
+          const projectCode = emp['Updated Project Code'] || null;
+  
+          await db.jobDetails.update(
+            { residentEng, customerName, customerCode, projectCode },
+            { where: { userId: employee.id }, transaction }
+          );
+        } else {
+          empNotFound.push(employeeId);
+        }
+      }
+  
+      await transaction.commit();
+  
+      return respHelper(res, {
+        status: 200,
+        msg: "File processed successfully and database updated",
+        data: empNotFound,
+      });
+    } catch (error) {
+      if (transaction) await transaction.rollback();
+      console.error("Error processing the file:", error.message);
+  
+      return respHelper(res, {
+        status: 500,
+        msg: "Failed to process the file",
+        error: error.message,
+      });
+    }
+  }
 }
 
 const createObj = (obj) => {
@@ -1416,5 +1502,6 @@ const replaceYesOrNoWithNumber = (value) => {
 		return 0;
 	}
 };
+
 
 export default new MasterController();
