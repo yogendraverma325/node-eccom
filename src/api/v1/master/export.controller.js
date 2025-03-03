@@ -3071,7 +3071,7 @@ class MasterController {
 					dateOfJoining: ele.employeejobdetail?.dateOfJoining
 						? moment(ele.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
 						: "",
-					residentEng: ele.employeejobdetail?.residentEng || "",
+					residentEng: ele.employeejobdetail?.residentEng == 1 ? "Yes" : "No",
 					customerName: ele.employeejobdetail?.customerName || "",
 					fathersName:
 						ele.employeefamilydetails.find(

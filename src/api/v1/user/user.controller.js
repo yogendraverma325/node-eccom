@@ -5499,25 +5499,45 @@ class UserController {
 							as: "leaveUpdatedBy",
 							required: false,
 						},
-						{
-							model: db.leaveApprovalTrails,
-							required: true,
-							//separate: true, // Ensures sorting is applied properly
-							order: [["leaveTrailAutoId", "ASC"]],
-							where: {
-								// isApproved: {
-								// 	[Op.notIn]: [0],
-								// },
-								...(type === "all" &&
-									isSystemGenerated == 0 && { updatedBy: req.userId }),
-							},
-							include: [
-								{
-									model: db.employeeMaster,
-									attributes: ["id", "empCode", "name"],
-								},
-							],
-						},
+					{
+                            model: db.leaveApprovalTrails,
+                            required: true,
+                            //separate: true, // Ensures sorting is applied properly
+                            order: [["leaveTrailAutoId", "ASC"]],
+                            // where: {
+                            //  // isApproved: {
+                            //  //  [Op.notIn]: [0],
+                            //  // },
+                            //  ...(type === "all" &&
+                            //      isSystemGenerated == 0 && { updatedBy: req.userId }),
+                            // },
+                            include: [
+                                {
+                                    model: db.employeeMaster,
+                                    attributes: ["id", "empCode", "name"],
+                                },
+                            ],
+                        },
+                        {
+                            model: db.leaveApprovalTrails,
+                            required: true,
+                            as: "trails",
+                            //separate: true, // Ensures sorting is applied properly
+                            order: [["leaveTrailAutoId", "ASC"]],
+                            where: {
+                                // isApproved: {
+                                //  [Op.notIn]: [0],
+                                // },
+                                ...(type === "all" &&
+                                    isSystemGenerated == 0 && { updatedBy: req.userId }),
+                            },
+                            include: [
+                                {
+                                    model: db.employeeMaster,
+                                    attributes: ["id", "empCode", "name"],
+                                },
+                            ],
+                        },
 					],
 					limit,
 					offset,
