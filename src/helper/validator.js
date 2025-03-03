@@ -483,7 +483,7 @@ const emergencyContactDetails = Joi.object({
 });
 
 const forgotPasswordSchema = Joi.object({
-	email: Joi.string().email().required().label("Email"),
+	email: Joi.string().trim().required().label("Email / Mobile"),
 });
 
 const employeeUpdateInfo = Joi.object({
@@ -1256,11 +1256,11 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
 				"structureMappingDetails.componentDetails.salaryComponentAlias"
 			]
 				? salaryComponent[
-						"structureMappingDetails.componentDetails.salaryComponentAlias"
-					]
+				"structureMappingDetails.componentDetails.salaryComponentAlias"
+				]
 				: salaryComponent[
-						"structureMappingDetails.componentDetails.salaryComponentCode"
-					],
+				"structureMappingDetails.componentDetails.salaryComponentCode"
+				],
 		);
 	}
 	const dynamicFields = {
