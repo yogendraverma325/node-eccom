@@ -772,6 +772,10 @@ class AttendanceController {
 						attributes: ["name", "email"],
 						include: [
 							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+							{
 								model: db.employeeMaster,
 								required: false,
 								as: "managerData",
@@ -874,6 +878,8 @@ class AttendanceController {
 					userRemark: result.remark,
 					managerName: attendanceData.dataValues.employee.managerData.name,
 					managerEmail: attendanceData.dataValues.employee.managerData.email,
+					senderEmail: attendanceData.dataValues.employee.companymaster.senderEmail,
+					companyLogo: attendanceData.dataValues.employee.companymaster.companyLogo
 				}),
 			);
 
@@ -3178,7 +3184,7 @@ class AttendanceController {
 			});
 			let nightwala = 0;
 			let daywala = 0;
-			
+
 			for (const activeEmployeeSingleItem of activeEmployees) {
 				if (
 					activeEmployeeSingleItem.attendanceroster
