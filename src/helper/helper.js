@@ -1013,6 +1013,21 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 		let headerInsert = await db.EmployeeLeaveHeader.create(inputData);
 
 		inputData.employeeleaveheaderID = headerInsert.employeeleaveheaderID;
+		let leaveTrails={
+		employeeId:inputData.employeeId,
+		leaveHeaderAutoId:inputData.employeeleaveheaderID,
+		level: 1,
+		approvalFlowAutoId: 1,
+		isVisible: inputData.status == "approved"?0:1,
+		pendingOn: inputData.pendingAt,
+		isApproved:inputData.status == "approved"?1:0,
+		isPending: inputData.pendingAt,
+		isActive: 1,
+		createdAt: moment(),
+		createdBy: inputData.createdBy,
+		};
+
+		await db.leaveApprovalTrails.create(leaveTrails);
 		await db.employeeLeaveTransactions.create(inputData); // Push data to leave transaction table for that employee
 
 		//start code :leave deducation code if auto approve only

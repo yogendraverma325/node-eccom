@@ -2999,7 +2999,7 @@ class AttendanceController {
 					) {
 						let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
 						if (EMP_DATA) {
-							await helper.empMarkLeaveOfGivenDate(
+							await helper.empMarkLeaveOfGivenDate( 
 								singleEmp.id,
 								{
 									employeeId: singleEmp.id, // Replace with actual employee ID
