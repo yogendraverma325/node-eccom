@@ -1021,7 +1021,7 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 		isVisible: inputData.status == "approved"?0:1,
 		pendingOn: inputData.pendingAt,
 		isApproved:inputData.status == "approved"?1:0,
-		isPending: inputData.pendingAt,
+		isPending: inputData.status == "approved"?0:1,
 		isActive: 1,
 		createdAt: moment(),
 		createdBy: inputData.createdBy,
