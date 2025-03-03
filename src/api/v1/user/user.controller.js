@@ -900,42 +900,43 @@ class UserController {
 				},
 			})
 
-			if (getEmployee) {
-				const otp = await helper.generateOTP(6);
-				eventEmitter.emit(
-					"forgotPasswordMail",
-					JSON.stringify({
-						email: getEmployee.dataValues.email,
-						otp: otp,
-					}),
-				);
-
-				if (getEmployee.dataValues.officeMobileNumber) {
-					eventEmitter.emit('forgotPasswordSMS',
-						JSON.stringify({
-							mobile: getEmployee.dataValues.officeMobileNumber.split(','),
-							otp: otp,
-						})
-					)
-				}
-
-				const deocdeOTP = await helper.generateJwtOTPEncrypt({
-					id: getEmployee.id,
-					email: result.email,
-					otp: otp,
-				});
-				return respHelper(res, {
-					status: 200,
-					msg: constant.OTP_SENT,
-					data: deocdeOTP,
-				});
-			} else {
+			if (!getEmployee) {
 				return respHelper(res, {
 					status: 400,
-					msg: constant.INVALID.replace("<module>", "Email ID"),
+					msg: constant.INVALID.replace("<module>", "Email ID / Official Mobile Number"),
 					data: {},
 				});
 			}
+
+			const otp = await helper.generateOTP(6);
+			eventEmitter.emit("forgotPasswordMail",
+				JSON.stringify({
+					email: getEmployee.dataValues.email,
+					otp: otp,
+				}),
+			);
+
+			if (getEmployee.dataValues.officeMobileNumber) {
+				eventEmitter.emit('forgotPasswordSMS',
+					JSON.stringify({
+						mobile: getEmployee.dataValues.officeMobileNumber.split(','),
+						otp: otp,
+					})
+				)
+			}
+
+			const deocdeOTP = await helper.generateJwtOTPEncrypt({
+				id: getEmployee.id,
+				email: result.email,
+				otp: otp,
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: constant.OTP_SENT,
+				data: deocdeOTP,
+			});
+
 		} catch (error) {
 			console.log(error);
 			if (error.isJoi === true) {
