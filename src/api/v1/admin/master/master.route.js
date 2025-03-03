@@ -632,13 +632,18 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfMappingList,
 	)
+	.put(
+		"/lwf-mapping",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.updateLWFMapping,
+	)
 	.get(
 		"/lwf-designation",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfDesignationList,
 	)
 	.get(
-		"/lwf-mapping-details/:stateId",
+		"/lwf-mapping-details/:stateId/:lwfDesignationId",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfMappingDetails,
 	)

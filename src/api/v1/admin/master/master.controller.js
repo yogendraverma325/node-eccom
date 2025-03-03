@@ -4164,68 +4164,36 @@ class CommonController {
 			let result = await validator.lwfMappingMasterSchema.validateAsync(
 				req.body,
 			);
+
 			let model = db.lwfMapping;
 			let arr = [];
 
-			let lwfmappings = req.body.lwfmappings;
-			if (lwfmappings.length > 0) {
-				for (let i = 0; i < lwfmappings.length; i++) {
-					let result1 = lwfmappings[i]?.contributors;
+			if (result.length > 0) {
+				for (let i = 0; i < result.length; i++) {
+					let result1 = result[i];
+
 					for (let j = 0; j < result1.length; j++) {
 						let query = {
-							lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
-							stateId: result1[j]?.stateId,
+							lwfDesignationId: result1[j].lwfDesignationId,
+							contributorType: result1[j].contributorType,
+							stateId: result1[j].stateId,
 						};
 
-						if (result1[j]?.lwfMappingId) {
-							let isFindQuery = {
-								[Op.and]: [
-									{ lwfDesignationId: lwfmappings[i]?.lwfDesignationId },
-									{ stateId: result1[j]?.stateId },
-									{ [Op.not]: { lwfMappingId: result1[j]?.lwfMappingId } },
-								],
-							};
+						let response = await service.details(model, query);
 
-							let existingData = await db.lwfMapping.findAll({
-								where: isFindQuery,
-								attributes: ["lwfMappingId"],
+						if (response.status == 200) {
+							return respHelper(res, {
+								status: 400,
+								msg: "These data is already exist in our record.",
+								data: {},
 							});
-							if (existingData.length > 1) {
-								j++;
-								// return respHelper(res, {
-								// 	status: 400,
-								// 	msg: constant.ALREADY_EXISTS.replace("<module>", "LWF"),
-								// 	data: {},
-								// });
-							} else {
-								let updateObj = {
-									...result1[j],
-									lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
-									updatedBy: req.userId,
-									updatedAt: moment().format("YYYY-MM-DD"),
-								};
-
-								await db.lwfMapping.update(updateObj, {
-									where: { lwfMappingId: result1[j].lwfMappingId },
-								});
-							}
 						} else {
-							let response = await service.details(model, query);
-							if (response.status === 200) {
-								return respHelper(res, {
-									status: 400,
-									msg: constant.ALREADY_EXISTS.replace("<module>", "LWF"),
-									data: {},
-								});
-							} else {
-								arr.push({
-									...result1[j],
-									lwfDesignationId: lwfmappings[i]?.lwfDesignationId,
-									createdBy: req.userId,
-									isActive: 1,
-									createdAt: moment().format("YYYY-MM-DD"),
-								});
-							}
+							arr.push({
+								...result1[j],
+								createdBy: req.userId,
+								isActive: 1,
+								createdAt: moment().format("YYYY-MM-DD"),
+							});
 						}
 					}
 					await db.lwfMapping.bulkCreate(arr);
@@ -4234,17 +4202,11 @@ class CommonController {
 
 				return respHelper(res, {
 					status: 201,
-					msg: constant.UPDATE_SUCCESS.replace("<module>", "LWF"),
+					msg: constant.INSERT_SUCCESS,
 					data: {},
-				});
-			} else {
-				return respHelper(res, {
-					status: 400,
-					msg: "Bad request",
 				});
 			}
 		} catch (error) {
-			console.log(error);
 			logger.error(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
@@ -4260,15 +4222,42 @@ class CommonController {
 
 	async lwfMappingList(req, res) {
 		try {
-			let model = db.stateMaster;
+			let model = db.lwfMapping;
 			let search = req.query.search || "";
 
-			let query = {
+			let query = { isActive: 1 };
+
+			let stateQuery = {
 				isActive: 1,
 				...(search && { stateName: { [Op.like]: `%${search}%` } }),
 			};
 
-			let response = await service.list(model, query);
+			let aggregate = {
+				where: query,
+				attributes: [
+					"stateId",
+					"lwfDesignationId",
+					[
+						db.Sequelize.fn("MAX", db.Sequelize.col("lwfMappingId")),
+						"maxStateId",
+					], // Get max stateId per state
+				],
+				include: [
+					{
+						model: db.stateMaster, // Joining with stateMaster
+						attributes: ["stateName"], // Selecting stateName
+						where: stateQuery,
+					},
+				],
+				group: [
+					"stateId",
+					"lwfDesignationId",
+					"statemaster.stateId",
+					"statemaster.stateName",
+				], // Must group by included attributes
+			};
+
+			let response = await service.aggregate(model, aggregate);
 
 			let count = await service.count(model, query);
 			let obj = { rows: response.data, count: count };
@@ -4279,8 +4268,51 @@ class CommonController {
 				data: obj,
 			});
 		} catch (error) {
-			console.log(error);
 			logger.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async updateLWFMapping(req, res) {
+		try {
+			let result = await validator.lwfMappingMasterSchema.validateAsync(
+				req.body,
+			);
+
+			let model = db.lwfMapping;
+
+			if (result.length > 0) {
+				const dataArray = result[0];
+
+				for (let i = 0; i < dataArray.length; i++) {
+					let query = {
+						lwfmappingId: dataArray[i].lwfmappingId,
+					};
+
+					let updateMetaData = {
+						...dataArray[i],
+						updatedBy: req.userId,
+						updatedAt: moment().format("YYYY-MM-DD"),
+					};
+					let response = await service.update(model, updateMetaData, query);
+				}
+
+				return respHelper(res, {
+					status: 202,
+					msg: "LWF mapping data updated successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
 			return respHelper(res, {
 				status: 500,
 			});
@@ -4312,7 +4344,7 @@ class CommonController {
 	async lwfMappingDetails(req, res) {
 		try {
 			let model = db.stateMaster;
-			let { stateId } = req.params;
+			let { stateId, lwfDesignationId } = req.params;
 			let query = { stateId: stateId };
 
 			let aggregate = {
@@ -4323,31 +4355,13 @@ class CommonController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
+						where: { lwfDesignationId: lwfDesignationId },
 					},
 				],
 			};
 
 			let response = await service.aggregate(model, aggregate);
-
-			// change response format
-			let lwfMappingArr = response.data[0].lwfmappings;
-			let groupByLwfDesignationId = lwfMappingArr.reduce((acc, item) => {
-				acc[item.lwfDesignationId] = acc[item.lwfDesignationId] || [];
-				acc[item.lwfDesignationId].push(item);
-				return acc;
-			}, {});
-
-			let allData = {
-				stateId: response.data[0]?.stateId,
-				stateName: response.data[0]?.stateName,
-				lwfmappings: groupByLwfDesignationId,
-			};
-
-			return respHelper(res, {
-				status: response.status,
-				msg: response.message,
-				data: allData,
-			});
+			return respHelper(res, response);
 		} catch (error) {
 			logger.error(error);
 			return respHelper(res, {
