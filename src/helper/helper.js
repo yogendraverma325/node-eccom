@@ -103,7 +103,8 @@ const checkActiveUser = async (data) => {
 const mailService = async (data) => {
 
 	try {
-		console.log("mail data--->> ", data)
+		console.log("mail data--->> ", data.cc)
+
 
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");

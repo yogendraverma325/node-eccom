@@ -183,8 +183,7 @@ const leaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -403,8 +402,7 @@ const revokeRegularizeMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -552,8 +550,7 @@ const regularizationAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -704,8 +701,7 @@ const leaveAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -932,8 +928,7 @@ const revokeLeaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -1084,8 +1079,7 @@ const autoLeaveDeduction = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1320,7 +1314,7 @@ const initiateSeparation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1468,7 +1462,7 @@ const separationAcknowledgementToUser = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1607,7 +1601,7 @@ const separationApprovalAcknowledgementToUser = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1733,7 +1727,7 @@ const separationRejectedByBUHR = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1885,7 +1879,7 @@ const managerRejectsSeparation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2100,7 +2094,7 @@ const managerApprovesSeparation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2251,8 +2245,7 @@ const separationApproveByBUHR = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2732,8 +2725,7 @@ const clearanceInitiated = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL
-    }/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2972,7 +2964,7 @@ const onboardingEmployee = async (data) => {
                                   valign="middle">
                                   <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                   />
                                   <img
@@ -3268,7 +3260,7 @@ const passwordExpiryNotification = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -3438,7 +3430,7 @@ const postPasswordExpiryNotification = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -3555,7 +3547,7 @@ const newJoinEmployeeMail = async (data) => {
                                     valign="middle">
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                 </td>
@@ -3627,7 +3619,7 @@ const selfReviewConfirnation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
