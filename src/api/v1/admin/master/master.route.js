@@ -643,7 +643,7 @@ export default Express.Router()
 		commonController.lwfDesignationList,
 	)
 	.get(
-		"/lwf-mapping-details/:stateId/:lwfDesignationId",
+		"/lwf-mapping-details/:stateId",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfMappingDetails,
 	)
