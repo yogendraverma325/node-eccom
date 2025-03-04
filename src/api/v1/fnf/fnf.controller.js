@@ -993,6 +993,7 @@ class FnfController {
 				companyId: value.companyId,
 				dateOfJoining: item.dateOfJoining,
 				dateOfexit: item.dateOfexit,
+				processType: "FnF",
 			}));
 			await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
 				processFnf({
