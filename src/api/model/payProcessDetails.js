@@ -104,6 +104,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATE,
 			allowNull: true,
 		},
+		processType:{
+			type: Sequelize.STRING,
+			default: null,
+		}
 	});
 	return payProcessDetails;
 };
