@@ -837,7 +837,96 @@ class MasterController {
 				department,
 				companyLocation,
 				attendanceFor,
+				companyId
 			} = req.query;
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let companyFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+			}
+
 			const attendanceData = await db.attendanceMaster.findAll({
 				attributes: [
 					"attendanceDate",
@@ -870,6 +959,7 @@ class MasterController {
 						where: {
 							// isActive: 1,
 							// attendanceFor,
+							companyId:companyId,
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
 							...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -895,10 +985,16 @@ class MasterController {
 									"departmentName",
 									"departmentCode",
 								],
+								where: {
+									...departmentFIlter,
+								},						
 							},
 							{
 								model: db.designationMaster,
 								attributes: ["name"],
+								where: {
+									...designationFIlter,
+								},
 							},
 							{
 								model: db.jobDetails,
@@ -916,23 +1012,39 @@ class MasterController {
 							{
 								model: db.buMaster,
 								attributes: ["buName", "buCode"],
-								required: false,
+								required: true,
+								where: {
+									...buFIlter,
+								},
 							},
 							{
 								model: db.sbuMaster,
 								attributes: ["sbuname", "code"],
-								required: false,
+								required: true,
+								where: {
+									...sbbuFIlter,
+								},
 							},
 							{
 								model: db.functionalAreaMaster,
 								attributes: ["functionalAreaName", "functionalAreaCode"],
 								required: false,
+								where: {
+									...functionAreaFIlter,
+								},
 							},
 							{
 								model: db.employeeMaster,
 								required: false,
 								as: "managerData",
 								attributes: ["id", "name", "email", "empCode"],
+							},
+							{
+								model: db.companyMaster,
+								attributes: ["companyName", "companyCode"],
+								// where: {
+								// 	...companyFIlter,
+								// },
 							},
 						],
 					},
@@ -1165,12 +1277,100 @@ class MasterController {
 				grade,
 				companyLocation,
 				attendanceFor,
+				companyId,
 			} = req.query;
+			
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let companyFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+			}
 			const fromDate = moment(startDate, "YYYY-MM-DD");
 			const toDate = moment(endDate, "YYYY-MM-DD");
 
 			const totalDays = toDate.diff(fromDate, "days") + 1;
-
 			const attendanceData = await db.attendanceMaster.findAll({
 				attributes: ["employeeId", "attendanceDate", "attendancePresentStatus"],
 				where: {
@@ -1196,6 +1396,7 @@ class MasterController {
 						where: {
 							// isActive: 1,
 							//id:5074,
+							companyId:companyId,
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
 							...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -1239,10 +1440,18 @@ class MasterController {
 							{
 								model: db.designationMaster,
 								attributes: ["name"],
+								required:true,
+								where: {
+									...designationFIlter,
+								},
 							},
 							{
 								model: db.departmentMaster,
 								attributes: ["departmentName", "departmentCode"],
+								required:true,
+								where: {
+									...departmentFIlter,
+								},
 								// where: {
 								//   ...(department && {
 								//     departmentId: { [Op.like]: `%${department}%` },
@@ -1259,6 +1468,12 @@ class MasterController {
 								//   }),
 								// },
 							},
+							{
+								model:db.companyMaster,
+								// where: {
+								// 	comapanyId:comapanyId
+								// },
+							}
 						],
 					},
 					{
@@ -1343,16 +1558,31 @@ class MasterController {
 					{
 						model: db.designationMaster,
 						attributes: ["name"],
+						required:true,
+						where: {
+							...designationFIlter,
+						},
 					},
 					{
 						model: db.departmentMaster,
 						attributes: ["departmentName", "departmentCode"],
+						required:true,
+						where: {
+							...departmentFIlter,
+						},
 					},
 					{
 						model: db.functionalAreaMaster,
 						seperate: true,
 						attributes: ["functionalAreaName"],
 					},
+					{
+						model:db.companyMaster,
+						required:true,
+						where: {
+							...companyFIlter,
+						},
+					}
 				],
 			});
 
@@ -2626,6 +2856,7 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
+				companyId
 			} = req.query;
 
 			let buFIlter = {};
@@ -2747,6 +2978,7 @@ class MasterController {
 				],
 				where: {
 					//empCode: "18950",
+					companyId:companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -2893,13 +3125,16 @@ class MasterController {
 							{ model: db.cityMaster, attributes: ["cityName"] },
 							{ model: db.pinCodeMaster, attributes: ["pincodeId", "pincode"] },
 						],
-						where: {
-							...companyFIlter,
-						},
+						// where: {
+						// 	...companyFIlter,
+						// },
 					},
 					{
 						model: db.companyMaster,
 						attributes: ["companyName", "companyCode"],
+						// where: {
+						// 	...companyFIlter,
+						// },
 					},
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
@@ -3409,7 +3644,96 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
+				companyId
 			} = req.query;
+
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let companyFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+			}
 
 			const employeeData = await db.employeeMaster.findAll({
 				attributes: [
@@ -3437,6 +3761,7 @@ class MasterController {
 					"isActive",
 				],
 				where: {
+					companyId:companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -3465,6 +3790,9 @@ class MasterController {
 						model: db.designationMaster,
 						attributes: ["name", "code"],
 						required: !!designation,
+						where: {
+							...designationFIlter,
+						},
 					},
 					{
 						model: db.functionalAreaMaster,
@@ -3475,6 +3803,9 @@ class MasterController {
 						model: db.departmentMaster,
 						attributes: ["departmentName", "departmentCode"],
 						required: !!department,
+						where: {
+							...departmentFIlter,
+						},
 					},
 					{
 						model: db.jobDetails,
@@ -3505,8 +3836,21 @@ class MasterController {
 						attributes: ["id", "name", "empCode", "email"],
 						as: "buhrData",
 					},
-					{ model: db.buMaster, attributes: ["buName"], required: false },
-					{ model: db.sbuMaster, attributes: ["sbuname"], required: false },
+					{ 
+					  model: db.buMaster, 
+					  attributes: ["buName"], 
+					  required: true,
+					  where: {
+						...buFIlter,
+					},
+					},
+					{ model: db.sbuMaster,
+						 attributes: ["sbuname"], 
+						 required: true,
+						 where: {
+							...sbbuFIlter,
+						},
+					},
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
 					{ model: db.weekOffMaster, attributes: ["weekOffName"] },
@@ -3529,6 +3873,12 @@ class MasterController {
 					{
 						model: db.noticePeriodMaster,
 					},
+					{
+					  model:db.companyMaster,
+					//   where: {
+					// 	...companyFIlter,
+					// },
+					}
 				],
 			});
 
@@ -3687,8 +4037,95 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
+				companyId,
 			} = req.query;
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let companyFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
 
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+			}
 			const employeeData = await db.employeeMaster.findAll({
 				attributes: [
 					"id",
@@ -3715,6 +4152,7 @@ class MasterController {
 					"isActive",
 				],
 				where: {
+					companyId:companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -3743,6 +4181,9 @@ class MasterController {
 						model: db.designationMaster,
 						attributes: ["name", "code"],
 						required: !!designation,
+						where: {
+							...designationFIlter,
+						},
 					},
 					{
 						model: db.functionalAreaMaster,
@@ -3753,6 +4194,9 @@ class MasterController {
 						model: db.departmentMaster,
 						attributes: ["departmentName", "departmentCode"],
 						required: !!department,
+						where: {
+							...departmentFIlter,
+						},
 					},
 					{
 						model: db.jobDetails,
@@ -3783,8 +4227,20 @@ class MasterController {
 						attributes: ["id", "name", "empCode", "email"],
 						as: "buhrData",
 					},
-					{ model: db.buMaster, attributes: ["buName"], required: false },
-					{ model: db.sbuMaster, attributes: ["sbuname"], required: false },
+					{ model: db.buMaster, 
+						attributes: ["buName"], 
+						required: false,
+						where: {
+							...buFIlter,
+						},
+					 },
+					{ model: db.sbuMaster, 
+						attributes: ["sbuname"], 
+						required: false,
+						where: {
+							...sbbuFIlter,
+						},
+					 },
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
 					{ model: db.weekOffMaster, attributes: ["weekOffName"] },
@@ -3822,6 +4278,12 @@ class MasterController {
 					{
 						model: db.noticePeriodMaster,
 					},
+					{
+						model:db.companyMaster,
+					// 	where: {
+					// 	  ...companyFIlter,
+					//   },
+					}
 				],
 			});
 
@@ -4110,8 +4572,96 @@ class MasterController {
 				companyLocation,
 				fromDate,
 				toDate,
+				companyId
 			} = req.query;
 
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let companyFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+			}
 			const employeeData = await db.employeeMaster.findAll({
 				attributes: [
 					"id",
@@ -4138,6 +4688,7 @@ class MasterController {
 					"isActive",
 				],
 				where: {
+					companyId:companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -4166,6 +4717,9 @@ class MasterController {
 						model: db.designationMaster,
 						attributes: ["name", "code"],
 						required: !!designation,
+						where: {
+							...designationFIlter,
+						},
 					},
 					{
 						model: db.functionalAreaMaster,
@@ -4176,6 +4730,9 @@ class MasterController {
 						model: db.departmentMaster,
 						attributes: ["departmentName", "departmentCode"],
 						required: !!department,
+						where: {
+							...departmentFIlter,
+						},
 					},
 					{
 						model: db.jobDetails,
@@ -4206,8 +4763,20 @@ class MasterController {
 						attributes: ["id", "name", "empCode", "email"],
 						as: "buhrData",
 					},
-					{ model: db.buMaster, attributes: ["buName"], required: false },
-					{ model: db.sbuMaster, attributes: ["sbuname"], required: false },
+					{ model: db.buMaster, 
+						attributes: ["buName"], 
+						required: true,
+						where: {
+							...buFIlter,
+						}, 
+					},
+					{ model: db.sbuMaster, 
+						attributes: ["sbuname"],
+						 required: false,
+						 where: {
+							...sbbuFIlter,
+						}, 
+					},
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
 					{ model: db.weekOffMaster, attributes: ["weekOffName"] },
@@ -4266,6 +4835,12 @@ class MasterController {
 					{
 						model: db.noticePeriodMaster,
 					},
+					{
+						model:db.companyMaster,
+					// 	where: {
+					// 	  ...companyFIlter,
+					//   },
+					}
 				],
 			});
 			const arr = await Promise.all(

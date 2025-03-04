@@ -25,19 +25,19 @@ export default Express.Router()
 	)
 	.post("/employeeMissedData", masterExportController.employeeMissedData)
 	.get(
-		"/allAttendancePunchDetails",
+		"/allAttendancePunchDetails",authentication.authenticate,
 		masterExportController.allAttendancePunchDetails,
 	)
-	.get("/attendanceSummary", masterExportController.attendanceSummary)
+	.get("/attendanceSummary",authentication.authenticate, masterExportController.attendanceSummary)
 	.get(
 		"/employeeMasterExport",
 		authentication.authenticate,
 		masterExportController.employeeMasterExport,
 	)
-	.get("/sperationPending", masterExportController.sperationPending)
-	.get("/sperationApproved", masterExportController.sperationApproved)
+	.get("/sperationPending",authentication.authenticate, masterExportController.sperationPending)
+	.get("/sperationApproved",authentication.authenticate, masterExportController.sperationApproved)
 	.get(
-		"/sperationApprovedHistory",
+		"/sperationApprovedHistory",authentication.authenticate,
 		masterExportController.sperationApprovedHistory,
 	)
 	.get("/shiftAndWeekOff", masterExportController.shiftAndWeekOff);

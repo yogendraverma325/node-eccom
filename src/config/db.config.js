@@ -1628,7 +1628,7 @@ db.jobLevelMapping.hasOne(db.companyMaster, {
 	sourceKey: "companyId",
 });
 
-db.departmentMapping.hasOne(db.sbuMapping, {
+db.departmentMapping.hasOne(db.sbuMapping, { 
 	foreignKey: "sbuMappingId",
 	sourceKey: "sbuMappingId",
 });
