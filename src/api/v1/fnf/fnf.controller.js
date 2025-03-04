@@ -20,8 +20,6 @@ class FnfController {
 			}
 
 			let ids = value.departmentId.split(",");
-			console.log("Department ID :: " + value.departmentId);
-
 			let employeeForProcessingQuery = await fnfHelper.query(
 				value.departmentId == 0 ? 2 : 1,
 				value.processingType,
@@ -31,7 +29,8 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-			console.log(employeeForProcessingQuery);
+			// console.log(employeeForProcessingQuery);
+			// return;
 			let employeeForProcessing = await db.sequelize.query(
 				employeeForProcessingQuery,
 			);

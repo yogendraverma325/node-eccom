@@ -1368,7 +1368,12 @@ ALTER TABLE `tara`.`gratuityoverrides`
 CHANGE COLUMN `gratuityDays` `gratuityYears` DECIMAL(10,2) NOT NULL ;
 
 
+///////////////////////////02-03-2025////////////
 
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `dateOfJoining`;
+
+//////////////////////////////////
 
 
 
