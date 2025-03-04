@@ -1609,7 +1609,7 @@ const gratuityValidateSchama = Joi.object({
 	gratuityAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
 	payMonth: Joi.string().max(255).required(),
-	gratuityDays: Joi.number()
+	gratuityYears: Joi.number()
 		.precision(2)
 		.positive()
 		.required()

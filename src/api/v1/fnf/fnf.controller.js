@@ -149,7 +149,7 @@ class FnfController {
 
 					let gratuityOverrides = {
 						EmployeeId: employeeDetais.id,
-						gratuityDays: employeeTds["GRATUITY DAYS"],
+						gratuityYears: employeeTds["GRATUITY DAYS"],
 						payMonth: employeeTds["PAY Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
@@ -637,7 +637,7 @@ class FnfController {
 
 			var totalGratuityDays = 0,
 				uniqueEmployeeImpacted = 0;
-			let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+			let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityYears) AS gratuityYears from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
 
 			let gratuities = await db.sequelize.query(allGratuityQuery);
 
