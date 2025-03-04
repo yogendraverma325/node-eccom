@@ -281,17 +281,28 @@ const resetPasswordMail = async (data) => {
     >
       <tr>
         <td
-          style="
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
-            padding-top: 1.5rem !important;
-          "
-        >
-          <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 25px"
-          />
-        </td>
+                            colspan="2"
+                            style="
+                              padding-bottom: 20px;
+                              text-align: left;
+                              border-bottom: 1px solid #eee;
+                              width: 100%;
+                            "
+                            valign="middle"
+                          >
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                              alt="Logo"
+                            />
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL
+    }/api/uploads/assets/tara_small.png"
+                              alt="Logo"
+                               style="float:right"
+                            />
+                          </td>
       </tr>
 
       <tr>

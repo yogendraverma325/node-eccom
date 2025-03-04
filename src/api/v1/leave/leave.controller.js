@@ -889,6 +889,10 @@ class LeaveController {
 									},
 									include: [
 										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+										{
 											model: db.employeeMaster,
 											attributes: ["name", "email"],
 											include: [
@@ -913,10 +917,8 @@ class LeaveController {
 								status: result.status === "approved" ? "Approved" : "Rejected",
 								fromDate: leaveTransactionDetails.fromDate,
 								toDate: leaveTransactionDetails.toDate,
-								leaveType:
-									leaveTransactionDetails["leaveMasterDetails.leaveName"],
-								managerName:
-									leaveTransactionDetails["employee.managerData.name"],
+								leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
+								managerName: leaveTransactionDetails["employee.managerData.name"],
 								requesterName: leaveTransactionDetails["employee.name"],
 							};
 							eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
@@ -3084,13 +3086,13 @@ class LeaveController {
 				attributes: ["leaveName"],
 			});
 
-			const recipientsEmail = await db.employeeMaster.findAll({
-				raw: true,
-				where: {
-					id: result.recipientsIds.split(","),
-				},
-				attributes: ["email"],
-			});
+			// const recipientsEmail = await db.employeeMaster.findAll({
+			// 	raw: true,
+			// 	where: {
+			// 		id: result.recipientsIds.split(","),
+			// 	},
+			// 	attributes: ["email"],
+			// });
 
 			eventEmitter.emit(
 				"leaveRequestMail",
@@ -3102,9 +3104,9 @@ class LeaveController {
 					leaveType: leaveType.dataValues.leaveName,
 					managerName: employeeData.dataValues.managerData.name,
 					managerEmail: employeeData.dataValues.managerData.email,
-					senderEmail: employeeData.dataValues.employee.companymaster.senderEmail,
-					companyLogo: employeeData.dataValues.employee.companymaster.companyLogo,
-					cc: recipientsEmail.map((user) => user.email).join(","),
+					senderEmail: employeeData.dataValues.companymaster.senderEmail,
+					companyLogo: employeeData.dataValues.companymaster.companyLogo,
+					// cc: recipientsEmail.map((user) => user.email).join(","),
 				}),
 			);
 
