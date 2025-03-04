@@ -3274,7 +3274,7 @@ class PaymentController {
 			if (fileNameType === "1") {
 				customSheetName = "Total Employees";
 			} else if (fileNameType === "2") {
-				customSheetName = "Payroll Processing Employees";
+				customSheetName = "Processing Employees";
 			}
 
 			console.log(req.query);
