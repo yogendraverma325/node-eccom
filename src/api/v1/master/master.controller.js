@@ -394,61 +394,60 @@ class MasterController {
 		}
 	}
 
-	// async bu(req, res) {
-	// 	try {
-	// 		const companyId = req.query.companyId;
-	// 		let query = {
-	// 			...(companyId && { companyId: companyId }), // Apply companyId filter only if it's provided
-
-	// 			...(req.userData.role_id == 4 && { buHrId: req.userId }),
-	// 		};
-	// 		let subQuery = { isActive: 1 };
-	// 		const buData = await db.buMapping.findAll({
-	// 			where: query,
-	// 			include: [
-	// 				{
-	// 					model: db.buMaster,
-	// 					where: subQuery,
-	// 					attributes: ["buId", "buName", "buCode"],
-	// 				},
-	// 			],
-	// 		});
-
-	// 		return respHelper(res, {
-	// 			status: 200,
-	// 			data: buData,
-	// 		});
-	// 	} catch (error) {
-	// 		logger.error("Error while getting bu list", error);
-	// 		return respHelper(res, {
-	// 			status: 500,
-	// 		});
-	// 	}
-	// }
 	async bu(req, res) {
 		try {
 			const companyId = req.query.companyId;
-			let query = {
-				...(companyId && { companyId: companyId }), // Apply companyId filter only if it's provided
+			const role_id = req.userData.role_id;
+			const model = db.buMapping;
 
-				...(req.userData.role_id == 4 && { buHrId: req.userId }),
+			let query = {
+				...(companyId && { companyId: companyId }), 
+				// ...(req.userData.role_id == 4 && { buHrId: req.userId }),
 			};
 			let subQuery = { isActive: 1 };
-			const buData = await db.buMapping.findAll({
-				where: query,
-				include: [
-					{
-						model: db.buMaster,
-						where: subQuery,
-						attributes: ["buId", "buName", "buCode"],
-					},
-				],
-			});
 
-			return respHelper(res, {
-				status: 200,
-				data: buData,
-			});
+			let buData = [];
+			let attributes = ["buId", "buName", "buCode"];
+
+			if(role_id == 4 || role_id == 5) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+
+				if(findIds.length > 0) {
+					buData = await model.findAll({
+						where: query,
+						include: [
+							{
+								model: db.buMaster,
+								where: { isActive: 1, buId: { [Op.in]: findIds } },
+								attributes: attributes,
+							},
+						],
+					});
+				}
+				return respHelper(res, {
+					status: 200,
+					data: buData,
+				});
+			}
+			else {
+				buData = await model.findAll({
+					where: query,
+					include: [
+						{
+							model: db.buMaster,
+							where: subQuery,
+							attributes: attributes,
+						},
+					],
+				});
+	
+				return respHelper(res, {
+					status: 200,
+					data: buData,
+				});
+			}
 		} catch (error) {
 			logger.error("Error while getting bu list", error);
 			return respHelper(res, {
@@ -772,9 +771,6 @@ class MasterController {
 
 	async company(req, res) {
 		try {
-			const limit = req.query.limit * 1 || 10;
-			const pageNo = req.query.page * 1 || 1;
-			const offset = (pageNo - 1) * limit;
 			const groupId = req.query.groupId || 1;
 			const role_id = req.userData.role_id;
 			let model = db.companyMaster;
@@ -784,26 +780,28 @@ class MasterController {
 				...(groupId && { groupId: groupId }),
 			};
 			let companyData = [];
+			let attributes = ["companyId", "companyName", "companyCode"];
 
-			if (role_id == 4 || role_id == 5) {
-				// for BUHR and HR_OPS
-				companyData = await fetchPermissionAccessRecord(
-					model,
-					req,
-					limit,
-					offset,
-					query,
-				);
+			if(role_id == 4 || role_id == 5) {
+                // for BUHR and HR_OPS
+				let permissionType = 'COMPANY';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+
+				if(findIds.length > 0) {
+					companyData = await model.findAndCountAll({
+						where: { ...query, companyId: { [Op.in]: findIds } },
+						attributes: attributes,
+					});
+				}
 				return respHelper(res, {
 					status: 200,
 					data: companyData,
 				});
-			} else {
+			}
+			else {
 				companyData = await model.findAndCountAll({
-					limit,
-					offset,
 					where: query,
-					attributes: ["companyId", "companyName", "companyCode"],
+					attributes: attributes,
 				});
 				return respHelper(res, {
 					status: 200,
@@ -2660,42 +2658,20 @@ class MasterController {
 	// }
 }
 
-async function fetchPermissionAccessRecord(model, req, limit, offset, query) {
-	let docs = [];
-	const grantPermissionIds = await db.employeeMaster.findOne({
-		where: { id: req.userData.id },
-		attributes: ["id", "permissionAndAccess"],
-		raw: true,
-	});
-	if (grantPermissionIds.permissionAndAccess) {
-		let accessIds = grantPermissionIds.permissionAndAccess.split(",");
-		let permissionList = await db.permissoinandaccess.findAll({
-			where: {
-				permissoinandaccessId: { [Op.in]: accessIds },
-				permissionType: "COMPANY",
-			},
-			attributes: [
-				"permissoinandaccessId",
-				"permissionType",
-				"permissionValue",
-			],
-			raw: true,
-		});
-		if (permissionList.length > 0) {
-			let findIds = permissionList.map((el) => el.permissionValue);
-			docs = await model.findAndCountAll({
-				limit,
-				offset,
-				where: { ...query, companyId: { [Op.in]: findIds } },
-				attributes: ["companyId", "companyName", "companyCode"],
-			});
-			return docs;
-		} else {
-			return docs;
-		}
-	} else {
-		return docs;
-	}
+async function fetchPermissionAccessRecord(req, permissionType) {
+	const employee = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
+
+	if(!employee?.permissionAndAccess) return [];
+
+	let accessIds = employee.permissionAndAccess.split(",");
+	let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, permissionType }, attributes: ['permissionValue'], raw: true });
+
+	if(permissionList.length === 0) return [];
+
+	let findIds = permissionList.map(el => el.permissionValue);
+
+	return findIds;
 }
+
 
 export default new MasterController();

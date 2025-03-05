@@ -2139,70 +2139,37 @@ class PaymentController {
 
 	async getCompanyList(req, res) {
 		try {
-			const limit = req.query.limit * 1 || 10;
-			const pageNo = req.query.page * 1 || 1;
-			const offset = (pageNo - 1) * limit;
 			const groupId = req.query.groupId || 1;
 			const role_id = req.userData.role_id;
+			let model = db.companyMaster;
 
 			let query = {
 				isActive: 1,
 				...(groupId && { groupId: groupId }),
 			};
 			let companyData = [];
-			if (role_id == 4 || role_id == 5) {
-				// for BUHR and HR_OPS
-				const grantPermissionIds = await db.employeeMaster.findOne({
-					where: { id: req.userData.id },
-					attributes: ["id", "permissionAndAccess"],
-					raw: true,
-				});
-				if (grantPermissionIds.permissionAndAccess) {
-					let accessIds = grantPermissionIds.permissionAndAccess.split(",");
-					let permissionList = await db.permissoinandaccess.findAll({
-						where: {
-							permissoinandaccessId: { [Op.in]: accessIds },
-							permissionType: "COMPANY",
-						},
-						attributes: [
-							"permissoinandaccessId",
-							"permissionType",
-							"permissionValue",
-						],
-						raw: true,
-					});
-					if (permissionList.length > 0) {
-						let findIds = permissionList.map((el) => el.permissionValue);
-						companyData = await db.companyMaster.findAll({
-							limit,
-							offset,
-							where: { ...query, companyId: { [Op.in]: findIds } },
-							attributes: ["companyId", "companyName", "companyCode"],
-						});
-						return respHelper(res, {
-							status: 200,
-							data: companyData,
-						});
-					} else {
-						return respHelper(res, {
-							status: 200,
-							msg: "Permission is not exist for this module",
-							data: companyData,
-						});
-					}
-				} else {
-					return respHelper(res, {
-						status: 200,
-						msg: "Permission is not granted for this employee",
-						data: companyData,
+			let attributes = ["companyId", "companyName", "companyCode"];
+
+			if(role_id == 4 || role_id == 5) {
+                // for BUHR and HR_OPS
+				let permissionType = 'COMPANY';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+
+				if(findIds.length > 0) {
+					companyData = await model.findAll({
+						where: { ...query, companyId: { [Op.in]: findIds } },
+						attributes: attributes,
 					});
 				}
-			} else {
-				companyData = await db.companyMaster.findAll({
-					limit,
-					offset,
+				return respHelper(res, {
+					status: 200,
+					data: companyData,
+				});
+			}
+			else {
+				companyData = await model.findAll({
 					where: query,
-					attributes: ["companyId", "companyName", "companyCode"],
+					attributes: attributes,
 				});
 				return respHelper(res, {
 					status: 200,
@@ -2211,6 +2178,7 @@ class PaymentController {
 			}
 		} catch (error) {
 			console.log(error);
+			logger.error("Error while getting company list", error);
 			return respHelper(res, {
 				status: 500,
 			});
@@ -3247,110 +3215,83 @@ class PaymentController {
 		try {
 			const companyId = req.query.companyId;
 			const role_id = req.userData.role_id;
+			const model = db.buMapping;
 
 			let query = {
-				...(companyId && { companyId: companyId }),
+				...(companyId && { companyId: companyId }), 
+				// ...(req.userData.role_id == 4 && { buHrId: req.userId }),
 			};
 			let subQuery = { isActive: 1 };
 
-			let docs = [];
+			let buData = [];
+			let attributes = ["buId", "buName", "buCode"];
 
-			if (role_id == 4 || role_id == 5) {
-				// for BUHR and HR_OPS
-				const grantPermissionIds = await db.employeeMaster.findOne({
-					where: { id: req.userData.id },
-					attributes: ["id", "permissionAndAccess"],
-					raw: true,
-				});
-				if (grantPermissionIds.permissionAndAccess) {
-					let accessIds = grantPermissionIds.permissionAndAccess.split(",");
-					let permissionList = await db.permissoinandaccess.findAll({
-						where: {
-							permissoinandaccessId: { [Op.in]: accessIds },
-							permissionType: "BU",
-						},
-						attributes: [
-							"permissoinandaccessId",
-							"permissionType",
-							"permissionValue",
+			if(role_id == 4 || role_id == 5) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+
+				if(findIds.length > 0) {
+					buData = await model.findAll({
+						where: query,
+						include: [
+							{
+								model: db.buMaster,
+								where: { isActive: 1, buId: { [Op.in]: findIds } },
+								attributes: attributes,
+							},
 						],
-						raw: true,
 					});
-					if (permissionList.length > 0) {
-						let findIds = permissionList.map((el) => el.permissionValue);
 
-						docs = await db.buMapping.findAll({
-							where: query,
-							include: [
-								{
-									model: db.buMaster,
-									where: { ...subQuery, buId: { [Op.in]: findIds } },
-									attributes: ["buId", "buName", "buCode"],
-								},
-							],
-						});
+					// Extract only the relevant fields
+					const responseData = buData.map((item) => ({
+						buId: item.bumaster.buId,
+						buName: item.bumaster.buName,
+						buCode: item.bumaster.buCode,
+					}));
+					const allEmployees = { buId: 0, buName: "All Employees", buCode: "ALL" };
 
-						// Extract only the relevant fields
-						const responseData = docs.map((item) => ({
-							buId: item.bumaster.buId,
-							buName: item.bumaster.buName,
-							buCode: item.bumaster.buCode,
-						}));
-						const allEmployees = {
-							buId: 0,
-							buName: "All Employees",
-							buCode: "ALL",
-						};
-
-						// Add the new object at the beginning of the array
-						responseData.unshift(allEmployees);
-
-						return respHelper(res, {
-							status: 200,
-							data: responseData,
-						});
-					} else {
-						return respHelper(res, {
-							status: 200,
-							msg: "Permission is not exist for this module",
-							data: docs,
-						});
-					}
-				} else {
+					// Add the new object at the beginning of the array
+					responseData.unshift(allEmployees);
 					return respHelper(res, {
 						status: 200,
-						msg: "Permission is not granted for this employee",
-						data: docs,
-					});
+						data: responseData,
+					}); 
 				}
-			} else {
-				docs = await db.buMapping.findAll({
+				else {
+					return respHelper(res, {
+						status: 200,
+						data: buData,
+					}); 
+				}
+			}
+			else {
+				buData = await model.findAll({
 					where: query,
 					include: [
 						{
 							model: db.buMaster,
 							where: subQuery,
-							attributes: ["buId", "buName", "buCode"],
+							attributes: attributes,
 						},
 					],
 				});
+	
+				// Extract only the relevant fields
+				const responseData = buData.map((item) => ({
+					buId: item.bumaster.buId,
+					buName: item.bumaster.buName,
+					buCode: item.bumaster.buCode,
+				}));
+				const allEmployees = { buId: 0, buName: "All Employees", buCode: "ALL" };
+
+				// Add the new object at the beginning of the array
+				responseData.unshift(allEmployees);
+				return respHelper(res, {
+					status: 200,
+					data: responseData,
+				}); 
 			}
-
-			// Extract only the relevant fields
-			const responseData = docs.map((item) => ({
-				buId: item.bumaster.buId,
-				buName: item.bumaster.buName,
-				buCode: item.bumaster.buCode,
-			}));
-			const allEmployees = { buId: 0, buName: "All Employees", buCode: "ALL" };
-
-			// Add the new object at the beginning of the array
-			responseData.unshift(allEmployees);
-
-			return respHelper(res, {
-				status: 200,
-				data: responseData,
-			});
 		} catch (error) {
 			return respHelper(res, {
 				status: 500,
@@ -6645,6 +6586,21 @@ async function addUpdateTDSDeductionAndLOPDeduction(req, result) {
 			await db.tdsDeductions.create(tdsObject);
 		}
 	}
+}
+
+async function fetchPermissionAccessRecord(req, permissionType) {
+	const employee = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
+
+	if(!employee?.permissionAndAccess) return [];
+
+	let accessIds = employee.permissionAndAccess.split(",");
+	let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, permissionType }, attributes: ['permissionValue'], raw: true });
+
+	if(permissionList.length === 0) return [];
+
+	let findIds = permissionList.map(el => el.permissionValue);
+
+	return findIds;
 }
 
 export default new PaymentController();
