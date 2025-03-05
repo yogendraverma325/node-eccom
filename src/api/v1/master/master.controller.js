@@ -43,7 +43,6 @@ class MasterController {
 						},
 					},
 				}); /// get all permission of access to fetch list with active status as per role
-				console.log("permissionAndAccess", permissionAndAccess);
 
 				const buArrayForFilter = permissionAndAccess
 					.filter((obj) => obj.permissionType == "BU")
@@ -195,60 +194,70 @@ class MasterController {
 					{
 						model: db.designationMaster,
 						seperate: true,
-						required: true,
 						attributes: ["name"],
-						where: {
-							...(designation && {
-								name: { [Op.like]: `%${designation}%` },
-							}),
-							...designationFIlter,
-						},
+						where:
+							Object.keys(designationFIlter).length !== 0 || designation
+								? {
+										...(designation && {
+											name: { [Op.like]: `%${designation}%` },
+										}),
+										...designationFIlter,
+									}
+								: null,
 					},
 					{
 						model: db.departmentMaster,
 						seperate: true,
-						required: true,
 						attributes: ["departmentName"],
-						where: {
-							...(department && {
-								departmentName: { [Op.like]: `%${department}%` },
-							}),
-							...departmentFIlter,
-						},
+						where:
+							Object.keys(departmentFIlter).length !== 0 || department
+								? {
+										...(department && {
+											departmentName: { [Op.like]: `%${department}%` },
+										}),
+										...departmentFIlter,
+									}
+								: null,
 					},
 					{
 						model: db.buMaster,
 						seperate: true,
-						required: true,
 						attributes: ["buName", "buCode"],
-						where: {
-							...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
-							...buFIlter,
-						},
+						where:
+							Object.keys(buFIlter).length !== 0 || buSearch
+								? {
+										...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
+										...buFIlter,
+									}
+								: null,
 					},
 					{
 						model: db.sbuMaster,
 						seperate: true,
-						required: true,
 						attributes: ["sbuname", "code"],
-						where: {
-							...(sbuSearch && {
-								sbuname: { [Op.like]: `%${sbuSearch}%` },
-							}),
-							...sbbuFIlter,
-						},
+						where:
+							Object.keys(sbbuFIlter).length !== 0 || sbuSearch
+								? {
+										...(sbuSearch && {
+											sbuname: { [Op.like]: `%${sbuSearch}%` },
+										}),
+										...sbbuFIlter,
+									}
+								: null,
 					},
 					{
 						model: db.functionalAreaMaster,
 						seperate: true,
-						required: true,
 						attributes: ["functionalAreaName"],
-						where: {
-							...(areaSearch && {
-								functionalAreaName: { [Op.like]: `%${areaSearch}%` },
-							}),
-							...functionAreaFIlter,
-						},
+						where:
+							Object.keys(functionAreaFIlter).length !== 0 || areaSearch
+								? {
+										...(areaSearch && {
+											functionalAreaName: { [Op.like]: `%${areaSearch}%` },
+										}),
+										...functionAreaFIlter,
+									}
+								: null,
 					},
 					{
 						model: db.employeeMaster,
@@ -260,9 +269,12 @@ class MasterController {
 						model: db.companyLocationMaster,
 						required: true,
 						attributes: ["address1", "address2"],
-						// where: {
-						// 	...companyFIlter,
-						// },
+						where:
+							Object.keys(companyFIlter).length !== 0
+								? {
+										...companyFIlter,
+									}
+								: null,
 					},
 				],
 			});
