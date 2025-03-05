@@ -2222,7 +2222,24 @@ class PaymentController {
 			}
 
 			let ids = value.departmentId.split(",");
+			let role_id = req.userData.role_id;
 			console.log("Department ID :: " + value.departmentId);
+			let buId = '';
+
+			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "Data not available.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
 
 			let employeeForProcessingQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 24 : 20,
@@ -2231,6 +2248,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
+                    buCondition: buCondition
 				},
 			);
 			console.log(employeeForProcessingQuery);
