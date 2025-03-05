@@ -1063,7 +1063,7 @@ class UserController {
 					},
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -1160,6 +1160,8 @@ class UserController {
 					empDesignation: existUser.dataValues.designationmaster.name,
 					empDepartment: existUser.dataValues.departmentmaster.departmentName,
 					companyName: existUser.dataValues.companymaster.companyName,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -1168,6 +1170,8 @@ class UserController {
 				JSON.stringify({
 					email: existUser.dataValues.email,
 					companyName: existUser.dataValues.companymaster.companyName,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -1268,7 +1272,7 @@ class UserController {
 						include: [
 							{
 								model: db.companyMaster,
-								attributes: ["companyName"],
+								attributes: ["companyName", "senderEmail", "companyLogo"],
 							},
 							{
 								model: db.employeeMaster,
@@ -1350,6 +1354,10 @@ class UserController {
 					recipientName: separationData.dataValues.employee.name,
 					companyName:
 						separationData.dataValues.employee.companymaster.companyName,
+					senderEmail:
+						separationData.dataValues.employee.companymaster.senderEmail,
+					companyLogo:
+						separationData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
 
@@ -1362,6 +1370,10 @@ class UserController {
 					empCode: separationData.dataValues.employee.empCode,
 					bu: separationData.dataValues.employee.bumaster.buName,
 					managerName: separationData.dataValues.employee.managerData.name,
+					senderEmail:
+						separationData.dataValues.employee.companymaster.senderEmail,
+					companyLogo:
+						separationData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
 
@@ -1641,7 +1653,7 @@ class UserController {
 					},
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 					{
 						model: db.noticePeriodMaster,
@@ -2001,6 +2013,8 @@ class UserController {
 					dateOfResignation: result.resignationDate,
 					companyName: existUser.dataValues.companymaster.companyName,
 					lastWorkingDay: result.l2LastWorkingDay,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -2025,6 +2039,8 @@ class UserController {
 						lastWorkingDay: result.l2LastWorkingDay,
 						personalMailID: existUser.dataValues.personalEmail,
 						personalMobileNumber: existUser.dataValues.personalMobileNumber,
+						senderEmail: existUser.dataValues.companymaster.senderEmail,
+						companyLogo: existUser.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -2066,7 +2082,7 @@ class UserController {
 						include: [
 							{
 								model: db.companyMaster,
-								attributes: ["companyName"],
+								attributes: ["companyName", "senderEmail", "companyLogo"],
 							},
 							{
 								model: db.departmentMaster,
@@ -2166,6 +2182,10 @@ class UserController {
 								resignationData.dataValues.employee.managerData.name,
 							companyName:
 								resignationData.dataValues.employee.companymaster.companyName,
+							senderEmail:
+								resignationData.dataValues.employee.companymaster.senderEmail,
+							companyLogo:
+								resignationData.dataValues.employee.companymaster.companyLogo,
 						}),
 					);
 				}
@@ -2212,6 +2232,10 @@ class UserController {
 						email: resignationData.dataValues.employee.email,
 						empName: resignationData.dataValues.employee.name,
 						empCode: resignationData.dataValues.employee.empCode,
+						senderEmail:
+							resignationData.dataValues.employee.companymaster.senderEmail,
+						companyLogo:
+							resignationData.dataValues.employee.companymaster.companyLogo,
 					}),
 				);
 			}

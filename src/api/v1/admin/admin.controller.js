@@ -776,6 +776,12 @@ class AdminController {
 				const employeeOnboardingDetails =
 					await db.employeeStagingMaster.findOne({
 						where: { id: selectedUsers[i] },
+						include: [
+							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+						],
 					});
 				if (employeeOnboardingDetails) {
 					let query = {
@@ -1035,6 +1041,12 @@ class AdminController {
 										firstName: employeeOnboardingDetails.firstName,
 										empCode: empCode,
 										password: password,
+										senderEmail:
+											employeeOnboardingDetails.employee.companymaster
+												.senderEmail,
+										companyLogo:
+											employeeOnboardingDetails.employee.companymaster
+												.companyLogo,
 									}),
 								);
 

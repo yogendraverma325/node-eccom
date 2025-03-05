@@ -3203,6 +3203,10 @@ class LeaveController {
 						attributes: ["name"],
 						include: [
 							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+							{
 								model: db.employeeMaster,
 								as: "managerData",
 								attributes: ["name", "email"],
@@ -3219,6 +3223,8 @@ class LeaveController {
 				leaveType: `${employeeData["leaveMasterDetails.leaveName"]} (${employeeData["leaveMasterDetails.leaveCode"]})`,
 				fromDate: employeeData.fromDate,
 				toDate: employeeData.toDate,
+				senderEmail: employeeData["employee.companymaster.senderEmail"],
+				companyLogo: employeeData["employee.companymaster.companyLogo"],
 			};
 
 			eventEmitter.emit("revokeLeaveRequest", JSON.stringify(obj));
