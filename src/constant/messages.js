@@ -88,7 +88,7 @@ const message = {
 		MESSAGE_REQUIRED_DAYS: "Message is required in more than # days leave(s)",
 		TENURE_LEAVE_COUNT:
 			"You are allowed a maximum of # time(s) leave during your entire tenure",
-			YEAR_LEAVE_COUNT:
+		YEAR_LEAVE_COUNT:
 			"You are allowed a maximum of # time(s) leave during one year",
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",

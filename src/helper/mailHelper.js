@@ -146,7 +146,7 @@ async function leaveRequestMail(input) {
 			subject: `${userData.requesterName} has requested for leave`,
 			html: await emailTemplate.leaveRequestMail(userData),
 			cc: userData.cc,
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -161,7 +161,7 @@ async function resetPasswordMail(input) {
 			to: userData.email,
 			subject: `Reset Password`,
 			html: await emailTemplate.resetPasswordMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -176,7 +176,7 @@ async function revokeRegularizationMail(input) {
 			to: userData.email,
 			subject: `${userData.name} has revoked own attendance request`,
 			html: await emailTemplate.revokeRegularizeMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -191,7 +191,7 @@ async function regularizeAckMail(input) {
 			to: userData.email,
 			subject: `Your attendance update request has been ${userData.status}.`,
 			html: await emailTemplate.regularizationAcknowledgement(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -206,7 +206,7 @@ async function leaveAckMail(input) {
 			to: userData.email,
 			subject: `Your leave request has been ${userData.status}.`,
 			html: await emailTemplate.leaveAcknowledgement(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -221,7 +221,7 @@ async function forgotPassword(input) {
 			to: userData.email,
 			subject: `Your One-Time Password (OTP)`,
 			html: await emailTemplate.forgotPasswordMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -236,7 +236,7 @@ async function revokeLeaveRequest(input) {
 			to: userData.managerEmail,
 			subject: `${userData.empName} has Revoked own leave request`,
 			html: await emailTemplate.revokeLeaveRequestMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -251,7 +251,7 @@ async function autoLeaveDeductionMail(input) {
 			to: userData.email,
 			subject: "Auto Leave Deduction",
 			html: await emailTemplate.autoLeaveDeduction(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -266,7 +266,7 @@ async function initiateSeparation(input) {
 			to: userData.email,
 			subject: `${userData.empName}, ${userData.empDesignation} - ${userData.empDepartment} has resigned from the company`,
 			html: await emailTemplate.initiateSeparation(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -281,7 +281,7 @@ async function separationUserAcknowledge(input) {
 			to: userData.email,
 			subject: `Your separation request is submitted successfully`,
 			html: await emailTemplate.separationAcknowledgementToUser(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -296,7 +296,7 @@ async function separationRejectByBUHR(input) {
 			to: userData.email,
 			subject: `BU HR rejected your resignation ${userData.empName} (${userData.empCode}),`,
 			html: await emailTemplate.separationRejectedByBUHR(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -310,8 +310,10 @@ async function separationApprovalAcknowledgementToUser(input) {
 		await helper.mailService({
 			to: userData.email,
 			subject: `Manager accepted the resignation of Employee`,
-			html: await emailTemplate.separationApprovalAcknowledgementToUser(userData),
-			senderEmail: userData.senderEmail
+			html: await emailTemplate.separationApprovalAcknowledgementToUser(
+				userData,
+			),
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -326,7 +328,7 @@ async function managerRejectsSeparation(input) {
 			to: userData.email,
 			subject: `Rejection by Manager`,
 			html: await emailTemplate.managerRejectsSeparation(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -341,7 +343,7 @@ async function managerApprovesSeparation(input) {
 			to: userData.email,
 			subject: `Separation approval of BU HR- ${userData.empName},${userData.empCode},${userData.bu}`,
 			html: await emailTemplate.managerApprovesSeparation(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -356,7 +358,7 @@ async function clearenceInitiated(input) {
 			to: userData.email,
 			subject: `Resignation of Member ${userData.empName} (${userData.empCode}) - ${userData.bu} | Clearance initiated`,
 			html: await emailTemplate.clearanceInitiated(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -371,7 +373,7 @@ async function separationApproveByBUHR(input) {
 			to: userData.email,
 			subject: `Resignation Acceptance ${userData.empCode}, ${userData.empName}`,
 			html: await emailTemplate.separationApproveByBUHR(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -386,7 +388,7 @@ async function onboardingEmployeeMail(input) {
 			to: userData.email,
 			subject: `Welcome to Team's new HRMS Platform | Login credentials`,
 			html: await emailTemplate.onboardingEmployee(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -401,7 +403,7 @@ async function prePasswordExpiryNotification(input) {
 			to: userData.email,
 			subject: `Reminder: Your Password is Set to Expire`,
 			html: await emailTemplate.passwordExpiryNotification(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -416,7 +418,7 @@ async function postPasswordExpiryNotification(input) {
 			to: userData.email,
 			subject: `Action Required: Your Password Has Expired`,
 			html: await emailTemplate.postPasswordExpiryNotification(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -432,7 +434,7 @@ async function paymentDetailsApprovalRequest(input) {
 			to: process.env.NEW_EMPLOYEE_JOINING,
 			subject: `Your profile update request has been submitted for approval of Salary Payment`,
 			html: await emailTemplate.paymentDetailsApprovalRequestMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -447,7 +449,7 @@ async function paymentDetailsAdminApproval(input) {
 			to: userData.email,
 			subject: `Your profile update request has been acted upon by Tara Admin`,
 			html: await emailTemplate.paymentDetailsAdminApprovedMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -462,7 +464,7 @@ async function newJoinEmployeeMail(input) {
 			to: process.env.NEW_EMPLOYEE_JOINING,
 			subject: `New Join Employee`,
 			html: await emailTemplate.newJoinEmployeeMail(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -597,7 +599,7 @@ async function releasePaySlip(input) {
 			to: userData.email,
 			subject: `Payslip has been released`,
 			html: await emailTemplate.releasePaySlip(userData),
-			senderEmail: userData.senderEmail
+			senderEmail: userData.senderEmail,
 		});
 		// console.log("mail helper", response);
 		return response;

@@ -1,7 +1,18 @@
 import Joi from "joi";
 
 const months = [
-	'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'jan', 'feb', 'mar'
+	"apr",
+	"may",
+	"jun",
+	"jul",
+	"aug",
+	"sep",
+	"oct",
+	"nov",
+	"dec",
+	"jan",
+	"feb",
+	"mar",
 ];
 
 const companyTypeMasterSchema = Joi.object({
@@ -302,44 +313,46 @@ const companyLocationMasterSchema = Joi.object({
 
 const lwfMappingMasterSchema = Joi.object({
 	lwfmappings: Joi.array().items(
-	  Joi.object(
-		Object.assign(
-			{
-				lwfDesignationId: Joi.number().required().messages({
-					'string.empty': 'LWF designation is required',
-				}),
-			},
-			{
-				contributors: Joi.array().items(
-					Joi.object(
-					  Object.assign(
-						  {
-							  lwfMappingId: Joi.number().optional().messages({
-								  'string.empty': 'Mapping ID is required',
-							  }),
-						  },
-						  {
-							  contributorType: Joi.string().required().messages({
-							  'string.empty': 'Contributor Type is required',
-							  }),
-						  },
-						  {
-							  stateId: Joi.number().required().messages({
-								  'string.empty': 'State is required',
-							  }),
-						  },
-						  months.reduce((acc, month) => {
-						  acc[month] = Joi.string().required().messages({
-							  'string.empty': `${month} value is required`,
-						  });
-						  return acc;
-						  }, {})
-					  )
-					)
-				)
-			}
-		)
-	  )
+		Joi.object(
+			Object.assign(
+				{
+					lwfDesignationId: Joi.number().required().messages({
+						"string.empty": "LWF designation is required",
+					}),
+				},
+				{
+					contributors: Joi.array().items(
+						Joi.object(
+							Object.assign(
+								{
+									lwfMappingId: Joi.number().optional().messages({
+										"string.empty": "Mapping ID is required",
+									}),
+								},
+								{
+									contributorType: Joi.string().required().messages({
+										"string.empty": "Contributor Type is required",
+									}),
+								},
+								{
+									stateId: Joi.number().required().messages({
+										"string.empty": "State is required",
+									}),
+								},
+								months.reduce((acc, month) => {
+									acc[month] = Joi.string()
+										.required()
+										.messages({
+											"string.empty": `${month} value is required`,
+										});
+									return acc;
+								}, {}),
+							),
+						),
+					),
+				},
+			),
+		),
 	),
 });
 

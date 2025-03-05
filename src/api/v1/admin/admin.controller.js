@@ -156,7 +156,7 @@ class AdminController {
 						model: db.companyMaster,
 						attributes: ["senderEmail", "companyLogo"],
 					},
-				]
+				],
 			});
 
 			const newPassword = await helper.generateRandomPassword();
@@ -175,13 +175,9 @@ class AdminController {
 				},
 			);
 
-			console.log(
-				"sender mail", existUser["companymaster.senderEmail"]
-			)
+			console.log("sender mail", existUser["companymaster.senderEmail"]);
 
-			console.log(
-				"logo", existUser["companymaster.companyLogo"]
-			)
+			console.log("logo", existUser["companymaster.companyLogo"]);
 
 			eventEmitter.emit(
 				"resetPasswordMail",
@@ -189,7 +185,7 @@ class AdminController {
 					password: newPassword,
 					email: existUser.email,
 					senderEmail: existUser["companymaster.senderEmail"],
-					companyLogo: existUser["companymaster.companyLogo"]
+					companyLogo: existUser["companymaster.companyLogo"],
 				}),
 			);
 
@@ -641,39 +637,39 @@ class AdminController {
 				where: Object.assign(
 					search
 						? {
-							[Op.or]: [
-								{
-									name: {
-										[Op.like]: `%${search}%`,
+								[Op.or]: [
+									{
+										name: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-								{
-									email: {
-										[Op.like]: `%${search}%`,
+									{
+										email: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-							],
-							[Op.and]: [
-								{
-									isActive:
-										usersData.role_id == 1 || usersData.role_id == 2
-											? [1, 0]
-											: [1],
-								},
-							],
-							[Op.and]: activeQuery,
-						}
+								],
+								[Op.and]: [
+									{
+										isActive:
+											usersData.role_id == 1 || usersData.role_id == 2
+												? [1, 0]
+												: [1],
+									},
+								],
+								[Op.and]: activeQuery,
+							}
 						: {
-							[Op.and]: [
-								{
-									isActive:
-										usersData.role_id == 1 || usersData.role_id == 2
-											? [1, 0]
-											: [1],
-								},
-							],
-							[Op.and]: activeQuery,
-						},
+								[Op.and]: [
+									{
+										isActive:
+											usersData.role_id == 1 || usersData.role_id == 2
+												? [1, 0]
+												: [1],
+									},
+								],
+								[Op.and]: activeQuery,
+							},
 				),
 				attributes: [
 					"id",
@@ -825,9 +821,9 @@ class AdminController {
 					if (existUser) {
 						if (
 							existUser.personalEmail ===
-							employeeOnboardingDetails.personalEmail ||
+								employeeOnboardingDetails.personalEmail ||
 							existUser.personalMobileNumber ===
-							employeeOnboardingDetails.personalMobileNumber
+								employeeOnboardingDetails.personalMobileNumber
 						) {
 							return respHelper(res, {
 								status: 400,
@@ -2293,9 +2289,10 @@ class AdminController {
 				status: 200,
 				msg: constant.ATTENDANCE_APPROVAL_STATUS.replace(
 					"<status>",
-					`${!existUser.dataValues.requiredAttendanceApproval
-						? "Enabled"
-						: "Disabled"
+					`${
+						!existUser.dataValues.requiredAttendanceApproval
+							? "Enabled"
+							: "Disabled"
 					}`,
 				),
 			});

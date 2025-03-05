@@ -11,14 +11,16 @@ export default function getAllSMSListeners(eventEmitter) {
 const forgotPassword = async (input) => {
 	try {
 		const userData = JSON.parse(input);
-		const forgotSMSTemplate = smsTemplate.forgotPasswordSMS({ otp: userData.otp });
+		const forgotSMSTemplate = smsTemplate.forgotPasswordSMS({
+			otp: userData.otp,
+		});
 		await helper.smsService({
 			mobile: userData.mobile,
 			template: forgotSMSTemplate.template,
-			templateId: forgotSMSTemplate.templateId
+			templateId: forgotSMSTemplate.templateId,
 		});
 	} catch (error) {
 		console.log(error);
 		logger.error(error);
 	}
-}
+};

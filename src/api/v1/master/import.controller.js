@@ -74,7 +74,7 @@ class MasterController {
 							const isValidCompany = await validateCompany(obj.company);
 							const isValidEmployeeType = await validateEmployeeType(
 								obj.employeeType,
-								isValidCompany
+								isValidCompany,
 							);
 							const isValidProbation = await validateProbation(obj.probation);
 							const isValidManager = await validateManager(obj.manager);
