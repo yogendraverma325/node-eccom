@@ -2279,10 +2279,11 @@ class MasterController {
 			let getCompanyIds = [];
 			let permissionAndAccess = [];
 			const usersData = req.userData;
-	
+
 			const activeQuery = { isActive: isActive };
-	
-			if (usersData.role_id == 5 || usersData.role_id == 4) { // Modified condition
+
+			if (usersData.role_id == 5 || usersData.role_id == 4) {
+				// Modified condition
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess.split(",");
@@ -2295,14 +2296,17 @@ class MasterController {
 						},
 					},
 				});
-	
-				getCompanyIds = permissionAndAccess.map((e) => e.dataValues.permissionValue);
+
+				getCompanyIds = permissionAndAccess.map(
+					(e) => e.dataValues.permissionValue,
+				);
 			}
-		
-			let subQuery = usersData.role_id === 2 ? {} : { buId: { [Op.in]: getCompanyIds } };
-	
+
+			let subQuery =
+				usersData.role_id === 2 ? {} : { buId: { [Op.in]: getCompanyIds } };
+
 			const buData = await db.buMapping.findAll({
-				where:{companyId:companyId},
+				where: { companyId: companyId },
 				include: [
 					{
 						model: db.buMaster,
@@ -2311,7 +2315,7 @@ class MasterController {
 					},
 				],
 			});
-	
+
 			return respHelper(res, {
 				status: 200,
 				data: buData,
@@ -2323,11 +2327,11 @@ class MasterController {
 			});
 		}
 	}
-	
+
 	async departmentRoleAndAccess(req, res) {
 		try {
 			let getDepartmentIds = [];
-			let companyid=req.query.companyId
+			let companyid = req.query.companyId;
 
 			let pemissionAccessIds = [];
 			if (req.userData.role_id == 4 || req.userData.role_id == 5) {
@@ -2346,52 +2350,51 @@ class MasterController {
 							],
 							where: {
 								permissoinandaccessId: { [Op.in]: ids },
-						        permissionType: "DEPARTMENT",
+								permissionType: "DEPARTMENT",
 							},
 						});
 					}
-					  getDepartmentIds = pemissionAccessIds
-					.map((e) => e.dataValues.permissionValue);					
+					getDepartmentIds = pemissionAccessIds.map(
+						(e) => e.dataValues.permissionValue,
+					);
 				}
 			}
 
-			if ((req.userData.role_id == 4 || req.userData.role_id == 5) && getDepartmentIds.length === 0) {
+			if (
+				(req.userData.role_id == 4 || req.userData.role_id == 5) &&
+				getDepartmentIds.length === 0
+			) {
 				return respHelper(res, {
 					status: 200,
 					data: [],
 				});
 			}
-			console.log("getDepartmentIds",getDepartmentIds)
+			console.log("getDepartmentIds", getDepartmentIds);
 			const departmentData = await db.departmentMapping.findAll({
 				include: [
 					{
 						model: db.departmentMaster,
 						attributes: ["departmentId", "departmentName", "departmentCode"],
 						where: {
-							...( req.userData.role_id == 2 
-								? {} 
-								: { departmentId: { [Op.in]: getDepartmentIds }})
+							...(req.userData.role_id == 2
+								? {}
+								: { departmentId: { [Op.in]: getDepartmentIds } }),
 						},
 					},
 					{
 						model: db.sbuMapping,
-						attributes: ['sbuMappingId'],
-						required:true,
-						include:
-							{
-								model: db.buMapping,
-								attributes: ['buMappingId'],
-								required:true,
-								where:{
-									companyId:companyid
-								}
-								
+						attributes: ["sbuMappingId"],
+						required: true,
+						include: {
+							model: db.buMapping,
+							attributes: ["buMappingId"],
+							required: true,
+							where: {
+								companyId: companyid,
 							},
-							
-						
-						
+						},
 					},
-				]
+				],
 			});
 
 			return respHelper(res, {
@@ -2468,17 +2471,17 @@ class MasterController {
 		try {
 			let getCompanyMappingId = [];
 			let pemissionAccessIds = [];
-	
+
 			// Check if role_id is 4 or 3
-			if (req.userData.role_id == 4 || req.userData.role_id == 5) {	
+			if (req.userData.role_id == 4 || req.userData.role_id == 5) {
 				const buPermissionIds = await db.employeeMaster.findOne({
 					attributes: ["permissionAndAccess"],
 					where: { id: req.userData.id },
 				});
-	
+
 				if (buPermissionIds && buPermissionIds.dataValues.permissionAndAccess) {
 					let ids = buPermissionIds.dataValues.permissionAndAccess.split(",");
-	
+
 					pemissionAccessIds = await db.permissoinandaccess.findAll({
 						attributes: [
 							"permissoinandaccessId",
@@ -2490,14 +2493,16 @@ class MasterController {
 							permissionType: "COMPANY",
 						},
 					});
-	
+
 					if (pemissionAccessIds.length === 0) {
 						console.log("No permission access found for given IDs:", ids);
 					}
-	
-					const buIds = pemissionAccessIds.map((e) => e.dataValues.permissionValue);
+
+					const buIds = pemissionAccessIds.map(
+						(e) => e.dataValues.permissionValue,
+					);
 					console.log("buIds:", buIds);
-	
+
 					if (buIds.length > 0) {
 						getCompanyMappingId = await db.buMapping.findAll({
 							attributes: ["buMappingId", "companyId"],
@@ -2506,20 +2511,26 @@ class MasterController {
 					}
 				}
 			}
-	
+
 			const companyIds = getCompanyMappingId.map((e) => e.dataValues.companyId);
-	
-			if ((req.userData.role_id == 4 || req.userData.role_id == 5) && companyIds.length === 0) {
+
+			if (
+				(req.userData.role_id == 4 || req.userData.role_id == 5) &&
+				companyIds.length === 0
+			) {
 				return respHelper(res, {
 					status: 200,
 					data: [],
 				});
 			}
-	
+
 			const companyData = await db.companyMaster.findAll({
-				where: req.userData.role_id == 2 ? {}: { companyId: { [Op.in]: companyIds } },
+				where:
+					req.userData.role_id == 2
+						? {}
+						: { companyId: { [Op.in]: companyIds } },
 			});
-	
+
 			return respHelper(res, {
 				status: 200,
 				data: companyData,
@@ -2531,8 +2542,6 @@ class MasterController {
 			});
 		}
 	}
-	
-	
 
 	// async companyRoleAndAccess(req, res) {
 	// 	try {
