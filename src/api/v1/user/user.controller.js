@@ -4238,6 +4238,12 @@ class UserController {
 					isActive: 1,
 				},
 				attributes: ["name", "empCode", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
 			});
 			const isSameDetails = await db.paymentDetails.findOne({
 				where: { userId: req.userId },
