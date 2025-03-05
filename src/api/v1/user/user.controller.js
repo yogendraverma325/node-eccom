@@ -12,13 +12,14 @@ import moment from "moment";
 class UserController {
 	async globalSearch(req, res) {
 		try {
-			const { search } = req.params;
+			const { search, companyId } = req.params;
 			const EMP_DATA = await db.employeeMaster.findAll({
 				raw: true,
 				nest: true,
 				attributes: ["id", "empCode", "name", "firstName", "lastName", "email"],
 				where: {
 					isActive: 1,
+					...(companyId && { companyId }),
 					[Op.or]: [
 						{ empCode: { [Op.like]: `%${search}%` } },
 						{ name: { [Op.like]: `%${search}%` } },

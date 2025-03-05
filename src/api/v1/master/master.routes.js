@@ -98,4 +98,5 @@ export default Express.Router()
 	.get("/buRoleAndAccess", masterController.buRoleAndAccess)
 	.get("/departmentRoleAndAccess", masterController.departmentRoleAndAccess)
 	.get("/financialYear", masterController.financialYear)
-	.get("/compensationCategory", masterController.compensationCategory);
+	.get("/compensationCategory", masterController.compensationCategory)
+	.get("/companyRoleAndAccess", masterController.companyRoleAndAccess);

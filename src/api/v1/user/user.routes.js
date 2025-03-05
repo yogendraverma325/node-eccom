@@ -80,7 +80,7 @@ export default Express.Router()
 		userController.changePassword,
 	)
 	.get(
-		"/globalSearch/:search",
+		"/globalSearch/:search/:companyId",
 		authentication.authenticate,
 		userController.globalSearch,
 	)
