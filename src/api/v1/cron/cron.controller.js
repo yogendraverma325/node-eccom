@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { Op, fn, col } from "sequelize";
+import { Op } from "sequelize";
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
@@ -11,8 +11,8 @@ import respHelper from "../../../helper/respHelper.js";
 import emailTemplate from "../../../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
 import attendanceController from "../attendance/attendance.controller.js";
-import ssh2 from 'ssh2'
-import mysql from 'mysql2'
+import { NodeSSH } from "node-ssh";
+import Sequelize from "sequelize";
 
 class CronController {
 	async updateAttendance() {
@@ -1816,11 +1816,11 @@ class CronController {
 
 	async biometricAttendance() {
 		try {
+			const ssh = new NodeSSH()
 			const sshConfig = Object.assign({
 				host: process.env.SSH_HOST,
 				port: process.env.SSH_PORT,
 				username: process.env.SSH_USERNAME,
-
 			}, (parseInt(process.env.SSH_LOGIN_WITH_KEY)) ?
 				{
 					privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
@@ -1829,100 +1829,111 @@ class CronController {
 				}
 			)
 
-			const mysqlConfig = {
-				host: process.env.SERVER_DB_HOST,
-				port: process.env.SERVER_DB_PORT,
-				user: process.env.SERVER_DB_USER,
-				password: process.env.SERVER_DB_PASSWORD,
-				database: process.env.SERVER_DB_NAME,
-			};
+			const sshConnection = await ssh.connect(sshConfig)
 
-			const sshClient = new ssh2.Client();
-			sshClient.on('ready', () => {
-				logger.info(`SSH Connection established to ${process.env.SERVER_DB_HOST}:${process.env.SERVER_DB_PORT} at ${moment().format("YYYY-MM-DD HH:mm:ss")}`);
-				console.log('SSH Connection established');
-				sshClient.forwardOut(process.env.SERVER_DB_HOST, process.env.SERVER_DB_PORT, process.env.SERVER_DB_HOST, process.env.SERVER_DB_PORT, (err, stream) => {
-					if (err) {
-						logger.error(`Error forwarding MySQL port: ${err}`);
-						console.error('Error forwarding MySQL port:', err);
-						return sshClient.end();
-					}
+			if (!sshConnection) {
+				console.log("SSH connection Error")
+			}
 
-					const connection = mysql.createConnection({
-						...mysqlConfig,
-						stream,
-					});
-					connection.connect((err) => {
-						if (err) {
-							logger.error(`Error connecting to MySQL: ${err}`);
-							console.error('Error connecting to MySQL:', err);
-							return;
-						}
+			console.log('SSH connection success')
 
-						connection.query(`SELECT * FROM ${process.env.SERVER_DB_NAME}.TARA WHERE IS_UNREAD=0 order by ID asc`, async (err, result) => {
-							if (err) {
-								logger.error(`Error running query: ${err}`);
-								console.error('Error running query:', err);
+			const stream = await sshConnection.forwardOut('localhost', 0, '10.11.4.24', 1433)
+
+			if (!stream) {
+				logger.error(`Error forwarding MSSQL port: ${err}`);
+				console.error('Error forwarding MSSQL port:', err);
+				return sshConnection.dispose();
+			}
+
+			let sequelize = new Sequelize(
+				process.env.SERVER_DB_NAME,
+				process.env.SERVER_DB_USER,
+				process.env.SERVER_DB_PASSWORD,
+				{
+					host: process.env.SERVER_DB_HOST,
+					dialect: process.env.SERVER_DB_DIALECT,
+					define: {
+						charset: "utf8",
+						collate: "utf8_general_ci",
+						freezeTableName: true,
+						timestamps: false,
+					},
+					pool: {
+						max: 5,
+						min: 0,
+						idle: 10000,
+					},
+					dialectOptions: {
+						options: {
+							encrypt: false,
+							trustServerCertificate: true,
+						},
+					},
+					logging: false,
+				}
+			);
+
+			sequelize.authenticate()
+				.then(async () => {
+					console.log('Connection to SQL Server established successfully via SSH tunnel.');
+
+					const result = await sequelize.query(`SELECT TOP 2* FROM TARA WHERE IS_UNREAD=0 order by ID desc`);
+					if (result.length > 0) {
+						for (const element of result[0]) {
+							const incomingAttendanceData = {
+								autoId: element.ID,
+								deviceName: element.DeviceName,
+								deviceCode: element.DeviceID,
+								tmc: element.EmployeeCode,
+								empName: element.EmployeeName,
+								date: element.PunchDate,
+								time: moment(element.PunchTime).format("HH:mm:ss"),
+								punchType: element.PunchType,
+								location: element.OfficeLocation,
+								createdDate: element.SYSDATE,
+								isRead: element.IS_UNREAD
 							}
 
-							if (result.length > 0) {
-								for (const element of result) {
-									const incomingAttendanceData = {
-										autoId: element.ID,
-										deviceName: element.DeviceName,
-										deviceCode: element.DeviceID,
-										tmc: element.EmployeeCode,
-										empName: element.EmployeeName,
-										date: element.PunchDate,
-										time: element.PunchTime,
-										punchType: element.PunchType,
-										location: element.OfficeLocation,
-										createdDate: element.SYSDATE,
-										isRead: element.IS_UNREAD
-									}
+							console.log(incomingAttendanceData)
 
-									const employeeData = await db.employeeMaster.findOne({
-										where: {
-											empCode: incomingAttendanceData.tmc,
-											isActive: 1,
-										},
-										attributes: ['id', 'empCode', 'name'],
-									})
+							const employeeData = await db.employeeMaster.findOne({
+								where: {
+									empCode: incomingAttendanceData.tmc,
+									isActive: 1,
+								},
+								attributes: ['id', 'empCode', 'name'],
+							})
 
-									if (!employeeData) {
-										logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
-										continue
-									}
+							if (!employeeData) {
+								logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
+								continue
+							}
 
-									const updatedAttendance = await attendanceController.markBioMetricAttendance(incomingAttendanceData)
+							const updatedAttendance = await attendanceController.markBioMetricAttendance(incomingAttendanceData)
 
-									console.log(updatedAttendance)
+							console.log(updatedAttendance)
 
 
-									connection.query(`UPDATE ${process.env.SERVER_DB_NAME}.TARA SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
-										if (err) {
-											logger.error(`Error ${err}`)
-											console.log(err)
-										}
-
-										console.log(result)
-									})
+							sequelize.query(`UPDATE TARA SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
+								if (err) {
+									logger.error(`Error ${err}`)
+									console.log(err)
 								}
 
-							}
-						})
-					});
-				});
-				// sshClient.end()
-			}).on('error', (err) => {
-				logger.error(`SSH connection error: ${err}`);
-				console.error('SSH connection error:', err);
-			}).connect(sshConfig);
+								console.log(result)
+							})
+						}
+					}
 
+				}).catch((error) => {
+					logger.error(`Error --->> ${error}`)
+					console.log("error", error)
+				})
 		} catch (error) {
-			logger.error(`Error while connecting ${process.env.SERVER_DB_HOST}:${process.env.SERVER_DB_PORT} at ${moment().format("YYYY-MM-DD HH:mm:ss")}: ${error}`);
+			logger.error(`Error while connecting SSH ${error}`)
 			console.log(error)
 		}
+
 	}
 }
 

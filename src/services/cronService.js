@@ -51,7 +51,7 @@ cron.schedule("0 7 * * *", async () => {
 	await cronController.postPasswordExpiryNotification();
 });
 
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("0 */2 * * *", async () => {
 	await cronController.biometricAttendance();
 });
 
