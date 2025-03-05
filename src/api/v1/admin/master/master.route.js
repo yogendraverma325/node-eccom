@@ -632,6 +632,11 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.lwfMappingList,
 	)
+	// .put(
+	// 	"/lwf-mapping",
+	// 	authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+	// 	commonController.updateLWFMapping,
+	// )
 	.get(
 		"/lwf-designation",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
@@ -657,4 +662,26 @@ export default Express.Router()
 		"/department-mapping/:id",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.updateDepartmentMapping,
+	)
+
+	// create apis for parent department and parent functional area listing
+	.get(
+		"/parent-department/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.parentDepartment,
+	)
+	.get(
+		"/parent-functional-area/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.parentFunctionalArea,
+	)
+	.delete(
+		"/department/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteDepartment,
+	)
+	.delete(
+		"/functional-area/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteFunctionalArea,
 	);

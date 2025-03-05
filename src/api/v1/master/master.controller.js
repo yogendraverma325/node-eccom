@@ -776,24 +776,42 @@ class MasterController {
 			const pageNo = req.query.page * 1 || 1;
 			const offset = (pageNo - 1) * limit;
 			const groupId = req.query.groupId || 1;
+			const role_id = req.userData.role_id;
+			let model = db.companyMaster;
 
 			let query = {
 				isActive: 1,
 				...(groupId && { groupId: groupId }),
 			};
+			let companyData = [];
 
-			const companyData = await db.companyMaster.findAndCountAll({
-				limit,
-				offset,
-				where: query,
-				attributes: ["companyId", "companyName", "companyCode"],
-			});
-
-			return respHelper(res, {
-				status: 200,
-				data: companyData,
-			});
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				companyData = await fetchPermissionAccessRecord(
+					model,
+					req,
+					limit,
+					offset,
+					query,
+				);
+				return respHelper(res, {
+					status: 200,
+					data: companyData,
+				});
+			} else {
+				companyData = await model.findAndCountAll({
+					limit,
+					offset,
+					where: query,
+					attributes: ["companyId", "companyName", "companyCode"],
+				});
+				return respHelper(res, {
+					status: 200,
+					data: companyData,
+				});
+			}
 		} catch (error) {
+			console.log(error);
 			logger.error("Error while getting company list", error);
 			return respHelper(res, {
 				status: 500,
@@ -2415,6 +2433,44 @@ class MasterController {
 				status: 500,
 			});
 		}
+	}
+}
+
+async function fetchPermissionAccessRecord(model, req, limit, offset, query) {
+	let docs = [];
+	const grantPermissionIds = await db.employeeMaster.findOne({
+		where: { id: req.userData.id },
+		attributes: ["id", "permissionAndAccess"],
+		raw: true,
+	});
+	if (grantPermissionIds.permissionAndAccess) {
+		let accessIds = grantPermissionIds.permissionAndAccess.split(",");
+		let permissionList = await db.permissoinandaccess.findAll({
+			where: {
+				permissoinandaccessId: { [Op.in]: accessIds },
+				permissionType: "COMPANY",
+			},
+			attributes: [
+				"permissoinandaccessId",
+				"permissionType",
+				"permissionValue",
+			],
+			raw: true,
+		});
+		if (permissionList.length > 0) {
+			let findIds = permissionList.map((el) => el.permissionValue);
+			docs = await model.findAndCountAll({
+				limit,
+				offset,
+				where: { ...query, companyId: { [Op.in]: findIds } },
+				attributes: ["companyId", "companyName", "companyCode"],
+			});
+			return docs;
+		} else {
+			return docs;
+		}
+	} else {
+		return docs;
 	}
 }
 

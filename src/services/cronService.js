@@ -5,7 +5,7 @@ import helper from "../helper/helper.js";
 cron.schedule("30 5 * * *", async () => {
 	await attendanceController.attedanceCron();
 });
-cron.schedule("30 13 * * *", async () => {
+cron.schedule("30 15 * * *", async () => {
 	await cronController.leaveActivation();
 	//await helper.leaveLapse();
 });
