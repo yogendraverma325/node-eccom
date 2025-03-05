@@ -1496,6 +1496,7 @@ class MasterController {
 				where: {
 					// isActive: 1,
 					//id:5074,
+					companyId:companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -1578,10 +1579,10 @@ class MasterController {
 					},
 					{
 						model:db.companyMaster,
-						required:true,
-						where: {
-							...companyFIlter,
-						},
+						// required:true,
+						// where: {
+						// 	...companyFIlter,
+						// },
 					}
 				],
 			});
