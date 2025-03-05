@@ -1256,11 +1256,11 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
 				"structureMappingDetails.componentDetails.salaryComponentAlias"
 			]
 				? salaryComponent[
-				"structureMappingDetails.componentDetails.salaryComponentAlias"
-				]
+						"structureMappingDetails.componentDetails.salaryComponentAlias"
+					]
 				: salaryComponent[
-				"structureMappingDetails.componentDetails.salaryComponentCode"
-				],
+						"structureMappingDetails.componentDetails.salaryComponentCode"
+					],
 		);
 	}
 	const dynamicFields = {

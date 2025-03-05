@@ -2150,14 +2150,29 @@ class PaymentController {
 				...(groupId && { groupId: groupId }),
 			};
 			let companyData = [];
-			if(role_id == 4 || role_id == 5) {
+			if (role_id == 4 || role_id == 5) {
 				// for BUHR and HR_OPS
-				const grantPermissionIds = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
-				if(grantPermissionIds.permissionAndAccess) {
+				const grantPermissionIds = await db.employeeMaster.findOne({
+					where: { id: req.userData.id },
+					attributes: ["id", "permissionAndAccess"],
+					raw: true,
+				});
+				if (grantPermissionIds.permissionAndAccess) {
 					let accessIds = grantPermissionIds.permissionAndAccess.split(",");
-					let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, 'permissionType': 'COMPANY' }, attributes: ['permissoinandaccessId', 'permissionType', 'permissionValue'], raw: true });
-					if(permissionList.length > 0) {
-						let findIds = permissionList.map(el => el.permissionValue);
+					let permissionList = await db.permissoinandaccess.findAll({
+						where: {
+							permissoinandaccessId: { [Op.in]: accessIds },
+							permissionType: "COMPANY",
+						},
+						attributes: [
+							"permissoinandaccessId",
+							"permissionType",
+							"permissionValue",
+						],
+						raw: true,
+					});
+					if (permissionList.length > 0) {
+						let findIds = permissionList.map((el) => el.permissionValue);
 						companyData = await db.companyMaster.findAll({
 							limit,
 							offset,
@@ -2168,25 +2183,21 @@ class PaymentController {
 							status: 200,
 							data: companyData,
 						});
-					}
-					else {
+					} else {
 						return respHelper(res, {
 							status: 200,
-							msg: 'Permission is not exist for this module',
+							msg: "Permission is not exist for this module",
 							data: companyData,
 						});
 					}
-
-				}
-				else {
+				} else {
 					return respHelper(res, {
 						status: 200,
-						msg: 'Permission is not granted for this employee',
+						msg: "Permission is not granted for this employee",
 						data: companyData,
 					});
 				}
-			}
-			else {
+			} else {
 				companyData = await db.companyMaster.findAll({
 					limit,
 					offset,
@@ -3244,15 +3255,30 @@ class PaymentController {
 
 			let docs = [];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				const grantPermissionIds = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
-				if(grantPermissionIds.permissionAndAccess) {
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				const grantPermissionIds = await db.employeeMaster.findOne({
+					where: { id: req.userData.id },
+					attributes: ["id", "permissionAndAccess"],
+					raw: true,
+				});
+				if (grantPermissionIds.permissionAndAccess) {
 					let accessIds = grantPermissionIds.permissionAndAccess.split(",");
-					let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, 'permissionType': 'BU' }, attributes: ['permissoinandaccessId', 'permissionType', 'permissionValue'], raw: true });
-					if(permissionList.length > 0) {
-						let findIds = permissionList.map(el => el.permissionValue);
-						
+					let permissionList = await db.permissoinandaccess.findAll({
+						where: {
+							permissoinandaccessId: { [Op.in]: accessIds },
+							permissionType: "BU",
+						},
+						attributes: [
+							"permissoinandaccessId",
+							"permissionType",
+							"permissionValue",
+						],
+						raw: true,
+					});
+					if (permissionList.length > 0) {
+						let findIds = permissionList.map((el) => el.permissionValue);
+
 						docs = await db.buMapping.findAll({
 							where: query,
 							include: [
@@ -3270,7 +3296,11 @@ class PaymentController {
 							buName: item.bumaster.buName,
 							buCode: item.bumaster.buCode,
 						}));
-						const allEmployees = { buId: 0, buName: "All Employees", buCode: "ALL" };
+						const allEmployees = {
+							buId: 0,
+							buName: "All Employees",
+							buCode: "ALL",
+						};
 
 						// Add the new object at the beginning of the array
 						responseData.unshift(allEmployees);
@@ -3279,25 +3309,21 @@ class PaymentController {
 							status: 200,
 							data: responseData,
 						});
-					}
-					else {
+					} else {
 						return respHelper(res, {
 							status: 200,
-							msg: 'Permission is not exist for this module',
+							msg: "Permission is not exist for this module",
 							data: docs,
 						});
 					}
-
-				}
-				else {
+				} else {
 					return respHelper(res, {
 						status: 200,
-						msg: 'Permission is not granted for this employee',
+						msg: "Permission is not granted for this employee",
 						data: docs,
 					});
 				}
-			}
-			else {
+			} else {
 				docs = await db.buMapping.findAll({
 					where: query,
 					include: [

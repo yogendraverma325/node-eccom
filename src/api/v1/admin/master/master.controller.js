@@ -4407,11 +4407,11 @@ class CommonController {
 	async parentDepartment(req, res) {
 		try {
 			const id = req.params.id;
-			let query = { [Op.not]: { 'departmentId': id } };
+			let query = { [Op.not]: { departmentId: id } };
 
 			const departmentData = await db.departmentMaster.findAll({
 				where: query,
-				attributes: ["departmentId", "departmentName", "departmentCode"]
+				attributes: ["departmentId", "departmentName", "departmentCode"],
 			});
 
 			return respHelper(res, {
@@ -4426,16 +4426,16 @@ class CommonController {
 		}
 	}
 
-    async parentFunctionalArea(req, res) {
+	async parentFunctionalArea(req, res) {
 		try {
-			let query = { [Op.not]: { "functionalAreaId": req.params.id } };
+			let query = { [Op.not]: { functionalAreaId: req.params.id } };
 			const functionalAreaData = await db.functionalAreaMaster.findAll({
 				where: query,
 				attributes: [
 					"functionalAreaId",
 					"functionalAreaName",
-					"functionalAreaCode"
-				]
+					"functionalAreaCode",
+				],
 			});
 
 			return respHelper(res, {
@@ -4453,22 +4453,21 @@ class CommonController {
 	async deleteDepartment(req, res) {
 		try {
 			const id = req.params.id;
-			let query = { 'departmentId': id };
+			let query = { departmentId: id };
 
 			const doc = await db.departmentMapping.findOne({
 				where: query,
-				attributes: ["departmentId"]
+				attributes: ["departmentId"],
 			});
 
-			if(doc) {
+			if (doc) {
 				return respHelper(res, {
 					status: 400,
 					msg: "Department mapped",
 					data: {},
 				});
-			}
-			else {
-				await db.departmentMaster.destroy({ where: { 'departmentId': id }});
+			} else {
+				await db.departmentMaster.destroy({ where: { departmentId: id } });
 				return respHelper(res, {
 					status: 200,
 					msg: "Department deleted successfully",
@@ -4483,25 +4482,26 @@ class CommonController {
 		}
 	}
 
-    async deleteFunctionalArea(req, res) {
+	async deleteFunctionalArea(req, res) {
 		try {
 			const id = req.params.id;
-			let query = { 'functionalAreaId': id };
+			let query = { functionalAreaId: id };
 
 			const doc = await db.functionalAreaMapping.findOne({
 				where: query,
-				attributes: ["functionalAreaId"]
+				attributes: ["functionalAreaId"],
 			});
 
-			if(doc) {
+			if (doc) {
 				return respHelper(res, {
 					status: 400,
 					msg: "Functional area mapped",
 					data: {},
 				});
-			}
-			else {
-				await db.functionalAreaMaster.destroy({ where: { 'functionalAreaId': id }});
+			} else {
+				await db.functionalAreaMaster.destroy({
+					where: { functionalAreaId: id },
+				});
 				return respHelper(res, {
 					status: 200,
 					msg: "Functional area deleted successfully",
@@ -4516,7 +4516,7 @@ class CommonController {
 		}
 	}
 
-	// End apis for parent department and functional area 
+	// End apis for parent department and functional area
 
 	// close class
 }

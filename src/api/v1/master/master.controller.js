@@ -785,15 +785,20 @@ class MasterController {
 			};
 			let companyData = [];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				companyData = await fetchPermissionAccessRecord(model, req, limit, offset, query);
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				companyData = await fetchPermissionAccessRecord(
+					model,
+					req,
+					limit,
+					offset,
+					query,
+				);
 				return respHelper(res, {
 					status: 200,
 					data: companyData,
 				});
-			}
-			else {
+			} else {
 				companyData = await model.findAndCountAll({
 					limit,
 					offset,
@@ -2433,12 +2438,27 @@ class MasterController {
 
 async function fetchPermissionAccessRecord(model, req, limit, offset, query) {
 	let docs = [];
-	const grantPermissionIds = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
-	if(grantPermissionIds.permissionAndAccess) {
+	const grantPermissionIds = await db.employeeMaster.findOne({
+		where: { id: req.userData.id },
+		attributes: ["id", "permissionAndAccess"],
+		raw: true,
+	});
+	if (grantPermissionIds.permissionAndAccess) {
 		let accessIds = grantPermissionIds.permissionAndAccess.split(",");
-		let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, 'permissionType': 'COMPANY' }, attributes: ['permissoinandaccessId', 'permissionType', 'permissionValue'], raw: true });
-		if(permissionList.length > 0) {
-			let findIds = permissionList.map(el => el.permissionValue);
+		let permissionList = await db.permissoinandaccess.findAll({
+			where: {
+				permissoinandaccessId: { [Op.in]: accessIds },
+				permissionType: "COMPANY",
+			},
+			attributes: [
+				"permissoinandaccessId",
+				"permissionType",
+				"permissionValue",
+			],
+			raw: true,
+		});
+		if (permissionList.length > 0) {
+			let findIds = permissionList.map((el) => el.permissionValue);
 			docs = await model.findAndCountAll({
 				limit,
 				offset,
@@ -2446,13 +2466,10 @@ async function fetchPermissionAccessRecord(model, req, limit, offset, query) {
 				attributes: ["companyId", "companyName", "companyCode"],
 			});
 			return docs;
-		}
-		else {
+		} else {
 			return docs;
 		}
-
-	}
-	else {
+	} else {
 		return docs;
 	}
 }

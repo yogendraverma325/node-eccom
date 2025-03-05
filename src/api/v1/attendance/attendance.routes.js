@@ -41,4 +41,4 @@ export default Express.Router()
 	)
 	//Attendance Roster
 
-	.get("/generateLeaveTrail", attendanceController.generateLeaveTrail)
+	.get("/generateLeaveTrail", attendanceController.generateLeaveTrail);
