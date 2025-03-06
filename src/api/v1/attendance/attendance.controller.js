@@ -4985,7 +4985,7 @@ class AttendanceController {
 
 	async markBioMetricAttendance(incomingAttendanceData) {
 
-		const currentDate = moment(`${moment(incomingAttendanceData.date).format("YYYY-MM-DD")} ${incomingAttendanceData.time}`);
+		const currentDate = moment(incomingAttendanceData.punchDateTime);
 		const user = incomingAttendanceData.tmc
 		const attendanceDevice = `${incomingAttendanceData.deviceName} (${incomingAttendanceData.deviceCode})`
 
@@ -5254,7 +5254,7 @@ class AttendanceController {
 					companyLocationId: existEmployee.companyLocationId,
 				});
 
-				return false
+				return true
 			}
 		} else {
 			// Over night code

@@ -1872,12 +1872,11 @@ class CronController {
 					logging: false,
 				}
 			);
-
+			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE
 			sequelize.authenticate()
 				.then(async () => {
 					console.log('Connection to SQL Server established successfully via SSH tunnel.');
-
-					const result = await sequelize.query(`SELECT TOP 2* FROM TARA WHERE IS_UNREAD=0 order by ID desc`);
+					const result = await sequelize.query(`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`);
 					if (result.length > 0) {
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
@@ -1887,14 +1886,12 @@ class CronController {
 								tmc: element.EmployeeCode,
 								empName: element.EmployeeName,
 								date: element.PunchDate,
-								time: moment(element.PunchTime).format("HH:mm:ss"),
+								time: element.PunchTime,
 								punchType: element.PunchType,
-								location: element.OfficeLocation,
 								createdDate: element.SYSDATE,
-								isRead: element.IS_UNREAD
+								isRead: element.IS_UNREAD,
+								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss")
 							}
-
-							console.log(incomingAttendanceData)
 
 							const employeeData = await db.employeeMaster.findOne({
 								where: {
@@ -1909,12 +1906,9 @@ class CronController {
 								continue
 							}
 
-							const updatedAttendance = await attendanceController.markBioMetricAttendance(incomingAttendanceData)
+							await attendanceController.markBioMetricAttendance(incomingAttendanceData)
 
-							console.log(updatedAttendance)
-
-
-							sequelize.query(`UPDATE TARA SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
+							sequelize.query(`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
 								if (err) {
 									logger.error(`Error ${err}`)
 									console.log(err)
