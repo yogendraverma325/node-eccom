@@ -401,7 +401,7 @@ class MasterController {
 			const model = db.buMapping;
 
 			let query = {
-				...(companyId && { companyId: companyId }), 
+				...(companyId && { companyId: companyId }),
 				// ...(req.userData.role_id == 4 && { buHrId: req.userId }),
 			};
 			let subQuery = { isActive: 1 };
@@ -409,12 +409,12 @@ class MasterController {
 			let buData = [];
 			let attributes = ["buId", "buName", "buCode"];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
 
-				if(findIds.length > 0) {
+				if (findIds.length > 0) {
 					buData = await model.findAll({
 						where: query,
 						include: [
@@ -430,8 +430,7 @@ class MasterController {
 					status: 200,
 					data: buData,
 				});
-			}
-			else {
+			} else {
 				buData = await model.findAll({
 					where: query,
 					include: [
@@ -442,7 +441,7 @@ class MasterController {
 						},
 					],
 				});
-	
+
 				return respHelper(res, {
 					status: 200,
 					data: buData,
@@ -782,12 +781,12 @@ class MasterController {
 			let companyData = [];
 			let attributes = ["companyId", "companyName", "companyCode"];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				let permissionType = 'COMPANY';
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				let permissionType = "COMPANY";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
 
-				if(findIds.length > 0) {
+				if (findIds.length > 0) {
 					companyData = await model.findAndCountAll({
 						where: { ...query, companyId: { [Op.in]: findIds } },
 						attributes: attributes,
@@ -797,8 +796,7 @@ class MasterController {
 					status: 200,
 					data: companyData,
 				});
-			}
-			else {
+			} else {
 				companyData = await model.findAndCountAll({
 					where: query,
 					attributes: attributes,
@@ -2659,19 +2657,26 @@ class MasterController {
 }
 
 async function fetchPermissionAccessRecord(req, permissionType) {
-	const employee = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
+	const employee = await db.employeeMaster.findOne({
+		where: { id: req.userData.id },
+		attributes: ["id", "permissionAndAccess"],
+		raw: true,
+	});
 
-	if(!employee?.permissionAndAccess) return [];
+	if (!employee?.permissionAndAccess) return [];
 
 	let accessIds = employee.permissionAndAccess.split(",");
-	let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, permissionType }, attributes: ['permissionValue'], raw: true });
+	let permissionList = await db.permissoinandaccess.findAll({
+		where: { permissoinandaccessId: { [Op.in]: accessIds }, permissionType },
+		attributes: ["permissionValue"],
+		raw: true,
+	});
 
-	if(permissionList.length === 0) return [];
+	if (permissionList.length === 0) return [];
 
-	let findIds = permissionList.map(el => el.permissionValue);
+	let findIds = permissionList.map((el) => el.permissionValue);
 
 	return findIds;
 }
-
 
 export default new MasterController();

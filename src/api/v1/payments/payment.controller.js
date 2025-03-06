@@ -1139,24 +1139,24 @@ class PaymentController {
 			});
 
 			let ids = value.departmentId.split(",");
-			
-			let role_id = req.userData.role_id;
-			let buId = '';
 
-			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			let role_id = req.userData.role_id;
+			let buId = "";
+
+			if ((role_id == 4 || role_id == 5) && value.departmentId == 0) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "No data to process.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "No data to process.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
@@ -1165,7 +1165,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
-					buCondition: buCondition
+					buCondition: buCondition,
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2170,12 +2170,12 @@ class PaymentController {
 			let companyData = [];
 			let attributes = ["companyId", "companyName", "companyCode"];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				let permissionType = 'COMPANY';
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				let permissionType = "COMPANY";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
 
-				if(findIds.length > 0) {
+				if (findIds.length > 0) {
 					companyData = await model.findAll({
 						where: { ...query, companyId: { [Op.in]: findIds } },
 						attributes: attributes,
@@ -2185,8 +2185,7 @@ class PaymentController {
 					status: 200,
 					data: companyData,
 				});
-			}
-			else {
+			} else {
 				companyData = await model.findAll({
 					where: query,
 					attributes: attributes,
@@ -2244,22 +2243,22 @@ class PaymentController {
 			let ids = value.departmentId.split(",");
 			let role_id = req.userData.role_id;
 			console.log("Department ID :: " + value.departmentId);
-			let buId = '';
+			let buId = "";
 
-			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if ((role_id == 4 || role_id == 5) && value.departmentId == 0) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "Data not available.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "Data not available.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			let employeeForProcessingQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 24 : 20,
@@ -2268,7 +2267,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
-                    buCondition: buCondition
+					buCondition: buCondition,
 				},
 			);
 			console.log(employeeForProcessingQuery);
@@ -2512,22 +2511,22 @@ class PaymentController {
 			let ids = value.departmentId.split(",");
 
 			let role_id = req.userData.role_id;
-			let buId = '';
+			let buId = "";
 
-			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if ((role_id == 4 || role_id == 5) && value.departmentId == 0) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "No data to process.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "No data to process.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			// get financial year
 			let financialYearDetails = await paymentHelper.getFinancialYear();
@@ -2539,7 +2538,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
-					buCondition: buCondition
+					buCondition: buCondition,
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2611,22 +2610,22 @@ class PaymentController {
 			let ids = value.departmentId.split(",");
 
 			let role_id = req.userData.role_id;
-			let buId = '';
+			let buId = "";
 
-			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if ((role_id == 4 || role_id == 5) && value.departmentId == 0) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "No data to process.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "No data to process.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
@@ -2635,7 +2634,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
-					buCondition: buCondition
+					buCondition: buCondition,
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2697,22 +2696,22 @@ class PaymentController {
 			let ids = value.departmentId.split(",");
 
 			let role_id = req.userData.role_id;
-			let buId = '';
+			let buId = "";
 
-			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if ((role_id == 4 || role_id == 5) && value.departmentId == 0) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "No data to process.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "No data to process.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
@@ -2721,7 +2720,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
-					buCondition: buCondition
+					buCondition: buCondition,
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2779,22 +2778,22 @@ class PaymentController {
 
 			let role_id = req.userData.role_id;
 
-			let buId = '';
+			let buId = "";
 
-			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if ((role_id == 4 || role_id == 5) && value.departmentId == 0) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "No data to process.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "No data to process.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
@@ -2803,7 +2802,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
-					buCondition: buCondition
+					buCondition: buCondition,
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -3092,20 +3091,20 @@ class PaymentController {
 			let role_id = req.userData.role_id;
 			let buId = [];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 200,
-					data: [],
-					msg: "Employee List Fetched Successfully",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 200,
+						data: [],
+						msg: "Employee List Fetched Successfully",
+					});
 				buId = findIds;
 			}
 
-			let buCondition = (buId.length > 0) ? { buId: { [Op.in]: buId } } : {};
+			let buCondition = buId.length > 0 ? { buId: { [Op.in]: buId } } : {};
 
 			let getEmp = await db.payPackage.findAll({
 				where: {
@@ -3120,8 +3119,8 @@ class PaymentController {
 							{
 								model: db.buMaster,
 								attributes: ["buId", "buName"],
-								required: (role_id == 4 || role_id == 5) ? true : false,
-								where: buCondition
+								required: role_id == 4 || role_id == 5 ? true : false,
+								where: buCondition,
 							},
 							{
 								model: db.designationMaster,
@@ -3355,7 +3354,7 @@ class PaymentController {
 			const model = db.buMapping;
 
 			let query = {
-				...(companyId && { companyId: companyId }), 
+				...(companyId && { companyId: companyId }),
 				// ...(req.userData.role_id == 4 && { buHrId: req.userId }),
 			};
 			let subQuery = { isActive: 1 };
@@ -3363,12 +3362,12 @@ class PaymentController {
 			let buData = [];
 			let attributes = ["buId", "buName", "buCode"];
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
 
-				if(findIds.length > 0) {
+				if (findIds.length > 0) {
 					buData = await model.findAll({
 						where: query,
 						include: [
@@ -3386,23 +3385,25 @@ class PaymentController {
 						buName: item.bumaster.buName,
 						buCode: item.bumaster.buCode,
 					}));
-					const allEmployees = { buId: 0, buName: "All Employees", buCode: "ALL" };
+					const allEmployees = {
+						buId: 0,
+						buName: "All Employees",
+						buCode: "ALL",
+					};
 
 					// Add the new object at the beginning of the array
 					responseData.unshift(allEmployees);
 					return respHelper(res, {
 						status: 200,
 						data: responseData,
-					}); 
-				}
-				else {
+					});
+				} else {
 					return respHelper(res, {
 						status: 200,
 						data: buData,
-					}); 
+					});
 				}
-			}
-			else {
+			} else {
 				buData = await model.findAll({
 					where: query,
 					include: [
@@ -3413,21 +3414,25 @@ class PaymentController {
 						},
 					],
 				});
-	
+
 				// Extract only the relevant fields
 				const responseData = buData.map((item) => ({
 					buId: item.bumaster.buId,
 					buName: item.bumaster.buName,
 					buCode: item.bumaster.buCode,
 				}));
-				const allEmployees = { buId: 0, buName: "All Employees", buCode: "ALL" };
+				const allEmployees = {
+					buId: 0,
+					buName: "All Employees",
+					buCode: "ALL",
+				};
 
 				// Add the new object at the beginning of the array
 				responseData.unshift(allEmployees);
 				return respHelper(res, {
 					status: 200,
 					data: responseData,
-				}); 
+				});
 			}
 		} catch (error) {
 			return respHelper(res, {
@@ -3800,20 +3805,20 @@ class PaymentController {
 			let role_id = req.userData.role_id;
 			let buId = "";
 
-			if(role_id == 4 || role_id == 5) {
-                // for BUHR and HR_OPS
-				let permissionType = 'BU';
+			if (role_id == 4 || role_id == 5) {
+				// for BUHR and HR_OPS
+				let permissionType = "BU";
 				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if(findIds.length === 0)
-				return respHelper(res, {
-					status: 400,
-					data: [],
-					msg: "Data not available.",
-				});
+				if (findIds.length === 0)
+					return respHelper(res, {
+						status: 400,
+						data: [],
+						msg: "Data not available.",
+					});
 				buId = findIds.join(",");
 			}
 
-			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			//let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
 			//let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
@@ -6744,16 +6749,24 @@ async function addUpdateTDSDeductionAndLOPDeduction(req, result) {
 }
 
 async function fetchPermissionAccessRecord(req, permissionType) {
-	const employee = await db.employeeMaster.findOne({ where: { 'id': req.userData.id }, attributes: ['id', 'permissionAndAccess'], raw: true });
+	const employee = await db.employeeMaster.findOne({
+		where: { id: req.userData.id },
+		attributes: ["id", "permissionAndAccess"],
+		raw: true,
+	});
 
-	if(!employee?.permissionAndAccess) return [];
+	if (!employee?.permissionAndAccess) return [];
 
 	let accessIds = employee.permissionAndAccess.split(",");
-	let permissionList = await db.permissoinandaccess.findAll({ where: { 'permissoinandaccessId': { [Op.in]: accessIds }, permissionType }, attributes: ['permissionValue'], raw: true });
+	let permissionList = await db.permissoinandaccess.findAll({
+		where: { permissoinandaccessId: { [Op.in]: accessIds }, permissionType },
+		attributes: ["permissionValue"],
+		raw: true,
+	});
 
-	if(permissionList.length === 0) return [];
+	if (permissionList.length === 0) return [];
 
-	let findIds = permissionList.map(el => el.permissionValue);
+	let findIds = permissionList.map((el) => el.permissionValue);
 
 	return findIds;
 }
