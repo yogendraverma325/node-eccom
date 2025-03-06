@@ -1139,6 +1139,25 @@ class PaymentController {
 			});
 
 			let ids = value.departmentId.split(",");
+			
+			let role_id = req.userData.role_id;
+			let buId = '';
+
+			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
 				value.processingType,
@@ -1146,6 +1165,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
+					buCondition: buCondition
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2491,6 +2511,24 @@ class PaymentController {
 			});
 			let ids = value.departmentId.split(",");
 
+			let role_id = req.userData.role_id;
+			let buId = '';
+
+			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+
 			// get financial year
 			let financialYearDetails = await paymentHelper.getFinancialYear();
 
@@ -2501,6 +2539,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
+					buCondition: buCondition
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2570,6 +2609,25 @@ class PaymentController {
 				});
 			}
 			let ids = value.departmentId.split(",");
+
+			let role_id = req.userData.role_id;
+			let buId = '';
+
+			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
 				value.processingType,
@@ -2577,6 +2635,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
+					buCondition: buCondition
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2636,6 +2695,25 @@ class PaymentController {
 				});
 			}
 			let ids = value.departmentId.split(",");
+
+			let role_id = req.userData.role_id;
+			let buId = '';
+
+			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
 				value.processingType,
@@ -2643,6 +2721,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
+					buCondition: buCondition
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2697,6 +2776,26 @@ class PaymentController {
 				});
 			}
 			let ids = value.departmentId.split(",");
+
+			let role_id = req.userData.role_id;
+
+			let buId = '';
+
+			if((role_id == 4 || role_id == 5) && (value.departmentId == 0)) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
 				value.processingType,
@@ -2704,6 +2803,7 @@ class PaymentController {
 					departmentId: ids,
 					paymonth: value.paymonth,
 					companyId: value.companyId,
+					buCondition: buCondition
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
@@ -2989,6 +3089,24 @@ class PaymentController {
 	async getMappedEmployeeWithSalaryStructure(req, res) {
 		try {
 			let { salaryStructureAutoId } = req.body;
+			let role_id = req.userData.role_id;
+			let buId = [];
+
+			if(role_id == 4 || role_id == 5) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 200,
+					data: [],
+					msg: "Employee List Fetched Successfully",
+				});
+				buId = findIds;
+			}
+
+			let buCondition = (buId.length > 0) ? { buId: { [Op.in]: buId } } : {};
+
 			let getEmp = await db.payPackage.findAll({
 				where: {
 					salaryStructureAutoId: salaryStructureAutoId,
@@ -3002,7 +3120,8 @@ class PaymentController {
 							{
 								model: db.buMaster,
 								attributes: ["buId", "buName"],
-								required: false,
+								required: (role_id == 4 || role_id == 5) ? true : false,
+								where: buCondition
 							},
 							{
 								model: db.designationMaster,
@@ -3678,9 +3797,27 @@ class PaymentController {
 	async employeesListForProcessing(req, res) {
 		try {
 			let { companyId, year, month } = req.query;
+			let role_id = req.userData.role_id;
+			let buId = "";
+
+			if(role_id == 4 || role_id == 5) {
+                // for BUHR and HR_OPS
+				let permissionType = 'BU';
+				let findIds = await fetchPermissionAccessRecord(req, permissionType);
+				if(findIds.length === 0)
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "Data not available.",
+				});
+				buId = findIds.join(",");
+			}
+
+			let buCondition = (buId) ? `AND e.buId IN (${buId})` : "";
+
 			//let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND e.dateOfJoining < DATE_FORMAT(CURDATE(), '%Y-%m-01') AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
 			//let employeeForProcessingQuery = `SELECT DISTINCT e.empCode as empId ,e.name as empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive=1`;
-			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 AND (YEAR(ejd.dateOfJoining) < ${year} OR (YEAR(ejd.dateOfJoining) = ${year} AND MONTH(ejd.dateOfJoining) <= ${month}));`;
+			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 1 ${buCondition} AND (YEAR(ejd.dateOfJoining) < ${year} OR (YEAR(ejd.dateOfJoining) = ${year} AND MONTH(ejd.dateOfJoining) <= ${month}));`;
 
 			console.log(employeeForProcessingQuery);
 

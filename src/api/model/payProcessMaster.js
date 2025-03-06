@@ -53,7 +53,7 @@ export default (sequelize, Sequelize) => {
 		},
 		processType: {
 			type: Sequelize.STRING,
-			defaultValue: "Payroll", // Payroll, FnF
+			defaultValue: null, // Payroll, FnF
 		},
 	});
 	return payProcessMaster;
