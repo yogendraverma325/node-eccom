@@ -46,7 +46,11 @@ export default Express.Router()
 	.get("/reportModule", masterController.reportModule)
 	.get("/taskFilter", masterController.taskFilter)
 	.get("/shift", masterController.shift)
-	.get("/separationTasks", authorization("ADMIN", "SUPERADMIN"), masterController.separationTasks)
+	.get(
+		"/separationTasks",
+		authorization("ADMIN", "SUPERADMIN"),
+		masterController.separationTasks,
+	)
 	.get("/lwfDesignation", masterController.lwfDesignation)
 	.get("/ptLocation/:stateId", masterController.ptLocation)
 	.get("/unionCode", masterController.unionCode)
