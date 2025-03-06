@@ -847,7 +847,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -1288,7 +1288,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -2869,7 +2869,7 @@ class MasterController {
 			const usersData = req.userData;
 
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -3656,7 +3656,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -4049,7 +4049,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -4587,7 +4587,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
