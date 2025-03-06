@@ -194,6 +194,7 @@ class MasterController {
 					{
 						model: db.designationMaster,
 						seperate: true,
+						required: false,
 						attributes: ["name"],
 						where:
 							Object.keys(designationFIlter).length !== 0 || designation
@@ -208,6 +209,7 @@ class MasterController {
 					{
 						model: db.departmentMaster,
 						seperate: true,
+						required: false,
 						attributes: ["departmentName"],
 						where:
 							Object.keys(departmentFIlter).length !== 0 || department
@@ -222,6 +224,7 @@ class MasterController {
 					{
 						model: db.buMaster,
 						seperate: true,
+						required: false,
 						attributes: ["buName", "buCode"],
 						where:
 							Object.keys(buFIlter).length !== 0 || buSearch
@@ -234,6 +237,7 @@ class MasterController {
 					{
 						model: db.sbuMaster,
 						seperate: true,
+						required: false,
 						attributes: ["sbuname", "code"],
 						where:
 							Object.keys(sbbuFIlter).length !== 0 || sbuSearch
@@ -248,6 +252,7 @@ class MasterController {
 					{
 						model: db.functionalAreaMaster,
 						seperate: true,
+						required: false,
 						attributes: ["functionalAreaName"],
 						where:
 							Object.keys(functionAreaFIlter).length !== 0 || areaSearch
@@ -267,7 +272,7 @@ class MasterController {
 					},
 					{
 						model: db.companyLocationMaster,
-						required: true,
+						required: false,
 						attributes: ["address1", "address2"],
 						where:
 							Object.keys(companyFIlter).length !== 0
