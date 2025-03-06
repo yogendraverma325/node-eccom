@@ -5029,22 +5029,11 @@ class AttendanceController {
 		const user = incomingAttendanceData.tmc
 		const attendanceDevice = `${incomingAttendanceData.deviceName} (${incomingAttendanceData.deviceCode})`
 
-		console.log("attendanceDevice", attendanceDevice)
-
 		const existEmployee = await db.employeeMaster.findOne({
 			where: {
 				empCode: incomingAttendanceData.tmc,
 				isActive: 1,
 			},
-			attributes: [
-				"id",
-				"empCode",
-				"name",
-				"email",
-				"weekOffId",
-				"companyLocationId",
-				"requiredAttendanceApproval",
-			],
 			include: [
 				{
 					model: db.AttendanceRoster,
@@ -5091,7 +5080,7 @@ class AttendanceController {
 			],
 		});
 
-		console.log("fetched emp id--->>", existEmployee.dataValues.id)
+		console.log("Marking Biometric Attendance of --->>", existEmployee.dataValues.id)
 
 		if (!existEmployee) {
 			logger.error(`Employee not found with empCode ${user}`);
