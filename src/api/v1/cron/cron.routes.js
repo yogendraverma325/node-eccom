@@ -12,5 +12,7 @@ export default Express.Router()
 	.get("/checkSLAOfConfirmation", cronController.checkSLAOfConfirmation)
 	.get("/checkConfirmatonHold", cronController.checkConfirmatonHold)
 	.get("/checkExtentionEnd", cronController.checkExtentionEnd)
-	.get("/generatConfiramtionletter", cronController.generatConfiramtionletter);
-//CONFIRMATION
+	.get("/generatConfiramtionletter", cronController.generatConfiramtionletter)
+	//CONFIRMATION
+
+	.get("/biometricAttendance", cronController.biometricAttendance)

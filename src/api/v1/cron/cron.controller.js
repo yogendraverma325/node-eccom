@@ -1,4 +1,5 @@
-import { Op, fn, col } from "sequelize";
+/* eslint-disable no-undef */
+import { Op } from "sequelize";
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
@@ -9,6 +10,9 @@ import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
 import emailTemplate from "../../../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
+import attendanceController from "../attendance/attendance.controller.js";
+import { NodeSSH } from "node-ssh";
+import Sequelize from "sequelize";
 
 class CronController {
 	async updateAttendance() {
@@ -1808,6 +1812,122 @@ class CronController {
 				},
 			);
 		}
+	}
+
+	async biometricAttendance() {
+		try {
+			const ssh = new NodeSSH()
+			const sshConfig = Object.assign({
+				host: process.env.SSH_HOST,
+				port: process.env.SSH_PORT,
+				username: process.env.SSH_USERNAME,
+			}, (parseInt(process.env.SSH_LOGIN_WITH_KEY)) ?
+				{
+					privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+				} : {
+					password: process.env.SSH_PASSWORD,
+				}
+			)
+
+			const sshConnection = await ssh.connect(sshConfig)
+
+			if (!sshConnection) {
+				console.log("SSH connection Error")
+			}
+
+			console.log('SSH connection success')
+
+			const stream = await sshConnection.forwardOut('localhost', 0, '10.11.4.24', 1433)
+
+			if (!stream) {
+				logger.error(`Error forwarding MSSQL port: ${err}`);
+				console.error('Error forwarding MSSQL port:', err);
+				return sshConnection.dispose();
+			}
+
+			let sequelize = new Sequelize(
+				process.env.SERVER_DB_NAME,
+				process.env.SERVER_DB_USER,
+				process.env.SERVER_DB_PASSWORD,
+				{
+					host: process.env.SERVER_DB_HOST,
+					dialect: process.env.SERVER_DB_DIALECT,
+					define: {
+						charset: "utf8",
+						collate: "utf8_general_ci",
+						freezeTableName: true,
+						timestamps: false,
+					},
+					pool: {
+						max: 5,
+						min: 0,
+						idle: 10000,
+					},
+					dialectOptions: {
+						options: {
+							encrypt: false,
+							trustServerCertificate: true,
+						},
+					},
+					logging: false,
+				}
+			);
+			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE
+			sequelize.authenticate()
+				.then(async () => {
+					console.log('Connection to SQL Server established successfully via SSH tunnel.');
+					const result = await sequelize.query(`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`);
+					if (result.length > 0) {
+						for (const element of result[0]) {
+							const incomingAttendanceData = {
+								autoId: element.ID,
+								deviceName: element.DeviceName,
+								deviceCode: element.DeviceID,
+								tmc: element.EmployeeCode,
+								empName: element.EmployeeName,
+								date: element.PunchDate,
+								time: element.PunchTime,
+								punchType: element.PunchType,
+								createdDate: element.SYSDATE,
+								isRead: element.IS_UNREAD,
+								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss")
+							}
+
+							const employeeData = await db.employeeMaster.findOne({
+								where: {
+									empCode: incomingAttendanceData.tmc,
+									isActive: 1,
+								},
+								attributes: ['id', 'empCode', 'name'],
+							})
+
+							if (!employeeData) {
+								logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
+								continue
+							}
+
+							await attendanceController.markBioMetricAttendance(incomingAttendanceData)
+
+							sequelize.query(`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
+								if (err) {
+									logger.error(`Error ${err}`)
+									console.log(err)
+								}
+
+								console.log(result)
+							})
+						}
+					}
+
+				}).catch((error) => {
+					logger.error(`Error --->> ${error}`)
+					console.log("error", error)
+				})
+		} catch (error) {
+			logger.error(`Error while connecting SSH ${error}`)
+			console.log(error)
+		}
+
 	}
 }
 
