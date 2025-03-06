@@ -2,10 +2,10 @@ import cron from "node-cron";
 import cronController from "../api/v1/cron/cron.controller.js";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
 import helper from "../helper/helper.js";
-cron.schedule("30 5 * * *", async () => {
+cron.schedule("30 1 * * *", async () => {
 	await attendanceController.attedanceCron();
 });
-cron.schedule("30 15 * * *", async () => {
+cron.schedule("30 3 * * *", async () => {
 	await cronController.leaveActivation();
 	//await helper.leaveLapse();
 });
