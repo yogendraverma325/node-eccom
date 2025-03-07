@@ -5040,7 +5040,7 @@ class AttendanceController {
 			],
 		});
 
-		console.log("Marking Biometric Attendance of --->>", existEmployee.dataValues.id)
+		console.log(`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id})`)
 
 		if (!existEmployee) {
 			logger.error(`Employee not found with empCode ${user}`);
@@ -5156,6 +5156,7 @@ class AttendanceController {
 					),
 					attendancePresentStatus: "present",
 					createdBy: existEmployee.id,
+					attendancePunchInLocation: incomingAttendanceData.deviceName,
 					attendancePolicyId: existEmployee.attendancePolicyId,
 					createdAt: currentDate,
 					punchInSource: attendanceDevice,
@@ -5167,12 +5168,19 @@ class AttendanceController {
 					await db.attendanceMaster.create(creationObject);
 				}
 
+				const attendanceHistory = await db.attendanceHistory.findOne({
+					where: {
+						date: currentDate.format("YYYY-MM-DD"),
+						employeeId: existEmployee.id,
+					}
+				})
+
 				await db.attendanceHistory.create({
 					date: currentDate.format("YYYY-MM-DD"),
 					time: currentDate.format("HH:mm:ss"),
-					status: "Punch In",
+					status: (attendanceHistory) ? "Punch Out" : "Punch In",
 					employeeId: existEmployee.id,
-					location: incomingAttendanceData.location,
+					location: incomingAttendanceData.deviceName,
 					locationType: 'Office',
 					attendanceStatus: !existEmployee.dataValues
 						.requiredAttendanceApproval
@@ -5206,7 +5214,7 @@ class AttendanceController {
 									"HH:mm:ss",
 								)}`,
 							),
-							attendancePunchOutLocation: incomingAttendanceData.location,
+							attendancePunchOutLocation: incomingAttendanceData.deviceName,
 							punchOutSource: attendanceDevice,
 							updatedBy: existEmployee.id,
 						},
@@ -5219,12 +5227,19 @@ class AttendanceController {
 					);
 				}
 
+				const attendanceHistory = await db.attendanceHistory.findOne({
+					where: {
+						date: currentDate.format("YYYY-MM-DD"),
+						employeeId: existEmployee.id,
+					}
+				})
+
 				await db.attendanceHistory.create({
 					date: currentDate.format("YYYY-MM-DD"),
 					time: currentDate.format("HH:mm:ss"),
-					status: "Punch Out",
+					status: (attendanceHistory) ? "Punch Out" : "Punch In",
 					employeeId: existEmployee.id,
-					location: incomingAttendanceData.location,
+					location: incomingAttendanceData.deviceName,
 					locationType: 'Office',
 					attendanceStatus: !existEmployee.dataValues
 						.requiredAttendanceApproval
@@ -5311,7 +5326,7 @@ class AttendanceController {
 										"HH:mm:ss",
 									)}`,
 								),
-								attendancePunchOutLocation: incomingAttendanceData.location,
+								attendancePunchOutLocation: incomingAttendanceData.deviceName,
 								punchOutSource: attendanceDevice,
 								updatedBy: existEmployee.id,
 							},
@@ -5324,12 +5339,19 @@ class AttendanceController {
 						);
 					}
 
+					const attendanceHistory = await db.attendanceHistory.findOne({
+						where: {
+							date: currentDate.format("YYYY-MM-DD"),
+							employeeId: existEmployee.id,
+						}
+					})
+
 					await db.attendanceHistory.create({
 						date: currentDate.format("YYYY-MM-DD"),
 						time: currentDate.format("HH:mm:ss"),
-						status: "Punch Out",
+						status: (attendanceHistory) ? "Punch Out" : "Punch In",
 						employeeId: existEmployee.id,
-						location: incomingAttendanceData.location,
+						location: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						createdAt: currentDate,
 						locationType: 'Office',
@@ -5381,7 +5403,7 @@ class AttendanceController {
 						),
 						attendancePresentStatus: "present",
 						attendancePunchInLocationType: 'Office',
-						attendancePunchInLocation: incomingAttendanceData.location,
+						attendancePunchInLocation: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						attendancePolicyId: existEmployee.attendancePolicyId,
 						createdAt: currentDate,
@@ -5394,12 +5416,19 @@ class AttendanceController {
 						await db.attendanceMaster.create(creationObject);
 					}
 
+					const attendanceHistory = await db.attendanceHistory.findOne({
+						where: {
+							date: currentDate.format("YYYY-MM-DD"),
+							employeeId: existEmployee.id,
+						}
+					})
+
 					await db.attendanceHistory.create({
 						date: currentDate.format("YYYY-MM-DD"),
 						time: currentDate.format("HH:mm:ss"),
-						status: "Punch In",
+						status: (attendanceHistory) ? "Punch Out" : "Punch In",
 						employeeId: existEmployee.id,
-						location: incomingAttendanceData.location,
+						location: incomingAttendanceData.deviceName,
 						locationType: 'Office',
 						attendanceStatus: !existEmployee.dataValues
 							.requiredAttendanceApproval
@@ -5451,7 +5480,7 @@ class AttendanceController {
 										"HH:mm:ss",
 									)}`,
 								),
-								attendancePunchOutLocation: incomingAttendanceData.location,
+								attendancePunchOutLocation: incomingAttendanceData.deviceName,
 								punchOutSource: attendanceDevice,
 								updatedBy: existEmployee.id,
 							},
@@ -5464,12 +5493,19 @@ class AttendanceController {
 						);
 					}
 
+					const attendanceHistory = await db.attendanceHistory.findOne({
+						where: {
+							date: yerterdayDate.format("YYYY-MM-DD"),
+							employeeId: existEmployee.id,
+						}
+					})
+
 					await db.attendanceHistory.create({
 						date: currentDate.format("YYYY-MM-DD"),
 						time: currentDate.format("HH:mm:ss"),
-						status: "Punch Out",
+						status: (attendanceHistory) ? "Punch Out" : "Punch In",
 						employeeId: existEmployee.id,
-						location: incomingAttendanceData.location,
+						location: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						createdAt: currentDate,
 						locationType: 'Office',
@@ -5522,7 +5558,7 @@ class AttendanceController {
 						),
 						attendancePresentStatus: "present",
 						attendancePunchInLocationType: "Office",
-						attendancePunchInLocation: incomingAttendanceData.location,
+						attendancePunchInLocation: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						attendancePolicyId: existEmployee.attendancePolicyId,
 						createdAt: currentDate,
@@ -5531,12 +5567,19 @@ class AttendanceController {
 						punchInSource: attendanceDevice,
 					};
 
+					const attendanceHistory = await db.attendanceHistory.findOne({
+						where: {
+							date: yerterdayDate.format("YYYY-MM-DD"),
+							employeeId: existEmployee.id,
+						}
+					})
+
 					await db.attendanceHistory.create({
 						date: yerterdayDate.format("YYYY-MM-DD"),
 						time: yerterdayDate.format("HH:mm:ss"),
-						status: "Punch In",
+						status: (attendanceHistory) ? "Punch Out" : "Punch In",
 						employeeId: existEmployee.id,
-						location: incomingAttendanceData.location,
+						location: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						createdAt: currentDate,
 						locationType: 'Office',
