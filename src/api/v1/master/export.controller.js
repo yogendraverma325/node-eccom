@@ -5963,7 +5963,7 @@ class MasterController {
 							regularizeReason:record["latest_Regularization_Request.regularizeReason"],
 							//createdAt:record["latest_Regularization_Request.createdAt"],
 							createdAt: record["latest_Regularization_Request.createdAt"]
-							? moment(record["latest_Regularization_Request.createdAt"]).format("DD-MM-YYYY")
+							? moment(record["latest_Regularization_Request.createdAt"]).format("DD-MM-YYYY HH:mm:ss")
 							: "",
 							requestType:"Attendance Request",
 							managerName:record['latest_Regularization_Request.employee.name'] + " " +"("+ record['latest_Regularization_Request.employee.empCode'] +")" ,
@@ -5990,10 +5990,10 @@ class MasterController {
 								{ label: "Applied On",value: "createdAt"},
 								{ label: "Pending With", value: "managerName" },
 								{ label: "Request Type", value: "requestType" },
-								{ label: "Purpose", value: "attendancePunchInTime" },
 								{ label: "Reason", value: "regularizeReason" },
-								{ label: "Attestation Status", value: "attestationStatus" },
 								{ label: "Status", value: "status" },
+								{ label: "Remark", value: "regularizeUserRemark" },
+
 							],
 							content: simplifiedData,
 						},
@@ -6064,56 +6064,51 @@ class MasterController {
 					[Op.in]: permissionAssignTousers,
 				  },
 				},
-			  }); /// get all permission of access to fetch list with active status as per role
+			  }); 
 			  const buArrayForFilter = permissionAndAccess
 				.filter((obj) => obj.permissionType == "BU")
-				.map((obj) => obj.permissionValue); // checking BU Access
+				.map((obj) => obj.permissionValue);
 	  
 			  if (buArrayForFilter.length > 0) {
 				buFIlter.buId = {
-				  ///appedning Bu to filter
 				  [Op.in]: buArrayForFilter,
 				};
 			  }
 	  
 			  const sbuArrayForFilter = permissionAndAccess
 				.filter((obj) => obj.permissionType == "SBU")
-				.map((obj) => obj.permissionValue); // checking SBU Access
+				.map((obj) => obj.permissionValue);
 			  if (sbuArrayForFilter.length > 0) {
 				sbbuFIlter.sbuId = {
-				  ///appedning SBU to filter
 				  [Op.in]: sbuArrayForFilter,
 				};
 			  }
 	  
 			  const departmentArrayForFilter = permissionAndAccess
 				.filter((obj) => obj.permissionType == "DEPARTMENT")
-				.map((obj) => obj.permissionValue); // checking department Access
+				.map((obj) => obj.permissionValue); 
 	  
 			  if (departmentArrayForFilter.length > 0) {
 				departmentFIlter.departmentId = {
-				  ///appedning department to filter
 				  [Op.in]: departmentArrayForFilter,
 				};
 			  }
 			  const funcareaArrayForFilter = permissionAndAccess
 				.filter((obj) => obj.permissionType == "FUNCAREA")
-				.map((obj) => obj.permissionValue); // checking SBU Access
+				.map((obj) => obj.permissionValue); 
 	  
 			  if (funcareaArrayForFilter.length > 0) {
 				functionAreaFIlter.functionalAreaId = {
-				  ///appedning SBU to filter
 				  [Op.in]: funcareaArrayForFilter,
 				};
 			  }
 	  
 			  const designationArrayForFilter = permissionAndAccess
 				.filter((obj) => obj.permissionType == "DESIGNATION")
-				.map((obj) => obj.permissionValue); // checking SBU Access
+				.map((obj) => obj.permissionValue); 
 	  
 			  if (designationArrayForFilter.length > 0) {
 				designationFIlter.designationId = {
-				  ///appedning SBU to filter
 				  [Op.in]: designationArrayForFilter,
 				};
 			  }
@@ -6148,8 +6143,6 @@ class MasterController {
 						model: db.employeeMaster,
 						attributes: ["id", "name", "empCode"],
 						where: {
-							// isActive: 1,
-							// attendanceFor,
 							companyId:companyId,
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
@@ -6275,19 +6268,22 @@ class MasterController {
 							regularizePunchOutDate: record["latest_Regularization_Request.regularizePunchOutDate"]
 							? moment(record["latest_Regularization_Request.regularizePunchOutDate"]).format("DD-MM-YYYY")
 							: "",
-							regularizeUserRemark:record["latest_Regularization_Request.regularizeUserRemark"],
+							regularizeUserRemark:record["latest_Regularization_Request.regularizeUserRemark"] || "",
 							regularizePunchInTime:record["latest_Regularization_Request.regularizePunchInTime"],
 							regularizePunchOutTime:record["latest_Regularization_Request.regularizePunchOutTime"],
 							regularizeReason:record["latest_Regularization_Request.regularizeReason"],
 							//createdAt:record["latest_Regularization_Request.createdAt"],
 							createdAt: record["latest_Regularization_Request.createdAt"]
-							? moment(record["latest_Regularization_Request.createdAt"]).format("DD-MM-YYYY")
+							? moment(record["latest_Regularization_Request.createdAt"]).format("DD-MM-YYYY HH:mm:ss")
+							: "",
+							updatedAt: record["latest_Regularization_Request.updatedAt"]
+							? moment(record["latest_Regularization_Request.updatedAt"]).format("DD-MM-YYYY HH:mm:ss")
 							: "",
 							requestType:"Attendance Request",
 							managerName:record['latest_Regularization_Request.employee.name'] + " " +"("+ record['latest_Regularization_Request.employee.empCode'] +")" ,
 							attestationStatus:"N/A",
-							status:record["latest_Regularization_Request.regularizeStatus"]
-
+							status:record["latest_Regularization_Request.regularizeStatus"],
+							regularizeManagerRemark:record["latest_Regularization_Request.regularizeManagerRemark"] || ""
 					})),
 				);
 
@@ -6307,12 +6303,14 @@ class MasterController {
 								{ label: "Clockin", value: "regularizePunchInTime" },
 								{ label: "Clockout", value: "regularizePunchOutTime" },
 								{ label: "Applied On",value: "createdAt"},
+								{ label: "Approved On", value:"updatedAt"},
 								{ label: "Approved By", value: "managerName" },
 								{ label: "Request Type", value: "requestType" },
-								{ label: "Purpose", value: "attendancePunchInTime" },
+								{ label: "Approver Comment", value: "regularizeManagerRemark" },
 								{ label: "Reason", value: "regularizeReason" },
-								{ label: "Attestation Status", value: "attestationStatus" },
 								{ label: "Status", value: "status" },
+								{ label: "Remark", value: "regularizeUserRemark" },
+								
 							],
 							content: simplifiedData,
 						},
@@ -6348,7 +6346,7 @@ class MasterController {
 	
 	async familyDetails(req, res) {
 		try {
-			const { search, department, designation, buSearch, sbuSearch, areaSearch } = req.query;
+			const { search, department,businessUnit,employeeType,companyLocation,sbuSearch, areaSearch,attendanceFor, companyId } = req.query;
 				
 			    let buFIlter = {};
 				let sbbuFIlter = {};
@@ -6356,7 +6354,7 @@ class MasterController {
 				let departmentFIlter = {};
 				let designationFIlter = {};
 				const usersData = req.userData;
-				if (usersData.role_id == 4) {
+				if (usersData.role_id == 4 || usersData.role_id == 5) {
 				  let permissionAssignTousers = [];
 				  if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -6365,7 +6363,7 @@ class MasterController {
 				  }
 				  let permissionAndAccess = await db.permissoinandaccess.findAll({
 					where: {
-					  role_id: usersData.role_id,
+					  //role_id: usersData.role_id,
 					  isActive: 1,
 					  permissoinandaccessId: {
 						[Op.in]: permissionAssignTousers,
@@ -6428,17 +6426,25 @@ class MasterController {
 				
 			const employeeData = await db.employeeMaster.findAndCountAll({
 				attributes: ["empCode", "firstName", "lastName"],
-				where: Object.assign(
-					search
-						? {
-							[Op.or]: [
-								{ empCode: { [Op.like]: `%${search}%` } },
-								{ name: { [Op.like]: `%${search}%` } },
-								{ email: { [Op.like]: `%${search}%` } },
-							],
-						  }
-						: {},
-				),
+				where: {
+					companyId:companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+					...(department && {
+						departmentId: { [Op.in]: department.split(",") },
+					}),
+					...(companyLocation && {
+						companyLocationId: { [Op.in]: companyLocation.split(",") },
+					}),
+				},
 				include: [
 					{ 
 						model: db.buMaster, 
