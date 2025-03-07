@@ -153,7 +153,7 @@ class commonController {
 					data: {},
 				});
 			}
-		} catch (error) {}
+		} catch (error) { }
 	}
 
 	async updatePaymentDetails(req, res) {
@@ -336,7 +336,7 @@ class commonController {
 					data: {},
 				});
 			}
-		} catch (error) {}
+		} catch (error) { }
 	}
 
 	async getFamilyMember(req, res) {
@@ -871,11 +871,9 @@ class commonController {
 			const pageNo = req.query.page * 1 || 1;
 			const offset = (pageNo - 1) * limit;
 
-			const cacheKey = `employeeList:${process.env.TEST}:${
-				req.userId
-			}:${pageNo}:${limit}:${search || ""}:${department || ""}:${
-				designation || ""
-			}:${buSearch || ""}:${sbuSearch || ""}:${areaSearch || ""}`;
+			const cacheKey = `employeeList:${process.env.TEST}:${req.userId
+				}:${pageNo}:${limit}:${search || ""}:${department || ""}:${designation || ""
+				}:${buSearch || ""}:${sbuSearch || ""}:${areaSearch || ""}`;
 
 			let employeeData = [];
 			await client.get(cacheKey).then(async (data) => {
@@ -908,44 +906,44 @@ class commonController {
 						where: Object.assign(
 							search
 								? {
-										[Op.or]: [
-											{
-												empCode: {
-													[Op.like]: `%${search}%`,
-												},
+									[Op.or]: [
+										{
+											empCode: {
+												[Op.like]: `%${search}%`,
 											},
-											{
-												name: {
-													[Op.like]: `%${search}%`,
-												},
+										},
+										{
+											name: {
+												[Op.like]: `%${search}%`,
 											},
-											{
-												email: {
-													[Op.like]: `%${search}%`,
-												},
+										},
+										{
+											email: {
+												[Op.like]: `%${search}%`,
 											},
-										],
-										[Op.and]: [
-											{
-												isActive:
-													usersData.role_id == 1 || usersData.role_id == 2
-														? [1, 0]
-														: [1],
-												...empFilters,
-											},
-										],
-									}
+										},
+									],
+									[Op.and]: [
+										{
+											isActive:
+												usersData.role_id == 1 || usersData.role_id == 2
+													? [1, 0]
+													: [1],
+											...empFilters,
+										},
+									],
+								}
 								: {
-										[Op.and]: [
-											{
-												isActive:
-													usersData.role_id == 1 || usersData.role_id == 2
-														? [1, 0]
-														: [1],
-												...empFilters,
-											},
-										],
-									},
+									[Op.and]: [
+										{
+											isActive:
+												usersData.role_id == 1 || usersData.role_id == 2
+													? [1, 0]
+													: [1],
+											...empFilters,
+										},
+									],
+								},
 						),
 						attributes: [
 							"id",
@@ -1851,6 +1849,12 @@ class commonController {
 					isActive: 1,
 				},
 				attributes: ["name", "empCode", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				]
 			});
 			if (result.status == 0) {
 				const objForRejction = {
@@ -1877,6 +1881,8 @@ class commonController {
 						fields: "Account NumberReq,Swift/IFSC code",
 						status: "Rejected",
 						comment: result.comment == undefined || "" ? "" : result.comment,
+						senderEmail: existUser["companymaster.senderEmail"],
+						companyLogo: existUser["companymaster.companyLogo"]
 					}),
 				);
 				return respHelper(res, {
@@ -1921,6 +1927,8 @@ class commonController {
 							fields: "",
 							status: "Approved",
 							comment: result.comment == undefined || "" ? "" : result.comment,
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"]
 						}),
 					);
 					return respHelper(res, {

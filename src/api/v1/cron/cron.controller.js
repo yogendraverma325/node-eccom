@@ -380,7 +380,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -394,10 +394,9 @@ class CronController {
 							element.dataValues.passwordExpiryDate,
 						).format("DD-MM-YYYY"),
 						companyName: element.dataValues.companymaster.companyName,
-						daysLeft: moment(element.dataValues.passwordExpiryDate).diff(
-							moment(),
-							"days",
-						),
+						daysLeft: moment(element.dataValues.passwordExpiryDate).diff(moment(), "days"),
+						senderEmail: element.dataValues.companymaster.senderEmail,
+						companyLogo: element.dataValues.companymaster.companyLogo
 					}),
 				);
 			}
@@ -425,7 +424,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -444,6 +443,8 @@ class CronController {
 							moment(element.dataValues.passwordExpiryDate),
 							"days",
 						),
+						senderEmail: element.dataValues.companymaster.senderEmail,
+						companyLogo: element.dataValues.companymaster.companyLogo
 					}),
 				);
 			}
@@ -507,7 +508,6 @@ class CronController {
 				],
 			});
 
-			console.log("New Joining Employee Cron", docs.length);
 
 			if (docs.length > 0) {
 				const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();

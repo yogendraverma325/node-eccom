@@ -3122,13 +3122,20 @@ const paymentDetailsApprovalRequestMail = async (data) => {
       "
     >
       <tr>
-        <td style="padding: 1.5rem 2rem;">
-          <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 15px;"
-            alt="Team Computers Logo"
-          />
-        </td>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
       </tr>
 
       <tr>
@@ -3188,14 +3195,20 @@ const paymentDetailsAdminApprovedMail = async (data) => {
       "
     >
       <tr>
-        <td style="padding: 1.5rem 2rem;">
-          <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 15px;"
-            alt="Team Computers Logo"
-          />
-        </td>
-      </tr>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
       <tr>
         <td style="padding: 1rem 2rem;">
           <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">Hi ${data.name}</p>
