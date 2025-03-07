@@ -300,23 +300,82 @@ async function arrectLOP(componentAmount, lopDays, totalWorkingdays) {
 	return componentAmount - amountAfterLop;
 }
 
+// async function calculateGratuity(
+// 	basicAmount,
+// 	dateOfJoining,
+// 	dateOfExit,
+// 	gratuityMinYears,
+// 	gratuityYears,
+// ) {
+
+// 	console.log(dateOfJoining ," dateOfJoining")
+// 	console.log(dateOfExit ," dateOfExit")
+// 	console.log(gratuityMinYears ," gratuityMinYears")
+// 	console.log(gratuityYears ," gratuityYears")
+
+
+
+// 	let gratuityAmountToCalculate = 0;
+// 	for (const element of basicAmount) {
+// 		if (element.isGratuityApplicable == 1) {
+// 			gratuityAmountToCalculate =
+// 				parseFloat(gratuityAmountToCalculate) +
+// 				parseFloat(element.payElementAmount);
+// 		}
+// 	}
+// 	if (gratuityYears) {
+// 		//console.log("GRATUITY CALCULATION BY OVERRIDE YEARS")
+// 		gratuityYears = customRound(gratuityYears);
+// 		return {
+// 			gratuityYears,
+// 			gratuityAmount:
+// 				gratuityYears >= gratuityMinYears
+// 					? ((gratuityAmountToCalculate * 15) / 26) * gratuityYears
+// 					: 0,
+// 		};
+// 	} else {
+// 		//console.log("GRATUITY CALCULATION BY SYSTEM YEARS")
+// 		const startDate = moment(dateOfJoining);
+// 		const endDate = moment(dateOfExit);
+// 		let years = endDate.diff(startDate, "years");
+// 		startDate.add(years, "years"); // Adjust startDate forward by counted years
+// 		const months = endDate.diff(startDate, "months");
+// 		startDate.add(months, "months"); // Adjust startDate forward by counted months
+// 		const days = endDate.diff(startDate, "days");
+// 		years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
+// 		console.log(`${years} years, ${months} months, and ${days} days`);
+// 		return {
+// 			years,
+// 			gratuityAmount:
+// 				years >= gratuityMinYears
+// 					? ((gratuityAmountToCalculate * 15) / 26) * years
+// 					: 0,
+// 		};
+// 	}
+// }
+
 async function calculateGratuity(
-	basicAmount,
-	dateOfJoining,
-	dateOfExit,
-	gratuityMinYears,
+	payMonthlyElements,
 	gratuityYears,
 ) {
-
-	console.log(dateOfJoining ," dateOfJoining")
-	console.log(dateOfExit ," dateOfExit")
-	console.log(gratuityMinYears ," gratuityMinYears")
-	console.log(gratuityYears ," gratuityYears")
-
-
-
+	let employeejobdetails = await db.employeeMaster.findOne({
+		where: { id: payMonthlyElements[0].empId },
+		raw: true,
+		include: [
+			{
+				model: db.jobDetails,
+				attributes: ["dateOfJoining",],
+				as: "employeeJobDetails",
+			},
+		],
+		attributes: ["dateOfExit",],
+		nest:true
+	});
+	let dateOfJoining=employeejobdetails.employeeJobDetails.dateOfJoining;
+	let dateOfExit=employeejobdetails.dateOfExit;
+	let gratuityMinYears=5;
 	let gratuityAmountToCalculate = 0;
-	for (const element of basicAmount) {
+	for (const element of payMonthlyElements) {
 		if (element.isGratuityApplicable == 1) {
 			gratuityAmountToCalculate =
 				parseFloat(gratuityAmountToCalculate) +
@@ -353,7 +412,6 @@ async function calculateGratuity(
 		};
 	}
 }
-
 async function leaveEncashmentAmount(applicableComponents, encashmentDays) {
 	if (!encashmentDays) {
 		return 0;

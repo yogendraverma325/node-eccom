@@ -2025,9 +2025,6 @@ async function processFnf(data) {
 				await fnfHelper.getCalculatedESIC(payElementComponents);
 			let getCalculatedGratuity = await fnfHelper.calculateGratuity(
 				payElementComponents,
-				result[0][0].dateOfJoining,
-				result[0][0].dateOfexit,
-				5,
 				gratuityYears,
 			);
 			// console.log(getCalculatedGratuity);
