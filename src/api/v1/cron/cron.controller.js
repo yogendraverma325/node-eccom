@@ -1903,10 +1903,10 @@ class CronController {
 
 							if (!employeeData) {
 								logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
-								continue
+							} else {
+								await attendanceController.markBioMetricAttendance(incomingAttendanceData)
 							}
 
-							await attendanceController.markBioMetricAttendance(incomingAttendanceData)
 
 							sequelize.query(`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
 								if (err) {
