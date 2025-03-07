@@ -1722,6 +1722,8 @@ async function processFnf(data) {
 			const leaveEncashmentDays =
 				employeeDetailsComponentWise[0][0]["leaveEncashmentDays"];
 			const gratuityYears = employeeDetailsComponentWise[0][0]["gratuityYears"];
+			// console.log("gratuityYears :::: "+gratuityYears);
+			// return;
 			if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
 				await db.payProcessDetails.update(
 					{ payStatus: 101, payRemark: "Pay Package Not Assigned." },
@@ -2028,6 +2030,8 @@ async function processFnf(data) {
 				5,
 				gratuityYears,
 			);
+			// console.log(getCalculatedGratuity);
+			// return;
 			let leaveEncashmentAmount = await fnfHelper.leaveEncashmentAmount(
 				payElementComponents,
 				leaveEncashmentDays,

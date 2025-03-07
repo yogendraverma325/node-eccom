@@ -266,4 +266,4 @@ export default Express.Router()
 		"/checkPaySlipMail",
 		authentication.authenticate,
 		paymentController.checkPaySlipMail,
-	);
+	).get("/exportSampleV2", paymentController.exportSampleV2);

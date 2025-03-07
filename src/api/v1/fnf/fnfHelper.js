@@ -307,6 +307,14 @@ async function calculateGratuity(
 	gratuityMinYears,
 	gratuityYears,
 ) {
+
+	console.log(dateOfJoining ," dateOfJoining")
+	console.log(dateOfExit ," dateOfExit")
+	console.log(gratuityMinYears ," gratuityMinYears")
+	console.log(gratuityYears ," gratuityYears")
+
+
+
 	let gratuityAmountToCalculate = 0;
 	for (const element of basicAmount) {
 		if (element.isGratuityApplicable == 1) {

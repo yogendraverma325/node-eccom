@@ -3582,6 +3582,125 @@ class PaymentController {
 		}
 	}
 
+	async exportSampleV2(req, res) {
+		try {
+			const {
+				exportSheetAutoId,
+			} = req.query;
+
+			let fileNameType = req.query.fileNameType || "";
+			let customSheetName = "";
+			if (fileNameType === "1") {
+				customSheetName = "Total Employees";
+			} else if (fileNameType === "2") {
+				customSheetName = "Processing Employees";
+			}
+			const sheetName = {
+				"Salary Structure Component": 5,
+			};
+			const getKeyByValue = async (value) => {
+				const result = Object.keys(sheetName).find(
+					(key) => sheetName[key] == value,
+				);
+				return result;
+			};
+			let sheetVal = await getKeyByValue(exportSheetAutoId);
+			sheetVal = customSheetName ? customSheetName : sheetVal;
+			// Check for required exportSheetAutoId
+			if (!exportSheetAutoId) {
+				return res.status(400).json({
+					status: 400,
+					data: [],
+					msg: "Sample Sheet Not Available",
+				});
+			}
+			// Fetch columns for the export sheet
+			const getColumns = await db.exportSheetMapping.findAll({
+				attributes: ["columnName"],
+				where: {
+					isActive: 1,
+					exportSheetAutoId,
+				},
+				raw: true,
+				nest: true,
+			});
+			let arr = [];
+			// Fetch salary structure details if salalryStructureAutoId is provided
+			if ([5].includes(Number(exportSheetAutoId))) {
+
+				const salaryStructure = await db.salaryStructure.findOne({
+					where: { isActive: 1 },
+					order: [['createdAt', 'DESC']],
+					attributes:['salaryStructureAutoId'],
+					raw:true
+				  });
+				const getComponentAutoIds =
+					await db.salarystructurecomponentmapping.findAll({
+						attributes: ["salaryComponentAutoId"],
+						where: { salaryStructureAutoId: salaryStructure.salaryStructureAutoId },
+						include: [
+							{
+								model: db.salaryComponent,
+								attributes: ["salaryComponentCode", "salaryComponentAlias"],
+								as: "componentDetails",
+							},
+						],
+						raw: true,
+						nest: true,
+					});
+				arr = await Promise.all(
+					getComponentAutoIds.map(async (item) => ({
+						columnName:
+							item.componentDetails.salaryComponentAlias?.trim() ||
+							item.componentDetails.salaryComponentCode,
+					})),
+				);
+			}
+			const timestamp = Date.now();
+
+			// Handle scenarios based on conditions
+			if (getColumns.length > 0 && [5].includes(Number(exportSheetAutoId))) {
+				const mergeColumns = [...getColumns, ...arr];
+				const headers = mergeColumns.map((item) => item.columnName);
+				const columns = headers.map((value) => ({
+					label: value,
+					value: value,
+				}));
+				const data = [
+					{
+						sheet: "Salary Component",
+						columns,
+						content: [],
+					},
+				];
+				const settings = {
+					fileName: `Component_${timestamp}`,
+					extraLength: 3,
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx",
+					},
+				};
+
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
+				);
+				return res.end(report);
+			}else{
+				return res.status(404).json({
+					message: "No active columns found for the given sheet",
+				});
+			}
+		} catch (error) {
+			console.error("Error:", error);
+			return res.status(500).json({
+				message: "An error occurred while fetching data",
+			});
+		}
+	}
+
 	async employeesListForProcessing(req, res) {
 		try {
 			let { companyId, year, month } = req.query;
