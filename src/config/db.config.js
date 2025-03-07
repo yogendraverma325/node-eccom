@@ -1792,6 +1792,11 @@ db.regularizationMaster.hasOne(db.employeeMaster, {
 	foreignKey: "id",
 	sourceKey: "regularizeManagerId"
 });
+
+db.employeeLeaveTransactions.hasMany(db.leaveMaster, {
+	foreignKey: "leaveId",
+	sourceKey: "leaveAutoId"
+});
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",
 // 	sourceKey: "pendingOn",

@@ -54,7 +54,12 @@ export default Express.Router()
 
 	.get("/LeaveBalance",authentication.authenticate, masterExportController.LeaveBalance)
 
-	.get("/pendingLeave",authentication.authenticate, masterExportController.pendingLeave);
+	.get("/pendingLeave",authentication.authenticate, masterExportController.pendingLeave)
+
+	.get("/leaveTaken",authentication.authenticate, masterExportController.leaveTaken);
+
+
+
 
 
 
