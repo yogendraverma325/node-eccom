@@ -1,3 +1,11 @@
+// ---------------------------------------- 2025-03-07 ------------------------------------------------//
+
+ALTER TABLE `tara_hrms`.`companymaster` 
+ADD COLUMN `letterHeader` VARCHAR(100) NULL DEFAULT NULL AFTER `senderEmail`,
+ADD COLUMN `letterFooter` VARCHAR(100) NULL DEFAULT NULL AFTER `letterHeader`;
+
+
+
 //------------------------------------------2025-02-17-------------------------------------------------//
 
 ALTER TABLE `tara`.`employeeleaveheader` 

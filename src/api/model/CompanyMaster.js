@@ -23,6 +23,12 @@ export default (sequelize, Sequelize) => {
 		senderEmail: {
 			type: Sequelize.INTEGER,
 		},
+		letterHeader: {
+			type: Sequelize.STRING,
+		},
+		letterFooter: {
+			type: Sequelize.STRING,
+		},
 		headerColor: {
 			type: Sequelize.STRING,
 		},

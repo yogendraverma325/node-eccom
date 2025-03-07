@@ -649,6 +649,10 @@ class CronController {
 				},
 				include: [
 					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+					{
 						model: db.Confimationpolicy,
 						required: true,
 						where: {
