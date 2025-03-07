@@ -38,5 +38,5 @@ export default Express.Router()
 		"/uploadAttendanceRoster",
 		upload.single("attendanceroster"),
 		attendanceController.uploadAttendanceRoster,
-	)
-	//Attendance Roster
+	);
+//Attendance Roster

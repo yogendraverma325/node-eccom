@@ -36,6 +36,10 @@ class AuthController {
 						model: db.designationMaster,
 						attributes: ["designationId", "name"],
 					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyLogo"],
+					},
 				],
 			});
 
