@@ -927,10 +927,7 @@ class commonController {
 										],
 										[Op.and]: [
 											{
-												isActive:
-													usersData.role_id == 1 || usersData.role_id == 2
-														? [1, 0]
-														: [1],
+												isActive: 1,
 												...empFilters,
 											},
 										],
@@ -938,10 +935,7 @@ class commonController {
 								: {
 										[Op.and]: [
 											{
-												isActive:
-													usersData.role_id == 1 || usersData.role_id == 2
-														? [1, 0]
-														: [1],
+												isActive: 1,
 												...empFilters,
 											},
 										],

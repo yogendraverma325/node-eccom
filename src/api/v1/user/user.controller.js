@@ -12,13 +12,14 @@ import moment from "moment";
 class UserController {
 	async globalSearch(req, res) {
 		try {
-			const { search } = req.params;
+			const { search, companyId } = req.params;
 			const EMP_DATA = await db.employeeMaster.findAll({
 				raw: true,
 				nest: true,
 				attributes: ["id", "empCode", "name", "firstName", "lastName", "email"],
 				where: {
 					isActive: 1,
+					...(companyId && { companyId }),
 					[Op.or]: [
 						{ empCode: { [Op.like]: `%${search}%` } },
 						{ name: { [Op.like]: `%${search}%` } },
@@ -891,25 +892,32 @@ class UserController {
 
 			const getEmployee = await db.employeeMaster.findOne({
 				where: {
-					[Op.or]: [{
-						email: result.email,
-					}, {
-						officeMobileNumber: result.email,
-					}],
+					[Op.or]: [
+						{
+							email: result.email,
+						},
+						{
+							officeMobileNumber: result.email,
+						},
+					],
 					isActive: 1,
 				},
-			})
+			});
 
 			if (!getEmployee) {
 				return respHelper(res, {
 					status: 400,
-					msg: constant.INVALID.replace("<module>", "Email ID / Official Mobile Number"),
+					msg: constant.INVALID.replace(
+						"<module>",
+						"Email ID / Official Mobile Number",
+					),
 					data: {},
 				});
 			}
 
 			const otp = await helper.generateOTP(6);
-			eventEmitter.emit("forgotPasswordMail",
+			eventEmitter.emit(
+				"forgotPasswordMail",
 				JSON.stringify({
 					email: getEmployee.dataValues.email,
 					otp: otp,
@@ -917,12 +925,13 @@ class UserController {
 			);
 
 			if (getEmployee.dataValues.officeMobileNumber) {
-				eventEmitter.emit('forgotPasswordSMS',
+				eventEmitter.emit(
+					"forgotPasswordSMS",
 					JSON.stringify({
-						mobile: getEmployee.dataValues.officeMobileNumber.split(','),
+						mobile: getEmployee.dataValues.officeMobileNumber.split(","),
 						otp: otp,
-					})
-				)
+					}),
+				);
 			}
 
 			const deocdeOTP = await helper.generateJwtOTPEncrypt({
@@ -936,7 +945,6 @@ class UserController {
 				msg: constant.OTP_SENT,
 				data: deocdeOTP,
 			});
-
 		} catch (error) {
 			console.log(error);
 			if (error.isJoi === true) {

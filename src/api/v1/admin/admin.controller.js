@@ -12,6 +12,7 @@ import commonController from "../common/common.controller.js";
 import moment from "moment";
 import { Op } from "sequelize";
 
+
 class AdminController {
 	async addEmployee(req, res) {
 		try {
@@ -625,39 +626,39 @@ class AdminController {
 				where: Object.assign(
 					search
 						? {
-								[Op.or]: [
-									{
-										name: {
-											[Op.like]: `%${search}%`,
-										},
+							[Op.or]: [
+								{
+									name: {
+										[Op.like]: `%${search}%`,
 									},
-									{
-										email: {
-											[Op.like]: `%${search}%`,
-										},
+								},
+								{
+									email: {
+										[Op.like]: `%${search}%`,
 									},
-								],
-								[Op.and]: [
-									{
-										isActive:
-											usersData.role_id == 1 || usersData.role_id == 2
-												? [1, 0]
-												: [1],
-									},
-								],
-								[Op.and]: activeQuery,
-							}
+								},
+							],
+							[Op.and]: [
+								{
+									isActive:
+										usersData.role_id == 1 || usersData.role_id == 2
+											? [1, 0]
+											: [1],
+								},
+							],
+							[Op.and]: activeQuery,
+						}
 						: {
-								[Op.and]: [
-									{
-										isActive:
-											usersData.role_id == 1 || usersData.role_id == 2
-												? [1, 0]
-												: [1],
-									},
-								],
-								[Op.and]: activeQuery,
-							},
+							[Op.and]: [
+								{
+									isActive:
+										usersData.role_id == 1 || usersData.role_id == 2
+											? [1, 0]
+											: [1],
+								},
+							],
+							[Op.and]: activeQuery,
+						},
 				),
 				attributes: [
 					"id",
@@ -809,9 +810,9 @@ class AdminController {
 					if (existUser) {
 						if (
 							existUser.personalEmail ===
-								employeeOnboardingDetails.personalEmail ||
+							employeeOnboardingDetails.personalEmail ||
 							existUser.personalMobileNumber ===
-								employeeOnboardingDetails.personalMobileNumber
+							employeeOnboardingDetails.personalMobileNumber
 						) {
 							return respHelper(res, {
 								status: 400,
@@ -2277,10 +2278,9 @@ class AdminController {
 				status: 200,
 				msg: constant.ATTENDANCE_APPROVAL_STATUS.replace(
 					"<status>",
-					`${
-						!existUser.dataValues.requiredAttendanceApproval
-							? "Enabled"
-							: "Disabled"
+					`${!existUser.dataValues.requiredAttendanceApproval
+						? "Enabled"
+						: "Disabled"
 					}`,
 				),
 			});
@@ -2297,6 +2297,8 @@ class AdminController {
 			});
 		}
 	}
+
+
 }
 
 export default new AdminController();

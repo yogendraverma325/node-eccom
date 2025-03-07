@@ -4287,6 +4287,50 @@ class CommonController {
 		}
 	}
 
+	async updateLWFMapping(req, res) {
+		try {
+			let result = await validator.lwfMappingMasterSchema.validateAsync(
+				req.body,
+			);
+
+			let model = db.lwfMapping;
+
+			if (result.length > 0) {
+				const dataArray = result[0];
+
+				for (let i = 0; i < dataArray.length; i++) {
+					let query = {
+						lwfmappingId: dataArray[i].lwfmappingId,
+					};
+
+					let updateMetaData = {
+						...dataArray[i],
+						updatedBy: req.userId,
+						updatedAt: moment().format("YYYY-MM-DD"),
+					};
+					let response = await service.update(model, updateMetaData, query);
+				}
+
+				return respHelper(res, {
+					status: 202,
+					msg: "LWF mapping data updated successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
 	async lwfDesignationList(req, res) {
 		try {
 			let model = db.lwfDesignationMaster;
@@ -4357,6 +4401,122 @@ class CommonController {
 	}
 
 	// End admin master apis by jay
+
+	// Start create apis for parent department and functional area
+
+	async parentDepartment(req, res) {
+		try {
+			const id = req.params.id;
+			let query = { [Op.not]: { departmentId: id } };
+
+			const departmentData = await db.departmentMaster.findAll({
+				where: query,
+				attributes: ["departmentId", "departmentName", "departmentCode"],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: departmentData,
+			});
+		} catch (error) {
+			logger.error("Error while getting department list", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async parentFunctionalArea(req, res) {
+		try {
+			let query = { [Op.not]: { functionalAreaId: req.params.id } };
+			const functionalAreaData = await db.functionalAreaMaster.findAll({
+				where: query,
+				attributes: [
+					"functionalAreaId",
+					"functionalAreaName",
+					"functionalAreaCode",
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: functionalAreaData,
+			});
+		} catch (error) {
+			logger.error("Error while getting functional area list", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteDepartment(req, res) {
+		try {
+			const id = req.params.id;
+			let query = { departmentId: id };
+
+			const doc = await db.departmentMapping.findOne({
+				where: query,
+				attributes: ["departmentId"],
+			});
+
+			if (doc) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Department mapped",
+					data: {},
+				});
+			} else {
+				await db.departmentMaster.destroy({ where: { departmentId: id } });
+				return respHelper(res, {
+					status: 200,
+					msg: "Department deleted successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error("Error while deleting department", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteFunctionalArea(req, res) {
+		try {
+			const id = req.params.id;
+			let query = { functionalAreaId: id };
+
+			const doc = await db.functionalAreaMapping.findOne({
+				where: query,
+				attributes: ["functionalAreaId"],
+			});
+
+			if (doc) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Functional area mapped",
+					data: {},
+				});
+			} else {
+				await db.functionalAreaMaster.destroy({
+					where: { functionalAreaId: id },
+				});
+				return respHelper(res, {
+					status: 200,
+					msg: "Functional area deleted successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error("Error while deleting functional area", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// End apis for parent department and functional area
 
 	// close class
 }
