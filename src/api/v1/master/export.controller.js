@@ -3960,7 +3960,7 @@ class MasterController {
 					{
 						sheet: "Employee",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Name", value: "name" },
 							{ label: "Job Title", value: "jobTitle" },
 							{ label: "Department", value: "department" },
@@ -4449,7 +4449,7 @@ class MasterController {
 					{
 						sheet: "Employee",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Name", value: "name" },
 							{ label: "Job Title", value: "jobTitle" },
 							{ label: "Department", value: "department" },
@@ -5042,7 +5042,7 @@ class MasterController {
 					{
 						sheet: "Employee",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Name", value: "name" },
 							{ label: "Job Title", value: "jobTitle" },
 							{ label: "Department", value: "department" },
@@ -5667,7 +5667,7 @@ class MasterController {
 				{
 				  sheet: "Employee Assignment",
 				  columns: [
-					{ label: "Employee Id", value: "empCode" },
+					{ label: "Employee ID", value: "empCode" },
 					{ label: "Name", value: "name" },
 					{ label: "Job Title", value: "designation_name" },
 					{ label: "Department", value: "department_name" },
@@ -5978,7 +5978,7 @@ class MasterController {
 						{
 							sheet: "Pending Attendance Report",
 							columns: [
-								{ label: "Employee Id", value: "employeeCode" },
+								{ label: "Employee ID", value: "employeeCode" },
 								{ label: "Name", value: "employeeName" },
 								{ label: "Job Title", value: "designationName" },
 								{ label: "Department", value: "departmentName" },
@@ -6293,7 +6293,7 @@ class MasterController {
 						{
 							sheet: "Pending Attendance Report",
 							columns: [
-								{ label: "Employee Id", value: "employeeCode" },
+								{ label: "Employee ID", value: "employeeCode" },
 								{ label: "Name", value: "employeeName" },
 								{ label: "Job Title", value: "designationName" },
 								{ label: "Department", value: "departmentName" },
@@ -6494,7 +6494,7 @@ class MasterController {
 					{
 						sheet: "Family Report",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Employee Name", value: "name" },
 							{ label: "Full Name", value: "familyName" },
 							{ label: "Date of Birth", value: "dob" },
@@ -6842,7 +6842,7 @@ class MasterController {
 			{
 				sheet: "Pending Leave Report",
 				columns: [
-					{ label: "Employee Id", value: "Employee Code" },
+					{ label: "Employee ID", value: "Employee Code" },
 					{ label: "Name", value: "Employee Name" },
 					{ label: "Job Title", value: "Designation" },
 					{ label: "Department", value: "Department" },
