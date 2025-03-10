@@ -4287,9 +4287,7 @@ const salarySlipPdf = async (data) => {
 <body>
     <div class="salary-slip">
         <div class="header">
-            <img  src="${
-							process.env.PROXY_URL + "/api" + data.companyLogo
-						}" alt="Company Logo">
+            <img  src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Company Logo">
     <div class="company-details" style="word-wrap: break-word; white-space: normal;">
     <p><b><font style="font-size: 16px; font-weight: 400;">${
 			data.companyName

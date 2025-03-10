@@ -6198,6 +6198,10 @@ async function sendMailAfterSalarySlipRelease(
 			{
 				model: db.employeeMaster,
 				attribute: ["email", "firstName"],
+				include:[{
+					model: db.companyMaster,
+					attributes: ["senderEmail", "companyLogo"],
+				}]
 			},
 		],
 	});
@@ -6215,7 +6219,8 @@ async function sendMailAfterSalarySlipRelease(
 					financialMonth[allPaySlips[i]?.paySlipMonth]
 				}`,
 				paySlipAutoId: allPaySlips[i]?.paySlipAutoId,
-				companyLogo: companyLogo,
+				companyLogo: allPaySlips[i]?.employee?.companymaster.companyLogo,
+				senderEmail: allPaySlips[i]?.employee?.companymaster.senderEmail
 			}),
 		);
 		if (mailStatus) {
