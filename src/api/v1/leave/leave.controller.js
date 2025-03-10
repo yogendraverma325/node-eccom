@@ -4098,8 +4098,10 @@ class LeaveController {
 			const pageNo = req.query.page * 1 || 1;
 			const offset = (pageNo - 1) * limit;
 			const search = req.query.search || null;
-
-			const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({
+			const usersData = req.userData;
+			const permissoinArray=await helper.fetchpermissoinAndAcessForEMP(usersData.permissionAndAccess,usersData.role_id);
+			
+	         const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({ 
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
@@ -4125,6 +4127,13 @@ class LeaveController {
 									{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
 								],
 							}),
+							...(usersData.role_id === 4 || usersData.role_id === 5
+							? { 
+						...(permissoinArray.COMPANY.length > 0 && { companyId: { [Op.in]: permissoinArray.COMPANY } }),
+						...(permissoinArray.BU.length > 0 && { buId: { [Op.in]: permissoinArray.BU } }),
+						...(permissoinArray.SBU.length > 0 && { sbuId: { [Op.in]: permissoinArray.SBU } })
+						}
+							: null),
 						},
 					},
 					{

@@ -3282,6 +3282,115 @@ const leaveRefil = async () => {
 	}
 };
 
+const fetchpermissoinAndAcessForEMP = async (PERMISSION,ROLE_ID) => {
+	let permissionAssignTousers = [];
+				if (PERMISSION) {
+					permissionAssignTousers = PERMISSION
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+		let buFIlter = {};
+		let sbbuFIlter = {};
+		let functionAreaFIlter = {};
+		let departmentFIlter = {};
+		let designationFIlter = {};
+		let companyFIlter = {};
+
+	let buArrayForFilter = [],
+	sbuArrayForFilter = [],
+	departmentArrayForFilter = [],
+	funcareaArrayForFilter = [],
+	designationArrayForFilter = [],
+	comapnyArrayForFilter = [];
+
+if(permissionAssignTousers.length>0 &&  [4,5].includes(ROLE_ID)){
+	let permissionAndAccess = await db.permissoinandaccess.findAll({
+		where: {
+			//role_id:ROLE_ID,
+			isActive: 1,
+			permissoinandaccessId: {
+				[Op.in]: permissionAssignTousers,
+			},
+		},
+		}); /// get all permission of access to fetch list with active status as per role
+
+		 buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				 sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				 departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				 funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				 designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+
+				 comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+
+}
+		
+	return {
+		"BU":buArrayForFilter,
+		"SBU":sbuArrayForFilter,
+		"DEPARTMENT":departmentArrayForFilter,
+		"FUNCTION":funcareaArrayForFilter,
+		"DESIGNATION":designationArrayForFilter,
+		"COMPANY":comapnyArrayForFilter
+	};
+
+};
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -3333,4 +3442,5 @@ export default {
 	leaveAssignEmployeeToAll,
 	//LEAVE ASSIGNMENT
 	smsService,
+	fetchpermissoinAndAcessForEMP
 };
