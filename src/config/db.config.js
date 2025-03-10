@@ -175,6 +175,15 @@ import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
 
 //////////////////End F&F by jay/////////////////
 
+///////////////////Import Models By Himanshu////////
+
+import ImportInfo from "../api/model/ImportInfo.js";
+import ImportData from "../api/model/ImportData.js";
+///////////////////Import Models By Himanshu////////
+
+
+
+
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -399,6 +408,13 @@ db.noticeRecoveryOverrides = NoticeRecoveryOverrides(sequelize, Sequelize);
 db.ExtraBenefits = ExtraBenefits(sequelize, Sequelize);
 
 //////////////////Payroll///////////////////
+
+//////////////////////////////Import Models By Himanshu////////
+
+db.ImportInfo = ImportInfo(sequelize,Sequelize);
+db.ImportData = ImportData(sequelize,Sequelize);
+
+
 
 db.DesignationEmploymentHistory = DesignationEmploymentHistory(
 	sequelize,

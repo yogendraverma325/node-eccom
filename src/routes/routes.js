@@ -16,6 +16,8 @@ import cronRoutes from "../api/v1/cron/cron.routes.js";
 import masterImportRoutes from "../api/v1/master/import.routes.js";
 import thirdPartyRoutes from "../api/v1/master/thirdparty.routes.js";
 import fnfRoutes from "../api/v1/fnf/fnf.routes.js";
+import imports from "../api/v1/import/import.routes.js";
+
 const router = express.Router();
 
 router.use("/export", masterExportRoutes);
@@ -38,5 +40,6 @@ router.use("/cron", cronRoutes);
 router.use("/import", masterImportRoutes);
 router.use("/thirdparty", thirdPartyRoutes);
 router.use("/fnf", fnfRoutes);
+router.use("/imports", imports);
 
 export default router;
