@@ -1816,32 +1816,40 @@ class CronController {
 
 	async biometricAttendance() {
 		try {
-			const ssh = new NodeSSH()
-			const sshConfig = Object.assign({
-				host: process.env.SSH_HOST,
-				port: process.env.SSH_PORT,
-				username: process.env.SSH_USERNAME,
-			}, (parseInt(process.env.SSH_LOGIN_WITH_KEY)) ?
+			const ssh = new NodeSSH();
+			const sshConfig = Object.assign(
 				{
-					privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-				} : {
-					password: process.env.SSH_PASSWORD,
-				}
-			)
+					host: process.env.SSH_HOST,
+					port: process.env.SSH_PORT,
+					username: process.env.SSH_USERNAME,
+				},
+				parseInt(process.env.SSH_LOGIN_WITH_KEY)
+					? {
+							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+						}
+					: {
+							password: process.env.SSH_PASSWORD,
+						},
+			);
 
-			const sshConnection = await ssh.connect(sshConfig)
+			const sshConnection = await ssh.connect(sshConfig);
 
 			if (!sshConnection) {
-				console.log("SSH connection Error")
+				console.log("SSH connection Error");
 			}
 
-			console.log('SSH connection success')
+			console.log("SSH connection success");
 
-			const stream = await sshConnection.forwardOut('localhost', 0, '10.11.4.24', 1433)
+			const stream = await sshConnection.forwardOut(
+				"localhost",
+				0,
+				"10.11.4.24",
+				1433,
+			);
 
 			if (!stream) {
 				logger.error(`Error forwarding MSSQL port: ${err}`);
-				console.error('Error forwarding MSSQL port:', err);
+				console.error("Error forwarding MSSQL port:", err);
 				return sshConnection.dispose();
 			}
 
@@ -1870,13 +1878,18 @@ class CronController {
 						},
 					},
 					logging: false,
-				}
+				},
 			);
-			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE
-			sequelize.authenticate()
+			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE;
+			sequelize
+				.authenticate()
 				.then(async () => {
-					console.log('Connection to SQL Server established successfully via SSH tunnel.');
-					const result = await sequelize.query(`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`);
+					console.log(
+						"Connection to SQL Server established successfully via SSH tunnel.",
+					);
+					const result = await sequelize.query(
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
+					);
 					if (result.length > 0) {
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
@@ -1890,44 +1903,51 @@ class CronController {
 								punchType: element.PunchType,
 								createdDate: element.SYSDATE,
 								isRead: element.IS_UNREAD,
-								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss")
-							}
+								punchDateTime: moment
+									.utc(element.Punch_DateTime)
+									.format("YYYY-MM-DD HH:mm:ss"),
+							};
 
 							const employeeData = await db.employeeMaster.findOne({
 								where: {
 									empCode: incomingAttendanceData.tmc,
 									isActive: 1,
 								},
-								attributes: ['id', 'empCode', 'name'],
-							})
+								attributes: ["id", "empCode", "name"],
+							});
 
 							if (!employeeData) {
-								logger.error(`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`)
-								continue
+								logger.error(
+									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
+								);
+							} else {
+								await attendanceController.markBioMetricAttendance(
+									incomingAttendanceData,
+								);
 							}
 
-							await attendanceController.markBioMetricAttendance(incomingAttendanceData)
+							sequelize.query(
+								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+								(err, result) => {
+									if (err) {
+										logger.error(`Error ${err}`);
+										console.log(err);
+									}
 
-							sequelize.query(`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`, (err, result) => {
-								if (err) {
-									logger.error(`Error ${err}`)
-									console.log(err)
-								}
-
-								console.log(result)
-							})
+									console.log(result);
+								},
+							);
 						}
 					}
-
-				}).catch((error) => {
-					logger.error(`Error --->> ${error}`)
-					console.log("error", error)
 				})
+				.catch((error) => {
+					logger.error(`Error --->> ${error}`);
+					console.log("error", error);
+				});
 		} catch (error) {
-			logger.error(`Error while connecting SSH ${error}`)
-			console.log(error)
+			logger.error(`Error while connecting SSH ${error}`);
+			console.log(error);
 		}
-
 	}
 }
 

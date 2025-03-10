@@ -215,6 +215,5 @@ export default Express.Router()
 		"/requiredAttendanceApproval",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		adminController.requiredAttendanceApproval,
-	)
-	// EMPLOYMENT END ROUTES
-	
+	);
+// EMPLOYMENT END ROUTES
