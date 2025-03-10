@@ -481,7 +481,7 @@ async function selfReviewConfirnation(input) {
 			to: userData.email,
 			subject: `Confirmation`,
 			html: await emailTemplate.selfReviewConfirnation(userData),
-			senderEmail: userData.employee.companymaster.senderEmail
+			senderEmail: userData.employee.companymaster.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -544,12 +544,12 @@ async function confirmationSLABreachEmailBody(input) {
 	try {
 		const inpputData = JSON.parse(input);
 
-		console.log("confirmationSLABreachEmailBody --->>", inpputData)
+		console.log("confirmationSLABreachEmailBody --->>", inpputData);
 		await helper.mailService({
 			to: inpputData?.ESCALTERDATA?.email,
 			subject: `Confirmation task of ${inpputData?.EMP_DATA?.name}(${inpputData?.EMP_DATA?.empCode}) escalated to you`,
 			html: await emailTemplate.confirmationSLABreachEmailBody(inpputData),
-			senderEmail: inpputData.senderEmail
+			senderEmail: inpputData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
@@ -559,12 +559,12 @@ async function confirmationSLABreachEmailBody(input) {
 async function confirmationWorkflowNextLevel(input) {
 	try {
 		const inpputData = JSON.parse(input);
-		console.log("confirmationWorkflowNextLevel --->>", inpputData)
+		console.log("confirmationWorkflowNextLevel --->>", inpputData);
 		await helper.mailService({
 			to: inpputData?.ESCALTERDATA?.email,
 			subject: `Confirmation Workflow Approval Required`,
 			html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
-			senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail
+			senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);

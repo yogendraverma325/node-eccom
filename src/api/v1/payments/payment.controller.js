@@ -6194,7 +6194,12 @@ async function sendMailAfterSalarySlipRelease(
 			"paySlipYear",
 			"paySlipMonth",
 		],
-		include: [{ model: db.employeeMaster, attribute: ["email", "firstName"] }],
+		include: [
+			{
+				model: db.employeeMaster,
+				attribute: ["email", "firstName"],
+			},
+		],
 	});
 
 	for (let i = 0; allPaySlips.length > i; i++) {

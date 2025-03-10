@@ -394,9 +394,12 @@ class CronController {
 							element.dataValues.passwordExpiryDate,
 						).format("DD-MM-YYYY"),
 						companyName: element.dataValues.companymaster.companyName,
-						daysLeft: moment(element.dataValues.passwordExpiryDate).diff(moment(), "days"),
+						daysLeft: moment(element.dataValues.passwordExpiryDate).diff(
+							moment(),
+							"days",
+						),
 						senderEmail: element.dataValues.companymaster.senderEmail,
-						companyLogo: element.dataValues.companymaster.companyLogo
+						companyLogo: element.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -444,7 +447,7 @@ class CronController {
 							"days",
 						),
 						senderEmail: element.dataValues.companymaster.senderEmail,
-						companyLogo: element.dataValues.companymaster.companyLogo
+						companyLogo: element.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -507,7 +510,6 @@ class CronController {
 					},
 				],
 			});
-
 
 			if (docs.length > 0) {
 				const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();
@@ -626,7 +628,7 @@ class CronController {
 
 	///CONFIRMATION
 	async generateConfirmation() {
-		console.log("generateConfirmation is started")
+		console.log("generateConfirmation is started");
 		const confimationData = await db.jobDetails.findAll({
 			where: {
 				dateOfProbationTriggerDate: {
@@ -651,7 +653,12 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["senderEmail", "companyLogo", "letterHeader", "letterFooter"],
+						attributes: [
+							"senderEmail",
+							"companyLogo",
+							"letterHeader",
+							"letterFooter",
+						],
 					},
 					{
 						model: db.Confimationpolicy,
@@ -907,8 +914,8 @@ class CronController {
 					JSON.stringify({
 						ESCALTERDATA: ESCALTERDATA,
 						EMP_DATA: EMP_DATA,
-						senderEmail: ESCALTERDATA?.companymaster?.senderEmail
-					})
+						senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
+					}),
 				);
 
 				await db.Confirmationowners.update(
@@ -1227,8 +1234,8 @@ class CronController {
 						confirmationData: confirmationData,
 						signatureAuthority: signatureAuthority,
 						cc: cc_arrays.join(","),
-						senderEmail: EMP_DATA_SELF.companymaster.senderEmail
-					})
+						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+					}),
 				);
 			}
 		}
