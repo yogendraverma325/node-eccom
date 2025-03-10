@@ -1041,8 +1041,8 @@ class AdminController {
 										firstName: employeeOnboardingDetails.firstName,
 										empCode: empCode,
 										password: password,
-										senderEmail: employeeOnboardingDetails['companymaster.senderEmail'],
-										companyLogo: employeeOnboardingDetails['companymaster.companyLogo'],
+										senderEmail: employeeOnboardingDetails.companymaster.senderEmail,
+										companyLogo: employeeOnboardingDetails.companymaster.companyLogo,
 									}),
 								);
 

@@ -5072,14 +5072,15 @@ class UserController {
 					}
 				}
 
-				// eventEmitter.emit(
-				//   "confirmatonExtend",
-				//   JSON.stringify({
-				//     EMP_DATA_SELF: EMP_DATA_SELF,
-				//     ACTION_TAKER: ACTION_TAKER,
-				//     cc: cc_arrays,
-				//   })
-				// );
+				eventEmitter.emit(
+					"confirmatonExtend",
+					JSON.stringify({
+						EMP_DATA_SELF: EMP_DATA_SELF,
+						ACTION_TAKER: ACTION_TAKER,
+						cc: cc_arrays,
+						senderEmail: EMP_DATA_SELF.companymaster.senderEmail
+					})
+				);
 
 				return respHelper(res, {
 					status: 200,
