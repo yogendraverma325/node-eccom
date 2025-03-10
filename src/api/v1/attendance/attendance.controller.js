@@ -4739,6 +4739,8 @@ class AttendanceController {
 			const offset = (pageNo - 1) * limit;
 
 			const query = req.query.listFor;
+			const usersData = req.userData;
+			const permissoinArray=await helper.fetchpermissoinAndAcessForEMP(usersData.permissionAndAccess,usersData.role_id);
 
 			const regularizeList = await db.regularizationMaster.findAndCountAll({
 				where: Object.assign(
@@ -4759,6 +4761,7 @@ class AttendanceController {
 				include: [
 					{
 						model: db.attendanceMaster,
+							required: true,
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
@@ -4766,6 +4769,7 @@ class AttendanceController {
 							{
 								model: db.employeeMaster,
 								attributes: ["empCode", "name"],
+									required: true,
 								where: {
 									...(search && {
 										[Op.or]: [
@@ -4773,6 +4777,13 @@ class AttendanceController {
 											{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
 										],
 									}),
+									...(usersData.role_id === 4 || usersData.role_id === 5
+							? { 
+						...(permissoinArray.COMPANY.length > 0 && { companyId: { [Op.in]: permissoinArray.COMPANY } }),
+						...(permissoinArray.BU.length > 0 && { buId: { [Op.in]: permissoinArray.BU } }),
+						...(permissoinArray.SBU.length > 0 && { sbuId: { [Op.in]: permissoinArray.SBU } })
+						}
+							: null),
 								},
 							},
 						],
