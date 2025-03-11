@@ -20,6 +20,15 @@ export default (sequelize, Sequelize) => {
 		timeZoneId: {
 			type: Sequelize.INTEGER,
 		},
+		senderEmail: {
+			type: Sequelize.INTEGER,
+		},
+		letterHeader: {
+			type: Sequelize.STRING,
+		},
+		letterFooter: {
+			type: Sequelize.STRING,
+		},
 		headerColor: {
 			type: Sequelize.STRING,
 		},

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
@@ -103,60 +104,93 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-		const configuration = pepipost.Configuration;
-		const controller = pepipost.MailSendController;
-		configuration.apiKey = process.env.NETCORE_API_KEY;
 
-		let body = new pepipost.Send();
-		body.from = new pepipost.From();
+		const payload = Object.assign({
+			appName: process.env.SENDER_NAME,
+			to: testMail ? testMailIDs : data.to,
+			from: data.senderEmail,
+			subject: data.subject,
+			text: data.text,
+			bcc: [],
+			time: "",
+			html: data.html,
+			cc: data.cc ? data.cc.split(",") : [],
+			attachments: [],
+		});
 
-		body.from.email = process.env.SENDER_MAIL;
-		body.from.name = process.env.SENDER_NAME;
-		body.subject = data.subject;
-
-		body.content = [];
-		body.content[0] = new pepipost.Content();
-		body.content[0].type = pepipost.TypeEnum.HTML;
-		body.content[0].value = data.html;
-		body.personalizations = [];
-		body.personalizations[0] = new pepipost.Personalizations();
-
-		console.log("Mail is Sending On --->>", data.to);
-		if (data.attachments && data.attachments.length >= 1) {
-			body.personalizations[0].attachments = data.attachments.map((attc) => ({
-				content: Buffer.from(attc.content, "binary").toString("base64"),
-				name: attc.filename,
-			}));
-		}
-		body.personalizations[0].To = [];
-		body.personalizations[0].To = new pepipost.EmailStruct();
-		body.personalizations[0].To = mergeEmail(
-			testMail ? testMailIDs : data.to.split(","),
+		const response = await axios.post(
+			`${process.env.CENTRAL_MAIL_API}/sendMail`,
+			payload,
+			{
+				headers: {
+					"x-access-token": process.env.CENTRAL_MAIL_SECRET_KEY,
+					"Content-Type": "application/json",
+				},
+			},
 		);
 
-		body.personalizations[0].cc = [];
-		body.personalizations[0].cc = new pepipost.EmailStruct();
-		body.personalizations[0].cc = mergeEmail(
-			data.cc ? (testMail ? testMailIDs : data.cc.split(",")) : [],
-		);
-
-		body.personalizations[0].bcc = [];
-		body.personalizations[0].bcc = new pepipost.EmailStruct();
-		body.personalizations[0].bcc = mergeEmail(
-			data.bcc ? data.bcc.split(",") : [],
-		);
-		body.settings = {};
-		body.settings.open_track = true;
-		body.settings.click_track = true;
-		body.settings.unsubscribe_track = false;
-
-		const promise = await controller.createGeneratethemailsendrequest(body);
-
-		console.log(promise);
-		return promise;
+		console.log(response.data);
 	} catch (error) {
 		console.log(error);
 	}
+
+	// try {
+	//
+	// 	const testMailIDs = process.env.TEST_MAIL_ID.split(",");
+	// 	const configuration = pepipost.Configuration;
+	// 	const controller = pepipost.MailSendController;
+	// 	configuration.apiKey = process.env.NETCORE_API_KEY;
+
+	// 	let body = new pepipost.Send();
+	// 	body.from = new pepipost.From();
+
+	// 	body.from.email = process.env.SENDER_MAIL;
+	// 	body.from.name = process.env.SENDER_NAME;
+	// 	body.subject = data.subject;
+
+	// 	body.content = [];
+	// 	body.content[0] = new pepipost.Content();
+	// 	body.content[0].type = pepipost.TypeEnum.HTML;
+	// 	body.content[0].value = data.html;
+	// 	body.personalizations = [];
+	// 	body.personalizations[0] = new pepipost.Personalizations();
+
+	// 	console.log("Mail is Sending On --->>", data.to);
+	// 	if (data.attachments && data.attachments.length >= 1) {
+	// 		body.personalizations[0].attachments = data.attachments.map((attc) => ({
+	// 			content: Buffer.from(attc.content, "binary").toString("base64"),
+	// 			name: attc.filename,
+	// 		}));
+	// 	}
+	// 	body.personalizations[0].To = [];
+	// 	body.personalizations[0].To = new pepipost.EmailStruct();
+	// 	body.personalizations[0].To = mergeEmail(
+	// 		testMail ? testMailIDs : data.to.split(","),
+	// 	);
+
+	// 	body.personalizations[0].cc = [];
+	// 	body.personalizations[0].cc = new pepipost.EmailStruct();
+	// 	body.personalizations[0].cc = mergeEmail(
+	// 		data.cc ? (testMail ? testMailIDs : data.cc.split(",")) : [],
+	// 	);
+
+	// 	body.personalizations[0].bcc = [];
+	// 	body.personalizations[0].bcc = new pepipost.EmailStruct();
+	// 	body.personalizations[0].bcc = mergeEmail(
+	// 		data.bcc ? data.bcc.split(",") : [],
+	// 	);
+	// 	body.settings = {};
+	// 	body.settings.open_track = true;
+	// 	body.settings.click_track = true;
+	// 	body.settings.unsubscribe_track = false;
+
+	// 	const promise = await controller.createGeneratethemailsendrequest(body);
+
+	// 	console.log(promise);
+	// 	return promise;
+	// } catch (error) {
+	// 	console.log(error);
+	// }
 };
 
 const mergeEmail = (email) => {
@@ -175,8 +209,6 @@ const smsService = async (data) => {
 			rejectUnauthorized: false,
 		}),
 	});
-
-	console.log("SMS Data", data);
 
 	axiosInstance
 		.post(
@@ -412,7 +444,13 @@ const getEmpProfile = async (EMP_ID) => {
 			{
 				model: db.companyMaster,
 				required: true,
-				attributes: ["companyId", "companyName", "companyCode"],
+				attributes: [
+					"companyId",
+					"companyName",
+					"companyCode",
+					"senderEmail",
+					"companyLogo",
+				],
 				include: [
 					{
 						model: db.groupCompanyMaster,
@@ -1094,6 +1132,10 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 			attributes: ["name", "email"],
 			include: [
 				{
+					model: db.companyMaster,
+					attributes: ["senderEmail", "companyLogo"],
+				},
+				{
 					model: db.shiftMaster,
 					attributes: ["shiftStartTime", "shiftEndTime"],
 				},
@@ -1128,6 +1170,8 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 				leaveDuration: inputData.leaveCount === 0.5 ? "Half Day" : "Full Day",
 				punchInTime: inputData.punchInTime,
 				punchOutTime: inputData.punchOutTime,
+				senderEmail: leaveDeductionData.companymaster.senderEmail,
+				companyLogo: leaveDeductionData.companymaster.companyLogo,
 			}),
 		);
 	}
@@ -3282,113 +3326,109 @@ const leaveRefil = async () => {
 	}
 };
 
-const fetchpermissoinAndAcessForEMP = async (PERMISSION,ROLE_ID) => {
+const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
 	let permissionAssignTousers = [];
-				if (PERMISSION) {
-					permissionAssignTousers = PERMISSION
-						.split(",")
-						.map((el) => parseInt(el));
-				}
-		let buFIlter = {};
-		let sbbuFIlter = {};
-		let functionAreaFIlter = {};
-		let departmentFIlter = {};
-		let designationFIlter = {};
-		let companyFIlter = {};
+	if (PERMISSION) {
+		permissionAssignTousers = PERMISSION.split(",").map((el) => parseInt(el));
+	}
+	let buFIlter = {};
+	let sbbuFIlter = {};
+	let functionAreaFIlter = {};
+	let departmentFIlter = {};
+	let designationFIlter = {};
+	let companyFIlter = {};
 
 	let buArrayForFilter = [],
-	sbuArrayForFilter = [],
-	departmentArrayForFilter = [],
-	funcareaArrayForFilter = [],
-	designationArrayForFilter = [],
-	comapnyArrayForFilter = [];
+		sbuArrayForFilter = [],
+		departmentArrayForFilter = [],
+		funcareaArrayForFilter = [],
+		designationArrayForFilter = [],
+		comapnyArrayForFilter = [];
 
-if(permissionAssignTousers.length>0 &&  [4,5].includes(ROLE_ID)){
-	let permissionAndAccess = await db.permissoinandaccess.findAll({
-		where: {
-			//role_id:ROLE_ID,
-			isActive: 1,
-			permissoinandaccessId: {
-				[Op.in]: permissionAssignTousers,
+	if (permissionAssignTousers.length > 0 && [4, 5].includes(ROLE_ID)) {
+		let permissionAndAccess = await db.permissoinandaccess.findAll({
+			where: {
+				//role_id:ROLE_ID,
+				isActive: 1,
+				permissoinandaccessId: {
+					[Op.in]: permissionAssignTousers,
+				},
 			},
-		},
 		}); /// get all permission of access to fetch list with active status as per role
 
-		 buArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "BU")
-					.map((obj) => obj.permissionValue); // checking BU Access
+		buArrayForFilter = permissionAndAccess
+			.filter((obj) => obj.permissionType == "BU")
+			.map((obj) => obj.permissionValue); // checking BU Access
 
-				if (buArrayForFilter.length > 0) {
-					buFIlter.buId = {
-						///appedning Bu to filter
-						[Op.in]: buArrayForFilter,
-					};
-				}
+		if (buArrayForFilter.length > 0) {
+			buFIlter.buId = {
+				///appedning Bu to filter
+				[Op.in]: buArrayForFilter,
+			};
+		}
 
-				 sbuArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "SBU")
-					.map((obj) => obj.permissionValue); // checking SBU Access
-				if (sbuArrayForFilter.length > 0) {
-					sbbuFIlter.sbuId = {
-						///appedning SBU to filter
-						[Op.in]: sbuArrayForFilter,
-					};
-				}
+		sbuArrayForFilter = permissionAndAccess
+			.filter((obj) => obj.permissionType == "SBU")
+			.map((obj) => obj.permissionValue); // checking SBU Access
+		if (sbuArrayForFilter.length > 0) {
+			sbbuFIlter.sbuId = {
+				///appedning SBU to filter
+				[Op.in]: sbuArrayForFilter,
+			};
+		}
 
-				 departmentArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "DEPARTMENT")
-					.map((obj) => obj.permissionValue); // checking department Access
+		departmentArrayForFilter = permissionAndAccess
+			.filter((obj) => obj.permissionType == "DEPARTMENT")
+			.map((obj) => obj.permissionValue); // checking department Access
 
-				if (departmentArrayForFilter.length > 0) {
-					departmentFIlter.departmentId = {
-						///appedning department to filter
-						[Op.in]: departmentArrayForFilter,
-					};
-				}
-				 funcareaArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "FUNCAREA")
-					.map((obj) => obj.permissionValue); // checking SBU Access
+		if (departmentArrayForFilter.length > 0) {
+			departmentFIlter.departmentId = {
+				///appedning department to filter
+				[Op.in]: departmentArrayForFilter,
+			};
+		}
+		funcareaArrayForFilter = permissionAndAccess
+			.filter((obj) => obj.permissionType == "FUNCAREA")
+			.map((obj) => obj.permissionValue); // checking SBU Access
 
-				if (funcareaArrayForFilter.length > 0) {
-					functionAreaFIlter.functionalAreaId = {
-						///appedning SBU to filter
-						[Op.in]: funcareaArrayForFilter,
-					};
-				}
+		if (funcareaArrayForFilter.length > 0) {
+			functionAreaFIlter.functionalAreaId = {
+				///appedning SBU to filter
+				[Op.in]: funcareaArrayForFilter,
+			};
+		}
 
-				 designationArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "DESIGNATION")
-					.map((obj) => obj.permissionValue); // checking SBU Access
+		designationArrayForFilter = permissionAndAccess
+			.filter((obj) => obj.permissionType == "DESIGNATION")
+			.map((obj) => obj.permissionValue); // checking SBU Access
 
-				if (designationArrayForFilter.length > 0) {
-					designationFIlter.designationId = {
-						///appedning SBU to filter
-						[Op.in]: designationArrayForFilter,
-					};
-				}
+		if (designationArrayForFilter.length > 0) {
+			designationFIlter.designationId = {
+				///appedning SBU to filter
+				[Op.in]: designationArrayForFilter,
+			};
+		}
 
-				 comapnyArrayForFilter = permissionAndAccess
-					.filter((obj) => obj.permissionType == "COMPANY")
-					.map((obj) => obj.permissionValue); // checking SBU Access
+		comapnyArrayForFilter = permissionAndAccess
+			.filter((obj) => obj.permissionType == "COMPANY")
+			.map((obj) => obj.permissionValue); // checking SBU Access
 
-				if (comapnyArrayForFilter.length > 0) {
-					companyFIlter.companyId = {
-						///appedning SBU to filter
-						[Op.in]: comapnyArrayForFilter,
-					};
-				}
+		if (comapnyArrayForFilter.length > 0) {
+			companyFIlter.companyId = {
+				///appedning SBU to filter
+				[Op.in]: comapnyArrayForFilter,
+			};
+		}
+	}
 
-}
-		
 	return {
-		"BU":buArrayForFilter,
-		"SBU":sbuArrayForFilter,
-		"DEPARTMENT":departmentArrayForFilter,
-		"FUNCTION":funcareaArrayForFilter,
-		"DESIGNATION":designationArrayForFilter,
-		"COMPANY":comapnyArrayForFilter
+		BU: buArrayForFilter,
+		SBU: sbuArrayForFilter,
+		DEPARTMENT: departmentArrayForFilter,
+		FUNCTION: funcareaArrayForFilter,
+		DESIGNATION: designationArrayForFilter,
+		COMPANY: comapnyArrayForFilter,
 	};
-
 };
 
 export default {
@@ -3442,5 +3482,5 @@ export default {
 	leaveAssignEmployeeToAll,
 	//LEAVE ASSIGNMENT
 	smsService,
-	fetchpermissoinAndAcessForEMP
+	fetchpermissoinAndAcessForEMP,
 };
