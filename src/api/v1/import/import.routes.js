@@ -14,4 +14,6 @@ export default Express.Router()
         "/getImportInfoList",
         authentication.authenticate,
         importController.getImportInfoList,
-    );
+    )
+    .get("/exportImportedSheets",importController.exportImportedSheets)
+    ;

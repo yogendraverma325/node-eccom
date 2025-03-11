@@ -2,9 +2,10 @@ import respHelper from "../../../helper/respHelper.js";
 import importHelper from "./importHelper.js";
 import db from "../../../config/db.config.js";
 import validator from "../../../helper/validator.js";
-
+import xlsx from "json-as-xlsx";
 import pkg from "xlsx";
-import { where } from "sequelize";
+import { Op, where } from "sequelize";
+import moment from "moment";
 class ImportController {
 	async uploadExcelFile(req, res) {
 		try {
@@ -46,13 +47,16 @@ class ImportController {
 
 	async getImportInfoList(req, res) {
 		try {
-			let importInfoList = await db.ImportInfo.findAll({
-				where: { isActive: 1 ,companyId:req.userData.companyId,buId:req.userData.buId,sbuId:req.userData.sbuId},
-				raw: true,
-			});
+			const {
+				month,
+				year,
+			} = req.query;	
+			let queryForImportDetails = await importHelper.query(1,{year:year,month:Number(month)+1});
+			let importInfoList = await db.sequelize.query(queryForImportDetails);
+			console.log(queryForImportDetails);
 			return respHelper(res, {
 				status: 200,
-				data:importInfoList,
+				data:importInfoList[0],
 				msg:"Data Fetched Successfully."
 			});
 		} catch (e) {
@@ -61,9 +65,104 @@ class ImportController {
 				status: 500,
 				msg: "Something went wrong",
 			});
-			console.log(e);
 		}
 	}
+
+async exportImportedSheets(req, res) {
+		try {
+			const {
+				reportType,
+				countType,
+				importAutoId,
+				exportSheetAutoId
+			} = req.query;	
+			const sheetName = {
+				"GROSS_PAY": 1,
+			};
+			const getKeyByValue = async (value) => {
+				const result = Object.keys(sheetName).find(
+					(key) => sheetName[key] == value,
+				);
+				return result;
+			};
+			let sheetVal = await getKeyByValue(exportSheetAutoId);
+			if (!exportSheetAutoId) {
+				return res.status(400).json({
+					status: 400,
+					data: [],
+					msg: "Sample Sheet Not Available",
+				});
+			}
+			let employeeData = [];
+			let importStatus = ['1','2'].includes(countType)?[countType]:[1,2];
+			let sheetDataType;
+			
+			switch (countType) {
+				case '0':
+					sheetDataType='All'
+					break;
+					case '1':
+						sheetDataType='Success'
+						break;
+						case '2':
+							sheetDataType='Error'
+							break;
+				default:
+					break;
+			}
+
+
+
+			let exportData = await db.ImportData.findAll({where:{importAutoId:importAutoId,importStatus:{[Op.in]:importStatus}},raw:true});
+			for (const element of exportData) {
+				let mergeObject= {...JSON.parse(element.importedRow),"Upload Remark":element.importStatusDesc};
+				employeeData.push(mergeObject);
+			}
+			const timestamp = Date.now();
+			// Handle scenarios based on conditions
+			if (importAutoId)
+			{
+				const jsonData = employeeData;
+				// Extract columns dynamically from JSON keys
+				const columns = Object.keys(jsonData[0]).map(key => ({ label: key, value: key }));
+				
+				const data = [
+					{
+						sheet: "Employee",
+						columns: columns,
+						content: jsonData // Use the JSON array as content
+					}
+				];
+				
+				const settings = {
+					fileName: `Total_${Date.now()}`,
+					extraLength: 3,
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx"
+					}
+				};
+				
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=${sheetVal}_${sheetDataType}_${moment(timestamp).format('YYYY-MM-DD HH:mm:ss')}.xlsx`,
+				);
+				return res.end(report);
+			} else {
+				return res.status(404).json({
+					message: "No active columns found for the given sheet",
+				});
+			}
+		} catch (error) {
+			console.error("Error:", error);
+			return res.status(500).json({
+				message: "An error occurred while fetching data",
+			});
+		}
+	}
+
+
 }
 
 export default new ImportController();

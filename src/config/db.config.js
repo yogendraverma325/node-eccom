@@ -1808,5 +1808,18 @@ db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",
 // 	sourceKey: "pendingOn",
 // })
+db.ImportInfo.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as:"importByDetails"
+});
+
+db.ImportInfo.hasMany(db.ImportData, {
+	foreignKey: "importAutoId",
+	sourceKey: "importAutoId",
+	as:"importedData"
+});
+
+
 
 export default db;
