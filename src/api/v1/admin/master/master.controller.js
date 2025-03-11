@@ -8,6 +8,7 @@ import { Op } from "sequelize";
 import moment from "moment";
 import helper from "../../../../helper/helper.js";
 import constant from "../../../../constant/messages.js";
+import xlsx from "json-as-xlsx";
 
 class CommonController {
 	/**
@@ -363,10 +364,16 @@ class CommonController {
 			let search = req.query.search || "";
 			let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
-			let query = {
-				...(search && { jobLevelName: { [Op.like]: `%${search}%` } }),
-			};
 
+			let query = {
+				// isActive: 1,
+				...(search && {
+					[Op.or]: [
+						{ jobLevelName: { [Op.like]: `%${search}%` } },
+						{ jobLevelCode: { [Op.like]: `%${search}%` } },
+					],
+				}),
+			};
 			let aggregate = {
 				where: query,
 				attributes: [
@@ -538,7 +545,12 @@ class CommonController {
 			// };
 			let query = {
 				// isActive: 1,
-				...(search && { bankName: { [Op.like]: `%${search}%` } }),
+				...(search && {
+					[Op.or]: [
+						{ bankName: { [Op.like]: `%${search}%` } },
+						{ bankIfsc: { [Op.like]: `%${search}%` } },
+					],
+				}),
 			};
 
 			let aggregate = {
@@ -2397,8 +2409,15 @@ class CommonController {
 			let search = req.query.search || "";
 			let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
+
 			let query = {
-				...(search && { departmentName: { [Op.like]: `%${search}%` } }),
+				// isActive: 1,
+				...(search && {
+					[Op.or]: [
+						{ departmentName: { [Op.like]: `%${search}%` } },
+						{ departmentCode: { [Op.like]: `%${search}%` } },
+					],
+				}),
 			};
 
 			let aggregate = {
@@ -2532,8 +2551,15 @@ class CommonController {
 			let search = req.query.search || "";
 			let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
+
 			let query = {
-				...(search && { functionalAreaName: { [Op.like]: `%${search}%` } }),
+				// isActive: 1,
+				...(search && {
+					[Op.or]: [
+						{ functionalAreaName: { [Op.like]: `%${search}%` } },
+						{ functionalAreaCode: { [Op.like]: `%${search}%` } },
+					],
+				}),
 			};
 
 			let aggregate = {
@@ -4517,6 +4543,578 @@ class CommonController {
 	}
 
 	// End apis for parent department and functional area
+
+
+	//ritak export master data start
+
+	async exportBankMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"bankId",
+					"bankName",
+					"bankIfsc",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee", // Must match the alias in the association
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee", // Must match the alias in the association
+						attributes: ["name", "empCode"]
+					}
+				],
+				order: [["bankId", "ASC"]]
+			};
+
+			let bankData = await db.bankMaster.findAll(aggregate);
+
+			let finalData = bankData.map(bank => ({
+				Bank_ID: bank.bankId,
+				Bank_Name: bank.bankName,
+				IFSC_Code: bank.bankIfsc,
+				Status: bank.isActive ? "Active" : "Inactive",
+				Created_At: bank.createdAt ? moment(bank.createdAt).format("DD-MM-YYYY") : "",
+				Updated_At: bank.updatedAt ? moment(bank.updatedAt).format("DD-MM-YYYY") : "",
+				Created_By: bank.createdEmployee
+					? `${bank.createdEmployee.name || ""} (${bank.createdEmployee.empCode || "-"})`
+					: "",
+				Updated_By: bank.updatedEmployee
+					? `${bank.updatedEmployee.name || ""} (${bank.updatedEmployee.empCode || "-"})`
+					: ""
+			}));
+
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "Bank Master Data",
+					columns: [
+						{ label: "Bank ID", value: "Bank_ID" },
+						{ label: "Bank Name", value: "Bank_Name" },
+						{ label: "IFSC Code", value: "IFSC_Code" },
+						{ label: "Status", value: "Status" },
+						{ label: "Created At", value: "Created_At" },
+						{ label: "Created By", value: "Created_By" },
+						{ label: "Updated At", value: "Updated_At" },
+						{ label: "Updated By", value: "Updated_By" }
+					],
+					content: finalData
+				}
+			];
+
+			const settings = {
+				fileName: `Bank_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx"
+				}
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			res.attachment(`Bank_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+	async exportDesignationMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"designationId",
+					"name",
+					"code",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee", // Must match the alias in the association
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee", // Must match the alias in the association
+						attributes: ["name", "empCode"]
+					}
+				],
+				order: [["designationId", "ASC"]]
+			};
+
+			let designationData = await db.designationMaster.findAll(aggregate);
+
+			let finalData = designationData.map(designation => ({
+				designationId: designation.designationId,
+				name: designation.name,
+				code: designation.code,
+				status: designation.isActive ? "Active" : "Inactive",
+				createdAt: designation.createdAt ? moment(designation.createdAt).format("DD-MM-YYYY") : "",
+				updatedAt: designation.updatedAt ? moment(designation.updatedAt).format("DD-MM-YYYY") : "",
+				createddBy: designation.createdEmployee
+					? `${designation.createdEmployee.name || ""} (${designation.createdEmployee.empCode || "-"})`
+					: "",
+				updatedBy: designation.updatedEmployee
+					? `${designation.updatedEmployee.name || ""} (${designation.updatedEmployee.empCode || "-"})`
+					: ""
+			}));
+
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "Designation Master Data",
+					columns: [
+						{ label: "Designation ID", value: "designationId" },
+						{ label: "Designation Name", value: "name" },
+						{ label: "Designation Code", value: "code" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" }
+					],
+					content: finalData
+				}
+			];
+
+			const settings = {
+				fileName: `Designation_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx"
+				}
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			res.attachment(`Designation_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+	async exportDepartmentMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"departmentId",
+					"departmentName",
+					"departmentCode",
+					"parentDepartmentId",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.departmentMaster,
+						as: "parentDepartment",
+						attributes: ["departmentName", "departmentCode"]
+					},
+					{
+						model: db.departmentMapping,
+						include: [
+							{
+								model: db.sbuMapping,
+								include: [
+									{
+										model: db.sbuMaster,
+										attributes: ["sbuName", "code"]
+									},
+									{
+										model: db.buMapping,
+
+										include: [
+											{
+												model: db.buMaster,
+
+												attributes: ["buName", "buCode"]
+											},
+											{
+												model: db.companyMaster,
+
+												attributes: ["companyName", "companyCode"]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				],
+				order: [["departmentId", "ASC"]]
+			};
+
+			let departmentData = await db.departmentMaster.findAll(aggregate);
+			//console.log(JSON.stringify(departmentData, null, 2));
+			let finalData = departmentData.map(department => ({
+				departmentId: department.departmentId,
+				name: department.departmentName,
+				code: department.departmentCode,
+				parentDepartment: department.parentDepartment
+					? `${department.parentDepartment.departmentName} (${department.parentDepartment.departmentCode})`
+					: "-",
+				sbu: department.departmentmapping?.sbumapping?.sbumaster
+					? `${department.departmentmapping.sbumapping.sbumaster.sbuName} (${department.departmentmapping.sbumapping.sbumaster.code || "-"})`
+					: "-",
+				bu: department.departmentmapping?.sbumapping?.bumapping?.bumaster
+					? `${department.departmentmapping.sbumapping.bumapping.bumaster.buName} (${department.departmentmapping.sbumapping.bumapping.bumaster.buCode || "-"})`
+					: "-",
+				company: department.departmentmapping?.sbumapping?.bumapping?.companymaster
+					? `${department.departmentmapping.sbumapping.bumapping.companymaster.companyName} (${department.departmentmapping.sbumapping.bumapping.companymaster.companyCode || "-"})`
+					: "-",
+				status: department.isActive ? "Active" : "Inactive",
+				createdAt: department.createdAt ? moment(department.createdAt).format("DD-MM-YYYY") : "",
+				updatedAt: department.updatedAt ? moment(department.updatedAt).format("DD-MM-YYYY") : "",
+				createddBy: department.createdEmployee
+					? `${department.createdEmployee.name || ""} (${department.createdEmployee.empCode || "-"})`
+					: "",
+				updatedBy: department.updatedEmployee
+					? `${department.updatedEmployee.name || ""} (${department.updatedEmployee.empCode || "-"})`
+					: ""
+			}));
+
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "Department Master Data",
+					columns: [
+						{ label: "Department ID", value: "departmentId" },
+						{ label: "Department Name", value: "name" },
+						{ label: "Department Code", value: "code" },
+						{ label: "Parent Department", value: "parentDepartment" },
+						{ label: "SBU", value: "sbu" },
+						{ label: "BU", value: "bu" },
+						{ label: "Company", value: "company" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" }
+					],
+					content: finalData
+				}
+			];
+
+			const settings = {
+				fileName: `Department_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx"
+				}
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			res.attachment(`Department_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+	async exportFunctionalAreaMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"functionalAreaId",
+					"functionalAreaName",
+					"functionalAreaCode",
+					"parentFunctionalAreaId",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.functionalAreaMaster,
+						as: "parentFunctionalAreaRef",
+						attributes: ["functionalAreaName", "functionalAreaCode"]
+					},
+					{
+						model: db.functionalAreaMapping,
+						include: [
+							{
+								model: db.departmentMapping,
+
+								include: [
+									{
+										model: db.sbuMapping,
+										include: [
+											{
+												model: db.sbuMaster,
+												attributes: ["sbuName", "code"]
+											},
+											{
+												model: db.buMapping,
+
+												include: [
+													{
+														model: db.buMaster,
+
+														attributes: ["buName", "buCode"]
+													},
+													{
+														model: db.companyMaster,
+
+														attributes: ["companyName", "companyCode"]
+													}
+												]
+											},
+
+										],
+
+									},
+									{
+										model: db.departmentMaster,
+										attributes: ["departmentName", "departmentCode"]
+									},
+								]
+							}
+						]
+					}
+				],
+				order: [["functionalAreaId", "ASC"]]
+			};
+
+			let functionalAreaData = await db.functionalAreaMaster.findAll(aggregate);
+			//console.log(JSON.stringify(functionalAreaData, null, 2));
+			let finalData = functionalAreaData.map(functionalArea => ({
+				functionalAreaId: functionalArea.functionalAreaId,
+				name: functionalArea.functionalAreaName,
+				code: functionalArea.functionalAreaCode,
+				parentFunctionalArea: functionalArea.parentFunctionalAreaRef
+					? `${functionalArea.parentFunctionalAreaRef.functionalAreaName} (${functionalArea.parentFunctionalAreaRef.functionalAreaCode})`
+					: "-",
+
+				department: functionalArea.functionalareamapping?.departmentmapping?.departmentmaster
+					? `${functionalArea.functionalareamapping.departmentmapping.departmentmaster.departmentName} (${functionalArea.functionalareamapping.departmentmapping.departmentmaster.departmentCode || "-"})`
+					: "-",
+
+				sbu: functionalArea.functionalareamapping?.departmentmapping?.sbumapping?.sbumaster
+					? `${functionalArea.functionalareamapping.departmentmapping.sbumapping.sbumaster.sbuName} (${functionalArea.functionalareamapping.departmentmapping.sbumapping.sbumaster.code || "-"})`
+					: "-",
+
+				bu: functionalArea.functionalareamapping?.departmentmapping?.sbumapping?.bumapping?.bumaster
+					? `${functionalArea.functionalareamapping.departmentmapping.sbumapping.bumapping.bumaster.buName} (${functionalArea.functionalareamapping.departmentmapping.sbumapping.bumapping.bumaster.buCode || "-"})`
+					: "-",
+
+				company: functionalArea.functionalareamapping?.departmentmapping?.sbumapping?.bumapping?.companymaster
+					? `${functionalArea.functionalareamapping.departmentmapping.sbumapping.bumapping.companymaster.companyName} (${functionalArea.functionalareamapping.departmentmapping.sbumapping.bumapping.companymaster.companyCode || "-"})`
+					: "-",
+				status: functionalArea.isActive ? "Active" : "Inactive",
+				createdAt: functionalArea.createdAt ? moment(functionalArea.createdAt).format("DD-MM-YYYY") : "",
+				updatedAt: functionalArea.updatedAt ? moment(functionalArea.updatedAt).format("DD-MM-YYYY") : "",
+				createddBy: functionalArea.createdEmployee
+					? `${functionalArea.createdEmployee.name || ""} (${functionalArea.createdEmployee.empCode || "-"})`
+					: "",
+				updatedBy: functionalArea.updatedEmployee
+					? `${functionalArea.updatedEmployee.name || ""} (${functionalArea.updatedEmployee.empCode || "-"})`
+					: ""
+			}));
+
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "Functional Area Master Data",
+					columns: [
+						{ label: "FunctionalArea ID", value: "functionalAreaId" },
+						{ label: "FunctionalArea Name", value: "name" },
+						{ label: "FunctionalArea Code", value: "code" },
+						{ label: "Parent FunctionalArea", value: "parentFunctionalArea" },
+						{ label: "Department", value: "department" },
+						{ label: "SBU", value: "sbu" },
+						{ label: "BU", value: "bu" },
+						{ label: "Company", value: "company" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" }
+					],
+					content: finalData
+				}
+			];
+
+			const settings = {
+				fileName: `FunctionalArea_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx"
+				}
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			res.attachment(`FunctionalArea_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+
+	async exportJobLevelMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"jobLevelId",
+					"jobLevelName",
+					"jobLevelCode",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"]
+					},
+					{
+						model: db.jobLevelMapping, // Join jobLevelMapping
+						include: [
+							{
+								model: db.companyMaster, // Join companyMaster through jobLevelMapping
+								attributes: ["companyName", "companyCode"]
+							},
+							{
+								model: db.bandMaster, // Join bandMaster through jobLevelMapping
+								attributes: ["bandCode"]
+							},
+							{
+								model: db.gradeMaster, // Join gradeMaster through jobLevelMapping
+								attributes: ["gradeName", "gradeCode"]
+							}
+						]
+					}
+				],
+				order: [["jobLevelId", "ASC"]]
+			};
+
+			let jobLevelData = await db.jobLevelMaster.findAll(aggregate);
+			// console.log(JSON.stringify(jobLevelData, null, 2));
+
+			let finalData = jobLevelData.map(jobLevel => ({
+				jobLevelId: jobLevel.jobLevelId,
+				name: jobLevel.jobLevelName,
+				code: jobLevel.jobLevelCode,
+				company: jobLevel.joblevelmapping?.companymaster
+					? `${jobLevel.joblevelmapping.companymaster.companyName} (${jobLevel.joblevelmapping.companymaster.companyCode || "-"})`
+					: "-",
+				band: jobLevel.joblevelmapping?.bandmaster
+					? jobLevel.joblevelmapping.bandmaster.bandCode || "-"
+					: "-",
+				grade: jobLevel.joblevelmapping?.grademaster
+					? `${jobLevel.joblevelmapping.grademaster.gradeName}`
+					: "-",
+				status: jobLevel.isActive ? "Active" : "Inactive",
+				createdAt: jobLevel.createdAt ? moment(jobLevel.createdAt).format("DD-MM-YYYY") : "",
+				updatedAt: jobLevel.updatedAt ? moment(jobLevel.updatedAt).format("DD-MM-YYYY") : "",
+				createdBy: jobLevel.createdEmployee
+					? `${jobLevel.createdEmployee.name || ""} (${jobLevel.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: jobLevel.updatedEmployee
+					? `${jobLevel.updatedEmployee.name || ""} (${jobLevel.updatedEmployee.empCode || "-"})`
+					: "-"
+			}));
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "JobLevel Master Data",
+					columns: [
+						{ label: "JobLevel ID", value: "jobLevelId" },
+						{ label: "JobLevel Name", value: "name" },
+						{ label: "JobLevel Code", value: "code" },
+						{ label: "Grade", value: "grade" },
+						{ label: "Band", value: "band" },
+						{ label: "Company", value: "company" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" }
+					],
+					content: finalData
+				}
+			];
+
+			const settings = {
+				fileName: `JobLevel_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx"
+				}
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			res.attachment(`JobLevel_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+	//ritak export master data end
 
 	// close class
 }
