@@ -55,26 +55,51 @@ export default Express.Router()
 		masterExportController.sperationApprovedHistory,
 	)
 	.get("/shiftAndWeekOff", masterExportController.shiftAndWeekOff)
-	
-	.get("/separationWorkflow",authentication.authenticate, masterExportController.separationWorkflow)
 
-	.get("/attendanceAssignment",authentication.authenticate, masterExportController.attendanceAssignment)
+	.get(
+		"/separationWorkflow",
+		authentication.authenticate,
+		masterExportController.separationWorkflow,
+	)
 
-	.get("/pendingAttendanceRequest",authentication.authenticate, masterExportController.pendingAttendanceRequest)
+	.get(
+		"/attendanceAssignment",
+		authentication.authenticate,
+		masterExportController.attendanceAssignment,
+	)
 
-	.get("/approvedAttendanceRequest",authentication.authenticate, masterExportController.approvedAttendanceRequest)
+	.get(
+		"/pendingAttendanceRequest",
+		authentication.authenticate,
+		masterExportController.pendingAttendanceRequest,
+	)
 
-	.get("/familyDetails",authentication.authenticate, masterExportController.familyDetails)
+	.get(
+		"/approvedAttendanceRequest",
+		authentication.authenticate,
+		masterExportController.approvedAttendanceRequest,
+	)
 
-	.get("/LeaveBalance",authentication.authenticate, masterExportController.LeaveBalance)
+	.get(
+		"/familyDetails",
+		authentication.authenticate,
+		masterExportController.familyDetails,
+	)
 
-	.get("/pendingLeave",authentication.authenticate, masterExportController.pendingLeave)
+	.get(
+		"/LeaveBalance",
+		authentication.authenticate,
+		masterExportController.LeaveBalance,
+	)
 
-	.get("/leaveTaken",authentication.authenticate, masterExportController.leaveTaken);
+	.get(
+		"/pendingLeave",
+		authentication.authenticate,
+		masterExportController.pendingLeave,
+	)
 
-
-
-
-
-
-
+	.get(
+		"/leaveTaken",
+		authentication.authenticate,
+		masterExportController.leaveTaken,
+	);
