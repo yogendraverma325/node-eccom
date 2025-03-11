@@ -54,4 +54,27 @@ export default Express.Router()
 		authentication.authenticate,
 		masterExportController.sperationApprovedHistory,
 	)
-	.get("/shiftAndWeekOff", masterExportController.shiftAndWeekOff);
+	.get("/shiftAndWeekOff", masterExportController.shiftAndWeekOff)
+	
+	.get("/separationWorkflow",authentication.authenticate, masterExportController.separationWorkflow)
+
+	.get("/attendanceAssignment",authentication.authenticate, masterExportController.attendanceAssignment)
+
+	.get("/pendingAttendanceRequest",authentication.authenticate, masterExportController.pendingAttendanceRequest)
+
+	.get("/approvedAttendanceRequest",authentication.authenticate, masterExportController.approvedAttendanceRequest)
+
+	.get("/familyDetails",authentication.authenticate, masterExportController.familyDetails)
+
+	.get("/LeaveBalance",authentication.authenticate, masterExportController.LeaveBalance)
+
+	.get("/pendingLeave",authentication.authenticate, masterExportController.pendingLeave)
+
+	.get("/leaveTaken",authentication.authenticate, masterExportController.leaveTaken);
+
+
+
+
+
+
+
