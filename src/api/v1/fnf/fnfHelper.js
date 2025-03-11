@@ -313,8 +313,6 @@ async function arrectLOP(componentAmount, lopDays, totalWorkingdays) {
 // 	console.log(gratuityMinYears ," gratuityMinYears")
 // 	console.log(gratuityYears ," gratuityYears")
 
-
-
 // 	let gratuityAmountToCalculate = 0;
 // 	for (const element of basicAmount) {
 // 		if (element.isGratuityApplicable == 1) {
@@ -354,26 +352,23 @@ async function arrectLOP(componentAmount, lopDays, totalWorkingdays) {
 // 	}
 // }
 
-async function calculateGratuity(
-	payMonthlyElements,
-	gratuityYears,
-) {
+async function calculateGratuity(payMonthlyElements, gratuityYears) {
 	let employeejobdetails = await db.employeeMaster.findOne({
 		where: { id: payMonthlyElements[0].empId },
 		raw: true,
 		include: [
 			{
 				model: db.jobDetails,
-				attributes: ["dateOfJoining",],
+				attributes: ["dateOfJoining"],
 				as: "employeeJobDetails",
 			},
 		],
-		attributes: ["dateOfExit",],
-		nest:true
+		attributes: ["dateOfExit"],
+		nest: true,
 	});
-	let dateOfJoining=employeejobdetails.employeeJobDetails.dateOfJoining;
-	let dateOfExit=employeejobdetails.dateOfExit;
-	let gratuityMinYears=5;
+	let dateOfJoining = employeejobdetails.employeeJobDetails.dateOfJoining;
+	let dateOfExit = employeejobdetails.dateOfExit;
+	let gratuityMinYears = 5;
 	let gratuityAmountToCalculate = 0;
 	for (const element of payMonthlyElements) {
 		if (element.isGratuityApplicable == 1) {

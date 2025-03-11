@@ -3801,9 +3801,7 @@ class PaymentController {
 
 	async exportSampleV2(req, res) {
 		try {
-			const {
-				exportSheetAutoId,
-			} = req.query;
+			const { exportSheetAutoId } = req.query;
 
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
@@ -3844,17 +3842,18 @@ class PaymentController {
 			let arr = [];
 			// Fetch salary structure details if salalryStructureAutoId is provided
 			if ([5].includes(Number(exportSheetAutoId))) {
-
 				const salaryStructure = await db.salaryStructure.findOne({
 					where: { isActive: 1 },
-					order: [['createdAt', 'DESC']],
-					attributes:['salaryStructureAutoId'],
-					raw:true
-				  });
+					order: [["createdAt", "DESC"]],
+					attributes: ["salaryStructureAutoId"],
+					raw: true,
+				});
 				const getComponentAutoIds =
 					await db.salarystructurecomponentmapping.findAll({
 						attributes: ["salaryComponentAutoId"],
-						where: { salaryStructureAutoId: salaryStructure.salaryStructureAutoId },
+						where: {
+							salaryStructureAutoId: salaryStructure.salaryStructureAutoId,
+						},
 						include: [
 							{
 								model: db.salaryComponent,
@@ -3905,7 +3904,7 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			}else{
+			} else {
 				return res.status(404).json({
 					message: "No active columns found for the given sheet",
 				});
