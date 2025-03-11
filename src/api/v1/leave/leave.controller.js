@@ -696,6 +696,10 @@ class LeaveController {
 									},
 									include: [
 										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+										{
 											model: db.employeeMaster,
 											attributes: ["name", "email"],
 											include: [
@@ -725,6 +729,10 @@ class LeaveController {
 								managerName:
 									leaveTransactionDetails["employee.managerData.name"],
 								requesterName: leaveTransactionDetails["employee.name"],
+								senderEmail:
+									leaveTransactionDetails["employee.companymaster.senderEmail"],
+								companyLogo:
+									leaveTransactionDetails["employee.companymaster.companyLogo"],
 							};
 							eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 						}
@@ -812,6 +820,10 @@ class LeaveController {
 								attributes: ["name", "email"],
 								include: [
 									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
+									},
+									{
 										model: db.employeeMaster,
 										as: "managerData",
 										attributes: ["name"],
@@ -835,6 +847,10 @@ class LeaveController {
 					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
 					managerName: leaveTransactionDetails["employee.managerData.name"],
 					requesterName: leaveTransactionDetails["employee.name"],
+					senderEmail:
+						leaveTransactionDetails["employee.companymaster.senderEmail"],
+					companyLogo:
+						leaveTransactionDetails["employee.companymaster.companyLogo"],
 				};
 				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 			}
@@ -2435,7 +2451,6 @@ class LeaveController {
 			let workingDay = parseFloat(this.workingday) || 0;
 
 			if (minConsecutiveDay > 0 && workingDay < minConsecutiveDay) {
-				console.log("all set jhhj");
 				return respHelper(res, {
 					status: 404,
 					data: {},
@@ -2877,6 +2892,10 @@ class LeaveController {
 				attributes: ["name", "email"],
 				include: [
 					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+					{
 						model: db.employeeMaster,
 						as: "managerData",
 						attributes: ["name", "email"],
@@ -2890,13 +2909,13 @@ class LeaveController {
 				attributes: ["leaveName"],
 			});
 
-			const recipientsEmail = await db.employeeMaster.findAll({
-				raw: true,
-				where: {
-					id: result.recipientsIds.split(","),
-				},
-				attributes: ["email"],
-			});
+			// const recipientsEmail = await db.employeeMaster.findAll({
+			// 	raw: true,
+			// 	where: {
+			// 		id: result.recipientsIds.split(","),
+			// 	},
+			// 	attributes: ["email"],
+			// });
 
 			eventEmitter.emit(
 				"leaveRequestMail",
@@ -2908,7 +2927,9 @@ class LeaveController {
 					leaveType: leaveType.dataValues.leaveName,
 					managerName: employeeData.dataValues.managerData.name,
 					managerEmail: employeeData.dataValues.managerData.email,
-					cc: recipientsEmail.map((user) => user.email).join(","),
+					senderEmail: employeeData.dataValues.companymaster.senderEmail,
+					companyLogo: employeeData.dataValues.companymaster.companyLogo,
+					// cc: recipientsEmail.map((user) => user.email).join(","),
 				}),
 			);
 
@@ -2991,6 +3012,10 @@ class LeaveController {
 						attributes: ["name"],
 						include: [
 							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+							{
 								model: db.employeeMaster,
 								as: "managerData",
 								attributes: ["name", "email"],
@@ -3007,6 +3032,8 @@ class LeaveController {
 				leaveType: `${employeeData["leaveMasterDetails.leaveName"]} (${employeeData["leaveMasterDetails.leaveCode"]})`,
 				fromDate: employeeData.fromDate,
 				toDate: employeeData.toDate,
+				senderEmail: employeeData["employee.companymaster.senderEmail"],
+				companyLogo: employeeData["employee.companymaster.companyLogo"],
 			};
 
 			eventEmitter.emit("revokeLeaveRequest", JSON.stringify(obj));
@@ -4098,6 +4125,11 @@ class LeaveController {
 			const pageNo = req.query.page * 1 || 1;
 			const offset = (pageNo - 1) * limit;
 			const search = req.query.search || null;
+			const usersData = req.userData;
+			const permissoinArray = await helper.fetchpermissoinAndAcessForEMP(
+				usersData.permissionAndAccess,
+				usersData.role_id,
+			);
 
 			const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({
 				where: Object.assign(
@@ -4125,6 +4157,19 @@ class LeaveController {
 									{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
 								],
 							}),
+							...(usersData.role_id === 4 || usersData.role_id === 5
+								? {
+										...(permissoinArray.COMPANY.length > 0 && {
+											companyId: { [Op.in]: permissoinArray.COMPANY },
+										}),
+										...(permissoinArray.BU.length > 0 && {
+											buId: { [Op.in]: permissoinArray.BU },
+										}),
+										...(permissoinArray.SBU.length > 0 && {
+											sbuId: { [Op.in]: permissoinArray.SBU },
+										}),
+									}
+								: null),
 						},
 					},
 					{
@@ -5360,6 +5405,10 @@ class LeaveController {
 						},
 						include: [
 							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+							{
 								model: db.employeeMaster,
 								attributes: ["name", "email"],
 								include: [
@@ -5387,6 +5436,10 @@ class LeaveController {
 					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
 					managerName: actionTaker ? actionTaker.name : "",
 					requesterName: leaveTransactionDetails["employee.name"],
+					senderEmail:
+						leaveTransactionDetails["employee.companymaster.senderEmail"],
+					companyLogo:
+						leaveTransactionDetails["employee.companymaster.companyLogo"],
 				};
 				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 			}

@@ -779,6 +779,10 @@ class AttendanceController {
 						attributes: ["name", "email"],
 						include: [
 							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+							{
 								model: db.employeeMaster,
 								required: false,
 								as: "managerData",
@@ -881,6 +885,10 @@ class AttendanceController {
 					userRemark: result.remark,
 					managerName: attendanceData.dataValues.employee.managerData.name,
 					managerEmail: attendanceData.dataValues.employee.managerData.email,
+					senderEmail:
+						attendanceData.dataValues.employee.companymaster.senderEmail,
+					companyLogo:
+						attendanceData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
 
@@ -1909,6 +1917,10 @@ class AttendanceController {
 									attributes: ["attendancePolicyId", "name", "email"],
 									include: [
 										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+										{
 											model: db.employeeMaster,
 											as: "managerData",
 											attributes: ["name"],
@@ -2084,6 +2096,14 @@ class AttendanceController {
 					managerName:
 						regularizeData["attendancemaster.employee.managerData.name"],
 					requesterName: regularizeData["attendancemaster.employee.name"],
+					senderEmail:
+						regularizeData[
+							"attendancemaster.employee.companymaster.senderEmail"
+						],
+					companyLogo:
+						regularizeData[
+							"attendancemaster.employee.companymaster.companyLogo"
+						],
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
 			}
@@ -2172,6 +2192,10 @@ class AttendanceController {
 									attributes: ["empCode", "name", "email"],
 									include: [
 										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+										{
 											model: db.employeeMaster,
 											as: "managerData",
 											attributes: ["empCode", "name", "email"],
@@ -2212,15 +2236,6 @@ class AttendanceController {
 						},
 					},
 				);
-
-				console.log(
-					"regularizeData.dataValues.attendancemaster.attendanceAutoId",
-					regularizeData.dataValues.attendancemaster.attendanceAutoId,
-				);
-				console.log(
-					"regularizeData.dataValues.attendancemaster.attendanceDate",
-					regularizeData.dataValues.attendancemaster.attendanceDate,
-				);
 				_this.attedanceCronManual(
 					regularizeData.dataValues.attendancemaster.attendanceAutoId,
 					regularizeData.dataValues.attendancemaster.attendanceDate,
@@ -2238,6 +2253,12 @@ class AttendanceController {
 						email:
 							regularizeData.dataValues.attendancemaster.employee.managerData
 								.email,
+						senderEmail:
+							regularizeData.dataValues.attendancemaster.employee.companymaster
+								.senderEmail,
+						companyLogo:
+							regularizeData.dataValues.attendancemaster.employee.companymaster
+								.companyLogo,
 					}),
 				);
 			}
@@ -4739,6 +4760,11 @@ class AttendanceController {
 			const offset = (pageNo - 1) * limit;
 
 			const query = req.query.listFor;
+			const usersData = req.userData;
+			const permissoinArray = await helper.fetchpermissoinAndAcessForEMP(
+				usersData.permissionAndAccess,
+				usersData.role_id,
+			);
 
 			const regularizeList = await db.regularizationMaster.findAndCountAll({
 				where: Object.assign(
@@ -4759,6 +4785,7 @@ class AttendanceController {
 				include: [
 					{
 						model: db.attendanceMaster,
+						required: true,
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
@@ -4766,6 +4793,7 @@ class AttendanceController {
 							{
 								model: db.employeeMaster,
 								attributes: ["empCode", "name"],
+								required: true,
 								where: {
 									...(search && {
 										[Op.or]: [
@@ -4773,6 +4801,19 @@ class AttendanceController {
 											{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
 										],
 									}),
+									...(usersData.role_id === 4 || usersData.role_id === 5
+										? {
+												...(permissoinArray.COMPANY.length > 0 && {
+													companyId: { [Op.in]: permissoinArray.COMPANY },
+												}),
+												...(permissoinArray.BU.length > 0 && {
+													buId: { [Op.in]: permissoinArray.BU },
+												}),
+												...(permissoinArray.SBU.length > 0 && {
+													sbuId: { [Op.in]: permissoinArray.SBU },
+												}),
+											}
+										: null),
 								},
 							},
 						],
@@ -4823,6 +4864,10 @@ class AttendanceController {
 									model: db.employeeMaster,
 									attributes: ["attendancePolicyId", "name", "email"],
 									include: [
+										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
 										{
 											model: db.employeeMaster,
 											as: "managerData",
@@ -4997,6 +5042,14 @@ class AttendanceController {
 					toDate: regularizeData.regularizePunchOutDate,
 					managerName: actionTaker ? actionTaker.name : "",
 					requesterName: regularizeData["attendancemaster.employee.name"],
+					senderEmail:
+						regularizeData[
+							"attendancemaster.employee.companymaster.senderEmail"
+						],
+					companyLogo:
+						regularizeData[
+							"attendancemaster.employee.companymaster.companyLogo"
+						],
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
 			}

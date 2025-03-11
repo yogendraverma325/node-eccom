@@ -1845,6 +1845,12 @@ class commonController {
 					isActive: 1,
 				},
 				attributes: ["name", "empCode", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
 			});
 			if (result.status == 0) {
 				const objForRejction = {
@@ -1871,6 +1877,8 @@ class commonController {
 						fields: "Account NumberReq,Swift/IFSC code",
 						status: "Rejected",
 						comment: result.comment == undefined || "" ? "" : result.comment,
+						senderEmail: existUser["companymaster.senderEmail"],
+						companyLogo: existUser["companymaster.companyLogo"],
 					}),
 				);
 				return respHelper(res, {
@@ -1915,6 +1923,8 @@ class commonController {
 							fields: "",
 							status: "Approved",
 							comment: result.comment == undefined || "" ? "" : result.comment,
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
 						}),
 					);
 					return respHelper(res, {

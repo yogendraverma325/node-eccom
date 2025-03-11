@@ -847,7 +847,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -1288,7 +1288,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -2869,7 +2869,7 @@ class MasterController {
 			const usersData = req.userData;
 
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -3656,7 +3656,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -3961,7 +3961,7 @@ class MasterController {
 					{
 						sheet: "Employee",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Name", value: "name" },
 							{ label: "Job Title", value: "jobTitle" },
 							{ label: "Department", value: "department" },
@@ -4049,7 +4049,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -4452,7 +4452,7 @@ class MasterController {
 					{
 						sheet: "Employee",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Name", value: "name" },
 							{ label: "Job Title", value: "jobTitle" },
 							{ label: "Department", value: "department" },
@@ -4574,8 +4574,8 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
-				fromDate,
-				toDate,
+				startDate,
+				endDate,
 				companyId,
 			} = req.query;
 
@@ -4587,7 +4587,7 @@ class MasterController {
 			let companyFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -4789,10 +4789,10 @@ class MasterController {
 					{
 						model: db.separationMaster,
 						where: {
-							...(fromDate &&
-								toDate && {
+							...(startDate &&
+								endDate && {
 									resignationDate: {
-										[db.Sequelize.Op.between]: [fromDate, toDate],
+										[db.Sequelize.Op.between]: [startDate, endDate],
 									},
 								}),
 						},
@@ -5047,7 +5047,7 @@ class MasterController {
 					{
 						sheet: "Employee",
 						columns: [
-							{ label: "Employee Id", value: "empCode" },
+							{ label: "Employee ID", value: "empCode" },
 							{ label: "Name", value: "name" },
 							{ label: "Job Title", value: "jobTitle" },
 							{ label: "Department", value: "department" },
@@ -5227,6 +5227,2037 @@ class MasterController {
 			console.error(error);
 			return respHelper(res, {
 				status: 500,
+			});
+		}
+	}
+
+	async separationWorkflow(req, res) {
+		try {
+			const {
+				search,
+				department,
+				designation,
+				buSearch,
+				sbuSearch,
+				areaSearch,
+			} = req.query;
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			}
+
+			const taskData = await db.separationInitiatedTask.findAll({
+				attributes: [
+					"resignationAutoId",
+					"initiatedTaskAutoId",
+					"taskAutoId",
+					"status",
+					"createdDt",
+					"updatedBy",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						required: true,
+						attributes: ["empCode", "name", "buId", "companyId"],
+						include: [
+							{ model: db.designationMaster, attributes: ["name", "code"] },
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+							},
+							{
+								model: db.separationMaster,
+								required: true,
+								where: {
+									resignationAutoId: db.Sequelize.col(
+										"separationinitiatedtask.resignationAutoId",
+									),
+								},
+								attributes: [
+									"resignationAutoId",
+									"resignationDate",
+									"l2LastWorkingDay",
+									"noticePeriodLastWorkingDay",
+								],
+							},
+							{ model: db.buMaster, attributes: ["buName", "buCode"] },
+							{
+								model: db.buMaster,
+								attributes: ["buName"],
+								where: {
+									...buFIlter,
+								},
+								required: true,
+							},
+						],
+					},
+					{
+						model: db.separationTaskMaster,
+						attributes: ["taskAutoId", "taskName", "taskCode", "mappingData"],
+					},
+					{ model: db.employeeMaster, attributes: ["name", "empCode"] },
+				],
+			});
+
+			let formattedData = [];
+
+			for (const task of taskData) {
+				let buhrData = "";
+				const regex = /^(10|[1-9])(,(10|[1-9]))*$/;
+
+				if (task.separationtaskmaster?.mappingData == "COMPANY,BU") {
+					const headAndHrData = await db.buMapping.findOne({
+						where: {
+							buId: task.employee?.buId,
+							companyId: task.employee?.companyId,
+						},
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["name", "empCode"],
+								as: "buhrData",
+							},
+						],
+					});
+
+					if (headAndHrData && headAndHrData.buhrData) {
+						buhrData = `${headAndHrData.buhrData.name} (${headAndHrData.buhrData.empCode})`;
+					}
+				} else if (task.separationtaskmaster?.mappingData == "ME") {
+					buhrData =
+						task.employee?.name && task.employee?.empCode
+							? `${task.employee.name} (${task.employee.empCode})`
+							: task.employee?.name || task.employee?.empCode || "";
+				} else if (
+					task.separationtaskmaster?.mappingData &&
+					task.separationtaskmaster.mappingData
+						.split(",")
+						.every((id) => !isNaN(id.trim()))
+				) {
+					let empIds = task.separationtaskmaster.mappingData
+						.split(",")
+						.map((id) => Number(id.trim())); // Convert to numbers
+
+					if (empIds.length > 0) {
+						const employees = await db.employeeMaster.findAll({
+							attributes: ["name", "empCode"],
+							where: { id: { [Op.in]: empIds } },
+							raw: true,
+						});
+
+						buhrData = employees
+							.map((emp) => `${emp.name} (${emp.empCode})`)
+							.join(", ");
+					} else {
+						buhrData = "";
+					}
+				}
+
+				formattedData.push({
+					Employee_Code: task.employee?.empCode || "",
+					Employee_Name: task.employee?.name || "",
+					Job_Title: task.employee?.designationmaster?.name
+						? `${task.employee.designationmaster.name} (${task.employee.designationmaster.code})`
+						: "",
+					Department: task.employee?.departmentmaster?.departmentName
+						? `${task.employee.departmentmaster.departmentName} (${task.employee.departmentmaster.departmentCode})`
+						: "",
+					Resignation_Date: task.employee?.separationmaster?.resignationDate
+						? moment(task.employee.separationmaster.resignationDate).format(
+								"DD-MM-YYYY",
+							)
+						: "",
+					Last_Working_Day: task.employee?.separationmaster
+						?.noticePeriodLastWorkingDay
+						? moment(
+								task.employee.separationmaster.noticePeriodLastWorkingDay,
+							).format("DD-MM-YYYY")
+						: "",
+					Task_Name: task.separationtaskmaster?.taskName || "",
+					Task_Code: task.separationtaskmaster?.taskCode || "",
+					Task_Status: task.status == 0 ? "Pending" : "Completed",
+					Business_Unit: task.employee?.bumaster?.buName || "",
+					ConfiguredTaskTriggerDate:
+						moment(task.createdDt).format("DD-MM-YYYY") || "",
+					ActualTaskTriggerDate:
+						moment(task.createdDt).format("DD-MM-YYYY") || "",
+					TaskCompletedBy:
+						task.initiateUpdatedBy?.name && task.initiateUpdatedBy?.empCode
+							? `${task.initiateUpdatedBy.name} (${task.initiateUpdatedBy.empCode})`
+							: "",
+					TaskCompletionDate: task.updatedAt
+						? moment(task.updatedAt).format("DD-MM-YYYY")
+						: "",
+					TransactionDate: moment(task.createdDt).format("DD-MM-YYYY") || "",
+					taskAutoId: task.taskAutoId,
+					Task_Holder: buhrData,
+				});
+			}
+
+			if (formattedData.length > 0) {
+				const timestamp = moment().format("HH:mm");
+				const data = [
+					{
+						sheet: "Separation Workflow",
+						columns: [
+							{ label: "Employees ID", value: "Employee_Code" },
+							{ label: "Name", value: "Employee_Name" },
+							{ label: "Job Title", value: "Job_Title" },
+							{ label: "Department", value: "Department" },
+							{ label: "Business Unit", value: "Business_Unit" },
+							{ label: "Date Of Resignation", value: "Resignation_Date" },
+							{ label: "Last Working Day", value: "Last_Working_Day" },
+							{ label: "Task Name", value: "Task_Name" },
+							{ label: "Task Holder", value: "Task_Holder" },
+							{
+								label: "Configured Task Trigger Date",
+								value: "ConfiguredTaskTriggerDate",
+							},
+							{
+								label: "Actual Task Trigger Date",
+								value: "ActualTaskTriggerDate",
+							},
+							{ label: "Task Status", value: "Task_Status" },
+							{ label: "Task Complete By", value: "TaskCompletedBy" },
+							{ label: "Task Completion Date", value: "TaskCompletionDate" },
+							{ label: "Transaction Date", value: "TransactionDate" },
+						],
+						content: formattedData,
+					},
+				];
+				const settings = {
+					fileName: `Separation_Workflow_${timestamp}`,
+					extraLength: 3,
+					writeOptions: { type: "buffer", bookType: "xlsx" },
+				};
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=Separation Workflow.xlsx`,
+				);
+				res.end(report);
+			}
+		} catch (error) {
+			console.error("Error:", error);
+			res.status(500).json({
+				message: "An error occurred while exporting separation workflow data",
+			});
+		}
+	}
+
+	async attendanceAssignment(req, res) {
+		try {
+			const {
+				search,
+				department,
+				designation,
+				buSearch,
+				sbuSearch,
+				areaSearch,
+				grade,
+				attendanceFor,
+				employeeType,
+				businessUnit,
+				companyLocation,
+			} = req.query;
+
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			}
+
+			employeeDataExisting = await db.employeeMaster.findAll({
+				attributes: [
+					"id",
+					"empCode",
+					"name",
+					"email",
+					"personalEmail",
+					"firstName",
+					"lastName",
+					"officeMobileNumber",
+					"buId",
+					"companyId",
+					"personalMobileNumber",
+					"drivingLicence",
+					"passportNumber",
+					"lastIncrementDate",
+					"iqTestApplicable",
+					"positionType",
+					"newCustomerName",
+					"recruiterName",
+					"dataCardAdmin",
+					"visitingCardAdmin",
+					"workstationAdmin",
+					"dateOfexit",
+					"isActive",
+					"offRoleCTC",
+					"ESICPFDeduction",
+					"isLoginActive",
+				],
+				where: {
+					//empCode: "18950",
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+					...(department && {
+						departmentId: { [Op.in]: department.split(",") },
+					}),
+					...(companyLocation && {
+						companyLocationId: { [Op.in]: companyLocation.split(",") },
+					}),
+				},
+				include: [
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+						where: {
+							...designationFIlter,
+						},
+						required: false,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...departmentFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
+						where: {
+							...buFIlter,
+						},
+						required: true,
+					},
+					{ model: db.shiftMaster, attributes: ["shiftName"] },
+					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
+					{ model: db.weekOffMaster, attributes: ["weekOffName"] },
+				],
+			});
+
+			const arr = [];
+			for (let i = 0; i < employeeDataExisting.length; i++) {
+				const ele = employeeDataExisting[i];
+				const data = {
+					id: ele.dataValues.id || "",
+					empCode: ele.dataValues.empCode || "",
+					name: ele.dataValues.name || "",
+					email: ele.dataValues.email || "",
+					personalEmail: ele.dataValues.personalEmail || "",
+					firstName: ele.dataValues.firstName || "",
+					lastName: ele.dataValues.lastName || "",
+					officeMobileNumber: ele.dataValues.officeMobileNumber || "",
+					designation_name: ele.dataValues.designationmaster
+						? `${ele.dataValues.designationmaster.name || ""} (${
+								ele.dataValues.designationmaster.code || ""
+							})`.trim()
+						: "",
+					designation_code: ele.dataValues.designationmaster?.code || "",
+					department_name: ele.dataValues.departmentmaster?.departmentName
+						? `${ele.dataValues.departmentmaster.departmentName} (${ele.dataValues.departmentmaster.departmentCode || ""})`
+						: "",
+					bu_name: ele.dataValues.bumaster?.buName || "",
+					shiftName: ele.shiftsmaster?.shiftName || "",
+					attendancePolicymaster: ele.attendancePolicymaster?.policyName || "",
+					weekOffMaster: ele.weekOffMaster?.weekOffName || "",
+					isLoginActive: ele.dataValues.isLoginActive == 1 ? "Yes" : "No",
+				};
+
+				arr.push(data);
+			}
+
+			if (arr.length > 0) {
+				const timestamp = moment().format("h:mm A");
+
+				const data = [
+					{
+						sheet: "Employee Assignment",
+						columns: [
+							{ label: "Employee ID", value: "empCode" },
+							{ label: "Name", value: "name" },
+							{ label: "Job Title", value: "designation_name" },
+							{ label: "Department", value: "department_name" },
+							{ label: "Business Unit", value: "bu_name" },
+							{ label: "Shift Name", value: "shiftName" },
+							{ label: "Policy Name", value: "attendancePolicymaster" },
+							{ label: "Weekly Off Name", value: "weekOffMaster" },
+							{ label: "Is Punch In/Out allowed", value: "isLoginActive" },
+						],
+						content: arr,
+					},
+				];
+
+				const settings = {
+					fileName: `Employee_Master_${timestamp}`,
+					extraLength: 3,
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx",
+					},
+				};
+
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=Employee Assignment.xlsx`,
+				);
+				res.end(report);
+			} else {
+				res.status(404).json({
+					message: "Data not found",
+				});
+			}
+		} catch (error) {
+			console.error("Error:", error);
+			res.status(500).json({
+				message: "An error occurred while exporting employee master data",
+			});
+		}
+	}
+
+	async pendingAttendanceRequest(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+			} = req.query;
+
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			}
+			const attendanceData = await db.attendanceMaster.findAll({
+				attributes: [
+					"attendanceDate",
+					"attendanceStatus",
+					"attendancePresentStatus",
+					"attendancePunchInLocation",
+					"attendancePunchOutLocation",
+					"attendancePunchInTime",
+					"attendancePunchOutTime",
+					"attendancePunchInRemark",
+					"attendancePunchOutRemark",
+					"attendancePunchInLocationType",
+					"attendancePunchOutLocationType",
+					"punchInSource",
+					"punchOutSource",
+					"createdBy",
+					"createdAt",
+					"updatedBy",
+					"updatedAt",
+				],
+				where: {
+					attendanceDate: {
+						[db.Sequelize.Op.between]: [startDate, endDate],
+					},
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "empCode"],
+						where: {
+							// isActive: 1,
+							// attendanceFor,
+							companyId: companyId,
+							...(attendanceFor == 0 && { isActive: 0 }),
+							...(attendanceFor == 1 && { isActive: 1 }),
+							...(attendanceFor == 2 && { isActive: [0, 1] }),
+							...(search && { id: { [Op.in]: search.split(",") } }),
+							...(employeeType && {
+								employeeType: { [Op.in]: employeeType.split(",") },
+							}),
+							...(businessUnit && {
+								buId: { [Op.in]: businessUnit.split(",") },
+							}),
+							...(department && {
+								departmentId: { [Op.in]: department.split(",") },
+							}),
+							...(companyLocation && {
+								companyLocationId: { [Op.in]: companyLocation.split(",") },
+							}),
+						},
+						include: [
+							{
+								model: db.departmentMaster,
+								attributes: [
+									"departmentId",
+									"departmentName",
+									"departmentCode",
+								],
+								where: {
+									...departmentFIlter,
+								},
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+							},
+							{
+								model: db.jobDetails,
+								attributes: ["jobId"],
+								where: {
+									...(grade && { gradeId: { [Op.in]: grade.split(",") } }),
+								},
+								include: [
+									{
+										model: db.gradeMaster,
+										attributes: ["gradeName"],
+									},
+								],
+							},
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								required: false,
+								where: {
+									...buFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								required: false,
+								where: {
+									...sbbuFIlter,
+								},
+							},
+							{
+								model: db.functionalAreaMaster,
+								attributes: ["functionalAreaName", "functionalAreaCode"],
+								required: false,
+							},
+							{
+								model: db.employeeMaster,
+								required: false,
+								as: "managerData",
+								attributes: ["id", "name", "email", "empCode"],
+							},
+						],
+					},
+					{
+						model: db.regularizationMaster,
+						where: { regularizeStatus: "Pending" },
+						as: "latest_Regularization_Request",
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["name", "empCode"],
+							},
+						],
+						//limit: 1,
+						order: [["createdAt", "desc"]],
+						required: true,
+					},
+				],
+				raw: true,
+			});
+
+			if (attendanceData.length > 0) {
+				const simplifiedData = await Promise.all(
+					attendanceData.map(async (record) => ({
+						employeeCode: record["employee.empCode"],
+						employeeName: record["employee.name"],
+						buName:
+							record["employee.bumaster.buName"] +
+							" " +
+							"(" +
+							record["employee.bumaster.buCode"] +
+							")",
+						departmentName:
+							record["employee.departmentmaster.departmentName"] +
+							" " +
+							"(" +
+							record["employee.departmentmaster.departmentCode"] +
+							")",
+						designationName:
+							record["employee.designationmaster.name"] +
+							" " +
+							"(" +
+							record["employee.designationmaster.code"] +
+							")",
+						//regularizePunchInDate:record["latest_Regularization_Request.regularizePunchInDate"],
+						regularizePunchInDate: record[
+							"latest_Regularization_Request.regularizePunchInDate"
+						]
+							? moment(
+									record["latest_Regularization_Request.regularizePunchInDate"],
+								).format("DD-MM-YYYY")
+							: "",
+						// regularizePunchOutDate:record["latest_Regularization_Request.regularizePunchOutDate"],
+						regularizePunchOutDate: record[
+							"latest_Regularization_Request.regularizePunchOutDate"
+						]
+							? moment(
+									record[
+										"latest_Regularization_Request.regularizePunchOutDate"
+									],
+								).format("DD-MM-YYYY")
+							: "",
+						regularizeUserRemark:
+							record["latest_Regularization_Request.regularizeUserRemark"],
+						regularizePunchInTime:
+							record["latest_Regularization_Request.regularizePunchInTime"],
+						regularizePunchOutTime:
+							record["latest_Regularization_Request.regularizePunchOutTime"],
+						regularizeReason:
+							record["latest_Regularization_Request.regularizeReason"],
+						//createdAt:record["latest_Regularization_Request.createdAt"],
+						createdAt: record["latest_Regularization_Request.createdAt"]
+							? moment(
+									record["latest_Regularization_Request.createdAt"],
+								).format("DD-MM-YYYY HH:mm:ss")
+							: "",
+						requestType: "Attendance Request",
+						managerName:
+							record["latest_Regularization_Request.employee.name"] +
+							" " +
+							"(" +
+							record["latest_Regularization_Request.employee.empCode"] +
+							")",
+						attestationStatus: "N/A",
+						status: record["latest_Regularization_Request.regularizeStatus"],
+					})),
+				);
+
+				if (simplifiedData.length > 0) {
+					const timestamp = Date.now();
+					const data = [
+						{
+							sheet: "Pending Attendance Report",
+							columns: [
+								{ label: "Employee ID", value: "employeeCode" },
+								{ label: "Name", value: "employeeName" },
+								{ label: "Job Title", value: "designationName" },
+								{ label: "Department", value: "departmentName" },
+								{ label: "Business Unit", value: "buName" },
+								{ label: "Request From Date", value: "regularizePunchInDate" },
+								{ label: "Request To Date", value: "regularizePunchOutDate" },
+								{ label: "Clockin", value: "regularizePunchInTime" },
+								{ label: "Clockout", value: "regularizePunchOutTime" },
+								{ label: "Applied On", value: "createdAt" },
+								{ label: "Pending With", value: "managerName" },
+								{ label: "Request Type", value: "requestType" },
+								{ label: "Reason", value: "regularizeReason" },
+								{ label: "Status", value: "status" },
+								{ label: "Remark", value: "regularizeUserRemark" },
+							],
+							content: simplifiedData,
+						},
+					];
+
+					let settings = {
+						writeOptions: {
+							type: "buffer",
+							bookType: "xlsx",
+						},
+					};
+					const buffer = xlsx(data, settings);
+					res.writeHead(200, {
+						"Content-Type": "application/octet-stream",
+						"Content-disposition": `attachment; filename=Pending Attendance Report.xlsx`,
+					});
+					res.end(buffer);
+				}
+			} else {
+				return respHelper(res, {
+					status: 404,
+					message: "Data not availble for available dates",
+				});
+			}
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
+
+	async approvedAttendanceRequest(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+			} = req.query;
+
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						//role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				});
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue);
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue);
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue);
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue);
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue);
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			}
+			const attendanceData = await db.attendanceMaster.findAll({
+				attributes: [
+					"attendanceDate",
+					"attendanceStatus",
+					"attendancePresentStatus",
+					"attendancePunchInLocation",
+					"attendancePunchOutLocation",
+					"attendancePunchInTime",
+					"attendancePunchOutTime",
+					"attendancePunchInRemark",
+					"attendancePunchOutRemark",
+					"attendancePunchInLocationType",
+					"attendancePunchOutLocationType",
+					"punchInSource",
+					"punchOutSource",
+					"createdBy",
+					"createdAt",
+					"updatedBy",
+					"updatedAt",
+				],
+				where: {
+					attendanceDate: {
+						[db.Sequelize.Op.between]: [startDate, endDate],
+					},
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "empCode"],
+						where: {
+							companyId: companyId,
+							...(attendanceFor == 0 && { isActive: 0 }),
+							...(attendanceFor == 1 && { isActive: 1 }),
+							...(attendanceFor == 2 && { isActive: [0, 1] }),
+							...(search && { id: { [Op.in]: search.split(",") } }),
+							...(employeeType && {
+								employeeType: { [Op.in]: employeeType.split(",") },
+							}),
+							...(businessUnit && {
+								buId: { [Op.in]: businessUnit.split(",") },
+							}),
+							...(department && {
+								departmentId: { [Op.in]: department.split(",") },
+							}),
+							...(companyLocation && {
+								companyLocationId: { [Op.in]: companyLocation.split(",") },
+							}),
+						},
+						include: [
+							{
+								model: db.departmentMaster,
+								attributes: [
+									"departmentId",
+									"departmentName",
+									"departmentCode",
+								],
+								where: {
+									...departmentFIlter,
+								},
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+							},
+							{
+								model: db.jobDetails,
+								attributes: ["jobId"],
+								where: {
+									...(grade && { gradeId: { [Op.in]: grade.split(",") } }),
+								},
+								include: [
+									{
+										model: db.gradeMaster,
+										attributes: ["gradeName"],
+									},
+								],
+							},
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								required: false,
+								where: {
+									...buFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								required: false,
+								where: {
+									...sbbuFIlter,
+								},
+							},
+							{
+								model: db.functionalAreaMaster,
+								attributes: ["functionalAreaName", "functionalAreaCode"],
+								required: false,
+							},
+							{
+								model: db.employeeMaster,
+								required: false,
+								as: "managerData",
+								attributes: ["id", "name", "email", "empCode"],
+							},
+						],
+					},
+					{
+						model: db.regularizationMaster,
+						where: { regularizeStatus: "Approved" },
+						as: "latest_Regularization_Request",
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["name", "empCode"],
+							},
+						],
+						//limit: 1,
+						order: [["createdAt", "desc"]],
+						required: true,
+					},
+				],
+				raw: true,
+			});
+
+			if (attendanceData.length > 0) {
+				const simplifiedData = await Promise.all(
+					attendanceData.map(async (record) => ({
+						employeeCode: record["employee.empCode"],
+						employeeName: record["employee.name"],
+						buName:
+							record["employee.bumaster.buName"] +
+							" " +
+							"(" +
+							record["employee.bumaster.buCode"] +
+							")",
+						departmentName:
+							record["employee.departmentmaster.departmentName"] +
+							" " +
+							"(" +
+							record["employee.departmentmaster.departmentCode"] +
+							")",
+						designationName:
+							record["employee.designationmaster.name"] +
+							" " +
+							"(" +
+							record["employee.designationmaster.code"] +
+							")",
+						//regularizePunchInDate:record["latest_Regularization_Request.regularizePunchInDate"],
+						regularizePunchInDate: record[
+							"latest_Regularization_Request.regularizePunchInDate"
+						]
+							? moment(
+									record["latest_Regularization_Request.regularizePunchInDate"],
+								).format("DD-MM-YYYY")
+							: "",
+						// regularizePunchOutDate:record["latest_Regularization_Request.regularizePunchOutDate"],
+						regularizePunchOutDate: record[
+							"latest_Regularization_Request.regularizePunchOutDate"
+						]
+							? moment(
+									record[
+										"latest_Regularization_Request.regularizePunchOutDate"
+									],
+								).format("DD-MM-YYYY")
+							: "",
+						regularizeUserRemark:
+							record["latest_Regularization_Request.regularizeUserRemark"] ||
+							"",
+						regularizePunchInTime:
+							record["latest_Regularization_Request.regularizePunchInTime"],
+						regularizePunchOutTime:
+							record["latest_Regularization_Request.regularizePunchOutTime"],
+						regularizeReason:
+							record["latest_Regularization_Request.regularizeReason"],
+						//createdAt:record["latest_Regularization_Request.createdAt"],
+						createdAt: record["latest_Regularization_Request.createdAt"]
+							? moment(
+									record["latest_Regularization_Request.createdAt"],
+								).format("DD-MM-YYYY HH:mm:ss")
+							: "",
+						updatedAt: record["latest_Regularization_Request.updatedAt"]
+							? moment(
+									record["latest_Regularization_Request.updatedAt"],
+								).format("DD-MM-YYYY HH:mm:ss")
+							: "",
+						requestType: "Attendance Request",
+						managerName:
+							record["latest_Regularization_Request.employee.name"] +
+							" " +
+							"(" +
+							record["latest_Regularization_Request.employee.empCode"] +
+							")",
+						attestationStatus: "N/A",
+						status: record["latest_Regularization_Request.regularizeStatus"],
+						regularizeManagerRemark:
+							record["latest_Regularization_Request.regularizeManagerRemark"] ||
+							"",
+					})),
+				);
+
+				if (simplifiedData.length > 0) {
+					const timestamp = Date.now();
+					const data = [
+						{
+							sheet: "Pending Attendance Report",
+							columns: [
+								{ label: "Employee ID", value: "employeeCode" },
+								{ label: "Name", value: "employeeName" },
+								{ label: "Job Title", value: "designationName" },
+								{ label: "Department", value: "departmentName" },
+								{ label: "Business Unit", value: "buName" },
+								{ label: "Request From Date", value: "regularizePunchInDate" },
+								{ label: "Request To Date", value: "regularizePunchOutDate" },
+								{ label: "Clockin", value: "regularizePunchInTime" },
+								{ label: "Clockout", value: "regularizePunchOutTime" },
+								{ label: "Applied On", value: "createdAt" },
+								{ label: "Approved On", value: "updatedAt" },
+								{ label: "Approved By", value: "managerName" },
+								{ label: "Request Type", value: "requestType" },
+								{ label: "Approver Comment", value: "regularizeManagerRemark" },
+								{ label: "Reason", value: "regularizeReason" },
+								{ label: "Status", value: "status" },
+								{ label: "Remark", value: "regularizeUserRemark" },
+							],
+							content: simplifiedData,
+						},
+					];
+
+					let settings = {
+						writeOptions: {
+							type: "buffer",
+							bookType: "xlsx",
+						},
+					};
+					const buffer = xlsx(data, settings);
+					res.writeHead(200, {
+						"Content-Type": "application/octet-stream",
+						"Content-disposition": `attachment; filename=Approved Attendance Report.xlsx`,
+					});
+					res.end(buffer);
+				}
+			} else {
+				return respHelper(res, {
+					status: 404,
+					message: "Data not availble for available dates",
+				});
+			}
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
+
+	async familyDetails(req, res) {
+		try {
+			const {
+				search,
+				department,
+				businessUnit,
+				employeeType,
+				companyLocation,
+				sbuSearch,
+				areaSearch,
+				attendanceFor,
+				companyId,
+			} = req.query;
+
+			let buFIlter = {};
+			let sbbuFIlter = {};
+			let functionAreaFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						//role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const sbuArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "SBU")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+				if (sbuArrayForFilter.length > 0) {
+					sbbuFIlter.sbuId = {
+						///appedning SBU to filter
+						[Op.in]: sbuArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+				const funcareaArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "FUNCAREA")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (funcareaArrayForFilter.length > 0) {
+					functionAreaFIlter.functionalAreaId = {
+						///appedning SBU to filter
+						[Op.in]: funcareaArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			}
+
+			const employeeData = await db.employeeMaster.findAndCountAll({
+				attributes: ["empCode", "firstName", "lastName"],
+				where: {
+					companyId: companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+					...(department && {
+						departmentId: { [Op.in]: department.split(",") },
+					}),
+					...(companyLocation && {
+						companyLocationId: { [Op.in]: companyLocation.split(",") },
+					}),
+				},
+				include: [
+					{
+						model: db.buMaster,
+						attributes: ["buName", "buCode"],
+						where: {
+							...buFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...departmentFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.familyDetails,
+						attributes: [
+							"name",
+							"dob",
+							"gender",
+							"mobileNo",
+							"relationWithEmp",
+						],
+						as: "employeefamilydetails",
+					},
+				],
+			});
+
+			let familyDetails = [];
+
+			// Extract family details from employee records
+			employeeData.rows.forEach((employee) => {
+				employee.employeefamilydetails.forEach((family) => {
+					const extractedFamily = {
+						empCode: employee.empCode || "",
+						name: `${employee.firstName} ${employee.lastName}`.trim(),
+						familyName: family.name || "",
+						dob: family.dob || "",
+						gender: family.gender || "",
+						mobileNo: family.mobileNo || "",
+						relationWithEmp: family.relationWithEmp || "",
+					};
+					familyDetails.push(extractedFamily);
+				});
+			});
+
+			if (familyDetails.length > 0) {
+				const timestamp = Date.now();
+				const data = [
+					{
+						sheet: "Family Report",
+						columns: [
+							{ label: "Employee ID", value: "empCode" },
+							{ label: "Employee Name", value: "name" },
+							{ label: "Full Name", value: "familyName" },
+							{ label: "Date of Birth", value: "dob" },
+							{ label: "Relation", value: "relationWithEmp" },
+							{ label: "Gender", value: "gender" },
+							{ label: "Mobile Number", value: "mobileNo" },
+						],
+						content: familyDetails,
+					},
+				];
+
+				let settings = {
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx",
+					},
+				};
+
+				const buffer = xlsx(data, settings);
+				res.writeHead(200, {
+					"Content-Type": "application/octet-stream",
+					"Content-disposition": `attachment; filename=Family Details Report.xlsx`,
+				});
+				res.end(buffer);
+			} else {
+				return res.status(404).json({
+					status: false,
+					message: "No family details found.",
+					data: familyDetails,
+				});
+			}
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
+
+	async LeaveBalance(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+			} = req.query;
+
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+			console.log("filersss>>", filters);
+			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
+				attributes: ["leaveAutoId"],
+				where: { companyId: companyId },
+				raw: true,
+			});
+
+			const companyMappedLeaveIds = companyMappedLeaves.map(
+				(l) => l.leaveAutoId,
+			);
+
+			const employees = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "name"],
+				where: {
+					isActive: 1,
+					companyId: companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+					...(department && {
+						departmentId: { [Op.in]: department.split(",") },
+					}),
+					...(companyLocation && {
+						companyLocationId: { [Op.in]: companyLocation.split(",") },
+					}),
+				},
+				include: [
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...filters.departmentFIlter,
+						},
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+					},
+					{
+						model: db.buMaster,
+						attributes: ["buName", "buCode"],
+						where: {
+							...filters.buFIlter,
+						},
+					},
+					{
+						model: db.sbuMaster,
+						attributes: ["sbuname", "code"],
+						where: {
+							...filters.sbbuFIlter,
+						},
+					},
+				],
+				raw: true,
+				nest: true,
+			});
+
+			const leaveMasterList = await db.leaveMaster.findAll({
+				attributes: ["leaveId", "leaveName", "leaveCode"],
+				where: { leaveId: { [Op.in]: companyMappedLeaveIds } },
+				raw: true,
+			});
+
+			let leaveMasterDetails = {};
+			let uniqueLeaveTypes = new Set();
+			leaveMasterList.forEach((leave) => {
+				const leaveColumnName = `${leave.leaveName} (${leave.leaveCode})`;
+				leaveMasterDetails[leave.leaveId] = leaveColumnName;
+				uniqueLeaveTypes.add(leaveColumnName);
+			});
+
+			const allLeaveMappings = await db.leaveMapping.findAll({
+				attributes: ["EmployeeId", "leaveAutoId", "availableLeave"],
+				where: { EmployeeId: { [Op.in]: employees.map((emp) => emp.id) } },
+				raw: true,
+			});
+
+			const leaveMappingData = {};
+			allLeaveMappings.forEach(
+				({ EmployeeId, leaveAutoId, availableLeave }) => {
+					if (!leaveMappingData[EmployeeId]) {
+						leaveMappingData[EmployeeId] = {};
+					}
+					leaveMappingData[EmployeeId][leaveMasterDetails[leaveAutoId]] =
+						availableLeave || "0";
+				},
+			);
+
+			const employeesData = employees.map((emp) => {
+				let leaveBalanceMap = leaveMappingData[emp.id] || {};
+
+				companyMappedLeaveIds.forEach((leaveId) => {
+					const leaveColumnName = leaveMasterDetails[leaveId];
+					if (leaveColumnName && !leaveBalanceMap[leaveColumnName]) {
+						leaveBalanceMap[leaveColumnName] = "N/A";
+					}
+				});
+
+				return {
+					employeeCode: emp.empCode,
+					name: emp.name,
+					departmentName: emp.departmentmaster
+						? `${emp.departmentmaster.departmentName} (${emp.departmentmaster.departmentCode})`
+						: "N/A",
+					designationName: emp.designationmaster
+						? `${emp.designationmaster.name} (${emp.designationmaster.code})`
+						: "N/A",
+					buName: emp.bumaster
+						? `${emp.bumaster.buName} (${emp.bumaster.buCode})`
+						: "N/A",
+					...leaveBalanceMap,
+				};
+			});
+
+			if (employeesData.length === 0) {
+				return res
+					.status(404)
+					.json({ status: false, message: "No data found" });
+			}
+
+			const leaveColumns = [...uniqueLeaveTypes].map((leaveColumnName) => ({
+				label: leaveColumnName,
+				value: (row) => row[leaveColumnName] || "N/A",
+			}));
+
+			const data = [
+				{
+					sheet: "Leave Balance Report",
+					columns: [
+						{ label: "Employee ID", value: "employeeCode" },
+						{ label: "Name", value: "name" },
+						{ label: "Job Title", value: "designationName" },
+						{ label: "Department", value: "departmentName" },
+						{ label: "Business Unit", value: "buName" },
+						...leaveColumns,
+					],
+					content: employeesData,
+				},
+			];
+
+			let settings = { writeOptions: { type: "buffer", bookType: "xlsx" } };
+			const buffer = xlsx(data, settings);
+
+			res.writeHead(200, {
+				"Content-Type": "application/octet-stream",
+				"Content-disposition": `attachment; filename=Leave Balance Report.xlsx`,
+			});
+			res.end(buffer);
+		} catch (error) {
+			console.error("Error in LeaveBalance API:", error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
+
+	async pendingLeave(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+			} = req.query;
+
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+
+			const getPendingLeave = await db.EmployeeLeaveHeader.findAll({
+				attributes: ["leaveCount", "reason", "appliedOn", "fromDate", "toDate"],
+				where: { status: "pending" },
+				include: [
+					{
+						model: db.employeeLeaveTransactions,
+						attributes: ["appliedFor"],
+						where: {
+							appliedFor: {
+								[db.Sequelize.Op.between]: [startDate, endDate],
+							},
+						},
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+						where: {
+							companyId: companyId,
+							...(attendanceFor == 0 && { isActive: 0 }),
+							...(attendanceFor == 1 && { isActive: 1 }),
+							...(attendanceFor == 2 && { isActive: [0, 1] }),
+							...(search && { id: { [Op.in]: search.split(",") } }),
+							...(employeeType && {
+								employeeType: { [Op.in]: employeeType.split(",") },
+							}),
+							...(businessUnit && {
+								buId: { [Op.in]: businessUnit.split(",") },
+							}),
+							...(department && {
+								departmentId: { [Op.in]: department.split(",") },
+							}),
+							...(companyLocation && {
+								companyLocationId: { [Op.in]: companyLocation.split(",") },
+							}),
+						},
+						include: [
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.companyMaster,
+								attributes: ["companyName"],
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
+					},
+					{
+						model: db.leaveMaster,
+						attributes: ["leaveName", "leaveCode"],
+						as: "leaveMasterDetails",
+					},
+					{
+						model: db.leaveApprovalTrails,
+						where: { isVisible: 1, isPending: 1, isApproved: 0 },
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "empCode", "name"],
+							},
+						],
+						required: true,
+						limit: 1,
+					},
+				],
+			});
+			let dataForExcel = getPendingLeave.map((leave) => ({
+				"Employee Code": leave.employee?.empCode || "",
+				"Employee Name": leave.employee?.name || "",
+				BUName: leave.employee?.bumaster
+					? `${leave.employee.bumaster.buName} (${leave.employee.bumaster.buCode})`
+					: "",
+				Designation: leave.employee?.designationmaster
+					? `${leave.employee.designationmaster.name} (${leave.employee.designationmaster.code})`
+					: "",
+				Department: leave.employee?.departmentmaster
+					? `${leave.employee.departmentmaster.departmentName} (${leave.employee.departmentmaster.departmentCode})`
+					: "",
+				fromDate: leave.fromDate
+					? moment(leave.fromDate).format("DD-MM-YYYY")
+					: "",
+				toDate: leave.toDate ? moment(leave.toDate).format("DD-MM-YYYY") : "",
+				leaveCount: leave.leaveCount || 0,
+				Reason: leave.reason || "",
+				AppliedOn: leave.appliedOn
+					? moment(leave.appliedOn).format("DD-MM-YYYY")
+					: "",
+				pendingWith: leave.leaveapprovaltrails[0]?.employee
+					? `${leave.leaveapprovaltrails[0].employee.name} (${leave.leaveapprovaltrails[0].employee.empCode})`
+					: "",
+				leaveName: leave.leaveMasterDetails[0]?.leaveName || "",
+				leaveCode: leave.leaveMasterDetails[0]?.leaveCode || "",
+				appliedFor: leave.employeeleavetransactions[0].appliedFor,
+			}));
+
+			const data = [
+				{
+					sheet: "Pending Leave Report",
+					columns: [
+						{ label: "Employee ID", value: "Employee Code" },
+						{ label: "Name", value: "Employee Name" },
+						{ label: "Job Title", value: "Designation" },
+						{ label: "Department", value: "Department" },
+						{ label: "Business Unit", value: "BUName" },
+						{ label: "From", value: "fromDate" },
+						{ label: "To", value: "toDate" },
+						{ label: "Working Days", value: "leaveCount" },
+						{ label: "Leave Name", value: "leaveName" },
+						{ label: "Leave Code", value: "leaveCode" },
+						{ label: "Applied On", value: "AppliedOn" },
+						{ label: "pending With", value: "pendingWith" },
+						{ label: "Reason", value: "Reason" },
+						{ label: "appliedFor", value: "appliedFor" },
+					],
+					content: dataForExcel,
+				},
+			];
+
+			let settings = {
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const buffer = xlsx(data, settings);
+			res.writeHead(200, {
+				"Content-Type": "application/octet-stream",
+				"Content-disposition": `attachment; filename=Pending Leave Report.xlsx`,
+			});
+			res.end(buffer);
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
+
+	async leaveTaken(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+			} = req.query;
+
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+			console.log("filters", filters);
+			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
+				attributes: ["leaveAutoId"],
+				where: { companyId: companyId },
+				include: [
+					{
+						model: db.leaveMaster,
+						attributes: ["leaveName", "leaveCode"],
+						as: "companyleaveMasterDetails",
+					},
+				],
+				raw: true,
+			});
+
+			const mappedLeavesLookup = companyMappedLeaves.reduce(
+				(
+					acc,
+					{
+						leaveAutoId,
+						"companyleaveMasterDetails.leaveName": leaveName,
+						"companyleaveMasterDetails.leaveCode": leaveCode,
+					},
+				) => {
+					acc[leaveAutoId] = { leaveAutoId, leaveName, leaveCode };
+					return acc;
+				},
+				{},
+			);
+
+			const getTakenLeave = await db.employeeLeaveTransactions.findAll({
+				attributes: [
+					"employeeId",
+					"leaveAutoId",
+					[
+						db.Sequelize.fn(
+							"SUM",
+							db.Sequelize.cast(db.Sequelize.col("leaveCount"), "FLOAT"),
+						),
+						"totalLeaveCount",
+					],
+				],
+				where: {
+					status: "approved",
+					appliedFor: {
+						[db.Sequelize.Op.between]: [startDate, endDate],
+					},
+				},
+				include: [
+					{ model: db.leaveMaster, attributes: ["leaveName", "leaveCode"] },
+					{
+						model: db.employeeMaster,
+						attributes: ["name", "empCode"],
+						where: {
+							companyId: companyId,
+							...(attendanceFor == 0 && { isActive: 0 }),
+							...(attendanceFor == 1 && { isActive: 1 }),
+							...(attendanceFor == 2 && { isActive: [0, 1] }),
+							...(search && { id: { [Op.in]: search.split(",") } }),
+							...(employeeType && {
+								employeeType: { [Op.in]: employeeType.split(",") },
+							}),
+							...(businessUnit && {
+								buId: { [Op.in]: businessUnit.split(",") },
+							}),
+							...(department && {
+								departmentId: { [Op.in]: department.split(",") },
+							}),
+							...(companyLocation && {
+								companyLocationId: { [Op.in]: companyLocation.split(",") },
+							}),
+						},
+						include: [
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
+					},
+				],
+				group: ["employeeId", "leaveAutoId"],
+				raw: true,
+			});
+
+			const employeeLeaveMap = {};
+
+			for (const leave of getTakenLeave) {
+				const {
+					employeeId,
+					"employee.name": name,
+					"employee.empCode": empCode,
+					"employee.bumaster.buName": buName,
+					"employee.departmentmaster.departmentName": departmentName,
+					"employee.designationmaster.name": designationName,
+					leaveAutoId,
+					totalLeaveCount,
+				} = leave;
+
+				const assignedToEmployee = await db.leaveMapping.findAll({
+					attributes: ["leaveAutoId"],
+					where: { employeeId },
+					raw: true,
+				});
+
+				const assignedLeavesSet = new Set(
+					assignedToEmployee.map((l) => l.leaveAutoId),
+				);
+
+				if (!employeeLeaveMap[employeeId]) {
+					employeeLeaveMap[employeeId] = {
+						employeeId,
+						empCode,
+						name,
+						bu: buName || "N.A",
+						department: departmentName || "N.A",
+						designation: designationName || "N.A",
+						leave: {},
+					};
+				}
+
+				if (mappedLeavesLookup[leaveAutoId]) {
+					const { leaveCode } = mappedLeavesLookup[leaveAutoId];
+					employeeLeaveMap[employeeId].leave[leaveCode] = totalLeaveCount; // Assign actual count
+				}
+
+				assignedToEmployee.forEach(({ leaveAutoId }) => {
+					const { leaveCode } = mappedLeavesLookup[leaveAutoId] || {};
+					if (leaveCode && !(leaveCode in employeeLeaveMap[employeeId].leave)) {
+						employeeLeaveMap[employeeId].leave[leaveCode] = 0.0;
+					}
+				});
+
+				Object.values(mappedLeavesLookup).forEach(
+					({ leaveAutoId, leaveCode }) => {
+						if (!(leaveCode in employeeLeaveMap[employeeId].leave)) {
+							employeeLeaveMap[employeeId].leave[leaveCode] =
+								assignedLeavesSet.has(leaveAutoId) ? 0.0 : "N.A";
+						}
+					},
+				);
+			}
+
+			const transformedResponse = Object.values(employeeLeaveMap).map(
+				(emp) => ({
+					employeeId: emp.employeeId,
+					empCode: emp.empCode,
+					name: emp.name,
+					bu: emp.bu,
+					department: emp.department,
+					designation: emp.designation,
+					...emp.leave,
+				}),
+			);
+
+			const leaveColumns = Object.values(mappedLeavesLookup).map(
+				({ leaveName, leaveCode }) => ({
+					label: `${leaveName} (${leaveCode})`,
+					value: leaveCode,
+				}),
+			);
+
+			const data = [
+				{
+					sheet: "Taken Balance Report",
+					columns: [
+						{ label: "Employee ID", value: "empCode" },
+						{ label: "Name", value: "name" },
+						{ label: "Job Title", value: "designation" },
+						{ label: "Department", value: "department" },
+						{ label: "Business Unit", value: "bu" },
+						...leaveColumns,
+					],
+					content: transformedResponse,
+				},
+			];
+
+			let settings = { writeOptions: { type: "buffer", bookType: "xlsx" } };
+			const buffer = xlsx(data, settings);
+
+			res.writeHead(200, {
+				"Content-Type": "application/octet-stream",
+				"Content-disposition": `attachment; filename=Leave_Utilize_Report.xlsx`,
+			});
+			res.end(buffer);
+		} catch (error) {
+			console.error("Error:", error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+				error: error.message,
 			});
 		}
 	}

@@ -384,7 +384,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -402,6 +402,8 @@ class CronController {
 							moment(),
 							"days",
 						),
+						senderEmail: element.dataValues.companymaster.senderEmail,
+						companyLogo: element.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -429,7 +431,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -448,6 +450,8 @@ class CronController {
 							moment(element.dataValues.passwordExpiryDate),
 							"days",
 						),
+						senderEmail: element.dataValues.companymaster.senderEmail,
+						companyLogo: element.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -510,8 +514,6 @@ class CronController {
 					},
 				],
 			});
-
-			console.log("New Joining Employee Cron", docs.length);
 
 			if (docs.length > 0) {
 				const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();
@@ -630,6 +632,7 @@ class CronController {
 
 	///CONFIRMATION
 	async generateConfirmation() {
+		console.log("generateConfirmation is started");
 		const confimationData = await db.jobDetails.findAll({
 			where: {
 				dateOfProbationTriggerDate: {
@@ -652,6 +655,15 @@ class CronController {
 					isActive: 1,
 				},
 				include: [
+					{
+						model: db.companyMaster,
+						attributes: [
+							"senderEmail",
+							"companyLogo",
+							"letterHeader",
+							"letterFooter",
+						],
+					},
 					{
 						model: db.Confimationpolicy,
 						required: true,
@@ -757,9 +769,10 @@ class CronController {
 							message: `Pending for Confirmation By ${Singleconfimation?.employee?.name} (${Singleconfimation?.employee?.empCode})`,
 							confirmationAction: 0,
 						});
+
 						// eventEmitter.emit(
-						//   "selfReviewConfirnation",
-						//   JSON.stringify(Singleconfimation)
+						// 	"selfReviewConfirnation",
+						// 	JSON.stringify(Singleconfimation)
 						// );
 					} else {
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
@@ -900,13 +913,14 @@ class CronController {
 					singleRecords?.confirmationinitiated?.employee?.id,
 				); // EMP DATA
 
-				// eventEmitter.emit(
-				//   "confirmationSLABreachEmailBody",
-				//   JSON.stringify({
-				//     ESCALTERDATA: ESCALTERDATA,
-				//     EMP_DATA: EMP_DATA,
-				//   })
-				// );
+				eventEmitter.emit(
+					"confirmationSLABreachEmailBody",
+					JSON.stringify({
+						ESCALTERDATA: ESCALTERDATA,
+						EMP_DATA: EMP_DATA,
+						senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
+					}),
+				);
 
 				await db.Confirmationowners.update(
 					{
@@ -1217,15 +1231,16 @@ class CronController {
 					}
 				}
 
-				// eventEmitter.emit(
-				//   "confirmationLetter",
-				//   JSON.stringify({
-				//     EMP_DATA_SELF: EMP_DATA_SELF,
-				//     confirmationData: confirmationData,
-				//     signatureAuthority: signatureAuthority,
-				//     cc: cc_arrays.join(","),
-				//   })
-				// );
+				eventEmitter.emit(
+					"confirmationLetter",
+					JSON.stringify({
+						EMP_DATA_SELF: EMP_DATA_SELF,
+						confirmationData: confirmationData,
+						signatureAuthority: signatureAuthority,
+						cc: cc_arrays.join(","),
+						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+					}),
+				);
 			}
 		}
 	}
