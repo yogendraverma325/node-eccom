@@ -1013,18 +1013,18 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 		let headerInsert = await db.EmployeeLeaveHeader.create(inputData);
 
 		inputData.employeeleaveheaderID = headerInsert.employeeleaveheaderID;
-		let leaveTrails={
-		employeeId:inputData.employeeId,
-		leaveHeaderAutoId:inputData.employeeleaveheaderID,
-		level: 1,
-		approvalFlowAutoId: 1,
-		isVisible: inputData.status == "approved"?0:1,
-		pendingOn: inputData.pendingAt,
-		isApproved:inputData.status == "approved"?1:0,
-		isPending: inputData.status == "approved"?0:1,
-		isActive: 1,
-		createdAt: moment(),
-		createdBy: inputData.createdBy,
+		let leaveTrails = {
+			employeeId: inputData.employeeId,
+			leaveHeaderAutoId: inputData.employeeleaveheaderID,
+			level: 1,
+			approvalFlowAutoId: 1,
+			isVisible: inputData.status == "approved" ? 0 : 1,
+			pendingOn: inputData.pendingAt,
+			isApproved: inputData.status == "approved" ? 1 : 0,
+			isPending: inputData.status == "approved" ? 0 : 1,
+			isActive: 1,
+			createdAt: moment(),
+			createdBy: inputData.createdBy,
 		};
 
 		await db.leaveApprovalTrails.create(leaveTrails);
@@ -2795,7 +2795,7 @@ const leaveLapse = async () => {
 const leaveAssignEmployeeToAll = async (empIdsInput) => {
 	try {
 		let empIds = empIdsInput.split(",");
-		console.log("empIds",empIds)
+		console.log("empIds", empIds);
 		const employees = await db.employeeMaster.findAll({
 			attributes: ["id", "empCode", "employeeType", "companyId"],
 			where: {
@@ -2836,6 +2836,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 			],
 		});
 
+		console.log("employees",employees.length)
 		for (const employee of employees) {
 			const { gender, maritalStatus } =
 				employee.dataValues.employeebiographicaldetail;
@@ -2932,6 +2933,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					],
 				},
 			});
+			console.log("leaveMaster",leaveMaster.length)
 
 			const firstDate = moment(dateOfJoining)
 				.startOf("month")

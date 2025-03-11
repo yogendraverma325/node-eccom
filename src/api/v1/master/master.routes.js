@@ -100,4 +100,3 @@ export default Express.Router()
 	.get("/financialYear", masterController.financialYear)
 	.get("/compensationCategory", masterController.compensationCategory)
 	.get("/companyRoleAndAccess", masterController.companyRoleAndAccess);
-

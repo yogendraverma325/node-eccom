@@ -20,8 +20,6 @@ class FnfController {
 			}
 
 			let ids = value.departmentId.split(",");
-			console.log("Department ID :: " + value.departmentId);
-
 			let employeeForProcessingQuery = await fnfHelper.query(
 				value.departmentId == 0 ? 2 : 1,
 				value.processingType,
@@ -31,7 +29,8 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-			console.log(employeeForProcessingQuery);
+			// console.log(employeeForProcessingQuery);
+			// return;
 			let employeeForProcessing = await db.sequelize.query(
 				employeeForProcessingQuery,
 			);
@@ -150,7 +149,7 @@ class FnfController {
 
 					let gratuityOverrides = {
 						EmployeeId: employeeDetais.id,
-						gratuityDays: employeeTds["GRATUITY DAYS"],
+						gratuityYears: employeeTds["GRATUITY DAYS"],
 						payMonth: employeeTds["PAY Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
@@ -638,7 +637,7 @@ class FnfController {
 
 			var totalGratuityDays = 0,
 				uniqueEmployeeImpacted = 0;
-			let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityDays) AS gratuityDays from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+			let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityYears) AS gratuityYears from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
 
 			let gratuities = await db.sequelize.query(allGratuityQuery);
 
@@ -994,6 +993,7 @@ class FnfController {
 				companyId: value.companyId,
 				dateOfJoining: item.dateOfJoining,
 				dateOfexit: item.dateOfexit,
+				processType: "FnF",
 			}));
 			await db.payProcessDetails.bulkCreate(updatedArray).then((resp) => {
 				processFnf({

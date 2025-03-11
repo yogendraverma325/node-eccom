@@ -993,7 +993,7 @@ class MasterController {
 								],
 								where: {
 									...departmentFIlter,
-								},						
+								},
 							},
 							{
 								model: db.designationMaster,
@@ -1452,7 +1452,7 @@ class MasterController {
 							{
 								model: db.designationMaster,
 								attributes: ["name"],
-								required:true,
+								required: true,
 								where: {
 									...designationFIlter,
 								},
@@ -1460,7 +1460,7 @@ class MasterController {
 							{
 								model: db.departmentMaster,
 								attributes: ["departmentName", "departmentCode"],
-								required:true,
+								required: true,
 								where: {
 									...departmentFIlter,
 								},
@@ -1481,11 +1481,11 @@ class MasterController {
 								// },
 							},
 							{
-								model:db.companyMaster,
+								model: db.companyMaster,
 								// where: {
 								// 	comapanyId:comapanyId
 								// },
-							}
+							},
 						],
 					},
 					{
@@ -1575,7 +1575,7 @@ class MasterController {
 					{
 						model: db.designationMaster,
 						attributes: ["name"],
-						required:true,
+						required: true,
 						where: {
 							...designationFIlter,
 						},
@@ -1583,7 +1583,7 @@ class MasterController {
 					{
 						model: db.departmentMaster,
 						attributes: ["departmentName", "departmentCode"],
-						required:true,
+						required: true,
 						where: {
 							...departmentFIlter,
 						},
@@ -1594,12 +1594,12 @@ class MasterController {
 						attributes: ["functionalAreaName"],
 					},
 					{
-						model:db.companyMaster,
+						model: db.companyMaster,
 						// required:true,
 						// where: {
 						// 	...companyFIlter,
 						// },
-					}
+					},
 				],
 			});
 
@@ -3667,7 +3667,7 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
-				companyId
+				companyId,
 			} = req.query;
 
 			let buFIlter = {};
@@ -3784,7 +3784,7 @@ class MasterController {
 					"isActive",
 				],
 				where: {
-					companyId:companyId,
+					companyId: companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -3859,18 +3859,19 @@ class MasterController {
 						attributes: ["id", "name", "empCode", "email"],
 						as: "buhrData",
 					},
-					{ 
-					  model: db.buMaster, 
-					  attributes: ["buName"], 
-					  required: true,
-					  where: {
-						...buFIlter,
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
+						required: true,
+						where: {
+							...buFIlter,
+						},
 					},
-					},
-					{ model: db.sbuMaster,
-						 attributes: ["sbuname"], 
-						 required: true,
-						 where: {
+					{
+						model: db.sbuMaster,
+						attributes: ["sbuname"],
+						required: true,
+						where: {
 							...sbbuFIlter,
 						},
 					},
@@ -3897,11 +3898,11 @@ class MasterController {
 						model: db.noticePeriodMaster,
 					},
 					{
-					  model:db.companyMaster,
-					//   where: {
-					// 	...companyFIlter,
-					// },
-					}
+						model: db.companyMaster,
+						//   where: {
+						// 	...companyFIlter,
+						// },
+					},
 				],
 			});
 
@@ -4175,7 +4176,7 @@ class MasterController {
 					"isActive",
 				],
 				where: {
-					companyId:companyId,
+					companyId: companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -4250,20 +4251,22 @@ class MasterController {
 						attributes: ["id", "name", "empCode", "email"],
 						as: "buhrData",
 					},
-					{ model: db.buMaster, 
-						attributes: ["buName"], 
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
 						required: false,
 						where: {
 							...buFIlter,
 						},
-					 },
-					{ model: db.sbuMaster, 
-						attributes: ["sbuname"], 
+					},
+					{
+						model: db.sbuMaster,
+						attributes: ["sbuname"],
 						required: false,
 						where: {
 							...sbbuFIlter,
 						},
-					 },
+					},
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
 					{ model: db.weekOffMaster, attributes: ["weekOffName"] },
@@ -4302,11 +4305,11 @@ class MasterController {
 						model: db.noticePeriodMaster,
 					},
 					{
-						model:db.companyMaster,
-					// 	where: {
-					// 	  ...companyFIlter,
-					//   },
-					}
+						model: db.companyMaster,
+						// 	where: {
+						// 	  ...companyFIlter,
+						//   },
+					},
 				],
 			});
 
@@ -4593,9 +4596,9 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
-				startDate,
-				endDate,
-				companyId
+				fromDate,
+				toDate,
+				companyId,
 			} = req.query;
 
 			let buFIlter = {};
@@ -4711,7 +4714,7 @@ class MasterController {
 					"isActive",
 				],
 				where: {
-					companyId:companyId,
+					companyId: companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -4786,19 +4789,21 @@ class MasterController {
 						attributes: ["id", "name", "empCode", "email"],
 						as: "buhrData",
 					},
-					{ model: db.buMaster, 
-						attributes: ["buName"], 
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
 						required: true,
 						where: {
 							...buFIlter,
-						}, 
+						},
 					},
-					{ model: db.sbuMaster, 
+					{
+						model: db.sbuMaster,
 						attributes: ["sbuname"],
-						 required: false,
-						 where: {
+						required: false,
+						where: {
 							...sbbuFIlter,
-						}, 
+						},
 					},
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
@@ -4859,11 +4864,11 @@ class MasterController {
 						model: db.noticePeriodMaster,
 					},
 					{
-						model:db.companyMaster,
-					// 	where: {
-					// 	  ...companyFIlter,
-					//   },
-					}
+						model: db.companyMaster,
+						// 	where: {
+						// 	  ...companyFIlter,
+						//   },
+					},
 				],
 			});
 			const arr = await Promise.all(
