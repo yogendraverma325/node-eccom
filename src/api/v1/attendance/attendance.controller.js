@@ -2102,7 +2102,7 @@ class AttendanceController {
 						],
 					companyLogo:
 						regularizeData[
-							"attendancemasters.employee.companymaster.companyLogo"
+							"attendancemaster.employee.companymaster.companyLogo"
 						],
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
@@ -5048,7 +5048,7 @@ class AttendanceController {
 						],
 					companyLogo:
 						regularizeData[
-							"attendancemasters.employee.companymaster.companyLogo"
+							"attendancemaster.employee.companymaster.companyLogo"
 						],
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));

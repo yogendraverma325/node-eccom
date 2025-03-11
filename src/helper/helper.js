@@ -129,78 +129,10 @@ const mailService = async (data) => {
 			},
 		);
 
-		console.log(response.data);
+		console.log(`${response.data.message} -->> ${data.to}`);
 	} catch (error) {
 		console.log(error);
 	}
-
-	// try {
-	//
-	// 	const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-	// 	const configuration = pepipost.Configuration;
-	// 	const controller = pepipost.MailSendController;
-	// 	configuration.apiKey = process.env.NETCORE_API_KEY;
-
-	// 	let body = new pepipost.Send();
-	// 	body.from = new pepipost.From();
-
-	// 	body.from.email = process.env.SENDER_MAIL;
-	// 	body.from.name = process.env.SENDER_NAME;
-	// 	body.subject = data.subject;
-
-	// 	body.content = [];
-	// 	body.content[0] = new pepipost.Content();
-	// 	body.content[0].type = pepipost.TypeEnum.HTML;
-	// 	body.content[0].value = data.html;
-	// 	body.personalizations = [];
-	// 	body.personalizations[0] = new pepipost.Personalizations();
-
-	// 	console.log("Mail is Sending On --->>", data.to);
-	// 	if (data.attachments && data.attachments.length >= 1) {
-	// 		body.personalizations[0].attachments = data.attachments.map((attc) => ({
-	// 			content: Buffer.from(attc.content, "binary").toString("base64"),
-	// 			name: attc.filename,
-	// 		}));
-	// 	}
-	// 	body.personalizations[0].To = [];
-	// 	body.personalizations[0].To = new pepipost.EmailStruct();
-	// 	body.personalizations[0].To = mergeEmail(
-	// 		testMail ? testMailIDs : data.to.split(","),
-	// 	);
-
-	// 	body.personalizations[0].cc = [];
-	// 	body.personalizations[0].cc = new pepipost.EmailStruct();
-	// 	body.personalizations[0].cc = mergeEmail(
-	// 		data.cc ? (testMail ? testMailIDs : data.cc.split(",")) : [],
-	// 	);
-
-	// 	body.personalizations[0].bcc = [];
-	// 	body.personalizations[0].bcc = new pepipost.EmailStruct();
-	// 	body.personalizations[0].bcc = mergeEmail(
-	// 		data.bcc ? data.bcc.split(",") : [],
-	// 	);
-	// 	body.settings = {};
-	// 	body.settings.open_track = true;
-	// 	body.settings.click_track = true;
-	// 	body.settings.unsubscribe_track = false;
-
-	// 	const promise = await controller.createGeneratethemailsendrequest(body);
-
-	// 	console.log(promise);
-	// 	return promise;
-	// } catch (error) {
-	// 	console.log(error);
-	// }
-};
-
-const mergeEmail = (email) => {
-	let emails =
-		typeof email === "string"
-			? [{ email }]
-			: email.map((email) => {
-					return { email };
-				});
-	return emails;
 };
 
 const smsService = async (data) => {
@@ -957,60 +889,55 @@ const empMarkLeaveOfGivenDate = async function (
 			leaveType = "Full Day";
 		}
 		if (lateCase != null && workCase == null) {
-			leaveText = `Auto-requested for Leave deduction based on late duration policy.${
-				empData.name
-			} (${empData.empCode}) has clocked in late in ${
-				attendanceandOtherData.attendancemaster.attendanceLateBy
-			}
+			leaveText = `Auto-requested for Leave deduction based on late duration policy.${empData.name
+				} (${empData.empCode}) has clocked in late in ${attendanceandOtherData.attendancemaster.attendanceLateBy
+				}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationHalfDayTime,
+				)}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationFullDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationFullDayTime,
+				)}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-				inputData.toDate,
-			).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+					inputData.toDate,
+				).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
 		} else if (lateCase == null && workCase != null) {
-			leaveText = `Auto-requested for Leave because of Work duration policy.${
-				empData.name
-			} (${empData.empCode}) has worked for ${
-				attendanceandOtherData.attendancemaster.attendanceWorkingTime
-			}
+			leaveText = `Auto-requested for Leave because of Work duration policy.${empData.name
+				} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
+				}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationHalfDayTime,
+				)}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationFullDayTime,
-			)}`;
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationFullDayTime,
+				)}`;
 		} else {
 			leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
-${empData.name} (${empData.empCode}) has worked for ${
-				attendanceandOtherData.attendancemaster.attendanceWorkingTime
-			} and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
+${empData.name} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
+				} and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationHalfDayTime,
+				)}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationFullDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationFullDayTime,
+				)}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationHalfDayTime,
+				)}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationFullDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationFullDayTime,
+				)}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-				inputData.toDate,
-			).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+					inputData.toDate,
+				).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
 		}
 		inputData.source = "system_generated";
 
@@ -2367,8 +2294,8 @@ const creditCompoff = async (inputObject) => {
 							expiry_date:
 								leaveData?.lapse_in_days > 0
 									? moment()
-											.add(leaveData?.lapse_in_days, "days")
-											.format("YYYY-MM-DD")
+										.add(leaveData?.lapse_in_days, "days")
+										.format("YYYY-MM-DD")
 									: null,
 							taken_on: null,
 							createdBy: 1,
