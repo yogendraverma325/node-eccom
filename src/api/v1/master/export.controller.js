@@ -837,7 +837,9 @@ class MasterController {
 				department,
 				companyLocation,
 				attendanceFor,
-				companyId
+				companyId,
+				managerId,
+				reporteIds
 			} = req.query;
 			let buFIlter = {};
 			let sbbuFIlter = {};
@@ -960,6 +962,10 @@ class MasterController {
 							// isActive: 1,
 							// attendanceFor,
 							companyId:companyId,
+							...(managerId && { manager:managerId }),
+							...(reporteIds && {
+								id: { [Op.in]: reporteIds.split(",") },
+							}),
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
 							...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -1245,7 +1251,7 @@ class MasterController {
 					const buffer = xlsx(data, settings);
 					res.writeHead(200, {
 						"Content-Type": "application/octet-stream",
-						"Content-disposition": `attachment; filename=attendance_${timestamp}.xlsx`,
+						"Content-disposition": `attachment; filename=Attendance Punch In/Out${timestamp}.xlsx`,
 					});
 					res.end(buffer);
 				}
@@ -1278,8 +1284,10 @@ class MasterController {
 				companyLocation,
 				attendanceFor,
 				companyId,
+				managerId,
+				reporteIds
 			} = req.query;
-			
+			console.log("reporteIds",reporteIds)
 			let buFIlter = {};
 			let sbbuFIlter = {};
 			let functionAreaFIlter = {};
@@ -1397,6 +1405,10 @@ class MasterController {
 							// isActive: 1,
 							//id:5074,
 							companyId:companyId,
+							...(managerId && { manager:managerId }),
+							...(reporteIds && {
+								id: { [Op.in]: reporteIds.split(",") },
+							}),
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
 							...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -1497,6 +1509,10 @@ class MasterController {
 					// isActive: 1,
 					//id:5074,
 					companyId:companyId,
+					...(managerId && { manager:managerId }),
+					...(reporteIds && {
+						id: { [Op.in]: reporteIds.split(",") },
+					}),
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -2071,7 +2087,7 @@ class MasterController {
 						// if (currentDay.isBefore(today)) {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
-
+                   console.log("currentDay.isAfter",employeeRecord.dateOfexit)
 					if (
 						currentDay.isAfter(
 							moment(employeeRecord.dateOfexit).format("YYYY-MM-DD"),
@@ -2156,7 +2172,7 @@ class MasterController {
 
 				res.writeHead(200, {
 					"Content-Type": "application/octet-stream",
-					"Content-disposition": `attachment; filename=attendance_1_${timestamp}.xlsx`,
+					"Content-disposition": `attachment; filename=Attendance Summary_${timestamp}.xlsx`,
 				});
 				return res.end(buffer);
 			} else {
@@ -2857,7 +2873,9 @@ class MasterController {
 				employeeType,
 				businessUnit,
 				companyLocation,
-				companyId
+				companyId,
+				managerId,
+				reporteIds
 			} = req.query;
 
 			let buFIlter = {};
@@ -2980,6 +2998,10 @@ class MasterController {
 				where: {
 					//empCode: "18950",
 					companyId:companyId,
+					...(managerId && { manager:managerId }),
+					...(reporteIds && {
+						id: { [Op.in]: reporteIds.split(",") },
+					}),
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -6548,7 +6570,9 @@ class MasterController {
 			department,
 			companyLocation,
 			attendanceFor,
-			companyId
+			companyId,
+			managerId,
+			reporteIds
 		 } = req.query;
 
 		 const usersData = req.userData;
@@ -6567,6 +6591,10 @@ class MasterController {
 			where: { 
 				isActive: 1, 
 				companyId: companyId,
+				...(managerId && { manager:managerId }),
+				...(reporteIds && {
+					id: { [Op.in]: reporteIds.split(",") },
+				}),
 				...(attendanceFor == 0 && { isActive: 0 }),
 				...(attendanceFor == 1 && { isActive: 1 }),
 				...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -6722,7 +6750,9 @@ class MasterController {
 			department,
 			companyLocation,
 			attendanceFor,
-			companyId
+			companyId,
+			managerId,
+			reporteIds
 		 } = req.query;
 
 		 const usersData = req.userData;
@@ -6746,6 +6776,10 @@ class MasterController {
 			  attributes: ["id", "empCode", "name"],
 			  where:{
 				companyId:companyId,
+				...(managerId && { manager:managerId }),
+				...(reporteIds && {
+					id: { [Op.in]: reporteIds.split(",") },
+				}),
 				...(attendanceFor == 0 && { isActive: 0 }),
 				...(attendanceFor == 1 && { isActive: 1 }),
 				...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -6896,7 +6930,9 @@ class MasterController {
 				department,
 				companyLocation,
 				attendanceFor,
-				companyId
+				companyId,
+				managerId,
+				reporteIds
 			 } = req.query;
 	
 			 const usersData = req.userData;
@@ -6943,6 +6979,10 @@ class MasterController {
 						attributes: ["name", "empCode"],
 						where:{
 						companyId:companyId,
+						...(managerId && { manager:managerId }),
+						...(reporteIds && {
+							id: { [Op.in]: reporteIds.split(",") },
+						}),
 						...(attendanceFor == 0 && { isActive: 0 }),
 						...(attendanceFor == 1 && { isActive: 1 }),
 						...(attendanceFor == 2 && { isActive: [0, 1] }),
