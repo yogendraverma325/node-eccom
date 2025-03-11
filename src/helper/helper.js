@@ -3430,6 +3430,50 @@ const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
 		COMPANY: comapnyArrayForFilter,
 	};
 };
+const getFiltersByPermission = async (roleId, permissionAndAccess) => {
+	let filters = {
+		buFIlter: {},
+		sbbuFIlter: {},
+		functionAreaFIlter: {},
+		departmentFIlter: {},
+		designationFIlter: {},
+	};
+
+	if (roleId === 4 || roleId === 5) {
+		let permissionAssignTousers = permissionAndAccess
+			? permissionAndAccess.split(",").map(Number)
+			: [];
+
+		let permissionRecords = await db.permissoinandaccess.findAll({
+			where: {
+				isActive: 1,
+				permissoinandaccessId: { [Op.in]: permissionAssignTousers },
+			},
+		});
+
+		const filterMapping = {
+			BU: "buFIlter",
+			SBU: "sbbuFIlter",
+			DEPARTMENT: "departmentFIlter",
+			FUNCAREA: "functionAreaFIlter",
+			DESIGNATION: "designationFIlter",
+		};
+
+		Object.keys(filterMapping).forEach((type) => {
+			const filterValues = permissionRecords
+				.filter((obj) => obj.permissionType === type)
+				.map((obj) => obj.permissionValue);
+
+			if (filterValues.length > 0) {
+				filters[filterMapping[type]][`${type.toLowerCase()}Id`] = {
+					[Op.in]: filterValues,
+				};
+			}
+		});
+	}
+
+	return filters;
+};
 
 export default {
 	generateJwtToken,
@@ -3483,4 +3527,5 @@ export default {
 	//LEAVE ASSIGNMENT
 	smsService,
 	fetchpermissoinAndAcessForEMP,
+	getFiltersByPermission,
 };
