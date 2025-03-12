@@ -618,6 +618,7 @@ class CronController {
 							today: today,
 							current: current,
 							yesterday: yesterday,
+							senderEmail: 'automailer@teamcomputers.com'
 						}),
 					);
 				});
