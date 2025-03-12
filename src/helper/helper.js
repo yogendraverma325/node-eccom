@@ -107,7 +107,7 @@ const mailService = async (data) => {
 
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
-			to: testMail ? testMailIDs : data.to,
+			to: testMail ? testMailIDs : data.to.split(","),
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
