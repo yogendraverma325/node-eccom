@@ -151,6 +151,12 @@ class AdminController {
 				where: {
 					empCode: result.employeeCode,
 				},
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
 			});
 
 			const newPassword = await helper.generateRandomPassword();
@@ -169,11 +175,17 @@ class AdminController {
 				},
 			);
 
+			console.log("sender mail", existUser["companymaster.senderEmail"]);
+
+			console.log("logo", existUser["companymaster.companyLogo"]);
+
 			eventEmitter.emit(
 				"resetPasswordMail",
 				JSON.stringify({
 					password: newPassword,
 					email: existUser.email,
+					senderEmail: existUser["companymaster.senderEmail"],
+					companyLogo: existUser["companymaster.companyLogo"],
 				}),
 			);
 
@@ -764,6 +776,12 @@ class AdminController {
 				const employeeOnboardingDetails =
 					await db.employeeStagingMaster.findOne({
 						where: { id: selectedUsers[i] },
+						include: [
+							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo"],
+							},
+						],
 					});
 				if (employeeOnboardingDetails) {
 					let query = {
@@ -1023,6 +1041,10 @@ class AdminController {
 										firstName: employeeOnboardingDetails.firstName,
 										empCode: empCode,
 										password: password,
+										senderEmail:
+											employeeOnboardingDetails.companymaster.senderEmail,
+										companyLogo:
+											employeeOnboardingDetails.companymaster.companyLogo,
 									}),
 								);
 

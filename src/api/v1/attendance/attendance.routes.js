@@ -38,7 +38,5 @@ export default Express.Router()
 		"/uploadAttendanceRoster",
 		upload.single("attendanceroster"),
 		attendanceController.uploadAttendanceRoster,
-	)
-	//Attendance Roster
-
-	.get("/generateLeaveTrail", attendanceController.generateLeaveTrail);
+	);
+//Attendance Roster

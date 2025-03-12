@@ -175,6 +175,15 @@ import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
 
 //////////////////End F&F by jay/////////////////
 
+///////////////////Import Models By Himanshu////////
+
+import ImportInfo from "../api/model/ImportInfo.js";
+import ImportData from "../api/model/ImportData.js";
+///////////////////Import Models By Himanshu////////
+
+
+
+
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -399,6 +408,13 @@ db.noticeRecoveryOverrides = NoticeRecoveryOverrides(sequelize, Sequelize);
 db.ExtraBenefits = ExtraBenefits(sequelize, Sequelize);
 
 //////////////////Payroll///////////////////
+
+//////////////////////////////Import Models By Himanshu////////
+
+db.ImportInfo = ImportInfo(sequelize,Sequelize);
+db.ImportData = ImportData(sequelize,Sequelize);
+
+
 
 db.DesignationEmploymentHistory = DesignationEmploymentHistory(
 	sequelize,
@@ -1788,9 +1804,31 @@ db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 	sourceKey: "pendingOn",
 });
 
+db.regularizationMaster.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "regularizeManagerId"
+});
+
+db.employeeLeaveTransactions.hasMany(db.leaveMaster, {
+	foreignKey: "leaveId",
+	sourceKey: "leaveAutoId"
+});
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",
 // 	sourceKey: "pendingOn",
 // })
+db.ImportInfo.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as:"importByDetails"
+});
+
+db.ImportInfo.hasMany(db.ImportData, {
+	foreignKey: "importAutoId",
+	sourceKey: "importAutoId",
+	as:"importedData"
+});
+
+
 
 export default db;

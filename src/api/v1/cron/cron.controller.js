@@ -1,4 +1,5 @@
-import { Op, fn, col } from "sequelize";
+/* eslint-disable no-undef */
+import { Op } from "sequelize";
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
@@ -7,8 +8,9 @@ import fs from "fs";
 import logger from "../../../helper/logger.js";
 import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
-import emailTemplate from "../../../email/emailTemplate.js";
-import html_to_pdf from "html-pdf-node";
+import attendanceController from "../attendance/attendance.controller.js";
+import { NodeSSH } from "node-ssh";
+import Sequelize from "sequelize";
 
 class CronController {
 	async updateAttendance() {
@@ -380,7 +382,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -398,6 +400,8 @@ class CronController {
 							moment(),
 							"days",
 						),
+						senderEmail: element.dataValues.companymaster.senderEmail,
+						companyLogo: element.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -425,7 +429,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -444,6 +448,8 @@ class CronController {
 							moment(element.dataValues.passwordExpiryDate),
 							"days",
 						),
+						senderEmail: element.dataValues.companymaster.senderEmail,
+						companyLogo: element.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -506,8 +512,6 @@ class CronController {
 					},
 				],
 			});
-
-			console.log("New Joining Employee Cron", docs.length);
 
 			if (docs.length > 0) {
 				const sheetName = `uploads/temp/NewJoinEmployee_${today}`; //+ dt.getTime();
@@ -614,6 +618,7 @@ class CronController {
 							today: today,
 							current: current,
 							yesterday: yesterday,
+							senderEmail: "automailer@teamcomputers.com",
 						}),
 					);
 				});
@@ -626,6 +631,7 @@ class CronController {
 
 	///CONFIRMATION
 	async generateConfirmation() {
+		console.log("generateConfirmation is started");
 		const confimationData = await db.jobDetails.findAll({
 			where: {
 				dateOfProbationTriggerDate: {
@@ -648,6 +654,15 @@ class CronController {
 					isActive: 1,
 				},
 				include: [
+					{
+						model: db.companyMaster,
+						attributes: [
+							"senderEmail",
+							"companyLogo",
+							"letterHeader",
+							"letterFooter",
+						],
+					},
 					{
 						model: db.Confimationpolicy,
 						required: true,
@@ -753,9 +768,10 @@ class CronController {
 							message: `Pending for Confirmation By ${Singleconfimation?.employee?.name} (${Singleconfimation?.employee?.empCode})`,
 							confirmationAction: 0,
 						});
+
 						// eventEmitter.emit(
-						//   "selfReviewConfirnation",
-						//   JSON.stringify(Singleconfimation)
+						// 	"selfReviewConfirnation",
+						// 	JSON.stringify(Singleconfimation)
 						// );
 					} else {
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
@@ -770,11 +786,11 @@ class CronController {
 						});
 
 						// eventEmitter.emit(
-						//   "confirmationWorkflowNextLevel",
-						//   JSON.stringify({
-						//     ESCALTERDATA: ESCALTERDATA,
-						//     EMP_DATA: EMP_DATA_SELF,
-						//   })
+						// 	"confirmationWorkflowNextLevel",
+						// 	JSON.stringify({
+						// 		ESCALTERDATA: ESCALTERDATA,
+						// 		EMP_DATA: EMP_DATA_SELF,
+						// 	})
 						// );
 					}
 
@@ -896,13 +912,14 @@ class CronController {
 					singleRecords?.confirmationinitiated?.employee?.id,
 				); // EMP DATA
 
-				// eventEmitter.emit(
-				//   "confirmationSLABreachEmailBody",
-				//   JSON.stringify({
-				//     ESCALTERDATA: ESCALTERDATA,
-				//     EMP_DATA: EMP_DATA,
-				//   })
-				// );
+				eventEmitter.emit(
+					"confirmationSLABreachEmailBody",
+					JSON.stringify({
+						ESCALTERDATA: ESCALTERDATA,
+						EMP_DATA: EMP_DATA,
+						senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
+					}),
+				);
 
 				await db.Confirmationowners.update(
 					{
@@ -1213,15 +1230,17 @@ class CronController {
 					}
 				}
 
-				// eventEmitter.emit(
-				//   "confirmationLetter",
-				//   JSON.stringify({
-				//     EMP_DATA_SELF: EMP_DATA_SELF,
-				//     confirmationData: confirmationData,
-				//     signatureAuthority: signatureAuthority,
-				//     cc: cc_arrays.join(","),
-				//   })
-				// );
+				eventEmitter.emit(
+					"confirmationLetter",
+					JSON.stringify({
+						EMP_DATA_SELF: EMP_DATA_SELF,
+						confirmationData: confirmationData,
+						signatureAuthority: signatureAuthority,
+						cc: cc_arrays.join(","),
+						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+						companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+					}),
+				);
 			}
 		}
 	}
@@ -1807,6 +1826,142 @@ class CronController {
 					},
 				},
 			);
+		}
+	}
+
+	async biometricAttendance() {
+		try {
+			const ssh = new NodeSSH();
+			const sshConfig = Object.assign(
+				{
+					host: process.env.SSH_HOST,
+					port: process.env.SSH_PORT,
+					username: process.env.SSH_USERNAME,
+				},
+				parseInt(process.env.SSH_LOGIN_WITH_KEY)
+					? {
+							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+						}
+					: {
+							password: process.env.SSH_PASSWORD,
+						},
+			);
+
+			const sshConnection = await ssh.connect(sshConfig);
+
+			if (!sshConnection) {
+				console.log("SSH connection Error");
+			}
+
+			console.log("SSH connection success");
+
+			const stream = await sshConnection.forwardOut(
+				"localhost",
+				0,
+				"10.11.4.24",
+				1433,
+			);
+
+			if (!stream) {
+				logger.error(`Error forwarding MSSQL port: ${err}`);
+				console.error("Error forwarding MSSQL port:", err);
+				return sshConnection.dispose();
+			}
+
+			let sequelize = new Sequelize(
+				process.env.SERVER_DB_NAME,
+				process.env.SERVER_DB_USER,
+				process.env.SERVER_DB_PASSWORD,
+				{
+					host: process.env.SERVER_DB_HOST,
+					dialect: process.env.SERVER_DB_DIALECT,
+					define: {
+						charset: "utf8",
+						collate: "utf8_general_ci",
+						freezeTableName: true,
+						timestamps: false,
+					},
+					pool: {
+						max: 5,
+						min: 0,
+						idle: 10000,
+					},
+					dialectOptions: {
+						options: {
+							encrypt: false,
+							trustServerCertificate: true,
+						},
+					},
+					logging: false,
+				},
+			);
+			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE;
+			sequelize
+				.authenticate()
+				.then(async () => {
+					console.log(
+						"Connection to SQL Server established successfully via SSH tunnel.",
+					);
+					const result = await sequelize.query(
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
+					);
+					if (result.length > 0) {
+						for (const element of result[0]) {
+							const incomingAttendanceData = {
+								autoId: element.ID,
+								deviceName: element.DeviceName,
+								deviceCode: element.DeviceID,
+								tmc: element.EmployeeCode,
+								empName: element.EmployeeName,
+								date: element.PunchDate,
+								time: element.PunchTime,
+								punchType: element.PunchType,
+								createdDate: element.SYSDATE,
+								isRead: element.IS_UNREAD,
+								punchDateTime: moment
+									.utc(element.Punch_DateTime)
+									.format("YYYY-MM-DD HH:mm:ss"),
+							};
+
+							const employeeData = await db.employeeMaster.findOne({
+								where: {
+									empCode: incomingAttendanceData.tmc,
+									isActive: 1,
+								},
+								attributes: ["id", "empCode", "name"],
+							});
+
+							if (!employeeData) {
+								logger.error(
+									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
+								);
+							} else {
+								await attendanceController.markBioMetricAttendance(
+									incomingAttendanceData,
+								);
+							}
+
+							sequelize.query(
+								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+								(err, result) => {
+									if (err) {
+										logger.error(`Error ${err}`);
+										console.log(err);
+									}
+
+									console.log(result);
+								},
+							);
+						}
+					}
+				})
+				.catch((error) => {
+					logger.error(`Error --->> ${error}`);
+					console.log("error", error);
+				});
+		} catch (error) {
+			logger.error(`Error while connecting SSH ${error}`);
+			console.log(error);
 		}
 	}
 }

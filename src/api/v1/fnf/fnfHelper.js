@@ -5,12 +5,12 @@ import moment from "moment";
 async function query(caseId, data, data2) {
 	switch (caseId) {
 		case 1:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=0 AND e.${
 				data == 1 ? "buId" : "empCode"
 			} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")})AND (YEAR(e.dateOfexit) < ${data2.paymonth.split("-")[0]} OR (YEAR(e.dateOfexit) = ${data2.paymonth.split("-")[0]} AND MONTH(e.dateOfexit) <= ${data2.paymonth.split("-")[1]}));`;
 			break;
 		case 2:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId = ${data2.companyId} AND e.isActive = 0 AND (YEAR(e.dateOfexit) < ${data2.paymonth.split("-")[0]} OR (YEAR(e.dateOfexit) = ${data2.paymonth.split("-")[0]} AND MONTH(e.dateOfexit) <= ${data2.paymonth.split("-")[1]}))  AND e.dateOfexit is not null;`;
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId = ${data2.companyId} AND e.isActive = 0 AND (YEAR(e.dateOfexit) < ${data2.paymonth.split("-")[0]} OR (YEAR(e.dateOfexit) = ${data2.paymonth.split("-")[0]} AND MONTH(e.dateOfexit) <= ${data2.paymonth.split("-")[1]}))  AND e.dateOfexit is not null;`;
 			break;
 		case 3:
 			return `SELECT EmployeeId FROM ${dbName}.payprocessdetails  where payStatus in(1,2,3,5,6,7) and EmployeeId  in (${data}) and processType='FnF';`; //payMonth='${data2}' and
@@ -300,15 +300,77 @@ async function arrectLOP(componentAmount, lopDays, totalWorkingdays) {
 	return componentAmount - amountAfterLop;
 }
 
-async function calculateGratuity(
-	basicAmount,
-	dateOfJoining,
-	dateOfExit,
-	gratuityMinYears,
-	gratuityYears,
-) {
+// async function calculateGratuity(
+// 	basicAmount,
+// 	dateOfJoining,
+// 	dateOfExit,
+// 	gratuityMinYears,
+// 	gratuityYears,
+// ) {
+
+// 	console.log(dateOfJoining ," dateOfJoining")
+// 	console.log(dateOfExit ," dateOfExit")
+// 	console.log(gratuityMinYears ," gratuityMinYears")
+// 	console.log(gratuityYears ," gratuityYears")
+
+// 	let gratuityAmountToCalculate = 0;
+// 	for (const element of basicAmount) {
+// 		if (element.isGratuityApplicable == 1) {
+// 			gratuityAmountToCalculate =
+// 				parseFloat(gratuityAmountToCalculate) +
+// 				parseFloat(element.payElementAmount);
+// 		}
+// 	}
+// 	if (gratuityYears) {
+// 		//console.log("GRATUITY CALCULATION BY OVERRIDE YEARS")
+// 		gratuityYears = customRound(gratuityYears);
+// 		return {
+// 			gratuityYears,
+// 			gratuityAmount:
+// 				gratuityYears >= gratuityMinYears
+// 					? ((gratuityAmountToCalculate * 15) / 26) * gratuityYears
+// 					: 0,
+// 		};
+// 	} else {
+// 		//console.log("GRATUITY CALCULATION BY SYSTEM YEARS")
+// 		const startDate = moment(dateOfJoining);
+// 		const endDate = moment(dateOfExit);
+// 		let years = endDate.diff(startDate, "years");
+// 		startDate.add(years, "years"); // Adjust startDate forward by counted years
+// 		const months = endDate.diff(startDate, "months");
+// 		startDate.add(months, "months"); // Adjust startDate forward by counted months
+// 		const days = endDate.diff(startDate, "days");
+// 		years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
+// 		console.log(`${years} years, ${months} months, and ${days} days`);
+// 		return {
+// 			years,
+// 			gratuityAmount:
+// 				years >= gratuityMinYears
+// 					? ((gratuityAmountToCalculate * 15) / 26) * years
+// 					: 0,
+// 		};
+// 	}
+// }
+
+async function calculateGratuity(payMonthlyElements, gratuityYears) {
+	let employeejobdetails = await db.employeeMaster.findOne({
+		where: { id: payMonthlyElements[0].empId },
+		raw: true,
+		include: [
+			{
+				model: db.jobDetails,
+				attributes: ["dateOfJoining"],
+				as: "employeeJobDetails",
+			},
+		],
+		attributes: ["dateOfExit"],
+		nest: true,
+	});
+	let dateOfJoining = employeejobdetails.employeeJobDetails.dateOfJoining;
+	let dateOfExit = employeejobdetails.dateOfExit;
+	let gratuityMinYears = 5;
 	let gratuityAmountToCalculate = 0;
-	for (const element of basicAmount) {
+	for (const element of payMonthlyElements) {
 		if (element.isGratuityApplicable == 1) {
 			gratuityAmountToCalculate =
 				parseFloat(gratuityAmountToCalculate) +
@@ -345,7 +407,6 @@ async function calculateGratuity(
 		};
 	}
 }
-
 async function leaveEncashmentAmount(applicableComponents, encashmentDays) {
 	if (!encashmentDays) {
 		return 0;

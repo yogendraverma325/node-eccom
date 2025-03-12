@@ -902,9 +902,47 @@ class UserController {
 					],
 					isActive: 1,
 				},
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
 			});
 
-			if (!getEmployee) {
+			if (getEmployee) {
+				const otp = await helper.generateOTP(6);
+				eventEmitter.emit(
+					"forgotPasswordMail",
+					JSON.stringify({
+						email: getEmployee.dataValues.email,
+						otp: otp,
+						senderEmail: getEmployee.companymaster.senderEmail,
+						companyLogo: getEmployee.companymaster.companyLogo,
+					}),
+				);
+
+				if (getEmployee.dataValues.officeMobileNumber) {
+					eventEmitter.emit(
+						"forgotPasswordSMS",
+						JSON.stringify({
+							mobile: getEmployee.dataValues.officeMobileNumber.split(","),
+							otp: otp,
+						}),
+					);
+				}
+
+				const deocdeOTP = await helper.generateJwtOTPEncrypt({
+					id: getEmployee.id,
+					email: result.email,
+					otp: otp,
+				});
+				return respHelper(res, {
+					status: 200,
+					msg: constant.OTP_SENT,
+					data: deocdeOTP,
+				});
+			} else {
 				return respHelper(res, {
 					status: 400,
 					msg: constant.INVALID.replace(
@@ -1067,7 +1105,7 @@ class UserController {
 					},
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 				],
 			});
@@ -1164,6 +1202,8 @@ class UserController {
 					empDesignation: existUser.dataValues.designationmaster.name,
 					empDepartment: existUser.dataValues.departmentmaster.departmentName,
 					companyName: existUser.dataValues.companymaster.companyName,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -1172,6 +1212,8 @@ class UserController {
 				JSON.stringify({
 					email: existUser.dataValues.email,
 					companyName: existUser.dataValues.companymaster.companyName,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -1272,7 +1314,7 @@ class UserController {
 						include: [
 							{
 								model: db.companyMaster,
-								attributes: ["companyName"],
+								attributes: ["companyName", "senderEmail", "companyLogo"],
 							},
 							{
 								model: db.employeeMaster,
@@ -1354,6 +1396,10 @@ class UserController {
 					recipientName: separationData.dataValues.employee.name,
 					companyName:
 						separationData.dataValues.employee.companymaster.companyName,
+					senderEmail:
+						separationData.dataValues.employee.companymaster.senderEmail,
+					companyLogo:
+						separationData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
 
@@ -1366,6 +1412,10 @@ class UserController {
 					empCode: separationData.dataValues.employee.empCode,
 					bu: separationData.dataValues.employee.bumaster.buName,
 					managerName: separationData.dataValues.employee.managerData.name,
+					senderEmail:
+						separationData.dataValues.employee.companymaster.senderEmail,
+					companyLogo:
+						separationData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
 
@@ -1645,7 +1695,7 @@ class UserController {
 					},
 					{
 						model: db.companyMaster,
-						attributes: ["companyName"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 					{
 						model: db.noticePeriodMaster,
@@ -2005,6 +2055,8 @@ class UserController {
 					dateOfResignation: result.resignationDate,
 					companyName: existUser.dataValues.companymaster.companyName,
 					lastWorkingDay: result.l2LastWorkingDay,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -2029,6 +2081,8 @@ class UserController {
 						lastWorkingDay: result.l2LastWorkingDay,
 						personalMailID: existUser.dataValues.personalEmail,
 						personalMobileNumber: existUser.dataValues.personalMobileNumber,
+						senderEmail: existUser.dataValues.companymaster.senderEmail,
+						companyLogo: existUser.dataValues.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -2070,7 +2124,7 @@ class UserController {
 						include: [
 							{
 								model: db.companyMaster,
-								attributes: ["companyName"],
+								attributes: ["companyName", "senderEmail", "companyLogo"],
 							},
 							{
 								model: db.departmentMaster,
@@ -2170,6 +2224,10 @@ class UserController {
 								resignationData.dataValues.employee.managerData.name,
 							companyName:
 								resignationData.dataValues.employee.companymaster.companyName,
+							senderEmail:
+								resignationData.dataValues.employee.companymaster.senderEmail,
+							companyLogo:
+								resignationData.dataValues.employee.companymaster.companyLogo,
 						}),
 					);
 				}
@@ -2216,6 +2274,10 @@ class UserController {
 						email: resignationData.dataValues.employee.email,
 						empName: resignationData.dataValues.employee.name,
 						empCode: resignationData.dataValues.employee.empCode,
+						senderEmail:
+							resignationData.dataValues.employee.companymaster.senderEmail,
+						companyLogo:
+							resignationData.dataValues.employee.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -4230,6 +4292,12 @@ class UserController {
 					isActive: 1,
 				},
 				attributes: ["name", "empCode", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
 			});
 			const isSameDetails = await db.paymentDetails.findOne({
 				where: { userId: req.userId },
@@ -4315,6 +4383,8 @@ class UserController {
 						JSON.stringify({
 							email: result.email,
 							name: existUser.name,
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
 						}),
 					);
 					return respHelper(res, {
@@ -4365,6 +4435,8 @@ class UserController {
 					JSON.stringify({
 						email: result.email,
 						name: existUser.name,
+						senderEmail: existUser["companymaster.senderEmail"],
+						companyLogo: existUser["companymaster.companyLogo"],
 					}),
 				);
 				return respHelper(res, {
@@ -5054,14 +5126,15 @@ class UserController {
 					}
 				}
 
-				// eventEmitter.emit(
-				//   "confirmatonExtend",
-				//   JSON.stringify({
-				//     EMP_DATA_SELF: EMP_DATA_SELF,
-				//     ACTION_TAKER: ACTION_TAKER,
-				//     cc: cc_arrays,
-				//   })
-				// );
+				eventEmitter.emit(
+					"confirmatonExtend",
+					JSON.stringify({
+						EMP_DATA_SELF: EMP_DATA_SELF,
+						ACTION_TAKER: ACTION_TAKER,
+						cc: cc_arrays,
+						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+					}),
+				);
 
 				return respHelper(res, {
 					status: 200,

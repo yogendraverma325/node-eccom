@@ -927,10 +927,7 @@ class commonController {
 										],
 										[Op.and]: [
 											{
-												isActive:
-													usersData.role_id == 1 || usersData.role_id == 2
-														? [1, 0]
-														: [1],
+												isActive: 1,
 												...empFilters,
 											},
 										],
@@ -938,10 +935,7 @@ class commonController {
 								: {
 										[Op.and]: [
 											{
-												isActive:
-													usersData.role_id == 1 || usersData.role_id == 2
-														? [1, 0]
-														: [1],
+												isActive: 1,
 												...empFilters,
 											},
 										],
@@ -1851,6 +1845,12 @@ class commonController {
 					isActive: 1,
 				},
 				attributes: ["name", "empCode", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
 			});
 			if (result.status == 0) {
 				const objForRejction = {
@@ -1877,6 +1877,8 @@ class commonController {
 						fields: "Account NumberReq,Swift/IFSC code",
 						status: "Rejected",
 						comment: result.comment == undefined || "" ? "" : result.comment,
+						senderEmail: existUser["companymaster.senderEmail"],
+						companyLogo: existUser["companymaster.companyLogo"],
 					}),
 				);
 				return respHelper(res, {
@@ -1921,6 +1923,8 @@ class commonController {
 							fields: "",
 							status: "Approved",
 							comment: result.comment == undefined || "" ? "" : result.comment,
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
 						}),
 					);
 					return respHelper(res, {

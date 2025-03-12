@@ -48,9 +48,7 @@ const regularizationRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${
-																process.env.PROXY_URL
-															}/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -187,9 +185,7 @@ const leaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${
-																process.env.PROXY_URL
-															}/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -289,17 +285,29 @@ const resetPasswordMail = async (data) => {
     >
       <tr>
         <td
-          style="
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
-            padding-top: 1.5rem !important;
-          "
-        >
-          <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 25px"
-          />
-        </td>
+                            colspan="2"
+                            style="
+                              padding-bottom: 20px;
+                              text-align: left;
+                              border-bottom: 1px solid #eee;
+                              width: 100%;
+                            "
+                            valign="middle"
+                          >
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                              alt="Logo"
+                            />
+                            <img
+                              height="45"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
+                              alt="Logo"
+                               style="float:right"
+                            />
+                          </td>
       </tr>
 
       <tr>
@@ -410,9 +418,7 @@ const revokeRegularizeMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${
-																process.env.PROXY_URL
-															}/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -561,9 +567,7 @@ const regularizationAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${
-																process.env.PROXY_URL
-															}/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -717,9 +721,7 @@ const leaveAcknowledgement = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${
-																process.env.PROXY_URL
-															}/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -831,15 +833,25 @@ const forgotPasswordMail = async (data) => {
     >
       <tr>
         <td
+          colspan="2"
           style="
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
-            padding-top: 1.5rem !important;
+            padding-bottom: 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            width: 100%;
           "
+          valign="middle"
         >
           <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 25px"
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="Logo"
+            style="float:right"
           />
         </td>
       </tr>
@@ -948,9 +960,7 @@ const revokeLeaveRequestMail = async (data) => {
                           >
                             <img
                               height="45"
-                              src="${
-																process.env.PROXY_URL
-															}/api/uploads/assets/team-new.png"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
                               alt="Logo"
                             />
                             <img
@@ -1102,9 +1112,7 @@ const autoLeaveDeduction = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${
-																				process.env.PROXY_URL
-																			}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1342,7 +1350,7 @@ const initiateSeparation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1490,7 +1498,7 @@ const separationAcknowledgementToUser = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1629,7 +1637,7 @@ const separationApprovalAcknowledgementToUser = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1755,7 +1763,7 @@ const separationRejectedByBUHR = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -1907,7 +1915,7 @@ const managerRejectsSeparation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2122,7 +2130,7 @@ const managerApprovesSeparation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2273,9 +2281,7 @@ const separationApproveByBUHR = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${
-																				process.env.PROXY_URL
-																			}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -2757,9 +2763,7 @@ const clearanceInitiated = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${
-																				process.env.PROXY_URL
-																			}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -3002,7 +3006,7 @@ const onboardingEmployee = async (data) => {
                                   valign="middle">
                                   <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                   />
                                   <img
@@ -3118,13 +3122,20 @@ const paymentDetailsApprovalRequestMail = async (data) => {
       "
     >
       <tr>
-        <td style="padding: 1.5rem 2rem;">
-          <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 15px;"
-            alt="Team Computers Logo"
-          />
-        </td>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
       </tr>
 
       <tr>
@@ -3184,14 +3195,20 @@ const paymentDetailsAdminApprovedMail = async (data) => {
       "
     >
       <tr>
-        <td style="padding: 1.5rem 2rem;">
-          <img
-            src="https://www.teamcomputers.com/images/logo.png"
-            style="width: 80px; padding-right: 30px; padding-bottom: 15px;"
-            alt="Team Computers Logo"
-          />
-        </td>
-      </tr>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
       <tr>
         <td style="padding: 1rem 2rem;">
           <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">Hi ${data.name}</p>
@@ -3298,7 +3315,7 @@ const passwordExpiryNotification = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -3468,7 +3485,7 @@ const postPasswordExpiryNotification = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -3585,7 +3602,7 @@ const newJoinEmployeeMail = async (data) => {
                                     valign="middle">
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
                                       alt="Logo"
                                     />
                                 </td>
@@ -3657,7 +3674,7 @@ const selfReviewConfirnation = async (data) => {
                                   >
                                     <img
                                       height="45"
-                                      src="${process.env.PROXY_URL}/api/uploads/assets/team-new.png"
+                                      src="${process.env.PROXY_URL}/api${data.employee.companymaster.companyLogo}"
                                       alt="Logo"
                                     />
                                     <img
@@ -3682,7 +3699,7 @@ const selfReviewConfirnation = async (data) => {
                  <td style="line-height:22px;padding-bottom:15px;padding-top:5px"><p>${data?.employee?.name} (${data?.employee?.empCode}), ${data?.employee?.designationmaster?.name} is completing probation in Number Of ${daysDifference} day/s and is pending for your action.</p><p><br></p>
                 <p>
                         <a
-                          href='${process.env.CLIENT_URL}#/TaskBox?selectedTab=4'
+                          href=${process.env.CLIENT_URL}#/TaskBox?selectedTab=4
                           style="
                             padding: 5px 10px;
                             background: #0173c5;
@@ -3702,14 +3719,10 @@ const selfReviewConfirnation = async (data) => {
                 <tr>
                  <td style="text-align:left;border-bottom:1px solid #eee;padding-top:15px;padding-bottom:25px;line-height:22px"><p>Regards,<br>
                    HR Team,<br>
-                   Company Name</p></td>
+                   TEAMS TARA</p></td>
                 </tr>
                </tbody>
               </table></td>
-            </tr>
-            <tr style="background-color:#fff;width:100%">
-             <td valign="middle" style="padding:18px 0;color:#ffffff;padding-left:25px;text-align:left">#*Unsubscribe*#</td>
-             <td valign="middle" style="padding:18px 0;color:#ffffff;padding-right:25px;text-align:right;font-size:12px"><a href="https://us-east-2.protection.sophos.com?d=darwinbox.in&amp;u=aHR0cHM6Ly90cmFja2luZy5kYXJ3aW5ib3guaW4vbHMvY2xpY2s_dXBuPXUwMDEuaW1teXVELTJGNmtKSFR6d1FKVTlrRXBha0RqaGxCZjNSTGFINGRJMmlBMjZBeVlQWmxWY2lzZlIybFVZazU2c0djWWhETGcxUGdiQnpYMmFIRFJPSlgwV0pEYTVsSEZYNEMtMkZOLTJGci0yQnNNWmE5dGVrbXpBM2hIRURQLTJGMWFQVXNLenkyb2VMMTBFWjQ3eVlWaFQtMkZoc2N0VTlwRVFKSTk3Z2VOLTJCNlVLVldSVzQzV2FFSzVRT3c4ZGY0SEw4ak96RDkyQk9adHJ6VFdRaGlWMXU5YTBqWndRSlVnLTNELTNEMmJXWV9INEh5MjdPTzNwR3paN3VISVhDRmNUYVJjVU5jbzNvaTl5VE1haVB5WUZiWEZ4cGN0QjYwckFRWlVLYlgxS3lzLTJCSTdnQUE2SEhYM0ppaXBHcHg1RTVIVDdQdUE5dEplZ0ZZS1RDZWpXdzI1VjlUOWIyY1FudGw1SUc2TzF5TnJ4YWVpZXc4R0pRYVRUUUYwRC0yRmJRakxWaDNrODdMSEEydEZIUW5FUURUaE5CWVRJQVN1aTJ4LTJCelpiUFFCTXlnUDlELTJGaUFjSFk5eHNPZVhqbmlwYTV6VG1rTVhzY2tPNnV5d29DMUZvWTZyLTJGay0zRA==&amp;i=NjFkODdmZTM1OWYzNGUxMDE2OTMwYzk2&amp;t=Tkg5YnlvTTlXdDR0ZU1taEkyT0N6UnhwQ0dkdk9XK0UwWmdxNG1UTXlMND0=&amp;h=68486334c5a54ddb9151da7035979a89&amp;s=AVNPUEhUT0NFTkNSWVBUSVYesNOW7kGOxqpUy7qQL6d_4nh6Nn1efO2SbyTtO4TQiOwEKp0hREIIdWu7wfNnkt4-dcOFneTIFyRgSul7Y5uW3QrJjOINZ9zZOHS1WkwDoA" style="text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://us-east-2.protection.sophos.com?d%3Ddarwinbox.in%26u%3DaHR0cHM6Ly90cmFja2luZy5kYXJ3aW5ib3guaW4vbHMvY2xpY2s_dXBuPXUwMDEuaW1teXVELTJGNmtKSFR6d1FKVTlrRXBha0RqaGxCZjNSTGFINGRJMmlBMjZBeVlQWmxWY2lzZlIybFVZazU2c0djWWhETGcxUGdiQnpYMmFIRFJPSlgwV0pEYTVsSEZYNEMtMkZOLTJGci0yQnNNWmE5dGVrbXpBM2hIRURQLTJGMWFQVXNLenkyb2VMMTBFWjQ3eVlWaFQtMkZoc2N0VTlwRVFKSTk3Z2VOLTJCNlVLVldSVzQzV2FFSzVRT3c4ZGY0SEw4ak96RDkyQk9adHJ6VFdRaGlWMXU5YTBqWndRSlVnLTNELTNEMmJXWV9INEh5MjdPTzNwR3paN3VISVhDRmNUYVJjVU5jbzNvaTl5VE1haVB5WUZiWEZ4cGN0QjYwckFRWlVLYlgxS3lzLTJCSTdnQUE2SEhYM0ppaXBHcHg1RTVIVDdQdUE5dEplZ0ZZS1RDZWpXdzI1VjlUOWIyY1FudGw1SUc2TzF5TnJ4YWVpZXc4R0pRYVRUUUYwRC0yRmJRakxWaDNrODdMSEEydEZIUW5FUURUaE5CWVRJQVN1aTJ4LTJCelpiUFFCTXlnUDlELTJGaUFjSFk5eHNPZVhqbmlwYTV6VG1rTVhzY2tPNnV5d29DMUZvWTZyLTJGay0zRA%3D%3D%26i%3DNjFkODdmZTM1OWYzNGUxMDE2OTMwYzk2%26t%3DTkg5YnlvTTlXdDR0ZU1taEkyT0N6UnhwQ0dkdk9XK0UwWmdxNG1UTXlMND0%3D%26h%3D68486334c5a54ddb9151da7035979a89%26s%3DAVNPUEhUT0NFTkNSWVBUSVYesNOW7kGOxqpUy7qQL6d_4nh6Nn1efO2SbyTtO4TQiOwEKp0hREIIdWu7wfNnkt4-dcOFneTIFyRgSul7Y5uW3QrJjOINZ9zZOHS1WkwDoA&amp;source=gmail&amp;ust=1733296148871000&amp;usg=AOvVaw0K6Te3Zox9CB7-nY8998Hq"><span style="color:#ccc">Powered By :</span> Darwinbox</a></td>
             </tr>
            </tbody>
 </body>
@@ -3720,6 +3733,10 @@ const confirmationEmailLetter = async (
 	confiramtionData,
 	signatureAuthority,
 ) => {
+	// console.log("data", data)
+
+	// console.log("header path ", data.companymaster)
+
 	return `
 <html lang="en">
 <head>
@@ -3773,7 +3790,7 @@ const confirmationEmailLetter = async (
   <body class="bodySection">
     <div class="letterHeader">
           <img
-          src="${process.env.PROXY_URL}/api/uploads/assets/letter_header.png"
+          src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}"
           alt="Logo"
           />
     </div>
@@ -3829,9 +3846,7 @@ const confirmationEmailLetter = async (
       <div class="signatureSection">
               <img
              class="signature"
-              src="${process.env.PROXY_URL}/api/${
-								signatureAuthority?.signature
-							}"
+              src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}"
               alt="signature"
               height="90"
               />
@@ -3841,7 +3856,7 @@ const confirmationEmailLetter = async (
     </div>
     <div class="footerSections">
     <img
-          src="${process.env.PROXY_URL}/api/uploads/assets/letter_footer.png"
+          src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}"
           alt="Logo"
           style="float:right"
           />
@@ -3855,6 +3870,7 @@ const confirmationEmailBody = async (
 	data,
 	confiramtionData,
 	signatureAuthority,
+	companyLogo,
 ) => {
 	return `<!DOCTYPE html>
 <html>
@@ -3883,8 +3899,28 @@ const confirmationEmailBody = async (
               <table style="width:100%">
                <tbody>
                 <tr>
-                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
-                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                 <td
+                                    colspan="2"
+                                    style="
+                                      padding-bottom: 20px;
+                                      text-align: left;
+                                      border-bottom: 1px solid #eee;
+                                      width: 100%;
+                                    "
+                                    valign="middle"
+                                  >
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${companyLogo}"
+                                      alt="Logo"
+                                    />
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                      alt="Logo"
+                                      style="float: right"
+                                    />
+                                  </td>
                 </tr>
                </tbody>
               </table></td>
@@ -4011,8 +4047,28 @@ const confirmationSLABreachEmailBody = async (data) => {
               <table style="width:100%">
                <tbody>
                 <tr>
-                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
-                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                 <td
+                                    colspan="2"
+                                    style="
+                                      padding-bottom: 20px;
+                                      text-align: left;
+                                      border-bottom: 1px solid #eee;
+                                      width: 100%;
+                                    "
+                                    valign="middle"
+                                  >
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data?.ESCALTERDATA?.companymaster?.companyLogo}"
+                                      alt="Logo"
+                                    />
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                      alt="Logo"
+                                      style="float: right"
+                                    />
+                                  </td>
                 </tr>
                </tbody>
               </table></td>
@@ -4028,7 +4084,7 @@ const confirmationSLABreachEmailBody = async (data) => {
                <p><br></p>
                <p>Regards,</p>
                <p>HR Team<br></p>
-               <p>${data?.ESCALTERDATA?.companymaster?.companyName}<br></p>
+               <p>TEAMS TARA<br></p>
               </div>
               <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
                <tbody></tbody>
@@ -4075,8 +4131,29 @@ const confirmationWorkFlownextLevel = async (data) => {
               <table style="width:100%">
                <tbody>
                 <tr>
-                 <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle"><img height="45" 
-                 src="https://www.teamcomputers.com/images/logo.png" alt="Logo" class="CToWUd" data-bit="iit"></td>
+                 <td
+                                    colspan="2"
+                                    style="
+                                      padding-bottom: 20px;
+                                      text-align: left;
+                                      border-bottom: 1px solid #eee;
+                                      width: 100%;
+                                    "
+                                    valign="middle"
+                                  >
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data?.ESCALTERDATA?.companymaster?.companyLogo}"
+                                      alt="Logo"
+                                    />
+                                    <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                      alt="Logo"
+                                      style="float: right"
+                                    />
+                                  </td>
+
                 </tr>
                </tbody>
               </table></td>
@@ -4093,7 +4170,7 @@ const confirmationWorkFlownextLevel = async (data) => {
                <p><br></p>
                <p>Regards,</p>
                <p>HR Team<br></p>
-               <p>${data?.ESCALTERDATA?.companymaster?.companyName}<br></p>
+               <p>TEAMS TARA<br></p>
               </div>
               <table style="width:100%;font-size:12px;font-family:Century Gothic,CenturyGothic,AppleGothic,sans-serif">
                <tbody></tbody>
@@ -4214,9 +4291,7 @@ const salarySlipPdf = async (data) => {
 <body>
     <div class="salary-slip">
         <div class="header">
-            <img  src="${
-							process.env.PROXY_URL + "/api" + data.companyLogo
-						}" alt="Company Logo">
+            <img  src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Company Logo">
     <div class="company-details" style="word-wrap: break-word; white-space: normal;">
     <p><b><font style="font-size: 16px; font-weight: 400;">${
 			data.companyName

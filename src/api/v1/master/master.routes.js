@@ -34,51 +34,15 @@ export default Express.Router()
 	.get("/separationReason", masterController.separationReason)
 	.get("/separationType", masterController.separationType)
 	.get("/hrDocument", masterController.hrDocumentMaster)
-	.get(
-		"/roles",
-
-		masterController.roles,
-	)
-	.get(
-		"/shift",
-
-		masterController.shift,
-	)
-	.get(
-		"/attendance-policy",
-
-		masterController.attendancePlicy,
-	)
-	.get(
-		"/weekoff",
-
-		masterController.weekoff,
-	)
-	.get(
-		"/sbu",
-
-		masterController.sbu,
-	)
-	.get(
-		"/buhr",
-
-		masterController.buhr,
-	)
-	.get(
-		"/buhead",
-
-		masterController.buhead,
-	)
-	.get(
-		"/probation",
-
-		masterController.probation,
-	)
-	.get(
-		"/newCustomerName",
-
-		masterController.newCustomerName,
-	)
+	.get("/roles", masterController.roles)
+	.get("/shift", masterController.shift)
+	.get("/attendance-policy", masterController.attendancePlicy)
+	.get("/weekoff", masterController.weekoff)
+	.get("/sbu", masterController.sbu)
+	.get("/buhr", masterController.buhr)
+	.get("/buhead", masterController.buhead)
+	.get("/probation", masterController.probation)
+	.get("/newCustomerName", masterController.newCustomerName)
 	.get("/reportModule", masterController.reportModule)
 	.get("/taskFilter", masterController.taskFilter)
 	.get("/shift", masterController.shift)

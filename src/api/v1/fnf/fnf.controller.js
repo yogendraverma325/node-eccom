@@ -78,7 +78,7 @@ class FnfController {
 	async employeesListForFnfProcessing(req, res) {
 		try {
 			let { companyId, year, month } = req.query;
-			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
+			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
 
 			let employeeForProcessing = await db.sequelize.query(
 				employeeForProcessingQuery,
@@ -1722,6 +1722,8 @@ async function processFnf(data) {
 			const leaveEncashmentDays =
 				employeeDetailsComponentWise[0][0]["leaveEncashmentDays"];
 			const gratuityYears = employeeDetailsComponentWise[0][0]["gratuityYears"];
+			// console.log("gratuityYears :::: "+gratuityYears);
+			// return;
 			if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
 				await db.payProcessDetails.update(
 					{ payStatus: 101, payRemark: "Pay Package Not Assigned." },
@@ -2023,11 +2025,10 @@ async function processFnf(data) {
 				await fnfHelper.getCalculatedESIC(payElementComponents);
 			let getCalculatedGratuity = await fnfHelper.calculateGratuity(
 				payElementComponents,
-				result[0][0].dateOfJoining,
-				result[0][0].dateOfexit,
-				5,
 				gratuityYears,
 			);
+			// console.log(getCalculatedGratuity);
+			// return;
 			let leaveEncashmentAmount = await fnfHelper.leaveEncashmentAmount(
 				payElementComponents,
 				leaveEncashmentDays,
