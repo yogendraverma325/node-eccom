@@ -1,7 +1,6 @@
 import db from "../../../config/db.config.js";
 import moment from "moment";
 
-
 // create function by jay fot get financial year
 async function getFinancialYear(date = moment()) {
 	const startMonth = 3; // 0 based index of month 3 for april
@@ -42,18 +41,16 @@ function formatDate(year, month, day) {
 	return `${yyyy}-${mm}-${dd}`;
 }
 
-
 async function query(caseId, data, data2) {
 	switch (caseId) {
 		case 1:
 			return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId DESC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId DESC;`;
 			break;
-
 	}
 }
 export default {
-    getFinancialYear,
-    getFromattedDate,
-    formatDate,
-	query
+	getFinancialYear,
+	getFromattedDate,
+	formatDate,
+	query,
 };
