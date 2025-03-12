@@ -2172,14 +2172,16 @@ const creditCompoff = async (inputObject) => {
 			}
 
 			let creditCompGo = false;
-			if (compOffPolicyData.per_month_comp_off_limit == 0) {
+			
+			if (compOffPolicyData) {
+				if (compOffPolicyData.per_month_comp_off_limit == 0) {
 				creditCompGo = true;
 			} else {
 				if (compOffPolicyData.per_month_comp_off_limit > totalCount) {
 					creditCompGo = true;
 				}
 			}
-			if (compOffPolicyData && creditCompGo) {
+				if(creditCompGo){
 				const leaveData = await db.leaveMaster.findOne({
 					where: {
 						leaveId: 9,
@@ -2359,7 +2361,7 @@ const creditCompoff = async (inputObject) => {
 						// }
 					}
 				}
-			}
+			}}
 		}
 	} catch (error) {
 		console.log(error);
