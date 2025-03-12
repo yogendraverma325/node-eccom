@@ -4189,14 +4189,17 @@ class UserController {
 				},
 			);
 
-			await db.employeeMaster.update({
-				isActive:1 ,
-				dateOfexit:null
-			},{
-				where:{
-					id: separationData.dataValues.employeeId
-				}
-			})
+			await db.employeeMaster.update(
+				{
+					isActive: 1,
+					dateOfexit: null,
+				},
+				{
+					where: {
+						id: separationData.dataValues.employeeId,
+					},
+				},
+			);
 
 			return respHelper(res, {
 				status: 200,

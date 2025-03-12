@@ -2836,7 +2836,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 			],
 		});
 
-		console.log("employees",employees.length)
+		console.log("employees", employees.length);
 		for (const employee of employees) {
 			const { gender, maritalStatus } =
 				employee.dataValues.employeebiographicaldetail;
@@ -2933,7 +2933,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					],
 				},
 			});
-			console.log("leaveMaster",leaveMaster.length)
+			console.log("leaveMaster", leaveMaster.length);
 
 			const firstDate = moment(dateOfJoining)
 				.startOf("month")
