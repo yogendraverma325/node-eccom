@@ -115,7 +115,7 @@ const mailService = async (data) => {
 			time: "",
 			html: data.html,
 			cc: data.cc ? data.cc.split(",") : [],
-			attachments: [],
+			attachments: (data.attachments.length > 0) ? data.attachments : [],
 		});
 
 		const response = await axios.post(
@@ -382,6 +382,8 @@ const getEmpProfile = async (EMP_ID) => {
 					"companyCode",
 					"senderEmail",
 					"companyLogo",
+					"letterFooter",
+					"letterHeader"
 				],
 				include: [
 					{

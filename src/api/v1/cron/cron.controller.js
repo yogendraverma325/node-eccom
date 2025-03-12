@@ -8,8 +8,6 @@ import fs from "fs";
 import logger from "../../../helper/logger.js";
 import helper from "../../../helper/helper.js";
 import respHelper from "../../../helper/respHelper.js";
-import emailTemplate from "../../../email/emailTemplate.js";
-import html_to_pdf from "html-pdf-node";
 import attendanceController from "../attendance/attendance.controller.js";
 import { NodeSSH } from "node-ssh";
 import Sequelize from "sequelize";
@@ -787,11 +785,11 @@ class CronController {
 						});
 
 						// eventEmitter.emit(
-						//   "confirmationWorkflowNextLevel",
-						//   JSON.stringify({
-						//     ESCALTERDATA: ESCALTERDATA,
-						//     EMP_DATA: EMP_DATA_SELF,
-						//   })
+						// 	"confirmationWorkflowNextLevel",
+						// 	JSON.stringify({
+						// 		ESCALTERDATA: ESCALTERDATA,
+						// 		EMP_DATA: EMP_DATA_SELF,
+						// 	})
 						// );
 					}
 
@@ -1239,6 +1237,7 @@ class CronController {
 						signatureAuthority: signatureAuthority,
 						cc: cc_arrays.join(","),
 						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+						companyLogo: EMP_DATA_SELF.companymaster.companyLogo
 					}),
 				);
 			}
@@ -1840,11 +1839,11 @@ class CronController {
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-						}
+						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+					}
 					: {
-							password: process.env.SSH_PASSWORD,
-						},
+						password: process.env.SSH_PASSWORD,
+					},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
