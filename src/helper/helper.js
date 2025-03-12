@@ -115,7 +115,7 @@ const mailService = async (data) => {
 			time: "",
 			html: data.html,
 			cc: data.cc ? data.cc.split(",") : [],
-			attachments: (data.attachments.length > 0) ? data.attachments : [],
+			attachments: (data.attachments && data.attachments.length > 0) ? data.attachments : [],
 		});
 
 		const response = await axios.post(
@@ -1099,8 +1099,8 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 				leaveDuration: inputData.leaveCount === 0.5 ? "Half Day" : "Full Day",
 				punchInTime: inputData.punchInTime,
 				punchOutTime: inputData.punchOutTime,
-				senderEmail: leaveDeductionData.companymaster.senderEmail,
-				companyLogo: leaveDeductionData.companymaster.companyLogo,
+				senderEmail: leaveDeductionData["companymaster.senderEmail"],
+				companyLogo: leaveDeductionData["companymaster.companyLogo"],
 			}),
 		);
 	}
