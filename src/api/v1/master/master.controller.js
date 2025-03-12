@@ -27,7 +27,7 @@ class MasterController {
 
 			let employeeData = [];
 
-			if (usersData.role_id == 4) {
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -36,7 +36,7 @@ class MasterController {
 				}
 				let permissionAndAccess = await db.permissoinandaccess.findAll({
 					where: {
-						role_id: usersData.role_id,
+						//role_id: usersData.role_id,
 						isActive: 1,
 						permissoinandaccessId: {
 							[Op.in]: permissionAssignTousers,
@@ -107,6 +107,7 @@ class MasterController {
 						[Op.in]: comapnyArrayForFilter,
 					};
 				}
+				console.log("companyFIlter",companyFIlter)
 			}
 
 			let designation = null,
@@ -272,7 +273,7 @@ class MasterController {
 					},
 					{
 						model: db.companyLocationMaster,
-						required: false,
+						required: true,
 						attributes: ["address1", "address2"],
 						where:
 							Object.keys(companyFIlter).length !== 0
