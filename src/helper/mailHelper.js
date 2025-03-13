@@ -477,12 +477,12 @@ async function selfReviewConfirnation(input) {
 	try {
 		const userData = JSON.parse(input);
 		console.log("userData in mail template --->>", userData);
-		await helper.mailService({
-			to: userData.email,
-			subject: `Confirmation`,
-			html: await emailTemplate.selfReviewConfirnation(userData),
-			senderEmail: userData.employee.companymaster.senderEmail,
-		});
+		// await helper.mailService({
+		// 	to: userData.email,
+		// 	subject: `Confirmation`,
+		// 	html: await emailTemplate.selfReviewConfirnation(userData),
+		// 	senderEmail: userData.employee.companymaster.senderEmail,
+		// });
 	} catch (error) {
 		console.log(error);
 		logger.error(error);
@@ -502,23 +502,24 @@ async function confirmationLetter(input) {
 			inpputData?.EMP_DATA_SELF,
 			inpputData?.confirmationData,
 			inpputData?.signatureAuthority,
+			inpputData?.companyLogo
 		);
 		let options = { format: "A4" };
 		let file = { content: letter };
 
 		let pdfBuffer = await html_to_pdf.generatePdf(file, options);
 		// await helper.mailService({
-		//   to: inpputData?.EMP_DATA_SELF?.email,
-		//   subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
-		//   html: body,
-		//   cc: inpputData?.cc,
-		//   senderEmail: inpputData.senderEmail,
-		//   attachments: [
-		//     {
-		//       content: pdfBuffer,
-		//       filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
-		//     },
-		//   ],
+		// 	to: inpputData?.EMP_DATA_SELF?.email,
+		// 	subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
+		// 	html: body,
+		// 	cc: inpputData?.cc,
+		// 	senderEmail: inpputData.senderEmail,
+		// 	attachments: [
+		// 		{
+		// 			content: pdfBuffer.toString('base64'),
+		// 			filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+		// 		},
+		// 	],
 		// });
 	} catch (error) {
 		console.log(error);
@@ -543,14 +544,12 @@ async function confirmatonExtend(input) {
 async function confirmationSLABreachEmailBody(input) {
 	try {
 		const inpputData = JSON.parse(input);
-
-		console.log("confirmationSLABreachEmailBody --->>", inpputData);
-		await helper.mailService({
-			to: inpputData?.ESCALTERDATA?.email,
-			subject: `Confirmation task of ${inpputData?.EMP_DATA?.name}(${inpputData?.EMP_DATA?.empCode}) escalated to you`,
-			html: await emailTemplate.confirmationSLABreachEmailBody(inpputData),
-			senderEmail: inpputData.senderEmail,
-		});
+		// await helper.mailService({
+		// 	to: inpputData?.ESCALTERDATA?.email,
+		// 	subject: `Confirmation task of ${inpputData?.EMP_DATA?.name}(${inpputData?.EMP_DATA?.empCode}) escalated to you`,
+		// 	html: await emailTemplate.confirmationSLABreachEmailBody(inpputData),
+		// 	senderEmail: inpputData.senderEmail,
+		// });
 	} catch (error) {
 		console.log(error);
 		logger.error(error);
@@ -560,12 +559,12 @@ async function confirmationWorkflowNextLevel(input) {
 	try {
 		const inpputData = JSON.parse(input);
 		console.log("confirmationWorkflowNextLevel --->>", inpputData);
-		await helper.mailService({
-			to: inpputData?.ESCALTERDATA?.email,
-			subject: `Confirmation Workflow Approval Required`,
-			html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
-			senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail,
-		});
+		// await helper.mailService({
+		// 	to: inpputData?.ESCALTERDATA?.email,
+		// 	subject: `Confirmation Workflow Approval Required`,
+		// 	html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
+		// 	senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail,
+		// });
 	} catch (error) {
 		console.log(error);
 		logger.error(error);

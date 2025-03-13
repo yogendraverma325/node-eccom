@@ -115,7 +115,7 @@ const mailService = async (data) => {
 			time: "",
 			html: data.html,
 			cc: data.cc ? data.cc.split(",") : [],
-			attachments: [],
+			attachments: (data.attachments && data.attachments.length > 0) ? data.attachments : [],
 		});
 
 		const response = await axios.post(
@@ -382,6 +382,8 @@ const getEmpProfile = async (EMP_ID) => {
 					"companyCode",
 					"senderEmail",
 					"companyLogo",
+					"letterFooter",
+					"letterHeader"
 				],
 				include: [
 					{
@@ -1097,8 +1099,8 @@ ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
 				leaveDuration: inputData.leaveCount === 0.5 ? "Half Day" : "Full Day",
 				punchInTime: inputData.punchInTime,
 				punchOutTime: inputData.punchOutTime,
-				senderEmail: leaveDeductionData.companymaster.senderEmail,
-				companyLogo: leaveDeductionData.companymaster.companyLogo,
+				senderEmail: leaveDeductionData["companymaster.senderEmail"],
+				companyLogo: leaveDeductionData["companymaster.companyLogo"],
 			}),
 		);
 	}
@@ -2170,14 +2172,16 @@ const creditCompoff = async (inputObject) => {
 			}
 
 			let creditCompGo = false;
-			if (compOffPolicyData.per_month_comp_off_limit == 0) {
+			
+			if (compOffPolicyData) {
+				if (compOffPolicyData.per_month_comp_off_limit == 0) {
 				creditCompGo = true;
 			} else {
 				if (compOffPolicyData.per_month_comp_off_limit > totalCount) {
 					creditCompGo = true;
 				}
 			}
-			if (compOffPolicyData && creditCompGo) {
+				if(creditCompGo){
 				const leaveData = await db.leaveMaster.findOne({
 					where: {
 						leaveId: 9,
@@ -2357,7 +2361,7 @@ const creditCompoff = async (inputObject) => {
 						// }
 					}
 				}
-			}
+			}}
 		}
 	} catch (error) {
 		console.log(error);
