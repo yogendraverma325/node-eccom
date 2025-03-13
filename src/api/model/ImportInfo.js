@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-	const importInfo = sequelize.define("importInfo", {
+	const importInfo = sequelize.define("importinfo", {
     importAutoId: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -47,7 +47,7 @@ export default (sequelize, Sequelize) => {
     }
 
 }, {
-    tableName: "importInfo",
+    tableName: "importinfo",
     timestamps: false
 });
 	return importInfo;

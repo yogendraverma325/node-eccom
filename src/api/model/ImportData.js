@@ -1,6 +1,6 @@
 // const ImportInfo = import("./ImportInfo"); // Import the ImportInfo model
 export default (sequelize, Sequelize) => {
-	const importData = sequelize.define("importData", {
+	const importData = sequelize.define("importdata", {
     importDataAutoId: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -36,7 +36,7 @@ export default (sequelize, Sequelize) => {
         allowNull: true
     }
 }, {
-    tableName: "importData",
+    tableName: "importdata",
     timestamps: false
 });
 
