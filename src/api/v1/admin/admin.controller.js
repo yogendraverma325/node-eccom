@@ -1034,6 +1034,10 @@ class AdminController {
 								console.log("empids", empids);
 								await helper.leaveAssignEmployeeToAll(empids.join(","));
 
+								// start generate employment history after create TMC by jay
+								await helper.generateEmployementHistory(createdUser, req.userId, createdUserJobDetails);
+								// end generate employment history after create TMC by jay
+
 								eventEmitter.emit(
 									"onboardingEmployeeMail",
 									JSON.stringify({

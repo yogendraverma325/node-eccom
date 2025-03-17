@@ -3415,6 +3415,114 @@ const getFiltersByPermission = async (roleId, permissionAndAccess) => {
 	return filters;
 };
 
+// START BY JAY GENERATE EMPLOYMENT HISTORY
+
+async function generateEmployementHistory(employeeDetails, createdBy, createdUserJobDetails) {
+	// create designation history
+
+	let designationMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		designation_id: employeeDetails.designation_id,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+		isPromotion: 0,
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt
+	}
+	await db.DesignationEmploymentHistory.create(designationMetaData);
+    
+	// create manager history
+
+	let managerMetaData = {
+		employeeId: employeeDetails.id,
+		managerId: employeeDetails.manager,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt
+	}
+	await db.managerHistory.create(managerMetaData);
+
+	// create job level history
+
+	let jobLevelMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		bandId: createdUserJobDetails.bandId,
+		gradeId: createdUserJobDetails.gradeId,
+		jobLevelId: createdUserJobDetails.jobLevelId,
+		fromDate: moment(createdUserJobDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+		isPromotion: 0,
+		createdBy: createdBy,
+		createdAt: createdUserJobDetails.createdAt
+	};
+    await db.JobLevelEmploymentHistory.create(jobLevelMetaData);
+
+	// create department history
+
+	let departmentMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		buId: employeeDetails.buId,
+		sbuId: employeeDetails.sbuId,
+		buHRId: employeeDetails.buHRId,
+		buHeadId: employeeDetails.buHeadId,
+		departmentId: employeeDetails.departmentId,
+		functionalAreaId: employeeDetails.functionalAreaId,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+        createdBy: createdBy,
+		createdAt: employeeDetails.createdAt
+	};
+    await db.DepartmentEmploymentHistory.create(departmentMetaData);
+
+	// create employee type history
+
+	let employeeTypeMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		employeeType: employeeDetails.employeeType,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+	    createdBy: createdBy,
+		createdAt: employeeDetails.createdAt
+	};
+	await db.EmployeeTypeEmploymentHistory.create(employeeTypeMetaData);
+
+	// create company location history
+
+	let companyLocationMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		companyLocationId: employeeDetails.companyLocationId,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+	    createdBy: createdBy,
+		createdAt: employeeDetails.createdAt
+	};
+	await db.OfficeLocationEmploymentHistory.create(companyLocationMetaData);
+
+	// create cost center history
+
+	if(employeeDetails.costId) {
+		let costCenterMetaData = {
+			employeeId: employeeDetails.id,
+			companyId: employeeDetails.companyId,
+			costId: employeeDetails.costId,
+			fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+			toDate: null,
+			createdBy: createdBy,
+			createdAt: employeeDetails.createdAt
+		};
+	
+		await db.CostCenterEmploymentHistory.create(costCenterMetaData);
+	}
+
+}
+
+// END BY JAY GENERATE EMPLOYMENT HISTORY
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -3468,4 +3576,7 @@ export default {
 	smsService,
 	fetchpermissoinAndAcessForEMP,
 	getFiltersByPermission,
+	// START BY JAY GENERATE EMPLOYMENT HISTORY
+	generateEmployementHistory
+	// END BY JAY GENERATE EMPLOYMENT HISTORY
 };

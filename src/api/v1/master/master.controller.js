@@ -1608,7 +1608,7 @@ class MasterController {
 			let query = { isActive: 1 };
 			const docs = await db.noticePeriodMaster.findAll({
 				where: query,
-				attributes: ["noticePeriodAutoId", "noticePeriodName"],
+				attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode"],
 			});
 			return respHelper(res, {
 				status: 200,
