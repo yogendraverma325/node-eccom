@@ -1858,9 +1858,9 @@ class CronController {
 			const stream = await sshConnection.forwardOut(
 				"localhost",
 				0,
-				"10.11.4.24",
-				1433,
-			);
+				process.env.SERVER_DB_HOST,
+				process.env.SERVER_DB_PORT,
+			);s
 
 			if (!stream) {
 				logger.error(`Error forwarding MSSQL port: ${err}`);
@@ -1905,55 +1905,56 @@ class CronController {
 					const result = await sequelize.query(
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
 					);
-					if (result.length > 0) {
-						for (const element of result[0]) {
-							const incomingAttendanceData = {
-								autoId: element.ID,
-								deviceName: element.DeviceName,
-								deviceCode: element.DeviceID,
-								tmc: element.EmployeeCode,
-								empName: element.EmployeeName,
-								date: element.PunchDate,
-								time: element.PunchTime,
-								punchType: element.PunchType,
-								createdDate: element.SYSDATE,
-								isRead: element.IS_UNREAD,
-								punchDateTime: moment
-									.utc(element.Punch_DateTime)
-									.format("YYYY-MM-DD HH:mm:ss"),
-							};
+					console.log(result)
+					// if (result.length > 0) {
+					// 	for (const element of result[0]) {
+					// 		const incomingAttendanceData = {
+					// 			autoId: element.ID,
+					// 			deviceName: element.DeviceName,
+					// 			deviceCode: element.DeviceID,
+					// 			tmc: element.EmployeeCode,
+					// 			empName: element.EmployeeName,
+					// 			date: element.PunchDate,
+					// 			time: element.PunchTime,
+					// 			punchType: element.PunchType,
+					// 			createdDate: element.SYSDATE,
+					// 			isRead: element.IS_UNREAD,
+					// 			punchDateTime: moment
+					// 				.utc(element.Punch_DateTime)
+					// 				.format("YYYY-MM-DD HH:mm:ss"),
+					// 		};
 
-							const employeeData = await db.employeeMaster.findOne({
-								where: {
-									empCode: incomingAttendanceData.tmc,
-									isActive: 1,
-								},
-								attributes: ["id", "empCode", "name"],
-							});
+					// 		const employeeData = await db.employeeMaster.findOne({
+					// 			where: {
+					// 				empCode: incomingAttendanceData.tmc,
+					// 				isActive: 1,
+					// 			},
+					// 			attributes: ["id", "empCode", "name"],
+					// 		});
 
-							if (!employeeData) {
-								logger.error(
-									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
-								);
-							} else {
-								await attendanceController.markBioMetricAttendance(
-									incomingAttendanceData,
-								);
-							}
+					// 		if (!employeeData) {
+					// 			logger.error(
+					// 				`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
+					// 			);
+					// 		} else {
+					// 			await attendanceController.markBioMetricAttendance(
+					// 				incomingAttendanceData,
+					// 			);
+					// 		}
 
-							sequelize.query(
-								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
-								(err, result) => {
-									if (err) {
-										logger.error(`Error ${err}`);
-										console.log(err);
-									}
+					// 		sequelize.query(
+					// 			`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+					// 			(err, result) => {
+					// 				if (err) {
+					// 					logger.error(`Error ${err}`);
+					// 					console.log(err);
+					// 				}
 
-									console.log(result);
-								},
-							);
-						}
-					}
+					// 				console.log(result);
+					// 			},
+					// 		);
+					// 	}
+					// }
 				})
 				.catch((error) => {
 					logger.error(`Error --->> ${error}`);
