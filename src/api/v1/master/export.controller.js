@@ -7261,6 +7261,228 @@ class MasterController {
 			});
 		}
 	}
+
+	async ctcUploaded(req, res) {
+		try {
+			const { employeeType, search, businessUnit, companyId, attendanceFor } =
+				req.query;
+			let buFIlter = {};
+			let companyFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+				.filter((obj) => obj.permissionType == "DEPARTMENT")
+				.map((obj) => obj.permissionValue); // checking department Access
+
+			if (departmentArrayForFilter.length > 0) {
+				departmentFIlter.departmentId = {
+					///appedning department to filter
+					[Op.in]: departmentArrayForFilter,
+				};
+			}
+
+			const designationArrayForFilter = permissionAndAccess
+				.filter((obj) => obj.permissionType == "DESIGNATION")
+				.map((obj) => obj.permissionValue); // checking SBU Access
+
+			if (designationArrayForFilter.length > 0) {
+				designationFIlter.designationId = {
+					///appedning SBU to filter
+					[Op.in]: designationArrayForFilter,
+				};
+			}
+
+			}
+
+			employeeDataExisting = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "name", "email", "isActive"],
+				where: {
+					companyId: companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+				},
+				// raw:true,
+				// nest:true,
+				include: [
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
+						where: {
+							...buFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyCode"],
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+						where: {
+							...designationFIlter,
+						},
+						// required: !!designation,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...departmentFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.payPackage,
+						attributes: [
+							"payPackageAutoId",
+							"payPackageEffectiveDate",
+							"payPackageMonthlyCTC",
+							"payPackageSalaryStructure",
+						],
+						as: "packageDetails",
+						required: true,
+						where: { isActive: 1 },
+						include: [
+							{
+								model: db.payElements,
+								attributes: ["salaryComponentAutoId", "payElementAmount"],
+								as: "empPayElements",
+								include: [
+									{
+										model: db.salaryComponent,
+										attributes: ["salaryComponentCode", "salaryComponentAlias"],
+									},
+								],
+							},
+						],
+					},
+				],
+				distinct: true,
+			});
+
+
+			// console.log(employeeDataExisting);
+			// return;
+
+
+			if(employeeDataExisting.length>0)
+			{
+
+				const result =  await transformData(employeeDataExisting);
+				const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
+				const resultColumns = Object.fromEntries(uniqueKeys.map(key => [key, 0]));
+				const columns = Object.keys(resultColumns).map((key) => ({
+					label: key,
+					value: key,
+				}));
+				const data = [
+					{
+						sheet: "Employee",
+						columns: columns,
+						content: result, // Use the JSON array as content
+					},
+				];
+				const settings = {
+					fileName: `Total_${Date.now()}`,
+					extraLength: 3,
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx",
+					},
+				};
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
+				);
+				return res.end(report);
+			}
+			else
+			{
+				return respHelper(res, {
+					status: 404,
+					message: "Data not availble for available dates",
+				});
+			}
+
+		} catch (error) {
+			console.error("Error:", error);
+			res.status(500).json({
+				message: "An error occurred while exporting employee master data",
+			});
+		}
+	}
 }
+
+const transformData = (data) => {
+	return data.map((employee) => {
+		let transformedObj = {
+			"Employee ID": employee.empCode,
+			"Name": employee.name,
+			"Job Title" : employee.designationmaster.name+" ("+employee.designationmaster.code+")",
+			"Department" : employee.departmentmaster.departmentName+" ("+employee.departmentmaster.departmentCode+")",
+			"Business Unit": employee.bumaster.buName,
+			"Company Name": employee.companymaster.companyName,
+		};
+
+		employee.packageDetails.empPayElements.forEach((element) => {
+			const keyName =
+				element.salarycomponent.salaryComponentAlias ||
+				element.salarycomponent.salaryComponentCode;
+			transformedObj[keyName] = element.payElementAmount;
+		});
+
+		return transformedObj;
+	});
+};
 
 export default new MasterController();
