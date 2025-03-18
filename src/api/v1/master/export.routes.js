@@ -106,4 +106,8 @@ export default Express.Router()
 		"/ctcUploaded",
 		authentication.authenticate,
 		masterExportController.ctcUploaded,
+	).get(
+		"/salaryGenerated",
+		authentication.authenticate,
+		masterExportController.salaryGenerated,
 	);

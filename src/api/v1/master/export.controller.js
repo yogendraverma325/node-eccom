@@ -8,6 +8,7 @@ import pkg from "xlsx";
 import bcrypt from "bcryptjs";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
+import paymentHelper from "../payments/paymentHelper.js";
 
 const maritalStatusOptions = {
 	Married: 1,
@@ -17,13 +18,14 @@ const maritalStatusOptions = {
 	Widowed: 5,
 	Others: 6,
 };
-
+const dbName = process.env.DB_NAME;
 async function getDataFromCache(key) {
 	return client.lRange(key, 0, -1);
 }
 
 class MasterController {
 	/***********************************export data********************************************************/
+
 	async employee(req, res) {
 		try {
 			const {
@@ -7311,27 +7313,26 @@ class MasterController {
 				}
 
 				const departmentArrayForFilter = permissionAndAccess
-				.filter((obj) => obj.permissionType == "DEPARTMENT")
-				.map((obj) => obj.permissionValue); // checking department Access
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
 
-			if (departmentArrayForFilter.length > 0) {
-				departmentFIlter.departmentId = {
-					///appedning department to filter
-					[Op.in]: departmentArrayForFilter,
-				};
-			}
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
 
-			const designationArrayForFilter = permissionAndAccess
-				.filter((obj) => obj.permissionType == "DESIGNATION")
-				.map((obj) => obj.permissionValue); // checking SBU Access
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
 
-			if (designationArrayForFilter.length > 0) {
-				designationFIlter.designationId = {
-					///appedning SBU to filter
-					[Op.in]: designationArrayForFilter,
-				};
-			}
-
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
 			}
 
 			employeeDataExisting = await db.employeeMaster.findAll({
@@ -7409,17 +7410,15 @@ class MasterController {
 				distinct: true,
 			});
 
-
 			// console.log(employeeDataExisting);
 			// return;
 
-
-			if(employeeDataExisting.length>0)
-			{
-
-				const result =  await transformData(employeeDataExisting);
+			if (employeeDataExisting.length > 0) {
+				const result = await transformData(employeeDataExisting);
 				const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
-				const resultColumns = Object.fromEntries(uniqueKeys.map(key => [key, 0]));
+				const resultColumns = Object.fromEntries(
+					uniqueKeys.map((key) => [key, 0]),
+				);
 				const columns = Object.keys(resultColumns).map((key) => ({
 					label: key,
 					value: key,
@@ -7445,15 +7444,213 @@ class MasterController {
 					`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
 				);
 				return res.end(report);
-			}
-			else
-			{
+			} else {
 				return respHelper(res, {
 					status: 404,
 					message: "Data not availble for available dates",
 				});
 			}
+		} catch (error) {
+			console.error("Error:", error);
+			res.status(500).json({
+				message: "An error occurred while exporting employee master data",
+			});
+		}
+	}
 
+	async salaryGenerated(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				employeeType,
+				search,
+				businessUnit,
+				companyId,
+				attendanceFor,
+			} = req.query;
+			let buFIlter = {};
+			let companyFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let sMonth = (new Date(startDate).getMonth() + 1).toString().padStart(2, '0');
+			let sYear=new Date(startDate).getFullYear();
+			let salaryMonth = sYear+"-"+sMonth;
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if (usersData.role_id == 4 || usersData.role_id == 5) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			}
+			else
+			{
+				return respHelper(res, {
+					status: 401,
+					message: "Un-Authorized Access.",
+				});	
+			}
+			employeeDataExisting = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "name", "email", "isActive"],
+				where: {
+					companyId: companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+				},
+				raw: true,
+				include: [
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
+						where: {
+							...buFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyCode"],
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+						where: {
+							...designationFIlter,
+						},
+						// required: !!designation,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...departmentFIlter,
+						},
+						required: true,
+					},
+				],
+				distinct: true,
+			});
+
+			if (employeeDataExisting.length > 0) {
+				const employeeIds = [];
+				for (const element of employeeDataExisting) {
+					console.log(element.id);
+					employeeIds.push(element.id);
+				}
+				const query = `SELECT p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds});`;
+				const result1 = await db.sequelize.query(query);
+				const processedData = groupByEmployeeId(result1[0]);
+
+				if(result1[0].length>0)
+				{
+					// const result = await transformData(employeeDataExisting);
+					const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
+					const resultColumns = Object.fromEntries(
+						uniqueKeys.map((key) => [key, 0]),
+					);
+					const columns = Object.keys(resultColumns).map((key) => ({
+						label: key,
+						value: key,
+					}));
+					const data = [
+						{
+							sheet: "Employee",
+							columns: columns,
+							content: processedData, // Use the JSON array as content
+						},
+					];
+					const settings = {
+						fileName: `Total_${Date.now()}`,
+						extraLength: 3,
+						writeOptions: {
+							type: "buffer",
+							bookType: "xlsx",
+						},
+					};
+					const report = xlsx(data, settings);
+					res.setHeader(
+						"Content-Disposition",
+						`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
+					);
+					return res.end(report);
+				}
+				else
+				{
+					return respHelper(res, {
+						status: 404,
+						message: "Data not availble for available dates",
+					});	
+				}
+		
+			} else {
+				return respHelper(res, {
+					status: 404,
+					message: "Data not availble for available dates",
+				});
+			}
 		} catch (error) {
 			console.error("Error:", error);
 			res.status(500).json({
@@ -7463,13 +7660,82 @@ class MasterController {
 	}
 }
 
+const groupByEmployeeId = (data) => {
+	const groupedData = {};
+	data.forEach((item) => {
+		const employeeId = item["Employee Id"];
+		if (!groupedData[employeeId]) {
+			let totalEarning = parseFloat(
+				parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
+					parseFloat(
+						item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
+					),
+			);
+			let totalDeduction = parseFloat(
+				parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
+					parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
+					parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
+					parseFloat(item["PF Employer"] ? item["PF Employer"] : 0) +
+					parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
+			);
+			let payableAmount = totalEarning - totalDeduction;
+			payableAmount = paymentHelper.customRound(payableAmount);
+			groupedData[employeeId] = {
+				"Employee Id": employeeId,
+				"Employee Name": item["Employee Name"],
+				"LOP Days": item["LOP Days"],
+				"Arrears Month": item["Arrears Month"],
+				"Arrears Days": item["Arrears Days"],
+				"TDS Month": item["TDS Month"],
+				"TDS Amount": item["TDS Amount"],
+				"Net Pay": item["Net Pay"],
+				"Monthly Pay": payableAmount != "N/A" ? payableAmount : "0.0",
+				"Extra Deduction Categories": item["Advance Name"],
+				"Total Extra Deduction Amount": item["Advance Amount"],
+				"PT Amount": item["PT AMOUNT"],
+				"LWF Amount": item["LWF AMOUNT"],
+				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"],
+				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],
+				"ESIC Employer": item["ESIC Employer"],
+				"ESIC Employee": item["ESIC Employee"],
+				"PF Employee": item["PF Employee"],
+				"PF Employer": item["PF Employer"],
+			};
+			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
+		}
+
+		if (["Balancing", "Earning"].includes(item["salaryComponentEarningType"])) {
+			Object.assign(groupedData[employeeId], {
+				[item["Element Name"]]: item["Element Amount"]
+					? paymentHelper.customRound(item["Element Amount"])
+					: item["Element Amount"],
+			});
+			Object.assign(groupedData[employeeId], {
+				[item["Element Name"] + " Monthly"]: item["Monthly Element Amount"]
+					? paymentHelper.customRound(item["Monthly Element Amount"])
+					: item["Monthly Element Amount"],
+			});
+		}
+	});
+
+	return Object.values(groupedData); // Convert the grouped data object back to an array
+};
+
 const transformData = (data) => {
 	return data.map((employee) => {
 		let transformedObj = {
 			"Employee ID": employee.empCode,
-			"Name": employee.name,
-			"Job Title" : employee.designationmaster.name+" ("+employee.designationmaster.code+")",
-			"Department" : employee.departmentmaster.departmentName+" ("+employee.departmentmaster.departmentCode+")",
+			Name: employee.name,
+			"Job Title":
+				employee.designationmaster.name +
+				" (" +
+				employee.designationmaster.code +
+				")",
+			Department:
+				employee.departmentmaster.departmentName +
+				" (" +
+				employee.departmentmaster.departmentCode +
+				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
 		};
