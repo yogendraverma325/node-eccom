@@ -7274,7 +7274,7 @@ class MasterController {
 			let designationFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if ([2,4,5].includes(usersData.role_id)) {
+			if ([2, 4, 5].includes(usersData.role_id)) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -7333,13 +7333,8 @@ class MasterController {
 						[Op.in]: designationArrayForFilter,
 					};
 				}
-			}
-			else
-			{
-				return respHelper(res, {
-					status: 401,
-					message: "Un-Authorized Access.",
-				});
+			} else {
+				return res.status(401).send(fileAccessErrorResponse(401));
 			}
 
 			employeeDataExisting = await db.employeeMaster.findAll({
@@ -7452,16 +7447,11 @@ class MasterController {
 				);
 				return res.end(report);
 			} else {
-				return respHelper(res, {
-					status: 404,
-					message: "Data not availble for available dates",
-				});
+				return res.status(404).send(fileAccessErrorResponse(404));
 			}
 		} catch (error) {
 			console.error("Error:", error);
-			res.status(500).json({
-				message: "An error occurred while exporting employee master data",
-			});
+			return res.status(500).send(fileAccessErrorResponse(500));
 		}
 	}
 
@@ -7480,12 +7470,14 @@ class MasterController {
 			let companyFIlter = {};
 			let departmentFIlter = {};
 			let designationFIlter = {};
-			let sMonth = (new Date(startDate).getMonth() + 1).toString().padStart(2, '0');
-			let sYear=new Date(startDate).getFullYear();
-			let salaryMonth = sYear+"-"+sMonth;
+			let sMonth = (new Date(startDate).getMonth() + 1)
+				.toString()
+				.padStart(2, "0");
+			let sYear = new Date(startDate).getFullYear();
+			let salaryMonth = sYear + "-" + sMonth;
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if ([2,4,5].includes(usersData.role_id)) {
+			if ([2, 4, 5].includes(usersData.role_id)) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -7544,13 +7536,8 @@ class MasterController {
 						[Op.in]: designationArrayForFilter,
 					};
 				}
-			}
-			else
-			{
-				return respHelper(res, {
-					status: 401,
-					message: "Un-Authorized Access.",
-				});	
+			} else {
+				return res.status(401).send(fileAccessErrorResponse(401));
 			}
 			employeeDataExisting = await db.employeeMaster.findAll({
 				attributes: ["id", "empCode", "name", "email", "isActive"],
@@ -7611,8 +7598,7 @@ class MasterController {
 				const result1 = await db.sequelize.query(query);
 				const processedData = groupByEmployeeId(result1[0]);
 
-				if(result1[0].length>0)
-				{
+				if (result1[0].length > 0) {
 					// const result = await transformData(employeeDataExisting);
 					const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
 					const resultColumns = Object.fromEntries(
@@ -7643,26 +7629,15 @@ class MasterController {
 						`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
 					);
 					return res.end(report);
+				} else {
+					return res.status(404).send(fileAccessErrorResponse(404));
 				}
-				else
-				{
-					return respHelper(res, {
-						status: 404,
-						message: "Data not availble for available dates",
-					});	
-				}
-		
 			} else {
-				return respHelper(res, {
-					status: 404,
-					message: "Data not availble for available dates",
-				});
+				return res.status(404).send(fileAccessErrorResponse(404));
 			}
 		} catch (error) {
 			console.error("Error:", error);
-			res.status(500).json({
-				message: "An error occurred while exporting employee master data",
-			});
+			return res.status(500).send(fileAccessErrorResponse(500));
 		}
 	}
 }
@@ -7756,6 +7731,222 @@ const transformData = (data) => {
 
 		return transformedObj;
 	});
+};
+
+
+
+const fileAccessErrorResponse = (data) => {
+	
+	switch (data) {
+		case 401:
+			return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>401 - Unauthorized</title>
+				<style>
+					body {
+						background: RGB(39, 161, 217);
+						font-family: Arial, sans-serif;
+						text-align: center;
+						padding: 50px;
+						color: white;
+					}
+					
+					.container {
+						max-width: 600px;
+						margin: auto;
+						background: rgba(0, 0, 0, 0.3);
+						padding: 30px;
+						border-radius: 15px;
+						box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+					}
+			
+					h1 {
+						font-size: 50px;
+						margin: 0;
+					}
+			
+					p {
+						font-size: 18px;
+					}
+			
+					.lock-icon {
+						font-size: 80px;
+						margin: 20px 0;
+					}
+			
+					.btn {
+						display: inline-block;
+						margin-top: 20px;
+						padding: 10px 20px;
+						font-size: 16px;
+						color: white;
+						text-decoration: none;
+						border-radius: 10px;
+						background: RGB(39, 161, 217);
+						transition: background 0.3s ease-in-out;
+					}
+			
+					.btn:hover {
+						background: #57B4BA;
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="lock-icon">🔒</div>
+					<h1>401</h1>
+					<h2>Unauthorized Access</h2>
+					<p>You do not have permission to view this file.</p>
+					<a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
+				</div>
+			</body>
+			</html>`		
+			break;
+
+			case 404:
+
+			return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401 - Unauthorized</title>
+    <style>
+        body {
+            background: RGB(39, 161, 217);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 50px;
+            margin: 0;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        .lock-icon {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            background: RGB(39, 161, 217);
+            transition: background 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            background: #57B4BA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lock-icon">🔒</div>
+        <h1>404</h1>
+        <h2>File not found</h2>
+        <p>File you want to search is not available or not found.</p>
+        <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
+    </div>
+</body>
+</html>`
+			break;
+			case 500:
+			return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401 - Unauthorized</title>
+    <style>
+        body {
+            background: RGB(39, 161, 217);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 50px;
+            margin: 0;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        .lock-icon {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            background: RGB(39, 161, 217);
+            transition: background 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            background: #57B4BA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lock-icon">🔒</div>
+        <h1>500</h1>
+        <h2>Server Error</h2>
+        <p>Some error occured while processing your request.</p>
+        <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
+    </div>
+</body>
+</html>`
+
+			break;	
+		default:
+			break;
+	}
+	
+	
 };
 
 export default new MasterController();
