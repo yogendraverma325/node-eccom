@@ -7798,7 +7798,7 @@ const fileAccessErrorResponse = (data) => {
 				<div class="container">
 					<div class="lock-icon">🔒</div>
 					<h1>403</h1>
-					<h2>file Not Accessible</h2>
+					<h2>File Not Accessible</h2>
 					<p>You do not have permission to view this file.</p>
 					<a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
 				</div>
