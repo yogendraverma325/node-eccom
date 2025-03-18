@@ -7334,6 +7334,13 @@ class MasterController {
 					};
 				}
 			}
+			else
+			{
+				return respHelper(res, {
+					status: 401,
+					message: "Un-Authorized Access.",
+				});
+			}
 
 			employeeDataExisting = await db.employeeMaster.findAll({
 				attributes: ["id", "empCode", "name", "email", "isActive"],
