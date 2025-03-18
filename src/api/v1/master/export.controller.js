@@ -7334,7 +7334,7 @@ class MasterController {
 					};
 				}
 			} else {
-				return res.status(401).send(fileAccessErrorResponse(401));
+				return res.status(403).send(fileAccessErrorResponse(403));
 			}
 
 			employeeDataExisting = await db.employeeMaster.findAll({
@@ -7537,7 +7537,7 @@ class MasterController {
 					};
 				}
 			} else {
-				return res.status(401).send(fileAccessErrorResponse(401));
+				return res.status(403).send(fileAccessErrorResponse(403));
 			}
 			employeeDataExisting = await db.employeeMaster.findAll({
 				attributes: ["id", "empCode", "name", "email", "isActive"],
@@ -7738,7 +7738,7 @@ const transformData = (data) => {
 const fileAccessErrorResponse = (data) => {
 	
 	switch (data) {
-		case 401:
+		case 403:
 			return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
@@ -7797,8 +7797,8 @@ const fileAccessErrorResponse = (data) => {
 			<body>
 				<div class="container">
 					<div class="lock-icon">🔒</div>
-					<h1>401</h1>
-					<h2>Unauthorized Access</h2>
+					<h1>403</h1>
+					<h2>file Not Accessible</h2>
 					<p>You do not have permission to view this file.</p>
 					<a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
 				</div>
@@ -7867,8 +7867,8 @@ const fileAccessErrorResponse = (data) => {
     <div class="container">
         <div class="lock-icon">🔒</div>
         <h1>404</h1>
-        <h2>File not found</h2>
-        <p>File you want to search is not available or not found.</p>
+        <h2>Data not found</h2>
+        <p>Data you want to search is not available or not found.</p>
         <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
     </div>
 </body>
