@@ -271,6 +271,9 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 				attributes: ["id", "name", "dateOfJoining"],
 			});
 
+			employee["Effective Date"] = !isNaN(employee["Effective Date"])
+			? importHelper.getFromattedDate(employee["Effective Date"])
+			: employee["Effective Date"];
 			if (!employeeDetails) {
 				console.log(
 					"Employee not found or inactive" +
@@ -331,7 +334,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 			// 	employee["Employee ID"] + "--" + employee["CTC"],
 			// 	ctcFromComponent,
 			// );
-
+			
 			if (employee["CTC"] == ctcFromComponent) {
 				////////////////Match the ctc///////
 				//console.log('CTC Matched',employee['Name']);
@@ -340,9 +343,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 					order: [["payPackageAutoId", "DESC"]],
 					raw: true,
 				});
-				employee["Effective Date"] = !isNaN(employee["Effective Date"])
-					? importHelper.getFromattedDate(employee["Effective Date"])
-					: employee["Effective Date"];
+			
 				const [day, month, year] = employee["Effective Date"]
 					.split("-")
 					.map(Number);
