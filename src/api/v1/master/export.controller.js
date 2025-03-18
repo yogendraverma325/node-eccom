@@ -7274,7 +7274,7 @@ class MasterController {
 			let designationFIlter = {};
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4 || usersData.role_id == 5) {
+			if ([2,4,5].includes(usersData.role_id)) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
@@ -7485,7 +7485,7 @@ class MasterController {
 			let salaryMonth = sYear+"-"+sMonth;
 			const usersData = req.userData;
 			let employeeDataExisting = [];
-			if (usersData.role_id == 4 || usersData.role_id == 5) {
+			if ([2,4,5].includes(usersData.role_id)) {
 				let permissionAssignTousers = [];
 				if (usersData.permissionAndAccess) {
 					permissionAssignTousers = usersData.permissionAndAccess
