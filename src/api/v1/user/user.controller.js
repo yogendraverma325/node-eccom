@@ -4679,7 +4679,7 @@ class UserController {
 			attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
 			include: {
 				model: db.employeeMaster,
-				attributes: ["id", "name", "confimationPolicyAutoId"],
+				attributes: ["id", "name", "confimationPolicyAutoId","companyId"],
 				require: true,
 				where: {
 					isActive: 1,
@@ -4699,6 +4699,7 @@ class UserController {
 			let respfrom = await helper.generateFieldsForgivenLevel(
 				employeeData?.employee?.confimationPolicyAutoId,
 				level + 1,
+				employeeData?.employee?.companyId,
 			);
 
 			await db.Confirmationowners.update(

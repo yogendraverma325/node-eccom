@@ -648,6 +648,7 @@ class CronController {
 					"confimationPolicyAutoId",
 					"manager",
 					"empCode",
+					"companyId"
 				],
 				required: true,
 				where: {
@@ -700,6 +701,7 @@ class CronController {
 				let respfrom = await helper.generateFieldsForgivenLevel(
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
+					Singleconfimation?.employee?.companyId,
 				);
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
