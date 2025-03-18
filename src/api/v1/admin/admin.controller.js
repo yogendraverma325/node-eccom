@@ -2323,6 +2323,24 @@ class AdminController {
 			});
 		}
 	}
+
+	// start add/update notice period by jay
+
+	async updateNoticePeriod(req, res) {
+		try {
+            let updatedBy = req.userId;
+			let { userId, noticePeriodAutoId } = req.body;
+			let metaData = { 'noticePeriodAutoId': noticePeriodAutoId, updatedBy: updatedBy, updatedAt: moment() };
+			await db.employeeMaster.update(metaData, { where: { 'id': userId }});
+			return respHelper(res, { status: 200, msg: constant.UPDATE_SUCCESS.replace("<module>", "Notice Period") });
+		}
+		catch(error) {
+			console.log(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+	// end add/update notice period by jay
 }
 
 export default new AdminController();

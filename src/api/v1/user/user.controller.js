@@ -5421,7 +5421,7 @@ class UserController {
 						model: db.jobDetails,
 						attributes: ["jobId", "userId", "dateOfJoining"],
 					},
-					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode"], required: false },
+					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"], required: false },
 				],
 				order: [
 					["designationHistories", "id", "ASC"], // Sorting for designationHistory
