@@ -648,6 +648,7 @@ class CronController {
 					"confimationPolicyAutoId",
 					"manager",
 					"empCode",
+					"companyId"
 				],
 				required: true,
 				where: {
@@ -680,6 +681,7 @@ class CronController {
 		});
 
 		for (const Singleconfimation of confimationData) {
+			console.log("ee",Singleconfimation?.employee?.id,)
 			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
 				where: {
 					confirmationAssignmentAutoId:
@@ -700,7 +702,9 @@ class CronController {
 				let respfrom = await helper.generateFieldsForgivenLevel(
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
-				);
+					Singleconfimation?.employee?.companyId,
+				); 
+				console.log("respfrom",respfrom)
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -774,6 +778,7 @@ class CronController {
 						// 	JSON.stringify(Singleconfimation)
 						// );
 					} else {
+						console.log("ownerId",ownerId)
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 						await db.Confirmationaudittrail.create({
 							confirmationinitiatedAutoId:

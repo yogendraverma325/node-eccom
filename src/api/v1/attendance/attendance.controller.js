@@ -1617,6 +1617,7 @@ class AttendanceController {
 						"shiftStartTime",
 						"shiftEndTime",
 						"shiftRemark",
+						"isOverNight"
 					],
 				}),
 			]);
