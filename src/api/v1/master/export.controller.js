@@ -7733,10 +7733,7 @@ const transformData = (data) => {
 	});
 };
 
-
-
 const fileAccessErrorResponse = (data) => {
-	
 	switch (data) {
 		case 403:
 			return `<!DOCTYPE html>
@@ -7744,7 +7741,7 @@ const fileAccessErrorResponse = (data) => {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>401 - Unauthorized</title>
+				<title>403 - Forbidden</title>
 				<style>
 					body {
 						background: RGB(39, 161, 217);
@@ -7803,17 +7800,16 @@ const fileAccessErrorResponse = (data) => {
 					<a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
 				</div>
 			</body>
-			</html>`		
+			</html>`;
 			break;
 
-			case 404:
-
+		case 404:
 			return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>401 - Unauthorized</title>
+    <title>404 - Data Not Available</title>
     <style>
         body {
             background: RGB(39, 161, 217);
@@ -7867,14 +7863,14 @@ const fileAccessErrorResponse = (data) => {
     <div class="container">
         <div class="lock-icon">🔒</div>
         <h1>404</h1>
-        <h2>Data not found</h2>
+        <h2>Data  Unavailable</h2>
         <p>Data you want to search is not available or not found.</p>
         <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
     </div>
 </body>
-</html>`
+</html>`;
 			break;
-			case 500:
+		case 500:
 			return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7939,14 +7935,12 @@ const fileAccessErrorResponse = (data) => {
         <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
     </div>
 </body>
-</html>`
+</html>`;
 
-			break;	
+			break;
 		default:
 			break;
 	}
-	
-	
 };
 
 export default new MasterController();
