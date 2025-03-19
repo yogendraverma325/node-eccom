@@ -427,10 +427,11 @@ class LeaveController {
 							if (currentLevel === maxApprovalLevel && existingLeaveHeader) {
 								await db.attendanceMaster.update(
 									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0 ||
-											existingRecord.dataValues.halfDayFor === 1
-											? { attendanceLateBy: "00:00:00" }
-											: {},
+										existingRecord.dataValues.isHalfDay === 0
+										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+										: existingRecord.dataValues.halfDayFor === 1
+										? { attendanceLateBy: "00:00:00" }
+										: {}
 									),
 									{
 										where: {
