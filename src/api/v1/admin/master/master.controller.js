@@ -4,7 +4,7 @@ import logger from "../../../../helper/logger.js";
 import respHelper from "../../../../helper/respHelper.js";
 import service from "./master.service.js";
 import Pagination from "../../../../helper/pagination.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import moment from "moment";
 import helper from "../../../../helper/helper.js";
 import constant from "../../../../constant/messages.js";
@@ -472,20 +472,32 @@ class CommonController {
 
 	async deleteOfJobLevel(req, res) {
 		try {
-			let model = db.jobLevelMaster;
-			let query = { jobLevelId: req.params.id };
-			let updateMetaData = { isDeleted: 1 };
-			let moduleName = "Job Level";
-			console.log(query);
-			let response = await service.delete(
-				model,
-				updateMetaData,
-				query,
-				moduleName,
-			);
-			return respHelper(res, response);
+			const id = req.params.id;
+			let query = { jobLevelId: id };
+
+			const doc = await db.jobLevelMapping.findOne({
+				where: query,
+				attributes: ["jobLevelId"],
+			});
+
+			if (doc) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Job level mapped",
+					data: {},
+				});
+			} else {
+				await db.jobLevelMaster.destroy({
+					where: { jobLevelId: id },
+				});
+				return respHelper(res, {
+					status: 200,
+					msg: "Job level deleted successfully",
+					data: {},
+				});
+			}
 		} catch (error) {
-			logger.error(error);
+			logger.error("Error while deleting job level", error);
 			return respHelper(res, {
 				status: 500,
 			});
@@ -3734,8 +3746,10 @@ class CommonController {
 			// verify if job level id have mapped with employee
 
 			let findQuery = { jobLevelId: result.jobLevelId };
-			let isExist = await service.details(db.jobDetails, findQuery);
-			if (isExist.status == 200) {
+			let isExist = await db.employeeMaster.findOne({ where: { companyId: metaData.companyId }, attributes: ['id'], 
+				include: [{ model: db.jobDetails, where: findQuery, attributes: ['userId'] }]});
+
+			if (isExist) {
 				return respHelper(res, {
 					status: 422,
 					msg: "You cannot change the job level mapping because it is already assigned to an employee.",
@@ -3758,6 +3772,7 @@ class CommonController {
 				}
 			}
 		} catch (error) {
+			console.log(error);
 			logger.error(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
@@ -4517,6 +4532,107 @@ class CommonController {
 	}
 
 	// End apis for parent department and functional area
+
+	// start delete department, functional area and job level mapping data if have not mapped with employee
+
+	async deleteDepartmentMapping(req, res) {
+		try {
+			const id = req.params.id;
+			let query = { departmentId: id };
+
+			const doc = await db.employeeMaster.findOne({
+				where: query,
+				attributes: ["departmentId"],
+			});
+
+			if (doc) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Department assigned",
+					data: {},
+				});
+			} else {
+				await db.departmentMapping.destroy({ where: { departmentId: id } });
+				return respHelper(res, {
+					status: 200,
+					msg: "Department mapping deleted successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error("Error while deleting department mapping data", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteFunctionalAreaMapping(req, res) {
+		try {
+			const id = req.params.id;
+			let query = { functionalAreaId: id };
+
+			const doc = await db.employeeMaster.findOne({
+				where: query,
+				attributes: ["functionalAreaId"],
+			});
+
+			if (doc) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Functional area assigned",
+					data: {},
+				});
+			} else {
+				await db.functionalAreaMapping.destroy({ where: { functionalAreaId: id } });
+				return respHelper(res, {
+					status: 200,
+					msg: "Functional area mapping deleted successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error("Error while deleting functional area mapping data", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteJobLevelMapping(req, res) {
+		try {
+			const { companyId, id } = req.params;
+			let query = { companyId: companyId };
+
+			const doc = await db.employeeMaster.findOne({
+				where: query,
+				attributes: ["id"],
+				include: [{ model: db.jobDetails, attributes: ['userId'], where: { 'jobLevelId': id }, required: true }]
+			});
+
+			if (doc) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Job level assigned",
+					data: {},
+				});
+			} else {
+				await db.jobLevelMapping.destroy({ where: { jobLevelId: id, companyId: companyId } });
+				return respHelper(res, {
+					status: 200,
+					msg: "Job level mapping deleted successfully",
+					data: {},
+				});
+			}
+		} catch (error) {
+			logger.error("Error while deleting job level mapping data", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// end delete mapping data
 
 	// close class
 }

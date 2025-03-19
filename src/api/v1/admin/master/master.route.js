@@ -684,4 +684,21 @@ export default Express.Router()
 		"/functional-area/:id",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.deleteFunctionalArea,
+	)
+
+	// delete department, functional area and job level mapping data if not mapped with employee
+	.delete(
+		"/department-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteDepartmentMapping,
+	)
+	.delete(
+		"/functional-area-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteFunctionalAreaMapping,
+	)
+	.delete(
+		"/job-level-mapping/:companyId/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteJobLevelMapping,
 	);

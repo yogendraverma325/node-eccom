@@ -146,7 +146,7 @@ class CommonService {
 			result = { status: 200, msg: constant.DATA_FETCHED, data: docs };
 			return result;
 		} else {
-			result = { status: 404, msg: constant.DATA_BLANK, data: docs };
+			result = { status: 200, msg: constant.DATA_BLANK, data: docs };
 			return result;
 		}
 	}
