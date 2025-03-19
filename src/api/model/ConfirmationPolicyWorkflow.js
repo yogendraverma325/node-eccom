@@ -27,7 +27,7 @@ export default (sequelize, Sequelize) => {
 				type: Sequelize.INTEGER,
 			},
 			companyId: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.STRING,
 			},
 		},
 	);
