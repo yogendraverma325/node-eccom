@@ -648,7 +648,7 @@ class CronController {
 					"confimationPolicyAutoId",
 					"manager",
 					"empCode",
-					"companyId"
+					"companyId",
 				],
 				required: true,
 				where: {
@@ -681,7 +681,7 @@ class CronController {
 		});
 
 		for (const Singleconfimation of confimationData) {
-			console.log("ee",Singleconfimation?.employee?.id,)
+			console.log("ee", Singleconfimation?.employee?.id);
 			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
 				where: {
 					confirmationAssignmentAutoId:
@@ -703,8 +703,8 @@ class CronController {
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
 					Singleconfimation?.employee?.companyId,
-				); 
-				console.log("respfrom",respfrom)
+				);
+				console.log("respfrom", respfrom);
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -778,7 +778,7 @@ class CronController {
 						// 	JSON.stringify(Singleconfimation)
 						// );
 					} else {
-						console.log("ownerId",ownerId)
+						console.log("ownerId", ownerId);
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 						await db.Confirmationaudittrail.create({
 							confirmationinitiatedAutoId:
@@ -1862,7 +1862,7 @@ class CronController {
 
 			const stream = await sshConnection.forwardOut(
 				"localhost",
-				0,
+				1433,
 				process.env.SERVER_DB_HOST,
 				process.env.SERVER_DB_PORT,
 			);
@@ -1872,6 +1872,9 @@ class CronController {
 				console.error("Error forwarding MSSQL port:", err);
 				return sshConnection.dispose();
 			}
+
+			console.log("Port Forwarding Success");
+			logger.info("Port Forwarding Success");
 
 			let sequelize = new Sequelize(
 				process.env.SERVER_DB_NAME,
@@ -1892,10 +1895,17 @@ class CronController {
 						idle: 10000,
 					},
 					dialectOptions: {
-						options: {
-							encrypt: false,
-							trustServerCertificate: true,
-						},
+						options: Object.assign(
+							{
+								encrypt: false,
+								trustServerCertificate: true,
+							},
+							process.env.SERVER_DB_INSTANCE === undefined
+								? {}
+								: {
+										instanceName: process.env.SERVER_DB_INSTANCE,
+									},
+						),
 					},
 					logging: false,
 				},
@@ -1910,8 +1920,7 @@ class CronController {
 					const result = await sequelize.query(
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
 					);
-					console.log(result)
-					if (result.length > 0) {
+					if (result && result.length > 0) {
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
 								autoId: element.ID,

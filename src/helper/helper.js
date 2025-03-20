@@ -5,7 +5,6 @@ import path from "path";
 import moment from "moment";
 import db from "../config/db.config.js";
 import bcrypt from "bcryptjs";
-import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
@@ -111,8 +110,8 @@ const mailService = async (data) => {
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc: [],
-			time: "",
+			bcc: data.bcc ? data.bcc : [],
+			time: data.time ? data.time : "",
 			html: data.html,
 			cc: data.cc ? data.cc.split(",") : [],
 			attachments:
