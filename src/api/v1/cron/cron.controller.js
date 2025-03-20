@@ -648,6 +648,7 @@ class CronController {
 					"confimationPolicyAutoId",
 					"manager",
 					"empCode",
+					"companyId"
 				],
 				required: true,
 				where: {
@@ -680,6 +681,7 @@ class CronController {
 		});
 
 		for (const Singleconfimation of confimationData) {
+			console.log("ee",Singleconfimation?.employee?.id,)
 			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
 				where: {
 					confirmationAssignmentAutoId:
@@ -700,7 +702,9 @@ class CronController {
 				let respfrom = await helper.generateFieldsForgivenLevel(
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
-				);
+					Singleconfimation?.employee?.companyId,
+				); 
+				console.log("respfrom",respfrom)
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -774,6 +778,7 @@ class CronController {
 						// 	JSON.stringify(Singleconfimation)
 						// );
 					} else {
+						console.log("ownerId",ownerId)
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 						await db.Confirmationaudittrail.create({
 							confirmationinitiatedAutoId:
@@ -1858,8 +1863,8 @@ class CronController {
 			const stream = await sshConnection.forwardOut(
 				"localhost",
 				0,
-				"10.11.4.24",
-				1433,
+				process.env.SERVER_DB_HOST,
+				process.env.SERVER_DB_PORT,
 			);
 
 			if (!stream) {
@@ -1905,6 +1910,7 @@ class CronController {
 					const result = await sequelize.query(
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
 					);
+					console.log(result)
 					if (result.length > 0) {
 						for (const element of result[0]) {
 							const incomingAttendanceData = {

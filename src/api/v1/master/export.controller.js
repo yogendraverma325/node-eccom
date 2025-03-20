@@ -8,6 +8,7 @@ import pkg from "xlsx";
 import bcrypt from "bcryptjs";
 import moment from "moment";
 import helper from "../../../helper/helper.js";
+import paymentHelper from "../payments/paymentHelper.js";
 
 const maritalStatusOptions = {
 	Married: 1,
@@ -17,13 +18,14 @@ const maritalStatusOptions = {
 	Widowed: 5,
 	Others: 6,
 };
-
+const dbName = process.env.DB_NAME;
 async function getDataFromCache(key) {
 	return client.lRange(key, 0, -1);
 }
 
 class MasterController {
 	/***********************************export data********************************************************/
+
 	async employee(req, res) {
 		try {
 			const {
@@ -7261,6 +7263,684 @@ class MasterController {
 			});
 		}
 	}
+
+	async ctcUploaded(req, res) {
+		try {
+			const { employeeType, search, businessUnit, companyId, attendanceFor } =
+				req.query;
+			let buFIlter = {};
+			let companyFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if ([2, 4, 5].includes(usersData.role_id)) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			} else {
+				return res.status(403).send(fileAccessErrorResponse(403));
+			}
+
+			employeeDataExisting = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "name", "email", "isActive"],
+				where: {
+					companyId: companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+				},
+				// raw:true,
+				// nest:true,
+				include: [
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
+						where: {
+							...buFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyCode"],
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+						where: {
+							...designationFIlter,
+						},
+						// required: !!designation,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...departmentFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.payPackage,
+						attributes: [
+							"payPackageAutoId",
+							"payPackageEffectiveDate",
+							"payPackageMonthlyCTC",
+							"payPackageSalaryStructure",
+						],
+						as: "packageDetails",
+						required: true,
+						where: { isActive: 1 },
+						include: [
+							{
+								model: db.payElements,
+								attributes: ["salaryComponentAutoId", "payElementAmount"],
+								as: "empPayElements",
+								include: [
+									{
+										model: db.salaryComponent,
+										attributes: ["salaryComponentCode", "salaryComponentAlias"],
+									},
+								],
+							},
+						],
+					},
+				],
+				distinct: true,
+			});
+
+			// console.log(employeeDataExisting);
+			// return;
+
+			if (employeeDataExisting.length > 0) {
+				const result = await transformData(employeeDataExisting);
+				const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
+				const resultColumns = Object.fromEntries(
+					uniqueKeys.map((key) => [key, 0]),
+				);
+				const columns = Object.keys(resultColumns).map((key) => ({
+					label: key,
+					value: key,
+				}));
+				const data = [
+					{
+						sheet: "Employee",
+						columns: columns,
+						content: result, // Use the JSON array as content
+					},
+				];
+				const settings = {
+					fileName: `Total_${Date.now()}`,
+					extraLength: 3,
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx",
+					},
+				};
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
+				);
+				return res.end(report);
+			} else {
+				return res.status(404).send(fileAccessErrorResponse(404));
+			}
+		} catch (error) {
+			console.error("Error:", error);
+			return res.status(500).send(fileAccessErrorResponse(500));
+		}
+	}
+
+	async salaryGenerated(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				employeeType,
+				search,
+				businessUnit,
+				companyId,
+				attendanceFor,
+			} = req.query;
+			let buFIlter = {};
+			let companyFIlter = {};
+			let departmentFIlter = {};
+			let designationFIlter = {};
+			let sMonth = (new Date(startDate).getMonth() + 1)
+				.toString()
+				.padStart(2, "0");
+			let sYear = new Date(startDate).getFullYear();
+			let salaryMonth = sYear + "-" + sMonth;
+			const usersData = req.userData;
+			let employeeDataExisting = [];
+			if ([2, 4, 5].includes(usersData.role_id)) {
+				let permissionAssignTousers = [];
+				if (usersData.permissionAndAccess) {
+					permissionAssignTousers = usersData.permissionAndAccess
+						.split(",")
+						.map((el) => parseInt(el));
+				}
+				let permissionAndAccess = await db.permissoinandaccess.findAll({
+					where: {
+						role_id: usersData.role_id,
+						isActive: 1,
+						permissoinandaccessId: {
+							[Op.in]: permissionAssignTousers,
+						},
+					},
+				}); /// get all permission of access to fetch list with active status as per role
+				const buArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "BU")
+					.map((obj) => obj.permissionValue); // checking BU Access
+
+				if (buArrayForFilter.length > 0) {
+					buFIlter.buId = {
+						///appedning Bu to filter
+						[Op.in]: buArrayForFilter,
+					};
+				}
+
+				const comapnyArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "COMPANY")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (comapnyArrayForFilter.length > 0) {
+					companyFIlter.companyId = {
+						///appedning SBU to filter
+						[Op.in]: comapnyArrayForFilter,
+					};
+				}
+
+				const departmentArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DEPARTMENT")
+					.map((obj) => obj.permissionValue); // checking department Access
+
+				if (departmentArrayForFilter.length > 0) {
+					departmentFIlter.departmentId = {
+						///appedning department to filter
+						[Op.in]: departmentArrayForFilter,
+					};
+				}
+
+				const designationArrayForFilter = permissionAndAccess
+					.filter((obj) => obj.permissionType == "DESIGNATION")
+					.map((obj) => obj.permissionValue); // checking SBU Access
+
+				if (designationArrayForFilter.length > 0) {
+					designationFIlter.designationId = {
+						///appedning SBU to filter
+						[Op.in]: designationArrayForFilter,
+					};
+				}
+			} else {
+				return res.status(403).send(fileAccessErrorResponse(403));
+			}
+			employeeDataExisting = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "name", "email", "isActive"],
+				where: {
+					companyId: companyId,
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+				},
+				raw: true,
+				include: [
+					{
+						model: db.buMaster,
+						attributes: ["buName"],
+						where: {
+							...buFIlter,
+						},
+						required: true,
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyCode"],
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+						where: {
+							...designationFIlter,
+						},
+						// required: !!designation,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...departmentFIlter,
+						},
+						required: true,
+					},
+				],
+				distinct: true,
+			});
+
+			if (employeeDataExisting.length > 0) {
+				const employeeIds = [];
+				for (const element of employeeDataExisting) {
+					console.log(element.id);
+					employeeIds.push(element.id);
+				}
+				const query = `SELECT p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds});`;
+				const result1 = await db.sequelize.query(query);
+				const processedData = groupByEmployeeId(result1[0]);
+
+				if (result1[0].length > 0) {
+					// const result = await transformData(employeeDataExisting);
+					const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
+					const resultColumns = Object.fromEntries(
+						uniqueKeys.map((key) => [key, 0]),
+					);
+					const columns = Object.keys(resultColumns).map((key) => ({
+						label: key,
+						value: key,
+					}));
+					const data = [
+						{
+							sheet: "Employee",
+							columns: columns,
+							content: processedData, // Use the JSON array as content
+						},
+					];
+					const settings = {
+						fileName: `Total_${Date.now()}`,
+						extraLength: 3,
+						writeOptions: {
+							type: "buffer",
+							bookType: "xlsx",
+						},
+					};
+					const report = xlsx(data, settings);
+					res.setHeader(
+						"Content-Disposition",
+						`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
+					);
+					return res.end(report);
+				} else {
+					return res.status(404).send(fileAccessErrorResponse(404));
+				}
+			} else {
+				return res.status(404).send(fileAccessErrorResponse(404));
+			}
+		} catch (error) {
+			console.error("Error:", error);
+			return res.status(500).send(fileAccessErrorResponse(500));
+		}
+	}
 }
+
+const groupByEmployeeId = (data) => {
+	const groupedData = {};
+	data.forEach((item) => {
+		const employeeId = item["Employee Id"];
+		if (!groupedData[employeeId]) {
+			let totalEarning = parseFloat(
+				parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
+					parseFloat(
+						item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
+					),
+			);
+			let totalDeduction = parseFloat(
+				parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
+					parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
+					parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
+					parseFloat(item["PF Employer"] ? item["PF Employer"] : 0) +
+					parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
+			);
+			let payableAmount = totalEarning - totalDeduction;
+			payableAmount = paymentHelper.customRound(payableAmount);
+			groupedData[employeeId] = {
+				"Employee Id": employeeId,
+				"Employee Name": item["Employee Name"],
+				"LOP Days": item["LOP Days"],
+				"Arrears Month": item["Arrears Month"],
+				"Arrears Days": item["Arrears Days"],
+				"TDS Month": item["TDS Month"],
+				"TDS Amount": item["TDS Amount"],
+				"Net Pay": item["Net Pay"],
+				"Monthly Pay": payableAmount != "N/A" ? payableAmount : "0.0",
+				"Extra Deduction Categories": item["Advance Name"],
+				"Total Extra Deduction Amount": item["Advance Amount"],
+				"PT Amount": item["PT AMOUNT"],
+				"LWF Amount": item["LWF AMOUNT"],
+				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"],
+				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],
+				"ESIC Employer": item["ESIC Employer"],
+				"ESIC Employee": item["ESIC Employee"],
+				"PF Employee": item["PF Employee"],
+				"PF Employer": item["PF Employer"],
+			};
+			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
+		}
+
+		if (["Balancing", "Earning"].includes(item["salaryComponentEarningType"])) {
+			Object.assign(groupedData[employeeId], {
+				[item["Element Name"]]: item["Element Amount"]
+					? paymentHelper.customRound(item["Element Amount"])
+					: item["Element Amount"],
+			});
+			Object.assign(groupedData[employeeId], {
+				[item["Element Name"] + " Monthly"]: item["Monthly Element Amount"]
+					? paymentHelper.customRound(item["Monthly Element Amount"])
+					: item["Monthly Element Amount"],
+			});
+		}
+	});
+
+	return Object.values(groupedData); // Convert the grouped data object back to an array
+};
+
+const transformData = (data) => {
+	return data.map((employee) => {
+		let transformedObj = {
+			"Employee ID": employee.empCode,
+			Name: employee.name,
+			"Job Title":
+				employee.designationmaster.name +
+				" (" +
+				employee.designationmaster.code +
+				")",
+			Department:
+				employee.departmentmaster.departmentName +
+				" (" +
+				employee.departmentmaster.departmentCode +
+				")",
+			"Business Unit": employee.bumaster.buName,
+			"Company Name": employee.companymaster.companyName,
+		};
+
+		employee.packageDetails.empPayElements.forEach((element) => {
+			const keyName =
+				element.salarycomponent.salaryComponentAlias ||
+				element.salarycomponent.salaryComponentCode;
+			transformedObj[keyName] = element.payElementAmount;
+		});
+
+		return transformedObj;
+	});
+};
+
+const fileAccessErrorResponse = (data) => {
+	switch (data) {
+		case 403:
+			return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>403 - Forbidden</title>
+				<style>
+					body {
+						background: RGB(39, 161, 217);
+						font-family: Arial, sans-serif;
+						text-align: center;
+						padding: 50px;
+						color: white;
+					}
+					
+					.container {
+						max-width: 600px;
+						margin: auto;
+						background: rgba(0, 0, 0, 0.3);
+						padding: 30px;
+						border-radius: 15px;
+						box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+					}
+			
+					h1 {
+						font-size: 50px;
+						margin: 0;
+					}
+			
+					p {
+						font-size: 18px;
+					}
+			
+					.lock-icon {
+						font-size: 80px;
+						margin: 20px 0;
+					}
+			
+					.btn {
+						display: inline-block;
+						margin-top: 20px;
+						padding: 10px 20px;
+						font-size: 16px;
+						color: white;
+						text-decoration: none;
+						border-radius: 10px;
+						background: RGB(39, 161, 217);
+						transition: background 0.3s ease-in-out;
+					}
+			
+					.btn:hover {
+						background: #57B4BA;
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="lock-icon">🔒</div>
+					<h1>403</h1>
+					<h2>File Not Accessible</h2>
+					<p>You do not have permission to view this file.</p>
+					<a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
+				</div>
+			</body>
+			</html>`;
+			break;
+
+		case 404:
+			return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Data Not Available</title>
+    <style>
+        body {
+            background: RGB(39, 161, 217);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 50px;
+            margin: 0;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        .lock-icon {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            background: RGB(39, 161, 217);
+            transition: background 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            background: #57B4BA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lock-icon">🔒</div>
+        <h1>404</h1>
+        <h2>Data  Unavailable</h2>
+        <p>Data you want to search is not available or not found.</p>
+        <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
+    </div>
+</body>
+</html>`;
+			break;
+		case 500:
+			return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401 - Unauthorized</title>
+    <style>
+        body {
+            background: RGB(39, 161, 217);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 50px;
+            margin: 0;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        .lock-icon {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            background: RGB(39, 161, 217);
+            transition: background 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            background: #57B4BA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lock-icon">🔒</div>
+        <h1>500</h1>
+        <h2>Server Error</h2>
+        <p>Some error occured while processing your request.</p>
+        <a href="https://tara.teamcomputers.com/" class="btn">Go to Homepage</a>
+    </div>
+</body>
+</html>`;
+
+			break;
+		default:
+			break;
+	}
+};
 
 export default new MasterController();

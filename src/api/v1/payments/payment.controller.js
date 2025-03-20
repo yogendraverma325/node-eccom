@@ -5719,7 +5719,8 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
 					parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
 					parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
-					parseFloat(item["PF Employer"] ? item["PF Employer"] : 0) +
+					parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
+					parseFloat(item['ESIC Employee']?item['ESIC Employee']:0) +
 					parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
 			);
 			let payableAmount = totalEarning - totalDeduction;

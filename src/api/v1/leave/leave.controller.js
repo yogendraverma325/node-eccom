@@ -427,10 +427,11 @@ class LeaveController {
 							if (currentLevel === maxApprovalLevel && existingLeaveHeader) {
 								await db.attendanceMaster.update(
 									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0 ||
-											existingRecord.dataValues.halfDayFor === 1
-											? { attendanceLateBy: "00:00:00" }
-											: {},
+										existingRecord.dataValues.isHalfDay === 0
+										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+										: existingRecord.dataValues.halfDayFor === 1
+										? { attendanceLateBy: "00:00:00" }
+										: {}
 									),
 									{
 										where: {
@@ -3350,7 +3351,7 @@ class LeaveController {
 			}
 
 			// Fetch employee details and leave counts in parallel
-			const [employeeWeekOfId, pendingLeaveCountList, availableLeaveCount] =
+			var [employeeWeekOfId, pendingLeaveCountList, availableLeaveCount] =
 				await Promise.all([
 					db.employeeMaster.findOne({ where: { id: employeeId } }),
 					db.employeeLeaveTransactions.findAll({
@@ -3379,6 +3380,7 @@ class LeaveController {
 				leaveAutoId,
 				EMP_DATA,
 			);
+			console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,
@@ -3399,6 +3401,38 @@ class LeaveController {
 				0,
 				totalWorkingDays - getCombinedVal,
 			);
+
+			if(leaveAutoId==9){
+				let count=0;
+				let result = await db.comp_off_credit_history.findOne({
+							attributes: [
+								[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+							],
+							where: {
+								employee_Id: employeeId,
+								expiry_date: {
+									[Op.or]: [
+										{ [Op.eq]: null }, // Check if expiry_date is null
+										{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+									],
+								},
+								taken_on: {
+									[Op.eq]: null, // Check if expiry_date is null
+								},
+								status: 1,
+							},
+						});
+
+				if (result && result.dataValues.total_balance != null) {
+				count = parseFloat(result.dataValues.total_balance);
+				}
+					console.log(
+				"totalWorkingDaysCalculated",count
+			)
+				
+				availableLeaveCount.total_balance=count;
+
+			}
 			let countDeductingPending =
 				availableLeaveCount.availableLeave - pendingLeaveCount;
 			let a = totalWorkingDaysCalculated;
@@ -3407,6 +3441,11 @@ class LeaveController {
 					? totalWorkingDaysCalculated
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
+			console.log(
+				"totalWorkingDaysCalculated",totalWorkingDaysCalculated,
+				"ava",availableLeaveCount.availableLeave,
+				"countDeductingPending",countDeductingPending
+			)
 
 			if (leaveAutoId == 6) {
 				b = a;

@@ -1683,8 +1683,8 @@ const compareImages = async function (base64Image, folderImagePath) {
 	}
 };
 ///CONFIRMATION
-const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
-	//console.log("inputLevel", inputLevel);
+const generateFieldsForgivenLevel = async function (policyId, inputLevel,companyId) { 
+	 console.log("inputLevel", policyId,"inputLevel",inputLevel,"companyId",companyId);
 	let levelData = null;
 	let level = inputLevel;
 	let levelFound = false;
@@ -1693,6 +1693,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 			confimationPolicyAutoId: policyId,
 			isEnable: 1,
 			level: level,
+			companyId: {
+			[Op.or]: [
+				{ [Op.like]: `${companyId},%` },
+				{ [Op.like]: `%,${companyId},%` },
+				{ [Op.like]: `%,${companyId}` },
+				{ [Op.eq]: `${companyId}` },
+			],
+			}
 		},
 	});
 	if (!levelData) {
@@ -1702,6 +1710,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 				confimationPolicyAutoId: policyId,
 				isEnable: 1,
 				level: level,
+				companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${companyId},%` },
+							{ [Op.like]: `%,${companyId},%` },
+							{ [Op.like]: `%,${companyId}` },
+							{ [Op.eq]: `${companyId}` },
+						],
+					}
 			},
 		});
 	}
@@ -1712,6 +1728,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 				confimationPolicyAutoId: policyId,
 				isEnable: 1,
 				level: level,
+				companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${companyId},%` },
+							{ [Op.like]: `%,${companyId},%` },
+							{ [Op.like]: `%,${companyId}` },
+							{ [Op.eq]: `${companyId}` },
+						],
+					}
 			},
 		});
 	}
@@ -1722,6 +1746,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 				confimationPolicyAutoId: policyId,
 				isEnable: 1,
 				level: level,
+				companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${companyId},%` },
+							{ [Op.like]: `%,${companyId},%` },
+							{ [Op.like]: `%,${companyId}` },
+							{ [Op.eq]: `${companyId}` },
+						],
+					}
 			},
 		});
 	}
