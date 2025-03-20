@@ -618,7 +618,7 @@ class CronController {
 							today: today,
 							current: current,
 							yesterday: yesterday,
-							senderEmail: 'automailer@teamcomputers.com'
+							senderEmail: "automailer@teamcomputers.com",
 						}),
 					);
 				});
@@ -1238,7 +1238,7 @@ class CronController {
 						signatureAuthority: signatureAuthority,
 						cc: cc_arrays.join(","),
 						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
-						companyLogo: EMP_DATA_SELF.companymaster.companyLogo
+						companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -1840,11 +1840,11 @@ class CronController {
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-					}
+							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+						}
 					: {
-						password: process.env.SSH_PASSWORD,
-					},
+							password: process.env.SSH_PASSWORD,
+						},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1868,8 +1868,8 @@ class CronController {
 				return sshConnection.dispose();
 			}
 
-			console.log("Port Forwarding Success")
-			logger.info("Port Forwarding Success")
+			console.log("Port Forwarding Success");
+			logger.info("Port Forwarding Success");
 
 			let sequelize = new Sequelize(
 				process.env.SERVER_DB_NAME,
@@ -1895,12 +1895,11 @@ class CronController {
 								encrypt: false,
 								trustServerCertificate: true,
 							},
-							(process.env.SERVER_DB_INSTANCE === undefined) ?
-								{
-
-								} : {
-									instanceName: process.env.SERVER_DB_INSTANCE,
-								}
+							process.env.SERVER_DB_INSTANCE === undefined
+								? {}
+								: {
+										instanceName: process.env.SERVER_DB_INSTANCE,
+									},
 						),
 					},
 					logging: false,
