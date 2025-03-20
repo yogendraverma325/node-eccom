@@ -48,7 +48,7 @@ class AttendanceController {
 				}
 			}
 
-			const currentDate = moment('2025-03-20 06:30:45');
+			const currentDate = moment();
 
 			const existEmployee = await db.employeeMaster.findOne({
 				where: {
@@ -406,17 +406,6 @@ class AttendanceController {
 					`${tommorow.format("YYYY-MM-DD")} ${finalShiftEndTime}`,
 					"YYYY-MM-DD HH:mm:ss",
 				);
-
-
-					return respHelper(res, {
-						status: 200,
-						data:{
-							currentDate:currentDate.format('YYYY-MM-DD HH:mm:ss'),
-							combinedDateTimeCurrentDay:combinedDateTimeCurrentDay.format('YYYY-MM-DD HH:mm:ss'),
-							combinedDateTimeNextDay:combinedDateTimeNextDay.format('YYYY-MM-DD HH:mm:ss')
-						},
-						msg: "night shift block"
-					});
 					
 
 				if (
@@ -591,15 +580,28 @@ class AttendanceController {
 						});
 					}
 				} else {
-					const combinedDateTimeCurrentDay = moment(
-						`${currentDate.format("YYYY-MM-DD")} ${finalShiftStartTime}`,
-						"YYYY-MM-DD HH:mm:ss",
-					);
+					
+					
+		const yerterdayDate = combinedDateTimeCurrentDay
+		.clone()
+		.subtract(1, "days");
 
-					const yerterdayDate = combinedDateTimeCurrentDay
-						.clone()
-						.subtract(1, "days");
-					const lastDayAttendace = await db.attendanceMaster.findOne({
+		const combinedDateTimeCurrentDayClone = combinedDateTimeCurrentDay.clone().subtract(1, 'days');
+		const combinedDateTimeNextDayClone = combinedDateTimeNextDay.clone().subtract(1, 'days');
+
+				if (
+				currentDate > combinedDateTimeCurrentDayClone &&
+				currentDate < combinedDateTimeNextDayClone
+				) {
+
+				}else{
+				return respHelper(res, {
+				status: 400,
+				msg: `Your shift time starts from ${combinedDateTimeCurrentDay.format('DD MMMM YYYY [at] hh:mm A')} and end on ${combinedDateTimeNextDay.format('DD MMMM YYYY [at] hh:mm A')}`,
+				});
+
+				}
+            const lastDayAttendace = await db.attendanceMaster.findOne({
 						raw: true,
 						where: {
 							employeeId: req.userId,
