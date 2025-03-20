@@ -671,6 +671,8 @@ db.employeeMaster.belongsTo(db.employeeLeaveTransactions, {
 	sourceKey: "employeeId",
 });
 
+
+
 db.attendanceMaster.hasMany(db.holidayCompanyLocationConfiguration, {
 	foreignKey: "holidayCompanyLocationConfigurationID",
 	sourceKey: "holidayCompanyLocationConfigurationID",
@@ -1912,5 +1914,12 @@ db.ImportInfo.hasMany(db.ImportData, {
 	sourceKey: "importAutoId",
 	as: "importedData",
 });
+
+///YOGI ADDED THIS JOIN
+db.employeeMaster.hasOne(db.employeeLeaveTransactions, {
+	foreignKey: "employeeId",
+	sourceKey: "id",
+});
+///YOGI ADDED THIS JOIN
 
 export default db;

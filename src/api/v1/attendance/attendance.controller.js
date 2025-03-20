@@ -48,7 +48,7 @@ class AttendanceController {
 				}
 			}
 
-			const currentDate = moment();
+			const currentDate = moment('2025-03-20 06:30:45');
 
 			const existEmployee = await db.employeeMaster.findOne({
 				where: {
@@ -364,7 +364,11 @@ class AttendanceController {
 					});
 				}
 			} else {
+
+				
 				// Over night code
+
+
 				const assignedShiftStartTime = existEmployee.attendanceroster
 					? existEmployee.attendanceroster.shiftsmaster.shiftStartTime
 					: existEmployee.shiftsmaster.shiftStartTime;
@@ -402,6 +406,18 @@ class AttendanceController {
 					`${tommorow.format("YYYY-MM-DD")} ${finalShiftEndTime}`,
 					"YYYY-MM-DD HH:mm:ss",
 				);
+
+
+					return respHelper(res, {
+						status: 200,
+						data:{
+							currentDate:currentDate.format('YYYY-MM-DD HH:mm:ss'),
+							combinedDateTimeCurrentDay:combinedDateTimeCurrentDay.format('YYYY-MM-DD HH:mm:ss'),
+							combinedDateTimeNextDay:combinedDateTimeNextDay.format('YYYY-MM-DD HH:mm:ss')
+						},
+						msg: "night shift block"
+					});
+					
 
 				if (
 					currentDate > combinedDateTimeCurrentDay &&
@@ -2725,7 +2741,7 @@ class AttendanceController {
 						};
 						await helper.creditCompoff(employeeData);
 					}
-				} else {
+				} else  if (singleEmp.attendancemaster.attendancePunchInTime &&  !singleEmp.attendancemaster.attendancePunchOutTime){
 					presentStatus = "singlePunchAbsent";
 				}
 				await db.attendanceMaster.update(
@@ -3117,7 +3133,7 @@ class AttendanceController {
 							);
 						}
 					}
-				} else {
+				} else  if (singleEmp.attendancemaster.attendancePunchInTime &&  !singleEmp.attendancemaster.attendancePunchOutTime){
 					presentStatus = "singlePunchAbsent";
 				}
 
@@ -3268,7 +3284,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1,
+					isActive: 1
 				},
 			});
 			let nightwala = 0;
