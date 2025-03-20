@@ -1088,6 +1088,7 @@ class MasterController {
 			if (attendanceData.length > 0) {
 				const simplifiedData = await Promise.all(
 					attendanceData.map(async (record) => ({
+						employeeId: record["employee.id"],
 						employeeCode: record["employee.empCode"],
 						employeeName: record["employee.name"],
 						buName:
@@ -1171,9 +1172,20 @@ class MasterController {
 							record.updatedAt != null
 								? moment(record.updatedAt).format("DD-MM-YYYY HH:mm:ss")
 								: "N/A",
-					})),
+					}
+				)),
+				
 				);
-
+				simplifiedData.sort((a, b) => {
+					// First, sort by employeeId
+					if (a.employeeId !== b.employeeId) {
+						return a.employeeId - b.employeeId;
+					}
+					// If employeeId is the same, then sort by attendanceDate
+					return new Date(a.attendanceDate.split('-').reverse().join('-')) - 
+						   new Date(b.attendanceDate.split('-').reverse().join('-'));
+				});
+				
 				if (simplifiedData.length > 0) {
 					const timestamp = Date.now();
 					const data = [
@@ -2087,7 +2099,7 @@ class MasterController {
 						// if (currentDay.isBefore(today)) {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
-                   console.log("currentDay.isAfter",employeeRecord.dateOfexit)
+                 //  console.log("currentDay.isAfter",employeeRecord.dateOfexit)
 					if (
 						currentDay.isAfter(
 							moment(employeeRecord.dateOfexit).format("YYYY-MM-DD"),
@@ -2100,8 +2112,9 @@ class MasterController {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
 				}
-
+				console.log("employeeRecord.empId",employeeRecord.empId)
 				const orderedEmployeeRecord = {
+					employeeId: employeeRecord.empId,
 					name: employeeRecord.name,
 					empCode: employeeRecord.empCode,
 					dateOfJoining: employeeRecord.dateOfJoining,
@@ -2127,6 +2140,7 @@ class MasterController {
 
 				finalData.push(orderedEmployeeRecord);
 			}
+			finalData.sort((a, b) => a.employeeId - b.employeeId);
 
 			if (finalData.length > 0) {
 				const timestamp = Date.now();
