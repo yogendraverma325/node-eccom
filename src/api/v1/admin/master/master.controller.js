@@ -476,7 +476,6 @@ class CommonController {
 			let query = { jobLevelId: req.params.id };
 			let updateMetaData = { isDeleted: 1 };
 			let moduleName = "Job Level";
-			console.log(query);
 			let response = await service.delete(
 				model,
 				updateMetaData,
@@ -1279,7 +1278,7 @@ class CommonController {
 				query,
 				moduleName,
 			);
-			console.log(response, "response---");
+
 			return respHelper(res, response);
 		} catch (error) {
 			logger.error(error);
@@ -1304,7 +1303,6 @@ class CommonController {
 			);
 			let model = db.designationMaster;
 			let query = { designationId: req.params.id };
-			console.log("");
 			let response = await service.update(
 				model,
 				{
@@ -1442,7 +1440,6 @@ class CommonController {
 			const result = await validator.gradeMasterSchema.validateAsync(req.body);
 			let model = db.gradeMaster;
 			let query = { gradeId: req.params.id };
-			console.log("");
 			let response = await service.update(
 				model,
 				{
@@ -1582,7 +1579,6 @@ class CommonController {
 			const result = await validator.degreeMasterSchema.validateAsync(req.body);
 			let model = db.degreeMaster;
 			let query = { degreeId: req.params.id };
-			console.log("");
 			let response = await service.update(
 				model,
 				{
@@ -1759,7 +1755,6 @@ class CommonController {
 			const result = await validator.holidayMasterSchema.validateAsync(
 				req.body,
 			);
-			console.log(result, "result");
 
 			let model = db.holidayMaster;
 			let query = { holidayId: req.params.id };
@@ -1956,7 +1951,6 @@ class CommonController {
 			const result = await validator.newCustomerSchema.validateAsync(req.body);
 			let model = db.newCustomerNameMaster;
 			let query = { newCustomerNameId: req.params.id };
-			console.log("");
 			let response = await service.update(
 				model,
 				{
@@ -2108,7 +2102,6 @@ class CommonController {
 			);
 			let model = db.costCenterMaster;
 			let query = { costCenterId: req.params.id };
-			console.log("");
 			let response = await service.update(
 				model,
 				{

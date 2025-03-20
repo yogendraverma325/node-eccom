@@ -10,7 +10,6 @@ import fs from "fs";
 import path from "path";
 import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
-import e from "cors";
 
 var _this = null;
 class AttendanceController {
@@ -5783,9 +5782,151 @@ const attedanceRosterCron = async (user, date) => {
 			attendanceDate: date,
 		},
 		attributes: ["attendanceAutoId"],
+		include: [{
+			model: db.employeeMaster,
+			attributes: ['id', "name", "email"],
+			include: [{
+				model: db.AttendanceRoster,
+				where: {
+					attendanceDate: date
+				},
+				include: [
+					{
+						model: db.shiftMaster,
+						attributes: [
+							"shiftId",
+							"shiftName",
+							"shiftStartTime",
+							"shiftEndTime",
+							"isOverNight",
+						],
+					},
+				],
+			},
+			{
+				model: db.attendancePolicymaster,
+				where: {
+					isActive: true,
+				},
+			}]
+		}]
 	});
 
 	if (attendanceData) {
+
+		let shiftStartTimePreBuffer = moment(`${date} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftStartTime}`)
+		let shiftStartTimeGraceTimeClockIn = moment(`${date} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftStartTime}`)
+
+		shiftStartTimePreBuffer.subtract(
+			attendanceData.dataValues.employee.attendancePolicymaster.allowBufferTime === 1
+				? attendanceData.dataValues.employee.attendancePolicymaster.bufferTimePre
+				: 0,
+			"minutes",
+		);
+
+		shiftStartTimeGraceTimeClockIn.add(
+			attendanceData.dataValues.employee.attendancePolicymaster.allowBufferTime === 1
+				? attendanceData.dataValues.employee.attendancePolicymaster.graceTimeClockIn
+				: 0,
+			"minutes",
+		);
+
+		const punchInAttendanceHistory = await db.attendanceHistory.findOne({
+			where: {
+				employeeId: user,
+				[Op.and]: [
+					db.Sequelize.where(
+						db.Sequelize.fn("concat", db.Sequelize.col("date"), " ", db.Sequelize.col("time")),
+						{
+							[Op.between]: [
+								new Date(shiftStartTimePreBuffer),
+								new Date(shiftStartTimeGraceTimeClockIn),
+							],
+						},
+					),
+				],
+			},
+			order: [["attendanceHistoryId", 'asc']],
+			limit: 1
+		});
+
+		let punchInObject = (punchInAttendanceHistory) ? {
+			attandanceShiftStartDate: punchInAttendanceHistory.dataValues.date,
+			attendanceShiftId: attendanceData.dataValues.employee.attendanceroster.shiftId,
+			weekOffId: attendanceData.dataValues.employee.attendanceroster.weekOffId,
+			attendancePunchInTime: punchInAttendanceHistory.dataValues.time,
+			attendanceStatus: "Punch In",
+			attendanceLateBy: await helper.calculateLateBy(punchInAttendanceHistory.dataValues.time, shiftStartTimeGraceTimeClockIn.format("HH:mm:ss")),
+			attendancePresentStatus: "present",
+			attendancePunchInRemark: punchInAttendanceHistory.dataValues.userRemark,
+			attendancePunchInLocationType: punchInAttendanceHistory.dataValues.locationType,
+			attendancePunchInLocation: punchInAttendanceHistory.dataValues.location,
+			attendancePunchInLatitude: punchInAttendanceHistory.dataValues.lat,
+			attendancePunchInLongitude: punchInAttendanceHistory.dataValues.long,
+			punchInSource: punchInAttendanceHistory.dataValues.device,
+		} : {
+			attendanceShiftId: attendanceData.dataValues.employee.attendanceroster.shiftId,
+			weekOffId: attendanceData.dataValues.employee.attendanceroster.weekOffId,
+		}
+
+		await db.attendanceMaster.update(punchInObject, {
+			where: {
+				attendanceAutoId: attendanceData.dataValues.attendanceAutoId
+			}
+		})
+
+		// ---------------------------------------------- Punch Out ---------------------------------------------- //
+		const shiftDate = attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.isOverNight === 1 ? moment(date).add(1, 'days').format("YYYY-MM-DD") : date
+
+		let shiftEndTimePostBuffer = moment(`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`)
+		let shiftEndTimeGraceTimeClockOut = moment(`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`)
+
+		shiftEndTimePostBuffer.add(
+			attendanceData.dataValues.employee.attendancePolicymaster.allowBufferTime === 1
+				? attendanceData.dataValues.employee.attendancePolicymaster.bufferTimePost
+				: 0,
+			"minutes",
+		);
+
+		const punchOutAttendanceHistory = await db.attendanceHistory.findOne({
+			where: {
+				employeeId: user,
+				[Op.and]: [
+					db.Sequelize.where(
+						db.Sequelize.fn("concat", db.Sequelize.col("date"), " ", db.Sequelize.col("time")),
+						{
+							[Op.between]: [
+								new Date(shiftEndTimeGraceTimeClockOut),
+								new Date(shiftEndTimePostBuffer),
+							],
+						},
+					),
+				],
+			},
+			order: [["attendanceHistoryId", 'desc']],
+			limit: 1
+		});
+
+		if (punchOutAttendanceHistory) {
+			const punchOutObject = {
+				attendancePunchOutTime: punchOutAttendanceHistory.dataValues.time,
+				attendanceShiftEndDate: punchOutAttendanceHistory.dataValues.date,
+				attendancePunchOutLocationType: punchOutAttendanceHistory.dataValues.locationType,
+				attendanceStatus: "Punch Out",
+				attendancePunchOutRemark: punchOutAttendanceHistory.dataValues.userRemark,
+				attendanceWorkingTime: await helper.timeDifference(`${punchInAttendanceHistory.dataValues.date} ${punchInAttendanceHistory.dataValues.time}`, `${punchOutAttendanceHistory.dataValues.date} ${punchOutAttendanceHistory.dataValues.time}`),
+				attendancePunchOutLocation: punchOutAttendanceHistory.dataValues.location,
+				attendancePunchOutLatitude: punchOutAttendanceHistory.dataValues.lat,
+				attendancePunchOutLongitude: punchOutAttendanceHistory.dataValues.long,
+				punchOutSource: punchOutAttendanceHistory.dataValues.device,
+			}
+
+			await db.attendanceMaster.update(punchOutObject, {
+				where: {
+					attendanceAutoId: attendanceData.dataValues.attendanceAutoId
+				}
+			})
+		}
 		_this.attedanceCronManual(attendanceData.dataValues.attendanceAutoId, date);
 	}
 };

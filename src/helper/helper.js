@@ -5,7 +5,6 @@ import path from "path";
 import moment from "moment";
 import db from "../config/db.config.js";
 import bcrypt from "bcryptjs";
-import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
@@ -111,8 +110,8 @@ const mailService = async (data) => {
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc: [],
-			time: "",
+			bcc: data.bcc ? data.bcc : [],
+			time: data.time ? data.time : "",
 			html: data.html,
 			cc: data.cc ? data.cc.split(",") : [],
 			attachments: (data.attachments && data.attachments.length > 0) ? data.attachments : [],
@@ -2172,196 +2171,197 @@ const creditCompoff = async (inputObject) => {
 			}
 
 			let creditCompGo = false;
-			
+
 			if (compOffPolicyData) {
 				if (compOffPolicyData.per_month_comp_off_limit == 0) {
-				creditCompGo = true;
-			} else {
-				if (compOffPolicyData.per_month_comp_off_limit > totalCount) {
 					creditCompGo = true;
-				}
-			}
-				if(creditCompGo){
-				const leaveData = await db.leaveMaster.findOne({
-					where: {
-						leaveId: 9,
-						isActive: 1,
-					},
-				});
-				//console.log("leaveData", leaveData);
-				let compoffCredit = null;
-				let approvalRequired = null;
-				let approvalIds = [];
-				if (leaveData) {
-					// Helper function to calculate compoffCredit
-					const calculateCompOffCredit = (
-						policyData,
-						fullDayKey,
-						halfDayKey,
-						compOffHours,
-						approvalRequiredKey,
-						approvalRequiredIdsKey,
-					) => {
-						if (policyData[fullDayKey] <= compOffHours) {
-							approvalRequired = policyData[approvalRequiredKey];
-							if (approvalRequired) {
-								approvalIds = policyData[approvalRequiredIdsKey].split(",");
-							}
-							return 1;
-						} else if (policyData[halfDayKey] <= compOffHours) {
-							approvalRequired = policyData[approvalRequiredKey];
-							if (approvalRequired) {
-								approvalIds = policyData[approvalRequiredIdsKey].split(",");
-							}
-							return 0.5;
-						}
-						return 0;
-					};
-
-					// Main logic
-
-					switch (compofftype) {
-						case "Week Day":
-							if (compOffPolicyData.is_weekday_on) {
-								compoffCredit = calculateCompOffCredit(
-									compOffPolicyData,
-									"minimum_duration_for_fullday_on_weekday",
-									"minimum_duration_for_halfday_on_weekday",
-									comp_off_hours,
-									"require_approval_weekday",
-									"approval_users_weekday",
-								);
-							}
-							break;
-
-						case "Weekly Off":
-							if (compOffPolicyData.is_weekoff_on) {
-								compoffCredit = calculateCompOffCredit(
-									compOffPolicyData,
-									"minimum_duration_for_fullday_on_weekoff",
-									"minimum_duration_for_halfday_on_weekoff",
-									comp_off_hours,
-									"require_approval_weekoff",
-									"approval_users_weekoff",
-								);
-							}
-							break;
-
-						case "Holiday":
-							if (compOffPolicyData.is_holiday_on) {
-								compoffCredit = calculateCompOffCredit(
-									compOffPolicyData,
-									"minimum_duration_for_fullday_on_holiday",
-									"minimum_duration_for_halfday_on_holiday",
-									comp_off_hours,
-									"require_approval_holiday",
-									"approval_users_holiday",
-								);
-							}
-							break;
-
-						case "Weekly Off/Holiday":
-							if (compOffPolicyData.is_holiday_on) {
-								// Only check Holiday if Weekly Off didn't give credit
-								compoffCredit = calculateCompOffCredit(
-									compOffPolicyData,
-									"minimum_duration_for_fullday_on_holiday",
-									"minimum_duration_for_halfday_on_holiday",
-									comp_off_hours,
-									"require_approval_holiday",
-									"approval_users_holiday",
-								);
-								compofftype = "Holiday";
-							}
-
-							if (!compoffCredit && compOffPolicyData.is_weekoff_on) {
-								compoffCredit = calculateCompOffCredit(
-									compOffPolicyData,
-									"minimum_duration_for_fullday_on_weekoff",
-									"minimum_duration_for_halfday_on_weekoff",
-									comp_off_hours,
-									"require_approval_weekoff",
-									"approval_users_weekoff",
-								);
-								compofftype = "Weekly Off";
-							}
-
-							break;
+				} else {
+					if (compOffPolicyData.per_month_comp_off_limit > totalCount) {
+						creditCompGo = true;
 					}
-
-					if (compoffCredit == 1 || compoffCredit == 0.5) {
-						let comp_off_data = {
-							employee_Id: empId,
-							balance: compoffCredit,
-							status: approvalRequired == 1 ? 3 : 1,
-							credit_for: compofftype,
-							expiry_date:
-								leaveData?.lapse_in_days > 0
-									? moment()
-										.add(leaveData?.lapse_in_days, "days")
-										.format("YYYY-MM-DD")
-									: null,
-							taken_on: null,
-							createdBy: 1,
-							planned_message: "",
-							message: "",
-							attendanceAutoIdHistory: attendance_auto_id,
-							comp_off_polices_auto_id_history:
-								compOffPolicyData?.comp_off_polices_auto_id,
-							pending_at: "",
-							credit_for_date: attendanceDate,
+				}
+				if (creditCompGo) {
+					const leaveData = await db.leaveMaster.findOne({
+						where: {
+							leaveId: 9,
+							isActive: 1,
+						},
+					});
+					//console.log("leaveData", leaveData);
+					let compoffCredit = null;
+					let approvalRequired = null;
+					let approvalIds = [];
+					if (leaveData) {
+						// Helper function to calculate compoffCredit
+						const calculateCompOffCredit = (
+							policyData,
+							fullDayKey,
+							halfDayKey,
+							compOffHours,
+							approvalRequiredKey,
+							approvalRequiredIdsKey,
+						) => {
+							if (policyData[fullDayKey] <= compOffHours) {
+								approvalRequired = policyData[approvalRequiredKey];
+								if (approvalRequired) {
+									approvalIds = policyData[approvalRequiredIdsKey].split(",");
+								}
+								return 1;
+							} else if (policyData[halfDayKey] <= compOffHours) {
+								approvalRequired = policyData[approvalRequiredKey];
+								if (approvalRequired) {
+									approvalIds = policyData[approvalRequiredIdsKey].split(",");
+								}
+								return 0.5;
+							}
+							return 0;
 						};
-						comp_off_data.message = "Auto Approved Comp Off Request";
-						if (approvalRequired) {
-							comp_off_data.message = "Auto Generated Request for Approval";
-							let finalApprovalIds = [];
-							for (const singleapprovalId of approvalIds) {
-								if (singleapprovalId == "MANAGER") {
-									let EMP_DATA = await getEmpProfile(empId); // L2 Manager
-									finalApprovalIds.push(EMP_DATA?.managerData?.id);
-								} else if (singleapprovalId == "ADMIN") {
-									let admins = await db.employeeMaster.findAll({
-										where: {
-											role_id: 2,
-											isActive: 1,
-										},
-										attributes: ["id"],
-									});
-									for (const singleAdmin of admins) {
-										finalApprovalIds.push(singleAdmin?.id);
+
+						// Main logic
+
+						switch (compofftype) {
+							case "Week Day":
+								if (compOffPolicyData.is_weekday_on) {
+									compoffCredit = calculateCompOffCredit(
+										compOffPolicyData,
+										"minimum_duration_for_fullday_on_weekday",
+										"minimum_duration_for_halfday_on_weekday",
+										comp_off_hours,
+										"require_approval_weekday",
+										"approval_users_weekday",
+									);
+								}
+								break;
+
+							case "Weekly Off":
+								if (compOffPolicyData.is_weekoff_on) {
+									compoffCredit = calculateCompOffCredit(
+										compOffPolicyData,
+										"minimum_duration_for_fullday_on_weekoff",
+										"minimum_duration_for_halfday_on_weekoff",
+										comp_off_hours,
+										"require_approval_weekoff",
+										"approval_users_weekoff",
+									);
+								}
+								break;
+
+							case "Holiday":
+								if (compOffPolicyData.is_holiday_on) {
+									compoffCredit = calculateCompOffCredit(
+										compOffPolicyData,
+										"minimum_duration_for_fullday_on_holiday",
+										"minimum_duration_for_halfday_on_holiday",
+										comp_off_hours,
+										"require_approval_holiday",
+										"approval_users_holiday",
+									);
+								}
+								break;
+
+							case "Weekly Off/Holiday":
+								if (compOffPolicyData.is_holiday_on) {
+									// Only check Holiday if Weekly Off didn't give credit
+									compoffCredit = calculateCompOffCredit(
+										compOffPolicyData,
+										"minimum_duration_for_fullday_on_holiday",
+										"minimum_duration_for_halfday_on_holiday",
+										comp_off_hours,
+										"require_approval_holiday",
+										"approval_users_holiday",
+									);
+									compofftype = "Holiday";
+								}
+
+								if (!compoffCredit && compOffPolicyData.is_weekoff_on) {
+									compoffCredit = calculateCompOffCredit(
+										compOffPolicyData,
+										"minimum_duration_for_fullday_on_weekoff",
+										"minimum_duration_for_halfday_on_weekoff",
+										comp_off_hours,
+										"require_approval_weekoff",
+										"approval_users_weekoff",
+									);
+									compofftype = "Weekly Off";
+								}
+
+								break;
+						}
+
+						if (compoffCredit == 1 || compoffCredit == 0.5) {
+							let comp_off_data = {
+								employee_Id: empId,
+								balance: compoffCredit,
+								status: approvalRequired == 1 ? 3 : 1,
+								credit_for: compofftype,
+								expiry_date:
+									leaveData?.lapse_in_days > 0
+										? moment()
+											.add(leaveData?.lapse_in_days, "days")
+											.format("YYYY-MM-DD")
+										: null,
+								taken_on: null,
+								createdBy: 1,
+								planned_message: "",
+								message: "",
+								attendanceAutoIdHistory: attendance_auto_id,
+								comp_off_polices_auto_id_history:
+									compOffPolicyData?.comp_off_polices_auto_id,
+								pending_at: "",
+								credit_for_date: attendanceDate,
+							};
+							comp_off_data.message = "Auto Approved Comp Off Request";
+							if (approvalRequired) {
+								comp_off_data.message = "Auto Generated Request for Approval";
+								let finalApprovalIds = [];
+								for (const singleapprovalId of approvalIds) {
+									if (singleapprovalId == "MANAGER") {
+										let EMP_DATA = await getEmpProfile(empId); // L2 Manager
+										finalApprovalIds.push(EMP_DATA?.managerData?.id);
+									} else if (singleapprovalId == "ADMIN") {
+										let admins = await db.employeeMaster.findAll({
+											where: {
+												role_id: 2,
+												isActive: 1,
+											},
+											attributes: ["id"],
+										});
+										for (const singleAdmin of admins) {
+											finalApprovalIds.push(singleAdmin?.id);
+										}
 									}
 								}
+								comp_off_data.pending_at = finalApprovalIds.join(",");
 							}
-							comp_off_data.pending_at = finalApprovalIds.join(",");
+							comp_off_hours = Math.round(comp_off_hours);
+							const hrs = Math.floor(comp_off_hours / 60)
+								.toString()
+								.padStart(2, "0");
+							const mins = (comp_off_hours % 60).toString().padStart(2, "0");
+							const secs = "00"; // No additional seconds
+							let time = `${hrs}:${mins}:${secs}`;
+
+							comp_off_data.adjust_hours = time;
+							comp_off_data.total_hours = time;
+
+							// const records = Array(50).fill(null); // Create an array with 50 null placeholders
+							// for (const [index] of records.entries()) {
+							if (comp_off_data.balance === 1) {
+								let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
+								let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
+
+								// Insert both objects into the database
+								await db.comp_off_credit_history.create(comp_off_data_1);
+								await db.comp_off_credit_history.create(comp_off_data_2);
+							} else {
+								await db.comp_off_credit_history.create(comp_off_data);
+							}
+
+							// }
 						}
-						comp_off_hours = Math.round(comp_off_hours);
-						const hrs = Math.floor(comp_off_hours / 60)
-							.toString()
-							.padStart(2, "0");
-						const mins = (comp_off_hours % 60).toString().padStart(2, "0");
-						const secs = "00"; // No additional seconds
-						let time = `${hrs}:${mins}:${secs}`;
-
-						comp_off_data.adjust_hours = time;
-						comp_off_data.total_hours = time;
-
-						// const records = Array(50).fill(null); // Create an array with 50 null placeholders
-						// for (const [index] of records.entries()) {
-						if (comp_off_data.balance === 1) {
-							let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
-							let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
-
-							// Insert both objects into the database
-							await db.comp_off_credit_history.create(comp_off_data_1);
-							await db.comp_off_credit_history.create(comp_off_data_2);
-						} else {
-							await db.comp_off_credit_history.create(comp_off_data);
-						}
-
-						// }
 					}
 				}
-			}}
+			}
 		}
 	} catch (error) {
 		console.log(error);

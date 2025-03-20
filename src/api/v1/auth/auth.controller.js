@@ -212,8 +212,6 @@ class AuthController {
 					attribute: ["attendanceAutoId"],
 				});
 
-				console.log(attendanceData.dataValues.attendanceAutoId);
-
 				await db.regularizationMaster.update(
 					{
 						attendanceAutoId: attendanceData.dataValues.attendanceAutoId,

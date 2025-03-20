@@ -1857,7 +1857,7 @@ class CronController {
 
 			const stream = await sshConnection.forwardOut(
 				"localhost",
-				0,
+				1433,
 				process.env.SERVER_DB_HOST,
 				process.env.SERVER_DB_PORT,
 			);
@@ -1867,6 +1867,9 @@ class CronController {
 				console.error("Error forwarding MSSQL port:", err);
 				return sshConnection.dispose();
 			}
+
+			console.log("Port Forwarding Success")
+			logger.info("Port Forwarding Success")
 
 			let sequelize = new Sequelize(
 				process.env.SERVER_DB_NAME,
@@ -1887,10 +1890,18 @@ class CronController {
 						idle: 10000,
 					},
 					dialectOptions: {
-						options: {
-							encrypt: false,
-							trustServerCertificate: true,
-						},
+						options: Object.assign(
+							{
+								encrypt: false,
+								trustServerCertificate: true,
+							},
+							(process.env.SERVER_DB_INSTANCE === undefined) ?
+								{
+
+								} : {
+									instanceName: process.env.SERVER_DB_INSTANCE,
+								}
+						),
 					},
 					logging: false,
 				},
@@ -1905,8 +1916,7 @@ class CronController {
 					const result = await sequelize.query(
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
 					);
-					console.log(result)
-					if (result.length > 0) {
+					if (result && result.length > 0) {
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
 								autoId: element.ID,

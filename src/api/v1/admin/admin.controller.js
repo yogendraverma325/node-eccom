@@ -175,10 +175,6 @@ class AdminController {
 				},
 			);
 
-			console.log("sender mail", existUser["companymaster.senderEmail"]);
-
-			console.log("logo", existUser["companymaster.companyLogo"]);
-
 			eventEmitter.emit(
 				"resetPasswordMail",
 				JSON.stringify({
