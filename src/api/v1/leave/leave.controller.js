@@ -600,13 +600,12 @@ class LeaveController {
 								if (existingRecord) {
 									await db.attendanceMaster.update(
 										Object.assign(
-											existingRecord.dataValues.isHalfDay === 0 ||
-												existingRecord.dataValues.halfDayFor === 1
-												? {
-														attendanceLateBy: "00:00:00",
-													}
-												: {},
-										),
+										existingRecord.dataValues.isHalfDay === 0
+										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+										: existingRecord.dataValues.halfDayFor === 1
+										? { attendanceLateBy: "00:00:00" }
+										: {}
+									),
 										{
 											where: {
 												attendanceDate: existingRecord.dataValues.appliedFor,
@@ -5006,10 +5005,11 @@ class LeaveController {
 							if (existingRecord) {
 								await db.attendanceMaster.update(
 									Object.assign(
-										existingRecord.isHalfDay === 0 ||
-											existingRecord.halfDayFor === 1
-											? { attendanceLateBy: "00:00:00" }
-											: {},
+										existingRecord.dataValues.isHalfDay === 0
+										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+										: existingRecord.dataValues.halfDayFor === 1
+										? { attendanceLateBy: "00:00:00" }
+										: {}
 									),
 									{
 										where: {
@@ -5216,13 +5216,12 @@ class LeaveController {
 								if (existingRecord) {
 									await db.attendanceMaster.update(
 										Object.assign(
-											existingRecord.dataValues.isHalfDay === 0 ||
-												existingRecord.dataValues.halfDayFor === 1
-												? {
-														attendanceLateBy: "00:00:00",
-													}
-												: {},
-										),
+										existingRecord.dataValues.isHalfDay === 0
+										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+										: existingRecord.dataValues.halfDayFor === 1
+										? { attendanceLateBy: "00:00:00" }
+										: {}
+									),
 										{
 											where: {
 												attendanceDate: existingRecord.dataValues.appliedFor,
@@ -5322,13 +5321,12 @@ class LeaveController {
 							}
 							await db.attendanceMaster.update(
 								Object.assign(
-									existingRecord.dataValues.isHalfDay === 0 ||
-										existingRecord.dataValues.halfDayFor === 1
-										? {
-												attendanceLateBy: "00:00:00",
-											}
-										: {},
-								),
+										existingRecord.dataValues.isHalfDay === 0
+										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+										: existingRecord.dataValues.halfDayFor === 1
+										? { attendanceLateBy: "00:00:00" }
+										: {}
+									),
 								{
 									where: {
 										attendanceDate: existingRecord.dataValues.appliedFor,
