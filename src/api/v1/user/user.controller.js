@@ -808,18 +808,11 @@ class UserController {
 					{
 						model: db.employeeMaster,
 						required: true,
-						attributes: [
-							"id",
-							"empCode",
-							"name",
-							"dateOfJoining",
-							"dataCardAdmin",
-							"mobileAdmin",
-						],
+						attributes: [],
 						include: [
 							{
 								model: db.separationMaster,
-								attributes: ["resignationDate", "l2LastWorkingDay"],
+								attributes: [],
 								required: true,
 								where: {
 									finalStatus: 9,
@@ -832,12 +825,7 @@ class UserController {
 					},
 					{
 						model: db.separationTaskOwner,
-						attributes: [
-							"taskOwnerAutoId",
-							"taskMappingAutoId",
-							"taskOwner",
-							"isActive",
-						],
+						attributes: [],
 						required: true,
 						where: {
 							taskOwner: req.userId,
@@ -852,55 +840,11 @@ class UserController {
 				},
 				include: [
 					{
-						model: db.employeeMaster,
-						attributes: ["id", "empCode", "name", "email"],
-						include: [
-							{
-								model: db.jobDetails,
-								attributes: [
-									"dateOfJoining",
-									"dateOfProbationEnd",
-									"probationPeriod",
-									"confirmationDate",
-									"probationDays",
-								],
-							},
-							{
-								model: db.companyLocationMaster,
-								required: false,
-								attributes: ["address1", "address2"],
-							},
-							{
-								model: db.designationMaster,
-								required: true,
-								attributes: ["designationId", "name"],
-							},
-							{
-								model: db.departmentMaster,
-								required: true,
-								attributes: [
-									"departmentId",
-									"departmentCode",
-									"departmentName",
-								],
-							},
-						],
-					},
-					{
 						model: db.Confirmationowners,
-						attributes: [
-							"employeeId",
-							"canTakeAction",
-							"level",
-							"canTakeActionExtend",
-						],
+						attributes: [],
 						where: {
 							employeeId: req.userId,
-						},
-						include: {
-							model: db.employeeMaster,
-							attributes: ["empCode", "name"],
-						},
+						}
 					}
 				],
 			});
@@ -909,22 +853,7 @@ class UserController {
 				where: {
 					status: "pending",
 					pendingAt: req.userId,
-				},
-				include: [
-					{
-						model: db.employeeMaster,
-						attributes: ["id", "name", "empCode"],
-					},
-					{
-						model: db.bankMaster,
-						attributes: ["bankId", "bankName", "bankIfsc"],
-					},
-					{
-						model: db.bankMaster,
-						attributes: ["bankId", "bankName", "bankIfsc"],
-						as: "newBankName",
-					},
-				],
+				}
 			});
 
 			const pendingCompOffCount =
@@ -944,33 +873,7 @@ class UserController {
 						],
 						//employee_Id: req.userId,
 						status: 3,
-					},
-					include: [
-						{
-							model: db.status_master,
-							attributes: ["name", "code"],
-						},
-						{
-							model: db.employeeMaster,
-							as: "compOffEmpDetails",
-							attributes: ["id", "name", "profileImage", "empCode"],
-						},
-						{
-							model: db.attendanceMaster,
-							as: "compOffAttendanceDetails",
-							attributes: [
-								"attendanceAutoId",
-								"attendancePunchInTime",
-								"attendancePunchOutTime",
-								"attendanceWorkingTime",
-								"attendanceDate",
-								"attandanceShiftStartDate",
-								"attendanceShiftEndDate",
-								"attendancePunchInLocationType",
-								"attendancePunchOutLocationType",
-							],
-						},
-					]
+					}
 				});
 
 			const totalCount = countLeavePending + countLeaveAssgined + pendingAttCount + assignedAttCount + pendingAttendanceCount +
