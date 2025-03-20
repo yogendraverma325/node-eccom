@@ -50,6 +50,17 @@ class AttendanceController {
 
 			const currentDate = moment();
 
+				await db.AttendanceLogs.create({
+				employeeId: req.userId,
+				location: result.location,
+				locationType: result.locationType,
+				lat: result.latitude,
+				userRemark: result.remark != "" ? result.remark : null,
+				long: result.longitude,
+				createdBy: req.userId,
+				device: req.device
+				});
+
 			const existEmployee = await db.employeeMaster.findOne({
 				where: {
 					id: req.userId,
