@@ -502,7 +502,7 @@ async function confirmationLetter(input) {
 			inpputData?.EMP_DATA_SELF,
 			inpputData?.confirmationData,
 			inpputData?.signatureAuthority,
-			inpputData?.companyLogo
+			inpputData?.companyLogo,
 		);
 		let options = { format: "A4" };
 		let file = { content: letter };
