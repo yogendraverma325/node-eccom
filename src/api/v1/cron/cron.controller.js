@@ -917,14 +917,14 @@ class CronController {
 					singleRecords?.confirmationinitiated?.employee?.id,
 				); // EMP DATA
 
-				eventEmitter.emit(
-					"confirmationSLABreachEmailBody",
-					JSON.stringify({
-						ESCALTERDATA: ESCALTERDATA,
-						EMP_DATA: EMP_DATA,
-						senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
-					}),
-				);
+				// eventEmitter.emit(
+				// 	"confirmationSLABreachEmailBody",
+				// 	JSON.stringify({
+				// 		ESCALTERDATA: ESCALTERDATA,
+				// 		EMP_DATA: EMP_DATA,
+				// 		senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
+				// 	}),
+				// );
 
 				await db.Confirmationowners.update(
 					{
@@ -1235,17 +1235,17 @@ class CronController {
 					}
 				}
 
-				eventEmitter.emit(
-					"confirmationLetter",
-					JSON.stringify({
-						EMP_DATA_SELF: EMP_DATA_SELF,
-						confirmationData: confirmationData,
-						signatureAuthority: signatureAuthority,
-						cc: cc_arrays.join(","),
-						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
-						companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
-					}),
-				);
+				// eventEmitter.emit(
+				// 	"confirmationLetter",
+				// 	JSON.stringify({
+				// 		EMP_DATA_SELF: EMP_DATA_SELF,
+				// 		confirmationData: confirmationData,
+				// 		signatureAuthority: signatureAuthority,
+				// 		cc: cc_arrays.join(","),
+				// 		senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+				// 		companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+				// 	}),
+				// );
 			}
 		}
 	}

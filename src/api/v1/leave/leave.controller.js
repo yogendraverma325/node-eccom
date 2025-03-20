@@ -5504,7 +5504,7 @@ class LeaveController {
 
 	async leaveAssignEmployeeToAll(req, res) {
 		try {
-			let empids = [req.body.empCode];
+			let empids = req.body.empCode;
 			await helper.leaveAssignEmployeeToAll(empids.join(","));
 
 			return respHelper(res, {

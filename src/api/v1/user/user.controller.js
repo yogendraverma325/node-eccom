@@ -4251,6 +4251,18 @@ class UserController {
 				},
 			);
 
+			await db.employeeMaster.update(
+				{
+					isActive: 1,
+					dateOfexit: null,
+				},
+				{
+					where: {
+						id: separationData.dataValues.employeeId,
+					},
+				},
+			);
+
 			return respHelper(res, {
 				status: 200,
 				msg: constant.SEPARATION_REVOKED,
@@ -5205,7 +5217,7 @@ class UserController {
 
 			let employmentDetails = await db.employeeMaster.findOne({
 				where: { id: userId },
-				attributes: ["id"],
+				attributes: ["id", "noticePeriodAutoId"],
 				include: [
 					{
 						model: db.DesignationEmploymentHistory,
@@ -5410,6 +5422,7 @@ class UserController {
 						model: db.jobDetails,
 						attributes: ["jobId", "userId", "dateOfJoining"],
 					},
+					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"], required: false },
 				],
 				order: [
 					["designationHistories", "id", "ASC"], // Sorting for designationHistory

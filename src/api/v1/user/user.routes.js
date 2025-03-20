@@ -84,6 +84,11 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.globalSearch,
 	)
+	.get(
+		"/globalSearch/:search/:companyId",
+		authentication.authenticate,
+		userController.globalSearch,
+	)
 	.post(
 		"/addJobDetails",
 		authentication.authenticate,
