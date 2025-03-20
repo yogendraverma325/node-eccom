@@ -763,21 +763,218 @@ class UserController {
 					createdBy: userid,
 				},
 			});
-			let pendingSeperationCount = await db.separationMaster.count(
-				{
-					pendingAt: userid,
-				},
-				{
-					where: {
-						finalStatus: [2, 5, 9],
-					},
-				},
-			);
+			// let pendingSeperationCount = await db.separationMaster.count(
+			// 	{
+			// 		pendingAt: userid,
+			// 	},
+			// 	{
+			// 		where: {
+			// 			finalStatus: [2, 5, 9],
+			// 		},
+			// 	},
+			// );
+
 			let userId = req.userId;
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(
 				userId,
 				"Pending",
 			);
+
+			let pendingSeperationCount = await db.separationMaster.count(
+				{
+					where: {
+						[Op.or]: [
+							{
+								employeeId: req.userId,
+								finalStatus: 1,
+							},
+							{
+								pendingAt: req.userId,
+								finalStatus: {
+									[Op.in]: [5, 2],
+								},
+							},
+						],
+					},
+				}
+			);
+			
+			const pendingSeperationWorkFlowCount = await db.separationInitiatedTask.count({
+				where: {
+					status: 0,
+					isActive: 1,
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						required: true,
+						attributes: [
+							"id",
+							"empCode",
+							"name",
+							"dateOfJoining",
+							"dataCardAdmin",
+							"mobileAdmin",
+						],
+						include: [
+							{
+								model: db.separationMaster,
+								attributes: ["resignationDate", "l2LastWorkingDay"],
+								required: true,
+								where: {
+									finalStatus: 9,
+									resignationAutoId: db.Sequelize.col(
+										"separationinitiatedtask.resignationAutoId",
+									),
+								},
+							},
+						],
+					},
+					{
+						model: db.separationTaskOwner,
+						attributes: [
+							"taskOwnerAutoId",
+							"taskMappingAutoId",
+							"taskOwner",
+							"isActive",
+						],
+						required: true,
+						where: {
+							taskOwner: req.userId,
+						}
+					},
+				]
+			});
+
+			const confirmationCount = await db.Confirmationinitiated.count({
+				where: {
+					status: [0, 2],
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name", "email"],
+						include: [
+							{
+								model: db.jobDetails,
+								attributes: [
+									"dateOfJoining",
+									"dateOfProbationEnd",
+									"probationPeriod",
+									"confirmationDate",
+									"probationDays",
+								],
+							},
+							{
+								model: db.companyLocationMaster,
+								required: false,
+								attributes: ["address1", "address2"],
+							},
+							{
+								model: db.designationMaster,
+								required: true,
+								attributes: ["designationId", "name"],
+							},
+							{
+								model: db.departmentMaster,
+								required: true,
+								attributes: [
+									"departmentId",
+									"departmentCode",
+									"departmentName",
+								],
+							},
+						],
+					},
+					{
+						model: db.Confirmationowners,
+						attributes: [
+							"employeeId",
+							"canTakeAction",
+							"level",
+							"canTakeActionExtend",
+						],
+						where: {
+							employeeId: req.userId,
+						},
+						include: {
+							model: db.employeeMaster,
+							attributes: ["empCode", "name"],
+						},
+					}
+				],
+			});
+
+			let profileApprovalCount = await db.paymentDetails.count({
+				where: {
+					status: "pending",
+					pendingAt: req.userId,
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "empCode"],
+					},
+					{
+						model: db.bankMaster,
+						attributes: ["bankId", "bankName", "bankIfsc"],
+					},
+					{
+						model: db.bankMaster,
+						attributes: ["bankId", "bankName", "bankIfsc"],
+						as: "newBankName",
+					},
+				],
+			});
+
+			const pendingCompOffCount =
+				await db.comp_off_credit_history.count({
+					where: {
+						expiry_date: {
+							[Op.or]: [
+								{ [Op.eq]: null }, // Check if expiry_date is null
+								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+							],
+						},
+						[Op.or]: [
+							{ pending_at: { [Op.like]: `${req.userId},%` } }, // Check if userId is at the start
+							{ pending_at: { [Op.like]: `%,${req.userId},%` } }, // Check if userId is in the middle
+							{ pending_at: { [Op.like]: `%,${req.userId}` } }, // Check if userId is at the end
+							{ pending_at: { [Op.eq]: `${req.userId}` } }, // Check if userId is the only value
+						],
+						//employee_Id: req.userId,
+						status: 3,
+					},
+					include: [
+						{
+							model: db.status_master,
+							attributes: ["name", "code"],
+						},
+						{
+							model: db.employeeMaster,
+							as: "compOffEmpDetails",
+							attributes: ["id", "name", "profileImage", "empCode"],
+						},
+						{
+							model: db.attendanceMaster,
+							as: "compOffAttendanceDetails",
+							attributes: [
+								"attendanceAutoId",
+								"attendancePunchInTime",
+								"attendancePunchOutTime",
+								"attendanceWorkingTime",
+								"attendanceDate",
+								"attandanceShiftStartDate",
+								"attendanceShiftEndDate",
+								"attendancePunchInLocationType",
+								"attendancePunchOutLocationType",
+							],
+						},
+					]
+				});
+
+			const totalCount = countLeavePending + countLeaveAssgined + pendingAttCount + assignedAttCount + pendingAttendanceCount +
+			pendingSeperationCount + pendingSeperationWorkFlowCount + confirmationCount + pendingCompOffCount + profileApprovalCount;
 
 			return respHelper(res, {
 				status: 200,
@@ -799,6 +996,23 @@ class UserController {
 							raisedByMe: 0,
 							assignedToMe: pendingSeperationCount,
 						},
+						seperationWorkflowCount: {
+							raisedByMe: 0,
+							assignedToMe: pendingSeperationWorkFlowCount,
+						},
+						confirmationCount: {
+							raisedByMe: 0,
+							assignedToMe: confirmationCount,
+						},
+						compoffCount: {
+							raisedByMe: 0,
+							assignedToMe: pendingCompOffCount
+						},
+						profileApprovalCount: {
+							raisedByMe: 0,
+							assignedToMe: profileApprovalCount
+						},
+						totalCount: totalCount 
 					},
 					mobile: {
 						raisedByMe: {
