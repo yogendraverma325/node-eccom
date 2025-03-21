@@ -4678,6 +4678,14 @@ class AttendanceController {
 
 	async uploadAttendanceRoster(req, res) {
 		try {
+
+			if (!req.file) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.SELECT_FILE,
+				});
+			}
+
 			const fileExt = [
 				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 				"application/vnd.ms-excel",
@@ -5216,7 +5224,7 @@ class AttendanceController {
 		});
 
 		console.log(
-			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id})`,
+			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format('YYYY-MM-DD HH:mm:ss')}`,
 		);
 
 		if (!existEmployee) {
@@ -5234,6 +5242,8 @@ class AttendanceController {
 			);
 			return false;
 		}
+
+		let withGraceTime
 
 		if (
 			(existEmployee.attendanceroster
@@ -5321,7 +5331,7 @@ class AttendanceController {
 					"minutes",
 				); // Add buffer time  to the selected time if buffer allow
 
-				const withGraceTime = graceTime.format("HH:mm");
+				withGraceTime = graceTime.format("HH:mm");
 
 				let creationObject = {
 					attendanceDate: currentDate.format("YYYY-MM-DD"),
@@ -5385,61 +5395,81 @@ class AttendanceController {
 
 				return true;
 			} else {
-				if (!existEmployee.dataValues.requiredAttendanceApproval) {
-					await db.attendanceMaster.update(
-						{
-							attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-							attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-							attendancePunchOutLocationType: "Office",
-							attendanceStatus: "Punch Out",
-							attendanceWorkingTime: await helper.timeDifference(
-								`${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
-								`${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-									"HH:mm:ss",
-								)}`,
-							),
-							attendancePunchOutLocation: incomingAttendanceData.deviceName,
-							punchOutSource: attendanceDevice,
-							updatedBy: existEmployee.id,
-						},
-						{
-							where: {
-								attendanceDate: currentDate.format("YYYY-MM-DD"),
-								employeeId: existEmployee.id,
+				if ((currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`)) || checkAttendance.attendancePresentStatus === "absent") {
+					if (!existEmployee.dataValues.requiredAttendanceApproval) {
+						await db.attendanceMaster.update(
+							{
+								attendancePunchInTime: currentDate.format("HH:mm:ss"),
+								attendanceStatus: "Punch In",
+								attendancePresentStatus: "present",
+								attendanceLateBy: await helper.calculateLateBy(
+									currentDate.format("HH:mm:ss"),
+									withGraceTime,
+								),
+								attendancePunchInLocation: incomingAttendanceData.deviceName,
+								punchInSource: attendanceDevice,
+								updatedBy: existEmployee.id,
 							},
+							{
+								where: {
+									attendanceDate: currentDate.format("YYYY-MM-DD"),
+									employeeId: existEmployee.id,
+								},
+							},
+						);
+					}
+				} else {
+					if (!existEmployee.dataValues.requiredAttendanceApproval) {
+						await db.attendanceMaster.update(
+							{
+								attendancePunchOutTime: currentDate.format("HH:mm:ss"),
+								attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+								attendancePunchOutLocationType: "Office",
+								attendanceStatus: "Punch Out",
+								attendanceWorkingTime: await helper.timeDifference(`${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`, `${currentDate.format("YYYY-MM-DD")} ${currentDate.format("HH:mm:ss")}`),
+								attendancePunchOutLocation: incomingAttendanceData.deviceName,
+								punchOutSource: attendanceDevice,
+								updatedBy: existEmployee.id,
+							},
+							{
+								where: {
+									attendanceDate: currentDate.format("YYYY-MM-DD"),
+									employeeId: existEmployee.id,
+								},
+							},
+						);
+					}
+
+					const attendanceHistory = await db.attendanceHistory.findOne({
+						where: {
+							date: currentDate.format("YYYY-MM-DD"),
+							employeeId: existEmployee.id,
 						},
-					);
-				}
+					});
 
-				const attendanceHistory = await db.attendanceHistory.findOne({
-					where: {
+					await db.attendanceHistory.create({
 						date: currentDate.format("YYYY-MM-DD"),
+						time: currentDate.format("HH:mm:ss"),
+						status: attendanceHistory ? "Punch Out" : "Punch In",
 						employeeId: existEmployee.id,
-					},
-				});
-
-				await db.attendanceHistory.create({
-					date: currentDate.format("YYYY-MM-DD"),
-					time: currentDate.format("HH:mm:ss"),
-					status: attendanceHistory ? "Punch Out" : "Punch In",
-					employeeId: existEmployee.id,
-					location: incomingAttendanceData.deviceName,
-					locationType: "Office",
-					attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval
-						? "approved"
-						: "pending",
-					createdBy: existEmployee.id,
-					createdAt: currentDate,
-					device: attendanceDevice,
-					shiftId: existEmployee.attendanceroster
-						? existEmployee.attendanceroster.shiftId
-						: existEmployee.shiftsmaster.shiftId,
-					weekOffId: existEmployee.attendanceroster
-						? existEmployee.attendanceroster.weekOffId
-						: existEmployee.weekOffId,
-					attendancePolicyId: existEmployee.attendancePolicyId,
-					companyLocationId: existEmployee.companyLocationId,
-				});
+						location: incomingAttendanceData.deviceName,
+						locationType: "Office",
+						attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval
+							? "approved"
+							: "pending",
+						createdBy: existEmployee.id,
+						createdAt: currentDate,
+						device: attendanceDevice,
+						shiftId: existEmployee.attendanceroster
+							? existEmployee.attendanceroster.shiftId
+							: existEmployee.shiftsmaster.shiftId,
+						weekOffId: existEmployee.attendanceroster
+							? existEmployee.attendanceroster.weekOffId
+							: existEmployee.weekOffId,
+						attendancePolicyId: existEmployee.attendancePolicyId,
+						companyLocationId: existEmployee.companyLocationId,
+					});
+				}
 
 				return true;
 			}
@@ -5641,6 +5671,19 @@ class AttendanceController {
 				const yerterdayDate = combinedDateTimeCurrentDay
 					.clone()
 					.subtract(1, "days");
+
+				const combinedDateTimeCurrentDayClone = combinedDateTimeCurrentDay.clone().subtract(1, 'days');
+				const combinedDateTimeNextDayClone = combinedDateTimeNextDay.clone().subtract(1, 'days');
+
+				if (
+					currentDate > combinedDateTimeCurrentDayClone &&
+					currentDate < combinedDateTimeNextDayClone
+				) {
+
+				} else {
+					return false
+				}
+
 				const lastDayAttendace = await db.attendanceMaster.findOne({
 					raw: true,
 					where: {
@@ -5872,7 +5915,7 @@ const attedanceRosterCron = async (user, date) => {
 			attendanceData.dataValues.employee.attendancePolicymaster
 				.allowBufferTime === 1
 				? attendanceData.dataValues.employee.attendancePolicymaster
-						.bufferTimePre
+					.bufferTimePre
 				: 0,
 			"minutes",
 		);
@@ -5881,7 +5924,7 @@ const attedanceRosterCron = async (user, date) => {
 			attendanceData.dataValues.employee.attendancePolicymaster
 				.allowBufferTime === 1
 				? attendanceData.dataValues.employee.attendancePolicymaster
-						.graceTimeClockIn
+					.graceTimeClockIn
 				: 0,
 			"minutes",
 		);
@@ -5912,34 +5955,34 @@ const attedanceRosterCron = async (user, date) => {
 
 		let punchInObject = punchInAttendanceHistory
 			? {
-					attandanceShiftStartDate: punchInAttendanceHistory.dataValues.date,
-					attendanceShiftId:
-						attendanceData.dataValues.employee.attendanceroster.shiftId,
-					weekOffId:
-						attendanceData.dataValues.employee.attendanceroster.weekOffId,
-					attendancePunchInTime: punchInAttendanceHistory.dataValues.time,
-					attendanceStatus: "Punch In",
-					attendanceLateBy: await helper.calculateLateBy(
-						punchInAttendanceHistory.dataValues.time,
-						shiftStartTimeGraceTimeClockIn.format("HH:mm:ss"),
-					),
-					attendancePresentStatus: "present",
-					attendancePunchInRemark:
-						punchInAttendanceHistory.dataValues.userRemark,
-					attendancePunchInLocationType:
-						punchInAttendanceHistory.dataValues.locationType,
-					attendancePunchInLocation:
-						punchInAttendanceHistory.dataValues.location,
-					attendancePunchInLatitude: punchInAttendanceHistory.dataValues.lat,
-					attendancePunchInLongitude: punchInAttendanceHistory.dataValues.long,
-					punchInSource: punchInAttendanceHistory.dataValues.device,
-				}
+				attandanceShiftStartDate: punchInAttendanceHistory.dataValues.date,
+				attendanceShiftId:
+					attendanceData.dataValues.employee.attendanceroster.shiftId,
+				weekOffId:
+					attendanceData.dataValues.employee.attendanceroster.weekOffId,
+				attendancePunchInTime: punchInAttendanceHistory.dataValues.time,
+				attendanceStatus: "Punch In",
+				attendanceLateBy: await helper.calculateLateBy(
+					punchInAttendanceHistory.dataValues.time,
+					shiftStartTimeGraceTimeClockIn.format("HH:mm:ss"),
+				),
+				attendancePresentStatus: "present",
+				attendancePunchInRemark:
+					punchInAttendanceHistory.dataValues.userRemark,
+				attendancePunchInLocationType:
+					punchInAttendanceHistory.dataValues.locationType,
+				attendancePunchInLocation:
+					punchInAttendanceHistory.dataValues.location,
+				attendancePunchInLatitude: punchInAttendanceHistory.dataValues.lat,
+				attendancePunchInLongitude: punchInAttendanceHistory.dataValues.long,
+				punchInSource: punchInAttendanceHistory.dataValues.device,
+			}
 			: {
-					attendanceShiftId:
-						attendanceData.dataValues.employee.attendanceroster.shiftId,
-					weekOffId:
-						attendanceData.dataValues.employee.attendanceroster.weekOffId,
-				};
+				attendanceShiftId:
+					attendanceData.dataValues.employee.attendanceroster.shiftId,
+				weekOffId:
+					attendanceData.dataValues.employee.attendanceroster.weekOffId,
+			};
 
 		await db.attendanceMaster.update(punchInObject, {
 			where: {
@@ -5965,7 +6008,7 @@ const attedanceRosterCron = async (user, date) => {
 			attendanceData.dataValues.employee.attendancePolicymaster
 				.allowBufferTime === 1
 				? attendanceData.dataValues.employee.attendancePolicymaster
-						.bufferTimePost
+					.bufferTimePost
 				: 0,
 			"minutes",
 		);

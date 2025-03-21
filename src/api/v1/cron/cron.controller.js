@@ -1842,14 +1842,15 @@ class CronController {
 					host: process.env.SSH_HOST,
 					port: process.env.SSH_PORT,
 					username: process.env.SSH_USERNAME,
+					keepaliveInterval: 10000
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-						}
+						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+					}
 					: {
-							password: process.env.SSH_PASSWORD,
-						},
+						password: process.env.SSH_PASSWORD,
+					},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1903,8 +1904,8 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-										instanceName: process.env.SERVER_DB_INSTANCE,
-									},
+									instanceName: process.env.SERVER_DB_INSTANCE,
+								},
 						),
 					},
 					logging: false,
@@ -1933,9 +1934,7 @@ class CronController {
 								punchType: element.PunchType,
 								createdDate: element.SYSDATE,
 								isRead: element.IS_UNREAD,
-								punchDateTime: moment
-									.utc(element.Punch_DateTime)
-									.format("YYYY-MM-DD HH:mm:ss"),
+								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss"),
 							};
 
 							const employeeData = await db.employeeMaster.findOne({
