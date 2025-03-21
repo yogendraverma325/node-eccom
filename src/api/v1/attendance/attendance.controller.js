@@ -50,6 +50,17 @@ class AttendanceController {
 
 			const currentDate = moment();
 
+				await db.AttendanceLogs.create({
+				employeeId: req.userId,
+				location: result.location,
+				locationType: result.locationType,
+				lat: result.latitude,
+				userRemark: result.remark != "" ? result.remark : null,
+				long: result.longitude,
+				createdBy: req.userId,
+				device: req.device
+				});
+
 			const existEmployee = await db.employeeMaster.findOne({
 				where: {
 					id: req.userId,
@@ -364,7 +375,11 @@ class AttendanceController {
 					});
 				}
 			} else {
+
+				
 				// Over night code
+
+
 				const assignedShiftStartTime = existEmployee.attendanceroster
 					? existEmployee.attendanceroster.shiftsmaster.shiftStartTime
 					: existEmployee.shiftsmaster.shiftStartTime;
@@ -402,6 +417,7 @@ class AttendanceController {
 					`${tommorow.format("YYYY-MM-DD")} ${finalShiftEndTime}`,
 					"YYYY-MM-DD HH:mm:ss",
 				);
+					
 
 				if (
 					currentDate > combinedDateTimeCurrentDay &&
@@ -575,15 +591,28 @@ class AttendanceController {
 						});
 					}
 				} else {
-					const combinedDateTimeCurrentDay = moment(
-						`${currentDate.format("YYYY-MM-DD")} ${finalShiftStartTime}`,
-						"YYYY-MM-DD HH:mm:ss",
-					);
+					
+					
+		const yerterdayDate = combinedDateTimeCurrentDay
+		.clone()
+		.subtract(1, "days");
 
-					const yerterdayDate = combinedDateTimeCurrentDay
-						.clone()
-						.subtract(1, "days");
-					const lastDayAttendace = await db.attendanceMaster.findOne({
+		const combinedDateTimeCurrentDayClone = combinedDateTimeCurrentDay.clone().subtract(1, 'days');
+		const combinedDateTimeNextDayClone = combinedDateTimeNextDay.clone().subtract(1, 'days');
+
+				if (
+				currentDate > combinedDateTimeCurrentDayClone &&
+				currentDate < combinedDateTimeNextDayClone
+				) {
+
+				}else{
+				return respHelper(res, {
+				status: 400,
+				msg: `Your shift time starts from ${combinedDateTimeCurrentDay.format('DD MMMM YYYY [at] hh:mm A')} and end on ${combinedDateTimeNextDay.format('DD MMMM YYYY [at] hh:mm A')}`,
+				});
+
+				}
+            const lastDayAttendace = await db.attendanceMaster.findOne({
 						raw: true,
 						where: {
 							employeeId: req.userId,
@@ -2725,7 +2754,7 @@ class AttendanceController {
 						};
 						await helper.creditCompoff(employeeData);
 					}
-				} else {
+				} else  if (singleEmp.attendancemaster.attendancePunchInTime &&  !singleEmp.attendancemaster.attendancePunchOutTime){
 					presentStatus = "singlePunchAbsent";
 				}
 				await db.attendanceMaster.update(
@@ -3117,7 +3146,7 @@ class AttendanceController {
 							);
 						}
 					}
-				} else {
+				} else  if (singleEmp.attendancemaster.attendancePunchInTime &&  !singleEmp.attendancemaster.attendancePunchOutTime){
 					presentStatus = "singlePunchAbsent";
 				}
 
@@ -3268,7 +3297,7 @@ class AttendanceController {
 					},
 				],
 				where: {
-					isActive: 1,
+					isActive: 1
 				},
 			});
 			let nightwala = 0;

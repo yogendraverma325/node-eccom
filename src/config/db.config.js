@@ -65,6 +65,7 @@ import employeeJobDetailsHistory from "../api/model/EmployeeJobDetailsHistory.js
 import EmployeeEducationDetailsHistory from "../api/model/EmployeeEducationDetailsHistory.js";
 import FamilyMemberHistory from "../api/model/FamilyMemberHistory.js";
 import AttendanceHistory from "../api/model/AttendanceHistory.js";
+import AttendanceLogs from "../api/model/AttendanceLogs.js";
 import SalutationMaster from "../api/model/salutationMaster.js";
 import UnionCodeIncrementMaster from "../api/model/UnionIncrementCodeMaster.js";
 import EmployeeAddress from "../api/model/EmployeeAddress.js";
@@ -301,6 +302,7 @@ db.employeeEducationDetailsHistory = EmployeeEducationDetailsHistory(
 );
 db.familyMemberHistory = FamilyMemberHistory(sequelize, Sequelize);
 db.attendanceHistory = AttendanceHistory(sequelize, Sequelize);
+db.AttendanceLogs = AttendanceLogs(sequelize, Sequelize);
 db.unionCodIncrementMaster = UnionCodeIncrementMaster(sequelize, Sequelize);
 db.salutationMaster = SalutationMaster(sequelize, Sequelize);
 db.employeeAddress = EmployeeAddress(sequelize, Sequelize);
@@ -670,6 +672,8 @@ db.employeeMaster.belongsTo(db.employeeLeaveTransactions, {
 	foreignKey: "id",
 	sourceKey: "employeeId",
 });
+
+
 
 db.attendanceMaster.hasMany(db.holidayCompanyLocationConfiguration, {
 	foreignKey: "holidayCompanyLocationConfigurationID",
@@ -1912,5 +1916,12 @@ db.ImportInfo.hasMany(db.ImportData, {
 	sourceKey: "importAutoId",
 	as: "importedData",
 });
+
+///YOGI ADDED THIS JOIN
+db.employeeMaster.hasOne(db.employeeLeaveTransactions, {
+	foreignKey: "employeeId",
+	sourceKey: "id",
+});
+///YOGI ADDED THIS JOIN
 
 export default db;
