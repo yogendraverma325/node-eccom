@@ -19,7 +19,7 @@ class UserController {
 				attributes: ["id", "empCode", "name", "firstName", "lastName", "email"],
 				where: {
 					isActive: 1,
-					...(companyId && { companyId }),
+					...(companyId && { companyId:companyId }),
 					[Op.or]: [
 						{ empCode: { [Op.like]: `%${search}%` } },
 						{ name: { [Op.like]: `%${search}%` } },

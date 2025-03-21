@@ -1473,7 +1473,7 @@ class MasterController {
 				include: [
 					{
 						model: db.reportType,
-						attributes: ["reportTypeId", "reportTypeName"],
+						attributes: ["reportTypeId", "reportTypeName","forManagerReport"],
 						where: { isActive: 1 },
 					},
 				],

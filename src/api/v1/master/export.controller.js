@@ -298,6 +298,626 @@ class MasterController {
 			});
 		}
 	}
+	async pendingLeave(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+				managerId,
+				reporteIds,
+			} = req.query;
+
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+
+			const getPendingLeave = await db.EmployeeLeaveHeader.findAll({
+				attributes: ["leaveCount", "reason", "appliedOn", "fromDate", "toDate"],
+				where: { status: "pending" },
+				include: [
+					{
+						model: db.employeeLeaveTransactions,
+						attributes: ["appliedFor"],
+						where: {
+							appliedFor: {
+								[db.Sequelize.Op.between]: [startDate, endDate],
+							},
+						},
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+						where: {
+							companyId: companyId,
+							...(managerId && { manager: managerId }),
+							...(reporteIds && {
+								id: { [Op.in]: reporteIds.split(",") },
+							}),
+							...(attendanceFor == 0 && { isActive: 0 }),
+							...(attendanceFor == 1 && { isActive: 1 }),
+							...(attendanceFor == 2 && { isActive: [0, 1] }),
+							...(search && { id: { [Op.in]: search.split(",") } }),
+							...(employeeType && {
+								employeeType: { [Op.in]: employeeType.split(",") },
+							}),
+							...(businessUnit && {
+								buId: { [Op.in]: businessUnit.split(",") },
+							}),
+							...(department && {
+								departmentId: { [Op.in]: department.split(",") },
+							}),
+							...(companyLocation && {
+								companyLocationId: { [Op.in]: companyLocation.split(",") },
+							}),
+						},
+						include: [
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.companyMaster,
+								attributes: ["companyName"],
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
+					},
+					{
+						model: db.leaveMaster,
+						attributes: ["leaveName", "leaveCode"],
+						as: "leaveMasterDetails",
+					},
+					{
+						model: db.leaveApprovalTrails,
+						where: { isVisible: 1, isPending: 1, isApproved: 0 },
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "empCode", "name"],
+							},
+						],
+						required: true,
+						limit: 1,
+					},
+				],
+			});
+			let dataForExcel = getPendingLeave.map((leave) => ({
+				"Employee Code": leave.employee?.empCode || "",
+				"Employee Name": leave.employee?.name || "",
+				BUName: leave.employee?.bumaster
+					? `${leave.employee.bumaster.buName} (${leave.employee.bumaster.buCode})`
+					: "",
+				Designation: leave.employee?.designationmaster
+					? `${leave.employee.designationmaster.name} (${leave.employee.designationmaster.code})`
+					: "",
+				Department: leave.employee?.departmentmaster
+					? `${leave.employee.departmentmaster.departmentName} (${leave.employee.departmentmaster.departmentCode})`
+					: "",
+				fromDate: leave.fromDate
+					? moment(leave.fromDate).format("DD-MM-YYYY")
+					: "",
+				toDate: leave.toDate ? moment(leave.toDate).format("DD-MM-YYYY") : "",
+				leaveCount: leave.leaveCount || 0,
+				Reason: leave.reason || "",
+				AppliedOn: leave.appliedOn
+					? moment(leave.appliedOn).format("DD-MM-YYYY")
+					: "",
+				pendingWith: leave.leaveapprovaltrails[0]?.employee
+					? `${leave.leaveapprovaltrails[0].employee.name} (${leave.leaveapprovaltrails[0].employee.empCode})`
+					: "",
+				leaveName: leave.leaveMasterDetails[0]?.leaveName || "",
+				leaveCode: leave.leaveMasterDetails[0]?.leaveCode || "",
+				appliedFor: leave.employeeleavetransactions[0].appliedFor,
+			}));
+
+			const data = [
+				{
+					sheet: "Pending Leave Report",
+					columns: [
+						{ label: "Employee ID", value: "Employee Code" },
+						{ label: "Name", value: "Employee Name" },
+						{ label: "Job Title", value: "Designation" },
+						{ label: "Department", value: "Department" },
+						{ label: "Business Unit", value: "BUName" },
+						{ label: "From", value: "fromDate" },
+						{ label: "To", value: "toDate" },
+						{ label: "Working Days", value: "leaveCount" },
+						{ label: "Leave Name", value: "leaveName" },
+						{ label: "Leave Code", value: "leaveCode" },
+						{ label: "Applied On", value: "AppliedOn" },
+						{ label: "pending With", value: "pendingWith" },
+						{ label: "Reason", value: "Reason" },
+						{ label: "appliedFor", value: "appliedFor" },
+					],
+					content: dataForExcel,
+				},
+			];
+
+			let settings = {
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const buffer = xlsx(data, settings);
+			res.writeHead(200, {
+				"Content-Type": "application/octet-stream",
+				"Content-disposition": `attachment; filename=Pending Leave Report.xlsx`,
+			});
+			res.end(buffer);
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
+	async leaveTaken(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+				managerId,
+				reporteIds,
+			} = req.query;
+
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+			console.log("filters", filters);
+			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
+				attributes: ["leaveAutoId"],
+				where: { companyId: companyId },
+				include: [
+					{
+						model: db.leaveMaster,
+						attributes: ["leaveName", "leaveCode"],
+						as: "companyleaveMasterDetails",
+					},
+				],
+				raw: true,
+			});
+
+			const mappedLeavesLookup = companyMappedLeaves.reduce(
+				(
+					acc,
+					{
+						leaveAutoId,
+						"companyleaveMasterDetails.leaveName": leaveName,
+						"companyleaveMasterDetails.leaveCode": leaveCode,
+					},
+				) => {
+					acc[leaveAutoId] = { leaveAutoId, leaveName, leaveCode };
+					return acc;
+				},
+				{},
+			);
+
+			const getTakenLeave = await db.employeeLeaveTransactions.findAll({
+				attributes: [
+					"employeeId",
+					"leaveAutoId",
+					[
+						db.Sequelize.fn(
+							"SUM",
+							db.Sequelize.cast(db.Sequelize.col("leaveCount"), "FLOAT"),
+						),
+						"totalLeaveCount",
+					],
+				],
+				where: {
+					status: "approved",
+					appliedFor: {
+						[db.Sequelize.Op.between]: [startDate, endDate],
+					},
+				},
+				include: [
+					{ model: db.leaveMaster, attributes: ["leaveName", "leaveCode"] },
+					{
+						model: db.employeeMaster,
+						attributes: ["name", "empCode"],
+						where: {
+							companyId: companyId,
+							...(managerId && { manager: managerId }),
+							...(reporteIds && {
+								id: { [Op.in]: reporteIds.split(",") },
+							}),
+							...(attendanceFor == 0 && { isActive: 0 }),
+							...(attendanceFor == 1 && { isActive: 1 }),
+							...(attendanceFor == 2 && { isActive: [0, 1] }),
+							...(search && { id: { [Op.in]: search.split(",") } }),
+							...(employeeType && {
+								employeeType: { [Op.in]: employeeType.split(",") },
+							}),
+							...(businessUnit && {
+								buId: { [Op.in]: businessUnit.split(",") },
+							}),
+							...(department && {
+								departmentId: { [Op.in]: department.split(",") },
+							}),
+							...(companyLocation && {
+								companyLocationId: { [Op.in]: companyLocation.split(",") },
+							}),
+						},
+						include: [
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
+					},
+				],
+				group: ["employeeId", "leaveAutoId"],
+				raw: true,
+			});
+
+			const employeeLeaveMap = {};
+
+			for (const leave of getTakenLeave) {
+				const {
+					employeeId,
+					"employee.name": name,
+					"employee.empCode": empCode,
+					"employee.bumaster.buName": buName,
+					"employee.departmentmaster.departmentName": departmentName,
+					"employee.designationmaster.name": designationName,
+					leaveAutoId,
+					totalLeaveCount,
+				} = leave;
+
+				const assignedToEmployee = await db.leaveMapping.findAll({
+					attributes: ["leaveAutoId"],
+					where: { employeeId },
+					raw: true,
+				});
+
+				const assignedLeavesSet = new Set(
+					assignedToEmployee.map((l) => l.leaveAutoId),
+				);
+
+				if (!employeeLeaveMap[employeeId]) {
+					employeeLeaveMap[employeeId] = {
+						employeeId,
+						empCode,
+						name,
+						bu: buName || "N.A",
+						department: departmentName || "N.A",
+						designation: designationName || "N.A",
+						leave: {},
+					};
+				}
+
+				if (mappedLeavesLookup[leaveAutoId]) {
+					const { leaveCode } = mappedLeavesLookup[leaveAutoId];
+					employeeLeaveMap[employeeId].leave[leaveCode] = totalLeaveCount; // Assign actual count
+				}
+
+				assignedToEmployee.forEach(({ leaveAutoId }) => {
+					const { leaveCode } = mappedLeavesLookup[leaveAutoId] || {};
+					if (leaveCode && !(leaveCode in employeeLeaveMap[employeeId].leave)) {
+						employeeLeaveMap[employeeId].leave[leaveCode] = 0.0;
+					}
+				});
+
+				Object.values(mappedLeavesLookup).forEach(
+					({ leaveAutoId, leaveCode }) => {
+						if (!(leaveCode in employeeLeaveMap[employeeId].leave)) {
+							employeeLeaveMap[employeeId].leave[leaveCode] =
+								assignedLeavesSet.has(leaveAutoId) ? 0.0 : "N.A";
+						}
+					},
+				);
+			}
+
+			const transformedResponse = Object.values(employeeLeaveMap).map(
+				(emp) => ({
+					employeeId: emp.employeeId,
+					empCode: emp.empCode,
+					name: emp.name,
+					bu: emp.bu,
+					department: emp.department,
+					designation: emp.designation,
+					...emp.leave,
+				}),
+			);
+
+			const leaveColumns = Object.values(mappedLeavesLookup).map(
+				({ leaveName, leaveCode }) => ({
+					label: `${leaveName} (${leaveCode})`,
+					value: leaveCode,
+				}),
+			);
+
+			const data = [
+				{
+					sheet: "Taken Balance Report",
+					columns: [
+						{ label: "Employee ID", value: "empCode" },
+						{ label: "Name", value: "name" },
+						{ label: "Job Title", value: "designation" },
+						{ label: "Department", value: "department" },
+						{ label: "Business Unit", value: "bu" },
+						...leaveColumns,
+					],
+					content: transformedResponse,
+				},
+			];
+
+			let settings = { writeOptions: { type: "buffer", bookType: "xlsx" } };
+			const buffer = xlsx(data, settings);
+
+			res.writeHead(200, {
+				"Content-Type": "application/octet-stream",
+				"Content-disposition": `attachment; filename=Leave_Utilize_Report.xlsx`,
+			});
+			res.end(buffer);
+		} catch (error) {
+			console.error("Error:", error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+				error: error.message,
+			});
+		}
+	}
+	async LeaveBalance(req, res) {
+		try {
+			const {
+				startDate,
+				endDate,
+				search,
+				employeeType,
+				businessUnit,
+				grade,
+				department,
+				companyLocation,
+				attendanceFor,
+				companyId,
+				managerId,
+				reporteIds,
+			} = req.query;
+
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+			console.log("filersss>>", filters);
+			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
+				attributes: ["leaveAutoId"],
+				where: { companyId: companyId },
+				raw: true,
+			});
+
+			const companyMappedLeaveIds = companyMappedLeaves.map(
+				(l) => l.leaveAutoId,
+			);
+
+			const employees = await db.employeeMaster.findAll({
+				attributes: ["id", "empCode", "name"],
+				where: {
+					isActive: 1,
+					companyId: companyId,
+					...(managerId && { manager: managerId }),
+					...(reporteIds && {
+						id: { [Op.in]: reporteIds.split(",") },
+					}),
+					...(attendanceFor == 0 && { isActive: 0 }),
+					...(attendanceFor == 1 && { isActive: 1 }),
+					...(attendanceFor == 2 && { isActive: [0, 1] }),
+					...(search && { id: { [Op.in]: search.split(",") } }),
+					...(employeeType && {
+						employeeType: { [Op.in]: employeeType.split(",") },
+					}),
+					...(businessUnit && {
+						buId: { [Op.in]: businessUnit.split(",") },
+					}),
+					...(department && {
+						departmentId: { [Op.in]: department.split(",") },
+					}),
+					...(companyLocation && {
+						companyLocationId: { [Op.in]: companyLocation.split(",") },
+					}),
+				},
+				include: [
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName", "departmentCode"],
+						where: {
+							...filters.departmentFIlter,
+						},
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["name", "code"],
+					},
+					{
+						model: db.buMaster,
+						attributes: ["buName", "buCode"],
+						where: {
+							...filters.buFIlter,
+						},
+					},
+					{
+						model: db.sbuMaster,
+						attributes: ["sbuname", "code"],
+						where: {
+							...filters.sbbuFIlter,
+						},
+					},
+				],
+				raw: true,
+				nest: true,
+			});
+
+			const leaveMasterList = await db.leaveMaster.findAll({
+				attributes: ["leaveId", "leaveName", "leaveCode"],
+				where: { leaveId: { [Op.in]: companyMappedLeaveIds } },
+				raw: true,
+			});
+
+			let leaveMasterDetails = {};
+			let uniqueLeaveTypes = new Set();
+			leaveMasterList.forEach((leave) => {
+				const leaveColumnName = `${leave.leaveName} (${leave.leaveCode})`;
+				leaveMasterDetails[leave.leaveId] = leaveColumnName;
+				uniqueLeaveTypes.add(leaveColumnName);
+			});
+
+			const allLeaveMappings = await db.leaveMapping.findAll({
+				attributes: ["EmployeeId", "leaveAutoId", "availableLeave"],
+				where: { EmployeeId: { [Op.in]: employees.map((emp) => emp.id) } },
+				raw: true,
+			});
+
+			const leaveMappingData = {};
+			allLeaveMappings.forEach(
+				({ EmployeeId, leaveAutoId, availableLeave }) => {
+					if (!leaveMappingData[EmployeeId]) {
+						leaveMappingData[EmployeeId] = {};
+					}
+					leaveMappingData[EmployeeId][leaveMasterDetails[leaveAutoId]] =
+						availableLeave || "0";
+				},
+			);
+
+			const employeesData = employees.map((emp) => {
+				let leaveBalanceMap = leaveMappingData[emp.id] || {};
+
+				companyMappedLeaveIds.forEach((leaveId) => {
+					const leaveColumnName = leaveMasterDetails[leaveId];
+					if (leaveColumnName && !leaveBalanceMap[leaveColumnName]) {
+						leaveBalanceMap[leaveColumnName] = "N/A";
+					}
+				});
+
+				return {
+					employeeCode: emp.empCode,
+					name: emp.name,
+					departmentName: emp.departmentmaster
+						? `${emp.departmentmaster.departmentName} (${emp.departmentmaster.departmentCode})`
+						: "N/A",
+					designationName: emp.designationmaster
+						? `${emp.designationmaster.name} (${emp.designationmaster.code})`
+						: "N/A",
+					buName: emp.bumaster
+						? `${emp.bumaster.buName} (${emp.bumaster.buCode})`
+						: "N/A",
+					...leaveBalanceMap,
+				};
+			});
+
+			if (employeesData.length === 0) {
+				return res
+					.status(404)
+					.json({ status: false, message: "No data found" });
+			}
+
+			const leaveColumns = [...uniqueLeaveTypes].map((leaveColumnName) => ({
+				label: leaveColumnName,
+				value: (row) => row[leaveColumnName] || "N/A",
+			}));
+
+			const data = [
+				{
+					sheet: "Leave Balance Report",
+					columns: [
+						{ label: "Employee ID", value: "employeeCode" },
+						{ label: "Name", value: "name" },
+						{ label: "Job Title", value: "designationName" },
+						{ label: "Department", value: "departmentName" },
+						{ label: "Business Unit", value: "buName" },
+						...leaveColumns,
+					],
+					content: employeesData,
+				},
+			];
+
+			let settings = { writeOptions: { type: "buffer", bookType: "xlsx" } };
+			const buffer = xlsx(data, settings);
+
+			res.writeHead(200, {
+				"Content-Type": "application/octet-stream",
+				"Content-disposition": `attachment; filename=Leave Balance Report.xlsx`,
+			});
+			res.end(buffer);
+		} catch (error) {
+			console.error("Error in LeaveBalance API:", error);
+			return res.status(500).json({
+				status: false,
+				message: "Internal Server Error",
+			});
+		}
+	}
 
 	async employeeMissedData(req, res) {
 		try {
@@ -840,6 +1460,8 @@ class MasterController {
 				companyLocation,
 				attendanceFor,
 				companyId,
+				managerId,
+				reporteIds,
 			} = req.query;
 			let buFIlter = {};
 			let sbbuFIlter = {};
@@ -962,6 +1584,10 @@ class MasterController {
 							// isActive: 1,
 							// attendanceFor,
 							companyId: companyId,
+							...(managerId && { manager: managerId }),
+							...(reporteIds && {
+								id: { [Op.in]: reporteIds.split(",") },
+							}),
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
 							...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -1084,6 +1710,7 @@ class MasterController {
 			if (attendanceData.length > 0) {
 				const simplifiedData = await Promise.all(
 					attendanceData.map(async (record) => ({
+						employeeId: record["employee.id"],
 						employeeCode: record["employee.empCode"],
 						employeeName: record["employee.name"],
 						buName:
@@ -1169,6 +1796,17 @@ class MasterController {
 								: "N/A",
 					})),
 				);
+				simplifiedData.sort((a, b) => {
+					// First, sort by employeeId
+					if (a.employeeId !== b.employeeId) {
+						return a.employeeId - b.employeeId;
+					}
+					// If employeeId is the same, then sort by attendanceDate
+					return (
+						new Date(a.attendanceDate.split("-").reverse().join("-")) -
+						new Date(b.attendanceDate.split("-").reverse().join("-"))
+					);
+				});
 
 				if (simplifiedData.length > 0) {
 					const timestamp = Date.now();
@@ -1247,7 +1885,7 @@ class MasterController {
 					const buffer = xlsx(data, settings);
 					res.writeHead(200, {
 						"Content-Type": "application/octet-stream",
-						"Content-disposition": `attachment; filename=attendance_${timestamp}.xlsx`,
+						"Content-disposition": `attachment; filename=Attendance Punch In/Out${timestamp}.xlsx`,
 					});
 					res.end(buffer);
 				}
@@ -1280,8 +1918,10 @@ class MasterController {
 				companyLocation,
 				attendanceFor,
 				companyId,
+				managerId,
+				reporteIds,
 			} = req.query;
-
+			console.log("reporteIds", reporteIds);
 			let buFIlter = {};
 			let sbbuFIlter = {};
 			let functionAreaFIlter = {};
@@ -1399,6 +2039,10 @@ class MasterController {
 							// isActive: 1,
 							//id:5074,
 							companyId: companyId,
+							...(managerId && { manager: managerId }),
+							...(reporteIds && {
+								id: { [Op.in]: reporteIds.split(",") },
+							}),
 							...(attendanceFor == 0 && { isActive: 0 }),
 							...(attendanceFor == 1 && { isActive: 1 }),
 							...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -1499,6 +2143,10 @@ class MasterController {
 					// isActive: 1,
 					//id:5074,
 					companyId: companyId,
+					...(managerId && { manager: managerId }),
+					...(reporteIds && {
+						id: { [Op.in]: reporteIds.split(",") },
+					}),
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -2073,7 +2721,7 @@ class MasterController {
 						// if (currentDay.isBefore(today)) {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
-
+					//  console.log("currentDay.isAfter",employeeRecord.dateOfexit)
 					if (
 						currentDay.isAfter(
 							moment(employeeRecord.dateOfexit).format("YYYY-MM-DD"),
@@ -2086,8 +2734,9 @@ class MasterController {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
 				}
-
+				console.log("employeeRecord.empId", employeeRecord.empId);
 				const orderedEmployeeRecord = {
+					employeeId: employeeRecord.empId,
 					name: employeeRecord.name,
 					empCode: employeeRecord.empCode,
 					dateOfJoining: employeeRecord.dateOfJoining,
@@ -2113,6 +2762,7 @@ class MasterController {
 
 				finalData.push(orderedEmployeeRecord);
 			}
+			finalData.sort((a, b) => a.employeeId - b.employeeId);
 
 			if (finalData.length > 0) {
 				const timestamp = Date.now();
@@ -2158,7 +2808,7 @@ class MasterController {
 
 				res.writeHead(200, {
 					"Content-Type": "application/octet-stream",
-					"Content-disposition": `attachment; filename=attendance_1_${timestamp}.xlsx`,
+					"Content-disposition": `attachment; filename=Attendance Summary_${timestamp}.xlsx`,
 				});
 				return res.end(buffer);
 			} else {
@@ -2860,6 +3510,8 @@ class MasterController {
 				businessUnit,
 				companyLocation,
 				companyId,
+				managerId,
+				reporteIds,
 			} = req.query;
 
 			let buFIlter = {};
@@ -2982,6 +3634,10 @@ class MasterController {
 				where: {
 					//empCode: "18950",
 					companyId: companyId,
+					...(managerId && { manager: managerId }),
+					...(reporteIds && {
+						id: { [Op.in]: reporteIds.split(",") },
+					}),
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -5533,6 +6189,7 @@ class MasterController {
 				attendanceFor,
 				employeeType,
 				businessUnit,
+				companyId,
 				companyLocation,
 			} = req.query;
 
@@ -5644,6 +6301,7 @@ class MasterController {
 				],
 				where: {
 					//empCode: "18950",
+					companyId: companyId,
 					...(attendanceFor == 0 && { isActive: 0 }),
 					...(attendanceFor == 1 && { isActive: 1 }),
 					...(attendanceFor == 2 && { isActive: [0, 1] }),
@@ -6655,611 +7313,6 @@ class MasterController {
 			return res.status(500).json({
 				status: false,
 				message: "Internal Server Error",
-			});
-		}
-	}
-
-	async LeaveBalance(req, res) {
-		try {
-			const {
-				startDate,
-				endDate,
-				search,
-				employeeType,
-				businessUnit,
-				grade,
-				department,
-				companyLocation,
-				attendanceFor,
-				companyId,
-			} = req.query;
-
-			const usersData = req.userData;
-			const filters = await helper.getFiltersByPermission(
-				usersData.role_id,
-				usersData.permissionAndAccess,
-			);
-			console.log("filersss>>", filters);
-			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
-				attributes: ["leaveAutoId"],
-				where: { companyId: companyId },
-				raw: true,
-			});
-
-			const companyMappedLeaveIds = companyMappedLeaves.map(
-				(l) => l.leaveAutoId,
-			);
-
-			const employees = await db.employeeMaster.findAll({
-				attributes: ["id", "empCode", "name"],
-				where: {
-					isActive: 1,
-					companyId: companyId,
-					...(attendanceFor == 0 && { isActive: 0 }),
-					...(attendanceFor == 1 && { isActive: 1 }),
-					...(attendanceFor == 2 && { isActive: [0, 1] }),
-					...(search && { id: { [Op.in]: search.split(",") } }),
-					...(employeeType && {
-						employeeType: { [Op.in]: employeeType.split(",") },
-					}),
-					...(businessUnit && {
-						buId: { [Op.in]: businessUnit.split(",") },
-					}),
-					...(department && {
-						departmentId: { [Op.in]: department.split(",") },
-					}),
-					...(companyLocation && {
-						companyLocationId: { [Op.in]: companyLocation.split(",") },
-					}),
-				},
-				include: [
-					{
-						model: db.departmentMaster,
-						attributes: ["departmentName", "departmentCode"],
-						where: {
-							...filters.departmentFIlter,
-						},
-					},
-					{
-						model: db.designationMaster,
-						attributes: ["name", "code"],
-					},
-					{
-						model: db.buMaster,
-						attributes: ["buName", "buCode"],
-						where: {
-							...filters.buFIlter,
-						},
-					},
-					{
-						model: db.sbuMaster,
-						attributes: ["sbuname", "code"],
-						where: {
-							...filters.sbbuFIlter,
-						},
-					},
-				],
-				raw: true,
-				nest: true,
-			});
-
-			const leaveMasterList = await db.leaveMaster.findAll({
-				attributes: ["leaveId", "leaveName", "leaveCode"],
-				where: { leaveId: { [Op.in]: companyMappedLeaveIds } },
-				raw: true,
-			});
-
-			let leaveMasterDetails = {};
-			let uniqueLeaveTypes = new Set();
-			leaveMasterList.forEach((leave) => {
-				const leaveColumnName = `${leave.leaveName} (${leave.leaveCode})`;
-				leaveMasterDetails[leave.leaveId] = leaveColumnName;
-				uniqueLeaveTypes.add(leaveColumnName);
-			});
-
-			const allLeaveMappings = await db.leaveMapping.findAll({
-				attributes: ["EmployeeId", "leaveAutoId", "availableLeave"],
-				where: { EmployeeId: { [Op.in]: employees.map((emp) => emp.id) } },
-				raw: true,
-			});
-
-			const leaveMappingData = {};
-			allLeaveMappings.forEach(
-				({ EmployeeId, leaveAutoId, availableLeave }) => {
-					if (!leaveMappingData[EmployeeId]) {
-						leaveMappingData[EmployeeId] = {};
-					}
-					leaveMappingData[EmployeeId][leaveMasterDetails[leaveAutoId]] =
-						availableLeave || "0";
-				},
-			);
-
-			const employeesData = employees.map((emp) => {
-				let leaveBalanceMap = leaveMappingData[emp.id] || {};
-
-				companyMappedLeaveIds.forEach((leaveId) => {
-					const leaveColumnName = leaveMasterDetails[leaveId];
-					if (leaveColumnName && !leaveBalanceMap[leaveColumnName]) {
-						leaveBalanceMap[leaveColumnName] = "N/A";
-					}
-				});
-
-				return {
-					employeeCode: emp.empCode,
-					name: emp.name,
-					departmentName: emp.departmentmaster
-						? `${emp.departmentmaster.departmentName} (${emp.departmentmaster.departmentCode})`
-						: "N/A",
-					designationName: emp.designationmaster
-						? `${emp.designationmaster.name} (${emp.designationmaster.code})`
-						: "N/A",
-					buName: emp.bumaster
-						? `${emp.bumaster.buName} (${emp.bumaster.buCode})`
-						: "N/A",
-					...leaveBalanceMap,
-				};
-			});
-
-			if (employeesData.length === 0) {
-				return res
-					.status(404)
-					.json({ status: false, message: "No data found" });
-			}
-
-			const leaveColumns = [...uniqueLeaveTypes].map((leaveColumnName) => ({
-				label: leaveColumnName,
-				value: (row) => row[leaveColumnName] || "N/A",
-			}));
-
-			const data = [
-				{
-					sheet: "Leave Balance Report",
-					columns: [
-						{ label: "Employee ID", value: "employeeCode" },
-						{ label: "Name", value: "name" },
-						{ label: "Job Title", value: "designationName" },
-						{ label: "Department", value: "departmentName" },
-						{ label: "Business Unit", value: "buName" },
-						...leaveColumns,
-					],
-					content: employeesData,
-				},
-			];
-
-			let settings = { writeOptions: { type: "buffer", bookType: "xlsx" } };
-			const buffer = xlsx(data, settings);
-
-			res.writeHead(200, {
-				"Content-Type": "application/octet-stream",
-				"Content-disposition": `attachment; filename=Leave Balance Report.xlsx`,
-			});
-			res.end(buffer);
-		} catch (error) {
-			console.error("Error in LeaveBalance API:", error);
-			return res.status(500).json({
-				status: false,
-				message: "Internal Server Error",
-			});
-		}
-	}
-
-	async pendingLeave(req, res) {
-		try {
-			const {
-				startDate,
-				endDate,
-				search,
-				employeeType,
-				businessUnit,
-				grade,
-				department,
-				companyLocation,
-				attendanceFor,
-				companyId,
-			} = req.query;
-
-			const usersData = req.userData;
-			const filters = await helper.getFiltersByPermission(
-				usersData.role_id,
-				usersData.permissionAndAccess,
-			);
-
-			const getPendingLeave = await db.EmployeeLeaveHeader.findAll({
-				attributes: ["leaveCount", "reason", "appliedOn", "fromDate", "toDate"],
-				where: { status: "pending" },
-				include: [
-					{
-						model: db.employeeLeaveTransactions,
-						attributes: ["appliedFor"],
-						where: {
-							appliedFor: {
-								[db.Sequelize.Op.between]: [startDate, endDate],
-							},
-						},
-					},
-					{
-						model: db.employeeMaster,
-						attributes: ["id", "empCode", "name"],
-						where: {
-							companyId: companyId,
-							...(attendanceFor == 0 && { isActive: 0 }),
-							...(attendanceFor == 1 && { isActive: 1 }),
-							...(attendanceFor == 2 && { isActive: [0, 1] }),
-							...(search && { id: { [Op.in]: search.split(",") } }),
-							...(employeeType && {
-								employeeType: { [Op.in]: employeeType.split(",") },
-							}),
-							...(businessUnit && {
-								buId: { [Op.in]: businessUnit.split(",") },
-							}),
-							...(department && {
-								departmentId: { [Op.in]: department.split(",") },
-							}),
-							...(companyLocation && {
-								companyLocationId: { [Op.in]: companyLocation.split(",") },
-							}),
-						},
-						include: [
-							{
-								model: db.buMaster,
-								attributes: ["buName", "buCode"],
-								where: {
-									...filters.buFIlter,
-								},
-							},
-							{
-								model: db.companyMaster,
-								attributes: ["companyName"],
-							},
-							{
-								model: db.designationMaster,
-								attributes: ["name", "code"],
-								where: {
-									...filters.designationFIlter,
-								},
-							},
-							{
-								model: db.departmentMaster,
-								attributes: ["departmentName", "departmentCode"],
-								where: {
-									...filters.departmentFIlter,
-								},
-							},
-							{
-								model: db.sbuMaster,
-								attributes: ["sbuname", "code"],
-								where: {
-									...filters.sbbuFIlter,
-								},
-							},
-						],
-					},
-					{
-						model: db.leaveMaster,
-						attributes: ["leaveName", "leaveCode"],
-						as: "leaveMasterDetails",
-					},
-					{
-						model: db.leaveApprovalTrails,
-						where: { isVisible: 1, isPending: 1, isApproved: 0 },
-						include: [
-							{
-								model: db.employeeMaster,
-								attributes: ["id", "empCode", "name"],
-							},
-						],
-						required: true,
-						limit: 1,
-					},
-				],
-			});
-			let dataForExcel = getPendingLeave.map((leave) => ({
-				"Employee Code": leave.employee?.empCode || "",
-				"Employee Name": leave.employee?.name || "",
-				BUName: leave.employee?.bumaster
-					? `${leave.employee.bumaster.buName} (${leave.employee.bumaster.buCode})`
-					: "",
-				Designation: leave.employee?.designationmaster
-					? `${leave.employee.designationmaster.name} (${leave.employee.designationmaster.code})`
-					: "",
-				Department: leave.employee?.departmentmaster
-					? `${leave.employee.departmentmaster.departmentName} (${leave.employee.departmentmaster.departmentCode})`
-					: "",
-				fromDate: leave.fromDate
-					? moment(leave.fromDate).format("DD-MM-YYYY")
-					: "",
-				toDate: leave.toDate ? moment(leave.toDate).format("DD-MM-YYYY") : "",
-				leaveCount: leave.leaveCount || 0,
-				Reason: leave.reason || "",
-				AppliedOn: leave.appliedOn
-					? moment(leave.appliedOn).format("DD-MM-YYYY")
-					: "",
-				pendingWith: leave.leaveapprovaltrails[0]?.employee
-					? `${leave.leaveapprovaltrails[0].employee.name} (${leave.leaveapprovaltrails[0].employee.empCode})`
-					: "",
-				leaveName: leave.leaveMasterDetails[0]?.leaveName || "",
-				leaveCode: leave.leaveMasterDetails[0]?.leaveCode || "",
-				appliedFor: leave.employeeleavetransactions[0].appliedFor,
-			}));
-
-			const data = [
-				{
-					sheet: "Pending Leave Report",
-					columns: [
-						{ label: "Employee ID", value: "Employee Code" },
-						{ label: "Name", value: "Employee Name" },
-						{ label: "Job Title", value: "Designation" },
-						{ label: "Department", value: "Department" },
-						{ label: "Business Unit", value: "BUName" },
-						{ label: "From", value: "fromDate" },
-						{ label: "To", value: "toDate" },
-						{ label: "Working Days", value: "leaveCount" },
-						{ label: "Leave Name", value: "leaveName" },
-						{ label: "Leave Code", value: "leaveCode" },
-						{ label: "Applied On", value: "AppliedOn" },
-						{ label: "pending With", value: "pendingWith" },
-						{ label: "Reason", value: "Reason" },
-						{ label: "appliedFor", value: "appliedFor" },
-					],
-					content: dataForExcel,
-				},
-			];
-
-			let settings = {
-				writeOptions: {
-					type: "buffer",
-					bookType: "xlsx",
-				},
-			};
-
-			const buffer = xlsx(data, settings);
-			res.writeHead(200, {
-				"Content-Type": "application/octet-stream",
-				"Content-disposition": `attachment; filename=Pending Leave Report.xlsx`,
-			});
-			res.end(buffer);
-		} catch (error) {
-			console.error(error);
-			return res.status(500).json({
-				status: false,
-				message: "Internal Server Error",
-			});
-		}
-	}
-
-	async leaveTaken(req, res) {
-		try {
-			const {
-				startDate,
-				endDate,
-				search,
-				employeeType,
-				businessUnit,
-				grade,
-				department,
-				companyLocation,
-				attendanceFor,
-				companyId,
-			} = req.query;
-
-			const usersData = req.userData;
-			const filters = await helper.getFiltersByPermission(
-				usersData.role_id,
-				usersData.permissionAndAccess,
-			);
-			console.log("filters", filters);
-			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
-				attributes: ["leaveAutoId"],
-				where: { companyId: companyId },
-				include: [
-					{
-						model: db.leaveMaster,
-						attributes: ["leaveName", "leaveCode"],
-						as: "companyleaveMasterDetails",
-					},
-				],
-				raw: true,
-			});
-
-			const mappedLeavesLookup = companyMappedLeaves.reduce(
-				(
-					acc,
-					{
-						leaveAutoId,
-						"companyleaveMasterDetails.leaveName": leaveName,
-						"companyleaveMasterDetails.leaveCode": leaveCode,
-					},
-				) => {
-					acc[leaveAutoId] = { leaveAutoId, leaveName, leaveCode };
-					return acc;
-				},
-				{},
-			);
-
-			const getTakenLeave = await db.employeeLeaveTransactions.findAll({
-				attributes: [
-					"employeeId",
-					"leaveAutoId",
-					[
-						db.Sequelize.fn(
-							"SUM",
-							db.Sequelize.cast(db.Sequelize.col("leaveCount"), "FLOAT"),
-						),
-						"totalLeaveCount",
-					],
-				],
-				where: {
-					status: "approved",
-					appliedFor: {
-						[db.Sequelize.Op.between]: [startDate, endDate],
-					},
-				},
-				include: [
-					{ model: db.leaveMaster, attributes: ["leaveName", "leaveCode"] },
-					{
-						model: db.employeeMaster,
-						attributes: ["name", "empCode"],
-						where: {
-							companyId: companyId,
-							...(attendanceFor == 0 && { isActive: 0 }),
-							...(attendanceFor == 1 && { isActive: 1 }),
-							...(attendanceFor == 2 && { isActive: [0, 1] }),
-							...(search && { id: { [Op.in]: search.split(",") } }),
-							...(employeeType && {
-								employeeType: { [Op.in]: employeeType.split(",") },
-							}),
-							...(businessUnit && {
-								buId: { [Op.in]: businessUnit.split(",") },
-							}),
-							...(department && {
-								departmentId: { [Op.in]: department.split(",") },
-							}),
-							...(companyLocation && {
-								companyLocationId: { [Op.in]: companyLocation.split(",") },
-							}),
-						},
-						include: [
-							{
-								model: db.buMaster,
-								attributes: ["buName", "buCode"],
-								where: {
-									...filters.buFIlter,
-								},
-							},
-							{
-								model: db.departmentMaster,
-								attributes: ["departmentName", "departmentCode"],
-								where: {
-									...filters.departmentFIlter,
-								},
-							},
-							{
-								model: db.designationMaster,
-								attributes: ["name", "code"],
-								where: {
-									...filters.designationFIlter,
-								},
-							},
-							{
-								model: db.sbuMaster,
-								attributes: ["sbuname", "code"],
-								where: {
-									...filters.sbbuFIlter,
-								},
-							},
-						],
-					},
-				],
-				group: ["employeeId", "leaveAutoId"],
-				raw: true,
-			});
-
-			const employeeLeaveMap = {};
-
-			for (const leave of getTakenLeave) {
-				const {
-					employeeId,
-					"employee.name": name,
-					"employee.empCode": empCode,
-					"employee.bumaster.buName": buName,
-					"employee.departmentmaster.departmentName": departmentName,
-					"employee.designationmaster.name": designationName,
-					leaveAutoId,
-					totalLeaveCount,
-				} = leave;
-
-				const assignedToEmployee = await db.leaveMapping.findAll({
-					attributes: ["leaveAutoId"],
-					where: { employeeId },
-					raw: true,
-				});
-
-				const assignedLeavesSet = new Set(
-					assignedToEmployee.map((l) => l.leaveAutoId),
-				);
-
-				if (!employeeLeaveMap[employeeId]) {
-					employeeLeaveMap[employeeId] = {
-						employeeId,
-						empCode,
-						name,
-						bu: buName || "N.A",
-						department: departmentName || "N.A",
-						designation: designationName || "N.A",
-						leave: {},
-					};
-				}
-
-				if (mappedLeavesLookup[leaveAutoId]) {
-					const { leaveCode } = mappedLeavesLookup[leaveAutoId];
-					employeeLeaveMap[employeeId].leave[leaveCode] = totalLeaveCount; // Assign actual count
-				}
-
-				assignedToEmployee.forEach(({ leaveAutoId }) => {
-					const { leaveCode } = mappedLeavesLookup[leaveAutoId] || {};
-					if (leaveCode && !(leaveCode in employeeLeaveMap[employeeId].leave)) {
-						employeeLeaveMap[employeeId].leave[leaveCode] = 0.0;
-					}
-				});
-
-				Object.values(mappedLeavesLookup).forEach(
-					({ leaveAutoId, leaveCode }) => {
-						if (!(leaveCode in employeeLeaveMap[employeeId].leave)) {
-							employeeLeaveMap[employeeId].leave[leaveCode] =
-								assignedLeavesSet.has(leaveAutoId) ? 0.0 : "N.A";
-						}
-					},
-				);
-			}
-
-			const transformedResponse = Object.values(employeeLeaveMap).map(
-				(emp) => ({
-					employeeId: emp.employeeId,
-					empCode: emp.empCode,
-					name: emp.name,
-					bu: emp.bu,
-					department: emp.department,
-					designation: emp.designation,
-					...emp.leave,
-				}),
-			);
-
-			const leaveColumns = Object.values(mappedLeavesLookup).map(
-				({ leaveName, leaveCode }) => ({
-					label: `${leaveName} (${leaveCode})`,
-					value: leaveCode,
-				}),
-			);
-
-			const data = [
-				{
-					sheet: "Taken Balance Report",
-					columns: [
-						{ label: "Employee ID", value: "empCode" },
-						{ label: "Name", value: "name" },
-						{ label: "Job Title", value: "designation" },
-						{ label: "Department", value: "department" },
-						{ label: "Business Unit", value: "bu" },
-						...leaveColumns,
-					],
-					content: transformedResponse,
-				},
-			];
-
-			let settings = { writeOptions: { type: "buffer", bookType: "xlsx" } };
-			const buffer = xlsx(data, settings);
-
-			res.writeHead(200, {
-				"Content-Type": "application/octet-stream",
-				"Content-disposition": `attachment; filename=Leave_Utilize_Report.xlsx`,
-			});
-			res.end(buffer);
-		} catch (error) {
-			console.error("Error:", error);
-			return res.status(500).json({
-				status: false,
-				message: "Internal Server Error",
-				error: error.message,
 			});
 		}
 	}
