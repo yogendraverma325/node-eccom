@@ -683,6 +683,10 @@ class AdminController {
 					"buId",
 					"sbuId",
 					"isActive",
+					"noticePeriodAutoId",
+					"attendancePolicyId",
+					"weekOffId",
+					"shiftId"
 				],
 				include: [
 					{
@@ -1334,10 +1338,10 @@ class AdminController {
 						attributes: ["jobLevelId", "jobLevelName"],
 					},
 					{ model: db.degreeMaster, attributes: ["degreeId", "degreeName"] },
+					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName"] },
 				],
 			});
 			if (result) {
-				let noticePeriodData = [];
 				let bankData = [];
 				let bankIfscData = [];
 
@@ -1356,7 +1360,7 @@ class AdminController {
 					});
 				}
 
-				let allDetails = { result, noticePeriodData, bankData, bankIfscData };
+				let allDetails = { result, bankData, bankIfscData };
 
 				return respHelper(res, {
 					status: 200,

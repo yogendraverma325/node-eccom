@@ -830,14 +830,14 @@ const onboardEmployeeSchema = Joi.object({
 	buId: Joi.number().required().label("Business Unit"),
 
 	sbuId: Joi.number().required().label("Sub Business Unit"),
-	shiftId: Joi.number().allow(0).label("Shift"),
+	shiftId: Joi.number().integer().allow(null).label("Shift"),
 	departmentId: Joi.number().required().label("Department"),
 	companyId: Joi.number().required().label("Company"),
 	buHRId: Joi.number().required().label("Business Unit HR"),
 	buHeadId: Joi.number().required().label("Business Unit Head"),
-	attendancePolicyId: Joi.number().allow(0).label("Attendance Policy"),
+	attendancePolicyId: Joi.number().integer().allow(null).label("Attendance Policy"),
 	companyLocationId: Joi.number().required().label("Company Location"),
-	weekOffId: Joi.number().allow(0).label("Week Off"),
+	weekOffId: Joi.number().integer().allow(null).label("Week Off"),
 
 	gender: Joi.string().required().label("Gender"),
 	maritalStatus: Joi.number().required().label("Marital Status"),
@@ -846,7 +846,7 @@ const onboardEmployeeSchema = Joi.object({
 	probationId: Joi.number().required().label("Probation"),
 	jobLevelId: Joi.number().required().label("Job Level Name"),
 	dateOfBirth: Joi.string().required().label("Date Of Birth"),
-	newCustomerNameId: Joi.number().allow(0).label("New Customer Name"),
+	newCustomerNameId: Joi.number().integer().allow(null).label("New Customer Name"),
 	iqTestApplicable: Joi.number().required().label("IQ Test Applicable"),
 	positionType: Joi.string().required().label("Position Type"),
 	profileImage: Joi.string().allow(null),
@@ -890,7 +890,7 @@ const onboardEmployeeSchema = Joi.object({
 		.min(11)
 		.max(11)
 		.label("Bank Ifsc Code"),
-	// noticePeriodAutoId: Joi.number().allow().label("Notice Period"),
+	noticePeriodAutoId: Joi.number().integer().allow(null).label("Notice Period"),
 });
 
 const createTMCSchema = Joi.object({
