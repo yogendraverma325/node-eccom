@@ -5511,6 +5511,7 @@ class MasterController {
 			  attendanceFor,
 			  employeeType,
 			  businessUnit,
+			  companyId,
 			  companyLocation,
 			} = req.query;
 	  
@@ -5621,6 +5622,7 @@ class MasterController {
 				"isLoginActive"
 			  ],
 			  where: {
+				companyId:companyId,
 				//empCode: "18950",
 				...(attendanceFor == 0 && { isActive: 0 }),
 				...(attendanceFor == 1 && { isActive: 1 }),
