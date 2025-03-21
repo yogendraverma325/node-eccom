@@ -19,7 +19,7 @@ class UserController {
 				attributes: ["id", "empCode", "name", "firstName", "lastName", "email"],
 				where: {
 					isActive: 1,
-					...(companyId && { companyId }),
+					...(companyId && { companyId:companyId }),
 					[Op.or]: [
 						{ empCode: { [Op.like]: `%${search}%` } },
 						{ name: { [Op.like]: `%${search}%` } },
@@ -4699,7 +4699,7 @@ class UserController {
 			let respfrom = await helper.generateFieldsForgivenLevel(
 				employeeData?.employee?.confimationPolicyAutoId,
 				level + 1,
-				employeeData?.employee?.companyId,
+				employeeData?.employee?.companyId
 			);
 
 			await db.Confirmationowners.update(
@@ -5217,7 +5217,7 @@ class UserController {
 
 			let employmentDetails = await db.employeeMaster.findOne({
 				where: { id: userId },
-				attributes: ["id"],
+				attributes: ["id", "noticePeriodAutoId"],
 				include: [
 					{
 						model: db.DesignationEmploymentHistory,
@@ -5422,6 +5422,7 @@ class UserController {
 						model: db.jobDetails,
 						attributes: ["jobId", "userId", "dateOfJoining"],
 					},
+					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"], required: false },
 				],
 				order: [
 					["designationHistories", "id", "ASC"], // Sorting for designationHistory

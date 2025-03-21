@@ -648,7 +648,7 @@ class CronController {
 					"confimationPolicyAutoId",
 					"manager",
 					"empCode",
-					"companyId"
+					"companyId",
 				],
 				required: true,
 				where: {
@@ -681,6 +681,7 @@ class CronController {
 		});
 
 		for (const Singleconfimation of confimationData) {
+			console.log("ee", Singleconfimation?.employee?.id);
 			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
 				where: {
 					confirmationAssignmentAutoId:
@@ -703,6 +704,7 @@ class CronController {
 					1,
 					Singleconfimation?.employee?.companyId,
 				);
+				console.log("respfrom", respfrom);
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -776,6 +778,7 @@ class CronController {
 						// 	JSON.stringify(Singleconfimation)
 						// );
 					} else {
+						console.log("ownerId", ownerId);
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 						await db.Confirmationaudittrail.create({
 							confirmationinitiatedAutoId:
@@ -1839,14 +1842,15 @@ class CronController {
 					host: process.env.SSH_HOST,
 					port: process.env.SSH_PORT,
 					username: process.env.SSH_USERNAME,
+					keepaliveInterval: 10000
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-						}
+						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+					}
 					: {
-							password: process.env.SSH_PASSWORD,
-						},
+						password: process.env.SSH_PASSWORD,
+					},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1859,9 +1863,9 @@ class CronController {
 
 			const stream = await sshConnection.forwardOut(
 				"localhost",
-				0,
-				"10.11.4.24",
 				1433,
+				process.env.SERVER_DB_HOST,
+				process.env.SERVER_DB_PORT,
 			);
 
 			if (!stream) {
@@ -1869,6 +1873,9 @@ class CronController {
 				console.error("Error forwarding MSSQL port:", err);
 				return sshConnection.dispose();
 			}
+
+			console.log("Port Forwarding Success");
+			logger.info("Port Forwarding Success");
 
 			let sequelize = new Sequelize(
 				process.env.SERVER_DB_NAME,
@@ -1889,10 +1896,17 @@ class CronController {
 						idle: 10000,
 					},
 					dialectOptions: {
-						options: {
-							encrypt: false,
-							trustServerCertificate: true,
-						},
+						options: Object.assign(
+							{
+								encrypt: false,
+								trustServerCertificate: true,
+							},
+							process.env.SERVER_DB_INSTANCE === undefined
+								? {}
+								: {
+									instanceName: process.env.SERVER_DB_INSTANCE,
+								},
+						),
 					},
 					logging: false,
 				},
@@ -1907,7 +1921,7 @@ class CronController {
 					const result = await sequelize.query(
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
 					);
-					if (result.length > 0) {
+					if (result && result.length > 0) {
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
 								autoId: element.ID,
@@ -1920,9 +1934,7 @@ class CronController {
 								punchType: element.PunchType,
 								createdDate: element.SYSDATE,
 								isRead: element.IS_UNREAD,
-								punchDateTime: moment
-									.utc(element.Punch_DateTime)
-									.format("YYYY-MM-DD HH:mm:ss"),
+								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss"),
 							};
 
 							const employeeData = await db.employeeMaster.findOne({

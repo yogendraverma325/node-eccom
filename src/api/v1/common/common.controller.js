@@ -857,6 +857,7 @@ class commonController {
 				buSearch,
 				sbuSearch,
 				areaSearch,
+				all,
 			} = req.query;
 
 			let buFIlter = {};
@@ -870,12 +871,15 @@ class commonController {
 			const limit = req.query.limit * 1 || 10;
 			const pageNo = req.query.page * 1 || 1;
 			const offset = (pageNo - 1) * limit;
+			const isAll = all === "true"; // Ensure it's treated as a boolean
 
 			const cacheKey = `employeeList:${process.env.TEST}:${
 				req.userId
-			}:${pageNo}:${limit}:${search || ""}:${department || ""}:${
-				designation || ""
-			}:${buSearch || ""}:${sbuSearch || ""}:${areaSearch || ""}`;
+			}:${isAll ? "all" : pageNo}:${isAll ? "all" : limit}:${
+				search || ""
+			}:${department || ""}:${designation || ""}:${buSearch || ""}:${
+				sbuSearch || ""
+			}:${areaSearch || ""}`;
 
 			let employeeData = [];
 			await client.get(cacheKey).then(async (data) => {
@@ -903,8 +907,7 @@ class commonController {
 
 					employeeData = await db.employeeMaster.findAndCountAll({
 						order: [["id", "desc"]],
-						limit,
-						offset,
+					...(isAll ? {} : { limit, offset }),
 						where: Object.assign(
 							search
 								? {
@@ -984,6 +987,12 @@ class commonController {
 									...(buSearch && { buName: { [Op.like]: `%${buSearch}%` } }),
 									...buFIlter,
 								},
+							},
+							{
+								model: db.companyMaster,
+								seperate: true,
+								attributes: ["companyId", "companyName","companyCode"],
+								
 							},
 							{
 								model: db.sbuMaster,

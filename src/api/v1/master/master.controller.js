@@ -1478,7 +1478,7 @@ class MasterController {
 				include: [
 					{
 						model: db.reportType,
-						attributes: ["reportTypeId", "reportTypeName"],
+						attributes: ["reportTypeId", "reportTypeName","forManagerReport"],
 						where: { isActive: 1 },
 					},
 				],
@@ -1613,7 +1613,7 @@ class MasterController {
 			let query = { isActive: 1 };
 			const docs = await db.noticePeriodMaster.findAll({
 				where: query,
-				attributes: ["noticePeriodAutoId", "noticePeriodName"],
+				attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"],
 			});
 			return respHelper(res, {
 				status: 200,

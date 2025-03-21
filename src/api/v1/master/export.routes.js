@@ -102,4 +102,12 @@ export default Express.Router()
 		"/leaveTaken",
 		authentication.authenticate,
 		masterExportController.leaveTaken,
+	).get(
+		"/ctcUploaded",
+		authentication.authenticate,
+		masterExportController.ctcUploaded,
+	).get(
+		"/salaryGenerated",
+		authentication.authenticate,
+		masterExportController.salaryGenerated,
 	);
