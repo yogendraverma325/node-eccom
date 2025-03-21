@@ -1682,8 +1682,9 @@ const compareImages = async function (base64Image, folderImagePath) {
 	}
 };
 ///CONFIRMATION
-const generateFieldsForgivenLevel = async function (policyId, inputLevel,companyId) { 
-	 console.log("inputLevel", policyId,"inputLevel",inputLevel,"companyId",companyId);
+
+const generateFieldsForgivenLevel = async function (policyId, inputLevel,companyId) {
+	//console.log("inputLevel", inputLevel);
 	let levelData = null;
 	let level = inputLevel;
 	let levelFound = false;
@@ -1717,6 +1718,7 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 							{ [Op.eq]: `${companyId}` },
 						],
 					}
+
 			},
 		});
 	}

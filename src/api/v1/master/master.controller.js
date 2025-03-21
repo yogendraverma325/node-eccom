@@ -274,6 +274,11 @@ class MasterController {
 						model: db.companyLocationMaster,
 						required: (usersData.role_id == 2) ? false : true,
 						attributes: ["address1", "address2"],
+					},
+					{
+						model: db.companyMaster,
+						required: (usersData.role_id == 2) ? false : true,
+						attributes: ["companyName", "companyCode"],
 						where:
 							Object.keys(companyFIlter).length !== 0
 								? {

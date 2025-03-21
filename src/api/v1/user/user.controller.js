@@ -4699,8 +4699,8 @@ class UserController {
 			let respfrom = await helper.generateFieldsForgivenLevel(
 				employeeData?.employee?.confimationPolicyAutoId,
 				level + 1,
-				employeeData?.employee?.companyId,
-			); 
+				employeeData?.employee?.companyId
+			);
 
 			await db.Confirmationowners.update(
 				{

@@ -855,7 +855,7 @@ class AdminController {
 									parseInt(employeeTypeDetails.startingIndex) + 1;
 
 								if (employeeTypeDetails.prefix) {
-									startingIndex = `${employeeTypeDetails.prefix}-${startingIndex}`;
+									startingIndex = `${employeeTypeDetails.prefix}${startingIndex}`;
 								}
 
 								const empCode = startingIndex;
