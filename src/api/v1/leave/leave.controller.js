@@ -3429,9 +3429,10 @@ class LeaveController {
 				"totalWorkingDaysCalculated",count
 			)
 				
-				availableLeaveCount.total_balance=count;
+				availableLeaveCount.availableLeave=count;
 
 			}
+			console.log("availableLeaveCount",availableLeaveCount)
 			let countDeductingPending =
 				availableLeaveCount.availableLeave - pendingLeaveCount;
 			let a = totalWorkingDaysCalculated;
