@@ -1914,7 +1914,7 @@ class CronController {
 						"Connection to SQL Server established successfully via SSH tunnel.",
 					);
 					const result = await sequelize.query(
-						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 and PunchDate='2025-03-18' order by ID asc`,
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
 					);
 					if (result && result.length > 0) {
 						for (const element of result[0]) {
@@ -1950,17 +1950,17 @@ class CronController {
 								);
 							}
 
-							// sequelize.query(
-							// 	`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
-							// 	(err, result) => {
-							// 		if (err) {
-							// 			logger.error(`Error ${err}`);
-							// 			console.log(err);
-							// 		}
+							sequelize.query(
+								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+								(err, result) => {
+									if (err) {
+										logger.error(`Error ${err}`);
+										console.log(err);
+									}
 
-							// 		console.log(result);
-							// 	},
-							// );
+									console.log(result);
+								},
+							);
 						}
 					}
 				})
