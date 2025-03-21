@@ -1837,14 +1837,15 @@ class CronController {
 					host: process.env.SSH_HOST,
 					port: process.env.SSH_PORT,
 					username: process.env.SSH_USERNAME,
+					keepaliveInterval: 10000
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-						}
+						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+					}
 					: {
-							password: process.env.SSH_PASSWORD,
-						},
+						password: process.env.SSH_PASSWORD,
+					},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1898,8 +1899,8 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-										instanceName: process.env.SERVER_DB_INSTANCE,
-									},
+									instanceName: process.env.SERVER_DB_INSTANCE,
+								},
 						),
 					},
 					logging: false,
@@ -1913,7 +1914,7 @@ class CronController {
 						"Connection to SQL Server established successfully via SSH tunnel.",
 					);
 					const result = await sequelize.query(
-						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 and PunchDate='2025-03-18' order by ID asc`,
 					);
 					if (result && result.length > 0) {
 						for (const element of result[0]) {
@@ -1928,9 +1929,7 @@ class CronController {
 								punchType: element.PunchType,
 								createdDate: element.SYSDATE,
 								isRead: element.IS_UNREAD,
-								punchDateTime: moment
-									.utc(element.Punch_DateTime)
-									.format("YYYY-MM-DD HH:mm:ss"),
+								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss"),
 							};
 
 							const employeeData = await db.employeeMaster.findOne({
@@ -1951,17 +1950,17 @@ class CronController {
 								);
 							}
 
-							sequelize.query(
-								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
-								(err, result) => {
-									if (err) {
-										logger.error(`Error ${err}`);
-										console.log(err);
-									}
+							// sequelize.query(
+							// 	`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+							// 	(err, result) => {
+							// 		if (err) {
+							// 			logger.error(`Error ${err}`);
+							// 			console.log(err);
+							// 		}
 
-									console.log(result);
-								},
-							);
+							// 		console.log(result);
+							// 	},
+							// );
 						}
 					}
 				})
