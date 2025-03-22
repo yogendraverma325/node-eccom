@@ -1695,6 +1695,10 @@ class AttendanceController {
 			console.log("startDateLeaves--->>", startDateLeaves)
 			console.log("endDateLeaves --->>", endDateLeaves)
 			console.log("monthLeaves--->>", monthLeaves)
+			let monthleaveCount = 0, unpaidmonthleaveCount = 0;
+			for (const element of monthLeaves) {
+				monthleaveCount += parseFloat(element.totalLeaveCount);
+			}
 			const monthUpaidLeave = await db.employeeLeaveTransactions.findAll({
 				attributes: [
 					"employeeId",
@@ -1718,6 +1722,10 @@ class AttendanceController {
 				],
 				raw: true,
 			});
+
+			for (const element of monthUpaidLeave) {
+				unpaidmonthleaveCount += parseFloat(element.totalLeaveCount);
+			}
 			// Process holidays//
 			const holidayDates = locationBasedHolidays.reduce(
 				(acc, locationHoliday) => {
@@ -1954,12 +1962,8 @@ class AttendanceController {
 						absentDays: calculateAbsentDays.length,
 						presentDays: calculatePresentDays.length,
 						singlePunchAbsentDays: calculateSinglePunchAbsent.length,
-						leaveDays:
-							monthLeaves.length > 0 ? monthLeaves[0].totalLeaveCount : 0,
-						unpaidLeaveDays:
-							monthUpaidLeave.length > 0
-								? monthUpaidLeave[0].totalLeaveCount
-								: 0,
+						leaveDays: monthleaveCount,
+						unpaidLeaveDays: unpaidmonthleaveCount,
 					},
 					getUserDetails: getUserDetails,
 					attendanceData: {
