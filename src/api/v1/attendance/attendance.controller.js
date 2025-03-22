@@ -1698,7 +1698,6 @@ class AttendanceController {
 			const monthUpaidLeave = await db.employeeLeaveTransactions.findAll({
 				attributes: [
 					"employeeId",
-					"leaveAutoId",
 					[db.Sequelize.fn("MONTH", db.Sequelize.col("appliedFor")), "month"],
 					[
 						db.Sequelize.fn("sum", db.Sequelize.col("leaveCount")),
@@ -1714,7 +1713,8 @@ class AttendanceController {
 					},
 				},
 				group: [
-					"employeeId"
+					"employeeId",
+					db.Sequelize.fn("MONTH", db.Sequelize.col("appliedFor")),
 				],
 				raw: true,
 			});
