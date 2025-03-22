@@ -1714,9 +1714,7 @@ class AttendanceController {
 					},
 				},
 				group: [
-					"employeeId",
-					"leaveAutoId",
-					db.Sequelize.fn("MONTH", db.Sequelize.col("appliedFor")),
+					"employeeId"
 				],
 				raw: true,
 			});
