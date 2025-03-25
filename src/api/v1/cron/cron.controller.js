@@ -368,6 +368,16 @@ class CronController {
 
 	async prePasswordExpiryNotification() {
 		try {
+
+				let updateQuery=`UPDATE employee AS emp
+					LEFT JOIN bumapping AS bumapping
+					ON bumapping.companyId = emp.companyId 
+					AND bumapping.buId = emp.buId
+					SET emp.buHRId = bumapping.buHrId
+					WHERE emp.buHRId IS NULL;`;
+					await db.sequelize.query("SET sql_safe_updates=0;", { type: db.QueryTypes.RAW });
+					await db.sequelize.query(updateQuery, { type: db.QueryTypes.UPDATE });
+					
 			const existsUserData = await db.employeeMaster.findAll({
 				where: {
 					isActive: 1,
