@@ -369,15 +369,15 @@ class CronController {
 	async prePasswordExpiryNotification() {
 		try {
 
-				let updateQuery=`UPDATE employee AS emp
+			let updateQuery = `UPDATE employee AS emp
 					LEFT JOIN bumapping AS bumapping
 					ON bumapping.companyId = emp.companyId 
 					AND bumapping.buId = emp.buId
 					SET emp.buHRId = bumapping.buHrId
 					WHERE emp.buHRId IS NULL;`;
-					await db.sequelize.query("SET sql_safe_updates=0;", { type: db.QueryTypes.RAW });
-					await db.sequelize.query(updateQuery, { type: db.QueryTypes.UPDATE });
-					
+			await db.sequelize.query("SET sql_safe_updates=0;", { type: db.QueryTypes.RAW });
+			await db.sequelize.query(updateQuery, { type: db.QueryTypes.UPDATE });
+
 			const existsUserData = await db.employeeMaster.findAll({
 				where: {
 					isActive: 1,
@@ -1929,7 +1929,7 @@ class CronController {
 						"Connection to SQL Server established successfully via SSH tunnel.",
 					);
 					const result = await sequelize.query(
-						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by ID asc`,
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 and EmployeeCode ='THMC004' order by ID asc`,
 					);
 					if (result && result.length > 0) {
 						for (const element of result[0]) {
