@@ -1,3 +1,10 @@
+// ------------------------------------- 2025-03-21 ---------------------------------------------------//
+ALTER TABLE `tara_hrms_live`.`employee` 
+ADD COLUMN `enableBiometricAttendance` TINYINT NULL DEFAULT 0 AFTER `payrollInclude`,
+ADD COLUMN `enableMobileAttendance` TINYINT NULL DEFAULT 1 AFTER `enableBiometricAttendance`,
+ADD COLUMN `enableWebAttendance` TINYINT NULL DEFAULT 1 AFTER `enableMobileAttendance`;
+
+
 // ---------------------------------------- 2025-03-07 ------------------------------------------------//
 
 ALTER TABLE `tara_hrms`.`companymaster` 
