@@ -5075,7 +5075,7 @@ class AttendanceController {
 								regularizeData.regularizePunchOutDate,
 							),
 							createdBy: req.userId,
-							createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+							//createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 							updatedBy: req.userId,
 							updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 						},
