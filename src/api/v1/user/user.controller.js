@@ -763,21 +763,121 @@ class UserController {
 					createdBy: userid,
 				},
 			});
-			let pendingSeperationCount = await db.separationMaster.count(
-				{
-					pendingAt: userid,
-				},
-				{
-					where: {
-						finalStatus: [2, 5, 9],
-					},
-				},
-			);
+			// let pendingSeperationCount = await db.separationMaster.count(
+			// 	{
+			// 		pendingAt: userid,
+			// 	},
+			// 	{
+			// 		where: {
+			// 			finalStatus: [2, 5, 9],
+			// 		},
+			// 	},
+			// );
+
 			let userId = req.userId;
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(
 				userId,
 				"Pending",
 			);
+
+			let pendingSeperationCount = await db.separationMaster.count(
+				{
+					where: {
+						[Op.or]: [
+							{
+								employeeId: req.userId,
+								finalStatus: 1,
+							},
+							{
+								pendingAt: req.userId,
+								finalStatus: {
+									[Op.in]: [5, 2],
+								},
+							},
+						],
+					},
+				}
+			);
+			
+			const pendingSeperationWorkFlowCount = await db.separationInitiatedTask.count({
+				where: {
+					status: 0,
+					isActive: 1,
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						required: true,
+						attributes: [],
+						include: [
+							{
+								model: db.separationMaster,
+								attributes: [],
+								required: true,
+								where: {
+									finalStatus: 9,
+									resignationAutoId: db.Sequelize.col(
+										"separationinitiatedtask.resignationAutoId",
+									),
+								},
+							},
+						],
+					},
+					{
+						model: db.separationTaskOwner,
+						attributes: [],
+						required: true,
+						where: {
+							taskOwner: req.userId,
+						}
+					},
+				]
+			});
+
+			const confirmationCount = await db.Confirmationinitiated.count({
+				where: {
+					status: [0, 2],
+				},
+				include: [
+					{
+						model: db.Confirmationowners,
+						attributes: [],
+						where: {
+							employeeId: req.userId,
+						}
+					}
+				],
+			});
+
+			let profileApprovalCount = await db.paymentDetails.count({
+				where: {
+					status: "pending",
+					pendingAt: req.userId,
+				}
+			});
+
+			const pendingCompOffCount =
+				await db.comp_off_credit_history.count({
+					where: {
+						expiry_date: {
+							[Op.or]: [
+								{ [Op.eq]: null }, // Check if expiry_date is null
+								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+							],
+						},
+						[Op.or]: [
+							{ pending_at: { [Op.like]: `${req.userId},%` } }, // Check if userId is at the start
+							{ pending_at: { [Op.like]: `%,${req.userId},%` } }, // Check if userId is in the middle
+							{ pending_at: { [Op.like]: `%,${req.userId}` } }, // Check if userId is at the end
+							{ pending_at: { [Op.eq]: `${req.userId}` } }, // Check if userId is the only value
+						],
+						//employee_Id: req.userId,
+						status: 3,
+					}
+				});
+
+			const totalCount = countLeavePending + countLeaveAssgined + pendingAttCount + assignedAttCount + pendingAttendanceCount +
+			pendingSeperationCount + pendingSeperationWorkFlowCount + confirmationCount + pendingCompOffCount + profileApprovalCount;
 
 			return respHelper(res, {
 				status: 200,
@@ -799,6 +899,23 @@ class UserController {
 							raisedByMe: 0,
 							assignedToMe: pendingSeperationCount,
 						},
+						seperationWorkflowCount: {
+							raisedByMe: 0,
+							assignedToMe: pendingSeperationWorkFlowCount,
+						},
+						confirmationCount: {
+							raisedByMe: 0,
+							assignedToMe: confirmationCount,
+						},
+						compoffCount: {
+							raisedByMe: 0,
+							assignedToMe: pendingCompOffCount
+						},
+						profileApprovalCount: {
+							raisedByMe: 0,
+							assignedToMe: profileApprovalCount
+						},
+						totalCount: totalCount 
 					},
 					mobile: {
 						raisedByMe: {
