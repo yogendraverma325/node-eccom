@@ -701,4 +701,21 @@ export default Express.Router()
 		"/job-level-mapping/:companyId/:id",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.deleteJobLevelMapping,
+	)
+
+	// chanage status of department, functional area and job level mapping data
+	.patch(
+		"/department-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfDepartmentMapping,
+	)
+	.patch(
+		"/functional-area-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfFunctionalAreaMapping,
+	)
+	.patch(
+		"/job-level-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfJobLevelMapping,
 	);
