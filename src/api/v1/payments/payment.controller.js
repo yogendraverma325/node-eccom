@@ -2879,7 +2879,7 @@ class PaymentController {
 			);
 
 			const result = await db.sequelize.query(query);
-			console.log(query);
+			// console.log(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
 				status: 200,
