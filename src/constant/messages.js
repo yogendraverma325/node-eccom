@@ -115,6 +115,7 @@ const message = {
 	ATTENDANCE_APPROVAL: "Attendance <status>",
 	ATTENDANCE_ROSTER_ADDED: "Attendance Roster Updated.",
 	ONLY_EXCEL_ALLOWED: "Please select excel file",
+	SELECT_FILE: "Please select file",
 };
 
 export default message;

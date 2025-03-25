@@ -175,10 +175,6 @@ class AdminController {
 				},
 			);
 
-			console.log("sender mail", existUser["companymaster.senderEmail"]);
-
-			console.log("logo", existUser["companymaster.companyLogo"]);
-
 			eventEmitter.emit(
 				"resetPasswordMail",
 				JSON.stringify({
@@ -859,7 +855,7 @@ class AdminController {
 									parseInt(employeeTypeDetails.startingIndex) + 1;
 
 								if (employeeTypeDetails.prefix) {
-									startingIndex = `${employeeTypeDetails.prefix}-${startingIndex}`;
+									startingIndex = `${employeeTypeDetails.prefix}${startingIndex}`;
 								}
 
 								const empCode = startingIndex;
@@ -1033,6 +1029,10 @@ class AdminController {
 								let empids = [createdUser.id];
 								console.log("empids", empids);
 								await helper.leaveAssignEmployeeToAll(empids.join(","));
+
+								// start generate employment history after create TMC by jay
+								await helper.generateEmployementHistory(createdUser, req.userId, createdUserJobDetails);
+								// end generate employment history after create TMC by jay
 
 								eventEmitter.emit(
 									"onboardingEmployeeMail",
@@ -2319,6 +2319,24 @@ class AdminController {
 			});
 		}
 	}
+
+	// start add/update notice period by jay
+
+	async updateNoticePeriod(req, res) {
+		try {
+            let updatedBy = req.userId;
+			let { userId, noticePeriodAutoId } = req.body;
+			let metaData = { 'noticePeriodAutoId': noticePeriodAutoId, updatedBy: updatedBy, updatedAt: moment() };
+			await db.employeeMaster.update(metaData, { where: { 'id': userId }});
+			return respHelper(res, { status: 200, msg: constant.UPDATE_SUCCESS.replace("<module>", "Notice Period") });
+		}
+		catch(error) {
+			console.log(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+	// end add/update notice period by jay
 }
 
 export default new AdminController();

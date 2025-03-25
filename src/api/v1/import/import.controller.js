@@ -20,9 +20,9 @@ class ImportController {
 				createdBy: req.userData.id,
 				importType: req.body.uploadType,
 				importTableName: "Package",
-                buId:req.userData.buId,
-                sbuId:req.userData.sbuId,
-                companyId:req.userData.companyId,
+				buId: req.userData.buId,
+				sbuId: req.userData.sbuId,
+				companyId: req.userData.companyId,
 			};
 
 			let importInfo = await db.ImportInfo.create(importInfoObject);
@@ -47,17 +47,17 @@ class ImportController {
 
 	async getImportInfoList(req, res) {
 		try {
-			const {
-				month,
-				year,
-			} = req.query;	
-			let queryForImportDetails = await importHelper.query(1,{year:year,month:Number(month)+1});
+			const { month, year } = req.query;
+			let queryForImportDetails = await importHelper.query(1, {
+				year: year,
+				month: Number(month) + 1,
+			});
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
 			console.log(queryForImportDetails);
 			return respHelper(res, {
 				status: 200,
-				data:importInfoList[0],
-				msg:"Data Fetched Successfully."
+				data: importInfoList[0],
+				msg: "Data Fetched Successfully.",
 			});
 		} catch (e) {
 			console.log(e);
@@ -68,16 +68,12 @@ class ImportController {
 		}
 	}
 
-async exportImportedSheets(req, res) {
+	async exportImportedSheets(req, res) {
 		try {
-			const {
-				reportType,
-				countType,
-				importAutoId,
-				exportSheetAutoId
-			} = req.query;	
+			const { reportType, countType, importAutoId, exportSheetAutoId } =
+				req.query;
 			const sheetName = {
-				"GROSS_PAY": 1,
+				GROSS_PAY: 1,
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -94,59 +90,68 @@ async exportImportedSheets(req, res) {
 				});
 			}
 			let employeeData = [];
-			let importStatus = ['1','2'].includes(countType)?[countType]:[1,2];
+			let importStatus = ["1", "2"].includes(countType) ? [countType] : [1, 2];
 			let sheetDataType;
-			
+
 			switch (countType) {
-				case '0':
-					sheetDataType='All'
+				case "0":
+					sheetDataType = "All";
 					break;
-					case '1':
-						sheetDataType='Success'
-						break;
-						case '2':
-							sheetDataType='Error'
-							break;
+				case "1":
+					sheetDataType = "Success";
+					break;
+				case "2":
+					sheetDataType = "Error";
+					break;
 				default:
 					break;
 			}
 
-
-
-			let exportData = await db.ImportData.findAll({where:{importAutoId:importAutoId,importStatus:{[Op.in]:importStatus}},raw:true});
+			let exportData = await db.ImportData.findAll({
+				where: {
+					importAutoId: importAutoId,
+					importStatus: { [Op.in]: importStatus },
+				},
+				raw: true,
+			});
 			for (const element of exportData) {
-				let mergeObject= {...JSON.parse(element.importedRow),"Upload Remark":element.importStatusDesc};
+				let mergeObject = {
+					...JSON.parse(element.importedRow),
+					"Upload Remark": element.importStatusDesc,
+				};
 				employeeData.push(mergeObject);
 			}
 			const timestamp = Date.now();
 			// Handle scenarios based on conditions
-			if (importAutoId)
-			{
+			if (importAutoId) {
 				const jsonData = employeeData;
 				// Extract columns dynamically from JSON keys
-				const columns = Object.keys(jsonData[0]).map(key => ({ label: key, value: key }));
-				
+				const columns = Object.keys(jsonData[0]).map((key) => ({
+					label: key,
+					value: key,
+				}));
+
 				const data = [
 					{
 						sheet: "Employee",
 						columns: columns,
-						content: jsonData // Use the JSON array as content
-					}
+						content: jsonData, // Use the JSON array as content
+					},
 				];
-				
+
 				const settings = {
 					fileName: `Total_${Date.now()}`,
 					extraLength: 3,
 					writeOptions: {
 						type: "buffer",
-						bookType: "xlsx"
-					}
+						bookType: "xlsx",
+					},
 				};
-				
+
 				const report = xlsx(data, settings);
 				res.setHeader(
 					"Content-Disposition",
-					`attachment; filename=${sheetVal}_${sheetDataType}_${moment(timestamp).format('YYYY-MM-DD HH:mm:ss')}.xlsx`,
+					`attachment; filename=${sheetVal}_${sheetDataType}_${moment(timestamp).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
 				);
 				return res.end(report);
 			} else {
@@ -161,8 +166,6 @@ async exportImportedSheets(req, res) {
 			});
 		}
 	}
-
-
 }
 
 export default new ImportController();
@@ -494,9 +497,12 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 		);
 
 		return respHelper(res, {
-			status: 200, 
-			data: { SuccessRecord:successArray.length, ErrorRecord:errorArray.length },
-			msg:"CTC Uploaded Successfully"
+			status: 200,
+			data: {
+				SuccessRecord: successArray.length,
+				ErrorRecord: errorArray.length,
+			},
+			msg: "CTC Uploaded Successfully",
 		});
 	} catch (error) {
 		console.log(error);

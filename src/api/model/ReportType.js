@@ -11,6 +11,9 @@ export default (sequelize, Sequelize) => {
 		reportTypeName: {
 			type: Sequelize.STRING,
 		},
+		forManagerReport: {
+			type: Sequelize.INTEGER,
+		},
 		createdAt: {
 			type: Sequelize.DATE,
 		},

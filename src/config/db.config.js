@@ -65,6 +65,7 @@ import employeeJobDetailsHistory from "../api/model/EmployeeJobDetailsHistory.js
 import EmployeeEducationDetailsHistory from "../api/model/EmployeeEducationDetailsHistory.js";
 import FamilyMemberHistory from "../api/model/FamilyMemberHistory.js";
 import AttendanceHistory from "../api/model/AttendanceHistory.js";
+import AttendanceLogs from "../api/model/AttendanceLogs.js";
 import SalutationMaster from "../api/model/salutationMaster.js";
 import UnionCodeIncrementMaster from "../api/model/UnionIncrementCodeMaster.js";
 import EmployeeAddress from "../api/model/EmployeeAddress.js";
@@ -180,9 +181,6 @@ import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
 import ImportInfo from "../api/model/ImportInfo.js";
 import ImportData from "../api/model/ImportData.js";
 ///////////////////Import Models By Himanshu////////
-
-
-
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -304,6 +302,7 @@ db.employeeEducationDetailsHistory = EmployeeEducationDetailsHistory(
 );
 db.familyMemberHistory = FamilyMemberHistory(sequelize, Sequelize);
 db.attendanceHistory = AttendanceHistory(sequelize, Sequelize);
+db.AttendanceLogs = AttendanceLogs(sequelize, Sequelize);
 db.unionCodIncrementMaster = UnionCodeIncrementMaster(sequelize, Sequelize);
 db.salutationMaster = SalutationMaster(sequelize, Sequelize);
 db.employeeAddress = EmployeeAddress(sequelize, Sequelize);
@@ -411,10 +410,8 @@ db.ExtraBenefits = ExtraBenefits(sequelize, Sequelize);
 
 //////////////////////////////Import Models By Himanshu////////
 
-db.ImportInfo = ImportInfo(sequelize,Sequelize);
-db.ImportData = ImportData(sequelize,Sequelize);
-
-
+db.ImportInfo = ImportInfo(sequelize, Sequelize);
+db.ImportData = ImportData(sequelize, Sequelize);
 
 db.DesignationEmploymentHistory = DesignationEmploymentHistory(
 	sequelize,
@@ -675,6 +672,8 @@ db.employeeMaster.belongsTo(db.employeeLeaveTransactions, {
 	foreignKey: "id",
 	sourceKey: "employeeId",
 });
+
+
 
 db.attendanceMaster.hasMany(db.holidayCompanyLocationConfiguration, {
 	foreignKey: "holidayCompanyLocationConfigurationID",
@@ -1644,7 +1643,7 @@ db.jobLevelMapping.hasOne(db.companyMaster, {
 	sourceKey: "companyId",
 });
 
-db.departmentMapping.hasOne(db.sbuMapping, { 
+db.departmentMapping.hasOne(db.sbuMapping, {
 	foreignKey: "sbuMappingId",
 	sourceKey: "sbuMappingId",
 });
@@ -1806,13 +1805,102 @@ db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 
 db.regularizationMaster.hasOne(db.employeeMaster, {
 	foreignKey: "id",
-	sourceKey: "regularizeManagerId"
+	sourceKey: "regularizeManagerId",
 });
 
 db.employeeLeaveTransactions.hasMany(db.leaveMaster, {
 	foreignKey: "leaveId",
-	sourceKey: "leaveAutoId"
+	sourceKey: "leaveAutoId",
 });
+//ritak export master data start
+
+db.bankMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.bankMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+
+db.designationMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.designationMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+
+db.departmentMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.departmentMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.departmentMaster.belongsTo(db.departmentMaster, {
+	foreignKey: "parentDepartmentId",
+	as: "parentDepartment",
+});
+
+// departmentMaster belongs to departmentMapping
+db.departmentMaster.belongsTo(db.departmentMapping, {
+	foreignKey: "departmentId",
+	targetKey: "departmentId",
+});
+
+// departmentMapping belongs to sbuMapping (via sbuMappingId)
+db.departmentMapping.belongsTo(db.sbuMapping, {
+	foreignKey: "sbuMappingId",
+	targetKey: "sbuMappingId",
+});
+
+// sbuMapping belongs to buMapping (via buMappingId)
+db.sbuMapping.belongsTo(db.buMapping, {
+	foreignKey: "buMappingId",
+	targetKey: "buMappingId",
+});
+
+db.functionalAreaMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.functionalAreaMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.functionalAreaMaster.belongsTo(db.functionalAreaMaster, {
+	foreignKey: "parentFunctionalAreaId",
+	as: "parentFunctionalAreaRef",
+});
+
+db.functionalAreaMaster.belongsTo(db.functionalAreaMapping, {
+	foreignKey: "functionalAreaId",
+	targetKey: "functionalAreaId",
+});
+
+db.jobLevelMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.jobLevelMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+
+db.jobLevelMaster.belongsTo(db.jobLevelMapping, {
+	foreignKey: "jobLevelId",
+	targetKey: "jobLevelId",
+});
+
+db.jobLevelMapping.belongsTo(db.companyMaster, { foreignKey: "companyId" });
+db.jobLevelMapping.belongsTo(db.bandMaster, { foreignKey: "bandId" });
+db.jobLevelMapping.belongsTo(db.gradeMaster, { foreignKey: "gradeId" });
+
+//ritak export master data end
+
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
 // 	foreignKey: "id",
 // 	sourceKey: "pendingOn",
@@ -1820,15 +1908,20 @@ db.employeeLeaveTransactions.hasMany(db.leaveMaster, {
 db.ImportInfo.hasOne(db.employeeMaster, {
 	foreignKey: "id",
 	sourceKey: "createdBy",
-	as:"importByDetails"
+	as: "importByDetails",
 });
 
 db.ImportInfo.hasMany(db.ImportData, {
 	foreignKey: "importAutoId",
 	sourceKey: "importAutoId",
-	as:"importedData"
+	as: "importedData",
 });
 
-
+///YOGI ADDED THIS JOIN
+db.employeeMaster.hasOne(db.employeeLeaveTransactions, {
+	foreignKey: "employeeId",
+	sourceKey: "id",
+});
+///YOGI ADDED THIS JOIN
 
 export default db;
