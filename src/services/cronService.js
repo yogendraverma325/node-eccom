@@ -6,11 +6,11 @@ import helper from "../helper/helper.js";
 cron.schedule("30 5 * * *", async () => {
 	await attendanceController.attedanceCron();
 });
-cron.schedule("30 8 * * *", async () => {
+cron.schedule("30 5 * * *", async () => {
 	await cronController.leaveActivation();
 	//await helper.leaveLapse();
 });
-cron.schedule("10 6 * * *", async () => {
+cron.schedule("10 8 * * *", async () => {
 	await helper.leaveCreditMonthCron();
 	await helper.leaveRefil();
 });
