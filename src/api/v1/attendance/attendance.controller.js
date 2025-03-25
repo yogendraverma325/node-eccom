@@ -73,6 +73,8 @@ class AttendanceController {
 					"weekOffId",
 					"companyLocationId",
 					"requiredAttendanceApproval",
+					"enableMobileAttendance",
+					"enableWebAttendance"
 				],
 				include: [
 					{
@@ -138,6 +140,22 @@ class AttendanceController {
 				return respHelper(res, {
 					status: 404,
 					msg: message.ATTENDANCE_POLICY_DID_NOT_MAP,
+				});
+			}
+
+			const mobileRegex = /(Android\s*\(.*?\)|IOS\s*\(.*?\))/g;
+			if (mobileRegex.test(req.device) && !existEmployee.enableMobileAttendance) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.MOBILE_ATTENDANCE_NOT_ALLOWED,
+				});
+			}
+
+			const webregex = /(Mobile|Desktop).*?(Chrome|Firefox|Safari|Edge|Opera|Brave)|.*?(Chrome|Firefox|Safari|Edge|Opera|Brave).*?(Mobile|Desktop)/i;
+			if (webregex.test(req.device) && !existEmployee.enableWebAttendance) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.WEB_ATTENDANCE_NOT_ALLOWED,
 				});
 			}
 
@@ -5227,10 +5245,6 @@ class AttendanceController {
 			],
 		});
 
-		console.log(
-			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format('YYYY-MM-DD HH:mm:ss')}`,
-		);
-
 		if (!existEmployee) {
 			logger.error(`Employee not found with empCode ${user}`);
 			return false;
@@ -5247,6 +5261,14 @@ class AttendanceController {
 			return false;
 		}
 
+		if (!existEmployee.enableBiometricAttendance) {
+			logger.error(`Biometric Attendance is not enabled for employee ${existEmployee.dataValues.name} (${existEmployee.dataValues.empCode},${existEmployee.dataValues.id}) on ${currentDate.format('YYYY-MM-DD HH:mm:ss')}`);
+			return false
+		}
+
+		console.log(
+			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format('YYYY-MM-DD HH:mm:ss')}`,
+		);
 		let withGraceTime
 
 		if (
