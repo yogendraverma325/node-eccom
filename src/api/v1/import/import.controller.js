@@ -51,7 +51,12 @@ class ImportController {
 			let queryForImportDetails = await importHelper.query(1, {
 				year: year,
 				month: Number(month) + 1,
+				companyId:req.userData.companyId,
+				buId:req.userData.buId,
+				sbuId:req.userData.sbuId,
+				isActive:req.userData.isActive,
 			});
+			//console.log(queryForImportDetails);
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
 			console.log(queryForImportDetails);
 			return respHelper(res, {
