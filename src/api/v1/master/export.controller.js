@@ -7879,8 +7879,8 @@ const groupByEmployeeId = (data) => {
 				"Professional Tax": item["PT AMOUNT"],//26
 				"ESIC Employee": item["ESIC Employee"],//27
 				"Statuary PF": item["PF Employee"],//28
-				"Personal Deduction Categories": item["Advance Name"],//29
-				"Personal Deduction": item["Advance Amount"],//30
+				"Standard Deductions Categories": item["Advance Name"],//29
+				"Standard Deductions": item["Advance Amount"],//30
 				"LWF Amount": item["LWF AMOUNT"],//31
 				"Total Deductions":totalDeduction,//32
 				/////Added ///////////
