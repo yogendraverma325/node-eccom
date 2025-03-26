@@ -5421,7 +5421,7 @@ class AttendanceController {
 
 				return true;
 			} else {
-				if ((currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`)) || checkAttendance.attendancePresentStatus === "absent") {
+				if ((currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`)) || checkAttendance.attendancePresentStatus === "absent" || checkAttendance.attendancePresentStatus === 'weeklyOff') {
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
 						await db.attendanceMaster.update(
 							{
@@ -5553,7 +5553,7 @@ class AttendanceController {
 				});
 
 				if (checkAttendance) {
-					if ((checkAttendance.attendancePresentStatus === "absent" || currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`))) {
+					if ((checkAttendance.attendancePresentStatus === "absent" || currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`) || checkAttendance.attendancePresentStatus === 'weeklyOff')) {
 						if (!existEmployee.dataValues.requiredAttendanceApproval) {
 							await db.attendanceMaster.update(
 								{
@@ -5795,7 +5795,7 @@ class AttendanceController {
 					},
 				});
 				if (lastDayAttendace) {
-					if (lastDayAttendace.attendancePresentStatus === "absent" || (currentDate < moment(`${lastDayAttendace.attendanceDate} ${lastDayAttendace.attendancePunchInTime}`))) {
+					if (lastDayAttendace.attendancePresentStatus === "absent" || (currentDate < moment(`${lastDayAttendace.attendanceDate} ${lastDayAttendace.attendancePunchInTime}`)) || lastDayAttendace.attendancePresentStatus === "weeklyOff") {
 						if (!existEmployee.dataValues.requiredAttendanceApproval) {
 							await db.attendanceMaster.update(
 								{
