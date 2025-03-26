@@ -2241,13 +2241,13 @@ const creditCompoff = async (inputObject) => {
 							approvalRequiredKey,
 							approvalRequiredIdsKey,
 						) => {
-							if (policyData[fullDayKey] <= compOffHours) {
+							if (policyData[fullDayKey]!=0 && policyData[fullDayKey] <= compOffHours) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
 								}
 								return 1;
-							} else if (policyData[halfDayKey] <= compOffHours) {
+							} else if (policyData[halfDayKey]!=0 && policyData[halfDayKey] <= compOffHours) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
