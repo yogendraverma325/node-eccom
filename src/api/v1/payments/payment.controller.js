@@ -2877,9 +2877,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
-
 			const result = await db.sequelize.query(query);
-			// console.log(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
 				status: 200,
@@ -6934,6 +6932,63 @@ async function fetchPermissionAccessRecord(req, permissionType) {
 	let findIds = permissionList.map((el) => el.permissionValue);
 
 	return findIds;
+}
+
+async function getColumnsForSalaryregister(processedData) {
+    let preArray = [
+        "Employee Id",
+        "Employee Name",
+        "Date of Joining",
+        "Exit Date",
+        "Total Days",
+        "LOP Days",
+        "Arrears Days",
+        "Present Days",
+        "Business Unit",
+        "Account No",
+        "Bank Name",
+        "IFSC",
+        "Monthly CTC"
+    ];
+
+    let lastArray = [
+        "Gross Salary",
+        "Income Tax",
+        "Professional Tax",
+        "ESIC Employee",
+        "Statuary PF",
+        "Personal Deduction Categories",
+        "Personal Deduction",
+        "LWF Amount",
+        "Total Deductions",
+        "Extra Payment Categories",
+        "Extra Payment Amount",
+        "Net Salary"
+    ];
+
+    if (!processedData || processedData.length === 0) {
+        return [];
+    }
+
+    return processedData.map(record => {
+        // Extract keys dynamically
+        let middleArray = Object.keys(record).filter(
+            key => !preArray.includes(key) && !lastArray.includes(key)
+        );
+
+        // Arrange keys in the desired sequence
+        let orderedKeys = [...preArray, ...middleArray, ...lastArray];
+
+        // Create a new object with ordered keys
+        let sortedObject = {};
+        orderedKeys.forEach(key => {
+            if (key in record) {
+                sortedObject[key] = record[key];
+            }
+        });
+
+        return sortedObject;
+    });
 }
 
 export default new PaymentController();
