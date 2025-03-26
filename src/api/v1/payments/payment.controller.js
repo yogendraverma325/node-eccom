@@ -4846,8 +4846,8 @@ class PaymentController {
 			const { paySlipAutoId } = req.query;
 			// const salaryDetails = await salaryPaySlip(paySlipAutoId);
 			const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
-
 			// console.log(salaryDetails)
+			// res.send(salaryDetails);
 			// return
 
 			if (!salaryDetails || salaryDetails.length === 0) {
@@ -4940,6 +4940,7 @@ class PaymentController {
 			console.log(employee);
 
 			const body = {
+				buName:employee.bumaster.buName,
 				name: employee.name || "",
 				employeeCode: employee?.empCode || "",
 				employeeType: employee?.employeetypemaster?.emptypename || "N.A",

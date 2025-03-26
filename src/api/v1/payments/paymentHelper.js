@@ -191,6 +191,10 @@ const salaryPaySlip = async function (paySlipAutoId) {
 					],
 					include: [
 						{
+							model: db.buMaster,
+							attributes: ["buName"],
+						},
+						{
 							model: db.employeeTypeMaster,
 							attributes: ["emptypename"],
 						},

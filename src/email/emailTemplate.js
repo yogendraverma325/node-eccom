@@ -4306,7 +4306,9 @@ const salarySlipPdf = async (data) => {
     <div class="company-details">
         <p class="content">
             <b><font style="font-size: 18px; font-weight: bold;">${data.companyName}</font></b><br>
-            <b><font style="font-size: 14px; font-weight: bold;">Office Address : </font></b>${data.companyAddress}
+            <b><font style="font-size: 14px; font-weight: bold;">Office Address : </font></b>${data.companyAddress}<br>
+            <b><font style="font-size: 14px; font-weight: bold;">Business Unit : </font></b>${data.buName}
+            
         </p>
     </div>
 
