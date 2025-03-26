@@ -2237,8 +2237,24 @@ class AttendanceController {
 	async regularizeRequestList(req, res) {
 		try {
 			const query = req.query.listFor;
+			
+			// search and pagination functionality added
 
-			const regularizeList = await db.regularizationMaster.findAll({
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const regularizeList = await db.regularizationMaster.findAndCountAll({
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
@@ -2257,14 +2273,19 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
+						required: !!searchQuery,
 						include: [
 							{
 								model: db.employeeMaster,
 								attributes: ["empCode", "name"],
+								required: !!searchQuery,
+								where: searchQuery || undefined
 							},
 						],
 					},
 				],
+				limit,
+				offset
 			});
 
 			return respHelper(res, {
@@ -2272,6 +2293,7 @@ class AttendanceController {
 				data: regularizeList,
 			});
 		} catch (error) {
+			console.log(error);
 			return respHelper(res, {
 				status: 500,
 			});
