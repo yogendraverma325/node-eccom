@@ -5096,7 +5096,7 @@ class LeaveController {
 							const leaveTrails = await db.leaveApprovalTrails.findOne({
 								where: {
 									leaveHeaderAutoId: leaveID,
-									pendingOn: req.userId,
+									//pendingOn: req.userId,
 									// pendingOn: req.userData.role_id?req.userId,
 									//...(req.userData.role_id !== 2 && { pendingOn: req.userId }),
 								},
