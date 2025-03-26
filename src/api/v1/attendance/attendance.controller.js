@@ -2386,12 +2386,12 @@ class AttendanceController {
 		}
 	}
 	async manageDayNightShiftForEmp(empId) {
-		let lastDayDate = moment().subtract(2, "day").format("YYYY-MM-DD");
+		let lastDayDate = moment().subtract(1, "day").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment()
-			.subtract(2, "day")
+			.subtract(1, "day")
 			.format("DD-MM-YYYY");
 		let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
-		let dayCode = parseInt(moment().subtract(2, "day").format("d")) + 1;
+		let dayCode = parseInt(moment().subtract(1, "day").format("d")) + 1;
 
 		let dayOfMonth = parsedDate.date();
 		let occurrence = Math.ceil(dayOfMonth / 7);
@@ -2430,6 +2430,7 @@ class AttendanceController {
 				break;
 			default:
 		}
+
 		const singleEmp = await db.employeeMaster.findOne({
 			include: [
 				{
@@ -2552,6 +2553,23 @@ class AttendanceController {
 				id: empId,
 			},
 		});
+		const currentDate = moment();
+
+		const combinedDateTimeCurrentDay = moment(
+			`${currentDate.format("YYYY-MM-DD")} ${singleEmp.shiftsmaster.shiftEndTime}`,
+			"YYYY-MM-DD HH:mm:ss",
+		);
+		combinedDateTimeCurrentDay.add(
+			singleEmp.attendancePolicymaster.allowBufferTime == 1
+				? singleEmp.attendancePolicymaster.bufferTimePost
+				: 0,
+			"minutes",
+		); // subtract grace time  to the selected time if buffer allow
+		if (currentDate > combinedDateTimeCurrentDay) {
+		} else {
+			return;
+		}
+
 		let presentStatus = null;
 
 		if (
@@ -2606,21 +2624,21 @@ class AttendanceController {
 
 						if (
 							totalMinutesLateMinutes >=
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyLateDurationHalfDayTime &&
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyLateDurationHalfDayTime &&
 							totalMinutesLateMinutes <
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyLateDurationFullDayTime
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyLateDurationFullDayTime
 						) {
 							isHalfDay_late_by = 1;
 							halfDayFor_late_by = 1;
 						} else if (
 							totalMinutesLateMinutes >
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyLateDurationHalfDayTime &&
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyLateDurationHalfDayTime &&
 							totalMinutesLateMinutes >=
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyLateDurationFullDayTime
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyLateDurationFullDayTime
 						) {
 							isHalfDay_late_by = 0;
 							halfDayFor_late_by = 0;
@@ -2644,21 +2662,21 @@ class AttendanceController {
 
 						if (
 							totalMinutesTotalHoursMinutes <
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyWorkDurationHalfDayTime &&
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyWorkDurationHalfDayTime &&
 							totalMinutesTotalHoursMinutes <
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyWorkDurationFullDayTime
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyWorkDurationFullDayTime
 						) {
 							isHalfDay_total_work = 0;
 							halfDayFor_total_work = 0;
 						} else if (
 							totalMinutesTotalHoursMinutes >
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyWorkDurationHalfDayTime &&
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyWorkDurationHalfDayTime &&
 							totalMinutesTotalHoursMinutes <
-							singleEmp.attendancePolicymaster
-								.leaveDeductPolicyWorkDurationFullDayTime
+								singleEmp.attendancePolicymaster
+									.leaveDeductPolicyWorkDurationFullDayTime
 						) {
 							isHalfDay_total_work = 1;
 							halfDayFor_total_work = 1;
@@ -2767,22 +2785,25 @@ class AttendanceController {
 							holiday: singleEmp.holidaycompanylocationconfigurations,
 							weekoff:
 								singleEmp.attendanceroster &&
-									singleEmp.attendanceroster.weekOffMaster &&
-									singleEmp.attendanceroster.weekOffMaster
-										.weekOffDayMappingMasters.length != 0
+								singleEmp.attendanceroster.weekOffMaster &&
+								singleEmp.attendanceroster.weekOffMaster
+									.weekOffDayMappingMasters.length != 0
 									? singleEmp.attendanceroster.weekOffMaster
-										.weekOffDayMappingMasters
+											.weekOffDayMappingMasters
 									: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
 						};
 						await helper.creditCompoff(employeeData);
 					}
-				} else if (singleEmp.attendancemaster.attendancePunchInTime && !singleEmp.attendancemaster.attendancePunchOutTime) {
+				} else if (
+					singleEmp.attendancemaster.attendancePunchInTime &&
+					!singleEmp.attendancemaster.attendancePunchOutTime
+				) {
 					presentStatus = "singlePunchAbsent";
 				}
 				await db.attendanceMaster.update(
 					{
 						attendanceShiftEndDate: moment()
-							.subtract(1, "day")
+							.subtract(0, "day")
 							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
@@ -2799,12 +2820,12 @@ class AttendanceController {
 			}
 		} else {
 			await db.attendanceMaster.create({
-				attendanceDate: moment().subtract(2, "day").format("YYYY-MM-DD"),
+				attendanceDate: moment().subtract(1, "day").format("YYYY-MM-DD"),
 				attandanceShiftStartDate: moment()
-					.subtract(2, "day")
+					.subtract(1, "day")
 					.format("YYYY-MM-DD"),
 				attendanceShiftEndDate: moment()
-					.subtract(1, "day")
+					.subtract(0, "day")
 					.format("YYYY-MM-DD"),
 				employeeId: singleEmp.id,
 				attendancePolicyId: singleEmp.attendancePolicyId,
@@ -3332,10 +3353,115 @@ class AttendanceController {
 						: activeEmployeeSingleItem.shiftsmaster.isOverNight
 				) {
 					nightwala++;
-					await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
+					//await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
 				} else {
 					daywala++;
 					await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
+				}
+			}
+			const end = performance.now();
+			const timeTaken = end - start;
+
+			console.log(`Execution time: ${timeTaken} milliseconds`);
+			return;
+		} catch (error) {
+			console.log(error);
+		}
+
+		// return respHelper(res, {
+		//   status: 200,
+		//   data: existEmployees,
+		// });
+	}
+	async attedanceCronEveryNightShift() {
+		try {
+			const start = performance.now();
+			console.log(
+				"start",
+				start,
+				moment().subtract(1, "day").format("YYYY-MM-DD"),
+			);
+			const activeEmployees = await db.employeeMaster.findAll({
+				include: [
+					{
+						model: db.shiftMaster,
+						required: true,
+						attributes: [
+							"shiftId",
+							"shiftName",
+							"shiftStartTime",
+							"shiftEndTime",
+							"isOverNight",
+						],
+						where: {
+							isActive: 1,
+							isOverNight: 1,
+						},
+					},
+					{
+						model: db.AttendanceRoster,
+						required: false,
+						where: {
+							isActive: 1,
+							attendanceDate: moment().subtract(1, "day").format("YYYY-MM-DD"),
+						},
+						include: [
+							{
+								model: db.shiftMaster,
+								required: false,
+								attributes: [
+									"shiftId",
+									"shiftName",
+									"shiftStartTime",
+									"shiftEndTime",
+									"isOverNight",
+								],
+								where: {
+									isActive: 1,
+									isOverNight: 1,
+								},
+							},
+						],
+					},
+					{
+						model: db.attendancePolicymaster,
+						required: true,
+						where: {
+							isActive: 1,
+						},
+					},
+					{
+						model: db.weekOffMaster,
+						required: true,
+						where: {
+							isActive: 1,
+						},
+					},
+					{
+						model: db.holidayCompanyLocationConfiguration,
+						required: false,
+					},
+				],
+				where: {
+					isActive: 1,
+				},
+			});
+			let nightwala = 0;
+			let daywala = 0;
+
+			for (const activeEmployeeSingleItem of activeEmployees) {
+				if (
+					activeEmployeeSingleItem.attendanceroster
+						? activeEmployeeSingleItem.attendanceroster.shiftsmaster.isOverNight
+						: activeEmployeeSingleItem.shiftsmaster.isOverNight
+				) {
+					nightwala++;
+					console.log("nightwala", nightwala);
+					await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
+				} else {
+					daywala++;
+					console.log("daywala", daywala);
+					//await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
 				}
 			}
 			const end = performance.now();
