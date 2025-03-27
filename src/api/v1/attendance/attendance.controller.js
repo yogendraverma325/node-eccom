@@ -1556,8 +1556,19 @@ class AttendanceController {
 								"regularizeId",
 								"createdAt",
 								"updatedAt",
-							],
+							], 
 							where: { regularizeStatus: ["Pending", "Approved"] },
+							include: {
+								model: db.employeeMaster,
+								attributes: ["id", "empCode", "name"],
+								as: "attendanceUpdatedBy",
+								include:
+									{
+										model: db.roleMaster,
+										attributes: ["name"]
+									},
+								
+							},
 						},
 						{
 							model: db.holidayCompanyLocationConfiguration,
