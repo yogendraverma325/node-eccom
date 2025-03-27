@@ -5,7 +5,7 @@ pipeline {
         GITHUB_TOKEN = credentials('f7f4594e-882e-423b-b00e-5c3cc9049951')
         PROJECT_DIR = '/home/tara/backend/tara-dev/hrms-system-backend'  // Directory for Project A
         NODE_VERSION = 'NODE'  // Node.js installation in Jenkins
-        PM2_APP_ID = '0'  // Change this to the correct PM2 app ID or name
+        PM2_APP_ID = '1'  // Change this to the correct PM2 app ID or name
     }
 
     stages {
