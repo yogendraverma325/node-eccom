@@ -3183,7 +3183,6 @@ class PaymentController {
 					processType: value.processType,
 				},
 			);
-
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
