@@ -3673,6 +3673,12 @@ class LeaveController {
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name"],
 						as: "leaveUpdatedBy",
+						include:
+							{
+								model: db.roleMaster,
+								attributes: ["name"]
+							},
+						
 					},
 					
 				],
