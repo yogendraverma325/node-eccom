@@ -3669,6 +3669,12 @@ class LeaveController {
 						attributes: ["leaveId", "leaveName", "leaveCode"],
 						as: "leaveMasterDetails",
 					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+						as: "leaveUpdatedBy",
+					},
+					
 				],
 				order: [["employeeleaveheaderID", "desc"]],
 			});
