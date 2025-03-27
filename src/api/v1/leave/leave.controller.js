@@ -3660,7 +3660,7 @@ class LeaveController {
 			};
 			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
-					exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+					exclude: ["createdBy", "createdAt"],
 				},
 				where: whereCondtion,
 				include: [
