@@ -4228,49 +4228,58 @@ const salarySlipPdf = async (data) => {
     }
     .salary-slip {
         max-width: 800px;
-        margin: 20px auto;
+        margin: 20px ;
         padding: 20px;
         background: #fff;
-        border: 1px solid #ddd;
+        border: 0.25px solid #ddd;
         border-radius: 5px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        font-size:12px;
+        height: 100%;
     }
-    .header {
+.header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;  /* Reduced margin to bring the content closer */
+        margin-bottom: 0;
         padding: 0;
+        border: 0.25px solid black; /* Border for the entire header */
     }
-    .header img {
+
+    .header .logo-container {
+        width: 20%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-right:0.25px solid black; /* Right border to separate sections */
+        padding: 10px;
+    }
+
+    .header .logo-container img {
         max-height: 50px;
+        max-width: 100%; /* Ensures the logo scales properly */
     }
-    .header .company-details {
-        text-align: right;
-        word-wrap: break-word;
-        white-space: pre-wrap;
-        max-width: 300px;
-        line-height: 1.2;
-        margin: 0;
-        padding: 0;
-    }
-    .header .company-details h3 {
-        margin: 0; /* Remove margin from the company name */
-        padding: 0;
-        font-size: 18px;
-    }
+
+.header .company-details {
+    width: 80%;
+    text-align: center; /* Center align text */
+    word-wrap: break-word;
+    white-space: normal;
+    padding: 10px;
+}
+
     .header .company-details p {
-        margin: 0; /* Remove margin from the company address */
-        padding: 0;
+        margin: 0;
         font-size: 14px;
     }
+
     .content {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        font-size: 12px;
     }
     .content td, .content th {
-        border: 1px solid #ddd;
+        border: 0.25px solid black;
         padding: 8px;
         text-align: left;
     }
@@ -4278,7 +4287,7 @@ const salarySlipPdf = async (data) => {
         background-color: #f2f2f2;
     }
     .footer {
-        margin-top: 20px;
+        margin-top: 0px;
         font-size: 12px;
         color: #666;
         text-align: center;
@@ -4290,104 +4299,98 @@ const salarySlipPdf = async (data) => {
 </head>
 <body>
     <div class="salary-slip">
-        <div class="header">
-            <img  src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Company Logo">
-    <div class="company-details" style="word-wrap: break-word; white-space: normal;">
-    <p><b><font style="font-size: 16px; font-weight: 400;">${
-			data.companyName
-		}</font></b><br>${data.companyAddress}</p>
-</div>
+ <div class="header">
+    <div class="logo-container">
+        <img src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Company Logo">
+    </div>
+    <div class="company-details">
+        <p class="content">
+            <b><font style="font-size: 18px; font-weight: bold;">${data.companyName}</font></b><br>
+            <b><font style="font-size: 14px; font-weight: bold;">Office Address : </font></b>${data.companyAddress}<br>
+            <b><font style="font-size: 14px; font-weight: bold;">Business Unit : </font></b>${data.buName}
+            
+        </p>
+    </div>
+
         </div>
 
-       <h8>
-        <b>Salary Slip</b> for ${data.month}-${data.year}
-        </h8>
+     <h3 style="font-size: 14px; font-weight: 400; border: 0.25px solid black; text-align: center; padding: 5px; margin: 0;">
+    <b>Salary Slip</b> for ${data.month}-${data.year}
+</h3>
+     <h3 style="font-size: 14px; font-weight: 400; border: 0.25px solid black; text-align: center; padding: 5px; margin: 0;height:14px"></h3>
 
-        <table class="content">
-            <tr>
-                <td><strong>Employee Name:</strong></td>
-                <td>${data.name}</td>
-                <td><strong>Employee Type:</strong></td>
-                <td>${data.employeeType}</td>
-            </tr>
-            <tr>
-                <td><strong>Designation:</strong></td>
-                <td>${data.designation}</td>
-                <td><strong>Employee Code:</strong></td>
-                <td>${data.employeeCode}</td>
-            </tr>
-            <tr>
-                <td><strong>Department:</strong></td>
-                <td>${data.department}</td>
-                <td><strong>Working Days:</strong></td>
-                <td>${data.workingDays}</td>
-            </tr>
-            <tr>
-                <td><strong>Date of Joining:</strong></td>
-                <td>${data.dateOfJoining}</td>
-                <td><strong>LOP:</strong></td>
-                <td>${data.lop}</td>
-            </tr>
-            <tr>
-                <td><strong>Current Office Location:</strong></td>
-                <td>${data.currentOfficeLocation}</td>
-                <td><strong>PAN No:</strong></td>
-                <td>${data.panNo}</td>
-            </tr>
-            <tr>
-              <td><strong>Duration:</strong></td>
-              <td>${data.duration}</td>
-              <td><strong>No. of Days in Month:</strong></td>
-              <td>${data.noOfDaysInMonth}</td>
-          </tr>
-           <tr> 
-              <td><strong>UAN No:</strong></td>
-              <td>${data.uanNo}</td>
-              <td><strong>Total Arrear Days:</strong></td>
-              <td>${data.totalArrearDays}</td>
-          </tr>
-           <tr> 
-              <td><strong>Provident Fund:</strong></td>
-              <td>${data.providentFund}</td>
-              <td><strong>ESIC Number:</strong></td>
-              <td>${data.esicNo}</td>
-          </tr>
-        </table>
 
-        <h3>Earnings and Deductions</h3>
-        <table class="content">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Fixed</th>
-                    <th>Payble</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${generateUnifiedTableRows(
-									data.paySlipComponent.earnings || [],
-									data.paySlipComponent.deductions || [],
-								)}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td><strong>Gross Earnings (A)</strong></td>
-                    <td></strong></td>
-                    <td>${data.grossEarnings || 0}</td>
-                    <td><strong>Total Deductions (B)</strong></td>
-                    <td>${data.totalDeductions || 0}</td>
-                </tr>
-               <tr>
-                  <td><strong>Net Pay (A - B)</strong></td>
-                    <td></td>
-                  <td>${data.netPay || 0}</td>
-                  <td></td>
-                  <td></td>
-              </tr>
-            </tfoot>
-        </table>
+<table class="content" style="width: 100%;">
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Employee Name:</strong> ${data.name}</td>
+        <td colspan="2" style="width: 40%;"><strong>Employee Type:</strong> ${data.employeeType}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Designation:</strong> ${data.designation}</td>
+        <td colspan="2" style="width: 40%;"><strong>Employee Code:</strong> ${data.employeeCode}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Department:</strong> ${data.department}</td>
+        <td colspan="2" style="width: 40%;"><strong>Working Days:</strong> ${data.workingDays}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Date of Joining:</strong> ${data.dateOfJoining}</td>
+        <td colspan="2" style="width: 40%;"><strong>LOP:</strong> ${data.lop}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Current Office Location:</strong> ${data.currentOfficeLocation}</td>
+        <td colspan="2" style="width: 40%;"><strong>PAN No:</strong> ${data.panNo}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Duration:</strong> ${data.duration}</td>
+        <td colspan="2" style="width: 40%;"><strong>No. of Days in Month:</strong> ${data.noOfDaysInMonth}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>UAN No:</strong> ${data.uanNo}</td>
+        <td colspan="2" style="width: 40%;"><strong>Total Arrear Days:</strong> ${data.totalArrearDays}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Provident Fund:</strong> ${data.providentFund}</td>
+        <td colspan="2" style="width: 40%;"><strong>ESIC Number:</strong> ${data.esicNo}</td>
+    </tr>
+      <tr>
+        <td colspan="5" style="width: 100%;height:14px"></td>
+    </tr>
+        <tr>
+            <td colspan="3" style="width: 60%;"><b>Earnings</b></th>
+            <td colspan="2" style="width: 40%;"><b>Deductions</b></th>
+        </tr>
+        <tr>
+            <td style="width: 20%;"><b>Description</b></th>
+            <td style="width: 20%;"><b>Total</b></th>
+            <td style="width: 20%;"><b>Payable</b></th>
+            <td style="width: 20%;"><b>Description</b></th>
+            <td style="width: 20%;"><b>Amount</b></th>
+        </tr>
+
+    <tbody>
+        ${generateUnifiedTableRows(
+					data.paySlipComponent.earnings || [],
+					data.paySlipComponent.deductions || [],
+				)}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="width: 20%;"><strong>Gross Earnings (A)</strong></td>
+            <td style="width: 20%;"></td>
+            <td style="width: 20%;">${data.grossEarnings || 0}</td>
+            <td style="width: 20%;"><strong>Total Deductions (B)</strong></td>
+            <td style="width: 20%;">${data.totalDeductions || 0}</td>
+        </tr>
+        <tr>
+            <td style="width: 20%;"><strong>Net Pay (A - B)</strong></td>
+            <td style="width: 20%;"></td>
+            <td style="width: 20%;"><b>${data.netPay || 0}</b></td>
+              <td colspan="2" style="width: 40%;">${numberToWords(data.netPay)}</th>
+        </tr>
+    </tfoot>
+</table>
+
 
         <p class="footer">Note: This is a Computer Generated Slip and does not require a signature.</p>
     </div>
@@ -4395,6 +4398,48 @@ const salarySlipPdf = async (data) => {
 </html>`;
 };
 
+
+
+function numberToWords(num) {
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+  const teens = ["Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  const thousands = ["", "Thousand", "Lakh", "Crore"];
+
+  if (num === 0) return "Zero Rupees";
+
+  function convertChunk(num) {
+      let words = "";
+      if (num >= 100) {
+          words += ones[Math.floor(num / 100)] + " Hundred ";
+          num %= 100;
+      }
+      if (num >= 11 && num <= 19) {
+          words += teens[num - 11] + " ";
+      } else {
+          words += tens[Math.floor(num / 10)] + " ";
+          words += ones[num % 10] + " ";
+      }
+      return words.trim();
+  }
+
+  let wordStr = "";
+  let chunkCount = 0;
+  const numStr = num.toString();
+  const numLen = numStr.length;
+  
+  let crore = numLen > 7 ? parseInt(numStr.slice(0, -7), 10) : 0;
+  let lakh = numLen > 5 ? parseInt(numStr.slice(-7, -5), 10) : 0;
+  let thousand = numLen > 3 ? parseInt(numStr.slice(-5, -3), 10) : 0;
+  let hundred = parseInt(numStr.slice(-3), 10);
+
+  if (crore) wordStr += convertChunk(crore) + " Crore ";
+  if (lakh) wordStr += convertChunk(lakh) + " Lakh ";
+  if (thousand) wordStr += convertChunk(thousand) + " Thousand ";
+  if (hundred) wordStr += convertChunk(hundred);
+
+  return wordStr.trim() + " Rupees Only";
+}
 const releasePaySlip = async (data) => {
 	return `
     <!DOCTYPE html>

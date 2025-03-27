@@ -15,6 +15,10 @@ export default Express.Router()
 	.get("/regularizeRequestList", attendanceController.regularizeRequestList)
 	.put("/revokeRegularizeRequest", attendanceController.revokeRegularizeRequest)
 	.post("/attedanceCron", attendanceController.attedanceCron)
+	.post(
+		"/attedanceCronEveryNightShift",
+		attendanceController.attedanceCronEveryNightShift,
+	)
 	.post("/attedanceCronForEMP", attendanceController.attedanceCronForEMP)
 	.get("/attendenceDetails", attendanceController.attendenceDetails)
 	.get("/pendingAttendance", attendanceController.pendingAttendanceList)

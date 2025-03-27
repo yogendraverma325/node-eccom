@@ -2877,9 +2877,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
-
 			const result = await db.sequelize.query(query);
-			// console.log(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
 				status: 200,
@@ -3185,7 +3183,6 @@ class PaymentController {
 					processType: value.processType,
 				},
 			);
-
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
@@ -4848,8 +4845,8 @@ class PaymentController {
 			const { paySlipAutoId } = req.query;
 			// const salaryDetails = await salaryPaySlip(paySlipAutoId);
 			const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
-
 			// console.log(salaryDetails)
+			// res.send(salaryDetails);
 			// return
 
 			if (!salaryDetails || salaryDetails.length === 0) {
@@ -4942,6 +4939,7 @@ class PaymentController {
 			console.log(employee);
 
 			const body = {
+				buName:employee.bumaster.buName,
 				name: employee.name || "",
 				employeeCode: employee?.empCode || "",
 				employeeType: employee?.employeetypemaster?.emptypename || "N.A",
@@ -5750,8 +5748,10 @@ const groupByEmployeeId = (data) => {
 				"Professional Tax": item["PT AMOUNT"],//26
 				"ESIC Employee": item["ESIC Employee"],//27
 				"Statuary PF": item["PF Employee"],//28
-				"Personal Deduction Categories": item["Advance Name"],//29
-				"Personal Deduction": item["Advance Amount"],//30
+				// "Personal Deduction Categories": item["Advance Name"],//29
+				// "Personal Deduction": item["Advance Amount"],//30
+				"Standard Deductions Categories": item["Advance Name"],//29
+				"Standard Deductions": item["Advance Amount"],//30
 				"LWF Amount": item["LWF AMOUNT"],//31
 				"Total Deductions":totalDeduction,//32
 				/////Added ///////////
@@ -6934,6 +6934,63 @@ async function fetchPermissionAccessRecord(req, permissionType) {
 	let findIds = permissionList.map((el) => el.permissionValue);
 
 	return findIds;
+}
+
+async function getColumnsForSalaryregister(processedData) {
+    let preArray = [
+        "Employee Id",
+        "Employee Name",
+        "Date of Joining",
+        "Exit Date",
+        "Total Days",
+        "LOP Days",
+        "Arrears Days",
+        "Present Days",
+        "Business Unit",
+        "Account No",
+        "Bank Name",
+        "IFSC",
+        "Monthly CTC"
+    ];
+
+    let lastArray = [
+        "Gross Salary",
+        "Income Tax",
+        "Professional Tax",
+        "ESIC Employee",
+        "Statuary PF",
+        "Personal Deduction Categories",
+        "Personal Deduction",
+        "LWF Amount",
+        "Total Deductions",
+        "Extra Payment Categories",
+        "Extra Payment Amount",
+        "Net Salary"
+    ];
+
+    if (!processedData || processedData.length === 0) {
+        return [];
+    }
+
+    return processedData.map(record => {
+        // Extract keys dynamically
+        let middleArray = Object.keys(record).filter(
+            key => !preArray.includes(key) && !lastArray.includes(key)
+        );
+
+        // Arrange keys in the desired sequence
+        let orderedKeys = [...preArray, ...middleArray, ...lastArray];
+
+        // Create a new object with ordered keys
+        let sortedObject = {};
+        orderedKeys.forEach(key => {
+            if (key in record) {
+                sortedObject[key] = record[key];
+            }
+        });
+
+        return sortedObject;
+    });
 }
 
 export default new PaymentController();
