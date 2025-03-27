@@ -9,7 +9,8 @@ cron.schedule("30 5 * * *", async () => {
 cron.schedule("0 * * * *", async () => {
 	await attendanceController.attedanceCronEveryNightShift();
 });
-cron.schedule("30 5 * * *", async () => {
+
+cron.schedule("30 3 * * *", async () => {
 	await cronController.leaveActivation();
 	//await helper.leaveLapse();
 });

@@ -450,6 +450,7 @@ class LeaveController {
 								}
 
 
+
 								// Leave Mapping Updates
 								if (
 									existingRecord.leaveAutoId === 6 ||
@@ -704,7 +705,6 @@ class LeaveController {
 										employeeleaveheaderID: leaveID,
 									},
 									include: [
-
 										{
 											model: db.employeeMaster,
 											attributes: ["name", "email"],
@@ -5034,8 +5034,7 @@ class LeaveController {
 							}
 
 							if (existingRecord) {
-
-								const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
+							const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 									{
 										where: { employeeleaveheaderID: leaveID },
 									},
@@ -5269,6 +5268,7 @@ class LeaveController {
 													: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
 														? { attendanceLateBy: "00:00:00" }
 														: {}
+
 											),
 											{
 												where: {
@@ -5277,7 +5277,6 @@ class LeaveController {
 												},
 											},
 										);
-
 									}
 
 									if (
