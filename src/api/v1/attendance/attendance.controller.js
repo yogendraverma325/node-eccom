@@ -1556,6 +1556,7 @@ class AttendanceController {
 								"regularizeId",
 								"createdAt",
 								"updatedAt",
+								"updatedBy"
 							], 
 							where: { regularizeStatus: ["Pending", "Approved"] },
 							include: {
