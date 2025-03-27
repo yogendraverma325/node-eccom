@@ -695,10 +695,7 @@ class LeaveController {
 										employeeleaveheaderID: leaveID,
 									},
 									include: [
-										{
-											model: db.companyMaster,
-											attributes: ["senderEmail", "companyLogo"],
-										},
+										
 										{
 											model: db.employeeMaster,
 											attributes: ["name", "email"],
@@ -707,6 +704,10 @@ class LeaveController {
 													model: db.employeeMaster,
 													as: "managerData",
 													attributes: ["name"],
+												},
+												{
+													model: db.companyMaster,
+													attributes: ["senderEmail", "companyLogo"],
 												},
 											],
 										},
@@ -3659,7 +3660,7 @@ class LeaveController {
 			};
 			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
-					exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+					exclude: ["createdBy", "createdAt"],
 				},
 				where: whereCondtion,
 				include: [
@@ -5095,7 +5096,7 @@ class LeaveController {
 							const leaveTrails = await db.leaveApprovalTrails.findOne({
 								where: {
 									leaveHeaderAutoId: leaveID,
-									pendingOn: req.userId,
+									//pendingOn: req.userId,
 									// pendingOn: req.userData.role_id?req.userId,
 									//...(req.userData.role_id !== 2 && { pendingOn: req.userId }),
 								},
@@ -5442,10 +5443,7 @@ class LeaveController {
 							employeeleaveheaderID: leaveID,
 						},
 						include: [
-							{
-								model: db.companyMaster,
-								attributes: ["senderEmail", "companyLogo"],
-							},
+						
 							{
 								model: db.employeeMaster,
 								attributes: ["name", "email"],
@@ -5454,6 +5452,10 @@ class LeaveController {
 										model: db.employeeMaster,
 										as: "managerData",
 										attributes: ["name"],
+									},
+									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
 									},
 								],
 							},
