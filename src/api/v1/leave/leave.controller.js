@@ -5016,22 +5016,33 @@ class LeaveController {
 								}
 							}
 
-							if (existingRecord) {
-								await db.attendanceMaster.update(
-									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+							if (existingRecord) { 
+
+								const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 									{
-										where: {
-											attendanceDate: existingRecord.appliedFor,
-											employeeId: existingRecord.employeeId,
-										},
+										where: { employeeleaveheaderID: leaveID },
 									},
 								);
+								for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+									await db.attendanceMaster.update(
+										Object.assign(
+											SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+											? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+											: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+											? { attendanceLateBy: "00:00:00" }
+											: {}
+										),
+										{
+											where: {
+												attendanceDate: SingleexistingRecordSWholes.appliedFor,
+												employeeId: SingleexistingRecordSWholes.employeeId,
+											},
+										},
+									);
+
+								}
+
+							
 
 								if (
 									existingLeaveHeaderRecord.leaveAutoId === 6 ||
