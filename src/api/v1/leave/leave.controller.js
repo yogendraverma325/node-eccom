@@ -169,7 +169,7 @@ class LeaveController {
 		try {
 			const query = req.query.listFor;
 			const user = req.query.user;
-
+		
 			// search and pagination functionality added
 
 			const limit = req.query.limit * 1 || 10;
