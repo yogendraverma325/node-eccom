@@ -425,21 +425,30 @@ class LeaveController {
 
 							// If final approval level is reached, update attendance and leave balances
 							if (currentLevel === maxApprovalLevel && existingLeaveHeader) {
-								await db.attendanceMaster.update(
-									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
-									{
-										where: {
-											attendanceDate: existingRecord.dataValues.appliedFor,
-											employeeId: existingRecord.dataValues.employeeId,
-										},
-									},
-								);
+								const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
+                                    {
+                                        where: { employeeleaveheaderID: leaveID },
+                                    },
+                                );
+                                for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+                                    await db.attendanceMaster.update(
+                                        Object.assign(
+                                            SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+                                            ? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+                                            : SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+                                            ? { attendanceLateBy: "00:00:00" }
+                                            : {}
+                                        ),
+                                        {
+                                            where: {
+                                                attendanceDate: SingleexistingRecordSWholes.appliedFor,
+                                                employeeId: SingleexistingRecordSWholes.employeeId,
+                                            },
+                                        },
+                                    );
+
+                                }
+
 
 								// Leave Mapping Updates
 								if (
@@ -3669,6 +3678,18 @@ class LeaveController {
 						attributes: ["leaveId", "leaveName", "leaveCode"],
 						as: "leaveMasterDetails",
 					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+						as: "leaveUpdatedBy",
+						include:
+							{
+								model: db.roleMaster,
+								attributes: ["name"]
+							},
+						
+					},
+					
 				],
 				order: [["employeeleaveheaderID", "desc"]],
 			});
@@ -5004,22 +5025,33 @@ class LeaveController {
 								}
 							}
 
-							if (existingRecord) {
-								await db.attendanceMaster.update(
-									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+							if (existingRecord) { 
+
+								const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 									{
-										where: {
-											attendanceDate: existingRecord.appliedFor,
-											employeeId: existingRecord.employeeId,
-										},
+										where: { employeeleaveheaderID: leaveID },
 									},
 								);
+								for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+									await db.attendanceMaster.update(
+										Object.assign(
+											SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+											? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+											: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+											? { attendanceLateBy: "00:00:00" }
+											: {}
+										),
+										{
+											where: {
+												attendanceDate: SingleexistingRecordSWholes.appliedFor,
+												employeeId: SingleexistingRecordSWholes.employeeId,
+											},
+										},
+									);
+
+								}
+
+							
 
 								if (
 									existingLeaveHeaderRecord.leaveAutoId === 6 ||
@@ -5216,21 +5248,29 @@ class LeaveController {
 									leaveTrails.dataValues.approval_flow.maxApprovalLevel
 							) {
 								if (existingRecord) {
-									await db.attendanceMaster.update(
-										Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+									const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 										{
-											where: {
-												attendanceDate: existingRecord.dataValues.appliedFor,
-												employeeId: existingRecord.dataValues.employeeId,
-											},
+											where: { employeeleaveheaderID: leaveID },
 										},
 									);
+									for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+										await db.attendanceMaster.update(
+											Object.assign(
+												SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+												? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+												: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+												? { attendanceLateBy: "00:00:00" }
+												: {}
+											),
+											{
+												where: {
+													attendanceDate: SingleexistingRecordSWholes.appliedFor,
+													employeeId: SingleexistingRecordSWholes.employeeId,
+												},
+											},
+										);
+	
+									}
 
 									if (
 										existingRecord.leaveAutoId === 6 ||
