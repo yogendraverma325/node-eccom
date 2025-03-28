@@ -1958,7 +1958,23 @@ class commonController {
 
 	async paymentActionPending(req, res) {
 		try {
-			let profileApprovalCount = await db.paymentDetails.findAll({
+			// add functionality for search and pagination
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			let profileApprovalCount = await db.paymentDetails.findAndCountAll({
 				where: {
 					status: "pending",
 					//pendingAt: req.userId,
@@ -1967,6 +1983,8 @@ class commonController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "name", "empCode"],
+						required: !!searchQuery,
+						where: searchQuery || undefined
 					},
 					{
 						model: db.bankMaster,
@@ -1978,6 +1996,8 @@ class commonController {
 						as: "newBankName",
 					},
 				],
+				limit,
+				offset
 			});
 			return respHelper(res, {
 				status: 200,

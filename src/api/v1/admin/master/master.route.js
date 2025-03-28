@@ -702,6 +702,23 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.deleteJobLevelMapping,
 	)
+
+	// chanage status of department, functional area and job level mapping data
+	.patch(
+		"/department-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfDepartmentMapping,
+	)
+	.patch(
+		"/functional-area-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfFunctionalAreaMapping,
+	)
+	.patch(
+		"/job-level-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfJobLevelMapping,
+	)
 	//ritak export master data start
 
 	.get(
@@ -728,5 +745,30 @@ export default Express.Router()
 		"/export/exportJobLevelMasterData",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.exportJobLevelMasterData,
+	)
+	.get(
+		"/export/exportCompanyMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyMasterData,
+	)
+	.get(
+		"/export/exportCompanyTypeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyTypeMasterData,
+	)
+	.get(
+		"/export/exportBandMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportBandMasterData,
+	)
+	.get(
+		"/export/exportGradeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportGradeMasterData,
+	)
+	.get(
+		"/export/exportCostCenterMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCostCenterMasterData,
 	);
 //ritak export master data end

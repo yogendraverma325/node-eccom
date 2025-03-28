@@ -575,7 +575,7 @@ class MasterController {
 
 			if (companyId) {
 				jobLevelData = await db.jobLevelMapping.findAll({
-					where: { companyId: companyId },
+					where: { companyId: companyId, isActive: 1 },
 					attributes: [
 						"jobLevelMappingId",
 						"companyId",
@@ -620,6 +620,7 @@ class MasterController {
 				...(req.query.departmentMappingId && {
 					departmentMappingId: req.query.departmentMappingId,
 				}),
+				isActive: 1
 			};
 			let subQuery = { isActive: 1 };
 			const functionalAreaData = await db.functionalAreaMapping.findAll({
@@ -909,7 +910,7 @@ class MasterController {
 	async department(req, res) {
 		try {
 			const { sbuMappingId } = req.query;
-			let query = { ...(sbuMappingId && { sbuMappingId: sbuMappingId }) };
+			let query = { ...(sbuMappingId && { sbuMappingId: sbuMappingId }), isActive: 1 };
 			let subQuery = { isActive: 1 };
 
 			const departmentData = await db.departmentMapping.findAll({
