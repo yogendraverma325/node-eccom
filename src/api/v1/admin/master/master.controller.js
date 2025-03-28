@@ -3478,7 +3478,7 @@ class CommonController {
 
 			let aggregate = {
 				where: query,
-				attributes: ["jobLevelMappingId"],
+				attributes: ["jobLevelMappingId", "isActive"],
 				order: [["jobLevelMappingId", "DESC"]],
 				include: [
 					{ model: db.companyMaster, attributes: ["companyId", "companyName"] },
@@ -3572,7 +3572,7 @@ class CommonController {
 
 			let aggregate = {
 				where: query,
-				attributes: ["departmentMappingId"],
+				attributes: ["departmentMappingId", "isActive"],
 				order: [["departmentMappingId", "DESC"]],
 				include: [
 					{
@@ -3656,7 +3656,7 @@ class CommonController {
 
 			let aggregate = {
 				where: query,
-				attributes: ["functionalAreaMappingId"],
+				attributes: ["functionalAreaMappingId", "isActive"],
 				order: [["functionalAreaMappingId", "DESC"]],
 				include: [
 					{
@@ -4666,6 +4666,71 @@ class CommonController {
 	}
 
 	// end delete mapping data
+
+
+	// start change status of job level, department and functional area mapping
+
+	async changeStatusOfJobLevelMapping(req, res) {
+		try {
+			let model = db.jobLevelMapping;
+			let query = { jobLevelMappingId: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfDepartmentMapping(req, res) {
+		try {
+			let model = db.departmentMapping;
+			let query = { departmentMappingId: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfFunctionalAreaMapping(req, res) {
+		try {
+			let model = db.functionalAreaMapping;
+			let query = { functionalAreaMappingId: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// end change status of job level, department and functional area mapping
 
 	//ritak export master data start
 

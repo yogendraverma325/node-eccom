@@ -169,6 +169,22 @@ class LeaveController {
 		try {
 			const query = req.query.listFor;
 			const user = req.query.user;
+		
+			// search and pagination functionality added
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
 
 			const mainCondition =
 				query === "raisedByMe"
@@ -226,7 +242,7 @@ class LeaveController {
 				(row) => row.leaveHeaderAutoId,
 			);
 
-			const regularizeList = await db.EmployeeLeaveHeader.findAll({
+			const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({
 				where: {
 					status: "pending",
 					[Op.or]: [
@@ -248,6 +264,8 @@ class LeaveController {
 					{
 						model: db.employeeMaster,
 						attributes: ["empCode", "name"],
+						required: !!searchQuery,
+						where: searchQuery || undefined
 					},
 					{
 						model: db.leaveMaster,
@@ -278,6 +296,10 @@ class LeaveController {
 						],
 					},
 				],
+				limit,
+				offset,
+				subQuery: false,
+				required: !!searchQuery,
 				order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],
 			});
 
