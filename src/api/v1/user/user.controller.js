@@ -5485,6 +5485,11 @@ class UserController {
 									},
 								],
 							},
+							{
+								model: db.employeeMaster,
+								as: "officeLocationHistoryCreatedBy",
+								attributes: ["id", "name"],
+							},
 							// { model: db.companyLocationMaster, as: 'officeLocationChangesFrom', attributes: ['companyLocationCode', 'address1'],
 							//   include: [
 							//       { model: db.countryMaster, attributes: ['countryId', 'countryName', 'countryCode'] },
@@ -5539,6 +5544,7 @@ class UserController {
 									},
 								],
 							},
+							{ model: db.employeeMaster, as: 'managerHistoryCreatedBy', attributes: ['id', 'name', 'empCode'] },
 							// { model: db.employeeMaster, as: 'managerChangesFrom', attributes: ['id', 'name', 'empCode' ] },
 						],
 						where: { needAttendanceCron: 0, employeeId: userId },
