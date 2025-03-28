@@ -3184,6 +3184,9 @@ class PaymentController {
 				},
 			);
 
+
+			console.log(queryForMappedEmployeeList);
+
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
@@ -3520,6 +3523,8 @@ class PaymentController {
 				"Extra Benefit Sample": 17,
 				"Leave Encashment Sample": 18,
 				"Gratuity Sample": 19,
+				"PaySlip Released": 20,
+				"PaySlip Generated": 21,
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3581,7 +3586,7 @@ class PaymentController {
 			}
 			// return
 			let employeeData = [];
-			if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
+			if (salalryStructureAutoId == 0 && [6,20,21].includes(Number(exportSheetAutoId))) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
 				console.log(employeeIds);
@@ -3592,7 +3597,7 @@ class PaymentController {
 					const [results] = await db.sequelize.query(query, { raw: true });
 					employeeData = results;
 				}
-				console.log(employeeData);
+				console.log(query);
 			}
 
 			if (
@@ -3699,7 +3704,7 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[6, 7, 8, 9].includes(Number(exportSheetAutoId))
+				[6, 7, 8, 9,20,21].includes(Number(exportSheetAutoId))
 			) {
 				const data = [
 					{
@@ -3711,7 +3716,6 @@ class PaymentController {
 						content: employeeData,
 					},
 				];
-
 				const settings = {
 					fileName: `Total_${timestamp}`,
 					extraLength: 3,
