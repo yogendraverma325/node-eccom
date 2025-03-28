@@ -718,4 +718,32 @@ export default Express.Router()
 		"/job-level-mapping/:id",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.changeStatusOfJobLevelMapping,
+	)
+	//ritak export master data start
+
+	.get(
+		"/export/exportBankMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportBankMasterData,
+	)
+	.get(
+		"/export/exportDesignationMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportDesignationMasterData,
+	)
+	.get(
+		"/export/exportDepartmentMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportDepartmentMasterData,
+	)
+	.get(
+		"/export/exportFunctionalAreaMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportFunctionalAreaMasterData,
+	)
+	.get(
+		"/export/exportJobLevelMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportJobLevelMasterData,
 	);
+//ritak export master data end

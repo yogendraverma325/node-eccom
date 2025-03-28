@@ -236,6 +236,15 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.INTEGER,
 			defaultValue: 0,
 		},
+		enableBiometricAttendance: {
+			type: Sequelize.BOOLEAN,
+		},
+		enableMobileAttendance: {
+			type: Sequelize.BOOLEAN,
+		},
+		enableWebAttendance: {
+			type: Sequelize.BOOLEAN,
+		},
 		// insuranceCardImg:{
 		//   type: Sequelize.STRING,
 		// }

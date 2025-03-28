@@ -1,12 +1,11 @@
 {
-	"name": "hrms_system",
+	"name": "hrms_system_test_2",
 	"version": "1.0.0",
 	"description": "",
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
 		"start": "nodemon index.js",
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"lint": "eslint .",
 		"dev": "node index.js",
 		"format": "prettier --write ."
@@ -39,7 +38,7 @@
 		"mysql2": "^3.6.5",
 		"node-cron": "^3.0.3",
 		"node-ssh": "^13.2.0",
-		"pepipost": "^5.0.0",
+		"puppeteer": "^24.4.0",
 		"redis": "^4.6.13",
 		"sequelize": "^6.32.0",
 		"socket.io": "^4.7.5",

@@ -48,10 +48,18 @@ class ImportController {
 	async getImportInfoList(req, res) {
 		try {
 			const { month, year } = req.query;
-			let queryForImportDetails = await importHelper.query(1, {
+			const querySequence= req.userData.role_id==2?1:2;
+			let queryForImportDetails = await importHelper.query(querySequence, {
 				year: year,
 				month: Number(month) + 1,
+				companyId:req.userData.companyId,
+				buId:req.userData.buId,
+				sbuId:req.userData.sbuId,
+				isActive:req.userData.isActive,
 			});
+			console.log("Role ID");
+			console.log(req.userData.role_id);
+			console.log("Role ID");
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
 			console.log(queryForImportDetails);
 			return respHelper(res, {
@@ -274,6 +282,9 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 				attributes: ["id", "name", "dateOfJoining"],
 			});
 
+			employee["Effective Date"] = !isNaN(employee["Effective Date"])
+			? importHelper.getFromattedDate(employee["Effective Date"])
+			: employee["Effective Date"];
 			if (!employeeDetails) {
 				console.log(
 					"Employee not found or inactive" +
@@ -334,7 +345,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 			// 	employee["Employee ID"] + "--" + employee["CTC"],
 			// 	ctcFromComponent,
 			// );
-
+			
 			if (employee["CTC"] == ctcFromComponent) {
 				////////////////Match the ctc///////
 				//console.log('CTC Matched',employee['Name']);
@@ -343,9 +354,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 					order: [["payPackageAutoId", "DESC"]],
 					raw: true,
 				});
-				employee["Effective Date"] = !isNaN(employee["Effective Date"])
-					? importHelper.getFromattedDate(employee["Effective Date"])
-					: employee["Effective Date"];
+			
 				const [day, month, year] = employee["Effective Date"]
 					.split("-")
 					.map(Number);

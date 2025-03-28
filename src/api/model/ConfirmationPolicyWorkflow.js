@@ -26,6 +26,9 @@ export default (sequelize, Sequelize) => {
 			confimationPolicyAutoId: {
 				type: Sequelize.INTEGER,
 			},
+			companyId: {
+				type: Sequelize.STRING,
+			},
 		},
 	);
 	return Confimationpolicyworkflow;

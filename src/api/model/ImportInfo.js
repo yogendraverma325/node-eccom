@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
 	const importInfo = sequelize.define(
-		"importInfo",
+		"importinfo",
 		{
 			importAutoId: {
 				type: Sequelize.INTEGER,
@@ -49,7 +49,7 @@ export default (sequelize, Sequelize) => {
 			},
 		},
 		{
-			tableName: "importInfo",
+			tableName: "importinfo",
 			timestamps: false,
 		},
 	);

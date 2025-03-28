@@ -5,7 +5,6 @@ import path from "path";
 import moment from "moment";
 import db from "../config/db.config.js";
 import bcrypt from "bcryptjs";
-import pepipost from "pepipost";
 import { Op } from "sequelize";
 import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
@@ -111,8 +110,8 @@ const mailService = async (data) => {
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc: [],
-			time: "",
+			bcc: data.bcc ? data.bcc : [],
+			time: data.time ? data.time : "",
 			html: data.html,
 			cc: data.cc ? data.cc.split(",") : [],
 			attachments:
@@ -1683,7 +1682,8 @@ const compareImages = async function (base64Image, folderImagePath) {
 	}
 };
 ///CONFIRMATION
-const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
+
+const generateFieldsForgivenLevel = async function (policyId, inputLevel,companyId) {
 	//console.log("inputLevel", inputLevel);
 	let levelData = null;
 	let level = inputLevel;
@@ -1693,6 +1693,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 			confimationPolicyAutoId: policyId,
 			isEnable: 1,
 			level: level,
+			companyId: {
+			[Op.or]: [
+				{ [Op.like]: `${companyId},%` },
+				{ [Op.like]: `%,${companyId},%` },
+				{ [Op.like]: `%,${companyId}` },
+				{ [Op.eq]: `${companyId}` },
+			],
+			}
 		},
 	});
 	if (!levelData) {
@@ -1702,6 +1710,15 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 				confimationPolicyAutoId: policyId,
 				isEnable: 1,
 				level: level,
+				companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${companyId},%` },
+							{ [Op.like]: `%,${companyId},%` },
+							{ [Op.like]: `%,${companyId}` },
+							{ [Op.eq]: `${companyId}` },
+						],
+					}
+
 			},
 		});
 	}
@@ -1712,6 +1729,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 				confimationPolicyAutoId: policyId,
 				isEnable: 1,
 				level: level,
+				companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${companyId},%` },
+							{ [Op.like]: `%,${companyId},%` },
+							{ [Op.like]: `%,${companyId}` },
+							{ [Op.eq]: `${companyId}` },
+						],
+					}
 			},
 		});
 	}
@@ -1722,6 +1747,14 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel) {
 				confimationPolicyAutoId: policyId,
 				isEnable: 1,
 				level: level,
+				companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${companyId},%` },
+							{ [Op.like]: `%,${companyId},%` },
+							{ [Op.like]: `%,${companyId}` },
+							{ [Op.eq]: `${companyId}` },
+						],
+					}
 			},
 		});
 	}
@@ -2208,13 +2241,13 @@ const creditCompoff = async (inputObject) => {
 							approvalRequiredKey,
 							approvalRequiredIdsKey,
 						) => {
-							if (policyData[fullDayKey] <= compOffHours) {
+							if (policyData[fullDayKey]!=0 && policyData[fullDayKey] <= compOffHours) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
 								}
 								return 1;
-							} else if (policyData[halfDayKey] <= compOffHours) {
+							} else if (policyData[halfDayKey]!=0 && policyData[halfDayKey] <= compOffHours) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");

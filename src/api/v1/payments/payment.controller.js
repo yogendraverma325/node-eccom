@@ -41,6 +41,7 @@ import Constant from "../../../constant/messages.js";
 import service from "./payment.service.js";
 import Pagination from "../../../helper/pagination.js";
 import logger from "../../../helper/logger.js";
+import { exit } from "process";
 // import puppeteer from "puppeteer";
 
 //import moment, { now } from "moment";
@@ -2876,7 +2877,6 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
-
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
@@ -3183,7 +3183,6 @@ class PaymentController {
 					processType: value.processType,
 				},
 			);
-
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
@@ -4846,8 +4845,8 @@ class PaymentController {
 			const { paySlipAutoId } = req.query;
 			// const salaryDetails = await salaryPaySlip(paySlipAutoId);
 			const salaryDetails = await paymentHelper.salaryPaySlip(paySlipAutoId);
-
 			// console.log(salaryDetails)
+			// res.send(salaryDetails);
 			// return
 
 			if (!salaryDetails || salaryDetails.length === 0) {
@@ -4940,6 +4939,7 @@ class PaymentController {
 			console.log(employee);
 
 			const body = {
+				buName:employee.bumaster.buName,
 				name: employee.name || "",
 				employeeCode: employee?.empCode || "",
 				employeeType: employee?.employeetypemaster?.emptypename || "N.A",
@@ -5706,63 +5706,98 @@ class PaymentController {
 
 const groupByEmployeeId = (data) => {
 	const groupedData = {};
-	data.forEach((item) => {
+
+	 //console.log(data);
+	// return;
+	data.forEach((item,index) => {
 		const employeeId = item["Employee Id"];
+		let totalEarning = parseFloat(
+			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
+				parseFloat(
+					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
+				),
+		);
+		let totalDeduction = parseFloat(
+			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
+				parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
+				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
+				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
+				parseFloat(item['ESIC Employee']?item['ESIC Employee']:0) +
+				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
+		);
+		let payableAmount = totalEarning - totalDeduction;
+		payableAmount = paymentHelper.customRound(payableAmount);
+
 		if (!groupedData[employeeId]) {
-			let totalEarning = parseFloat(
-				parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
-					parseFloat(
-						item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
-					),
-			);
-			let totalDeduction = parseFloat(
-				parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
-					parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
-					parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
-					parseFloat(item["PF Employer"] ? item["PF Employer"] : 0) +
-					parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
-			);
-			let payableAmount = totalEarning - totalDeduction;
-			payableAmount = paymentHelper.customRound(payableAmount);
 			groupedData[employeeId] = {
-				"Employee Id": employeeId,
-				"Employee Name": item["Employee Name"],
-				"LOP Days": item["LOP Days"],
-				"Arrears Month": item["Arrears Month"],
-				"Arrears Days": item["Arrears Days"],
-				"TDS Month": item["TDS Month"],
-				"TDS Amount": item["TDS Amount"],
-				"Net Pay": item["Net Pay"],
-				"Monthly Pay": payableAmount != "N/A" ? payableAmount : "0.0",
-				"Extra Deduction Categories": item["Advance Name"],
-				"Total Extra Deduction Amount": item["Advance Amount"],
-				"PT Amount": item["PT AMOUNT"],
-				"LWF Amount": item["LWF AMOUNT"],
-				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"],
-				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],
-				"ESIC Employer": item["ESIC Employer"],
-				"ESIC Employee": item["ESIC Employee"],
-				"PF Employee": item["PF Employee"],
-				"PF Employer": item["PF Employer"],
+				"Employee Id": employeeId,//1
+				"Employee Name": item["Employee Name"],//2
+				"Date of Joining": item["Date of Joining"],//3
+				"Exit Date": item["Exit Date"],//4
+				"Total Days": item["Total Days"],//5
+				"LOP Days": item["LOP Days"],//6
+				"Arrears Days": item["Arrears Days"],//7
+				"Present Days":item["Present Days"]?item["Present Days"]:0,//8
+				"Business Unit": item["Business Unit"],//9
+				"Account No": item["Account No"],//10
+				"Bank Name": item["Bank Name"],//11
+				"IFSC": item["IFSC"],//12
+				"Monthly CTC": item["Net Pay"],//13
+				"Gross Salary":totalEarning,//24
+				"Income Tax": item["TDS Amount"],//25
+				"Professional Tax": item["PT AMOUNT"],//26
+				"ESIC Employee": item["ESIC Employee"],//27
+				"Statuary PF": item["PF Employee"],//28
+				// "Personal Deduction Categories": item["Advance Name"],//29
+				// "Personal Deduction": item["Advance Amount"],//30
+				"Standard Deductions Categories": item["Advance Name"],//29
+				"Standard Deductions": item["Advance Amount"],//30
+				"LWF Amount": item["LWF AMOUNT"],//31
+				"Total Deductions":totalDeduction,//32
+				/////Added ///////////
+				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"],//33
+				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],//34
+				"Net Salary": payableAmount != "N/A" ? payableAmount : "0.0",//35
 			};
-			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
 		}
 
 		if (["Balancing", "Earning"].includes(item["salaryComponentEarningType"])) {
 			Object.assign(groupedData[employeeId], {
-				[item["Element Name"]]: item["Element Amount"]
-					? paymentHelper.customRound(item["Element Amount"])
-					: item["Element Amount"],
-			});
-			Object.assign(groupedData[employeeId], {
-				[item["Element Name"] + " Monthly"]: item["Monthly Element Amount"]
+				[item["Element Name"]]: item["Monthly Element Amount"]
 					? paymentHelper.customRound(item["Monthly Element Amount"])
 					: item["Monthly Element Amount"],
+					[item["Element Name"] + " Arrear"]:0,
 			});
+			Object.assign(groupedData[employeeId], {
+				[item["Element Name"] + " Arrear"]:0,
+			});
+
+
+			let newObj={
+				[item["Element Name"]]: item["Monthly Element Amount"]
+					? paymentHelper.customRound(item["Monthly Element Amount"])
+					: item["Monthly Element Amount"],
+					[item["Element Name"] + " Arrear"]:0,
+			};
+		
+			groupedData[employeeId] = mergeObjects(groupedData[employeeId],newObj,'Monthly CTC');
 		}
 	});
-
 	return Object.values(groupedData); // Convert the grouped data object back to an array
+};
+
+
+const mergeObjects = (objA, objB, afterKey) => {
+    const result = {};
+    Object.keys(objA).forEach((key) => {
+        result[key] = objA[key];
+        if (key === afterKey) {
+            Object.keys(objB).forEach((keyB) => {
+                result[keyB] = objB[keyB];
+            });
+        }
+    });
+    return result;
 };
 
 function formatDate(year, month, day) {
@@ -6899,6 +6934,63 @@ async function fetchPermissionAccessRecord(req, permissionType) {
 	let findIds = permissionList.map((el) => el.permissionValue);
 
 	return findIds;
+}
+
+async function getColumnsForSalaryregister(processedData) {
+    let preArray = [
+        "Employee Id",
+        "Employee Name",
+        "Date of Joining",
+        "Exit Date",
+        "Total Days",
+        "LOP Days",
+        "Arrears Days",
+        "Present Days",
+        "Business Unit",
+        "Account No",
+        "Bank Name",
+        "IFSC",
+        "Monthly CTC"
+    ];
+
+    let lastArray = [
+        "Gross Salary",
+        "Income Tax",
+        "Professional Tax",
+        "ESIC Employee",
+        "Statuary PF",
+        "Personal Deduction Categories",
+        "Personal Deduction",
+        "LWF Amount",
+        "Total Deductions",
+        "Extra Payment Categories",
+        "Extra Payment Amount",
+        "Net Salary"
+    ];
+
+    if (!processedData || processedData.length === 0) {
+        return [];
+    }
+
+    return processedData.map(record => {
+        // Extract keys dynamically
+        let middleArray = Object.keys(record).filter(
+            key => !preArray.includes(key) && !lastArray.includes(key)
+        );
+
+        // Arrange keys in the desired sequence
+        let orderedKeys = [...preArray, ...middleArray, ...lastArray];
+
+        // Create a new object with ordered keys
+        let sortedObject = {};
+        orderedKeys.forEach(key => {
+            if (key in record) {
+                sortedObject[key] = record[key];
+            }
+        });
+
+        return sortedObject;
+    });
 }
 
 export default new PaymentController();
