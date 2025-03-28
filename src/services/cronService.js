@@ -57,7 +57,7 @@ cron.schedule("0 7 * * *", async () => {
 });
 
 if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-	cron.schedule("0 */2 * * *", async () => {
+	cron.schedule("35 0 * * *", async () => {
 		await cronController.biometricAttendance();
 	});
 }
