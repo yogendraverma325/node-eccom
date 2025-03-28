@@ -728,5 +728,30 @@ export default Express.Router()
 		"/export/exportJobLevelMasterData",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.exportJobLevelMasterData,
+	)
+	.get(
+		"/export/exportCompanyMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyMasterData,
+	)
+	.get(
+		"/export/exportCompanyTypeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyTypeMasterData,
+	)
+	.get(
+		"/export/exportBandMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportBandMasterData,
+	)
+	.get(
+		"/export/exportGradeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportGradeMasterData,
+	)
+	.get(
+		"/export/exportCostCenterMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCostCenterMasterData,
 	);
 //ritak export master data end
