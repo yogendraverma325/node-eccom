@@ -1460,7 +1460,23 @@ class UserController {
 
 	async separationDetails(req, res) {
 		try {
-			const separationData = await db.separationMaster.findAll({
+			// add search and pagination functionality
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const separationData = await db.separationMaster.findAndCountAll({
 				where: {
 					[Op.or]: [
 						{
@@ -1479,6 +1495,8 @@ class UserController {
 					{
 						model: db.employeeMaster,
 						attributes: ["empCode", "name"],
+						required: !!searchQuery,
+						where: searchQuery || undefined
 					},
 					{
 						model: db.separationStatus,
@@ -1505,6 +1523,9 @@ class UserController {
 						attributes: ["separationReason"],
 					},
 				],
+				limit,
+				offset,
+				required: !!searchQuery
 			});
 
 			return respHelper(res, {
@@ -3961,7 +3982,23 @@ class UserController {
 
 	async initiatedTaskList(req, res) {
 		try {
-			const separationTasks = await db.separationInitiatedTask.findAll({
+			// add functionality for search and pagination
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const separationTasks = await db.separationInitiatedTask.findAndCountAll({
 				where: {
 					status: 0,
 					isActive: 1,
@@ -3979,6 +4016,7 @@ class UserController {
 							"dataCardAdmin",
 							"mobileAdmin",
 						],
+						where: searchQuery || undefined,
 						include: [
 							{
 								model: db.separationMaster,
@@ -4038,6 +4076,10 @@ class UserController {
 						],
 					},
 				],
+				limit,
+				offset,
+				subQuery: false,
+				required: !!searchQuery,
 				order: [["initiatedTaskAutoId", "DESC"]],
 			});
 
@@ -4781,7 +4823,23 @@ class UserController {
 	///CONFIRMATION///
 	async confirmatonList(req, res) {
 		try {
-			const confirmationData = await db.Confirmationinitiated.findAll({
+			// add search and pagination functionality
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const confirmationData = await db.Confirmationinitiated.findAndCountAll({
 				where: {
 					status: [0, 2],
 				},
@@ -4789,6 +4847,7 @@ class UserController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name", "email"],
+						where: searchQuery || undefined,
 						include: [
 							{
 								model: db.jobDetails,
@@ -4841,6 +4900,11 @@ class UserController {
 						model: db.Confirmationaudittrail,
 					},
 				],
+				limit,
+				offset,
+				subQuery: false,
+				distinct: true,
+				required: !!searchQuery,
 			});
 
 			return respHelper(res, {
@@ -4848,6 +4912,7 @@ class UserController {
 				data: confirmationData,
 			});
 		} catch (error) {
+			console.log(error);
 			return respHelper(res, {
 				status: 500,
 				msg: "Internal server error",
@@ -6124,6 +6189,19 @@ class UserController {
 			const limit = parseInt(req.query.limit, 10) || 10;
 			const pageNo = parseInt(req.query.page, 10) || 1;
 			const offset = (pageNo - 1) * limit;
+
+			// add search functionality
+			const search = req.query.search;
+
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
 			const userId = req.userId;
 			const comp_off_credit_historyData =
 				await db.comp_off_credit_history.findAndCountAll({
@@ -6175,6 +6253,8 @@ class UserController {
 							model: db.employeeMaster,
 							as: "compOffEmpDetails",
 							attributes: ["id", "name", "profileImage", "empCode"],
+							required: !!searchQuery,
+							where: searchQuery || undefined
 						},
 						{
 							model: db.attendanceMaster,
@@ -6197,6 +6277,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					required: !!searchQuery
 				});
 
 			return respHelper(res, {
