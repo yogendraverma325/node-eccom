@@ -1846,6 +1846,8 @@ class CronController {
 
 	async biometricAttendance() {
 		try {
+
+			let cronArray = []
 			const ssh = new NodeSSH();
 			const sshConfig = Object.assign(
 				{
@@ -1929,9 +1931,70 @@ class CronController {
 						`Connection to SQL Server established successfully via SSH tunnel to table ${SPECTRA_TABLE_NAME}.`,
 					);
 					const result = await sequelize.query(
-						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by Punch_DateTime asc`,
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 and PunchDate in ('2025-03-25','2025-03-26') and EmployeeCode ='15629' order by Punch_DateTime asc`,
 					);
 					if (result && result.length > 0) {
+
+						const sheetName = `uploads/temp/Spectra_Attendance_${moment().format("YYYY_MM_DD_HH_mm_ss")}`;
+						fs.writeFileSync(sheetName + ".xlsx", "", { flag: "a+" }, (err) => {
+							if (err) {
+								console.error("Error writing file:", err);
+								return;
+							}
+							console.log("File created successfully!");
+						});
+
+						let data = [
+							{
+								sheet: `Spectra_Attendance`,
+								columns: [
+									{ label: "ID", value: (row) => row.ID },
+									{ label: "Device_ID", value: (row) => row.DeviceID },
+									{
+										label: "Device_Name",
+										value: (row) => row.DeviceName,
+									},
+									{
+										label: "Employee_Code",
+										value: (row) => row.EmployeeCode
+									},
+									{
+										label: "Employee_Name",
+										value: (row) => row.EmployeeName,
+									},
+									{
+										label: "Punch_Date",
+										value: (row) => moment(row.PunchDate).format("YYYY-MM-DD"),
+									},
+									{
+										label: "Punch_Time",
+										value: (row) => moment(row.PunchTime).format("HH:mm:ss"),
+									},
+									{ label: "Punch_Type", value: (row) => row.PunchType },
+									{
+										label: "IS_UNREAD",
+										value: (row) => row.IS_UNREAD,
+									},
+									{ label: "SYSDATE", value: (row) => moment(row.SYSDATE).format('YYYY-MM-DD HH:mm:ss') },
+									{
+										label: "Punch_DateTime",
+										value: (row) => moment.utc(row.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss"),
+									},
+								],
+								content: result[0],
+							},
+						];
+
+						const settings = {
+							fileName: sheetName,
+							extraLength: 3,
+							writeMode: "writeFile",
+							writeOptions: {},
+							RTL: false,
+						};
+
+						xlsx(data, settings);
+
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
 								autoId: element.ID,
@@ -1960,9 +2023,12 @@ class CronController {
 									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
 								);
 							} else {
-								await attendanceController.markBioMetricAttendance(
+								const updatedAttendance = await attendanceController.markBioMetricAttendance(
 									incomingAttendanceData,
 								);
+								console.log("updatedAttendance", updatedAttendance);
+
+								cronArray.push(updatedAttendance)
 							}
 
 							sequelize.query(
@@ -1976,6 +2042,22 @@ class CronController {
 									console.log(result);
 								},
 							);
+						}
+
+						const uniqueRecords = cronArray.filter((item, index, self) => {
+							return (
+								index ===
+								self.findIndex(
+									(t) =>
+										t.attendanceAutoId === item.attendanceAutoId && t.date === item.date
+								)
+							);
+						});
+
+						for (const element of uniqueRecords) {
+							if (moment().diff(moment(element.date), 'days') >= 1) {
+								attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
+							}
 						}
 					}
 				})

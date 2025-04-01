@@ -891,60 +891,55 @@ const empMarkLeaveOfGivenDate = async function (
 			leaveType = "Full Day";
 		}
 		if (lateCase != null && workCase == null) {
-			leaveText = `Auto-requested for Leave deduction based on late duration policy.${
-				empData.name
-			} (${empData.empCode}) has clocked in late in ${
-				attendanceandOtherData.attendancemaster.attendanceLateBy
-			}
+			leaveText = `Auto-requested for Leave deduction based on late duration policy.${empData.name
+				} (${empData.empCode}) has clocked in late in ${attendanceandOtherData.attendancemaster.attendanceLateBy
+				}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationHalfDayTime,
+				)}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationFullDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationFullDayTime,
+				)}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-				inputData.toDate,
-			).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+					inputData.toDate,
+				).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
 		} else if (lateCase == null && workCase != null) {
-			leaveText = `Auto-requested for Leave because of Work duration policy.${
-				empData.name
-			} (${empData.empCode}) has worked for ${
-				attendanceandOtherData.attendancemaster.attendanceWorkingTime
-			}
+			leaveText = `Auto-requested for Leave because of Work duration policy.${empData.name
+				} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
+				}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationHalfDayTime,
+				)}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationFullDayTime,
-			)}`;
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationFullDayTime,
+				)}`;
 		} else {
 			leaveText = `Auto-requested for Leave because of Work and Late duration policy. 
-${empData.name} (${empData.empCode}) has worked for ${
-				attendanceandOtherData.attendancemaster.attendanceWorkingTime
-			} and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
+${empData.name} (${empData.empCode}) has worked for ${attendanceandOtherData.attendancemaster.attendanceWorkingTime
+				} and Late By ${attendanceandOtherData.attendancemaster.attendanceLateBy}
 Working hours required in order to complete Half Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationHalfDayTime,
+				)}
 Working hours required in order to complete Full Day: ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyWorkDurationFullDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyWorkDurationFullDayTime,
+				)}
 Late by duration to deduct half day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationHalfDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationHalfDayTime,
+				)}
 Late by duration to deduct full day is : ${minutesNunmberToHoursFormat(
-				attendanceandOtherData.attendancePolicymaster
-					.leaveDeductPolicyLateDurationFullDayTime,
-			)}
+					attendanceandOtherData.attendancePolicymaster
+						.leaveDeductPolicyLateDurationFullDayTime,
+				)}
 ${moment(inputData.fromDate).format("DD-MM-YYYY")} to ${moment(
-				inputData.toDate,
-			).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
+					inputData.toDate,
+				).format("DD-MM-YYYY")} (${leaveType}, System Half)`;
 		}
 		inputData.source = "system_generated";
 
@@ -1683,7 +1678,7 @@ const compareImages = async function (base64Image, folderImagePath) {
 };
 ///CONFIRMATION
 
-const generateFieldsForgivenLevel = async function (policyId, inputLevel,companyId) {
+const generateFieldsForgivenLevel = async function (policyId, inputLevel, companyId) {
 	//console.log("inputLevel", inputLevel);
 	let levelData = null;
 	let level = inputLevel;
@@ -1694,12 +1689,12 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 			isEnable: 1,
 			level: level,
 			companyId: {
-			[Op.or]: [
-				{ [Op.like]: `${companyId},%` },
-				{ [Op.like]: `%,${companyId},%` },
-				{ [Op.like]: `%,${companyId}` },
-				{ [Op.eq]: `${companyId}` },
-			],
+				[Op.or]: [
+					{ [Op.like]: `${companyId},%` },
+					{ [Op.like]: `%,${companyId},%` },
+					{ [Op.like]: `%,${companyId}` },
+					{ [Op.eq]: `${companyId}` },
+				],
 			}
 		},
 	});
@@ -1711,13 +1706,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 				isEnable: 1,
 				level: level,
 				companyId: {
-						[Op.or]: [
-							{ [Op.like]: `${companyId},%` },
-							{ [Op.like]: `%,${companyId},%` },
-							{ [Op.like]: `%,${companyId}` },
-							{ [Op.eq]: `${companyId}` },
-						],
-					}
+					[Op.or]: [
+						{ [Op.like]: `${companyId},%` },
+						{ [Op.like]: `%,${companyId},%` },
+						{ [Op.like]: `%,${companyId}` },
+						{ [Op.eq]: `${companyId}` },
+					],
+				}
 
 			},
 		});
@@ -1730,13 +1725,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 				isEnable: 1,
 				level: level,
 				companyId: {
-						[Op.or]: [
-							{ [Op.like]: `${companyId},%` },
-							{ [Op.like]: `%,${companyId},%` },
-							{ [Op.like]: `%,${companyId}` },
-							{ [Op.eq]: `${companyId}` },
-						],
-					}
+					[Op.or]: [
+						{ [Op.like]: `${companyId},%` },
+						{ [Op.like]: `%,${companyId},%` },
+						{ [Op.like]: `%,${companyId}` },
+						{ [Op.eq]: `${companyId}` },
+					],
+				}
 			},
 		});
 	}
@@ -1748,13 +1743,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 				isEnable: 1,
 				level: level,
 				companyId: {
-						[Op.or]: [
-							{ [Op.like]: `${companyId},%` },
-							{ [Op.like]: `%,${companyId},%` },
-							{ [Op.like]: `%,${companyId}` },
-							{ [Op.eq]: `${companyId}` },
-						],
-					}
+					[Op.or]: [
+						{ [Op.like]: `${companyId},%` },
+						{ [Op.like]: `%,${companyId},%` },
+						{ [Op.like]: `%,${companyId}` },
+						{ [Op.eq]: `${companyId}` },
+					],
+				}
 			},
 		});
 	}
@@ -2241,13 +2236,13 @@ const creditCompoff = async (inputObject) => {
 							approvalRequiredKey,
 							approvalRequiredIdsKey,
 						) => {
-							if (policyData[fullDayKey]!=0 && policyData[fullDayKey] <= compOffHours) {
+							if (policyData[fullDayKey] != 0 && policyData[fullDayKey] <= compOffHours) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
 								}
 								return 1;
-							} else if (policyData[halfDayKey]!=0 && policyData[halfDayKey] <= compOffHours) {
+							} else if (policyData[halfDayKey] != 0 && policyData[halfDayKey] <= compOffHours) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
@@ -2337,8 +2332,8 @@ const creditCompoff = async (inputObject) => {
 								expiry_date:
 									leaveData?.lapse_in_days > 0
 										? moment()
-												.add(leaveData?.lapse_in_days, "days")
-												.format("YYYY-MM-DD")
+											.add(leaveData?.lapse_in_days, "days")
+											.format("YYYY-MM-DD")
 										: null,
 								taken_on: null,
 								createdBy: 1,
@@ -3464,7 +3459,7 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		createdAt: employeeDetails.createdAt
 	}
 	await db.DesignationEmploymentHistory.create(designationMetaData);
-    
+
 	// create manager history
 
 	let managerMetaData = {
@@ -3490,7 +3485,7 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		createdBy: createdBy,
 		createdAt: createdUserJobDetails.createdAt
 	};
-    await db.JobLevelEmploymentHistory.create(jobLevelMetaData);
+	await db.JobLevelEmploymentHistory.create(jobLevelMetaData);
 
 	// create department history
 
@@ -3505,10 +3500,10 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		functionalAreaId: employeeDetails.functionalAreaId,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		toDate: null,
-        createdBy: createdBy,
+		createdBy: createdBy,
 		createdAt: employeeDetails.createdAt
 	};
-    await db.DepartmentEmploymentHistory.create(departmentMetaData);
+	await db.DepartmentEmploymentHistory.create(departmentMetaData);
 
 	// create employee type history
 
@@ -3518,7 +3513,7 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		employeeType: employeeDetails.employeeType,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		toDate: null,
-	    createdBy: createdBy,
+		createdBy: createdBy,
 		createdAt: employeeDetails.createdAt
 	};
 	await db.EmployeeTypeEmploymentHistory.create(employeeTypeMetaData);
@@ -3531,14 +3526,14 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		companyLocationId: employeeDetails.companyLocationId,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		toDate: null,
-	    createdBy: createdBy,
+		createdBy: createdBy,
 		createdAt: employeeDetails.createdAt
 	};
 	await db.OfficeLocationEmploymentHistory.create(companyLocationMetaData);
 
 	// create cost center history
 
-	if(employeeDetails.costId) {
+	if (employeeDetails.costId) {
 		let costCenterMetaData = {
 			employeeId: employeeDetails.id,
 			companyId: employeeDetails.companyId,
@@ -3548,7 +3543,7 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 			createdBy: createdBy,
 			createdAt: employeeDetails.createdAt
 		};
-	
+
 		await db.CostCenterEmploymentHistory.create(costCenterMetaData);
 	}
 
