@@ -1927,9 +1927,7 @@ class CronController {
 			sequelize
 				.authenticate()
 				.then(async () => {
-					console.log(
-						`Connection to SQL Server established successfully via SSH tunnel to table ${SPECTRA_TABLE_NAME}.`,
-					);
+					console.log(`Connection to SQL Server established successfully via SSH tunnel to table ${SPECTRA_TABLE_NAME}.`);
 					const result = await sequelize.query(
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by Punch_DateTime asc`,
 					);
@@ -2015,58 +2013,51 @@ class CronController {
 									empCode: incomingAttendanceData.tmc,
 									isActive: 1,
 								},
-								attributes: ["id", "empCode", "name"],
-								include: [{
-									model: db.shiftMaster,
-									required: true,
-									where: {
-										isOverNight: 0
-									}
-								}]
+								attributes: ["id", "empCode", "name"]
 							});
-							console.log("valid data-->", employeeData ? employeeData.dataValues.empCode : null)
 
 							if (!employeeData) {
 								logger.error(
 									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
 								);
 							} else {
-								// const updatedAttendance = await attendanceController.markBioMetricAttendance(
-								// 	incomingAttendanceData,
-								// );
-								// console.log("updatedAttendance", updatedAttendance);
+								const updatedAttendance = await attendanceController.markBioMetricAttendance(
+									incomingAttendanceData,
+								);
+								console.log("updatedAttendance", updatedAttendance);
 
-								// cronArray.push(updatedAttendance)
+								cronArray.push(updatedAttendance)
 							}
 
-							// sequelize.query(
-							// 	`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
-							// 	(err, result) => {
-							// 		if (err) {
-							// 			logger.error(`Error ${err}`);
-							// 			console.log(err);
-							// 		}
+							sequelize.query(
+								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+								(err, result) => {
+									if (err) {
+										logger.error(`Error ${err}`);
+										console.log(err);
+									}
 
-							// 		console.log(result);
-							// 	},
-							// );
+									console.log(result);
+								},
+							);
+
 						}
 
-						// const uniqueRecords = cronArray.filter((item, index, self) => {
-						// 	return (
-						// 		index ===
-						// 		self.findIndex(
-						// 			(t) =>
-						// 				t.attendanceAutoId === item.attendanceAutoId && t.date === item.date
-						// 		)
-						// 	);
-						// });
+						const uniqueRecords = cronArray.filter((item, index, self) => {
+							return (
+								index ===
+								self.findIndex(
+									(t) =>
+										t.attendanceAutoId === item.attendanceAutoId && t.date === item.date
+								)
+							);
+						});
 
-						// for (const element of uniqueRecords) {
-						// 	if (moment().diff(moment(element.date), 'days') >= 1) {
-						// 		attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
-						// 	}
-						// }
+						for (const element of uniqueRecords) {
+							if (moment().diff(moment(element.date), 'days') >= 1) {
+								attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
+							}
+						}
 					}
 				})
 				.catch((error) => {
