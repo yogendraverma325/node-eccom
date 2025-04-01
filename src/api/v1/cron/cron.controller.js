@@ -2024,7 +2024,7 @@ class CronController {
 									}
 								}]
 							});
-							console.log("valid data-->", employeeData.dataValues.empCode)
+							console.log("valid data-->", employeeData ? employeeData.dataValues.empCode : null)
 
 							if (!employeeData) {
 								logger.error(
