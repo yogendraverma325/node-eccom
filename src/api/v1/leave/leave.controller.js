@@ -300,6 +300,7 @@ class LeaveController {
 				offset,
 				subQuery: false,
 				required: !!searchQuery,
+				distinct: true,
 				order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],
 			});
 
