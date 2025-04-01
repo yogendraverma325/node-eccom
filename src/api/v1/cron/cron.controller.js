@@ -2018,11 +2018,13 @@ class CronController {
 								attributes: ["id", "empCode", "name"],
 								include: [{
 									model: db.shiftMaster,
+									required: true,
 									where: {
 										isOverNight: 0
 									}
 								}]
 							});
+							console.log("valid data-->", employeeData.empCode)
 
 							if (!employeeData) {
 								logger.error(
