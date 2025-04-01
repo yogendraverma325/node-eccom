@@ -692,9 +692,9 @@ class UserController {
 				where: {
 					employeeId: userid,
 					status: "pending",
-					source: {
-						[Op.ne]: "system_generated",
-					},
+					// source: {
+					// 	[Op.ne]: "system_generated",
+					// },
 				},
 			});
 			const pendingAttendanceCount = await db.attendanceHistory.count({
@@ -1419,7 +1419,8 @@ class UserController {
 				],
 				limit,
 				offset,
-				required: !!searchQuery
+				required: !!searchQuery,
+				distinct: true
 			});
 
 			return respHelper(res, {
@@ -3974,6 +3975,7 @@ class UserController {
 				offset,
 				subQuery: false,
 				required: !!searchQuery,
+				distinct: true,
 				order: [["initiatedTaskAutoId", "DESC"]],
 			});
 
