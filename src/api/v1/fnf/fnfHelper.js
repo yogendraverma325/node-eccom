@@ -102,16 +102,16 @@ const actualWorkingDays = async function (data) {
 			payYear: payYear,
 		});
 		console.log("Query ::::  " + queryForCurrentJoiningDate);
-		const employeeDetailsComponentWise = await db.sequelize.query(
+		const currentMonthJoiningDetails = await db.sequelize.query(
 			queryForCurrentJoiningDate,
 		);
-		console.log(employeeDetailsComponentWise);
-		if (employeeDetailsComponentWise[0].length == 0) {
+		console.log(currentMonthJoiningDetails);
+		if (currentMonthJoiningDetails[0].length == 0) {
 			return data.totalWorkingDays;
 		} else {
-			let joiningDate = employeeDetailsComponentWise[0][0].dateOfJoining;
+			let joiningDate = currentMonthJoiningDetails[0][0].dateOfJoining;
 			let leftDayaInMonth = daysLeftInMonth(joiningDate);
-			return leftDayaInMonth;
+			return leftDayaInMonth; 
 		}
 	} catch (e) {
 		console.log(e);
@@ -120,8 +120,6 @@ const actualWorkingDays = async function (data) {
 };
 function getElementValue(name, data) {
 	const item = data.find((item) => item.salaryComponentElementName === name);
-	// console.log(name);
-	// console.log(item?item.elementValue:0);
 	return item ? item.elementValue : 0; // Return elementValue or null if not found
 }
 async function getActualMonthlyAmount(
