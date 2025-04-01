@@ -2299,7 +2299,8 @@ class AttendanceController {
 					},
 				],
 				limit,
-				offset
+				offset,
+				distinct: true
 			});
 
 			return respHelper(res, {
@@ -4433,7 +4434,7 @@ class AttendanceController {
 					},
 				],
 				limit,
-				offset,
+				offset
 			});
 
 			return respHelper(res, {
