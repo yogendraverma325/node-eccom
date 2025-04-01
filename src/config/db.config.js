@@ -1899,6 +1899,55 @@ db.jobLevelMapping.belongsTo(db.companyMaster, { foreignKey: "companyId" });
 db.jobLevelMapping.belongsTo(db.bandMaster, { foreignKey: "bandId" });
 db.jobLevelMapping.belongsTo(db.gradeMaster, { foreignKey: "gradeId" });
 
+
+
+db.companyMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.companyMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.companyMaster.belongsTo(db.currencyMaster, { foreignKey: "currencyId" });
+db.companyMaster.belongsTo(db.timeZoneMaster, { foreignKey: "timezoneId" });
+db.companyMaster.belongsTo(db.industryMaster, { foreignKey: "industryId" });
+db.companyMaster.belongsTo(db.companyTypeMaster, { foreignKey: "companyTypeId" });
+
+db.companyTypeMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.companyTypeMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+
+db.bandMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.bandMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+
+db.gradeMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.gradeMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.costCenterMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.costCenterMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
 //ritak export master data end
 
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {
