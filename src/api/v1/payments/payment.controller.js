@@ -3535,14 +3535,25 @@ class PaymentController {
 				processId,
 			} = req.query;
 
+			  console.log(req.query);
+			// return;
+
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
 			if (fileNameType === "1") {
 				customSheetName = "Total Employees";
-			} else if (fileNameType === "2") {
+			} else if (fileNameType === "5") {
 				customSheetName = "Processing Employees";
 			}
-
+			else if (fileNameType === "3") {
+				customSheetName = "Processed Employees";
+			}
+			else if (fileNameType === "4") {
+				customSheetName = "InProcess Employees";
+			}
+			else if (fileNameType === "2") {
+				customSheetName = "Excluded Employees";
+			}
 			console.log(req.query);
 
 			const sheetName = {
@@ -3748,6 +3759,7 @@ class PaymentController {
 				salalryStructureAutoId == 0 &&
 				[6, 7, 8, 9,20,21].includes(Number(exportSheetAutoId))
 			) {
+				console.log("File is getting ready.....")
 				const data = [
 					{
 						sheet: "Employee",
