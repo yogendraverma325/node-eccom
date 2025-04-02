@@ -2024,7 +2024,6 @@ class CronController {
 								const updatedAttendance = await attendanceController.markBioMetricAttendance(
 									incomingAttendanceData,
 								);
-								console.log("updatedAttendance", updatedAttendance);
 
 								cronArray.push(updatedAttendance)
 							}
