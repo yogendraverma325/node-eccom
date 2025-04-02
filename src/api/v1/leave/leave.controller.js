@@ -189,32 +189,32 @@ class LeaveController {
 			const mainCondition =
 				query === "raisedByMe"
 					? {
-							employeeId: req.userId,
-							source: { [Op.ne]: "system_generated" },
-							status: "pending",
-						}
+						employeeId: req.userId,
+						source: { [Op.ne]: "system_generated" },
+						status: "pending",
+					}
 					: {
-							pendingAt: req.userId,
-							status: "pending",
-							...(user && { employeeId: user }),
-						};
+						pendingAt: req.userId,
+						status: "pending",
+						...(user && { employeeId: user }),
+					};
 
 			const leaveApprovalCondition =
 				query === "raisedByMe"
 					? {
-							employeeId: req.userId,
-							isApproved: {
-								[Op.notIn]: [2],
-							},
-							//isPending: 1,
-						}
+						employeeId: req.userId,
+						isApproved: {
+							[Op.notIn]: [2],
+						},
+						//isPending: 1,
+					}
 					: {
-							...(user && { createdBy: user }),
-							isVisible: true,
-							pendingOn: req.userId,
-							isApproved: 0,
-							isPending: 1,
-						};
+						...(user && { createdBy: user }),
+						isVisible: true,
+						pendingOn: req.userId,
+						isApproved: 0,
+						isPending: 1,
+					};
 			// console.log("mainCondition", mainCondition);
 			// console.log("leaveApprovalCondition", leaveApprovalCondition);
 
@@ -448,21 +448,31 @@ class LeaveController {
 
 							// If final approval level is reached, update attendance and leave balances
 							if (currentLevel === maxApprovalLevel && existingLeaveHeader) {
-								await db.attendanceMaster.update(
-									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+								const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 									{
-										where: {
-											attendanceDate: existingRecord.dataValues.appliedFor,
-											employeeId: existingRecord.dataValues.employeeId,
-										},
+										where: { employeeleaveheaderID: leaveID },
 									},
 								);
+								for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+									await db.attendanceMaster.update(
+										Object.assign(
+											SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+												? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+												: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+													? { attendanceLateBy: "00:00:00" }
+													: {}
+										),
+										{
+											where: {
+												attendanceDate: SingleexistingRecordSWholes.appliedFor,
+												employeeId: SingleexistingRecordSWholes.employeeId,
+											},
+										},
+									);
+
+								}
+
+
 
 								// Leave Mapping Updates
 								if (
@@ -623,12 +633,12 @@ class LeaveController {
 								if (existingRecord) {
 									await db.attendanceMaster.update(
 										Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+											existingRecord.dataValues.isHalfDay === 0
+												? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+												: existingRecord.dataValues.halfDayFor === 1
+													? { attendanceLateBy: "00:00:00" }
+													: {}
+										),
 										{
 											where: {
 												attendanceDate: existingRecord.dataValues.appliedFor,
@@ -719,10 +729,6 @@ class LeaveController {
 									},
 									include: [
 										{
-											model: db.companyMaster,
-											attributes: ["senderEmail", "companyLogo"],
-										},
-										{
 											model: db.employeeMaster,
 											attributes: ["name", "email"],
 											include: [
@@ -730,6 +736,10 @@ class LeaveController {
 													model: db.employeeMaster,
 													as: "managerData",
 													attributes: ["name"],
+												},
+												{
+													model: db.companyMaster,
+													attributes: ["senderEmail", "companyLogo"],
 												},
 											],
 										},
@@ -2707,10 +2717,10 @@ class LeaveController {
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
-										result.attachment,
-										`leaveAttachment_${uuid}`,
-										`uploads/${EMP_DATA.empCode}`,
-									)
+									result.attachment,
+									`leaveAttachment_${uuid}`,
+									`uploads/${EMP_DATA.empCode}`,
+								)
 								: null,
 						pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 						createdBy: req.userId, // Replace with actual creator user ID
@@ -2799,6 +2809,8 @@ class LeaveController {
 				},
 			});
 
+			console.log("leaveApprovalLevel", leaveApprovalLevel);
+
 			let headerInsert = await db.EmployeeLeaveHeader.create({
 				employeeId: req.body.employeeId, // Replace with actual employee ID
 				attendanceShiftId: EMP_DATA.shiftId, // Replace with actual attendance shift ID
@@ -2817,10 +2829,10 @@ class LeaveController {
 				leaveAttachment:
 					result.attachment != ""
 						? await helper.fileUpload(
-								result.attachment,
-								`leaveAttachment_${uuid}`,
-								`uploads/${EMP_DATA.empCode}`,
-							)
+							result.attachment,
+							`leaveAttachment_${uuid}`,
+							`uploads/${EMP_DATA.empCode}`,
+						)
 						: null,
 				//pendingAt: EMP_DATA.managerData.id, // Replace with actual pending at value
 				createdBy: req.userId, // Replace with actual creator user ID
@@ -2835,14 +2847,18 @@ class LeaveController {
 					leaveApprovalLevel.length == 0 ? EMP_DATA.managerData.id : null, // Replace with actual pending at value
 			});
 
+			console.log(leaveApprovalLevel)
+
 			//console.log("leaveApprovalLevel",leaveApprovalLevel)
 			const leaveTrails = [];
 
 			for (const leaveApprover of leaveApprovalLevel) {
+				console.log("jab leave Approval level hoga ", leaveApprover)
 				for (const leaveApproverGroup of leaveApprover.dataValues.approval_group.split(
 					",",
 				)) {
 					if (leaveApproverGroup === "MANAGER") {
+						console.log("MANAGER")
 						leaveTrails.push({
 							employeeId: req.body.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
@@ -2857,6 +2873,7 @@ class LeaveController {
 							createdBy: req.userId,
 						});
 					} else if (leaveApproverGroup === "BUHR") {
+						console.log("BUHR")
 						const buhr = await db.buMapping.findAll({
 							where: {
 								buId: EMP_DATA.buId,
@@ -2881,6 +2898,7 @@ class LeaveController {
 							});
 						}
 					} else if (leaveApproverGroup === "L2_MANAGER") {
+						console.log("L2_MANAGER")
 						leaveTrails.push({
 							employeeId: req.body.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
@@ -3402,7 +3420,7 @@ class LeaveController {
 				leaveAutoId,
 				EMP_DATA,
 			);
-			console.log("remainingLeaveCountRESP",remainingLeaveCountRESP)
+			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP)
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,
@@ -3424,38 +3442,38 @@ class LeaveController {
 				totalWorkingDays - getCombinedVal,
 			);
 
-			if(leaveAutoId==9){
-				let count=0;
+			if (leaveAutoId == 9) {
+				let count = 0;
 				let result = await db.comp_off_credit_history.findOne({
-							attributes: [
-								[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+					attributes: [
+						[db.Sequelize.fn("SUM", db.Sequelize.col("balance")), "total_balance"], // Sum of balance column
+					],
+					where: {
+						employee_Id: employeeId,
+						expiry_date: {
+							[Op.or]: [
+								{ [Op.eq]: null }, // Check if expiry_date is null
+								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 							],
-							where: {
-								employee_Id: employeeId,
-								expiry_date: {
-									[Op.or]: [
-										{ [Op.eq]: null }, // Check if expiry_date is null
-										{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-									],
-								},
-								taken_on: {
-									[Op.eq]: null, // Check if expiry_date is null
-								},
-								status: 1,
-							},
-						});
+						},
+						taken_on: {
+							[Op.eq]: null, // Check if expiry_date is null
+						},
+						status: 1,
+					},
+				});
 
 				if (result && result.dataValues.total_balance != null) {
-				count = parseFloat(result.dataValues.total_balance);
+					count = parseFloat(result.dataValues.total_balance);
 				}
-					console.log(
-				"totalWorkingDaysCalculated",count
-			)
-				
-				availableLeaveCount.availableLeave=count;
+				console.log(
+					"totalWorkingDaysCalculated", count
+				)
+
+				availableLeaveCount.availableLeave = count;
 
 			}
-			console.log("availableLeaveCount",availableLeaveCount)
+			console.log("availableLeaveCount", availableLeaveCount)
 			let countDeductingPending =
 				availableLeaveCount.availableLeave - pendingLeaveCount;
 			let a = totalWorkingDaysCalculated;
@@ -3465,9 +3483,9 @@ class LeaveController {
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
 			console.log(
-				"totalWorkingDaysCalculated",totalWorkingDaysCalculated,
-				"ava",availableLeaveCount.availableLeave,
-				"countDeductingPending",countDeductingPending
+				"totalWorkingDaysCalculated", totalWorkingDaysCalculated,
+				"ava", availableLeaveCount.availableLeave,
+				"countDeductingPending", countDeductingPending
 			)
 
 			if (leaveAutoId == 6) {
@@ -3682,7 +3700,7 @@ class LeaveController {
 			};
 			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
-					exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
+					exclude: ["createdBy", "createdAt"],
 				},
 				where: whereCondtion,
 				include: [
@@ -3691,6 +3709,18 @@ class LeaveController {
 						attributes: ["leaveId", "leaveName", "leaveCode"],
 						as: "leaveMasterDetails",
 					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+						as: "leaveUpdatedBy",
+						include:
+						{
+							model: db.roleMaster,
+							attributes: ["name"]
+						},
+
+					},
+
 				],
 				order: [["employeeleaveheaderID", "desc"]],
 			});
@@ -4197,14 +4227,14 @@ class LeaveController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								employeeId: { [Op.ne]: req.userId },
-								source: { [Op.ne]: "system_generated" },
-								status: "pending",
-							}
+							employeeId: { [Op.ne]: req.userId },
+							source: { [Op.ne]: "system_generated" },
+							status: "pending",
+						}
 						: {
-								status: "pending",
-								employeeId: { [Op.ne]: req.userId },
-							},
+							status: "pending",
+							employeeId: { [Op.ne]: req.userId },
+						},
 				),
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -4221,16 +4251,16 @@ class LeaveController {
 							}),
 							...(usersData.role_id === 4 || usersData.role_id === 5
 								? {
-										...(permissoinArray.COMPANY.length > 0 && {
-											companyId: { [Op.in]: permissoinArray.COMPANY },
-										}),
-										...(permissoinArray.BU.length > 0 && {
-											buId: { [Op.in]: permissoinArray.BU },
-										}),
-										...(permissoinArray.SBU.length > 0 && {
-											sbuId: { [Op.in]: permissoinArray.SBU },
-										}),
-									}
+									...(permissoinArray.COMPANY.length > 0 && {
+										companyId: { [Op.in]: permissoinArray.COMPANY },
+									}),
+									...(permissoinArray.BU.length > 0 && {
+										buId: { [Op.in]: permissoinArray.BU },
+									}),
+									...(permissoinArray.SBU.length > 0 && {
+										sbuId: { [Op.in]: permissoinArray.SBU },
+									}),
+								}
 								: null),
 						},
 					},
@@ -4907,7 +4937,7 @@ class LeaveController {
 					updatedBy: req.userId,
 					managerRemark: result.remark != "" ? result.remark : null,
 					updatedAt: moment(),
-					role: req.userData.role_id == 2 ? req.userData["role.name"] : null,
+					role: req.userData.role_id == 2 || req.userData.role_id == 5 ? req.userData["role.name"] : null,
 				},
 				{
 					where: {
@@ -4923,12 +4953,12 @@ class LeaveController {
 					if (existingRecordNew.approvalFlowExist == 1) {
 						console.log("i am in new approvalflow>>>>", leaveID);
 
-						if (req.userData.role_id == 2) {
+						if (req.userData.role_id == 2 || req.userData.role_id == 5) {
 							console.log("i am in as admin");
 							const leaveTrails = await db.leaveApprovalTrails.findAll({
 								where: {
 									leaveHeaderAutoId: leaveID,
-									...(req.userData.role_id !== 2 && { pendingOn: req.userId }),
+									...(req.userData.role_id !== 2 || req.userData.role_id !== 5 && { pendingOn: req.userId }),
 								},
 								include: [
 									{
@@ -5027,21 +5057,31 @@ class LeaveController {
 							}
 
 							if (existingRecord) {
-								await db.attendanceMaster.update(
-									Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+							const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 									{
-										where: {
-											attendanceDate: existingRecord.appliedFor,
-											employeeId: existingRecord.employeeId,
-										},
+										where: { employeeleaveheaderID: leaveID },
 									},
 								);
+								for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+									await db.attendanceMaster.update(
+										Object.assign(
+											SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+												? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+												: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+													? { attendanceLateBy: "00:00:00" }
+													: {}
+										),
+										{
+											where: {
+												attendanceDate: SingleexistingRecordSWholes.appliedFor,
+												employeeId: SingleexistingRecordSWholes.employeeId,
+											},
+										},
+									);
+
+								}
+
+
 
 								if (
 									existingLeaveHeaderRecord.leaveAutoId === 6 ||
@@ -5112,13 +5152,13 @@ class LeaveController {
 							}
 						}
 
-						if (req.userData.role_id != 2) {
+						if (![2, 5].includes(req.userData.role_id)) {
 							console.log("i am not as admin");
 
 							const leaveTrails = await db.leaveApprovalTrails.findOne({
 								where: {
 									leaveHeaderAutoId: leaveID,
-									pendingOn: req.userId,
+									//pendingOn: req.userId,
 									// pendingOn: req.userData.role_id?req.userId,
 									//...(req.userData.role_id !== 2 && { pendingOn: req.userId }),
 								},
@@ -5133,7 +5173,7 @@ class LeaveController {
 								{
 									status:
 										leaveTrails &&
-										leaveTrails.dataValues.level ===
+											leaveTrails.dataValues.level ===
 											leaveTrails.dataValues.approval_flow.maxApprovalLevel
 											? "approved"
 											: "pending",
@@ -5151,7 +5191,7 @@ class LeaveController {
 								{
 									status:
 										leaveTrails &&
-										leaveTrails.dataValues.level ===
+											leaveTrails.dataValues.level ===
 											leaveTrails.dataValues.approval_flow.maxApprovalLevel
 											? "approved"
 											: "pending",
@@ -5212,11 +5252,11 @@ class LeaveController {
 							if (
 								leaveTrails &&
 								leaveTrails.dataValues.level <
-									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+								leaveTrails.dataValues.approval_flow.maxApprovalLevel
 							) {
 								const nextLevel =
 									leaveTrails.dataValues.level <
-									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+										leaveTrails.dataValues.approval_flow.maxApprovalLevel
 										? leaveTrails.dataValues.level + 1
 										: leaveTrails.dataValues.level;
 								await db.leaveApprovalTrails.update(
@@ -5235,24 +5275,32 @@ class LeaveController {
 							if (
 								leaveTrails &&
 								leaveTrails.dataValues.level ===
-									leaveTrails.dataValues.approval_flow.maxApprovalLevel
+								leaveTrails.dataValues.approval_flow.maxApprovalLevel
 							) {
 								if (existingRecord) {
-									await db.attendanceMaster.update(
-										Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
-										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
-										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+									const existingRecordSWholes = await db.employeeLeaveTransactions.findAll(
 										{
-											where: {
-												attendanceDate: existingRecord.dataValues.appliedFor,
-												employeeId: existingRecord.dataValues.employeeId,
-											},
+											where: { employeeleaveheaderID: leaveID },
 										},
 									);
+									for (const SingleexistingRecordSWholes of existingRecordSWholes) {
+										await db.attendanceMaster.update(
+											Object.assign(
+												SingleexistingRecordSWholes.dataValues.isHalfDay === 0
+													? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
+													: SingleexistingRecordSWholes.dataValues.halfDayFor === 1
+														? { attendanceLateBy: "00:00:00" }
+														: {}
+
+											),
+											{
+												where: {
+													attendanceDate: SingleexistingRecordSWholes.appliedFor,
+													employeeId: SingleexistingRecordSWholes.employeeId,
+												},
+											},
+										);
+									}
 
 									if (
 										existingRecord.leaveAutoId === 6 ||
@@ -5345,12 +5393,12 @@ class LeaveController {
 							}
 							await db.attendanceMaster.update(
 								Object.assign(
-										existingRecord.dataValues.isHalfDay === 0
+									existingRecord.dataValues.isHalfDay === 0
 										? { attendancePresentStatus: "leave", attendanceLateBy: "00:00:00" }
 										: existingRecord.dataValues.halfDayFor === 1
-										? { attendanceLateBy: "00:00:00" }
-										: {}
-									),
+											? { attendanceLateBy: "00:00:00" }
+											: {}
+								),
 								{
 									where: {
 										attendanceDate: existingRecord.dataValues.appliedFor,
@@ -5466,10 +5514,6 @@ class LeaveController {
 						},
 						include: [
 							{
-								model: db.companyMaster,
-								attributes: ["senderEmail", "companyLogo"],
-							},
-							{
 								model: db.employeeMaster,
 								attributes: ["name", "email"],
 								include: [
@@ -5477,6 +5521,10 @@ class LeaveController {
 										model: db.employeeMaster,
 										as: "managerData",
 										attributes: ["name"],
+									},
+									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
 									},
 								],
 							},
