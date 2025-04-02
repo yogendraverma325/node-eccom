@@ -34,7 +34,8 @@ pipeline {
         stage('Restart PM2 Process') {
             steps {
                 script {
-                    sh "sudo -u jenkins pm2 restart ${PM2_APP_ID}"  // Restart only Project A
+                    sh "echo 'tara@123' | sudo -S -u tara pm2 restart 1"  // Restart only Project A
+                    sh "su - tara -c pm2 restart 1"  // Restart only Project A
                 }
             }
         }
