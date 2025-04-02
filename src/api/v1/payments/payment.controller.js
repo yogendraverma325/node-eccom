@@ -815,6 +815,14 @@ class PaymentController {
 
 			// get financial year
 			let financialYearDetails = await paymentHelper.getFinancialYear();
+			if(!financialYearDetails)
+				{
+					return respHelper(res, {
+						status: 500,
+						msg: "Financial Year not found.",
+					});
+				}
+	
 
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
