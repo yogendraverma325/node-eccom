@@ -848,7 +848,7 @@ const empMarkLeaveOfGivenDate = async function (
 			appliedFor: {
 				[Op.between]: [inputData.fromDate, inputData.toDate],
 			},
-			status: "approved",
+			status: ["approved", 'pending'],
 			employeeId: userId,
 		},
 	});
@@ -2392,15 +2392,32 @@ const creditCompoff = async (inputObject) => {
 
 							// const records = Array(50).fill(null); // Create an array with 50 null placeholders
 							// for (const [index] of records.entries()) {
+							console.log("comp_off_data.balance", comp_off_data.balance)
+							const compOffCount = await db.comp_off_credit_history.findAll({
+								where: {
+									employee_Id: comp_off_data.employee_Id,
+									credit_for_date: comp_off_data.credit_for_date,
+								},
+							});
+
 							if (comp_off_data.balance === 1) {
 								let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
 								let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
 
-								// Insert both objects into the database
-								await db.comp_off_credit_history.create(comp_off_data_1);
-								await db.comp_off_credit_history.create(comp_off_data_2);
+
+								console.log("compOffCount", compOffCount)
+								if (compOffCount.length == 0) {
+									// Insert both objects into the database
+									await db.comp_off_credit_history.create(comp_off_data_1);
+									await db.comp_off_credit_history.create(comp_off_data_2);
+								} else if (compOffCount.length == 1) {
+									await db.comp_off_credit_history.create(comp_off_data_2);
+								}
 							} else {
-								await db.comp_off_credit_history.create(comp_off_data);
+								if (compOffCount.length == 0) {
+									await db.comp_off_credit_history.create(comp_off_data);
+								}
+
 							}
 
 							// }
