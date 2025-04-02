@@ -1929,7 +1929,7 @@ class CronController {
 				.then(async () => {
 					console.log(`Connection to SQL Server established successfully via SSH tunnel to table ${SPECTRA_TABLE_NAME}.`);
 					const result = await sequelize.query(
-						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by Punch_DateTime asc`,
+						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 and PunchDate in ('2025-03-30','2025-03-31') order by Punch_DateTime asc`,
 					);
 					if (result && result.length > 0) {
 
