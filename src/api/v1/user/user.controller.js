@@ -700,7 +700,7 @@ class UserController {
 			
 			const mainCondition = {
 				employeeId: req.userId,
-				source: { [Op.ne]: "system_generated" },
+				// source: { [Op.ne]: "system_generated" },
 				status: "pending",
 			}
 
@@ -760,7 +760,8 @@ class UserController {
 						required: false,
 						where: leaveApprovalCondition
 					}
-				]
+				],
+				distinct: true
 			});
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
@@ -775,8 +776,8 @@ class UserController {
 						where: Object.assign(
 							!["ADMIN", "HR_OPS"].includes(req.userRole)
 								? {
-									manager: req.userId,
-								}
+										manager: req.userId,
+									}
 								: {},
 							{
 								isActive: 1,
@@ -785,6 +786,7 @@ class UserController {
 						attributes: ["id", "empCode", "name", "profileImage"],
 					},
 				],
+				distinct: true
 			});
 
 			// const countLeaveAssginedForExistingFlow =
@@ -854,7 +856,8 @@ class UserController {
 						required: false,
 						where: leaveApprovalCondition2
 					}
-				]
+				],
+				distinct: true
 			});
 
 			let assignedAttCount = await db.regularizationMaster.count({
@@ -937,7 +940,8 @@ class UserController {
 							taskOwner: req.userId,
 						}
 					},
-				]
+				],
+				distinct: true
 			});
 
 			const confirmationCount = await db.Confirmationinitiated.count({
@@ -953,6 +957,7 @@ class UserController {
 						}
 					}
 				],
+				distinct: true
 			});
 
 			let profileApprovalCount = await db.paymentDetails.count({
