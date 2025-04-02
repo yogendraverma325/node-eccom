@@ -684,7 +684,7 @@ async function getActualMonthlyAmount(
 
 // create function by jay fot get financial year
 async function getFinancialYear(date = moment()) {
-	const startMonth = 3; // 0 based index of month 3 for april
+	const startMonth = 4; // 0 based index of month 3 for april
 	const year = date.year(); // get year
 	// if the month before april, consider it is previous financial year
 	const financialYearStart = date.month() < startMonth ? year - 1 : year;
