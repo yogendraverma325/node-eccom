@@ -1732,7 +1732,7 @@ const releaseSlipCheck = Joi.object({
 			return formattedValue;
 		}, "format single-digit month as two digits"),
 	pay_year: Joi.number().required(),
-	empIds: Joi.number().required(),
+	empIds: Joi.string().required(),
 	processId: Joi.string().optional(),
 });
 
