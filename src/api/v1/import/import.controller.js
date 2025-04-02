@@ -189,6 +189,14 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 
 		// get financial year
 		let financialYearDetails = await importHelper.getFinancialYear();
+
+		if(!financialYearDetails)
+		{
+			return respHelper(res, {
+				status: 500,
+				msg: "Financial Year not found.",
+			});
+		}
 		var PackageDetails = FILEDATA;
 		if (!isNaN(PackageDetails[0]["Effective Date"])) {
 			console.log(

@@ -927,7 +927,7 @@ class FnfController {
 			//console.log(financialYearDetails);
 			let ids = value.departmentId.split(",");
 			let allEmployeeQuery = await fnfHelper.query(
-				value.departmentId == 0 ? 5 : 6,
+				value.departmentId == 0 ? 6 : 5,
 				value.processingType,
 				{
 					departmentId: ids,
@@ -935,6 +935,8 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
+			// console.log(allEmployeeQuery);
+			// return;
 			const result = await db.sequelize.query(allEmployeeQuery);
 			// console.log(result[0]);
 			// return;
@@ -1653,7 +1655,7 @@ const groupByEmployeeId = (data) => {
 				"ESIC Employee": item["ESIC Employee"],
 				"PF Employee": item["PF Employee"],
 				"PF Employer": item["PF Employer"],
-				Gratuity: item["gratuityAmount"],
+				"Gratuity": item["gratuityAmount"],
 				"Leave Encashment": item["leaveEncashmentAmount"],
 			};
 			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
@@ -1692,6 +1694,10 @@ async function processFnf(data) {
 		const salaryRegisterArray = [],
 			errorProcessed = [];
 		let employees = employeeIds; //[484,560];//
+
+
+		console.log("employeeIds :::: ",employeeIds);
+
 		for (const employee of employees) {
 			const actualWorkingDays = await fnfHelper.actualWorkingDays({
 				employeeId: employee,
