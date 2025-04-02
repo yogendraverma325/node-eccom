@@ -571,9 +571,9 @@ const empLeaveDetails = async function (userId, type) {
 			where: {
 				status: "pending",
 				employeeId: userId,
-				source: {
-					[Op.ne]: "system_generated",
-				},
+				// source: {
+				// 	[Op.ne]: "system_generated",
+				// },
 			},
 			raw: true,
 		});

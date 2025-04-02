@@ -7658,7 +7658,6 @@ class MasterController {
 					const resultColumns = Object.fromEntries(
 						uniqueKeys.map((key) => [key, 0]),
 					);
-					console.log(resultColumns);
 					const columns = Object.keys(resultColumns).map((key) => ({
 						label: key,
 						value: key,
@@ -7681,7 +7680,7 @@ class MasterController {
 					const report = xlsx(data, settings);
 					res.setHeader(
 						"Content-Disposition",
-						`attachment; filename=${"Employee"}_${"Structure"}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
+						`attachment; filename=${"Salary_Register"}_${salaryMonth}_${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}.xlsx`,
 					);
 					return res.end(report);
 				} else {
@@ -8191,8 +8190,8 @@ function getColumnsForSalaryregister (processedData){
 		"Professional Tax",
 		"ESIC Employee",
 		"Statuary PF",
-		"Personal Deduction Categories",
-		"Personal Deduction",
+		"Standard Deductions Categories",
+		"Standard Deductions",
 		"LWF Amount",
 		"Total Deductions",
 		"Extra Payment Categories",

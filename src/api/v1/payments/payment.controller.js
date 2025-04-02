@@ -3040,46 +3040,82 @@ class PaymentController {
 	}
 
 	async releasePaySlip(req, res) {
-		try {
-			let { processId, empIds } = req.body;
-
-			if (!empIds) {
+		try 
+		{
+			const { error,value} = await validator.releaseSlipCheck.validate(req.body);
+			console.log(value.pay_year+"-"+value.pay_month);
+			if (!value.empIds) {
 				return respHelper(res, {
 					status: 400,
 					data: [],
 					msg: "Employee Details not found.",
 				});
 			}
+			let pay_year =
+				value.pay_month == "01" ||
+				value.pay_month == "02" ||
+				value.pay_month == "03"
+					? parseInt(value.pay_year) + 1
+					: value.pay_year;
 
-			let employees = empIds.split(",");
+			let paymonth = pay_year + "-" + value.pay_month;
+			let employees = value.empIds.split(",");
 
-			const queryEmloyeeAlreadyReleased = await paymentHelper.query(
-				2,
-				employees,
-				1,
-			);
-			const resultAlreadyReleased = await db.sequelize.query(
-				queryEmloyeeAlreadyReleased,
-			);
+			const paySlipsToUpdate= await db.paySlips.findAll({where: {
+				paySlipStatus: 0,
+				EmployeeId: { [Op.in]: employees },
+				payMonth:paymonth
+			},attributes:['paySlipAutoId',"EmployeeId"],raw:true});
 
-			const releasedPaySlipFor = await db.paySlips.update(
-				{ paySlipStatus: 1, updatedAt: new Date(), updatedBy: req.userData.id },
-				{
-					where: {
-						paySlipStatus: 0,
-						EmployeeId: { [Op.in]: employees },
+
+
+			if(paySlipsToUpdate.length>0)
+			{
+				const paySlipIds = paySlipsToUpdate.map(item => item.paySlipAutoId);
+				const employeeIds = paySlipsToUpdate.map(item => item.EmployeeId);
+				console.log(paySlipIds);
+				 await db.paySlips.update(
+					{ paySlipStatus: 1, updatedAt: new Date(), updatedBy: req.userData.id },
+					{
+						where: {
+							paySlipAutoId: { [Op.in]: paySlipIds },
+						},
+						
 					},
-				},
-			);
+				);
 
-			return respHelper(res, {
-				status: 200,
-				data: {
-					payslipAlreadyReleased: resultAlreadyReleased[0],
-					paySlipReleasedFor: releasedPaySlipFor,
-				},
-				msg: "Pay Slip Released for " + releasedPaySlipFor[0] + " Employees.",
-			});
+				try
+				{
+					sendMailAfterSalarySlipRelease(
+						employeeIds,
+						paymonth,
+						null,
+					);
+				}catch(e)
+				{
+					console.log(e);
+				}
+
+				return respHelper(res, {
+					status: 200,
+					data: paySlipsToUpdate,
+					msg: "Pay Slip Released for " + paySlipsToUpdate.length + " Employees.",
+				});
+
+
+			}
+			else
+			{
+				return respHelper(res, {
+					status: 400,
+					data: {},
+					msg: "No PaySlip is available for release.",
+				});
+			}
+
+			
+
+			
 		} catch (e) {
 			console.log(e);
 		}
@@ -3183,10 +3219,6 @@ class PaymentController {
 					processType: value.processType,
 				},
 			);
-
-
-			console.log(queryForMappedEmployeeList);
-
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);

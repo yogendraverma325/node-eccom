@@ -1721,6 +1721,21 @@ const extraBenefitValidateSchama = Joi.object({
 		.label("Employee Code"),
 });
 
+
+const releaseSlipCheck = Joi.object({
+	pay_month: Joi.number()
+		.min(1)
+		.max(12)
+		.required()
+		.custom((value, helpers) => {
+			const formattedValue = value < 10 ? `0${value}` : `${value}`;
+			return formattedValue;
+		}, "format single-digit month as two digits"),
+	pay_year: Joi.number().required(),
+	empIds: Joi.number().required(),
+	processId: Joi.string().optional(),
+});
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -1806,4 +1821,5 @@ export default {
 	lwfValidateSchama,
 	noticeRecoveryValidateSchama,
 	extraBenefitValidateSchama,
+	releaseSlipCheck
 };
