@@ -34,8 +34,7 @@ pipeline {
         stage('Restart PM2 Process') {
             steps {
                 script {
-                    sh "echo 'tara@123' | sudo -S -u tara pm2 restart 1"  // Restart only Project A
-                    sh "su - tara -c pm2 restart 1"  // Restart only Project A
+                    sh "sudo -u tara pm2 restart 1"  // Restart only Project A
                 }
             }
         }
