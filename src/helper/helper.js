@@ -1818,12 +1818,13 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			model: db.comp_off_assignment_filters,
 		},
 	});
-	let whereCondition = {
-		isActive: 1,
-	};
-	let compOffPolicyAssignment = {};
-	let whereConditionJobdetails = {};
+	var compOffPolicyAssignment = {};
 	for (const single of compOffAissgments) {
+		var whereCondition = {
+			isActive: 1,
+		};
+
+		var whereConditionJobdetails = {};
 		for (const singlefilter of single.comp_off_assignment_filters) {
 			const columnName = mappingObject[singlefilter.filter_colum];
 			const validColumns = ["jobLevelId", "bandId", "gradeId"];
@@ -1848,11 +1849,17 @@ const checkCompOffPolicyForUser = async (UserId) => {
 					};
 				}
 			}
+
 		}
 		whereConditionJobdetails = {
 			...whereConditionJobdetails,
 			...{ userId: UserId },
 		};
+		console.log("================= start", single?.comp_off_assignment_auto_id)
+		console.log("whereCondition", whereCondition)
+		console.log("whereConditionJobdetails", whereConditionJobdetails)
+
+		console.log("================= end", single?.comp_off_assignment_auto_id)
 		const employee = await db.employeeMaster.findOne({
 			where: whereCondition,
 			attributes: [
@@ -1871,16 +1878,20 @@ const checkCompOffPolicyForUser = async (UserId) => {
 				where: whereConditionJobdetails,
 			},
 		});
+		console.log("employee", (employee) ? "yes" : "NO", " ==== single?.comp_off_assignment_auto_id", single?.comp_off_assignment_auto_id)
 		if (employee) {
-			if (employee?.id in compOffPolicyAssignment) {
-				compOffPolicyAssignment[employee?.id] =
-					single?.comp_off_assignment_auto_id;
+			if (employee.id in compOffPolicyAssignment) {
+				compOffPolicyAssignment[employee.id] =
+					single.comp_off_assignment_auto_id;
 			} else {
-				compOffPolicyAssignment[employee?.id] =
-					single?.comp_off_assignment_auto_id;
+				console.log("employee?.id 1", employee?.id, "compOffPolicyAssignment", compOffPolicyAssignment)
+				compOffPolicyAssignment[employee.id] =
+					single.comp_off_assignment_auto_id;
+				console.log("employee?.id 2", employee?.id, "compOffPolicyAssignment", compOffPolicyAssignment)
 			}
 		}
 	}
+	console.log("compOffPolicyAssignment", compOffPolicyAssignment);
 	let compOffPolicyData = null;
 	if (Object.keys(compOffPolicyAssignment).length > 0) {
 		compOffPolicyData = await db.comp_off_polices.findOne({
