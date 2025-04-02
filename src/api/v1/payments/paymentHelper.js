@@ -683,16 +683,18 @@ async function getActualMonthlyAmount(
 }
 
 // create function by jay fot get financial year
-async function getFinancialYear(date = moment()) {
+async function getFinancialYear(selectedYear) {
+	const date = moment()
 	const startMonth = 3; // 0 based index of month 3 for april
 	const year = date.year(); // get year
 	// if the month before april, consider it is previous financial year
 	const financialYearStart = date.month() < startMonth ? year - 1 : year;
 	const financialYearEnd = (financialYearStart + 1).toString().slice(-2);
+	const financialYear = selectedYear?selectedYear:financialYearStart;
 
 	// get financial year id from table
 	let financialYearDetails = await db.financialYearMaster.findOne({
-		where: { year: financialYearStart, isActive: 1 },
+		where: { year: financialYear, isActive: 1 },
 		attributes: ["financialYearId", "financialYearName"],
 		raw: true,
 	});

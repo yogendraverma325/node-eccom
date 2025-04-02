@@ -2530,7 +2530,9 @@ class PaymentController {
 			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			// get financial year
-			let financialYearDetails = await paymentHelper.getFinancialYear();
+			let financialYearDetails = await paymentHelper.getFinancialYear(value.selectedYear);
+
+			console.log(financialYearDetails);
 
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
@@ -3271,7 +3273,7 @@ class PaymentController {
 
 	async updateNextStatus(req, res) {
 		try {
-			let { processId, currentStatusId, nextStatusId } = req.body;
+			let { processId, currentStatusId, nextStatusId,selectedYear } = req.body;
 
 			const queryForMappedEmployeeList = await paymentHelper.query(
 				6,
@@ -3291,7 +3293,7 @@ class PaymentController {
 			}
 
 			if (nextStatusId == 7) {
-				await generatePaySlip({ processId: processId, req });
+				await generatePaySlip({ processId: processId, req,selectedYear:selectedYear });
 			} else if (nextStatusId == 8) {
 				await releasePaySlip({ processId: processId, req, nextStatusId });
 			} else {
@@ -5070,7 +5072,7 @@ class PaymentController {
 			const result = await validator.generatePaySlipSchema.validateAsync(
 				req.body,
 			);
-			let { EmployeeId, payMonth } = result;
+			let { EmployeeId, payMonth,financialYearId } = result;
 
 			// verify salary slip exist or not
 			let matchQuery = { EmployeeId: EmployeeId, payMonth: payMonth };
@@ -5486,7 +5488,7 @@ class PaymentController {
 						///////////////Calculation And Updation of ESIC Amount //////////////////////
 					}
 
-					let metaData = { EmployeeId, req };
+					let metaData = { EmployeeId, req,financialYearId };
 					// console.log("salary process completed");
 					let status = await callSinglePaySlipFun(metaData);
 
@@ -6211,10 +6213,11 @@ async function processSalary(data) {
 async function generatePaySlip(data) {
 	console.log("generate pay slip");
 	try {
-		let { processId, req } = data;
+		let { processId, req ,selectedYear} = data;
+
 
 		// get financial year
-		let financialYearDetails = await paymentHelper.getFinancialYear();
+		let financialYearDetails = await paymentHelper.getFinancialYear(selectedYear);
 
 		let queryForCurrentProcessStatus = await paymentHelper.query(
 			15,
@@ -6670,10 +6673,12 @@ async function sendMailAfterSalarySlipRelease(
 }
 
 async function callSinglePaySlipFun(data) {
-	let { EmployeeId, req } = data;
+	let { EmployeeId, req ,financialYearId} = data;
+
+	let financialYearDetails = await db.financialYearMaster.findOne({where:{financialYearId:financialYearId},attributes:['financialYearName','financialYearId'],raw:true})
 	const employeeIds = [EmployeeId];
 	// get financial year
-	let financialYearDetails = await paymentHelper.getFinancialYear();
+//	let financialYearDetails = await paymentHelper.getFinancialYear(selectedYear);
 
 	let queryForPayMonthlyElementsForSalarySlip = await paymentHelper.query(
 		16,
