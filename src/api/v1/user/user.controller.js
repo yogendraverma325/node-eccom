@@ -963,7 +963,7 @@ class UserController {
 
 			let profileApprovalCount = 0;
 
-			if(role_id != 3) {
+			if(role_id == 2 || role_id == 5) {
 				profileApprovalCount = await db.paymentDetails.count({
 					where: {
 						status: "pending",
