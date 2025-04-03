@@ -3584,7 +3584,9 @@ const revokeAppliedLeave = async (date, emp) => {
 		where: {
 			employeeId: emp,
 			fromDate: date,
-			status: ['approved', 'pending'],
+			status: {
+				[Op.in]: ['approved', 'pending']
+			},
 			source: 'system_generated'
 		},
 	})
