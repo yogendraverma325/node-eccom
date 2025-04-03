@@ -2045,21 +2045,21 @@ class CronController {
 
 						}
 
-						const uniqueRecords = cronArray.filter((item, index, self) => {
-							return (
-								index ===
-								self.findIndex(
-									(t) =>
-										t.attendanceAutoId === item.attendanceAutoId && t.date === item.date
-								)
-							);
-						});
+						// const uniqueRecords = cronArray.filter((item, index, self) => {
+						// 	return (
+						// 		index ===
+						// 		self.findIndex(
+						// 			(t) =>
+						// 				t.attendanceAutoId === item.attendanceAutoId && t.date === item.date
+						// 		)
+						// 	);
+						// });
 
-						for (const element of uniqueRecords) {
-							if (moment().diff(moment(element.date), 'days') >= 1) {
-								attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
-							}
-						}
+						// for (const element of uniqueRecords) {
+						// 	if (moment().diff(moment(element.date), 'days') >= 1) {
+						// 		attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
+						// 	}
+						// }
 					}
 				})
 				.catch((error) => {
