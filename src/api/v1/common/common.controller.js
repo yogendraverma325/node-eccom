@@ -1958,23 +1958,12 @@ class commonController {
 
 	async paymentActionPending(req, res) {
 		try {
-			// add functionality for search and pagination
-
-			const limit = req.query.limit * 1 || 10;
-			const pageNo = req.query.page * 1 || 1;
-			const offset = (pageNo - 1) * limit;
-
-			const search = req.query.search;
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
-
-			let profileApprovalCount = await db.paymentDetails.findAndCountAll({
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+			let profileApprovalCount = await db.paymentDetails.findAll({
 				where: {
 					status: "pending",
 					//pendingAt: req.userId,
@@ -1983,8 +1972,40 @@ class commonController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "name", "empCode"],
-						required: !!searchQuery,
-						where: searchQuery || undefined
+						include: [
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.companyMaster,
+								attributes: ["companyName"],
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
 					},
 					{
 						model: db.bankMaster,
@@ -1996,8 +2017,6 @@ class commonController {
 						as: "newBankName",
 					},
 				],
-				limit,
-				offset
 			});
 			return respHelper(res, {
 				status: 200,
@@ -2011,6 +2030,7 @@ class commonController {
 			});
 		}
 	}
+
 }
 
 export default new commonController();
