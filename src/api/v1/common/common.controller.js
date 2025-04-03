@@ -1965,6 +1965,13 @@ class commonController {
 			const offset = (pageNo - 1) * limit;
 
 			const search = req.query.search;
+
+			const usersData = req.userData;
+            const filters = await helper.getFiltersByPermission(
+                usersData.role_id,
+                usersData.permissionAndAccess,
+            );
+
 			let searchQuery = (search) 
 			? {
 				[Op.or]: [
@@ -1984,7 +1991,41 @@ class commonController {
 						model: db.employeeMaster,
 						attributes: ["id", "name", "empCode"],
 						required: !!searchQuery,
-						where: searchQuery || undefined
+						where: searchQuery || undefined,
+						include: [
+                            {
+                                model: db.buMaster,
+                                attributes: ["buName", "buCode"],
+                                where: {
+                                    ...filters.buFIlter,
+                                },
+                            },
+                            {
+                                model: db.companyMaster,
+                                attributes: ["companyName"],
+                            },
+                            {
+                                model: db.designationMaster,
+                                attributes: ["name", "code"],
+                                where: {
+                                    ...filters.designationFIlter,
+                                },
+                            },
+                            {
+                                model: db.departmentMaster,
+                                attributes: ["departmentName", "departmentCode"],
+                                where: {
+                                    ...filters.departmentFIlter,
+                                },
+                            },
+                            {
+                                model: db.sbuMaster,
+                                attributes: ["sbuname", "code"],
+                                where: {
+                                    ...filters.sbbuFIlter,
+                                },
+                            },
+                        ]
 					},
 					{
 						model: db.bankMaster,
