@@ -1258,7 +1258,7 @@ class PaymentController {
 	}
 	//////////////////////////////UPLOAD SECTION///////////////////////////////////
 	async processSalaryAPI(req, res) {
-		let actualWorkingDays = await paymentHelper.actualWorkingDays({
+		var actualWorkingDays = await paymentHelper.actualWorkingDays({
 			payYear: 2020,
 			payMonth: 1,
 			employeeId: 1119,
@@ -2887,6 +2887,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
+			console.log(query);
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
@@ -5141,7 +5142,7 @@ class PaymentController {
 
 					let employees = [EmployeeId]; //[484,560];//employeeIds
 					for (const employee of employees) {
-						const actualWorkingDays = await paymentHelper.actualWorkingDays({
+						var actualWorkingDays = await paymentHelper.actualWorkingDays({
 							employeeId: employee,
 							// year: result[0][0].payMonth.split("-")[0],
 							// month: result[0][0].payMonth.split("-")[1],
@@ -5149,6 +5150,7 @@ class PaymentController {
 							month: payMonth.split("-")[1],
 							totalWorkingDays: totalWorkingDays,
 						});
+						actualWorkingDays=actualWorkingDays-lopDays;
 						if (!actualWorkingDays) {
 							return respHelper(res, {
 								status: 400,
@@ -5882,12 +5884,13 @@ async function processSalary(data) {
 			errorProcessed = [];
 		let employees = employeeIds; //[484,560];//employeeIds
 		for (const employee of employees) {
-			const actualWorkingDays = await paymentHelper.actualWorkingDays({
+			var actualWorkingDays = await paymentHelper.actualWorkingDays({
 				employeeId: employee,
 				year: result[0][0].payMonth.split("-")[0],
 				month: result[0][0].payMonth.split("-")[1],
 				totalWorkingDays: totalWorkingDays,
 			});
+			
 
 			if (!actualWorkingDays) {
 				await db.payProcessDetails.update(
@@ -5928,7 +5931,7 @@ async function processSalary(data) {
 
 			const lopDays =
 				parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-
+				actualWorkingDays=actualWorkingDays-lopDays;
 			const lopMonthWiseCalculation =
 				totalWorkingDays > 0
 					? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
@@ -6084,9 +6087,9 @@ async function processSalary(data) {
 			//   queryForAffetElementCounts
 			// );
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
-				console.log("**********empCopntWiseDetl************");
-				console.log(empCopntWiseDetl);
-				console.log("**********empCopntWiseDetl************");
+				// console.log("**********empCopntWiseDetl************");
+				// console.log(empCopntWiseDetl);
+				// console.log("**********empCopntWiseDetl************");
 
 				const queryForComponentConfiguration = await paymentHelper.query(
 					12,
