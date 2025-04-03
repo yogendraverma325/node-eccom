@@ -262,6 +262,7 @@ class PaymentController {
 						},
 					},
 				],
+				order: [['paySlipAutoId', 'DESC']]
 			});
 
 			return respHelper(res, {
@@ -5167,7 +5168,7 @@ class PaymentController {
 							month: payMonth.split("-")[1],
 							totalWorkingDays: totalWorkingDays,
 						});
-						actualWorkingDays=actualWorkingDays-lopDays;
+						
 						if (!actualWorkingDays) {
 							return respHelper(res, {
 								status: 400,
@@ -5202,7 +5203,7 @@ class PaymentController {
 
 						const lopDays =
 							parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-
+							actualWorkingDays=actualWorkingDays-lopDays;
 						const lopMonthWiseCalculation =
 							totalWorkingDays > 0
 								? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(
