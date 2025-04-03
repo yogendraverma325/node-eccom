@@ -3054,7 +3054,7 @@ class PaymentController {
 		try 
 		{
 			const { error,value} = await validator.releaseSlipCheck.validate(req.body);
-			console.log(value.pay_year+"-"+value.pay_month);
+		
 			if (!value.empIds) {
 				return respHelper(res, {
 					status: 400,
@@ -3071,7 +3071,9 @@ class PaymentController {
 
 			let paymonth = pay_year + "-" + value.pay_month;
 			let employees = value.empIds.split(",");
-
+			console.log("value   :::",pay_year+"-"+paymonth);
+			let payProcesses = await db.payProcessMaster.findAll({where:{payMonth:pay_year},attributes:['payProcessMasterAutoId'],raw:true})
+			const processIds = payProcesses.map(item => item.payProcessMasterAutoId);
 			const paySlipsToUpdate= await db.paySlips.findAll({where: {
 				paySlipStatus: 0,
 				EmployeeId: { [Op.in]: employees },
@@ -3090,9 +3092,24 @@ class PaymentController {
 					{
 						where: {
 							paySlipAutoId: { [Op.in]: paySlipIds },
-						},
-						
+						},	
 					},
+				);
+
+
+
+				await db.payProcessMaster.update(
+					{
+						processFlowId: 12,
+						updatedBy: req.userData.id,
+						updatedAt: new Date(),
+					},
+					{ where: { payProcessMasterAutoId: {[Op.in]:processIds} } },
+				);
+
+				await db.payProcessDetails.update(
+					{ payStatus: 8 },
+					{ where: { proceessId: {[Op.in]:processIds} } },
 				);
 
 				try
@@ -6237,7 +6254,11 @@ async function generatePaySlip(data) {
 	console.log("generate pay slip");
 	try {
 		let { processId, req ,selectedYear} = data;
-
+		let currentProcess = await db.payProcessMaster.findOne({
+			where: { payProcessMasterAutoId: processId },
+			include: [{ model: db.companyMaster }],
+			raw: true,
+		});
 
 		// get financial year
 		let financialYearDetails = await paymentHelper.getFinancialYear(selectedYear);
@@ -6521,6 +6542,29 @@ async function generatePaySlip(data) {
 						},
 					},
 				);
+
+
+							// complete status of extra payment and extra deduction
+
+			await db.extraDeduction.update(
+				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+				{
+					where: {
+						EmployeeId: { [Op.in]: employeeIds },
+						startMonth: currentProcess.payMonth,
+					},
+				},
+			);
+
+			await db.extraPayment.update(
+				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+				{
+					where: {
+						EmployeeId: { [Op.in]: employeeIds },
+						paymentMonth: currentProcess.payMonth,
+					},
+				},
+			);
 			}
 		} else {
 			console.log("Porcess is not ready for salary generation");
@@ -6562,27 +6606,27 @@ async function releasePaySlip(data) {
 				{ where: { proceessId: processId } },
 			);
 
-			// complete status of extra payment and extra deduction
+			// // complete status of extra payment and extra deduction
 
-			await db.extraDeduction.update(
-				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
-				{
-					where: {
-						EmployeeId: { [Op.in]: employeeIds },
-						startMonth: currentProcess.payMonth,
-					},
-				},
-			);
+			// await db.extraDeduction.update(
+			// 	{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+			// 	{
+			// 		where: {
+			// 			EmployeeId: { [Op.in]: employeeIds },
+			// 			startMonth: currentProcess.payMonth,
+			// 		},
+			// 	},
+			// );
 
-			await db.extraPayment.update(
-				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
-				{
-					where: {
-						EmployeeId: { [Op.in]: employeeIds },
-						paymentMonth: currentProcess.payMonth,
-					},
-				},
-			);
+			// await db.extraPayment.update(
+			// 	{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+			// 	{
+			// 		where: {
+			// 			EmployeeId: { [Op.in]: employeeIds },
+			// 			paymentMonth: currentProcess.payMonth,
+			// 		},
+			// 	},
+			// );
 
 			// send confirmation mail to employee after salary slip release
 			if (employeeIds.length > 0) {
