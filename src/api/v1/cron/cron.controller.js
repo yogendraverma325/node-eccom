@@ -1845,6 +1845,9 @@ class CronController {
 	}
 
 	async biometricAttendance() {
+		const start = performance.now()
+		console.log("Biometric Attendance Cron Running");
+		console.log(`Biometric Start ${start}`);
 		try {
 
 			let cronArray = []
@@ -2067,6 +2070,10 @@ class CronController {
 			logger.error(`Error while connecting SSH ${error}`);
 			console.log(error);
 		}
+		const end = performance.now()
+		console.log(`Biometric End ${end}`);
+		const executionTime = end - start;
+		console.log(`Biometric Attendance Cron Completed in ${executionTime} milliseconds`);
 	}
 }
 

@@ -6,6 +6,7 @@ import helper from "../helper/helper.js";
 cron.schedule("30 1 * * *", async () => {
 	await attendanceController.attedanceCron();
 });
+
 cron.schedule("0 * * * *", async () => {
 	await attendanceController.attedanceCronEveryNightShift();
 });
@@ -57,7 +58,7 @@ cron.schedule("0 7 * * *", async () => {
 });
 
 if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-	cron.schedule("*/30 * * * *", async () => {
+	cron.schedule("50 06 * * *", async () => {
 		await cronController.biometricAttendance();
 	});
 }

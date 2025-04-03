@@ -2188,7 +2188,7 @@ const creditCompoff = async (inputObject) => {
 
 		if (goAhead) {
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
-			console.log("compOffPolicyData", compOffPolicyData);
+			// console.log("compOffPolicyData", compOffPolicyData);
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -2389,10 +2389,6 @@ const creditCompoff = async (inputObject) => {
 
 							comp_off_data.adjust_hours = time;
 							comp_off_data.total_hours = time;
-
-							// const records = Array(50).fill(null); // Create an array with 50 null placeholders
-							// for (const [index] of records.entries()) {
-							console.log("comp_off_data.balance", comp_off_data.balance)
 							const compOffCount = await db.comp_off_credit_history.findAll({
 								where: {
 									employee_Id: comp_off_data.employee_Id,
@@ -2405,7 +2401,6 @@ const creditCompoff = async (inputObject) => {
 								let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
 
 
-								console.log("compOffCount", compOffCount)
 								if (compOffCount.length == 0) {
 									// Insert both objects into the database
 									await db.comp_off_credit_history.create(comp_off_data_1);
