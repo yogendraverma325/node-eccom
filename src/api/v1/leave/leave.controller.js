@@ -4918,6 +4918,7 @@ class LeaveController {
 				},
 				attributes: ["name"],
 			});
+			
 			await db.employeeLeaveTransactions.update(
 				{
 					status: result.status,
@@ -4931,6 +4932,7 @@ class LeaveController {
 					},
 				},
 			);
+			
 			await db.EmployeeLeaveHeader.update(
 				{
 					status: result.status,
@@ -4945,6 +4947,7 @@ class LeaveController {
 					},
 				},
 			);
+
 			if (result.status == "approved") {
 				for (const leaveID of leaveIds) {
 					const existingRecordNew = await db.EmployeeLeaveHeader.findOne({
@@ -4958,7 +4961,7 @@ class LeaveController {
 							const leaveTrails = await db.leaveApprovalTrails.findAll({
 								where: {
 									leaveHeaderAutoId: leaveID,
-									...(req.userData.role_id !== 2 || req.userData.role_id !== 5 && { pendingOn: req.userId }),
+									//...(req.userData.role_id !== 2 || req.userData.role_id !== 5 && { pendingOn: req.userId }),
 								},
 								include: [
 									{

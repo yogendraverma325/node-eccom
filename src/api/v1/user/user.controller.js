@@ -688,6 +688,7 @@ class UserController {
 	async taskBoxCount(req, res) {
 		try {
 			let userid = req.userId;
+			let role_id = req.userData.role_id;
 			// const countLeavePending = await db.EmployeeLeaveHeader.count({
 			// 	where: {
 			// 		employeeId: userid,
@@ -960,13 +961,19 @@ class UserController {
 				distinct: true
 			});
 
-			let profileApprovalCount = await db.paymentDetails.count({
-				where: {
-					status: "pending",
-					// pendingAt: req.userId,
-				}
-			});
+			let profileApprovalCount = 0;
 
+			if(role_id == 2 || role_id == 5) {
+				profileApprovalCount = await db.paymentDetails.count({
+					where: {
+						status: "pending",
+						// pendingAt: req.userId,
+					}
+				});
+	
+			}
+
+			
 			const pendingCompOffCount =
 				await db.comp_off_credit_history.count({
 					where: {
