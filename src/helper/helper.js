@@ -3577,6 +3577,53 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 
 }
 
+
+const revokeAppliedLeave = async (date, emp) => {
+
+	const leave = await db.EmployeeLeaveHeader.findOne({
+		where: {
+			employeeId: emp,
+			fromDate: date,
+			status: ['approved', 'pending'],
+			source: 'system_generated'
+		},
+	})
+
+	if (leave) {
+		await db.EmployeeLeaveHeader.update({
+			status: 'revoked',
+			managerRemark: "System Revoked: Your leave request has been revoked due to the latest attendance data update.",
+			updatedAt: moment()
+		}, {
+			where: {
+				employeeleaveheaderID: leave.dataValues.employeeleaveheaderID
+			}
+		})
+
+		await db.employeeLeaveTransactions.update({
+			status: 'revoked',
+			managerRemark: "System Revoked: Your leave request has been revoked due to the latest attendance data update.",
+			updatedAt: moment()
+		}, {
+			where: {
+				employeeleaveheaderID: leave.dataValues.employeeleaveheaderID
+			}
+		})
+
+		if (leave.dataValues.status === 'approved') {
+			await db.leaveMapping.update({
+				availableLeave: db.sequelize.literal(`availableLeave + ${leave.dataValues.leaveCount}`),
+				utilizedThisYear: db.sequelize.literal(`utilizedThisYear - ${leave.dataValues.leaveCount}`)
+			}, {
+				where: {
+					EmployeeId: emp,
+					leaveAutoId: leave.dataValues.leaveAutoId
+				}
+			})
+		}
+	}
+
+}
 // END BY JAY GENERATE EMPLOYMENT HISTORY
 
 export default {
@@ -3633,6 +3680,7 @@ export default {
 	fetchpermissoinAndAcessForEMP,
 	getFiltersByPermission,
 	// START BY JAY GENERATE EMPLOYMENT HISTORY
-	generateEmployementHistory
-	// END BY JAY GENERATE EMPLOYMENT HISTORY
+	generateEmployementHistory,
+	// END BY JAY GENERATE EMPLOYMENT HISTORY,
+	revokeAppliedLeave
 };

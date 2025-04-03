@@ -3472,11 +3472,9 @@ class AttendanceController {
 						: activeEmployeeSingleItem.shiftsmaster.isOverNight
 				) {
 					nightwala++;
-					console.log("nightwala", nightwala);
 					await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
 				} else {
 					daywala++;
-					console.log("daywala", daywala);
 					//await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
 				}
 			}
@@ -3903,6 +3901,7 @@ class AttendanceController {
 								markHalfDay = 1;
 								markHalfDayType = 2;
 							}
+							await helper.revokeAppliedLeave(date, singleEmp.id)
 
 							if (
 								markHalfDay != null &&
