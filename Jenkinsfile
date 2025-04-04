@@ -34,7 +34,7 @@ pipeline {
         stage('Restart PM2 Process') {
             steps {
                 script {
-                    sh "pm2 restart ${PM2_APP_ID}"  // Restart only Project A
+                    sh "sudo -u tara pm2 restart 1"  // Restart only Project A
                 }
             }
         }

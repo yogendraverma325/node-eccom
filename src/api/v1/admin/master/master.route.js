@@ -702,6 +702,23 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.deleteJobLevelMapping,
 	)
+
+	// chanage status of department, functional area and job level mapping data
+	.patch(
+		"/department-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfDepartmentMapping,
+	)
+	.patch(
+		"/functional-area-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfFunctionalAreaMapping,
+	)
+	.patch(
+		"/job-level-mapping/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfJobLevelMapping,
+	)
 	//ritak export master data start
 
 	.get(
@@ -728,5 +745,85 @@ export default Express.Router()
 		"/export/exportJobLevelMasterData",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.exportJobLevelMasterData,
+	)
+	.get(
+		"/export/exportCompanyMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyMasterData,
+	)
+	.get(
+		"/export/exportCompanyTypeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyTypeMasterData,
+	)
+	.get(
+		"/export/exportBandMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportBandMasterData,
+	)
+	.get(
+		"/export/exportGradeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportGradeMasterData,
+	)
+	.get(
+		"/export/exportCompanyLocationMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCompanyLocationMasterData,
+	)
+	.get(
+		"/export/exportDegreeMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportDegreeMasterData,
+	)
+	.get(
+		"/export/exportHolidayMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportHolidayMasterData,
+	)
+	.get(
+		"/export/exportNewCustomerNameMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportNewCustomerNameMasterData,
+	)
+	.get(
+		"/export/exportBuMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportBuMasterData,
+	)
+	.get(
+		"/export/exportSbuMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportSbuMasterData,
+	)
+	.get(
+		"/export/exportWeekOffMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportWeekOffMasterData,
+	)
+	.get(
+		"/export/exportShiftMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportShiftMasterData,
+	)
+	.get(
+		"/export/exportAttendancePolicyMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportAttendancePolicyMasterData,
+	)
+	.get(
+		"/export/exportLeaveMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportLeaveMasterData,
+	)
+	.get(
+		"/export/exportNoticePeriodMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportNoticePeriodMasterData,
+	)
+	.get(
+		"/export/exportCostCenterMasterData",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.exportCostCenterMasterData,
 	);
 //ritak export master data end

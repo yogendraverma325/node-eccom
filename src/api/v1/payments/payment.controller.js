@@ -262,6 +262,7 @@ class PaymentController {
 						},
 					},
 				],
+				order: [['paySlipAutoId', 'DESC']]
 			});
 
 			return respHelper(res, {
@@ -815,6 +816,14 @@ class PaymentController {
 
 			// get financial year
 			let financialYearDetails = await paymentHelper.getFinancialYear();
+			if(!financialYearDetails)
+				{
+					return respHelper(res, {
+						status: 500,
+						msg: "Financial Year not found.",
+					});
+				}
+	
 
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
@@ -1250,7 +1259,7 @@ class PaymentController {
 	}
 	//////////////////////////////UPLOAD SECTION///////////////////////////////////
 	async processSalaryAPI(req, res) {
-		let actualWorkingDays = await paymentHelper.actualWorkingDays({
+		var actualWorkingDays = await paymentHelper.actualWorkingDays({
 			payYear: 2020,
 			payMonth: 1,
 			employeeId: 1119,
@@ -2530,7 +2539,9 @@ class PaymentController {
 			let buCondition = buId ? `AND e.buId IN (${buId})` : "";
 
 			// get financial year
-			let financialYearDetails = await paymentHelper.getFinancialYear();
+			let financialYearDetails = await paymentHelper.getFinancialYear(value.selectedYear);
+
+			console.log(financialYearDetails);
 
 			let allEmployeeQuery = await paymentHelper.query(
 				value.departmentId == 0 ? 25 : 19,
@@ -2877,6 +2888,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
+			console.log(query);
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
@@ -3040,46 +3052,99 @@ class PaymentController {
 	}
 
 	async releasePaySlip(req, res) {
-		try {
-			let { processId, empIds } = req.body;
-
-			if (!empIds) {
+		try 
+		{
+			const { error,value} = await validator.releaseSlipCheck.validate(req.body);
+		
+			if (!value.empIds) {
 				return respHelper(res, {
 					status: 400,
 					data: [],
 					msg: "Employee Details not found.",
 				});
 			}
+			let pay_year =
+				value.pay_month == "01" ||
+				value.pay_month == "02" ||
+				value.pay_month == "03"
+					? parseInt(value.pay_year) + 1
+					: value.pay_year;
 
-			let employees = empIds.split(",");
+			let paymonth = pay_year + "-" + value.pay_month;
+			let employees = value.empIds.split(",");
+			console.log("value   :::",pay_year+"-"+paymonth);
+			let payProcesses = await db.payProcessMaster.findAll({where:{payMonth:pay_year},attributes:['payProcessMasterAutoId'],raw:true})
+			const processIds = payProcesses.map(item => item.payProcessMasterAutoId);
+			const paySlipsToUpdate= await db.paySlips.findAll({where: {
+				paySlipStatus: 0,
+				EmployeeId: { [Op.in]: employees },
+				payMonth:paymonth
+			},attributes:['paySlipAutoId',"EmployeeId"],raw:true});
 
-			const queryEmloyeeAlreadyReleased = await paymentHelper.query(
-				2,
-				employees,
-				1,
-			);
-			const resultAlreadyReleased = await db.sequelize.query(
-				queryEmloyeeAlreadyReleased,
-			);
 
-			const releasedPaySlipFor = await db.paySlips.update(
-				{ paySlipStatus: 1, updatedAt: new Date(), updatedBy: req.userData.id },
-				{
-					where: {
-						paySlipStatus: 0,
-						EmployeeId: { [Op.in]: employees },
+
+			if(paySlipsToUpdate.length>0)
+			{
+				const paySlipIds = paySlipsToUpdate.map(item => item.paySlipAutoId);
+				const employeeIds = paySlipsToUpdate.map(item => item.EmployeeId);
+				console.log(paySlipIds);
+				 await db.paySlips.update(
+					{ paySlipStatus: 1, updatedAt: new Date(), updatedBy: req.userData.id },
+					{
+						where: {
+							paySlipAutoId: { [Op.in]: paySlipIds },
+						},	
 					},
-				},
-			);
+				);
 
-			return respHelper(res, {
-				status: 200,
-				data: {
-					payslipAlreadyReleased: resultAlreadyReleased[0],
-					paySlipReleasedFor: releasedPaySlipFor,
-				},
-				msg: "Pay Slip Released for " + releasedPaySlipFor[0] + " Employees.",
-			});
+
+
+				await db.payProcessMaster.update(
+					{
+						processFlowId: 12,
+						updatedBy: req.userData.id,
+						updatedAt: new Date(),
+					},
+					{ where: { payProcessMasterAutoId: {[Op.in]:processIds} } },
+				);
+
+				await db.payProcessDetails.update(
+					{ payStatus: 8 },
+					{ where: { proceessId: {[Op.in]:processIds} } },
+				);
+
+				try
+				{
+					sendMailAfterSalarySlipRelease(
+						employeeIds,
+						paymonth,
+						null,
+					);
+				}catch(e)
+				{
+					console.log(e);
+				}
+
+				return respHelper(res, {
+					status: 200,
+					data: paySlipsToUpdate,
+					msg: "Pay Slip Released for " + paySlipsToUpdate.length + " Employees.",
+				});
+
+
+			}
+			else
+			{
+				return respHelper(res, {
+					status: 400,
+					data: {},
+					msg: "No PaySlip is available for release.",
+				});
+			}
+
+			
+
+			
 		} catch (e) {
 			console.log(e);
 		}
@@ -3183,7 +3248,6 @@ class PaymentController {
 					processType: value.processType,
 				},
 			);
-
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
@@ -3236,7 +3300,7 @@ class PaymentController {
 
 	async updateNextStatus(req, res) {
 		try {
-			let { processId, currentStatusId, nextStatusId } = req.body;
+			let { processId, currentStatusId, nextStatusId,selectedYear } = req.body;
 
 			const queryForMappedEmployeeList = await paymentHelper.query(
 				6,
@@ -3256,7 +3320,7 @@ class PaymentController {
 			}
 
 			if (nextStatusId == 7) {
-				await generatePaySlip({ processId: processId, req });
+				await generatePaySlip({ processId: processId, req,selectedYear:selectedYear });
 			} else if (nextStatusId == 8) {
 				await releasePaySlip({ processId: processId, req, nextStatusId });
 			} else {
@@ -3490,14 +3554,25 @@ class PaymentController {
 				processId,
 			} = req.query;
 
+			  console.log(req.query);
+			// return;
+
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
 			if (fileNameType === "1") {
 				customSheetName = "Total Employees";
-			} else if (fileNameType === "2") {
+			} else if (fileNameType === "5") {
 				customSheetName = "Processing Employees";
 			}
-
+			else if (fileNameType === "3") {
+				customSheetName = "Processed Employees";
+			}
+			else if (fileNameType === "4") {
+				customSheetName = "InProcess Employees";
+			}
+			else if (fileNameType === "2") {
+				customSheetName = "Excluded Employees";
+			}
 			console.log(req.query);
 
 			const sheetName = {
@@ -3520,6 +3595,8 @@ class PaymentController {
 				"Extra Benefit Sample": 17,
 				"Leave Encashment Sample": 18,
 				"Gratuity Sample": 19,
+				"PaySlip Released": 20,
+				"PaySlip Generated": 21,
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3581,7 +3658,7 @@ class PaymentController {
 			}
 			// return
 			let employeeData = [];
-			if (salalryStructureAutoId == 0 && exportSheetAutoId == 6) {
+			if (salalryStructureAutoId == 0 && [6,20,21].includes(Number(exportSheetAutoId))) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
 				console.log(employeeIds);
@@ -3592,7 +3669,7 @@ class PaymentController {
 					const [results] = await db.sequelize.query(query, { raw: true });
 					employeeData = results;
 				}
-				console.log(employeeData);
+				console.log(query);
 			}
 
 			if (
@@ -3699,8 +3776,9 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[6, 7, 8, 9].includes(Number(exportSheetAutoId))
+				[6, 7, 8, 9,20,21].includes(Number(exportSheetAutoId))
 			) {
+				console.log("File is getting ready.....")
 				const data = [
 					{
 						sheet: "Employee",
@@ -3711,7 +3789,6 @@ class PaymentController {
 						content: employeeData,
 					},
 				];
-
 				const settings = {
 					fileName: `Total_${timestamp}`,
 					extraLength: 3,
@@ -5034,7 +5111,7 @@ class PaymentController {
 			const result = await validator.generatePaySlipSchema.validateAsync(
 				req.body,
 			);
-			let { EmployeeId, payMonth } = result;
+			let { EmployeeId, payMonth,financialYearId } = result;
 
 			// verify salary slip exist or not
 			let matchQuery = { EmployeeId: EmployeeId, payMonth: payMonth };
@@ -5083,7 +5160,7 @@ class PaymentController {
 
 					let employees = [EmployeeId]; //[484,560];//employeeIds
 					for (const employee of employees) {
-						const actualWorkingDays = await paymentHelper.actualWorkingDays({
+						var actualWorkingDays = await paymentHelper.actualWorkingDays({
 							employeeId: employee,
 							// year: result[0][0].payMonth.split("-")[0],
 							// month: result[0][0].payMonth.split("-")[1],
@@ -5091,6 +5168,7 @@ class PaymentController {
 							month: payMonth.split("-")[1],
 							totalWorkingDays: totalWorkingDays,
 						});
+						
 						if (!actualWorkingDays) {
 							return respHelper(res, {
 								status: 400,
@@ -5125,7 +5203,7 @@ class PaymentController {
 
 						const lopDays =
 							parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-
+							actualWorkingDays=actualWorkingDays-lopDays;
 						const lopMonthWiseCalculation =
 							totalWorkingDays > 0
 								? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(
@@ -5450,7 +5528,7 @@ class PaymentController {
 						///////////////Calculation And Updation of ESIC Amount //////////////////////
 					}
 
-					let metaData = { EmployeeId, req };
+					let metaData = { EmployeeId, req,financialYearId };
 					// console.log("salary process completed");
 					let status = await callSinglePaySlipFun(metaData);
 
@@ -5824,12 +5902,13 @@ async function processSalary(data) {
 			errorProcessed = [];
 		let employees = employeeIds; //[484,560];//employeeIds
 		for (const employee of employees) {
-			const actualWorkingDays = await paymentHelper.actualWorkingDays({
+			var actualWorkingDays = await paymentHelper.actualWorkingDays({
 				employeeId: employee,
 				year: result[0][0].payMonth.split("-")[0],
 				month: result[0][0].payMonth.split("-")[1],
 				totalWorkingDays: totalWorkingDays,
 			});
+			
 
 			if (!actualWorkingDays) {
 				await db.payProcessDetails.update(
@@ -5870,7 +5949,7 @@ async function processSalary(data) {
 
 			const lopDays =
 				parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-
+				actualWorkingDays=actualWorkingDays-lopDays;
 			const lopMonthWiseCalculation =
 				totalWorkingDays > 0
 					? ((payPackageMonthlyCTC / totalWorkingDays) * lopDays).toFixed(2)
@@ -6026,9 +6105,9 @@ async function processSalary(data) {
 			//   queryForAffetElementCounts
 			// );
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
-				console.log("**********empCopntWiseDetl************");
-				console.log(empCopntWiseDetl);
-				console.log("**********empCopntWiseDetl************");
+				// console.log("**********empCopntWiseDetl************");
+				// console.log(empCopntWiseDetl);
+				// console.log("**********empCopntWiseDetl************");
 
 				const queryForComponentConfiguration = await paymentHelper.query(
 					12,
@@ -6175,10 +6254,15 @@ async function processSalary(data) {
 async function generatePaySlip(data) {
 	console.log("generate pay slip");
 	try {
-		let { processId, req } = data;
+		let { processId, req ,selectedYear} = data;
+		let currentProcess = await db.payProcessMaster.findOne({
+			where: { payProcessMasterAutoId: processId },
+			include: [{ model: db.companyMaster }],
+			raw: true,
+		});
 
 		// get financial year
-		let financialYearDetails = await paymentHelper.getFinancialYear();
+		let financialYearDetails = await paymentHelper.getFinancialYear(selectedYear);
 
 		let queryForCurrentProcessStatus = await paymentHelper.query(
 			15,
@@ -6459,6 +6543,29 @@ async function generatePaySlip(data) {
 						},
 					},
 				);
+
+
+							// complete status of extra payment and extra deduction
+
+			await db.extraDeduction.update(
+				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+				{
+					where: {
+						EmployeeId: { [Op.in]: employeeIds },
+						startMonth: currentProcess.payMonth,
+					},
+				},
+			);
+
+			await db.extraPayment.update(
+				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+				{
+					where: {
+						EmployeeId: { [Op.in]: employeeIds },
+						paymentMonth: currentProcess.payMonth,
+					},
+				},
+			);
 			}
 		} else {
 			console.log("Porcess is not ready for salary generation");
@@ -6500,27 +6607,27 @@ async function releasePaySlip(data) {
 				{ where: { proceessId: processId } },
 			);
 
-			// complete status of extra payment and extra deduction
+			// // complete status of extra payment and extra deduction
 
-			await db.extraDeduction.update(
-				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
-				{
-					where: {
-						EmployeeId: { [Op.in]: employeeIds },
-						startMonth: currentProcess.payMonth,
-					},
-				},
-			);
+			// await db.extraDeduction.update(
+			// 	{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+			// 	{
+			// 		where: {
+			// 			EmployeeId: { [Op.in]: employeeIds },
+			// 			startMonth: currentProcess.payMonth,
+			// 		},
+			// 	},
+			// );
 
-			await db.extraPayment.update(
-				{ status: 1, updatedAt: moment(), updatedBy: req.userId },
-				{
-					where: {
-						EmployeeId: { [Op.in]: employeeIds },
-						paymentMonth: currentProcess.payMonth,
-					},
-				},
-			);
+			// await db.extraPayment.update(
+			// 	{ status: 1, updatedAt: moment(), updatedBy: req.userId },
+			// 	{
+			// 		where: {
+			// 			EmployeeId: { [Op.in]: employeeIds },
+			// 			paymentMonth: currentProcess.payMonth,
+			// 		},
+			// 	},
+			// );
 
 			// send confirmation mail to employee after salary slip release
 			if (employeeIds.length > 0) {
@@ -6634,10 +6741,12 @@ async function sendMailAfterSalarySlipRelease(
 }
 
 async function callSinglePaySlipFun(data) {
-	let { EmployeeId, req } = data;
+	let { EmployeeId, req ,financialYearId} = data;
+
+	let financialYearDetails = await db.financialYearMaster.findOne({where:{financialYearId:financialYearId},attributes:['financialYearName','financialYearId'],raw:true})
 	const employeeIds = [EmployeeId];
 	// get financial year
-	let financialYearDetails = await paymentHelper.getFinancialYear();
+//	let financialYearDetails = await paymentHelper.getFinancialYear(selectedYear);
 
 	let queryForPayMonthlyElementsForSalarySlip = await paymentHelper.query(
 		16,

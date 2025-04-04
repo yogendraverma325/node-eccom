@@ -206,9 +206,14 @@ class CommonController {
 			let pageLimit = parseInt(req.query.limit) || Pagination.perPage;
 
 			let query = {
-				...(search && { bandCode: { [Op.like]: `%${search}%` } }),
+				// isActive: 1,
+				...(search && {
+					[Op.or]: [
+						{ bandCode: { [Op.like]: `%${search}%` } },
+						{ bandDesc: { [Op.like]: `%${search}%` } },
+					],
+				}),
 			};
-
 			let aggregate = {
 				where: query,
 				attributes: ["bandId", "bandCode", "bandDesc", "createdAt", "isActive"],
@@ -3478,7 +3483,7 @@ class CommonController {
 
 			let aggregate = {
 				where: query,
-				attributes: ["jobLevelMappingId"],
+				attributes: ["jobLevelMappingId", "isActive"],
 				order: [["jobLevelMappingId", "DESC"]],
 				include: [
 					{ model: db.companyMaster, attributes: ["companyId", "companyName"] },
@@ -3572,7 +3577,7 @@ class CommonController {
 
 			let aggregate = {
 				where: query,
-				attributes: ["departmentMappingId"],
+				attributes: ["departmentMappingId", "isActive"],
 				order: [["departmentMappingId", "DESC"]],
 				include: [
 					{
@@ -3656,7 +3661,7 @@ class CommonController {
 
 			let aggregate = {
 				where: query,
-				attributes: ["functionalAreaMappingId"],
+				attributes: ["functionalAreaMappingId", "isActive"],
 				order: [["functionalAreaMappingId", "DESC"]],
 				include: [
 					{
@@ -4667,6 +4672,71 @@ class CommonController {
 
 	// end delete mapping data
 
+
+	// start change status of job level, department and functional area mapping
+
+	async changeStatusOfJobLevelMapping(req, res) {
+		try {
+			let model = db.jobLevelMapping;
+			let query = { jobLevelMappingId: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfDepartmentMapping(req, res) {
+		try {
+			let model = db.departmentMapping;
+			let query = { departmentMappingId: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfFunctionalAreaMapping(req, res) {
+		try {
+			let model = db.functionalAreaMapping;
+			let query = { functionalAreaMappingId: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// end change status of job level, department and functional area mapping
+
 	//ritak export master data start
 
 	async exportBankMasterData(req, res) {
@@ -5267,6 +5337,1859 @@ class CommonController {
 			return respHelper(res, { status: 500 });
 		}
 	}
+
+	async exportCompanyMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"companyId",
+					"companyName",
+					"companyCode",
+					"groupId",
+					"currencyId",
+					"timeZoneId",
+					"headerColor",
+					"senderEmail",
+					"letterHeader",
+					"letterFooter",
+					"finacialYearBegin",
+					"industryId",
+					"siteUrl",
+					"companyTypeId",
+					"dateOfIncorporation",
+					"panNo",
+					"tanNo",
+					"vatRegNo",
+					"cstRegNo",
+					"pfRegNo",
+					"gstNo",
+					"esiRegNo",
+					"companyLogo",
+					"officialMail",
+					"createdAt",
+					"updatedAt",
+					"isActive"
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.groupCompanyMaster,
+						attributes: ["groupName", "groupCode"],
+					},
+					{
+						model: db.currencyMaster,
+						attributes: ["currencyName", "currencyCode"],
+					},
+					{
+						model: db.timeZoneMaster,
+						attributes: ["timezoneCode"],
+					},
+					{
+						model: db.industryMaster,
+						attributes: ["industryName"],
+					},
+					{
+						model: db.companyTypeMaster,
+						attributes: ["typeName"],
+					},
+				],
+				order: [["companyId", "ASC"]],
+			};
+	
+			let companyMasterData = await db.companyMaster.findAll(aggregate);
+			//console.log(JSON.stringify(companyMasterData, null, 2));
+	
+			let finalData = companyMasterData.map((company) => ({
+				companyId: company.companyId,
+				companyName: company.companyName,
+				companyCode: company.companyCode,
+				groupId: company.groupcompanymaster?.groupName,
+				currencyId: company.currencymaster?.currencyName,
+				timeZoneId: company.timezonemaster?.timezoneCode,
+				headerColor: company.headerColor || "-",
+				senderEmail: company.senderEmail || "-",
+				letterHeader: company.letterHeader || "-",
+				letterFooter: company.letterFooter || "-",
+				finacialYearBegin: company.finacialYearBegin || "-",
+				industryId: company.industrymaster?.industryName || "-",
+				siteUrl: company.siteUrl || "-",
+				companyTypeId: company.companyTypeId,
+				dateOfIncorporation: company.dateOfIncorporation ? moment(company.dateOfIncorporation).format("DD-MM-YYYY") : "-",
+				panNo: company.panNo || "-",
+				tanNo: company.tanNo || "-",
+				vatRegNo: company.vatRegNo || "-",
+				cstRegNo: company.cstRegNo || "-",
+				pfRegNo: company.pfRegNo || "-",
+				gstNo: company.gstNo || "-",
+				esiRegNo: company.esiRegNo || "-",
+				companyLogo: company.companyLogo || "-",
+				officialMail: company.officialMail || "-",
+				isActive: company.isActive ? "Active" : "Inactive",
+				createdAt: company.createdAt ? moment(company.createdAt).format("DD-MM-YYYY") : "-",
+				updatedAt: company.updatedAt ? moment(company.updatedAt).format("DD-MM-YYYY") : "-",
+				createdBy: company.createdEmployee ? `${company.createdEmployee.name} (${company.createdEmployee.empCode})` : "-",
+				updatedBy: company.updatedEmployee ? `${company.updatedEmployee.name} (${company.updatedEmployee.empCode})` : "-",
+			}));
+	
+			const timestamp = moment().format("YYYYMMDD");
+	
+			const data = [
+				{
+					sheet: "Company Master Data",
+					columns: [
+						{ label: "Company ID", value: "companyId" },
+						{ label: "Company Name", value: "companyName" },
+						{ label: "Company Code", value: "companyCode" },
+						{ label: "Group ID", value: "groupId" },
+						{ label: "Currency ID", value: "currencyId" },
+						{ label: "Time Zone ID", value: "timeZoneId" },
+						{ label: "Header Color", value: "headerColor" },
+						{ label: "Sender Email", value: "senderEmail" },
+						{ label: "Letter Header", value: "letterHeader" },
+						{ label: "Letter Footer", value: "letterFooter" },
+						{ label: "Financial Year Begin", value: "finacialYearBegin" },
+						{ label: "Industry ID", value: "industryId" },
+						{ label: "Site URL", value: "siteUrl" },
+						{ label: "Company Type ID", value: "companyTypeId" },
+						{ label: "Date of Incorporation", value: "dateOfIncorporation" },
+						{ label: "PAN No", value: "panNo" },
+						{ label: "TAN No", value: "tanNo" },
+						{ label: "VAT Reg No", value: "vatRegNo" },
+						{ label: "CST Reg No", value: "cstRegNo" },
+						{ label: "PF Reg No", value: "pfRegNo" },
+						{ label: "GST No", value: "gstNo" },
+						{ label: "ESI Reg No", value: "esiRegNo" },
+						{ label: "Company Logo", value: "companyLogo" },
+						{ label: "Official Mail", value: "officialMail" },
+						{ label: "Status", value: "isActive" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			const settings = {
+				fileName: `Company_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			const report = Buffer.from(xlsx(data, settings));
+	
+			res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			res.attachment(`Company_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+	async exportCompanyTypeMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"companyTypeId",
+					"typeName",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					
+				],
+				order: [["companyTypeId", "ASC"]],
+			};
+
+			let companyTypeMasterData = await db.companyTypeMaster.findAll(aggregate);
+			// console.log(JSON.stringify(jobLevelData, null, 2));
+
+			let finalData = companyTypeMasterData.map((companyType) => ({
+				companyTypeId: companyType.companyTypeId,
+				name: companyType.typeName,
+				status: companyType.isActive ? "Active" : "Inactive",
+				createdAt: companyType.createdAt
+					? moment(companyType.createdAt).format("DD-MM-YYYY")
+					: "",
+				updatedAt: companyType.updatedAt
+					? moment(companyType.updatedAt).format("DD-MM-YYYY")
+					: "",
+				createdBy: companyType.createdEmployee
+					? `${companyType.createdEmployee.name || ""} (${companyType.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: companyType.updatedEmployee
+					? `${companyType.updatedEmployee.name || ""} (${companyType.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "CompanyType Master Data",
+					columns: [
+						{ label: "Company Type ID", value: "companyTypeId" },
+						{ label: "Company Type Name", value: "name" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+
+			const settings = {
+				fileName: `CompanyType_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			);
+			res.attachment(`CompanyType_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+	async exportBandMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"bandId",
+					"bandCode",
+					"bandDesc",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					
+				],
+				order: [["bandId", "ASC"]],
+			};
+
+			let bandMasterData = await db.bandMaster.findAll(aggregate);
+			// console.log(JSON.stringify(jobLevelData, null, 2));
+
+			let finalData = bandMasterData.map((data) => ({
+				bandId: data.bandId,
+				bandCode: data.bandCode,
+				bandDesc: data.bandDesc,
+				status: data.isActive ? "Active" : "Inactive",
+				createdAt: data.createdAt
+					? moment(data.createdAt).format("DD-MM-YYYY")
+					: "",
+				updatedAt: data.updatedAt
+					? moment(data.updatedAt).format("DD-MM-YYYY")
+					: "",
+				createdBy: data.createdEmployee
+					? `${data.createdEmployee.name || ""} (${data.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: data.updatedEmployee
+					? `${data.updatedEmployee.name || ""} (${data.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "Band Master Data",
+					columns: [
+						{ label: "Band ID", value: "bandId" },
+						{ label: "Band Code", value: "bandCode" },
+						{ label: "Band Desc", value: "bandDesc" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+
+			const settings = {
+				fileName: `Band_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			);
+			res.attachment(`Band_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+	async exportGradeMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"gradeId",
+					"gradeName",
+					"gradeCode",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					
+				],
+				order: [["gradeId", "ASC"]],
+			};
+
+			let gradeMasterData = await db.gradeMaster.findAll(aggregate);
+			// console.log(JSON.stringify(jobLevelData, null, 2));
+
+			let finalData = gradeMasterData.map((data) => ({
+				gradeId: data.gradeId,
+				gradeName: data.gradeName,
+				gradeCode: data.gradeCode,
+				status: data.isActive ? "Active" : "Inactive",
+				createdAt: data.createdAt
+					? moment(data.createdAt).format("DD-MM-YYYY")
+					: "",
+				updatedAt: data.updatedAt
+					? moment(data.updatedAt).format("DD-MM-YYYY")
+					: "",
+				createdBy: data.createdEmployee
+					? `${data.createdEmployee.name || ""} (${data.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: data.updatedEmployee
+					? `${data.updatedEmployee.name || ""} (${data.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "Grade Master Data",
+					columns: [
+						{ label: "Grade ID", value: "gradeId" },
+						{ label: "Grade Name", value: "gradeName" },
+						{ label: "Grade Code", value: "gradeCode" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+
+			const settings = {
+				fileName: `Grade_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			);
+			res.attachment(`Grade_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+	async exportCostCenterMasterData(req, res) {
+		try {
+			let aggregate = {
+				attributes: [
+					"costCenterId",
+					"costCenterName",
+					"costCenterCode",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["empCode", "name"],
+					},					
+				],
+				order: [["costCenterId", "ASC"]],
+			};
+
+			let costCenterMasterData = await db.costCenterMaster.findAll(aggregate);
+			//console.log(JSON.stringify(costCenterMasterData, null, 2));
+
+			let finalData = costCenterMasterData.map((data) => ({
+				costCenterId: data.costCenterId,
+				costCenterName: data.costCenterName,
+				costCenterCode: data.costCenterCode,
+				costCenterHead: data.employee
+					? `${data.employee.name || ""} (${data.employee.empCode || "-"})`
+					: "-",
+				status: data.isActive ? "Active" : "Inactive",
+				createdAt: data.createdAt
+					? moment(data.createdAt).format("DD-MM-YYYY")
+					: "",
+				updatedAt: data.updatedAt
+					? moment(data.updatedAt).format("DD-MM-YYYY")
+					: "",
+				createdBy: data.createdEmployee
+					? `${data.createdEmployee.name || ""} (${data.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: data.updatedEmployee
+					? `${data.updatedEmployee.name || ""} (${data.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+
+			const timestamp = moment().format("YYYYMMDD");
+
+			const data = [
+				{
+					sheet: "CostCenter Master Data",
+					columns: [
+						{ label: "CostCenter ID", value: "costCenterId" },
+						{ label: "CostCenter Name", value: "costCenterName" },
+						{ label: "CostCenter Code", value: "costCenterCode" },
+						{ label: "CostCenter Head", value: "costCenterHead" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+
+			const settings = {
+				fileName: `CostCenter_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const report = Buffer.from(xlsx(data, settings));
+
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			);
+			res.attachment(`CostCenter_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+		async exportCompanyLocationMasterData(req, res) {
+		try {
+			// Define the query to fetch company location data with necessary attributes and associations
+			let aggregate = {
+				attributes: [
+					"companyLocationId",
+					"companyLocationCode",
+					"companyId",
+					"address1",
+					"address2",
+					"cityId",
+					"stateId",
+					"countryId",
+					"pincodeId",
+					"gstNo",
+					"phoneNo",
+					"mobileNo",
+					"isHeadquarter",
+					"latitude",
+					"longitude",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.cityMaster,
+						attributes: ["cityName"],
+					},
+					{
+						model: db.stateMaster,
+						attributes: ["stateName"],
+					},
+					{
+						model: db.countryMaster,
+						attributes: ["countryName"],
+					},
+					{
+						model: db.pinCodeMaster,
+						attributes: ["pincode"],
+					},
+					{
+						model: db.companyMaster,
+						as: "companyMaster",
+						attributes: ["companyName", "companyCode"],
+					},
+				],
+				order: [["companyLocationId", "ASC"]], // Order by companyLocationId in ascending order
+			};
+	
+			// Fetch data from the database
+			let companyLocationData = await db.companyLocationMaster.findAll(aggregate);
+	
+			// Map the data to the desired format for the Excel sheet
+			let finalData = companyLocationData.map((location) => ({
+				companyLocationId: location.companyLocationId,
+				companyLocationCode: location.companyLocationCode,
+				company: location.companyMaster
+					? `${location.companyMaster.companyName || ""} (${location.companyMaster.companyCode || "-"})`
+					: "-",
+				address1: location.address1 || "-",
+				address2: location.address2 || "-",
+				city: location.citymaster?.cityName || "-",
+				state: location.statemaster?.stateName || "-",
+				country: location.countrymaster?.countryName || "-",
+				pincode: location.pincodemaster?.pincode || "-",
+				gstNo: location.gstNo || "-",
+				phoneNo: location.phoneNo || "-",
+				mobileNo: location.mobileNo || "-",
+				isHeadquarter: location.isHeadquarter ? "Yes" : "No",
+				latitude: location.latitude || "-",
+				longitude: location.longitude || "-",
+				status: location.isActive ? "Active" : "Inactive",
+				createdAt: location.createdAt
+					? moment(location.createdAt).format("DD-MM-YYYY")
+					: "-",
+				updatedAt: location.updatedAt
+					? moment(location.updatedAt).format("DD-MM-YYYY")
+					: "-",
+				createdBy: location.createdEmployee
+					? `${location.createdEmployee.name || ""} (${location.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: location.updatedEmployee
+					? `${location.updatedEmployee.name || ""} (${location.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+	
+			// Generate a timestamp for the file name
+			const timestamp = moment().format("YYYYMMDD");
+	
+			// Define the structure of the Excel sheet
+			const data = [
+				{
+					sheet: "Company Location Master Data",
+					columns: [
+						{ label: "Company Location ID", value: "companyLocationId" },
+						{ label: "Company Location Code", value: "companyLocationCode" },
+						{ label: "Company", value: "company" },
+						{ label: "Address 1", value: "address1" },
+						{ label: "Address 2", value: "address2" },
+						{ label: "City", value: "city" },
+						{ label: "State", value: "state" },
+						{ label: "Country", value: "country" },
+						{ label: "Pincode", value: "pincode" },
+						{ label: "GST No", value: "gstNo" },
+						{ label: "Phone No", value: "phoneNo" },
+						{ label: "Mobile No", value: "mobileNo" },
+						{ label: "Is Headquarter", value: "isHeadquarter" },
+						{ label: "Latitude", value: "latitude" },
+						{ label: "Longitude", value: "longitude" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			// Define settings for the Excel file
+			const settings = {
+				fileName: `Company_Location_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			// Generate the Excel file
+			const report = Buffer.from(xlsx(data, settings));
+	
+			// Set headers and send the file as a response
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			);
+			res.attachment(`Company_Location_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			// Log the error and send a 500 response
+			console.error("Error exporting company location master data:", error);
+			return respHelper(res, { status: 500, message: "Internal Server Error" });
+		}
+	}
+		async exportDegreeMasterData(req, res) {
+		try {
+			// Define the query to fetch degree master data with necessary attributes and associations
+			let aggregate = {
+				attributes: [
+					"degreeId",
+					"degreeName",
+					"degreeCode",
+					"degreeType",
+					"durationInYears",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+				],
+				order: [["degreeId", "ASC"]], // Order by degreeId in ascending order
+			};
+	
+			// Fetch data from the database
+			let degreeMasterData = await db.degreeMaster.findAll(aggregate);
+	
+			// Map the data to the desired format for the Excel sheet
+			let finalData = degreeMasterData.map((degree) => ({
+				degreeId: degree.degreeId,
+				degreeName: degree.degreeName,
+				degreeCode: degree.degreeCode,
+				degreeType: degree.degreeType || "-",
+				durationInYears: degree.durationInYears || "-",
+				status: degree.isActive ? "Active" : "Inactive",
+				createdAt: degree.createdAt
+					? moment(degree.createdAt).format("DD-MM-YYYY")
+					: "-",
+				updatedAt: degree.updatedAt
+					? moment(degree.updatedAt).format("DD-MM-YYYY")
+					: "-",
+				createdBy: degree.createdEmployee
+					? `${degree.createdEmployee.name || ""} (${degree.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: degree.updatedEmployee
+					? `${degree.updatedEmployee.name || ""} (${degree.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+	
+			// Generate a timestamp for the file name
+			const timestamp = moment().format("YYYYMMDD");
+	
+			// Define the structure of the Excel sheet
+			const data = [
+				{
+					sheet: "Degree Master Data",
+					columns: [
+						{ label: "Degree ID", value: "degreeId" },
+						{ label: "Degree Name", value: "degreeName" },
+						{ label: "Degree Code", value: "degreeCode" },
+						{ label: "Degree Type", value: "degreeType" },
+						{ label: "Duration (Years)", value: "durationInYears" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			// Define settings for the Excel file
+			const settings = {
+				fileName: `Degree_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			// Generate the Excel file
+			const report = Buffer.from(xlsx(data, settings));
+	
+			// Set headers and send the file as a response
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			);
+			res.attachment(`Degree_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			// Log the error and send a 500 response
+			console.error("Error exporting degree master data:", error);
+			return respHelper(res, { status: 500, message: "Internal Server Error" });
+		}
+	}
+		async exportHolidayMasterData(req, res) {
+		try {
+			// Define the query to fetch holiday master data with necessary attributes and associations
+			let aggregate = {
+				attributes: [
+					"holidayId",
+					"holidayName",
+					"holidayDate",
+					"isNationalHoliday", // Include isNationalHoliday column
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.holidayCompanyLocationConfiguration,
+						attributes: ["companyLocationId"],
+						include: [
+							{
+								model: db.companyLocationMaster,
+								as: "companyLocationMaster",
+								attributes: ["companyLocationCode"],
+								include: [
+									{
+										model: db.cityMaster,
+										attributes: ["cityName"], // Include cityName
+									},
+									{
+										model: db.companyMaster,
+										as: "companyMaster",
+										attributes: ["companyName", "companyCode"],
+									},
+								],
+							},
+							
+						],
+					},
+				],
+				order: [["holidayId", "ASC"]], // Order by holidayId in ascending order
+			};
+	
+			// Fetch data from the database
+			let holidayMasterData = await db.holidayMaster.findAll(aggregate);
+			//	console.log(JSON.stringify(holidayMasterData, null, 2));
+
+			// Map the data to the desired format for the Excel sheet
+			let finalData = holidayMasterData.map((holiday) => {
+				// Use a Set to store unique company names
+				const uniqueCompanies = new Set(
+					holiday.holidaycompanylocationconfigurations.map((config) => {
+						const company = config.companyLocationMaster?.companyMaster;
+						return company
+							? `${company.companyName} (${company.companyCode || "-"})`
+							: "-";
+					})
+				);
+	
+				// Use a Set to store unique location names and codes
+				const uniqueLocations = new Set(
+					holiday.holidaycompanylocationconfigurations.map((config) => {
+						const location = config.companyLocationMaster;
+						const city = location?.citymaster?.cityName || "-";
+						return location
+							? `${city || "-"} (${location.companyLocationCode})`
+							: "-";
+					})
+				);
+	
+				return {
+					holidayId: holiday.holidayId,
+					holidayName: holiday.holidayName,
+					holidayDate: holiday.holidayDate
+						? moment(holiday.holidayDate).format("DD-MM-YYYY")
+						: "-",
+					isNationalHoliday: holiday.isNationalHoliday ? "Yes" : "No", // Map isNationalHoliday
+					company: Array.from(uniqueCompanies).join(", "), // Convert Set to Array and join
+					holidayLocations: Array.from(uniqueLocations).join(", "), // Convert Set to Array and join
+					status: holiday.isActive ? "Active" : "Inactive",
+					createdAt: holiday.createdAt
+						? moment(holiday.createdAt).format("DD-MM-YYYY")
+						: "-",
+					updatedAt: holiday.updatedAt
+						? moment(holiday.updatedAt).format("DD-MM-YYYY")
+						: "-",
+					createdBy: holiday.createdEmployee
+						? `${holiday.createdEmployee.name || ""} (${holiday.createdEmployee.empCode || "-"})`
+						: "-",
+					updatedBy: holiday.updatedEmployee
+						? `${holiday.updatedEmployee.name || ""} (${holiday.updatedEmployee.empCode || "-"})`
+						: "-",
+				};
+			});
+	
+			// Generate a timestamp for the file name
+			const timestamp = moment().format("YYYYMMDD");
+	
+			// Define the structure of the Excel sheet
+			const data = [
+				{
+					sheet: "Holiday Master Data",
+					columns: [
+						{ label: "Holiday ID", value: "holidayId" },
+						{ label: "Holiday Name", value: "holidayName" },
+						{ label: "Holiday Date", value: "holidayDate" },
+						{ label: "Is National Holiday", value: "isNationalHoliday" },
+						{ label: "Company", value: "company" },
+						{ label: "Holiday Locations", value: "holidayLocations" }, // Updated column
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			// Define settings for the Excel file
+			const settings = {
+				fileName: `Holiday_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			// Generate the Excel file
+			const report = Buffer.from(xlsx(data, settings));
+	
+			// Set headers and send the file as a response
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			);
+			res.attachment(`Holiday_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			// Log the error and send a 500 response
+			console.error("Error exporting holiday master data:", error);
+			return respHelper(res, { status: 500, message: "Internal Server Error" });
+		}
+	}
+		async exportNewCustomerNameMasterData(req, res) {
+		try {
+			// Define the query to fetch new customer name master data with necessary attributes and associations
+			let aggregate = {
+				attributes: [
+					"newCustomerNameId",
+					"newCustomerName",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+				],
+				order: [["newCustomerNameId", "ASC"]], // Order by newCustomerNameId in ascending order
+			};
+	
+			// Fetch data from the database
+			let newCustomerNameMasterData = await db.newCustomerNameMaster.findAll(aggregate);
+	
+			// Map the data to the desired format for the Excel sheet
+			let finalData = newCustomerNameMasterData.map((customer) => ({
+				newCustomerNameId: customer.newCustomerNameId,
+				newCustomerName: customer.newCustomerName,
+				status: customer.isActive ? "Active" : "Inactive",
+				createdAt: customer.createdAt
+					? moment(customer.createdAt).format("DD-MM-YYYY")
+					: "-",
+				updatedAt: customer.updatedAt
+					? moment(customer.updatedAt).format("DD-MM-YYYY")
+					: "-",
+				createdBy: customer.createdEmployee
+					? `${customer.createdEmployee.name || ""} (${customer.createdEmployee.empCode || "-"})`
+					: "-",
+				updatedBy: customer.updatedEmployee
+					? `${customer.updatedEmployee.name || ""} (${customer.updatedEmployee.empCode || "-"})`
+					: "-",
+			}));
+	
+			// Generate a timestamp for the file name
+			const timestamp = moment().format("YYYYMMDD");
+	
+			// Define the structure of the Excel sheet
+			const data = [
+				{
+					sheet: "New Customer Name Master Data",
+					columns: [
+						{ label: "New Customer Name ID", value: "newCustomerNameId" },
+						{ label: "New Customer Name", value: "newCustomerName" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			// Define settings for the Excel file
+			const settings = {
+				fileName: `New_Customer_Name_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			// Generate the Excel file
+			const report = Buffer.from(xlsx(data, settings));
+	
+			// Set headers and send the file as a response
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			);
+			res.attachment(`New_Customer_Name_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			// Log the error and send a 500 response
+			console.error("Error exporting new customer name master data:", error);
+			return respHelper(res, { status: 500, message: "Internal Server Error" });
+		}
+	}
+		async exportBuMasterData(req, res) {
+		try {
+			// Define the query to fetch BU master data with necessary attributes and associations
+			let aggregate = {
+				attributes: [
+					"buId",
+					"buName",
+					"buCode",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.buMapping,
+						include: [
+							{
+								model: db.companyMaster,
+								attributes: ["companyName", "companyCode"],
+							},
+							{
+								model: db.employeeMaster,
+								as: "buHeadData",
+								attributes: ["name", "empCode"],
+							},
+							{
+								model: db.employeeMaster,
+								as: "buhrData",
+								attributes: ["name", "empCode"],
+							},
+						],
+					},
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+				],
+				order: [["buId", "ASC"]], // Order by buId in ascending order
+			};
+	
+			// Fetch data from the database
+			let buMasterData = await db.buMaster.findAll(aggregate);
+			//	console.log(JSON.stringify(buMasterData, null, 2));
+
+			// Map the data to the desired format for the Excel sheet
+			let finalData = buMasterData.map((bu) => {
+				// Extract data from the first mapping in the bumappings array
+				const mapping = bu.bumappings?.[0] || {};
+				const company = mapping.companymaster
+					? `${mapping.companymaster.companyName || ""} (${mapping.companymaster.companyCode || "-"})`
+					: "-";
+				const head = mapping.buHeadData
+					? `${mapping.buHeadData.name || ""} (${mapping.buHeadData.empCode || "-"})`
+					: "-";
+				const buHr = mapping.buhrData
+					? `${mapping.buhrData.name || ""} (${mapping.buhrData.empCode || "-"})`
+					: "-";
+	
+				return {
+					buId: bu.buId,
+					buName: bu.buName,
+					buCode: bu.buCode,
+					company: company,
+					head: head,
+					buHr: buHr,
+					status: bu.isActive ? "Active" : "Inactive",
+					createdAt: bu.createdAt
+						? moment(bu.createdAt).format("DD-MM-YYYY")
+						: "-",
+					updatedAt: bu.updatedAt
+						? moment(bu.updatedAt).format("DD-MM-YYYY")
+						: "-",
+					createdBy: bu.createdEmployee
+						? `${bu.createdEmployee.name || ""} (${bu.createdEmployee.empCode || "-"})`
+						: "-",
+					updatedBy: bu.updatedEmployee
+						? `${bu.updatedEmployee.name || ""} (${bu.updatedEmployee.empCode || "-"})`
+						: "-",
+				};
+			});
+	
+			// Generate a timestamp for the file name
+			const timestamp = moment().format("YYYYMMDD");
+	
+			// Define the structure of the Excel sheet
+			const data = [
+				{
+					sheet: "BU Master Data",
+					columns: [
+						{ label: "BU ID", value: "buId" },
+						{ label: "BU Name", value: "buName" },
+						{ label: "BU Code", value: "buCode" },
+						{ label: "Company", value: "company" },
+						{ label: "Head", value: "head" },
+						{ label: "BU HR", value: "buHr" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			// Define settings for the Excel file
+			const settings = {
+				fileName: `BU_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			// Generate the Excel file
+			const report = Buffer.from(xlsx(data, settings));
+	
+			// Set headers and send the file as a response
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			);
+			res.attachment(`BU_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			// Log the error and send a 500 response
+			console.error("Error exporting BU master data:", error);
+			return respHelper(res, { status: 500, message: "Internal Server Error" });
+		}
+	}
+		async exportSbuMasterData(req, res) {
+		try {
+			// Define the query to fetch SBU master data with necessary attributes and associations
+			let aggregate = {
+				attributes: [
+					"sbuId",
+					"sbuName",
+					"code",
+					"isActive",
+					"createdAt",
+					"updatedAt",
+				],
+				include: [
+					{
+						model: db.sbuMapping,
+						include: [
+							
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+							},
+							
+						],
+					},
+					{
+						model: db.employeeMaster,
+						as: "createdEmployee",
+						attributes: ["name", "empCode"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "updatedEmployee",
+						attributes: ["name", "empCode"],
+					},
+				],
+				order: [["sbuId", "ASC"]], // Order by sbuId in ascending order
+			};
+	
+			// Fetch data from the database
+			let sbuMasterData = await db.sbuMaster.findAll(aggregate);
+			//	console.log(JSON.stringify(sbuMasterData, null, 2));
+
+			// Map the data to the desired format for the Excel sheet
+			let finalData = sbuMasterData.map((sbu) => {
+				// Extract data from the first mapping in the sbumappings array
+				const mapping = sbu.sbumapping || {};
+				
+				const bu = mapping.bumaster
+					? `${mapping.bumaster.buName || ""} (${mapping.bumaster.buCode || "-"})`
+					: "-";
+				
+	
+				return {
+					sbuId: sbu.sbuId,
+					sbuName: sbu.sbuName,
+					sbuCode: sbu.code,
+					
+					bu: bu,
+					status: sbu.isActive ? "Active" : "Inactive",
+					createdAt: sbu.createdAt
+						? moment(sbu.createdAt).format("DD-MM-YYYY")
+						: "-",
+					updatedAt: sbu.updatedAt
+						? moment(sbu.updatedAt).format("DD-MM-YYYY")
+						: "-",
+					createdBy: sbu.createdEmployee
+						? `${sbu.createdEmployee.name || ""} (${sbu.createdEmployee.empCode || "-"})`
+						: "-",
+					updatedBy: sbu.updatedEmployee
+						? `${sbu.updatedEmployee.name || ""} (${sbu.updatedEmployee.empCode || "-"})`
+						: "-",
+				};
+			});
+	
+			// Generate a timestamp for the file name
+			const timestamp = moment().format("YYYYMMDD");
+	
+			// Define the structure of the Excel sheet
+			const data = [
+				{
+					sheet: "SBU Master Data",
+					columns: [
+						{ label: "SBU ID", value: "sbuId" },
+						{ label: "SBU Name", value: "sbuName" },
+						{ label: "SBU Code", value: "sbuCode" },
+						{ label: "BU", value: "bu" },
+						{ label: "Status", value: "status" },
+						{ label: "Created At", value: "createdAt" },
+						{ label: "Created By", value: "createdBy" },
+						{ label: "Updated At", value: "updatedAt" },
+						{ label: "Updated By", value: "updatedBy" },
+					],
+					content: finalData,
+				},
+			];
+	
+			// Define settings for the Excel file
+			const settings = {
+				fileName: `SBU_Master_Data_${timestamp}`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+	
+			// Generate the Excel file
+			const report = Buffer.from(xlsx(data, settings));
+	
+			// Set headers and send the file as a response
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			);
+			res.attachment(`SBU_Master_Data_${timestamp}.xlsx`);
+			res.end(report);
+		} catch (error) {
+			// Log the error and send a 500 response
+			console.error("Error exporting SBU master data:", error);
+			return respHelper(res, { status: 500, message: "Internal Server Error" });
+		}
+	}
+async exportWeekOffMasterData(req, res) {
+    try {
+        // Define the query to fetch Week Off master data with necessary attributes and associations
+        let aggregate = {
+            attributes: [
+                "weekOffId",
+                "weekOffName",
+                "nonWorkingDays",
+                "isActive",
+                "createdAt",
+                "updatedAt",
+            ],
+            include: [
+                {
+                    model: db.employeeMaster,
+                    as: "createdEmployee",
+                    attributes: ["name", "empCode"],
+                },
+                {
+                    model: db.employeeMaster,
+                    as: "updatedEmployee",
+                    attributes: ["name", "empCode"],
+                },
+            ],
+            order: [["weekOffId", "ASC"]], // Order by weekOffId in ascending order
+        };
+
+        // Fetch data from the database
+        let weekOffMasterData = await db.weekOffMaster.findAll(aggregate);
+
+        // Map the data to the desired format for the Excel sheet
+        let finalData = weekOffMasterData.map((weekOff) => ({
+            weekOffId: weekOff.weekOffId,
+            weekOffName: weekOff.weekOffName,
+            nonWorkingDays: weekOff.nonWorkingDays || "-",
+            status: weekOff.isActive ? "Active" : "Inactive",
+            createdAt: weekOff.createdAt
+                ? moment(weekOff.createdAt).format("DD-MM-YYYY")
+                : "-",
+            updatedAt: weekOff.updatedAt
+                ? moment(weekOff.updatedAt).format("DD-MM-YYYY")
+                : "-",
+            createdBy: weekOff.createdEmployee
+                ? `${weekOff.createdEmployee.name || ""} (${weekOff.createdEmployee.empCode || "-"})`
+                : "-",
+            updatedBy: weekOff.updatedEmployee
+                ? `${weekOff.updatedEmployee.name || ""} (${weekOff.updatedEmployee.empCode || "-"})`
+                : "-",
+        }));
+
+        // Generate a timestamp for the file name
+        const timestamp = moment().format("YYYYMMDD");
+
+        // Define the structure of the Excel sheet
+        const data = [
+            {
+                sheet: "Week Off Master Data",
+                columns: [
+                    { label: "Week Off ID", value: "weekOffId" },
+                    { label: "Week Off Name", value: "weekOffName" },
+                    { label: "Non-Working Days", value: "nonWorkingDays" },
+                    { label: "Status", value: "status" },
+                    { label: "Created At", value: "createdAt" },
+                    { label: "Created By", value: "createdBy" },
+                    { label: "Updated At", value: "updatedAt" },
+                    { label: "Updated By", value: "updatedBy" },
+                ],
+                content: finalData,
+            },
+        ];
+
+        // Define settings for the Excel file
+        const settings = {
+            fileName: `Week_Off_Master_Data_${timestamp}`,
+            extraLength: 3,
+            writeOptions: {
+                type: "buffer",
+                bookType: "xlsx",
+            },
+        };
+
+        // Generate the Excel file
+        const report = Buffer.from(xlsx(data, settings));
+
+        // Set headers and send the file as a response
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.attachment(`Week_Off_Master_Data_${timestamp}.xlsx`);
+        res.end(report);
+    } catch (error) {
+        // Log the error and send a 500 response
+        console.error("Error exporting Week Off master data:", error);
+        return respHelper(res, { status: 500, message: "Internal Server Error" });
+    }
+}
+async exportShiftMasterData(req, res) {
+    try {
+        // Define the query to fetch Shift master data with necessary attributes and associations
+        let aggregate = {
+            attributes: [
+                "shiftId",
+                "shiftName",
+                "shiftStartTime",
+                "shiftEndTime",
+                "shiftRemark",
+                "isOverNight",
+                "isActive",
+                "createdAt",
+                "updatedAt",
+            ],
+            include: [
+                {
+                    model: db.employeeMaster,
+                    as: "createdEmployee",
+                    attributes: ["name", "empCode"],
+                },
+                {
+                    model: db.employeeMaster,
+                    as: "updatedEmployee",
+                    attributes: ["name", "empCode"],
+                },
+            ],
+            order: [["shiftId", "ASC"]], // Order by shiftId in ascending order
+        };
+
+        // Fetch data from the database
+        let shiftMasterData = await db.shiftMaster.findAll(aggregate);
+
+        // Map the data to the desired format for the Excel sheet
+        let finalData = shiftMasterData.map((shift) => ({
+            shiftId: shift.shiftId,
+            shiftName: shift.shiftName,
+            shiftStartTime: shift.shiftStartTime || "-",
+            shiftEndTime: shift.shiftEndTime || "-",
+            shiftRemark: shift.shiftRemark || "-",
+            isOverNight: shift.isOverNight ? "Yes" : "No",
+            status: shift.isActive ? "Active" : "Inactive",
+            createdAt: shift.createdAt
+                ? moment(shift.createdAt).format("DD-MM-YYYY")
+                : "-",
+            updatedAt: shift.updatedAt
+                ? moment(shift.updatedAt).format("DD-MM-YYYY")
+                : "-",
+            createdBy: shift.createdEmployee
+                ? `${shift.createdEmployee.name || ""} (${shift.createdEmployee.empCode || "-"})`
+                : "-",
+            updatedBy: shift.updatedEmployee
+                ? `${shift.updatedEmployee.name || ""} (${shift.updatedEmployee.empCode || "-"})`
+                : "-",
+        }));
+
+        // Generate a timestamp for the file name
+        const timestamp = moment().format("YYYYMMDD");
+
+        // Define the structure of the Excel sheet
+        const data = [
+            {
+                sheet: "Shift Master Data",
+                columns: [
+                    { label: "Shift ID", value: "shiftId" },
+                    { label: "Shift Name", value: "shiftName" },
+                    { label: "Shift Start Time", value: "shiftStartTime" },
+                    { label: "Shift End Time", value: "shiftEndTime" },
+                    { label: "Shift Remark", value: "shiftRemark" },
+                    { label: "Is Overnight", value: "isOverNight" },
+                    { label: "Status", value: "status" },
+                    { label: "Created At", value: "createdAt" },
+                    { label: "Created By", value: "createdBy" },
+                    { label: "Updated At", value: "updatedAt" },
+                    { label: "Updated By", value: "updatedBy" },
+                ],
+                content: finalData,
+            },
+        ];
+
+        // Define settings for the Excel file
+        const settings = {
+            fileName: `Shift_Master_Data_${timestamp}`,
+            extraLength: 3,
+            writeOptions: {
+                type: "buffer",
+                bookType: "xlsx",
+            },
+        };
+
+        // Generate the Excel file
+        const report = Buffer.from(xlsx(data, settings));
+
+        // Set headers and send the file as a response
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.attachment(`Shift_Master_Data_${timestamp}.xlsx`);
+        res.end(report);
+    } catch (error) {
+        // Log the error and send a 500 response
+        console.error("Error exporting Shift master data:", error);
+        return respHelper(res, { status: 500, message: "Internal Server Error" });
+    }
+}
+async exportAttendancePolicyMasterData(req, res) {
+    try {
+        // Define the query to fetch Attendance Policy master data with necessary attributes and associations
+        let aggregate = {
+            attributes: [
+                "attendancePolicyId",
+                "policyName",
+                "policyCode",
+                "policyDescription",
+                "requestLimit",
+                "allowRequestFromHome",
+                "allowRequestFromDuty",
+                "graceTimeClockIn",
+                "graceTimeClockOut",
+                "allowBufferTime",
+                "bufferTimePre",
+                "bufferTimePost",
+                "isleaveDeductPolicyLateDuration",
+                "leaveDeductPolicyLateDurationHalfDayTime",
+                "leaveDeductPolicyLateDurationFullDayTime",
+                "leaveDeductPolicyLateDurationLeaveType",
+                "isleaveDeductPolicyWorkDuration",
+                "leaveDeductPolicyWorkDurationHalfDayTime",
+                "leaveDeductPolicyWorkDurationFullDayTime",
+                "leaveDeductPolicyWorkDurationLeaveType",
+                "attendaceRosterLimitForPreviousDays",
+                "isActive",
+                "createdAt",
+                "updatedAt",
+            ],
+            include: [
+                {
+                    model: db.employeeMaster,
+                    as: "createdEmployee",
+                    attributes: ["name", "empCode"],
+                },
+                {
+                    model: db.employeeMaster,
+                    as: "updatedEmployee",
+                    attributes: ["name", "empCode"],
+                },
+            ],
+            order: [["attendancePolicyId", "ASC"]], // Order by attendancePolicyId in ascending order
+        };
+
+        // Fetch data from the database
+        let attendancePolicyMasterData = await db.attendancePolicymaster.findAll(aggregate);
+
+        // Map the data to the desired format for the Excel sheet
+        let finalData = attendancePolicyMasterData.map((policy) => ({
+            attendancePolicyId: policy.attendancePolicyId,
+            policyName: policy.policyName,
+            policyCode: policy.policyCode ?? "",
+            policyDescription: policy.policyDescription ?? "",
+            requestLimit: policy.requestLimit ?? "",
+            allowRequestFromHome: policy.allowRequestFromHome ? "Yes" : "No",
+            allowRequestFromDuty: policy.allowRequestFromDuty ? "Yes" : "No",
+            graceTimeClockIn: policy.graceTimeClockIn ?? "",
+            graceTimeClockOut: policy.graceTimeClockOut ?? "",
+            allowBufferTime: policy.allowBufferTime ? "Yes" : "No",
+            bufferTimePre: policy.bufferTimePre ?? "",
+            bufferTimePost: policy.bufferTimePost ?? "",
+            isleaveDeductPolicyLateDuration: policy.isleaveDeductPolicyLateDuration ? "Yes" : "No",
+            leaveDeductPolicyLateDurationHalfDayTime: policy.leaveDeductPolicyLateDurationHalfDayTime ?? "",
+            leaveDeductPolicyLateDurationFullDayTime: policy.leaveDeductPolicyLateDurationFullDayTime ?? "",
+            leaveDeductPolicyLateDurationLeaveType: policy.leaveDeductPolicyLateDurationLeaveType ?? "",
+            isleaveDeductPolicyWorkDuration: policy.isleaveDeductPolicyWorkDuration ? "Yes" : "No",
+            leaveDeductPolicyWorkDurationHalfDayTime: policy.leaveDeductPolicyWorkDurationHalfDayTime ?? "",
+            leaveDeductPolicyWorkDurationFullDayTime: policy.leaveDeductPolicyWorkDurationFullDayTime ?? "",
+            leaveDeductPolicyWorkDurationLeaveType: policy.leaveDeductPolicyWorkDurationLeaveType ?? "",
+            attendaceRosterLimitForPreviousDays: policy.attendaceRosterLimitForPreviousDays ?? "",
+            status: policy.isActive ? "Active" : "Inactive",
+            createdAt: policy.createdAt
+                ? moment(policy.createdAt).format("DD-MM-YYYY")
+                : "",
+            updatedAt: policy.updatedAt
+                ? moment(policy.updatedAt).format("DD-MM-YYYY")
+                : "",
+            createdBy: policy.createdEmployee
+                ? `${policy.createdEmployee.name || ""} (${policy.createdEmployee.empCode || ""})`
+                : "",
+            updatedBy: policy.updatedEmployee
+                ? `${policy.updatedEmployee.name || ""} (${policy.updatedEmployee.empCode || ""})`
+                : "",
+        }));
+
+        // Generate a timestamp for the file name
+        const timestamp = moment().format("YYYYMMDD");
+
+        // Define the structure of the Excel sheet
+        const data = [
+            {
+                sheet: "Attendance Policy Master Data",
+                columns: [
+                    { label: "Attendance Policy ID", value: "attendancePolicyId" },
+                    { label: "Policy Name", value: "policyName" },
+                    { label: "Policy Code", value: "policyCode" },
+                    { label: "Policy Description", value: "policyDescription" },
+                    { label: "Request Limit", value: "requestLimit" },
+                    { label: "Allow Request From Home", value: "allowRequestFromHome" },
+                    { label: "Allow Request From Duty", value: "allowRequestFromDuty" },
+                    { label: "Grace Time Clock In", value: "graceTimeClockIn" },
+                    { label: "Grace Time Clock Out", value: "graceTimeClockOut" },
+                    { label: "Allow Buffer Time", value: "allowBufferTime" },
+                    { label: "Buffer Time Pre", value: "bufferTimePre" },
+                    { label: "Buffer Time Post", value: "bufferTimePost" },
+                    { label: "Is Leave Deduct Policy Late Duration", value: "isleaveDeductPolicyLateDuration" },
+                    { label: "Late Duration Half Day Time", value: "leaveDeductPolicyLateDurationHalfDayTime" },
+                    { label: "Late Duration Full Day Time", value: "leaveDeductPolicyLateDurationFullDayTime" },
+                    { label: "Late Duration Leave Type", value: "leaveDeductPolicyLateDurationLeaveType" },
+                    { label: "Is Leave Deduct Policy Work Duration", value: "isleaveDeductPolicyWorkDuration" },
+                    { label: "Work Duration Half Day Time", value: "leaveDeductPolicyWorkDurationHalfDayTime" },
+                    { label: "Work Duration Full Day Time", value: "leaveDeductPolicyWorkDurationFullDayTime" },
+                    { label: "Work Duration Leave Type", value: "leaveDeductPolicyWorkDurationLeaveType" },
+                    { label: "Attendance Roster Limit For Previous Days", value: "attendaceRosterLimitForPreviousDays" },
+                    { label: "Status", value: "status" },
+                    { label: "Created At", value: "createdAt" },
+                    { label: "Created By", value: "createdBy" },
+                    { label: "Updated At", value: "updatedAt" },
+                    { label: "Updated By", value: "updatedBy" },
+                ],
+                content: finalData,
+            },
+        ];
+
+        // Define settings for the Excel file
+        const settings = {
+            fileName: `Attendance_Policy_Master_Data_${timestamp}`,
+            extraLength: 3,
+            writeOptions: {
+                type: "buffer",
+                bookType: "xlsx",
+            },
+        };
+
+        // Generate the Excel file
+        const report = Buffer.from(xlsx(data, settings));
+
+        // Set headers and send the file as a response
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.attachment(`Attendance_Policy_Master_Data_${timestamp}.xlsx`);
+        res.end(report);
+    } catch (error) {
+        // Log the error and send a 500 response
+        console.error("Error exporting Attendance Policy master data:", error);
+        return respHelper(res, { status: 500, message: "Internal Server Error" });
+    }
+}
+
+async exportLeaveMasterData(req, res) {
+    try {
+        // Define the query to fetch Leave master data with necessary attributes and associations
+        let aggregate = {
+            attributes: [
+                "leaveId",
+                "leaveName",
+                "leaveCode",
+                "isActive",
+                "createdAt",
+                "updatedAt",
+            ],
+            include: [
+                {
+                    model: db.employeeMaster,
+                    as: "createdEmployee",
+                    attributes: ["name", "empCode"],
+                },
+                {
+                    model: db.employeeMaster,
+                    as: "updatedEmployee",
+                    attributes: ["name", "empCode"],
+                },
+            ],
+            order: [["leaveId", "ASC"]], // Order by leaveId in ascending order
+        };
+
+        // Fetch data from the database
+        let leaveMasterData = await db.leaveMaster.findAll(aggregate);
+
+        // Map the data to the desired format for the Excel sheet
+        let finalData = leaveMasterData.map((leave) => ({
+            leaveId: leave.leaveId,
+            leaveName: leave.leaveName,
+            leaveCode: leave.leaveCode || "",
+            status: leave.isActive ? "Active" : "Inactive",
+            createdAt: leave.createdAt
+                ? moment(leave.createdAt).format("DD-MM-YYYY")
+                : "",
+            updatedAt: leave.updatedAt
+                ? moment(leave.updatedAt).format("DD-MM-YYYY")
+                : "",
+            createdBy: leave.createdEmployee
+                ? `${leave.createdEmployee.name || ""} (${leave.createdEmployee.empCode || ""})`
+                : "",
+            updatedBy: leave.updatedEmployee
+                ? `${leave.updatedEmployee.name || ""} (${leave.updatedEmployee.empCode || ""})`
+                : "",
+        }));
+
+        // Generate a timestamp for the file name
+        const timestamp = moment().format("YYYYMMDD");
+
+        // Define the structure of the Excel sheet
+        const data = [
+            {
+                sheet: "Leave Master Data",
+                columns: [
+                    { label: "Leave ID", value: "leaveId" },
+                    { label: "Leave Name", value: "leaveName" },
+                    { label: "Leave Code", value: "leaveCode" },
+                    { label: "Status", value: "status" },
+                    { label: "Created At", value: "createdAt" },
+                    { label: "Created By", value: "createdBy" },
+                    { label: "Updated At", value: "updatedAt" },
+                    { label: "Updated By", value: "updatedBy" },
+                ],
+                content: finalData,
+            },
+        ];
+
+        // Define settings for the Excel file
+        const settings = {
+            fileName: `Leave_Master_Data_${timestamp}`,
+            extraLength: 3,
+            writeOptions: {
+                type: "buffer",
+                bookType: "xlsx",
+            },
+        };
+
+        // Generate the Excel file
+        const report = Buffer.from(xlsx(data, settings));
+
+        // Set headers and send the file as a response
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.attachment(`Leave_Master_Data_${timestamp}.xlsx`);
+        res.end(report);
+    } catch (error) {
+        // Log the error and send a 500 response
+        console.error("Error exporting Leave master data:", error);
+        return respHelper(res, { status: 500, message: "Internal Server Error" });
+    }
+}
+
+async exportNoticePeriodMasterData(req, res) {
+    try {
+        // Define the query to fetch Notice Period master data with necessary attributes and associations
+        let aggregate = {
+            attributes: [
+                "noticePeriodAutoId",
+                "noticePeriodName",
+                "noticePeriodCode",
+                "nPDaysAfterConfirmation",
+                "nPDaysInProbation",
+                "createdDt",
+                "createdBy",
+                "updatedDt",
+                "updatedBy",
+                "isActive",
+            ],
+            include: [
+                {
+                    model: db.employeeMaster,
+                    as: "createdEmployee",
+                    attributes: ["name", "empCode"],
+                },
+                {
+                    model: db.employeeMaster,
+                    as: "updatedEmployee",
+                    attributes: ["name", "empCode"],
+                },
+            ],
+            order: [["noticePeriodAutoId", "ASC"]], // Order by noticePeriodAutoId in ascending order
+        };
+
+        // Fetch data from the database
+        let noticePeriodMasterData = await db.noticePeriodMaster.findAll(aggregate);
+
+        // Map the data to the desired format for the Excel sheet
+        let finalData = noticePeriodMasterData.map((noticePeriod) => ({
+            noticePeriodAutoId: noticePeriod.noticePeriodAutoId,
+            noticePeriodName: noticePeriod.noticePeriodName || "",
+            noticePeriodCode: noticePeriod.noticePeriodCode || "",
+            nPDaysAfterConfirmation: noticePeriod.nPDaysAfterConfirmation || "",
+            nPDaysInProbation: noticePeriod.nPDaysInProbation || "",
+            status: noticePeriod.isActive ? "Active" : "Inactive",
+            createdDt: noticePeriod.createdDt
+                ? moment(noticePeriod.createdDt).format("DD-MM-YYYY")
+                : "",
+            updatedDt: noticePeriod.updatedDt
+                ? moment(noticePeriod.updatedDt).format("DD-MM-YYYY")
+                : "",
+            createdBy: noticePeriod.createdEmployee
+                ? `${noticePeriod.createdEmployee.name || ""} (${noticePeriod.createdEmployee.empCode || ""})`
+                : "",
+            updatedBy: noticePeriod.updatedEmployee
+                ? `${noticePeriod.updatedEmployee.name || ""} (${noticePeriod.updatedEmployee.empCode || ""})`
+                : "",
+        }));
+
+        // Generate a timestamp for the file name
+        const timestamp = moment().format("YYYYMMDD");
+
+        // Define the structure of the Excel sheet
+        const data = [
+            {
+                sheet: "Notice Period Master Data",
+                columns: [
+                    { label: "Notice Period ID", value: "noticePeriodAutoId" },
+                    { label: "Notice Period Name", value: "noticePeriodName" },
+                    { label: "Notice Period Code", value: "noticePeriodCode" },
+                    { label: "NP Days After Confirmation", value: "nPDaysAfterConfirmation" },
+                    { label: "NP Days In Probation", value: "nPDaysInProbation" },
+                    { label: "Status", value: "status" },
+                    { label: "Created Date", value: "createdDt" },
+                    { label: "Created By", value: "createdBy" },
+                    { label: "Updated Date", value: "updatedDt" },
+                    { label: "Updated By", value: "updatedBy" },
+                ],
+                content: finalData,
+            },
+        ];
+
+        // Define settings for the Excel file
+        const settings = {
+            fileName: `Notice_Period_Master_Data_${timestamp}`,
+            extraLength: 3,
+            writeOptions: {
+                type: "buffer",
+                bookType: "xlsx",
+            },
+        };
+
+        // Generate the Excel file
+        const report = Buffer.from(xlsx(data, settings));
+
+        // Set headers and send the file as a response
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.attachment(`Notice_Period_Master_Data_${timestamp}.xlsx`);
+        res.end(report);
+    } catch (error) {
+        // Log the error and send a 500 response
+        console.error("Error exporting Notice Period master data:", error);
+        return respHelper(res, { status: 500, message: "Internal Server Error" });
+    }
+}
 	//ritak export master data end
 
 	// close class

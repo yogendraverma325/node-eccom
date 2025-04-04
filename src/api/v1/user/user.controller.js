@@ -688,15 +688,83 @@ class UserController {
 	async taskBoxCount(req, res) {
 		try {
 			let userid = req.userId;
+			let role_id = req.userData.role_id;
+			// const countLeavePending = await db.EmployeeLeaveHeader.count({
+			// 	where: {
+			// 		employeeId: userid,
+			// 		status: "pending",
+			// 		source: {
+			// 			[Op.ne]: "system_generated",
+			// 		},
+			// 	},
+			// });
+			
+			const mainCondition = {
+				employeeId: req.userId,
+				// source: { [Op.ne]: "system_generated" },
+				status: "pending",
+			}
+
+			const leaveApprovalCondition = {
+				employeeId: req.userId,
+				isApproved: {
+					[Op.notIn]: [2],
+				},
+				//isPending: 1,
+			}
+			
+			const fullyApprovedLeaveHeaders = await db.leaveApprovalTrails.findAll({
+				attributes: ["leaveHeaderAutoId"],
+				group: ["leaveHeaderAutoId"],
+				having: db.sequelize.literal(`
+				SUM(CASE WHEN isApproved = 1 THEN 1 ELSE 0 END) = COUNT(*)
+			`), // Checks if ALL rows are approved
+				raw: true,
+			});
+
+			const excludedLeaveHeaderIds = fullyApprovedLeaveHeaders.map(
+				(row) => row.leaveHeaderAutoId,
+			);
+
+			const rejectedLeaveHeaders = await db.leaveApprovalTrails.findAll({
+				attributes: ["leaveHeaderAutoId"],
+				where: { isApproved: 2 },
+				group: ["leaveHeaderAutoId"],
+				raw: true,
+			});
+
+			const rejectedLeaveHeaderIds = rejectedLeaveHeaders.map(
+				(row) => row.leaveHeaderAutoId,
+			);
+
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
 				where: {
-					employeeId: userid,
 					status: "pending",
-					source: {
-						[Op.ne]: "system_generated",
-					},
+					[Op.or]: [
+						mainCondition,
+						{
+							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						},
+					],
+					...(excludedLeaveHeaderIds.length > 0 && {
+						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					}),
+					...(rejectedLeaveHeaderIds.length > 0 && {
+						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					}),
 				},
+
+				attributes: [],
+				include: [
+					{
+						model: db.leaveApprovalTrails,
+						required: false,
+						where: leaveApprovalCondition
+					}
+				],
+				distinct: true
 			});
+
 			const pendingAttendanceCount = await db.attendanceHistory.count({
 				where: {
 					attendanceStatus: "pending",
@@ -709,8 +777,8 @@ class UserController {
 						where: Object.assign(
 							!["ADMIN", "HR_OPS"].includes(req.userRole)
 								? {
-									manager: req.userId,
-								}
+										manager: req.userId,
+									}
 								: {},
 							{
 								isActive: 1,
@@ -719,6 +787,7 @@ class UserController {
 						attributes: ["id", "empCode", "name", "profileImage"],
 					},
 				],
+				distinct: true
 			});
 
 			// const countLeaveAssginedForExistingFlow =
@@ -728,27 +797,68 @@ class UserController {
 			// 			status: "pending",
 			// 		},
 			// 	});
+
+			// const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
+			// 	where: {
+			// 		// pendingAt: userid,
+			// 		status: "pending",
+			// 	},
+			// 	include: [
+			// 		{
+			// 			model: db.leaveApprovalTrails,
+			// 			where: {
+			// 				isVisible: true,
+			// 				pendingOn: req.userId,
+			// 				isApproved: 0,
+			// 				isPending: 1,
+			// 				// pendingOn: req.userId,
+			// 				// isPending: 1,
+			// 				// isVisible:1
+			// 				//isApproved:0
+			// 			},
+			// 			//required:false
+			// 		},
+			// 	],
+			// });
+
+			const mainCondition1 = {
+				pendingAt: req.userId,
+				status: "pending"
+			};
+
+			const leaveApprovalCondition2 = {
+				isVisible: true,
+				pendingOn: req.userId,
+				isApproved: 0,
+				isPending: 1
+			}
+
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
-					// pendingAt: userid,
 					status: "pending",
+					[Op.or]: [
+						mainCondition1,
+						{
+							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						},
+					],
+					...(excludedLeaveHeaderIds.length > 0 && {
+						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					}),
+					...(rejectedLeaveHeaderIds.length > 0 && {
+						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					}),
 				},
+
+				attributes: [],
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						where: {
-							isVisible: true,
-							pendingOn: req.userId,
-							isApproved: 0,
-							isPending: 1,
-							// pendingOn: req.userId,
-							// isPending: 1,
-							// isVisible:1
-							//isApproved:0
-						},
-						//required:false
-					},
+						required: false,
+						where: leaveApprovalCondition2
+					}
 				],
+				distinct: true
 			});
 
 			let assignedAttCount = await db.regularizationMaster.count({
@@ -831,7 +941,8 @@ class UserController {
 							taskOwner: req.userId,
 						}
 					},
-				]
+				],
+				distinct: true
 			});
 
 			const confirmationCount = await db.Confirmationinitiated.count({
@@ -847,15 +958,22 @@ class UserController {
 						}
 					}
 				],
+				distinct: true
 			});
 
-			let profileApprovalCount = await db.paymentDetails.count({
-				where: {
-					status: "pending",
-					pendingAt: req.userId,
-				}
-			});
+			let profileApprovalCount = 0;
 
+			if(role_id == 2 || role_id == 5) {
+				profileApprovalCount = await db.paymentDetails.count({
+					where: {
+						status: "pending",
+						// pendingAt: req.userId,
+					}
+				});
+	
+			}
+
+			
 			const pendingCompOffCount =
 				await db.comp_off_credit_history.count({
 					where: {
@@ -1354,7 +1472,23 @@ class UserController {
 
 	async separationDetails(req, res) {
 		try {
-			const separationData = await db.separationMaster.findAll({
+			// add search and pagination functionality
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const separationData = await db.separationMaster.findAndCountAll({
 				where: {
 					[Op.or]: [
 						{
@@ -1373,6 +1507,8 @@ class UserController {
 					{
 						model: db.employeeMaster,
 						attributes: ["empCode", "name"],
+						required: !!searchQuery,
+						where: searchQuery || undefined
 					},
 					{
 						model: db.separationStatus,
@@ -1399,6 +1535,10 @@ class UserController {
 						attributes: ["separationReason"],
 					},
 				],
+				limit,
+				offset,
+				required: !!searchQuery,
+				distinct: true
 			});
 
 			return respHelper(res, {
@@ -3855,7 +3995,23 @@ class UserController {
 
 	async initiatedTaskList(req, res) {
 		try {
-			const separationTasks = await db.separationInitiatedTask.findAll({
+			// add functionality for search and pagination
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const separationTasks = await db.separationInitiatedTask.findAndCountAll({
 				where: {
 					status: 0,
 					isActive: 1,
@@ -3873,6 +4029,7 @@ class UserController {
 							"dataCardAdmin",
 							"mobileAdmin",
 						],
+						where: searchQuery || undefined,
 						include: [
 							{
 								model: db.separationMaster,
@@ -3932,6 +4089,11 @@ class UserController {
 						],
 					},
 				],
+				limit,
+				offset,
+				subQuery: false,
+				required: !!searchQuery,
+				distinct: true,
 				order: [["initiatedTaskAutoId", "DESC"]],
 			});
 
@@ -4675,7 +4837,23 @@ class UserController {
 	///CONFIRMATION///
 	async confirmatonList(req, res) {
 		try {
-			const confirmationData = await db.Confirmationinitiated.findAll({
+			// add search and pagination functionality
+
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const search = req.query.search;
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
+			const confirmationData = await db.Confirmationinitiated.findAndCountAll({
 				where: {
 					status: [0, 2],
 				},
@@ -4683,6 +4861,7 @@ class UserController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name", "email"],
+						where: searchQuery || undefined,
 						include: [
 							{
 								model: db.jobDetails,
@@ -4735,6 +4914,11 @@ class UserController {
 						model: db.Confirmationaudittrail,
 					},
 				],
+				limit,
+				offset,
+				subQuery: false,
+				distinct: true,
+				required: !!searchQuery,
 			});
 
 			return respHelper(res, {
@@ -4742,6 +4926,7 @@ class UserController {
 				data: confirmationData,
 			});
 		} catch (error) {
+			console.log(error);
 			return respHelper(res, {
 				status: 500,
 				msg: "Internal server error",
@@ -5485,6 +5670,11 @@ class UserController {
 									},
 								],
 							},
+							{
+								model: db.employeeMaster,
+								as: "officeLocationHistoryCreatedBy",
+								attributes: ["id", "name"],
+							},
 							// { model: db.companyLocationMaster, as: 'officeLocationChangesFrom', attributes: ['companyLocationCode', 'address1'],
 							//   include: [
 							//       { model: db.countryMaster, attributes: ['countryId', 'countryName', 'countryCode'] },
@@ -5539,6 +5729,7 @@ class UserController {
 									},
 								],
 							},
+							{ model: db.employeeMaster, as: 'managerHistoryCreatedBy', attributes: ['id', 'name', 'empCode'] },
 							// { model: db.employeeMaster, as: 'managerChangesFrom', attributes: ['id', 'name', 'empCode' ] },
 						],
 						where: { needAttendanceCron: 0, employeeId: userId },
@@ -6012,6 +6203,19 @@ class UserController {
 			const limit = parseInt(req.query.limit, 10) || 10;
 			const pageNo = parseInt(req.query.page, 10) || 1;
 			const offset = (pageNo - 1) * limit;
+
+			// add search functionality
+			const search = req.query.search;
+
+			let searchQuery = (search) 
+			? {
+				[Op.or]: [
+					{ empCode: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } }
+				],
+			  }
+			: undefined;
+
 			const userId = req.userId;
 			const comp_off_credit_historyData =
 				await db.comp_off_credit_history.findAndCountAll({
@@ -6063,6 +6267,8 @@ class UserController {
 							model: db.employeeMaster,
 							as: "compOffEmpDetails",
 							attributes: ["id", "name", "profileImage", "empCode"],
+							required: !!searchQuery,
+							where: searchQuery || undefined
 						},
 						{
 							model: db.attendanceMaster,
@@ -6085,6 +6291,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					required: !!searchQuery
 				});
 
 			return respHelper(res, {

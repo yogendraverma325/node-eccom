@@ -48,10 +48,18 @@ class ImportController {
 	async getImportInfoList(req, res) {
 		try {
 			const { month, year } = req.query;
-			let queryForImportDetails = await importHelper.query(1, {
+			const querySequence= req.userData.role_id==2?1:2;
+			let queryForImportDetails = await importHelper.query(querySequence, {
 				year: year,
 				month: Number(month) + 1,
+				companyId:req.userData.companyId,
+				buId:req.userData.buId,
+				sbuId:req.userData.sbuId,
+				isActive:req.userData.isActive,
 			});
+			console.log("Role ID");
+			console.log(req.userData.role_id);
+			console.log("Role ID");
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
 			console.log(queryForImportDetails);
 			return respHelper(res, {
@@ -181,6 +189,14 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 
 		// get financial year
 		let financialYearDetails = await importHelper.getFinancialYear();
+
+		if(!financialYearDetails)
+		{
+			return respHelper(res, {
+				status: 500,
+				msg: "Financial Year not found.",
+			});
+		}
 		var PackageDetails = FILEDATA;
 		if (!isNaN(PackageDetails[0]["Effective Date"])) {
 			console.log(
