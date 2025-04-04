@@ -2056,7 +2056,7 @@ class CronController {
 						});
 
 						for (const element of uniqueRecords) {
-							if (moment().diff(moment(element.date), 'days') > 1) {
+							if (moment().diff(moment(element.date), 'days') >= 1) {
 								attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
 							}
 						}
