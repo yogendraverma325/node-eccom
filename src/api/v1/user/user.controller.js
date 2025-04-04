@@ -973,7 +973,7 @@ class UserController {
 				filter && Object.keys(filter).length > 0
 			);
 
-			if(role_id == 2 || role_id == 5 && hasFilters) {
+			if((role_id == 2) || (role_id == 5 && hasFilters === true)) {
 				profileApprovalCount = await db.paymentDetails.count({
 					where: {
 						status: "pending",

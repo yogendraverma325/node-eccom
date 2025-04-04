@@ -1976,7 +1976,7 @@ class commonController {
                 filter && Object.keys(filter).length > 0
             );
     
-            if (!hasFilters) {
+            if (!hasFilters && usersData.role_id != 2) {
                 return respHelper(res, {
                     status: 200,
                     msg: constant.DATA_FETCHED,
