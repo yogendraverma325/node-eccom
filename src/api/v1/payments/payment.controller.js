@@ -42,6 +42,7 @@ import service from "./payment.service.js";
 import Pagination from "../../../helper/pagination.js";
 import logger from "../../../helper/logger.js";
 import { exit } from "process";
+import { checkPrimeSync } from "crypto";
 // import puppeteer from "puppeteer";
 
 //import moment, { now } from "moment";
@@ -3152,21 +3153,29 @@ class PaymentController {
 			let { salaryStructureAutoId } = req.body;
 			let role_id = req.userData.role_id;
 			let buId = [];
+			console.log(req.body);
 
 			if (role_id == 4 || role_id == 5) {
 				// for BUHR and HR_OPS
-				let permissionType = "BU";
-				let findIds = await fetchPermissionAccessRecord(req, permissionType);
-				if (findIds.length === 0)
-					return respHelper(res, {
-						status: 200,
-						data: [],
-						msg: "Employee List Fetched Successfully",
-					});
-				buId = findIds;
+				try {
+					let permissionType = "BU";
+					let findIds = await fetchPermissionAccessRecord(req, permissionType);
+					console.log(findIds);
+					if (findIds.length === 0)
+						return respHelper(res, {
+							status: 200,
+							data: [],
+							msg: "Employee List Fetched Successfully",
+						});
+					buId = findIds;
+				} catch (e) {
+					console.log(e);
+				}
 			}
 
 			let buCondition = buId.length > 0 ? { buId: { [Op.in]: buId } } : {};
+
+			// console.log("buCondition ::"+buId);
 
 			let getEmp = await db.payPackage.findAll({
 				where: {
@@ -3177,6 +3186,7 @@ class PaymentController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name", "buId", "designation_id"],
+						required: true,
 						include: [
 							{
 								model: db.buMaster,
@@ -3196,6 +3206,8 @@ class PaymentController {
 				nest: true,
 			});
 
+			// console.log(getEmp);
+
 			let formattedResponse = getEmp.map((item) => ({
 				StructureName: item.payPackageSalaryStructure,
 				EmployeeId: item.employee.empCode,
@@ -3203,6 +3215,8 @@ class PaymentController {
 				BuName: item.employee.bumaster?.buName || "",
 				DesignationName: item.employee.designationmaster?.name || "",
 			}));
+
+			console.log(formattedResponse);
 
 			return respHelper(res, {
 				status: 200,
