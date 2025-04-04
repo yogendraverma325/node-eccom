@@ -2018,13 +2018,13 @@ class CronController {
 								},
 								attributes: ["id", "empCode", "name"]
 							});
-
+							let updatedAttendance
 							if (!employeeData) {
 								logger.error(
 									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
 								);
 							} else {
-								const updatedAttendance = await attendanceController.markBioMetricAttendance(
+								updatedAttendance = await attendanceController.markBioMetricAttendance(
 									incomingAttendanceData,
 								);
 
@@ -2032,7 +2032,7 @@ class CronController {
 							}
 
 							sequelize.query(
-								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=${updatedAttendance && updatedAttendance.status ? 1 : 2} WHERE ID=${incomingAttendanceData.autoId}`,
 								(err, result) => {
 									if (err) {
 										logger.error(`Error ${err}`);
