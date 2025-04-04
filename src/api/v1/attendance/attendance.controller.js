@@ -1722,9 +1722,6 @@ class AttendanceController {
 				],
 				raw: true,
 			});
-			console.log("startDateLeaves--->>", startDateLeaves);
-			console.log("endDateLeaves --->>", endDateLeaves);
-			console.log("monthLeaves--->>", monthLeaves);
 			let monthleaveCount = 0,
 				unpaidmonthleaveCount = 0;
 			for (const element of monthLeaves) {

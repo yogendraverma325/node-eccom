@@ -1927,7 +1927,7 @@ class CronController {
 				},
 			);
 			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE;
-			sequelize
+			await sequelize
 				.authenticate()
 				.then(async () => {
 					console.log(`Connection to SQL Server established successfully via SSH tunnel to table ${SPECTRA_TABLE_NAME}.`);
@@ -2056,7 +2056,7 @@ class CronController {
 						});
 
 						for (const element of uniqueRecords) {
-							if (moment().diff(moment(element.date), 'days') >= 1) {
+							if (moment().diff(moment(element.date), 'days') > 1) {
 								attendanceController.attedanceCronManual(element.attendanceAutoId, element.date);
 							}
 						}
