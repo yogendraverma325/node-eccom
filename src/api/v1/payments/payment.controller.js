@@ -6070,6 +6070,7 @@ async function processSalary(data) {
 					where: {
 						lwfDesignationId: lwfDeducationDetails.lwfDesignation,
 						stateId: lwfDeducationDetails.lwfState,
+						contributorType:"Employee",
 					},
 					raw: true,
 				});
