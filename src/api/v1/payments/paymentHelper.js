@@ -563,10 +563,10 @@ async function getCalculatedESIC(monthlyElementPay) {
 			return sum + parseFloat(element["elementMonthlyAmount"]);
 		}, Promise.resolve(0)); // Start with a resolved promise of 0
 
-	calculatedEmployeeESIC = getPercentagePart(esicApplicableAmount, 0.75);
-	calculatedEmployerESIC = getPercentagePart(esicApplicableAmount, 3.25);
+	calculatedEmployeeESIC = customRound(getPercentagePart(esicApplicableAmount, 0.75));
+	calculatedEmployerESIC = customRound(getPercentagePart(esicApplicableAmount, 3.25));
 	console.log("Applicable ESIC Amount :: " + esicApplicableAmount);
-	return { calculatedEmployerESIC, calculatedEmployeeESIC }; // Return elementValue or null if not found
+	return { calculatedEmployeeESIC, calculatedEmployeeESIC }; // Return elementValue or null if not found
 }
 
 async function arrectLOP(componentAmount, lopDays, totalWorkingdays) {
