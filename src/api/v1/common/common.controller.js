@@ -907,7 +907,7 @@ class commonController {
 
 					employeeData = await db.employeeMaster.findAndCountAll({
 						order: [["id", "desc"]],
-					...(isAll ? {} : { limit, offset }),
+						...(isAll ? {} : { limit, offset }),
 						where: Object.assign(
 							search
 								? {
@@ -991,8 +991,7 @@ class commonController {
 							{
 								model: db.companyMaster,
 								seperate: true,
-								attributes: ["companyId", "companyName","companyCode"],
-								
+								attributes: ["companyId", "companyName", "companyCode"],
 							},
 							{
 								model: db.sbuMaster,
@@ -1967,19 +1966,19 @@ class commonController {
 			const search = req.query.search;
 
 			const usersData = req.userData;
-            const filters = await helper.getFiltersByPermission(
-                usersData.role_id,
-                usersData.permissionAndAccess,
-            );
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
 
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			let profileApprovalCount = await db.paymentDetails.findAndCountAll({
 				where: {
@@ -1993,39 +1992,39 @@ class commonController {
 						required: !!searchQuery,
 						where: searchQuery || undefined,
 						include: [
-                            {
-                                model: db.buMaster,
-                                attributes: ["buName", "buCode"],
-                                where: {
-                                    ...filters.buFIlter,
-                                },
-                            },
-                            {
-                                model: db.companyMaster,
-                                attributes: ["companyName"],
-                            },
-                            {
-                                model: db.designationMaster,
-                                attributes: ["name", "code"],
-                                where: {
-                                    ...filters.designationFIlter,
-                                },
-                            },
-                            {
-                                model: db.departmentMaster,
-                                attributes: ["departmentName", "departmentCode"],
-                                where: {
-                                    ...filters.departmentFIlter,
-                                },
-                            },
-                            {
-                                model: db.sbuMaster,
-                                attributes: ["sbuname", "code"],
-                                where: {
-                                    ...filters.sbbuFIlter,
-                                },
-                            },
-                        ]
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.companyMaster,
+								attributes: ["companyName"],
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
 					},
 					{
 						model: db.bankMaster,
@@ -2038,7 +2037,7 @@ class commonController {
 					},
 				],
 				limit,
-				offset
+				offset,
 			});
 			return respHelper(res, {
 				status: 200,
@@ -2052,7 +2051,6 @@ class commonController {
 			});
 		}
 	}
-
 }
 
 export default new commonController();

@@ -7649,7 +7649,7 @@ class MasterController {
 				}
 				//const query = `SELECT p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds});`;
 				//const query =`SELECT p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM tara.paymonthlyelement p JOIN tara.employee e ON p.empId = e.id LEFT JOIN tara.employeeJobDetails ej ON e.id = ej.userId LEFT JOIN tara.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN tara.bumaster bu ON e.buId = bu.buId LEFT JOIN tara.employeePaymentDetails epd ON e.id = epd.userId WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds})  order by salaryComponentSequenceNo desc;`	;
-				const query = `SELECT p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM tara.paymonthlyelement p JOIN tara.employee e ON p.empId = e.id LEFT JOIN tara.employeejobdetails ej ON e.id = ej.userId LEFT JOIN tara.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN tara.bumaster bu ON e.buId = bu.buId LEFT JOIN tara.employeepaymentdetails epd ON e.id = epd.userId WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds})  order by salaryComponentSequenceNo desc;`;				
+				const query = `SELECT p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM tara.paymonthlyelement p JOIN tara.employee e ON p.empId = e.id LEFT JOIN tara.employeejobdetails ej ON e.id = ej.userId LEFT JOIN tara.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN tara.bumaster bu ON e.buId = bu.buId LEFT JOIN tara.employeepaymentdetails epd ON e.id = epd.userId WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds})  order by salaryComponentSequenceNo desc;`;
 				const result1 = await db.sequelize.query(query);
 				const processedData = groupByEmployeeId(result1[0]);
 
@@ -7757,7 +7757,6 @@ class MasterController {
 // 	return Object.values(groupedData); // Convert the grouped data object back to an array
 // };
 
-
 // const groupByEmployeeId = (data) => {
 // 	const groupedData = {};
 // 	data.forEach((item,index) => {
@@ -7821,25 +7820,22 @@ class MasterController {
 // 				[item["Element Name"] + " Arrear"]:0,
 // 			});
 
-
 // 			let newObj={
 // 				[item["Element Name"]]: item["Monthly Element Amount"]
 // 					? paymentHelper.customRound(item["Monthly Element Amount"])
 // 					: item["Monthly Element Amount"],
 // 					[item["Element Name"] + " Arrear"]:0,
 // 			};
-		
+
 // 			groupedData[employeeId] = mergeObjects(groupedData[employeeId],newObj,'Monthly CTC');
 // 		}
 // 	});
 // 	return Object.values(groupedData); // Convert the grouped data object back to an array
 // };
 
-
-
 const groupByEmployeeId = (data) => {
 	const groupedData = {};
-	data.forEach((item,index) => {
+	data.forEach((item, index) => {
 		const employeeId = item["Employee Id"];
 		let totalEarning = parseFloat(
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
@@ -7852,7 +7848,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
 				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
-				parseFloat(item['ESIC Employee']?item['ESIC Employee']:0) +
+				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
 				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
 		);
 		let payableAmount = totalEarning - totalDeduction;
@@ -7860,32 +7856,32 @@ const groupByEmployeeId = (data) => {
 
 		if (!groupedData[employeeId]) {
 			groupedData[employeeId] = {
-				"Employee Id": employeeId,//1
-				"Employee Name": item["Employee Name"],//2
-				"Date of Joining": item["Date of Joining"],//3
-				"Exit Date": item["Exit Date"],//4
-				"Total Days": item["Total Days"],//5
-				"LOP Days": item["LOP Days"],//6
-				"Arrears Days": item["Arrears Days"],//7
-				"Present Days":item["Present Days"]?item["Present Days"]:0,//8
-				"Business Unit": item["Business Unit"],//9
-				"Account No": item["Account No"],//10
-				"Bank Name": item["Bank Name"],//11
-				"IFSC": item["IFSC"],//12
-				"Monthly CTC": item["Net Pay"],//13
-				"Gross Salary":totalEarning,//24
-				"Income Tax": item["TDS Amount"],//25
-				"Professional Tax": item["PT AMOUNT"],//26
-				"ESIC Employee": item["ESIC Employee"],//27
-				"Statuary PF": item["PF Employee"],//28
-				"Standard Deductions Categories": item["Advance Name"],//29
-				"Standard Deductions": item["Advance Amount"],//30
-				"LWF Amount": item["LWF AMOUNT"],//31
-				"Total Deductions":totalDeduction,//32
+				"Employee Id": employeeId, //1
+				"Employee Name": item["Employee Name"], //2
+				"Date of Joining": item["Date of Joining"], //3
+				"Exit Date": item["Exit Date"], //4
+				"Total Days": item["Total Days"], //5
+				"LOP Days": item["LOP Days"], //6
+				"Arrears Days": item["Arrears Days"], //7
+				"Present Days": item["Present Days"] ? item["Present Days"] : 0, //8
+				"Business Unit": item["Business Unit"], //9
+				"Account No": item["Account No"], //10
+				"Bank Name": item["Bank Name"], //11
+				IFSC: item["IFSC"], //12
+				"Monthly CTC": item["Net Pay"], //13
+				"Gross Salary": totalEarning, //24
+				"Income Tax": item["TDS Amount"], //25
+				"Professional Tax": item["PT AMOUNT"], //26
+				"ESIC Employee": item["ESIC Employee"], //27
+				"Statuary PF": item["PF Employee"], //28
+				"Standard Deductions Categories": item["Advance Name"], //29
+				"Standard Deductions": item["Advance Amount"], //30
+				"LWF Amount": item["LWF AMOUNT"], //31
+				"Total Deductions": totalDeduction, //32
 				/////Added ///////////
-				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"],//33
-				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"],//34
-				"Net Salary": payableAmount != "N/A" ? payableAmount : "0.0",//35
+				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"], //33
+				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"], //34
+				"Net Salary": payableAmount != "N/A" ? payableAmount : "0.0", //35
 			};
 		}
 
@@ -7894,21 +7890,24 @@ const groupByEmployeeId = (data) => {
 				[item["Element Name"]]: item["Monthly Element Amount"]
 					? paymentHelper.customRound(item["Monthly Element Amount"])
 					: item["Monthly Element Amount"],
-					[item["Element Name"] + " Arrear"]:0,
+				[item["Element Name"] + " Arrear"]: 0,
 			});
 			Object.assign(groupedData[employeeId], {
-				[item["Element Name"] + " Arrear"]:0,
+				[item["Element Name"] + " Arrear"]: 0,
 			});
 
-
-			let newObj={
+			let newObj = {
 				[item["Element Name"]]: item["Monthly Element Amount"]
 					? paymentHelper.customRound(item["Monthly Element Amount"])
 					: item["Monthly Element Amount"],
-					[item["Element Name"] + " Arrear"]:0,
+				[item["Element Name"] + " Arrear"]: 0,
 			};
-		
-			groupedData[employeeId] = mergeObjects(groupedData[employeeId],newObj,'Monthly CTC');
+
+			groupedData[employeeId] = mergeObjects(
+				groupedData[employeeId],
+				newObj,
+				"Monthly CTC",
+			);
 		}
 	});
 	return Object.values(groupedData); // Convert the grouped data object back to an array
@@ -8166,45 +8165,46 @@ const fileAccessErrorResponse = (data) => {
 	}
 };
 
-
-
-function getColumnsForSalaryregister (processedData){
+function getColumnsForSalaryregister(processedData) {
 	const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
-	let preArray=[
-		"Employee Id",
-		"Employee Name",
-		"Date of Joining",
-		"Exit Date",
-		"Total Days",
-		"LOP Days",
-		"Arrears Days",
-		"Present Days",
-		"Business Unit",
-		"Account No",
-		"Bank Name",
-		"IFSC",
-		"Monthly CTC"],
-		lastArray=[
-		"Gross Salary",
-		"Income Tax",
-		"Professional Tax",
-		"ESIC Employee",
-		"Statuary PF",
-		"Standard Deductions Categories",
-		"Standard Deductions",
-		"LWF Amount",
-		"Total Deductions",
-		"Extra Payment Categories",
-		"Extra Payment Amount",
-		"Net Salary"
-		],finalarray=[],middleArray=[];
-		for (const element of uniqueKeys) {
-			if(!preArray.includes(element) && !lastArray.includes(element))
-			{middleArray.push(element);}
+	let preArray = [
+			"Employee Id",
+			"Employee Name",
+			"Date of Joining",
+			"Exit Date",
+			"Total Days",
+			"LOP Days",
+			"Arrears Days",
+			"Present Days",
+			"Business Unit",
+			"Account No",
+			"Bank Name",
+			"IFSC",
+			"Monthly CTC",
+		],
+		lastArray = [
+			"Gross Salary",
+			"Income Tax",
+			"Professional Tax",
+			"ESIC Employee",
+			"Statuary PF",
+			"Standard Deductions Categories",
+			"Standard Deductions",
+			"LWF Amount",
+			"Total Deductions",
+			"Extra Payment Categories",
+			"Extra Payment Amount",
+			"Net Salary",
+		],
+		finalarray = [],
+		middleArray = [];
+	for (const element of uniqueKeys) {
+		if (!preArray.includes(element) && !lastArray.includes(element)) {
+			middleArray.push(element);
 		}
-		let finalArray = preArray.concat(middleArray, lastArray);
-		return finalArray;
-
+	}
+	let finalArray = preArray.concat(middleArray, lastArray);
+	return finalArray;
 }
 
 export default new MasterController();

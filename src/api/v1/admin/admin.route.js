@@ -216,8 +216,12 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		adminController.requiredAttendanceApproval,
 	)
-// EMPLOYMENT END ROUTES
+	// EMPLOYMENT END ROUTES
 
-    // start add/update notice period by jay
-	.put("/updateNoticePeriod", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), adminController.updateNoticePeriod)
-	// end add/update notice period by jay
+	// start add/update notice period by jay
+	.put(
+		"/updateNoticePeriod",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		adminController.updateNoticePeriod,
+	);
+// end add/update notice period by jay

@@ -116,8 +116,10 @@ const message = {
 	ATTENDANCE_ROSTER_ADDED: "Attendance Roster Updated.",
 	ONLY_EXCEL_ALLOWED: "Please select excel file",
 	SELECT_FILE: "Please select file",
-	MOBILE_ATTENDANCE_NOT_ALLOWED: "Your are not allowed to mark attendance from Mobile",
-	WEB_ATTENDANCE_NOT_ALLOWED: "Your are not allowed to mark attendance from Web",
+	MOBILE_ATTENDANCE_NOT_ALLOWED:
+		"Your are not allowed to mark attendance from Mobile",
+	WEB_ATTENDANCE_NOT_ALLOWED:
+		"Your are not allowed to mark attendance from Web",
 };
 
 export default message;

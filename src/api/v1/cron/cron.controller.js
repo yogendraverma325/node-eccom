@@ -368,14 +368,15 @@ class CronController {
 
 	async prePasswordExpiryNotification() {
 		try {
-
 			let updateQuery = `UPDATE employee AS emp
 					LEFT JOIN bumapping AS bumapping
 					ON bumapping.companyId = emp.companyId 
 					AND bumapping.buId = emp.buId
 					SET emp.buHRId = bumapping.buHrId
 					WHERE emp.buHRId IS NULL;`;
-			await db.sequelize.query("SET sql_safe_updates=0;", { type: db.QueryTypes.RAW });
+			await db.sequelize.query("SET sql_safe_updates=0;", {
+				type: db.QueryTypes.RAW,
+			});
 			await db.sequelize.query(updateQuery, { type: db.QueryTypes.UPDATE });
 
 			const existsUserData = await db.employeeMaster.findAll({
@@ -1852,15 +1853,15 @@ class CronController {
 					host: process.env.SSH_HOST,
 					port: process.env.SSH_PORT,
 					username: process.env.SSH_USERNAME,
-					keepaliveInterval: 10000
+					keepaliveInterval: 10000,
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-					}
+							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+						}
 					: {
-						password: process.env.SSH_PASSWORD,
-					},
+							password: process.env.SSH_PASSWORD,
+						},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1914,8 +1915,8 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-									instanceName: process.env.SERVER_DB_INSTANCE,
-								},
+										instanceName: process.env.SERVER_DB_INSTANCE,
+									},
 						),
 					},
 					logging: false,
@@ -1944,7 +1945,9 @@ class CronController {
 								punchType: element.PunchType,
 								createdDate: element.SYSDATE,
 								isRead: element.IS_UNREAD,
-								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss"),
+								punchDateTime: moment
+									.utc(element.Punch_DateTime)
+									.format("YYYY-MM-DD HH:mm:ss"),
 							};
 
 							const employeeData = await db.employeeMaster.findOne({

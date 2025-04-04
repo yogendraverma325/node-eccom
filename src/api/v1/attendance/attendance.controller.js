@@ -1556,19 +1556,17 @@ class AttendanceController {
 								"regularizeId",
 								"createdAt",
 								"updatedAt",
-								"updatedBy"
-							], 
+								"updatedBy",
+							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
 							include: {
 								model: db.employeeMaster,
 								attributes: ["id", "empCode", "name"],
 								as: "attendanceUpdatedBy",
-								include:
-									{
-										model: db.roleMaster,
-										attributes: ["name"]
-									},
-								
+								include: {
+									model: db.roleMaster,
+									attributes: ["name"],
+								},
 							},
 						},
 						{
@@ -2251,7 +2249,7 @@ class AttendanceController {
 	async regularizeRequestList(req, res) {
 		try {
 			const query = req.query.listFor;
-			
+
 			// search and pagination functionality added
 
 			const limit = req.query.limit * 1 || 10;
@@ -2259,14 +2257,14 @@ class AttendanceController {
 			const offset = (pageNo - 1) * limit;
 
 			const search = req.query.search;
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			const regularizeList = await db.regularizationMaster.findAndCountAll({
 				where: Object.assign(
@@ -2293,14 +2291,14 @@ class AttendanceController {
 								model: db.employeeMaster,
 								attributes: ["empCode", "name"],
 								required: !!searchQuery,
-								where: searchQuery || undefined
+								where: searchQuery || undefined,
 							},
 						],
 					},
 				],
 				limit,
 				offset,
-				distinct: true
+				distinct: true,
 			});
 
 			return respHelper(res, {
@@ -4434,7 +4432,7 @@ class AttendanceController {
 					},
 				],
 				limit,
-				offset
+				offset,
 			});
 
 			return respHelper(res, {
@@ -5588,8 +5586,14 @@ class AttendanceController {
 
 				return true;
 			} else {
-
-				if ((currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`)) || checkAttendance.attendancePresentStatus === "absent" || checkAttendance.attendancePresentStatus === 'weeklyOff') {
+				if (
+					currentDate <
+						moment(
+							`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`,
+						) ||
+					checkAttendance.attendancePresentStatus === "absent" ||
+					checkAttendance.attendancePresentStatus === "weeklyOff"
+				) {
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
 						await db.attendanceMaster.update(
 							{
@@ -5725,7 +5729,14 @@ class AttendanceController {
 				});
 
 				if (checkAttendance) {
-					if ((checkAttendance.attendancePresentStatus === "absent" || currentDate < moment(`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`) || checkAttendance.attendancePresentStatus === 'weeklyOff')) {
+					if (
+						checkAttendance.attendancePresentStatus === "absent" ||
+						currentDate <
+							moment(
+								`${checkAttendance.attendanceDate} ${checkAttendance.attendancePunchInTime}`,
+							) ||
+						checkAttendance.attendancePresentStatus === "weeklyOff"
+					) {
 						if (!existEmployee.dataValues.requiredAttendanceApproval) {
 							await db.attendanceMaster.update(
 								{
@@ -5733,7 +5744,10 @@ class AttendanceController {
 									attandanceShiftStartDate: currentDate.format("YYYY-MM-DD"),
 									attendanceStatus: "Punch In",
 									attendancePresentStatus: "present",
-									attendanceLateBy: await helper.calculateLateBy(currentDate.format("HH:mm:ss"), withGraceTime),
+									attendanceLateBy: await helper.calculateLateBy(
+										currentDate.format("HH:mm:ss"),
+										withGraceTime,
+									),
 									attendancePunchInLocation: incomingAttendanceData.deviceName,
 									punchInSource: attendanceDevice,
 									updatedBy: existEmployee.id,
@@ -5754,7 +5768,10 @@ class AttendanceController {
 									attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
 									attendancePunchOutLocationType: "Office",
 									attendanceStatus: "Punch Out",
-									attendanceWorkingTime: await helper.timeDifference(`${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`, `${currentDate.format("YYYY-MM-DD")} ${currentDate.format("HH:mm:ss")}`),
+									attendanceWorkingTime: await helper.timeDifference(
+										`${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
+										`${currentDate.format("YYYY-MM-DD")} ${currentDate.format("HH:mm:ss")}`,
+									),
 									attendancePunchOutLocation: incomingAttendanceData.deviceName,
 									punchOutSource: attendanceDevice,
 									updatedBy: existEmployee.id,
@@ -5782,7 +5799,8 @@ class AttendanceController {
 							employeeId: existEmployee.id,
 							location: incomingAttendanceData.deviceName,
 							locationType: "Office",
-							attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval
+							attendanceStatus: !existEmployee.dataValues
+								.requiredAttendanceApproval
 								? "approved"
 								: "pending",
 							createdBy: existEmployee.id,
@@ -5798,8 +5816,6 @@ class AttendanceController {
 							companyLocationId: existEmployee.companyLocationId,
 						});
 					}
-
-
 
 					// if (!existEmployee.dataValues.requiredAttendanceApproval) {
 					// 	await db.attendanceMaster.update(
@@ -5970,8 +5986,14 @@ class AttendanceController {
 					},
 				});
 				if (lastDayAttendace) {
-
-					if (lastDayAttendace.attendancePresentStatus === "absent" || (currentDate < moment(`${lastDayAttendace.attendanceDate} ${lastDayAttendace.attendancePunchInTime}`)) || lastDayAttendace.attendancePresentStatus === "weeklyOff") {
+					if (
+						lastDayAttendace.attendancePresentStatus === "absent" ||
+						currentDate <
+							moment(
+								`${lastDayAttendace.attendanceDate} ${lastDayAttendace.attendancePunchInTime}`,
+							) ||
+						lastDayAttendace.attendancePresentStatus === "weeklyOff"
+					) {
 						if (!existEmployee.dataValues.requiredAttendanceApproval) {
 							await db.attendanceMaster.update(
 								{
@@ -6003,7 +6025,10 @@ class AttendanceController {
 									attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
 									attendancePunchOutLocationType: "Office",
 									attendanceStatus: "Punch Out",
-									attendanceWorkingTime: await helper.timeDifference(`${lastDayAttendace.attandanceShiftStartDate} ${lastDayAttendace.attendancePunchInTime}`, `${currentDate.format("YYYY-MM-DD")} ${currentDate.format("HH:mm:ss")}`),
+									attendanceWorkingTime: await helper.timeDifference(
+										`${lastDayAttendace.attandanceShiftStartDate} ${lastDayAttendace.attendancePunchInTime}`,
+										`${currentDate.format("YYYY-MM-DD")} ${currentDate.format("HH:mm:ss")}`,
+									),
 									attendancePunchOutLocation: incomingAttendanceData.deviceName,
 									punchOutSource: attendanceDevice,
 									updatedBy: existEmployee.id,
@@ -6031,7 +6056,8 @@ class AttendanceController {
 							employeeId: existEmployee.id,
 							location: incomingAttendanceData.deviceName,
 							locationType: "Office",
-							attendanceStatus: !existEmployee.dataValues.requiredAttendanceApproval
+							attendanceStatus: !existEmployee.dataValues
+								.requiredAttendanceApproval
 								? "approved"
 								: "pending",
 							createdBy: existEmployee.id,
@@ -6047,12 +6073,6 @@ class AttendanceController {
 							companyLocationId: existEmployee.companyLocationId,
 						});
 					}
-
-
-
-
-
-
 
 					// if (!existEmployee.dataValues.requiredAttendanceApproval) {
 					// 	await db.attendanceMaster.update(

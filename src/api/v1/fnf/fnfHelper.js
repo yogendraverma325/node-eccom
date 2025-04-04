@@ -111,7 +111,7 @@ const actualWorkingDays = async function (data) {
 		} else {
 			let joiningDate = currentMonthJoiningDetails[0][0].dateOfJoining;
 			let leftDayaInMonth = daysLeftInMonth(joiningDate);
-			return leftDayaInMonth; 
+			return leftDayaInMonth;
 		}
 	} catch (e) {
 		console.log(e);
