@@ -6131,10 +6131,10 @@ class AttendanceController {
 					});
 
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
-						await db.attendanceMaster.create(creationObject);
+						const createdAttednace = await db.attendanceMaster.create(creationObject);
 
 						Object.assign(attedanceCronObject, {
-							attendanceAutoId: lastDayAttendace.dataValues.attendanceAutoId,
+							attendanceAutoId: createdAttednace.dataValues.attendanceAutoId,
 							date: yerterdayDate.format("YYYY-MM-DD")
 						});
 
