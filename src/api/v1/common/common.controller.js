@@ -1972,6 +1972,21 @@ class commonController {
                 usersData.permissionAndAccess,
             );
 
+			const hasFilters = Object.values(filters).some((filter) => 
+                filter && Object.keys(filter).length > 0
+            );
+    
+            if (!hasFilters) {
+                return respHelper(res, {
+                    status: 200,
+                    msg: constant.DATA_FETCHED,
+                    data: {
+                        count: 0,
+                        rows: []
+                    },
+                });
+            }
+
 			let searchQuery = (search) 
 			? {
 				[Op.or]: [
@@ -1990,7 +2005,7 @@ class commonController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "name", "empCode"],
-						required: !!searchQuery,
+						required: true,
 						where: searchQuery || undefined,
 						include: [
                             {

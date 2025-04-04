@@ -963,14 +963,60 @@ class UserController {
 
 			let profileApprovalCount = 0;
 
-			if(role_id == 2 || role_id == 5) {
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+
+			const hasFilters = Object.values(filters).some((filter) => 
+				filter && Object.keys(filter).length > 0
+			);
+
+			if(role_id == 2 || role_id == 5 && hasFilters) {
 				profileApprovalCount = await db.paymentDetails.count({
 					where: {
 						status: "pending",
 						// pendingAt: req.userId,
-					}
+					},
+					include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "name", "empCode"],
+									required: true,
+									include: [
+										{
+											model: db.buMaster,
+											attributes: [],
+											where: {
+												...filters.buFIlter,
+											},
+										},
+										{
+											model: db.designationMaster,
+											attributes: [],
+											where: {
+												...filters.designationFIlter,
+											},
+										},
+										{
+											model: db.departmentMaster,
+											attributes: [],
+											where: {
+												...filters.departmentFIlter,
+											},
+										},
+										{
+											model: db.sbuMaster,
+											attributes: [],
+											where: {
+												...filters.sbbuFIlter,
+											},
+										},
+									]
+								}
+					]
 				});
-	
 			}
 
 			
