@@ -44,7 +44,7 @@ import logger from "../../../helper/logger.js";
 import { exit } from "process";
 import { checkPrimeSync } from "crypto";
 // import puppeteer from "puppeteer";
-
+		
 //import moment, { now } from "moment";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -3262,6 +3262,7 @@ class PaymentController {
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
+			console.log(queryForMappedEmployeeList);
 			return respHelper(res, {
 				status: 200,
 				data: pendingProcessList[0],
@@ -5819,6 +5820,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
 				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
 		);
+		totalDeduction=paymentHelper.customRound(totalDeduction)
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = paymentHelper.customRound(payableAmount);
 
@@ -6398,7 +6400,7 @@ async function generatePaySlip(data) {
 						paySlipDuration: paySlipDuration,
 						paySlipTotalDays: payMonthlyElement.totalWorkingDays,
 						paySlipWorkingDays:
-							payMonthlyElement.actualWorkingDays - payMonthlyElement.lopDays,
+							payMonthlyElement.actualWorkingDays,
 						paySlipAbsentDays: payMonthlyElement.lopDays,
 						paySlipArrearDays: payMonthlyElement.arrearDays,
 						paySlipGrossEarning: GrossPayAfterExtraPay,
