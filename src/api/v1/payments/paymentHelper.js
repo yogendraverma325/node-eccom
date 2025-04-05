@@ -563,9 +563,9 @@ async function getCalculatedESIC(monthlyElementPay) {
 			return sum + parseFloat(element["elementMonthlyAmount"]);
 		}, Promise.resolve(0)); // Start with a resolved promise of 0
 
-	calculatedEmployeeESIC = customRound(getPercentagePart(esicApplicableAmount, 0.75));
-	calculatedEmployerESIC = customRound(getPercentagePart(esicApplicableAmount, 3.25));
-	console.log("Applicable ESIC Amount :: " + esicApplicableAmount);
+	calculatedEmployeeESIC = customHigherRound(getPercentagePart(esicApplicableAmount, 0.75));
+	calculatedEmployerESIC = customHigherRound(getPercentagePart(esicApplicableAmount, 3.25));
+	//console.log("Applicable ESIC Amount :: " + esicApplicableAmount);
 	return { calculatedEmployeeESIC, calculatedEmployeeESIC }; // Return elementValue or null if not found
 }
 
@@ -652,6 +652,14 @@ function customRound(num) {
 	}
 }
 
+function customHigherRound(num) {
+	const decimalPart = num - Math.floor(num);
+	if (decimalPart <= 0.0) {
+		return Math.floor(num); // Round down
+	} else {
+		return Math.ceil(num); // Round up
+	}
+}
 function daysLeftInMonth(dateString) {
 	const date = new Date(dateString);
 

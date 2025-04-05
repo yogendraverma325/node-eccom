@@ -2889,7 +2889,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
-			console.log(query);
+			//console.log(query);
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
 			return respHelper(res, {
