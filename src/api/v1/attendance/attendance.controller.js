@@ -1721,9 +1721,6 @@ class AttendanceController {
 				],
 				raw: true,
 			});
-			console.log("startDateLeaves--->>", startDateLeaves);
-			console.log("endDateLeaves --->>", endDateLeaves);
-			console.log("monthLeaves--->>", monthLeaves);
 			let monthleaveCount = 0,
 				unpaidmonthleaveCount = 0;
 			for (const element of monthLeaves) {
@@ -3494,11 +3491,9 @@ class AttendanceController {
 						: activeEmployeeSingleItem.shiftsmaster.isOverNight
 				) {
 					nightwala++;
-					console.log("nightwala", nightwala);
 					await _this.manageDayNightShiftForEmp(activeEmployeeSingleItem.id);
 				} else {
 					daywala++;
-					console.log("daywala", daywala);
 					//await _this.manageDayShiftForEmp(activeEmployeeSingleItem.id);
 				}
 			}
@@ -3925,6 +3920,7 @@ class AttendanceController {
 								markHalfDay = 1;
 								markHalfDayType = 2;
 							}
+							await helper.revokeAppliedLeave(date, singleEmp.id);
 
 							if (
 								markHalfDay != null &&
@@ -4029,7 +4025,7 @@ class AttendanceController {
 							}
 						} else {
 							if (
-								!singleEmp.attendancemaster.attendancePunchInTime ||
+								!singleEmp.attendancemaster.attendancePunchInTime &&
 								!singleEmp.attendancemaster.attendancePunchOutTime
 							) {
 								presentStatus = "absent";
@@ -5357,6 +5353,10 @@ class AttendanceController {
 		const user = incomingAttendanceData.tmc;
 		const attendanceDevice = `${incomingAttendanceData.deviceName} (${incomingAttendanceData.deviceCode})`;
 
+		let attedanceCronObject = {
+			status: true,
+		};
+
 		const existEmployee = await db.employeeMaster.findOne({
 			where: {
 				empCode: incomingAttendanceData.tmc,
@@ -5410,25 +5410,33 @@ class AttendanceController {
 
 		if (!existEmployee) {
 			logger.error(`Employee not found with empCode ${user}`);
-			return false;
+			return {
+				status: false,
+			};
 		}
 		if (!existEmployee.shiftsmaster) {
 			logger.error(`Shift not found for employee with empCode ${user}`);
-			return false;
+			return {
+				status: false,
+			};
 		}
 
 		if (!existEmployee.attendancePolicymaster) {
 			logger.error(
 				`Attendance policy not found for employee with empCode ${user}`,
 			);
-			return false;
+			return {
+				status: false,
+			};
 		}
 
 		if (!existEmployee.enableBiometricAttendance) {
 			logger.error(
 				`Biometric Attendance is not enabled for employee ${existEmployee.dataValues.name} (${existEmployee.dataValues.empCode},${existEmployee.dataValues.id}) on ${currentDate.format("YYYY-MM-DD HH:mm:ss")}`,
 			);
-			return false;
+			return {
+				status: false,
+			};
 		}
 
 		console.log(
@@ -5509,7 +5517,9 @@ class AttendanceController {
 								"DD-MM-YYYY",
 							)} at ${finalShiftEndimeFormat}`,
 						);
-						return false;
+						return {
+							status: false,
+						};
 					}
 				}
 
@@ -5551,7 +5561,11 @@ class AttendanceController {
 				};
 
 				if (!existEmployee.dataValues.requiredAttendanceApproval) {
-					await db.attendanceMaster.create(creationObject);
+					const attendanceId = await db.attendanceMaster.create(creationObject);
+					Object.assign(attedanceCronObject, {
+						attendanceAutoId: attendanceId.dataValues.attendanceAutoId,
+						date: currentDate.format("YYYY-MM-DD"),
+					});
 				}
 
 				const attendanceHistory = await db.attendanceHistory.findOne({
@@ -5584,7 +5598,7 @@ class AttendanceController {
 					companyLocationId: existEmployee.companyLocationId,
 				});
 
-				return true;
+				return attedanceCronObject;
 			} else {
 				if (
 					currentDate <
@@ -5674,7 +5688,10 @@ class AttendanceController {
 					});
 				}
 
-				return true;
+				return Object.assign(attedanceCronObject, {
+					attendanceAutoId: checkAttendance.attendanceAutoId,
+					date: checkAttendance.attendanceDate,
+				});
 			}
 		} else {
 			// Over night code
@@ -5874,7 +5891,10 @@ class AttendanceController {
 					// 	companyLocationId: existEmployee.companyLocationId,
 					// });
 
-					return true;
+					return Object.assign(attedanceCronObject, {
+						attendanceAutoId: checkAttendance.attendanceAutoId,
+						date: checkAttendance.attendanceDate,
+					});
 				} else {
 					const assignedShiftStartTime = existEmployee.attendanceroster
 						? existEmployee.attendanceroster.shiftsmaster.shiftStartTime
@@ -5917,7 +5937,12 @@ class AttendanceController {
 					};
 
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
-						await db.attendanceMaster.create(creationObject);
+						const attendanceData =
+							await db.attendanceMaster.create(creationObject);
+						Object.assign(attedanceCronObject, {
+							attendanceAutoId: attendanceData.dataValues.attendanceAutoId,
+							date: currentDate.format("YYYY-MM-DD"),
+						});
 					}
 
 					const attendanceHistory = await db.attendanceHistory.findOne({
@@ -5951,7 +5976,7 @@ class AttendanceController {
 						companyLocationId: existEmployee.companyLocationId,
 					});
 
-					return true;
+					return attedanceCronObject;
 				}
 			} else {
 				const combinedDateTimeCurrentDay = moment(
@@ -5975,7 +6000,9 @@ class AttendanceController {
 					currentDate < combinedDateTimeNextDayClone
 				) {
 				} else {
-					return false;
+					return {
+						status: false,
+					};
 				}
 
 				const lastDayAttendace = await db.attendanceMaster.findOne({
@@ -6074,65 +6101,10 @@ class AttendanceController {
 						});
 					}
 
-					// if (!existEmployee.dataValues.requiredAttendanceApproval) {
-					// 	await db.attendanceMaster.update(
-					// 		{
-					// 			attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-					// 			attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-					// 			attendancePunchOutLocationType: "Office",
-					// 			attendanceStatus: "Punch Out",
-					// 			attendanceWorkingTime: await helper.timeDifference(
-					// 				`${yerterdayDate.format("YYYY-MM-DD")} ${lastDayAttendace.attendancePunchInTime
-					// 				}`,
-					// 				`${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-					// 					"HH:mm:ss",
-					// 				)}`,
-					// 			),
-					// 			attendancePunchOutLocation: incomingAttendanceData.deviceName,
-					// 			punchOutSource: attendanceDevice,
-					// 			updatedBy: existEmployee.id,
-					// 		},
-					// 		{
-					// 			where: {
-					// 				attendanceDate: yerterdayDate.format("YYYY-MM-DD"),
-					// 				employeeId: existEmployee.id,
-					// 			},
-					// 		},
-					// 	);
-					// }
-
-					// const attendanceHistory = await db.attendanceHistory.findOne({
-					// 	where: {
-					// 		date: yerterdayDate.format("YYYY-MM-DD"),
-					// 		employeeId: existEmployee.id,
-					// 	},
-					// });
-
-					// await db.attendanceHistory.create({
-					// 	date: currentDate.format("YYYY-MM-DD"),
-					// 	time: currentDate.format("HH:mm:ss"),
-					// 	status: attendanceHistory ? "Punch Out" : "Punch In",
-					// 	employeeId: existEmployee.id,
-					// 	location: incomingAttendanceData.deviceName,
-					// 	createdBy: existEmployee.id,
-					// 	createdAt: currentDate,
-					// 	locationType: "Office",
-					// 	attendanceStatus: !existEmployee.dataValues
-					// 		.requiredAttendanceApproval
-					// 		? "approved"
-					// 		: "pending",
-					// 	device: attendanceDevice,
-					// 	shiftId: existEmployee.attendanceroster
-					// 		? existEmployee.attendanceroster.shiftId
-					// 		: existEmployee.shiftsmaster.shiftId,
-					// 	weekOffId: existEmployee.attendanceroster
-					// 		? existEmployee.attendanceroster.weekOffId
-					// 		: existEmployee.weekOffId,
-					// 	attendancePolicyId: existEmployee.attendancePolicyId,
-					// 	companyLocationId: existEmployee.companyLocationId,
-					// });
-
-					return true;
+					return Object.assign(attedanceCronObject, {
+						attendanceAutoId: lastDayAttendace.attendanceAutoId,
+						date: lastDayAttendace.attendanceDate,
+					});
 				} else {
 					const assignedShiftStartTime = existEmployee.attendanceroster
 						? existEmployee.attendanceroster.shiftsmaster.shiftStartTime
@@ -6207,10 +6179,15 @@ class AttendanceController {
 					});
 
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
-						await db.attendanceMaster.create(creationObject);
-					}
+						const createdAttednace =
+							await db.attendanceMaster.create(creationObject);
 
-					return true;
+						Object.assign(attedanceCronObject, {
+							attendanceAutoId: createdAttednace.dataValues.attendanceAutoId,
+							date: yerterdayDate.format("YYYY-MM-DD"),
+						});
+					}
+					return attedanceCronObject;
 				}
 			}
 		}

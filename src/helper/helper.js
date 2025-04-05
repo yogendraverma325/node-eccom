@@ -853,7 +853,7 @@ const empMarkLeaveOfGivenDate = async function (
 			appliedFor: {
 				[Op.between]: [inputData.fromDate, inputData.toDate],
 			},
-			status: "approved",
+			status: ["approved", "pending"],
 			employeeId: userId,
 		},
 	});
@@ -1831,12 +1831,13 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			model: db.comp_off_assignment_filters,
 		},
 	});
-	let whereCondition = {
-		isActive: 1,
-	};
-	let compOffPolicyAssignment = {};
-	let whereConditionJobdetails = {};
+	var compOffPolicyAssignment = {};
 	for (const single of compOffAissgments) {
+		var whereCondition = {
+			isActive: 1,
+		};
+
+		var whereConditionJobdetails = {};
 		for (const singlefilter of single.comp_off_assignment_filters) {
 			const columnName = mappingObject[singlefilter.filter_colum];
 			const validColumns = ["jobLevelId", "bandId", "gradeId"];
@@ -1866,6 +1867,11 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			...whereConditionJobdetails,
 			...{ userId: UserId },
 		};
+		console.log("================= start", single?.comp_off_assignment_auto_id);
+		console.log("whereCondition", whereCondition);
+		console.log("whereConditionJobdetails", whereConditionJobdetails);
+
+		console.log("================= end", single?.comp_off_assignment_auto_id);
 		const employee = await db.employeeMaster.findOne({
 			where: whereCondition,
 			attributes: [
@@ -1884,16 +1890,35 @@ const checkCompOffPolicyForUser = async (UserId) => {
 				where: whereConditionJobdetails,
 			},
 		});
+		console.log(
+			"employee",
+			employee ? "yes" : "NO",
+			" ==== single?.comp_off_assignment_auto_id",
+			single?.comp_off_assignment_auto_id,
+		);
 		if (employee) {
-			if (employee?.id in compOffPolicyAssignment) {
-				compOffPolicyAssignment[employee?.id] =
-					single?.comp_off_assignment_auto_id;
+			if (employee.id in compOffPolicyAssignment) {
+				compOffPolicyAssignment[employee.id] =
+					single.comp_off_assignment_auto_id;
 			} else {
-				compOffPolicyAssignment[employee?.id] =
-					single?.comp_off_assignment_auto_id;
+				console.log(
+					"employee?.id 1",
+					employee?.id,
+					"compOffPolicyAssignment",
+					compOffPolicyAssignment,
+				);
+				compOffPolicyAssignment[employee.id] =
+					single.comp_off_assignment_auto_id;
+				console.log(
+					"employee?.id 2",
+					employee?.id,
+					"compOffPolicyAssignment",
+					compOffPolicyAssignment,
+				);
 			}
 		}
 	}
+	console.log("compOffPolicyAssignment", compOffPolicyAssignment);
 	let compOffPolicyData = null;
 	if (Object.keys(compOffPolicyAssignment).length > 0) {
 		compOffPolicyData = await db.comp_off_polices.findOne({
@@ -2190,7 +2215,7 @@ const creditCompoff = async (inputObject) => {
 
 		if (goAhead) {
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
-			console.log("compOffPolicyData", compOffPolicyData);
+			// console.log("compOffPolicyData", compOffPolicyData);
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -2397,18 +2422,28 @@ const creditCompoff = async (inputObject) => {
 
 							comp_off_data.adjust_hours = time;
 							comp_off_data.total_hours = time;
+							const compOffCount = await db.comp_off_credit_history.findAll({
+								where: {
+									employee_Id: comp_off_data.employee_Id,
+									credit_for_date: comp_off_data.credit_for_date,
+								},
+							});
 
-							// const records = Array(50).fill(null); // Create an array with 50 null placeholders
-							// for (const [index] of records.entries()) {
 							if (comp_off_data.balance === 1) {
 								let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
 								let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
 
-								// Insert both objects into the database
-								await db.comp_off_credit_history.create(comp_off_data_1);
-								await db.comp_off_credit_history.create(comp_off_data_2);
+								if (compOffCount.length == 0) {
+									// Insert both objects into the database
+									await db.comp_off_credit_history.create(comp_off_data_1);
+									await db.comp_off_credit_history.create(comp_off_data_2);
+								} else if (compOffCount.length == 1) {
+									await db.comp_off_credit_history.create(comp_off_data_2);
+								}
 							} else {
-								await db.comp_off_credit_history.create(comp_off_data);
+								if (compOffCount.length == 0) {
+									await db.comp_off_credit_history.create(comp_off_data);
+								}
 							}
 
 							// }
@@ -3571,6 +3606,67 @@ async function generateEmployementHistory(
 	}
 }
 
+const revokeAppliedLeave = async (date, emp) => {
+	const leave = await db.EmployeeLeaveHeader.findOne({
+		where: {
+			employeeId: emp,
+			fromDate: date,
+			status: {
+				[Op.in]: ["approved", "pending"],
+			},
+			source: "system_generated",
+		},
+	});
+
+	if (leave) {
+		await db.EmployeeLeaveHeader.update(
+			{
+				status: "revoked",
+				managerRemark:
+					"System Revoked: Your leave request has been revoked due to the latest attendance data update.",
+				updatedAt: moment(),
+			},
+			{
+				where: {
+					employeeleaveheaderID: leave.dataValues.employeeleaveheaderID,
+				},
+			},
+		);
+
+		await db.employeeLeaveTransactions.update(
+			{
+				status: "revoked",
+				managerRemark:
+					"System Revoked: Your leave request has been revoked due to the latest attendance data update.",
+				updatedAt: moment(),
+			},
+			{
+				where: {
+					employeeleaveheaderID: leave.dataValues.employeeleaveheaderID,
+				},
+			},
+		);
+
+		if (leave.dataValues.status === "approved") {
+			await db.leaveMapping.update(
+				{
+					availableLeave: db.sequelize.literal(
+						`availableLeave + ${leave.dataValues.leaveCount}`,
+					),
+					utilizedThisYear: db.sequelize.literal(
+						`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+					),
+				},
+				{
+					where: {
+						EmployeeId: emp,
+						leaveAutoId: leave.dataValues.leaveAutoId,
+					},
+				},
+			);
+		}
+	}
+};
 // END BY JAY GENERATE EMPLOYMENT HISTORY
 
 export default {
@@ -3628,5 +3724,6 @@ export default {
 	getFiltersByPermission,
 	// START BY JAY GENERATE EMPLOYMENT HISTORY
 	generateEmployementHistory,
-	// END BY JAY GENERATE EMPLOYMENT HISTORY
+	// END BY JAY GENERATE EMPLOYMENT HISTORY,
+	revokeAppliedLeave,
 };
