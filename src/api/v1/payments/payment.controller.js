@@ -3262,7 +3262,7 @@ class PaymentController {
 			const pendingProcessList = await db.sequelize.query(
 				queryForMappedEmployeeList,
 			);
-			console.log(queryForMappedEmployeeList);
+			// console.log(queryForMappedEmployeeList);
 			return respHelper(res, {
 				status: 200,
 				data: pendingProcessList[0],
