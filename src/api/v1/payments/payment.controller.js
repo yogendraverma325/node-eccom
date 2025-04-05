@@ -5219,6 +5219,7 @@ class PaymentController {
 
 						const lopDays =
 							parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
+						let actualWorkingDaysBeforeLop=actualWorkingDays;
 						actualWorkingDays = actualWorkingDays - lopDays;
 						const lopMonthWiseCalculation =
 							totalWorkingDays > 0
@@ -5440,7 +5441,7 @@ class PaymentController {
 								await paymentHelper.getActualMonthlyAmount(
 									empCopntWiseDetl.payElementAmount,
 									totalWorkingDays,
-									actualWorkingDays,
+									actualWorkingDaysBeforeLop,
 								);
 							empCopntWiseDetl["elementMonthlyAmount"] =
 								(await paymentHelper.getElementValue(
@@ -5451,7 +5452,7 @@ class PaymentController {
 											await paymentHelper.arrectLOP(
 												empCopntWiseDetl["elementMonthlyAmount"],
 												employeeDetailsComponentWise[0][0].lopDays,
-												actualWorkingDays,
+												actualWorkingDaysBeforeLop,
 											),
 										)
 									: paymentHelper.customRound(
@@ -5967,6 +5968,7 @@ async function processSalary(data) {
 
 			const lopDays =
 				parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
+			let actualWorkingDaysBeforeLop=actualWorkingDays;	
 			actualWorkingDays = actualWorkingDays - lopDays;
 			const lopMonthWiseCalculation =
 				totalWorkingDays > 0
@@ -6151,7 +6153,7 @@ async function processSalary(data) {
 					await paymentHelper.getActualMonthlyAmount(
 						empCopntWiseDetl.payElementAmount,
 						totalWorkingDays,
-						actualWorkingDays,
+						actualWorkingDaysBeforeLop,
 					);
 				empCopntWiseDetl["elementMonthlyAmount"] =
 					(await paymentHelper.getElementValue(
@@ -6162,7 +6164,7 @@ async function processSalary(data) {
 								await paymentHelper.arrectLOP(
 									empCopntWiseDetl["elementMonthlyAmount"],
 									employeeDetailsComponentWise[0][0].lopDays,
-									totalWorkingDays,
+									actualWorkingDaysBeforeLop,
 								),
 							)
 						: paymentHelper.customRound(
