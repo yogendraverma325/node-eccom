@@ -682,7 +682,7 @@ class AdminController {
 					"noticePeriodAutoId",
 					"attendancePolicyId",
 					"weekOffId",
-					"shiftId"
+					"shiftId",
 				],
 				include: [
 					{
@@ -1035,7 +1035,11 @@ class AdminController {
 								await helper.leaveAssignEmployeeToAll(empids.join(","));
 
 								// start generate employment history after create TMC by jay
-								await helper.generateEmployementHistory(createdUser, req.userId, createdUserJobDetails);
+								await helper.generateEmployementHistory(
+									createdUser,
+									req.userId,
+									createdUserJobDetails,
+								);
 								// end generate employment history after create TMC by jay
 
 								eventEmitter.emit(
@@ -1338,7 +1342,10 @@ class AdminController {
 						attributes: ["jobLevelId", "jobLevelName"],
 					},
 					{ model: db.degreeMaster, attributes: ["degreeId", "degreeName"] },
-					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName"] },
+					{
+						model: db.noticePeriodMaster,
+						attributes: ["noticePeriodAutoId", "noticePeriodName"],
+					},
 				],
 			});
 			if (result) {
@@ -2328,13 +2335,19 @@ class AdminController {
 
 	async updateNoticePeriod(req, res) {
 		try {
-            let updatedBy = req.userId;
+			let updatedBy = req.userId;
 			let { userId, noticePeriodAutoId } = req.body;
-			let metaData = { 'noticePeriodAutoId': noticePeriodAutoId, updatedBy: updatedBy, updatedAt: moment() };
-			await db.employeeMaster.update(metaData, { where: { 'id': userId }});
-			return respHelper(res, { status: 200, msg: constant.UPDATE_SUCCESS.replace("<module>", "Notice Period") });
-		}
-		catch(error) {
+			let metaData = {
+				noticePeriodAutoId: noticePeriodAutoId,
+				updatedBy: updatedBy,
+				updatedAt: moment(),
+			};
+			await db.employeeMaster.update(metaData, { where: { id: userId } });
+			return respHelper(res, {
+				status: 200,
+				msg: constant.UPDATE_SUCCESS.replace("<module>", "Notice Period"),
+			});
+		} catch (error) {
 			console.log(error);
 			return respHelper(res, { status: 500 });
 		}

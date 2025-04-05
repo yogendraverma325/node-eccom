@@ -1948,6 +1948,104 @@ db.costCenterMaster.belongsTo(db.employeeMaster, {
 	foreignKey: "updatedBy",
 	as: "updatedEmployee",
 });
+db.companyLocationMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.companyLocationMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.companyLocationMaster.belongsTo(db.companyMaster, {
+    foreignKey: "companyId",
+    as: "companyMaster",
+});
+db.degreeMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.degreeMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.holidayMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.holidayMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.holidayCompanyLocationConfiguration.belongsTo(db.companyLocationMaster, {
+    foreignKey: "companyLocationId",
+    as: "companyLocationMaster",
+});
+
+db.newCustomerNameMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.newCustomerNameMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.buMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.buMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.sbuMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.sbuMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.weekOffMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.weekOffMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.shiftMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.shiftMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.attendancePolicymaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.attendancePolicymaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.leaveMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.leaveMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+db.noticePeriodMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "createdBy",
+	as: "createdEmployee",
+});
+db.noticePeriodMaster.belongsTo(db.employeeMaster, {
+	foreignKey: "updatedBy",
+	as: "updatedEmployee",
+});
+
 //ritak export master data end
 
 // db.leaveApprovalTrails.hasOne(db.employeeMaster, {

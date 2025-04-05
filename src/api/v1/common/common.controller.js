@@ -907,7 +907,7 @@ class commonController {
 
 					employeeData = await db.employeeMaster.findAndCountAll({
 						order: [["id", "desc"]],
-					...(isAll ? {} : { limit, offset }),
+						...(isAll ? {} : { limit, offset }),
 						where: Object.assign(
 							search
 								? {
@@ -991,8 +991,7 @@ class commonController {
 							{
 								model: db.companyMaster,
 								seperate: true,
-								attributes: ["companyId", "companyName","companyCode"],
-								
+								attributes: ["companyId", "companyName", "companyCode"],
 							},
 							{
 								model: db.sbuMaster,
@@ -2053,7 +2052,7 @@ class commonController {
 					},
 				],
 				limit,
-				offset
+				offset,
 			});
 			return respHelper(res, {
 				status: 200,
