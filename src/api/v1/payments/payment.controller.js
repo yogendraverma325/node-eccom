@@ -2578,18 +2578,18 @@ class PaymentController {
 			});
 
 			for (const lopSingleDetails of lopDeductions) {
-				let payPackageDetails = await db.payPackage.findOne({
-					where: {
-						EmployeeId: lopSingleDetails.EmployeeId,
-						payPackageFinancialYear: financialYearDetails?.financialYearName,
-					},
-					attributes: ["payPackageMonthlyCTC"],
-					raw: true,
-				});
-				let lopAmount =
-					(payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
-					lopSingleDetails.lopDays;
-				totalLopAmount = lopAmount + totalLopAmount;
+				// let payPackageDetails = await db.payPackage.findOne({
+				// 	where: {
+				// 		EmployeeId: lopSingleDetails.EmployeeId,
+				// 		payPackageFinancialYear: financialYearDetails?.financialYearName,
+				// 	},
+				// 	attributes: ["payPackageMonthlyCTC"],
+				// 	raw: true,
+				// });
+				// let lopAmount =
+				// 	(payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
+				// 	lopSingleDetails.lopDays;
+				// totalLopAmount = lopAmount + totalLopAmount;
 				totalLOPDays =
 					parseFloat(lopSingleDetails.lopDays) + parseFloat(totalLOPDays);
 			}
