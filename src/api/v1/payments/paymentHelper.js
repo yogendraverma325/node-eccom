@@ -41,10 +41,10 @@ const payAfterLOPDeductions = async function (employeesList, lopDeductions) {
 					lopDays == 0
 						? 0
 						: (
-								(employee.packageDetails.payPackageMonthlyCTC /
-									totalWorkingDays) *
-								lopDays
-							).toFixed(2),
+							(employee.packageDetails.payPackageMonthlyCTC /
+								totalWorkingDays) *
+							lopDays
+						).toFixed(2),
 				totalWorkingDays: totalWorkingDays,
 			};
 			Object.assign(obj, { netPay: (obj.ctc - obj.lopDeductions).toFixed(2) });
@@ -267,9 +267,9 @@ const salaryPaySlip = async function (paySlipAutoId) {
 		// });
 	} catch (error) {
 		console.log(error);
-		return respHelper(res, {
-			status: 500,
-		});
+		// return respHelper(res, {
+		// 	status: 500,
+		// });
 	}
 };
 
@@ -373,17 +373,14 @@ async function query(caseId, data, data2) {
 			break;
 
 		case 19:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=1 AND e.${
-				data == 1 ? "buId" : "empCode"
-			} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")}
-      ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${
-				data2.paymonth
-			}' OR (ppd.payStatus in (101,4))));;`;
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=1 AND e.${data == 1 ? "buId" : "empCode"
+				} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")}
+      ) AND (ppd.payProcessDetailAutoId IS NULL OR (ppd.payMonth != '${data2.paymonth
+				}' OR (ppd.payStatus in (101,4))));;`;
 			break;
 		case 20:
-			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=1 AND e.${
-				data == 1 ? "buId" : "empCode"
-			} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")})AND (YEAR(ejd.dateOfJoining) < ${data2.paymonth.split("-")[0]} OR (YEAR(ejd.dateOfJoining) = ${data2.paymonth.split("-")[0]} AND MONTH(ejd.dateOfJoining) <= ${data2.paymonth.split("-")[1]}));`;
+			return `SELECT DISTINCT e.id AS EmployeeId, e.name AS EmployeeName FROM ${dbName}.employee e LEFT JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId LEFT JOIN ${dbName}.payprocessdetails ppd ON e.id = ppd.EmployeeId LEFT JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND  p.payPackageAutoId IS NOT NULL AND e.isActive=1 AND e.${data == 1 ? "buId" : "empCode"
+				} IN (${data2.departmentId.map((id) => `'${id}'`).join(", ")})AND (YEAR(ejd.dateOfJoining) < ${data2.paymonth.split("-")[0]} OR (YEAR(ejd.dateOfJoining) = ${data2.paymonth.split("-")[0]} AND MONTH(ejd.dateOfJoining) <= ${data2.paymonth.split("-")[1]}));`;
 			break;
 		//${data2.paymonth.split("-")[0]}
 		// case 20:
@@ -477,15 +474,15 @@ function getPayComponentObject(
 			paySlipComponentAmount:
 				employeePackageDetails.salaryComponentEarningType == "Earning"
 					? parseFloat(employeePackageDetails.payElementAmount) -
-						parseFloat(
-							getPercentagePart(
-								employeePackageDetails.payElementAmount,
-								getPercentage(
-									processedEmployee.lopDeductions,
-									processedEmployee.ctc,
-								),
+					parseFloat(
+						getPercentagePart(
+							employeePackageDetails.payElementAmount,
+							getPercentage(
+								processedEmployee.lopDeductions,
+								processedEmployee.ctc,
 							),
-						)
+						),
+					)
 					: parseFloat(employeePackageDetails.payElementAmount),
 		};
 	} else {
