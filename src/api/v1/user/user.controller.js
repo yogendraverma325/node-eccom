@@ -866,12 +866,28 @@ class UserController {
 					regularizeManagerId: userid,
 					regularizeStatus: "Pending",
 				},
+				include: {
+					model: db.attendanceMaster,
+					attributes: {
+						exclude: [],
+					},
+					where: { employeeId: { [Op.not]: req.userId } },
+					required: true
+				}
 			});
 			let pendingAttCount = await db.regularizationMaster.count({
 				where: {
 					regularizeStatus: "Pending",
-					createdBy: userid,
+					// createdBy: userid,
 				},
+				include: {
+					model: db.attendanceMaster,
+					attributes: {
+						exclude: [],
+					},
+					where: { employeeId: req.userId },
+					required: true,
+				}
 			});
 			// let pendingSeperationCount = await db.separationMaster.count(
 			// 	{

@@ -1557,17 +1557,30 @@ class AttendanceController {
 								"createdAt",
 								"updatedAt",
 								"updatedBy",
+								"createdBy"
 							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
-							include: {
-								model: db.employeeMaster,
-								attributes: ["id", "empCode", "name"],
-								as: "attendanceUpdatedBy",
-								include: {
-									model: db.roleMaster,
-									attributes: ["name"],
-								},
-							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "attendanceUpdatedBy",
+									include: {
+										model: db.roleMaster,
+										attributes: ["name"],
+									},
+							    },
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "attendanceCreatedBy",
+									include:
+									{
+										model: db.roleMaster,
+										attributes: ["name"]
+									},
+								}
+							],
 						},
 						{
 							model: db.holidayCompanyLocationConfiguration,
@@ -2267,7 +2280,7 @@ class AttendanceController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								createdBy: req.userId,
+								// createdBy: req.userId,
 								regularizeStatus: "Pending",
 							}
 						: {
@@ -2282,7 +2295,11 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
-						required: !!searchQuery,
+						where: { 
+							...(query === "raisedByMe" && { employeeId: req.userId } ),
+							...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId }}) 
+						},
+						required: true,
 						include: [
 							{
 								model: db.employeeMaster,

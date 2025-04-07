@@ -2071,4 +2071,12 @@ db.employeeMaster.hasOne(db.employeeLeaveTransactions, {
 });
 ///YOGI ADDED THIS JOIN
 
+// start added by jay
+db.regularizationMaster.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "attendanceCreatedBy",
+});
+// end by jay
+
 export default db;
