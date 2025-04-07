@@ -9,7 +9,6 @@ import Employee from "../../model/Employee.js";
 import paymentHelper from "./paymentHelper.js";
 import helper from "../../../helper/helper.js";
 import Sequelize from "sequelize";
-import { parse } from "dotenv";
 import xlsx from "json-as-xlsx";
 import { fileURLToPath } from "url"; // Import for resolving __dirname equivalent
 import emailTemplate from "../../../email/emailTemplate.js";
@@ -41,8 +40,6 @@ import Constant from "../../../constant/messages.js";
 import service from "./payment.service.js";
 import Pagination from "../../../helper/pagination.js";
 import logger from "../../../helper/logger.js";
-import { exit } from "process";
-import { checkPrimeSync } from "crypto";
 // import puppeteer from "puppeteer";
 		
 //import moment, { now } from "moment";
