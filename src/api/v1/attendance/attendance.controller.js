@@ -63,9 +63,9 @@ class AttendanceController {
 			});
 			// Sandeep
 			pushNotificationEmitter.emit("sendNotification", {
-				title: 'Hello World',
-				body:"Sandeep has submitted the regularise request.",
-				employeeId: '1043'
+				title: 'Attendance Log',
+				body:"Your attendance request has been saved",
+				employeeId: req.userId
 			});
 
 			const existEmployee = await db.employeeMaster.findOne({
