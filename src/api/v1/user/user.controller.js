@@ -1032,6 +1032,14 @@ class UserController {
 								}
 					]
 				});
+
+				let addressCount = await db.employeeAddress.count({
+					where: {
+						status: "pending"
+					}
+				});
+
+				profileApprovalCount = profileApprovalCount + addressCount;
 			}
 
 			const pendingCompOffCount = await db.comp_off_credit_history.count({
