@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New Import Sandeep
 var _this = null;
 class AttendanceController {
 	constructor() {
@@ -19,6 +19,7 @@ class AttendanceController {
 
 	async attendance(req, res) {
 		try {
+
 			const result = await validator.attendanceSchema.validateAsync(req.body);
 			if (result.locationType == "Office") {
 				const distanceQuery = `
@@ -59,6 +60,12 @@ class AttendanceController {
 				long: result.longitude,
 				createdBy: req.userId,
 				device: req.device,
+			});
+			// Sandeep
+			pushNotificationEmitter.emit("sendNotification", {
+				title: 'Hello World',
+				body:"Sandeep has submitted the regularise request.",
+				employeeId: '1043'
 			});
 
 			const existEmployee = await db.employeeMaster.findOne({
