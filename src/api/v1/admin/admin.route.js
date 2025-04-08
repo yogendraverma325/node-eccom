@@ -162,12 +162,13 @@ export default Express.Router()
 		authorization("ADMIN", "HR_OPS"),
 		commonController.actionOnPaymentDetails,
 	)
-
+//ritak address approval start
 	.get(
-		"/paymentActionPending",
+		"/profileUpdateActionPending",
 		authorization("ADMIN", "HR_OPS"),
-		commonController.paymentActionPending,
+		commonController.profileUpdateActionPending,
 	)
+	//ritak address approval end
 	.post(
 		"/blockLogin",
 		// authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
@@ -221,3 +222,12 @@ export default Express.Router()
     // start add/update notice period by jay
 	.put("/updateNoticePeriod", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), adminController.updateNoticePeriod)
 	// end add/update notice period by jay
+
+
+	//ritak address approval start
+	.post(
+		"/actionOnAddressDetails",
+		authorization("ADMIN", "HR_OPS"),
+		commonController.actionOnAddressDetails,
+	)
+	//ritak address approval end

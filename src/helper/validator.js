@@ -1736,6 +1736,96 @@ const releaseSlipCheck = Joi.object({
 	processId: Joi.string().optional(),
 });
 
+	// ritak address approval module start
+
+	const requestForAddressApprovalSchema = Joi.object({
+		employeeId: Joi.number().label("Employee ID").required(),
+		currentHouse: Joi.string().label("Current House").required(),
+		currentStreet: Joi.string().label("Current Street").required(),
+		currentStateId: Joi.number().label("Current State").required(),
+		currentCityId: Joi.number().label("Current City").required(),
+		currentCountryId: Joi.number().label("Current Country").required(),
+		currentPincodeId: Joi.number().label("Current Pincode").required(),
+		currentLandmark: Joi.string().label("Current Landmark").required(),
+		permanentCityId: Joi.number().label("Permanent City").allow(null).optional(),
+		permanentStateId: Joi.number()
+			.label("Permanent State")
+			.allow(null)
+			.optional(),
+		permanentCountryId: Joi.number()
+			.label("Permanent Country")
+			.allow(null)
+			.optional(),
+		permanentPincodeId: Joi.number()
+			.label("Permanent Pincode")
+			.allow(null)
+			.optional(),
+		permanentStreet: Joi.string()
+			.label("Permanent Street")
+			.allow(null)
+			.optional(),
+		permanentHouse: Joi.string().label("Permanent House").allow(null).optional(),
+		permanentLandmark: Joi.string()
+			.label("Permanent Landmark")
+			.allow(null)
+			.optional(),
+		emergencyStreet: Joi.string()
+			.label("Emergency Street")
+			.allow(null)
+			.optional(),
+		emergencyHouse: Joi.string().label("Emergency House").allow(null).optional(),
+		emergencyCityId: Joi.number()
+			.label("Emergency City")
+			.allow(null)
+			.optional(),
+		emergencyStateId: Joi.number()
+			.label("Emergency State")
+			.allow(null)
+			.optional(),
+		emergencyCountryId: Joi.number()
+			.label("Emergency Country")
+			.allow(null)
+			.optional(),
+		emergencyPincodeId: Joi.number()
+			.label("Emergency Pincode")
+			.allow(null)
+			.optional(),
+		emergencyLandmark: Joi.string()
+			.label("Emergency Landmark")
+			.allow(null)
+			.optional(),
+		comment: Joi.string().label("Comment").allow(null, "").optional(),
+	});
+
+	const actionAddressSchema = Joi.object({
+		userId: Joi.number().label("Employee ID").required(),
+		currentHouse: Joi.string().label("Current House").optional(),
+		currentStreet: Joi.string().label("Current Street").optional(),
+		currentStateId: Joi.number().label("Current State").optional(),
+		currentCityId: Joi.number().label("Current City").optional(),
+		currentCountryId: Joi.number().label("Current Country").optional(),
+		currentPincodeId: Joi.number().label("Current Pincode").optional(),
+		currentLandmark: Joi.string().label("Current Landmark").optional(),
+		permanentCityId: Joi.number().label("Permanent City").optional(),
+		permanentStateId: Joi.number().label("Permanent State").optional(),
+		permanentCountryId: Joi.number().label("Permanent Country").optional(),
+		permanentPincodeId: Joi.number().label("Permanent Pincode").optional(),
+		permanentStreet: Joi.string().label("Permanent Street").optional(),
+		permanentHouse: Joi.string().label("Permanent House").optional(),
+		permanentLandmark: Joi.string().label("Permanent Landmark").optional(),
+		emergencyStreet: Joi.string().label("Emergency Street").optional(),
+		emergencyHouse: Joi.string().label("Emergency House").optional(),
+		emergencyCityId: Joi.number().label("Emergency City").optional(),
+		emergencyStateId: Joi.number().label("Emergency State").optional(),
+		emergencyCountryId: Joi.number().label("Emergency Country").optional(),
+		emergencyPincodeId: Joi.number().label("Emergency Pincode").optional(),
+		emergencyLandmark: Joi.string().label("Emergency Landmark").optional(),
+		status: Joi.number().valid(0, 1).label("Status").required(), // 0 for rejected, 1 for approved
+		comment: Joi.string().label("Comment").allow(null, "").optional(),
+	});
+	
+	// ritak address approval module end
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -1821,5 +1911,9 @@ export default {
 	lwfValidateSchama,
 	noticeRecoveryValidateSchama,
 	extraBenefitValidateSchama,
-	releaseSlipCheck
+	releaseSlipCheck,
+	// ritak request approval module start
+	requestForAddressApprovalSchema,
+	actionAddressSchema
+	
 };

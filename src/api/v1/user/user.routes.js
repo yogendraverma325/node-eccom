@@ -384,4 +384,13 @@ export default Express.Router()
 		"/actionOnLeaveCompoff",
 		authentication.authenticate,
 		userController.actionOnLeaveCompoff,
+	)
+
+
+	// ritak address approval module start
+	.post(
+		"/requestForAddressApproval",
+		authentication.authenticate,
+		userController.requestForAddressApproval,
 	);
+		// ritak address approval module end

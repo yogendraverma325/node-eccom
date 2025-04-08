@@ -4497,6 +4497,156 @@ const releasePaySlip = async (data) => {
     </html>`;
 };
 
+//ritak address approval start
+
+const addressDetailsAdminActionMail = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">Hi ${data.name}</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+           Request to update Address details in the profile has been acted upon by <strong>Tara Admin</strong>
+           
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+  Approver comments: ${data.comment}
+</p>
+          <p style="margin-top: 1rem;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+              "
+              target="_blank"
+              >Click Here</a
+            >
+            to view profile.<br />
+          </p>
+          <p><br /></p>
+         <p style="color: #000000;">Regards,</p>
+<p style="color: #000000;">TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const addressDetailsApprovalRequestMail = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">Hi ${data.name},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            Your request to update your <strong>Address Details</strong> in the profile has been submitted for approval.
+          </p>
+          <p style="margin-top: 1rem;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+              "
+              target="_blank"
+              >Click Here</a
+            >
+            for complete details of your profile update request.<br />
+          </p>
+          <p><br /></p>
+          <p>Regards,</p>
+          <p>TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+//ritak address approval end
 export default {
 	regularizationRequestMail,
 	resetPasswordMail,
@@ -4529,4 +4679,8 @@ export default {
 	confirmationWorkFlownextLevel,
 	salarySlipPdf,
 	releasePaySlip,
+  //ritak address approval start
+  addressDetailsAdminActionMail,
+  addressDetailsApprovalRequestMail,
+  //ritak address approval end
 };
