@@ -181,6 +181,7 @@ import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
 import ImportInfo from "../api/model/ImportInfo.js";
 import ImportData from "../api/model/ImportData.js";
 ///////////////////Import Models By Himanshu////////
+import PushNotificationHistory from "../api/model/PushNotificationHistory.js";
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -463,6 +464,7 @@ db.lwfMapping = LwfMapping(sequelize, Sequelize);
 db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
 db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
 db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
+db.pushNotificationHistory = PushNotificationHistory(sequelize, Sequelize);
 /// Leave Approval FLow //////
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {

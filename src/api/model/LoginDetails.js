@@ -13,6 +13,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.STRING(255),
 			allowNull: false,
 		},
+		firebasetoken:{
+            type: Sequelize.STRING(250),///firebase token added
+            allowNull: true,
+        },
 		loginDevice: {
 			type: Sequelize.STRING(100),
 			allowNull: true,
