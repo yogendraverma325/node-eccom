@@ -2077,6 +2077,11 @@ db.regularizationMaster.hasOne(db.employeeMaster, {
 	sourceKey: "createdBy",
 	as: "attendanceCreatedBy",
 });
+db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "leaveCreatedBy",
+});
 // end by jay
 
 export default db;

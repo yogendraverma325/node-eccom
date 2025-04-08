@@ -1612,12 +1612,14 @@ class AttendanceController {
 								status: ["pending", "approved"],
 								employeeId: user,
 							},
-							include: {
-								model: db.leaveMaster,
-								required: false,
-								as: "leaveMasterDetails",
-								attributes: ["leaveName", "leaveCode"],
-							},
+							include: [
+								{
+									model: db.leaveMaster,
+									required: false,
+									as: "leaveMasterDetails",
+									attributes: ["leaveName", "leaveCode"],
+								}	
+						    ],
 						},
 					],
 				}),
@@ -1686,6 +1688,12 @@ class AttendanceController {
 									as: "leaveUpdatedBy",
 									required: false,
 								},
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "leaveCreatedBy",
+									required: false
+								}	
 							],
 						},
 					],

@@ -3274,6 +3274,11 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
 							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
 						},
 						{
 							model: db.attendanceMaster,
@@ -3304,6 +3309,18 @@ class UserController {
 								},
 							],
 						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "attendanceCreatedBy",
+							required: false,
+							include:
+							{
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
+						}
 					],
 					limit,
 					offset,
@@ -3434,6 +3451,12 @@ class UserController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveCreatedBy",
+							required: false,
 						},
 					],
 					limit,
@@ -5857,6 +5880,11 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
 							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
 						},
 						{
 							model: db.attendanceMaster,
@@ -5879,6 +5907,18 @@ class UserController {
 								},
 							],
 						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "attendanceCreatedBy",
+							required: false,
+							include:
+							{
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
+						}
 					],
 					limit,
 					offset,
@@ -6012,6 +6052,12 @@ class UserController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveCreatedBy",
+							required: false,
 						},
 					],
 					limit,
