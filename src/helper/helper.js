@@ -2524,6 +2524,8 @@ const actionOnLeaveCompOff = async (
 				employeeId: employeeId,
 				leaveAutoId: 9,
 				status: "approved",
+				employeeleaveheaderID:employeeLeaveTransactionsIds
+
 			},
 			raw: false,
 		});
@@ -3668,7 +3670,7 @@ const revokeAppliedLeave = async (date, emp) => {
 	}
 };
 
-const activeCompOffMoreThanLeave=async (EMP_ID)=>{
+const activeCompOffMoreThanLeave=async (EMP_ID,leaveID)=>{
 	const compOffHistory = await db.comp_off_credit_history.findAll({
             attributes: [
                 "comp_off_credit_history_auto_id",
@@ -3700,6 +3702,16 @@ const activeCompOffMoreThanLeave=async (EMP_ID)=>{
             (sum, record) => sum + parseFloat(record.balance),
             0,
         );
+		const getLeaveRequest = await db.EmployeeLeaveHeader.findOne({
+			attributes: ["employeeId", "leaveAutoId", "leaveCount"],
+			where: {
+				employeeId: EMP_ID,
+				leaveAutoId: 9,
+				employeeleaveheaderID:leaveID
+
+			},
+			raw: false,
+		});
 
         if (totalBalance < parseFloat(getLeaveRequest.leaveCount)) {
             return 0;

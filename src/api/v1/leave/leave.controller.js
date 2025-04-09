@@ -341,215 +341,17 @@ class LeaveController {
 							employeeleaveheaderID: leaveID,
 						},
 					});
-					let returnTrue=await helper.activeCompOffMoreThanLeave(
-					leaveHeaderSingleRecords.employeeId
+				
+				      if(leaveHeaderSingleRecords.leaveAutoId==9){
+							let returnTrue=await helper.activeCompOffMoreThanLeave(
+					leaveHeaderSingleRecords.employeeId,
+					leaveID
 					);
-				      if(returnTrue && leaveHeaderSingleRecords.leaveAutoId==9){
-
-					if (leaveHeaderSingleRecords.approvalFlowExist == 1) {
-						const leaveTrails = await db.leaveApprovalTrails.findAll({
-							where: {
-								isApproved: 0,
-								leaveHeaderAutoId: leaveID,
-								pendingOn: req.userId,
-							},
-							include: [
-								{
-									model: db.leaveApprovalFlow,
-									attributes: ["maxApprovalLevel"],
-								},
-							],
-						});
-						if (leaveTrails.length > 0) {
-							// Find the highest approval level among all trails
-							const maxApprovalLevel =
-								leaveTrails[0].approval_flow.maxApprovalLevel;
-							const currentLevel = Math.max(
-								...leaveTrails.map((trail) => trail.level),
-							);
-
-							const newStatus =
-								currentLevel === maxApprovalLevel ? "approved" : "pending";
-
-							await db.employeeLeaveTransactions.update(
-								{
-									status: newStatus,
-									updatedBy: req.userId,
-									managerRemark: result.remark !== "" ? result.remark : null,
-									updatedAt: moment(),
-								},
-								{
-									where: {
-										employeeleaveheaderID: leaveID,
-									},
-								},
-							);
-
-							await db.EmployeeLeaveHeader.update(
-								{
-									status: newStatus,
-									updatedBy: req.userId,
-									managerRemark: result.remark !== "" ? result.remark : null,
-									updatedAt: moment(),
-								},
-								{
-									where: {
-										employeeleaveheaderID: leaveID,
-									},
-								},
-							);
-
-							if (leaveHeaderSingleRecords.leaveAutoId == 9) {
-								await helper.actionOnLeaveCompOff(
-									leaveHeaderSingleRecords.employeeId,
-									leaveID,
-									1,
-									result.remark !== "" ? result.remark : null,
-									req.userId,
-								);
-							}
-
-							const existingRecord = await db.employeeLeaveTransactions.findOne(
-								{
-									where: { employeeleaveheaderID: leaveID },
-								},
-							);
-
-							const existingLeaveHeader = await db.EmployeeLeaveHeader.findOne({
-								where: { employeeleaveheaderID: leaveID },
-							});
-
-							// Update all retrieved leaveApprovalTrails as approved
-							await db.leaveApprovalTrails.update(
-								{
-									isVisible: 0,
-									isPending: 0,
-									isApproved: 1,
-									remark: result.remark !== "" ? result.remark : null,
-									updatedBy: req.userId,
-									updatedAt: moment(),
-								},
-								{
-									where: {
-										leaveTrailAutoId: leaveTrails.map(
-											(trail) => trail.leaveTrailAutoId,
-										),
-									},
-								},
-							);
-
-							// Activate next level approval if exists
-							if (currentLevel < maxApprovalLevel) {
-								await db.leaveApprovalTrails.update(
-									{ isVisible: 1 },
-									{
-										where: {
-											leaveHeaderAutoId: leaveID,
-											level: currentLevel + 1,
-										},
-									},
-								);
-							}
-
-							// If final approval level is reached, update attendance and leave balances
-							if (currentLevel === maxApprovalLevel && existingLeaveHeader) {
-								const existingRecordSWholes =
-									await db.employeeLeaveTransactions.findAll({
-										where: { employeeleaveheaderID: leaveID },
-									});
-								for (const SingleexistingRecordSWholes of existingRecordSWholes) {
-									await db.attendanceMaster.update(
-										Object.assign(
-											SingleexistingRecordSWholes.dataValues.isHalfDay === 0
-												? {
-														attendancePresentStatus: "leave",
-														attendanceLateBy: "00:00:00",
-													}
-												: SingleexistingRecordSWholes.dataValues.halfDayFor ===
-													  1
-													? { attendanceLateBy: "00:00:00" }
-													: {},
-										),
-										{
-											where: {
-												attendanceDate: SingleexistingRecordSWholes.appliedFor,
-												employeeId: SingleexistingRecordSWholes.employeeId,
-											},
-										},
-									);
-								}
-
-								// Leave Mapping Updates
-								if (
-									existingRecord.leaveAutoId === 6 ||
-									existingRecord.leaveAutoId === 9
-								) {
-									const lwpLeave = await db.leaveMapping.findOne({
-										where: {
-											EmployeeId: existingRecord.employeeId,
-											leaveAutoId: existingRecord.leaveAutoId,
-										},
-									});
-
-									if (lwpLeave) {
-										await db.leaveMapping.increment(
-											{
-												utilizedThisYear: parseFloat(
-													existingLeaveHeader.leaveCount,
-												),
-											},
-											{
-												where: {
-													EmployeeId: existingLeaveHeader.employeeId,
-													leaveAutoId: existingLeaveHeader.leaveAutoId,
-												},
-											},
-										);
-									} else {
-										await db.leaveMapping.create({
-											EmployeeId: existingLeaveHeader.employeeId,
-											leaveAutoId: existingLeaveHeader.leaveAutoId,
-											availableLeave: 0,
-											utilizedThisYear: parseFloat(
-												existingLeaveHeader.leaveCount,
-											),
-											creditedFromLastYear: 0,
-											annualAllotment: 0,
-											accruedThisYear: 0,
-										});
-									}
-								} else {
-									await db.leaveMapping.increment(
-										{
-											utilizedThisYear: parseFloat(
-												existingLeaveHeader.leaveCount,
-											),
-										},
-										{
-											where: {
-												EmployeeId: existingLeaveHeader.employeeId,
-												leaveAutoId: existingLeaveHeader.leaveAutoId,
-											},
-										},
-									);
-									await db.leaveMapping.increment(
-										{
-											availableLeave: -parseFloat(
-												existingLeaveHeader.leaveCount,
-											),
-										},
-										{
-											where: {
-												EmployeeId: existingLeaveHeader.employeeId,
-												leaveAutoId: existingLeaveHeader.leaveAutoId,
-											},
-										},
-									);
-								}
-							}
+						if(returnTrue==0){
+							continue;
 						}
-					} 
-					}else{
+					}
+
 						if (leaveHeaderSingleRecords.approvalFlowExist == 1) {
 						const leaveTrails = await db.leaveApprovalTrails.findAll({
 							where: {
@@ -603,15 +405,7 @@ class LeaveController {
 								},
 							);
 
-							if (leaveHeaderSingleRecords.leaveAutoId == 9) {
-								await helper.actionOnLeaveCompOff(
-									leaveHeaderSingleRecords.employeeId,
-									leaveID,
-									1,
-									result.remark !== "" ? result.remark : null,
-									req.userId,
-								);
-							}
+							
 
 							const existingRecord = await db.employeeLeaveTransactions.findOne(
 								{
@@ -657,6 +451,70 @@ class LeaveController {
 
 							// If final approval level is reached, update attendance and leave balances
 							if (currentLevel === maxApprovalLevel && existingLeaveHeader) {
+
+								
+
+							let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+					where: {
+					employeeleaveheaderID: leaveID,
+					},
+					});
+					if (leaveHeaderSingleRecords.leaveAutoId == 9) {
+								await helper.actionOnLeaveCompOff(
+									leaveHeaderSingleRecords.employeeId,
+									leaveID,
+									1,
+									result.remark !== "" ? result.remark : null,
+									req.userId,
+								);
+							}
+
+					const leaveTransactionDetails =
+					await db.employeeLeaveTransactions.findOne({
+						raw: true,
+						where: {
+							employeeleaveheaderID: leaveID,
+						},
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["name", "email"],
+								include: [
+									{
+										model: db.employeeMaster,
+										as: "managerData",
+										attributes: ["name"],
+									},
+									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
+									},
+								],
+							},
+							{
+								model: db.leaveMaster,
+								as: "leaveMasterDetails",
+								attributes: ["leaveName"],
+							},
+						],
+						attributes: ["fromDate", "toDate"],
+					});
+
+				const obj = {
+					email: leaveTransactionDetails["employee.email"],
+					status: result.status === "approved" ? "Approved" : "Rejected",
+					fromDate: leaveHeaderSingleRecords.fromDate,
+					toDate: leaveHeaderSingleRecords.toDate,
+					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
+					managerName: req.userData.name,
+					requesterName: leaveTransactionDetails["employee.name"],
+					senderEmail:
+						leaveTransactionDetails["employee.companymaster.senderEmail"],
+					companyLogo:
+						leaveTransactionDetails["employee.companymaster.companyLogo"],
+				};
+				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
+
 								const existingRecordSWholes =
 									await db.employeeLeaveTransactions.findAll({
 										where: { employeeleaveheaderID: leaveID },
@@ -753,7 +611,7 @@ class LeaveController {
 							}
 						}
 					} 
-					}
+					
 				}
 			} else {
 				await db.employeeLeaveTransactions.update(
@@ -784,6 +642,8 @@ class LeaveController {
 				);
 
 				for (const leaveID of leaveIds) {
+
+					
 					await db.leaveApprovalTrails.update(
 						{
 							isVisible: 0,
@@ -800,82 +660,12 @@ class LeaveController {
 							},
 						},
 					);
-
-					// await db.leaveApprovalTrails.update(
-					// 	{
-					// 		isVisible: 0,
-					// 		isPending: 0,
-					// 		isApproved: 2,
-					// 		remark: result.remark != "" ? result.remark : null,
-					// 	},
-					// 	{
-					// 		where: {
-					// 			leaveHeaderAutoId: leaveID,
-					// 			pendingOn: req.userId,
-					// 		},
-					// 	},
-					// );
-				}
-			}
-
-			for (const leaveID of leaveIds) {
-
-			let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
-			where: {
-				employeeleaveheaderID: leaveID,
-			},
-			});
-			let returnTrue=await helper.activeCompOffMoreThanLeave(
-			leaveHeaderSingleRecords.employeeId
-			);
-			if(returnTrue && leaveHeaderSingleRecords.leaveAutoId==9){
-
-				const leaveTransactionDetails =
-					await db.employeeLeaveTransactions.findOne({
-						raw: true,
-						where: {
-							employeeleaveheaderID: leaveID,
-						},
-						include: [
-							{
-								model: db.employeeMaster,
-								attributes: ["name", "email"],
-								include: [
-									{
-										model: db.companyMaster,
-										attributes: ["senderEmail", "companyLogo"],
-									},
-									{
-										model: db.employeeMaster,
-										as: "managerData",
-										attributes: ["name"],
-									},
-								],
-							},
-							{
-								model: db.leaveMaster,
-								as: "leaveMasterDetails",
-								attributes: ["leaveName"],
-							},
-						],
-						attributes: ["fromDate", "toDate"],
+					let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+					where: {
+					employeeleaveheaderID: leaveID,
+					},
 					});
 
-				const obj = {
-					email: leaveTransactionDetails["employee.email"],
-					status: result.status === "approved" ? "Approved" : "Rejected",
-					fromDate: leaveHeaderSingleRecords.fromDate,
-					toDate: leaveHeaderSingleRecords.toDate,
-					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
-					managerName: leaveTransactionDetails["employee.managerData.name"],
-					requesterName: leaveTransactionDetails["employee.name"],
-					senderEmail:
-						leaveTransactionDetails["employee.companymaster.senderEmail"],
-					companyLogo:
-						leaveTransactionDetails["employee.companymaster.companyLogo"],
-				};
-				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
-			}else{
 					const leaveTransactionDetails =
 					await db.employeeLeaveTransactions.findOne({
 						raw: true,
@@ -888,13 +678,13 @@ class LeaveController {
 								attributes: ["name", "email"],
 								include: [
 									{
-										model: db.companyMaster,
-										attributes: ["senderEmail", "companyLogo"],
-									},
-									{
 										model: db.employeeMaster,
 										as: "managerData",
 										attributes: ["name"],
+									},
+									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
 									},
 								],
 							},
@@ -913,7 +703,7 @@ class LeaveController {
 					fromDate: leaveHeaderSingleRecords.fromDate,
 					toDate: leaveHeaderSingleRecords.toDate,
 					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
-					managerName: leaveTransactionDetails["employee.managerData.name"],
+					managerName: req.userData.name,
 					requesterName: leaveTransactionDetails["employee.name"],
 					senderEmail:
 						leaveTransactionDetails["employee.companymaster.senderEmail"],
@@ -921,7 +711,8 @@ class LeaveController {
 						leaveTransactionDetails["employee.companymaster.companyLogo"],
 				};
 				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
-			}
+				}
+				
 			}
 
 			return respHelper(res, {
@@ -4955,47 +4746,31 @@ class LeaveController {
 				attributes: ["name"],
 			});
 
-			await db.employeeLeaveTransactions.update(
-				{
-					status: result.status,
-					updatedBy: req.userId,
-					managerRemark: result.remark != "" ? result.remark : null,
-					updatedAt: moment(),
-				},
-				{
-					where: {
-						employeeleaveheaderID: leaveIds,
-					},
-				},
-			);
-
-			await db.EmployeeLeaveHeader.update(
-				{
-					status: result.status,
-					updatedBy: req.userId,
-					managerRemark: result.remark != "" ? result.remark : null,
-					updatedAt: moment(),
-					role:
-						req.userData.role_id == 2 || req.userData.role_id == 5
-							? req.userData["role.name"]
-							: null,
-				},
-				{
-					where: {
-						employeeleaveheaderID: leaveIds,
-					},
-				},
-			);
-
+			
+console.log("result.status",result.status,"leaveIds",leaveIds)
 			if (result.status == "approved") {
 				for (const leaveID of leaveIds) {
+
 					const existingRecordNew = await db.EmployeeLeaveHeader.findOne({
 						where: { employeeleaveheaderID: leaveID },
 					});
+						if(existingRecordNew.leaveAutoId==9){
+						let returnTrue=await helper.activeCompOffMoreThanLeave(
+						existingRecordNew.employeeId,
+						leaveID
+						);
+						if(returnTrue==0){
+						   continue;	
+						}
+						}
+
+
 					if (existingRecordNew.approvalFlowExist == 1) {
 						console.log("i am in new approvalflow>>>>", leaveID);
 
 						if (req.userData.role_id == 2 || req.userData.role_id == 5) {
+
+
 							console.log("i am in as admin");
 							const leaveTrails = await db.leaveApprovalTrails.findAll({
 								where: {
@@ -5040,15 +4815,7 @@ class LeaveController {
 								},
 							);
 
-							if (existingRecordNew && existingRecordNew.leaveAutoId == 9) {
-								await helper.actionOnLeaveCompOff(
-									existingRecordNew.employeeId,
-									leaveID,
-									1,
-									result.remark !== "" ? result.remark : null,
-									req.userId,
-								);
-							}
+							
 
 							const existingRecord = await db.employeeLeaveTransactions.findOne(
 								{
@@ -5099,6 +4866,69 @@ class LeaveController {
 							}
 
 							if (existingRecord) {
+
+								if (existingRecordNew && existingRecordNew.leaveAutoId == 9) {
+								await helper.actionOnLeaveCompOff(
+									existingRecordNew.employeeId,
+									leaveID,
+									1,
+									result.remark !== "" ? result.remark : null,
+									req.userId,
+								);
+							}
+
+						let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+					where: {
+					employeeleaveheaderID: leaveID,
+					},
+					});
+
+					const leaveTransactionDetails =
+					await db.employeeLeaveTransactions.findOne({
+					raw: true,
+					where: {
+						employeeleaveheaderID: leaveID,
+					},
+					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["name", "email"],
+							include: [
+								{
+									model: db.employeeMaster,
+									as: "managerData",
+									attributes: ["name"],
+								},
+								{
+									model: db.companyMaster,
+									attributes: ["senderEmail", "companyLogo"],
+								},
+							],
+						},
+						{
+							model: db.leaveMaster,
+							as: "leaveMasterDetails",
+							attributes: ["leaveName"],
+						},
+					],
+					attributes: ["fromDate", "toDate"],
+					});
+
+					const obj = {
+					email: leaveTransactionDetails["employee.email"],
+					status: result.status === "approved" ? "Approved" : "Rejected",
+					fromDate: leaveHeaderSingleRecords.fromDate,
+					toDate: leaveHeaderSingleRecords.toDate,
+					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
+					managerName: actionTaker ? actionTaker.name : "",
+					requesterName: leaveTransactionDetails["employee.name"],
+					senderEmail:
+					leaveTransactionDetails["employee.companymaster.senderEmail"],
+					companyLogo:
+					leaveTransactionDetails["employee.companymaster.companyLogo"],
+					};
+					eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
+
 								const existingRecordSWholes =
 									await db.employeeLeaveTransactions.findAll({
 										where: { employeeleaveheaderID: leaveID },
@@ -5248,21 +5078,7 @@ class LeaveController {
 								},
 							);
 
-							if (existingRecordNew && existingRecordNew.leaveAutoId == 9) {
-								const employeeId = existingRecordNew.employeeId;
-								const employeeLeaveTransactionsIds = leaveID;
-								const status = 1;
-								const remarks = result.remark != "" ? result.remark : null;
-								const userId = req.userId;
-
-								await helper.actionOnLeaveCompOff(
-									employeeId,
-									employeeLeaveTransactionsIds,
-									status,
-									remarks,
-									userId,
-								);
-							}
+							
 
 							const existingRecord = await db.employeeLeaveTransactions.findOne(
 								{
@@ -5320,6 +5136,75 @@ class LeaveController {
 									leaveTrails.dataValues.approval_flow.maxApprovalLevel
 							) {
 								if (existingRecord) {
+
+									if (existingRecordNew && existingRecordNew.leaveAutoId == 9) {
+									const employeeId = existingRecordNew.employeeId;
+									const employeeLeaveTransactionsIds = leaveID;
+									const status = 1;
+									const remarks = result.remark != "" ? result.remark : null;
+									const userId = req.userId;
+
+									await helper.actionOnLeaveCompOff(
+									employeeId,
+									employeeLeaveTransactionsIds,
+									status,
+									remarks,
+									userId,
+									);
+									}
+				let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+				where: {
+				employeeleaveheaderID: leaveID,
+				},
+				});
+
+					const leaveTransactionDetails =
+					await db.employeeLeaveTransactions.findOne({
+						raw: true,
+						where: {
+							employeeleaveheaderID: leaveID,
+						},
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["name", "email"],
+								include: [
+									{
+										model: db.employeeMaster,
+										as: "managerData",
+										attributes: ["name"],
+									},
+									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
+									},
+								],
+							},
+							{
+								model: db.leaveMaster,
+								as: "leaveMasterDetails",
+								attributes: ["leaveName"],
+							},
+						],
+						attributes: ["fromDate", "toDate"],
+					});
+
+				const obj = {
+					email: leaveTransactionDetails["employee.email"],
+					status: result.status === "approved" ? "Approved" : "Rejected",
+					fromDate: leaveHeaderSingleRecords.fromDate,
+					toDate: leaveHeaderSingleRecords.toDate,
+					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
+					managerName: actionTaker ? actionTaker.name : "",
+					requesterName: leaveTransactionDetails["employee.name"],
+					senderEmail:
+						leaveTransactionDetails["employee.companymaster.senderEmail"],
+					companyLogo:
+						leaveTransactionDetails["employee.companymaster.companyLogo"],
+				};
+				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
+
+
 									const existingRecordSWholes =
 										await db.employeeLeaveTransactions.findAll({
 											where: { employeeleaveheaderID: leaveID },
@@ -5416,145 +5301,52 @@ class LeaveController {
 								}
 							}
 						}
-					} else {
-						const existingRecord = await db.employeeLeaveTransactions.findOne({
-							where: { employeeleaveheaderID: leaveID },
-						});
-						if (existingRecord) {
-							if (existingRecord && existingRecord.leaveAutoId == 9) {
-								const employeeId = existingRecord.employeeId;
-								const employeeLeaveTransactionsIds = leaveID;
-								const status = 1;
-								const remarks = result.remark != "" ? result.remark : null;
-								const userId = req.userId;
-
-								await helper.actionOnLeaveCompOff(
-									employeeId,
-									employeeLeaveTransactionsIds,
-									status,
-									remarks,
-									userId,
-								);
-							}
-							await db.attendanceMaster.update(
-								Object.assign(
-									existingRecord.dataValues.isHalfDay === 0
-										? {
-												attendancePresentStatus: "leave",
-												attendanceLateBy: "00:00:00",
-											}
-										: existingRecord.dataValues.halfDayFor === 1
-											? { attendanceLateBy: "00:00:00" }
-											: {},
-								),
-								{
-									where: {
-										attendanceDate: existingRecord.dataValues.appliedFor,
-										employeeId: existingRecord.dataValues.employeeId,
-									},
-								},
-							);
-
-							if (
-								existingRecord.leaveAutoId === 6 ||
-								existingRecord.leaveAutoId === 9
-							) {
-								const lwpLeave = await db.leaveMapping.findOne({
-									where: {
-										EmployeeId: existingRecord.employeeId,
-										leaveAutoId: existingRecord.leaveAutoId,
-									},
-								});
-
-								if (lwpLeave) {
-									await db.leaveMapping.increment(
-										{
-											utilizedThisYear: parseFloat(
-												leaveHeaderSingleRecords.leaveCount,
-											),
-										},
-										{
-											where: {
-												EmployeeId: existingRecord.employeeId,
-												leaveAutoId: existingRecord.leaveAutoId,
-											},
-										},
-									);
-								} else {
-									await db.leaveMapping.create({
-										EmployeeId: existingRecord.employeeId,
-										leaveAutoId: existingRecord.leaveAutoId,
-										availableLeave: 0,
-										utilizedThisYear: parseFloat(
-											leaveHeaderSingleRecords.leaveCount,
-										),
-										creditedFromLastYear: 0,
-										annualAllotment: 0,
-										accruedThisYear: 0,
-									});
-								}
-							} else {
-								await db.leaveMapping.increment(
-									{
-										utilizedThisYear: parseFloat(
-											leaveHeaderSingleRecords.leaveCount,
-										),
-									},
-									{
-										where: {
-											EmployeeId: existingRecord.employeeId,
-											leaveAutoId: existingRecord.leaveAutoId,
-											isActive: 1,
-										},
-									},
-								);
-								await db.leaveMapping.increment(
-									{
-										availableLeave: -parseFloat(
-											leaveHeaderSingleRecords.leaveCount,
-										),
-									},
-									{
-										where: {
-											EmployeeId: existingRecord.employeeId,
-											leaveAutoId: existingRecord.leaveAutoId,
-											isActive: 1,
-										},
-									},
-								);
-							}
-						}
-					}
-					//  else {
-					// await db.User.create(record, { transaction });
-					// }
+					} 
 				}
 			}
 			if (result.status == "rejected") {
 				for (const leaveID of leaveIds) {
-					if (req.userData.role_id == 2) {
-						await db.leaveApprovalTrails.update(
-							{
-								isVisible: 0,
-								isPending: 0,
-								// isApproved: 1,
-								// remark: result.remark !== "" ? result.remark : null,
-								updatedBy: req.userId,
-								//updatedAt:moment()
-							},
-							{
-								where: {
-									leaveHeaderAutoId: leaveID,
-									isApproved: 0,
-								},
-							},
-						);
-					}
-				}
-			}
 
-			for (const leaveID of leaveIds) {
-				const leaveTransactionDetails =
+
+					await db.employeeLeaveTransactions.update(
+				{
+					status: result.status,
+					updatedBy: req.userId,
+					managerRemark: result.remark != "" ? result.remark : null,
+					updatedAt: moment(),
+				},
+				{
+					where: {
+						employeeleaveheaderID: leaveID,
+					},
+				},
+			);
+
+			await db.EmployeeLeaveHeader.update(
+				{
+					status: result.status,
+					updatedBy: req.userId,
+					managerRemark: result.remark != "" ? result.remark : null,
+					updatedAt: moment(),
+					role:
+						req.userData.role_id == 2 || req.userData.role_id == 5
+							? req.userData["role.name"]
+							: null,
+				},
+				{
+					where: {
+						employeeleaveheaderID: leaveID,
+					},
+				},
+			);
+
+					let leaveHeaderSingleRecords = await db.EmployeeLeaveHeader.findOne({
+					where: {
+					employeeleaveheaderID: leaveID,
+					},
+					});
+
+					const leaveTransactionDetails =
 					await db.employeeLeaveTransactions.findOne({
 						raw: true,
 						where: {
@@ -5588,8 +5380,8 @@ class LeaveController {
 				const obj = {
 					email: leaveTransactionDetails["employee.email"],
 					status: result.status === "approved" ? "Approved" : "Rejected",
-					fromDate: leaveTransactionDetails.fromDate,
-					toDate: leaveTransactionDetails.toDate,
+					fromDate: leaveHeaderSingleRecords.fromDate,
+					toDate: leaveHeaderSingleRecords.toDate,
 					leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
 					managerName: actionTaker ? actionTaker.name : "",
 					requesterName: leaveTransactionDetails["employee.name"],
@@ -5599,6 +5391,26 @@ class LeaveController {
 						leaveTransactionDetails["employee.companymaster.companyLogo"],
 				};
 				eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
+
+					if (req.userData.role_id == 2) {
+						await db.leaveApprovalTrails.update(
+							{
+								isVisible: 0,
+								isPending: 0,
+								// isApproved: 1,
+								// remark: result.remark !== "" ? result.remark : null,
+								updatedBy: req.userId,
+								//updatedAt:moment()
+							},
+							{
+								where: {
+									leaveHeaderAutoId: leaveID,
+									isApproved: 0,
+								},
+							},
+						);
+					}
+				}
 			}
 
 			return respHelper(res, {
