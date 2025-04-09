@@ -52,6 +52,13 @@ const message = {
 	PAYMENT_REQUEST_FOR_APPROVAL: "Request Sent For Approval",
 	PAYMENT_REQUEST_APPROVED: "Payment Details has Updated Successfully",
 	PAYMENT_REQUEST_REJECTED: "Payment Details has Rejected",
+	
+	// ritak address approval module start
+	ADDRESS_REQUEST_FOR_APPROVAL: "Request Sent For Approval",
+	ADDRESS_REQUEST_APPROVED: "Address Details has Updated Successfully",
+	ADDRESS_REQUEST_REJECTED: "Address Details has Rejected",
+	// ritak address approval module end
+
 	SHIFT: {
 		NO_SHIFT: "No Shift Is assign to you, you can't mark attendance",
 		SHIFT_TIME_INVALID: "Invalid Shift Time",

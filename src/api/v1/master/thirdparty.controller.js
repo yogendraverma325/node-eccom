@@ -684,7 +684,7 @@ class ThirdPartyController {
 
 	async employeeData(req, res) {
 		try {
-			const { dataset, empCode, isActive } = req.body;
+			const { dataset, empCode, isActive, companyId} = req.body;
 
 			const taraEmailId = process.env.TARA_EMAIL_ID;
 			const taraSecretKey = process.env.TARA_SECRET_KEY;
@@ -1345,7 +1345,8 @@ class ThirdPartyController {
 				console.log("Hash matches! Validation successful for all employees.");
 				const employeeData = await db.employeeMaster.findAll({
 					where: {
-						//isActive: isActive,
+						isActive: isActive,
+						companyId:companyId,
 						employeeType: [1, 2, 3, 4, 5],
 						...(empCode && {
 							empCode: empCode,

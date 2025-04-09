@@ -121,6 +121,17 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("releasePaySlip", async (input) => {
 		await releasePaySlip(input);
 	});
+
+
+	//ritak address approval start
+	eventEmitter.on("addressDetailsApprovalRequestMail", async (input) => {
+		await addressDetailsApprovalRequestMail(input);
+	});
+
+	eventEmitter.on("addressDetailsAdminActionMail", async (input) => {
+		await addressDetailsAdminActionMail(input);
+	});
+	//ritak address approval end
 }
 
 async function regularizationRequestMail(input) {
@@ -611,3 +622,36 @@ async function releasePaySlip(input) {
 		error.log(error, "ERROR THROWING WHEN SEND MAIL FOR RELEASE SALARY SLIP");
 	}
 }
+
+//ritak address approval start
+async function addressDetailsApprovalRequestMail(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>", userData);
+		await helper.mailService({
+			to: process.env.NEW_EMPLOYEE_JOINING,
+			subject: `Your profile update request has been submitted for approval of Address Details`,
+			html: await emailTemplate.addressDetailsApprovalRequestMail(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function addressDetailsAdminActionMail(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Your profile update request has been acted upon by Tara Admin`,
+			html: await emailTemplate.addressDetailsAdminActionMail(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+//ritak address approval end

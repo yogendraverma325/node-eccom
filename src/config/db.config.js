@@ -183,6 +183,13 @@ import ImportData from "../api/model/ImportData.js";
 ///////////////////Import Models By Himanshu////////
 import PushNotificationHistory from "../api/model/PushNotificationHistory.js";
 
+//ritak address approval start
+import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
+
+//ritak address approval end
+
+
+
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -466,6 +473,13 @@ db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
 db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
 db.pushNotificationHistory = PushNotificationHistory(sequelize, Sequelize);
 /// Leave Approval FLow //////
+
+
+//ritak address approval start
+db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
+
+//ritak address approval end
+
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -2073,6 +2087,81 @@ db.employeeMaster.hasOne(db.employeeLeaveTransactions, {
 });
 ///YOGI ADDED THIS JOIN
 
+
+//ritak address approval start
+
+db.employeeAddress.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "employeeId",
+});
+
+// Associations for newCurrent fields
+db.employeeAddress.hasOne(db.cityMaster, {
+    foreignKey: "cityId",
+    sourceKey: "newCurrentCityId",
+    as: "newCurrentCityDetails",
+});
+db.employeeAddress.hasOne(db.stateMaster, {
+    foreignKey: "stateId",
+    sourceKey: "newCurrentStateId",
+    as: "newCurrentStateDetails",
+});
+db.employeeAddress.hasOne(db.countryMaster, {
+    foreignKey: "countryId",
+    sourceKey: "newCurrentCountryId",
+    as: "newCurrentCountryDetails",
+});
+db.employeeAddress.hasOne(db.pinCodeMaster, {
+    foreignKey: "pincodeId",
+    sourceKey: "newCurrentPincodeId",
+    as: "newCurrentPincodeDetails",
+});
+
+// Associations for newPermanent fields
+db.employeeAddress.hasOne(db.cityMaster, {
+    foreignKey: "cityId",
+    sourceKey: "newPermanentCityId",
+    as: "newPermanentCityDetails",
+});
+db.employeeAddress.hasOne(db.stateMaster, {
+    foreignKey: "stateId",
+    sourceKey: "newPermanentStateId",
+    as: "newPermanentStateDetails",
+});
+db.employeeAddress.hasOne(db.countryMaster, {
+    foreignKey: "countryId",
+    sourceKey: "newPermanentCountryId",
+    as: "newPermanentCountryDetails",
+});
+db.employeeAddress.hasOne(db.pinCodeMaster, {
+    foreignKey: "pincodeId",
+    sourceKey: "newPermanentPincodeId",
+    as: "newPermanentPincodeDetails",
+});
+
+// Associations for newEmergency fields
+db.employeeAddress.hasOne(db.cityMaster, {
+    foreignKey: "cityId",
+    sourceKey: "newEmergencyCityId",
+    as: "newEmergencyCityDetails",
+});
+db.employeeAddress.hasOne(db.stateMaster, {
+    foreignKey: "stateId",
+    sourceKey: "newEmergencyStateId",
+    as: "newEmergencyStateDetails",
+});
+db.employeeAddress.hasOne(db.countryMaster, {
+    foreignKey: "countryId",
+    sourceKey: "newEmergencyCountryId",
+    as: "newEmergencyCountryDetails",
+});
+db.employeeAddress.hasOne(db.pinCodeMaster, {
+    foreignKey: "pincodeId",
+    sourceKey: "newEmergencyPincodeId",
+    as: "newEmergencyPincodeDetails",
+});
+// ritak address approval end
+
 // start added by jay
 db.regularizationMaster.hasOne(db.employeeMaster, {
 	foreignKey: "id",
@@ -2084,6 +2173,5 @@ db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
 	sourceKey: "createdBy",
 	as: "leaveCreatedBy",
 });
-// end by jay
 
 export default db;
