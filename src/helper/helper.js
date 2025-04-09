@@ -3667,6 +3667,49 @@ const revokeAppliedLeave = async (date, emp) => {
 		}
 	}
 };
+
+const activeCompOffMoreThanLeave=async (EMP_ID)=>{
+	const compOffHistory = await db.comp_off_credit_history.findAll({
+            attributes: [
+                "comp_off_credit_history_auto_id",
+                "employee_Id",
+                "balance",
+                "expiry_date",
+            ],
+            where: {
+                employee_Id: EMP_ID,
+                status: 1,
+                expiry_date: {
+                    [Op.or]: [
+                        { [Op.eq]: null },
+                        { [Op.gt]: moment().format("YYYY-MM-DD") },
+                    ],
+                },
+            },
+            order: [["expiry_date", "ASC"]],
+            raw: true,
+        });
+        //console.log("compOffHistory list");
+
+        if (compOffHistory.length === 0) {
+            return 0;
+        }
+        //console.log("compOffHistory checked");
+
+        const totalBalance = compOffHistory.reduce(
+            (sum, record) => sum + parseFloat(record.balance),
+            0,
+        );
+
+        if (totalBalance < parseFloat(getLeaveRequest.leaveCount)) {
+            return 0;
+        }else{
+			return 1;
+		}
+
+	
+
+};
 // END BY JAY GENERATE EMPLOYMENT HISTORY
 
 export default {
@@ -3726,4 +3769,5 @@ export default {
 	generateEmployementHistory,
 	// END BY JAY GENERATE EMPLOYMENT HISTORY,
 	revokeAppliedLeave,
+	activeCompOffMoreThanLeave
 };
