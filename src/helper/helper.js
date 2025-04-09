@@ -3606,7 +3606,7 @@ async function generateEmployementHistory(
 	}
 }
 
-const revokeAppliedLeave = async (date, emp) => { 
+const revokeAppliedLeave = async (date, emp) => {
 	const leave = await db.EmployeeLeaveHeader.findOne({
 		where: {
 			employeeId: emp,

@@ -91,8 +91,8 @@ const message = {
 		YEAR_LEAVE_COUNT:
 			"You are allowed a maximum of # time(s) leave during one year",
 		LEAVE_REQUEST_AQUKNOWLEDGED: "Leave Request Acknowledged", ///Sandeep
-        LEAVE_REQ_STATUS:"Your leave request has been <status>.",///Sandeep
-        LEAVE_REQ:"Leave Request",///Sandeep
+		LEAVE_REQ_STATUS: "Your leave request has been <status>.", ///Sandeep
+		LEAVE_REQ: "Leave Request", ///Sandeep
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
 	INVALID: "Invalid <module>",
@@ -123,10 +123,10 @@ const message = {
 		"Your are not allowed to mark attendance from Mobile",
 	WEB_ATTENDANCE_NOT_ALLOWED:
 		"Your are not allowed to mark attendance from Web",
-	ATTENDANCE_REQ:"Attendance Request", ///Sandeep
-    ATTENDANCE_REQ_STATUS:"Your attendance request has been <status>", ///Sandeep
-    ATTENDANCE_REQ_ACK:"Attendance Request Acknowledgement",///Sandeep
-    ATTENDANCE_SUBMIT:"<name> has submitted the regularise request."///Sandeep
+	ATTENDANCE_REQ: "Attendance Request", ///Sandeep
+	ATTENDANCE_REQ_STATUS: "Your attendance request has been <status>", ///Sandeep
+	ATTENDANCE_REQ_ACK: "Attendance Request Acknowledgement", ///Sandeep
+	ATTENDANCE_SUBMIT: "<name> has submitted the regularise request.", ///Sandeep
 };
 
 export default message;

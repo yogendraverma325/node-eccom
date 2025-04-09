@@ -248,7 +248,7 @@ const validateUser = async (req, existUser) => {
 		employeeId: existUser.dataValues.id,
 		loginIP: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
 		loginDevice: req.headers.source ? req.headers.source : null,
-		firebasetoken:req.headers.firebasetoken,///firebase token added
+		firebasetoken: req.headers.firebasetoken, ///firebase token added
 		createdDt: moment(),
 	});
 

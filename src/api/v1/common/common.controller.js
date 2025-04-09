@@ -1966,34 +1966,34 @@ class commonController {
 			const search = req.query.search;
 
 			const usersData = req.userData;
-            const filters = await helper.getFiltersByPermission(
-                usersData.role_id,
-                usersData.permissionAndAccess,
-            );
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
 
-			const hasFilters = Object.values(filters).some((filter) => 
-                filter && Object.keys(filter).length > 0
-            );
-    
-            if (!hasFilters && usersData.role_id != 2) {
-                return respHelper(res, {
-                    status: 200,
-                    msg: constant.DATA_FETCHED,
-                    data: {
-                        count: 0,
-                        rows: []
-                    },
-                });
-            }
+			const hasFilters = Object.values(filters).some(
+				(filter) => filter && Object.keys(filter).length > 0,
+			);
 
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			if (!hasFilters && usersData.role_id != 2) {
+				return respHelper(res, {
+					status: 200,
+					msg: constant.DATA_FETCHED,
+					data: {
+						count: 0,
+						rows: [],
+					},
+				});
+			}
+
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			let profileApprovalCount = await db.paymentDetails.findAndCountAll({
 				where: {
@@ -2007,39 +2007,39 @@ class commonController {
 						required: true,
 						where: searchQuery || undefined,
 						include: [
-                            {
-                                model: db.buMaster,
-                                attributes: ["buName", "buCode"],
-                                where: {
-                                    ...filters.buFIlter,
-                                },
-                            },
-                            {
-                                model: db.companyMaster,
-                                attributes: ["companyName"],
-                            },
-                            {
-                                model: db.designationMaster,
-                                attributes: ["name", "code"],
-                                where: {
-                                    ...filters.designationFIlter,
-                                },
-                            },
-                            {
-                                model: db.departmentMaster,
-                                attributes: ["departmentName", "departmentCode"],
-                                where: {
-                                    ...filters.departmentFIlter,
-                                },
-                            },
-                            {
-                                model: db.sbuMaster,
-                                attributes: ["sbuname", "code"],
-                                where: {
-                                    ...filters.sbbuFIlter,
-                                },
-                            },
-                        ]
+							{
+								model: db.buMaster,
+								attributes: ["buName", "buCode"],
+								where: {
+									...filters.buFIlter,
+								},
+							},
+							{
+								model: db.companyMaster,
+								attributes: ["companyName"],
+							},
+							{
+								model: db.designationMaster,
+								attributes: ["name", "code"],
+								where: {
+									...filters.designationFIlter,
+								},
+							},
+							{
+								model: db.departmentMaster,
+								attributes: ["departmentName", "departmentCode"],
+								where: {
+									...filters.departmentFIlter,
+								},
+							},
+							{
+								model: db.sbuMaster,
+								attributes: ["sbuname", "code"],
+								where: {
+									...filters.sbbuFIlter,
+								},
+							},
+						],
 					},
 					{
 						model: db.bankMaster,
