@@ -3528,7 +3528,7 @@ class LeaveController {
 			};
 			const attendanceData = await db.EmployeeLeaveHeader.findAll({
 				attributes: {
-					exclude: ["createdBy", "createdAt"],
+					// exclude: ["createdBy", "createdAt"],
 				},
 				where: whereCondtion,
 				include: [
@@ -3541,6 +3541,15 @@ class LeaveController {
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name"],
 						as: "leaveUpdatedBy",
+						include: {
+							model: db.roleMaster,
+							attributes: ["name"],
+						},
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+						as: "leaveCreatedBy",
 						include: {
 							model: db.roleMaster,
 							attributes: ["name"],
