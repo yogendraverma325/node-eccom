@@ -2244,7 +2244,7 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 
 	// ritak address approval start
 	async actionOnAddressDetails(req, res) {
-		try {
+		// try {
 			const result = await validator.actionAddressSchema.validateAsync(req.body);
 
 			const existUser = await db.employeeMaster.findOne({
@@ -2413,12 +2413,12 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 					});
 				}
 			}
-		} catch (error) {
-			console.log(error);
-			return respHelper(res, {
-				status: 500,
-			});
-		}
+		// } catch (error) {
+		// 	console.log(error);
+		// 	return respHelper(res, {
+		// 		status: 500,
+		// 	});
+		// }
 	}
 
 	// ritak address approval end
