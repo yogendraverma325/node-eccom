@@ -48,14 +48,14 @@ class ImportController {
 	async getImportInfoList(req, res) {
 		try {
 			const { month, year } = req.query;
-			const querySequence= req.userData.role_id==2?1:2;
+			const querySequence = req.userData.role_id == 2 ? 1 : 2;
 			let queryForImportDetails = await importHelper.query(querySequence, {
 				year: year,
 				month: Number(month) + 1,
-				companyId:req.userData.companyId,
-				buId:req.userData.buId,
-				sbuId:req.userData.sbuId,
-				isActive:req.userData.isActive,
+				companyId: req.userData.companyId,
+				buId: req.userData.buId,
+				sbuId: req.userData.sbuId,
+				isActive: req.userData.isActive,
 			});
 			console.log("Role ID");
 			console.log(req.userData.role_id);
@@ -190,8 +190,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 		// get financial year
 		let financialYearDetails = await importHelper.getFinancialYear();
 
-		if(!financialYearDetails)
-		{
+		if (!financialYearDetails) {
 			return respHelper(res, {
 				status: 500,
 				msg: "Financial Year not found.",
@@ -291,8 +290,8 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 			});
 
 			employee["Effective Date"] = !isNaN(employee["Effective Date"])
-			? importHelper.getFromattedDate(employee["Effective Date"])
-			: employee["Effective Date"];
+				? importHelper.getFromattedDate(employee["Effective Date"])
+				: employee["Effective Date"];
 			if (!employeeDetails) {
 				console.log(
 					"Employee not found or inactive" +
@@ -353,7 +352,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 			// 	employee["Employee ID"] + "--" + employee["CTC"],
 			// 	ctcFromComponent,
 			// );
-			
+
 			if (employee["CTC"] == ctcFromComponent) {
 				////////////////Match the ctc///////
 				//console.log('CTC Matched',employee['Name']);
@@ -362,7 +361,7 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 					order: [["payPackageAutoId", "DESC"]],
 					raw: true,
 				});
-			
+
 				const [day, month, year] = employee["Effective Date"]
 					.split("-")
 					.map(Number);

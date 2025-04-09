@@ -26,10 +26,10 @@ export default (sequelize, Sequelize) => {
 		createdAt: {
 			type: Sequelize.DATE,
 		},
-		
+
 		locationType: {
 			type: Sequelize.STRING,
-		}
+		},
 	});
 	return AttendanceLogs;
 };

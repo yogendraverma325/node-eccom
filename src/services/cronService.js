@@ -3,11 +3,28 @@ import cronController from "../api/v1/cron/cron.controller.js";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
 import helper from "../helper/helper.js";
 
-cron.schedule("30 5 * * *", async () => {
-	await attendanceController.attedanceCron();
+cron.schedule("30 03 * * *", async () => {
+	try {
+		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
+			await cronController.biometricAttendance();
+		}
+	} catch (error) {
+		console.log(error);
+	} finally {
+		await attendanceController.attedanceCron();
+	}
 });
+
 cron.schedule("0 * * * *", async () => {
-	await attendanceController.attedanceCronEveryNightShift();
+	try {
+		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
+			await cronController.biometricAttendance();
+		}
+	} catch (error) {
+		console.log(error);
+	} finally {
+		await attendanceController.attedanceCronEveryNightShift();
+	}
 });
 
 cron.schedule("30 3 * * *", async () => {
@@ -55,11 +72,5 @@ cron.schedule("0 7 * * *", async () => {
 	await cronController.prePasswordExpiryNotification();
 	await cronController.postPasswordExpiryNotification();
 });
-
-if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-	cron.schedule("35 0 * * *", async () => {
-		await cronController.biometricAttendance();
-	});
-}
 
 export default cron;

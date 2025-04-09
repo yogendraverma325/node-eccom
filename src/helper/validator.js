@@ -835,7 +835,10 @@ const onboardEmployeeSchema = Joi.object({
 	companyId: Joi.number().required().label("Company"),
 	buHRId: Joi.number().required().label("Business Unit HR"),
 	buHeadId: Joi.number().required().label("Business Unit Head"),
-	attendancePolicyId: Joi.number().integer().allow(null).label("Attendance Policy"),
+	attendancePolicyId: Joi.number()
+		.integer()
+		.allow(null)
+		.label("Attendance Policy"),
 	companyLocationId: Joi.number().required().label("Company Location"),
 	weekOffId: Joi.number().integer().allow(null).label("Week Off"),
 
@@ -846,7 +849,10 @@ const onboardEmployeeSchema = Joi.object({
 	probationId: Joi.number().required().label("Probation"),
 	jobLevelId: Joi.number().required().label("Job Level Name"),
 	dateOfBirth: Joi.string().required().label("Date Of Birth"),
-	newCustomerNameId: Joi.number().integer().allow(null).label("New Customer Name"),
+	newCustomerNameId: Joi.number()
+		.integer()
+		.allow(null)
+		.label("New Customer Name"),
 	iqTestApplicable: Joi.number().required().label("IQ Test Applicable"),
 	positionType: Joi.string().required().label("Position Type"),
 	profileImage: Joi.string().allow(null),
@@ -1721,7 +1727,6 @@ const extraBenefitValidateSchama = Joi.object({
 		.label("Employee Code"),
 });
 
-
 const releaseSlipCheck = Joi.object({
 	pay_month: Joi.number()
 		.min(1)
@@ -1915,5 +1920,6 @@ export default {
 	// ritak request approval module start
 	requestForAddressApprovalSchema,
 	actionAddressSchema
-	
+	// ritak request approval module end
+
 };

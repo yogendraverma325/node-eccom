@@ -181,6 +181,7 @@ import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
 import ImportInfo from "../api/model/ImportInfo.js";
 import ImportData from "../api/model/ImportData.js";
 ///////////////////Import Models By Himanshu////////
+import PushNotificationHistory from "../api/model/PushNotificationHistory.js";
 
 //ritak address approval start
 import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
@@ -470,6 +471,7 @@ db.lwfMapping = LwfMapping(sequelize, Sequelize);
 db.leaveApprovalFlow = LeaveApprovalFlow(sequelize, Sequelize);
 db.leaveApprovalLevel = LeaveApprovalLevel(sequelize, Sequelize);
 db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
+db.pushNotificationHistory = PushNotificationHistory(sequelize, Sequelize);
 /// Leave Approval FLow //////
 
 
@@ -2159,4 +2161,17 @@ db.employeeAddress.hasOne(db.pinCodeMaster, {
     as: "newEmergencyPincodeDetails",
 });
 // ritak address approval end
+
+// start added by jay
+db.regularizationMaster.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "attendanceCreatedBy",
+});
+db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "leaveCreatedBy",
+});
+
 export default db;

@@ -4398,47 +4398,77 @@ const salarySlipPdf = async (data) => {
 </html>`;
 };
 
-
-
 function numberToWords(num) {
-  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-  const teens = ["Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-  const tens = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-  const thousands = ["", "Thousand", "Lakh", "Crore"];
+	const ones = [
+		"",
+		"One",
+		"Two",
+		"Three",
+		"Four",
+		"Five",
+		"Six",
+		"Seven",
+		"Eight",
+		"Nine",
+	];
+	const teens = [
+		"Eleven",
+		"Twelve",
+		"Thirteen",
+		"Fourteen",
+		"Fifteen",
+		"Sixteen",
+		"Seventeen",
+		"Eighteen",
+		"Nineteen",
+	];
+	const tens = [
+		"",
+		"Ten",
+		"Twenty",
+		"Thirty",
+		"Forty",
+		"Fifty",
+		"Sixty",
+		"Seventy",
+		"Eighty",
+		"Ninety",
+	];
+	const thousands = ["", "Thousand", "Lakh", "Crore"];
 
-  if (num === 0) return "Zero Rupees";
+	if (num === 0) return "Zero Rupees";
 
-  function convertChunk(num) {
-      let words = "";
-      if (num >= 100) {
-          words += ones[Math.floor(num / 100)] + " Hundred ";
-          num %= 100;
-      }
-      if (num >= 11 && num <= 19) {
-          words += teens[num - 11] + " ";
-      } else {
-          words += tens[Math.floor(num / 10)] + " ";
-          words += ones[num % 10] + " ";
-      }
-      return words.trim();
-  }
+	function convertChunk(num) {
+		let words = "";
+		if (num >= 100) {
+			words += ones[Math.floor(num / 100)] + " Hundred ";
+			num %= 100;
+		}
+		if (num >= 11 && num <= 19) {
+			words += teens[num - 11] + " ";
+		} else {
+			words += tens[Math.floor(num / 10)] + " ";
+			words += ones[num % 10] + " ";
+		}
+		return words.trim();
+	}
 
-  let wordStr = "";
-  let chunkCount = 0;
-  const numStr = num.toString();
-  const numLen = numStr.length;
-  
-  let crore = numLen > 7 ? parseInt(numStr.slice(0, -7), 10) : 0;
-  let lakh = numLen > 5 ? parseInt(numStr.slice(-7, -5), 10) : 0;
-  let thousand = numLen > 3 ? parseInt(numStr.slice(-5, -3), 10) : 0;
-  let hundred = parseInt(numStr.slice(-3), 10);
+	let wordStr = "";
+	let chunkCount = 0;
+	const numStr = num.toString();
+	const numLen = numStr.length;
 
-  if (crore) wordStr += convertChunk(crore) + " Crore ";
-  if (lakh) wordStr += convertChunk(lakh) + " Lakh ";
-  if (thousand) wordStr += convertChunk(thousand) + " Thousand ";
-  if (hundred) wordStr += convertChunk(hundred);
+	let crore = numLen > 7 ? parseInt(numStr.slice(0, -7), 10) : 0;
+	let lakh = numLen > 5 ? parseInt(numStr.slice(-7, -5), 10) : 0;
+	let thousand = numLen > 3 ? parseInt(numStr.slice(-5, -3), 10) : 0;
+	let hundred = parseInt(numStr.slice(-3), 10);
 
-  return wordStr.trim() + " Rupees Only";
+	if (crore) wordStr += convertChunk(crore) + " Crore ";
+	if (lakh) wordStr += convertChunk(lakh) + " Lakh ";
+	if (thousand) wordStr += convertChunk(thousand) + " Thousand ";
+	if (hundred) wordStr += convertChunk(hundred);
+
+	return wordStr.trim() + " Rupees Only";
 }
 const releasePaySlip = async (data) => {
 	return `

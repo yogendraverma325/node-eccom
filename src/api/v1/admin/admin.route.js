@@ -217,7 +217,7 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		adminController.requiredAttendanceApproval,
 	)
-// EMPLOYMENT END ROUTES
+	// EMPLOYMENT END ROUTES
 
     // start add/update notice period by jay
 	.put("/updateNoticePeriod", authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"), adminController.updateNoticePeriod)
@@ -231,3 +231,4 @@ export default Express.Router()
 		commonController.actionOnAddressDetails,
 	)
 	//ritak address approval end
+
