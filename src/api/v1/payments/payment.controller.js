@@ -1803,7 +1803,7 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
-			let isActive = parseInt(req.query.isActive);
+			let isActive = req.query.isActive?parseInt(req.query.isActive):1;
 
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
@@ -3894,6 +3894,7 @@ class PaymentController {
 
 	async exportSampleV2(req, res) {
 		try {
+			console.log("LOP Sample Download....")
 			const { exportSheetAutoId } = req.query;
 
 			let fileNameType = req.query.fileNameType || "";
@@ -3904,7 +3905,12 @@ class PaymentController {
 				customSheetName = "Processing Employees";
 			}
 			const sheetName = {
+				"TDS Deduction Sample": 1,
+				"LOP Deduction Sample": 2,
+				"Extra Payment Sample": 3,
+				"Standard Deduction Sample": 4,
 				"Salary Structure Component": 5,
+				"Pay Slip Release": 6,
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -3982,6 +3988,37 @@ class PaymentController {
 						content: [],
 					},
 				];
+				const settings = {
+					fileName: `Component_${timestamp}`,
+					extraLength: 3,
+					writeOptions: {
+						type: "buffer",
+						bookType: "xlsx",
+					},
+				};
+
+				const report = xlsx(data, settings);
+				res.setHeader(
+					"Content-Disposition",
+					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
+				);
+				return res.end(report);
+			} else if (getColumns.length > 0 && [1,2,3,4,6].includes(Number(exportSheetAutoId))) {
+				const mergeColumns = [...getColumns, ...arr];
+				const headers = mergeColumns.map((item) => item.columnName);
+				const columns = headers.map((value) => ({
+					label: value,
+					value: value,
+				}));
+
+				const data = [
+					{
+						sheet: "Salary Component",
+						columns,
+						content: [],
+					},
+				];
+
 				const settings = {
 					fileName: `Component_${timestamp}`,
 					extraLength: 3,
