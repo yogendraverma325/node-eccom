@@ -604,7 +604,7 @@ async function releasePaySlip(input) {
 			html: await emailTemplate.releasePaySlip(userData),
 			senderEmail: userData.senderEmail,
 		});
-		// console.log("mail helper", userData);
+		// console.log("mail helper", response);
 		return response;
 	} catch (error) {
 		console.log(error);

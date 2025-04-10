@@ -111,11 +111,11 @@ class ImportController {
 				sbuId: req.userData.sbuId,
 				isActive: req.userData.isActive,
 			});
-			console.log("Role ID");
-			console.log(req.userData.role_id);
-			console.log("Role ID");
+			// console.log("Role ID");
+			// console.log(req.userData.role_id);
+			// console.log("Role ID");
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
-			console.log(queryForImportDetails);
+			// console.log(queryForImportDetails);
 			return respHelper(res, {
 				status: 200,
 				data: importInfoList[0],
@@ -140,7 +140,7 @@ class ImportController {
 				TDS_DEDUCTION: "TDS Deduction",
 				LOP: "LOP",
 				GROSS_PAY: "Gross-Pay",
-				PAYSLIP:"Pay Slip Release"
+				PAYSLIP: "Pay Slip Release",
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -586,7 +586,8 @@ async function uploadCTC(req, res, FILEDATA, importId) {
 }
 
 async function extraPaymentUpload(req, res, FILEDATA, importId) {
-	try {
+	try
+	{
 		if (!req.file) {
 			return respHelper(res, {
 				status: 400,
@@ -602,12 +603,13 @@ async function extraPaymentUpload(req, res, FILEDATA, importId) {
 			workbookEmployee.Sheets[sheetNameEmployee],
 		);
 
-		if (!tdsDetails[0]["Employee ID"]) {
+		if (!tdsDetails[0]["Employee ID"] || !tdsDetails[0]["Effective Month"] || !tdsDetails[0]["Category"] || !tdsDetails['Amount']) {
 			return respHelper(res, {
 				status: 400,
 				msg: "Invalid File Format",
 			});
 		}
+
 		var errorArray = [],
 			successArray = [];
 		for (const employeeExtraPayment of tdsDetails) {
@@ -1192,37 +1194,76 @@ async function releasePaySlip(req, res, FILEDATA, importId) {
 			if (paySlipObject["Pay Month(YYYY-MM)"]) {
 				let paymonth = paySlipObject["Pay Month(YYYY-MM)"];
 				let employees = paySlipObject["Employee ID"];
-				let employeeDetails = await db.employeeMaster.findOne({where:{empCode:employees},raw:true,attributes:['id']});
-				//console.log(employeeDetails);
-				const paySlipsToUpdate = await db.paySlips.findOne({
+				let employeeDetails = await db.employeeMaster.findOne({
+					where: { empCode: employees },
+					raw: true,
+					attributes: ["id"],
+				});
+				let employeeProcessDetails = await db.payProcessDetails.findOne({
 					where: {
-						paySlipStatus: 0,
 						EmployeeId: employeeDetails.id,
 						payMonth: paymonth,
+						payStatus: {[Op.in]:[7,9]},
 					},
-					attributes: ["paySlipAutoId", "EmployeeId","paySlipStatus"],
+					attributes: ["payProcessDetailAutoId", "proceessId"],
 					raw: true,
 				});
-				if (paySlipsToUpdate) {
-					let updatedPayslip=null;
-					 updatedPayslip = await db.paySlips.update({paySlipStatus:1},{where:{paySlipAutoId:paySlipsToUpdate.paySlipAutoId}});
-					 if(updatedPayslip)
-					 {
-						 await db.payProcessDetails.update({payStatus:8},{where:{EmployeeId:employeeDetails.id,payMonth:paymonth,payStatus:7}});
-						// try {
-						// 	sendMailAfterSalarySlipRelease([employeeDetails.id], paymonth, null);
-						// } catch (e) {
-						// 	console.log(e);
-						// }
-					 }
+				if (employeeProcessDetails) {
+					await db.payProcessDetails.update(
+						{ payStatus: 8 },
+						{
+							where: {
+								payProcessDetailAutoId:
+									employeeProcessDetails.payProcessDetailAutoId,
+									payStatus:{[Op.not]:9}
+							},
+						},
+					); //Update Emplplees pay status in preocess
+					await db.paySlips.update(
+						{ paySlipStatus: 1 },
+						{
+							where: {
+								paySlipStatus: 0,
+								EmployeeId: employeeDetails.id,
+								payMonth: paymonth,
+							},
+						},
+					); // upated paySlip status
+
+					let qeury = await importHelper.query(
+						3,
+						{ processId: employeeProcessDetails.proceessId },
+						null,
+					);
+					let paySlipReleasedCountsInProcess = await db.sequelize.query(qeury);
+
+					if(paySlipReleasedCountsInProcess)
+					{
+						if(paySlipReleasedCountsInProcess[0][0].total_processed>0 && paySlipReleasedCountsInProcess[0][0].total_processed==paySlipReleasedCountsInProcess[0][0].total_process_and_released)
+						{
+							db.payProcessMaster.update({processFlowId:12},{where:{
+								payProcessMasterAutoId:employeeProcessDetails.proceessId
+							}});
+							db.payProcessDetails.update({processFlowId:12},{where:{
+								payStatus:9
+							}});
+						}
 				
-					successArray.push({
-						importedRow: JSON.stringify(paySlipObject),
-						importAutoId: importId,
-						importStatus: 1,
-						createdBy: req.userData.id,
-						importStatusDesc: "Payslip Released Successfully.",
-					});
+						try {
+							sendMailAfterSalarySlipRelease([employeeDetails.id], paymonth, null);
+						} catch (e) {
+							console.log(e);
+						}
+	
+						successArray.push({
+							importedRow: JSON.stringify(paySlipObject),
+							importAutoId: importId,
+							importStatus: 1,
+							createdBy: req.userData.id,
+							importStatusDesc: "Payslip Released Successfully.",
+						});
+					}
+		
 				} else {
 					errorArray.push({
 						importedRow: JSON.stringify(paySlipObject),
@@ -1262,8 +1303,6 @@ async function releasePaySlip(req, res, FILEDATA, importId) {
 		console.log(e);
 	}
 }
-
-
 
 async function sendMailAfterSalarySlipRelease(
 	employeeIds,
