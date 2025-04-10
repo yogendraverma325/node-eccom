@@ -684,7 +684,7 @@ class ThirdPartyController {
 
 	async employeeData(req, res) {
 		try {
-			const { dataset, empCode, isActive, companyId} = req.body;
+			const { dataset, empCode, isActive, companyId } = req.body;
 
 			const taraEmailId = process.env.TARA_EMAIL_ID;
 			const taraSecretKey = process.env.TARA_SECRET_KEY;
@@ -1068,10 +1068,10 @@ class ThirdPartyController {
 					const maritalStatus = employee.employeebiographicaldetail?.dataValues
 						?.maritalStatus
 						? Object.keys(maritalStatusOptions).find(
-								(key) =>
-									maritalStatusOptions[key] ===
-									employee.employeebiographicaldetail.dataValues.maritalStatus,
-							) || ""
+							(key) =>
+								maritalStatusOptions[key] ===
+								employee.employeebiographicaldetail.dataValues.maritalStatus,
+						) || ""
 						: "";
 					return {
 						isActive: employee.isActive == 1 ? "Yes" : "No",
@@ -1084,20 +1084,20 @@ class ThirdPartyController {
 							"",
 						current_address: employee.employeeaddress?.dataValues
 							? [
-									employee.employeeaddress?.dataValues?.currentHouse || "",
-									employee.employeeaddress?.dataValues?.currentStreet || "",
-									employee.employeeaddress?.dataValues?.currentLandmark || "",
-									employee.employeeaddress?.dataValues?.currentcity?.cityName ||
-										"",
-									employee.employeeaddress?.dataValues?.currentstate
-										?.stateName || "",
-									employee.employeeaddress?.dataValues?.currentcountry
-										?.countryName || "",
-									employee.employeeaddress?.dataValues?.currentpincode
-										?.pincode || "",
-								]
-									.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-									.join(", ")
+								employee.employeeaddress?.dataValues?.currentHouse || "",
+								employee.employeeaddress?.dataValues?.currentStreet || "",
+								employee.employeeaddress?.dataValues?.currentLandmark || "",
+								employee.employeeaddress?.dataValues?.currentcity?.cityName ||
+								"",
+								employee.employeeaddress?.dataValues?.currentstate
+									?.stateName || "",
+								employee.employeeaddress?.dataValues?.currentcountry
+									?.countryName || "",
+								employee.employeeaddress?.dataValues?.currentpincode
+									?.pincode || "",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
 							: "",
 						current_city:
 							employee.employeeaddress?.dataValues?.currentcity?.cityName,
@@ -1147,8 +1147,8 @@ class ThirdPartyController {
 								?.paymentAccountNumber || "",
 						date_of_resignation: employee.separationmaster
 							? moment(
-									employee.separationmaster.dataValues.resignationDate,
-								).format("DD-MM-YYYY")
+								employee.separationmaster.dataValues.resignationDate,
+							).format("DD-MM-YYYY")
 							: "",
 						date_of_exit: formatDate(employee.dateOfexit) || "", //employee.dateOfexit || "",
 						date_of_confirmation: "", // Custom field, left empty for now
@@ -1160,20 +1160,20 @@ class ThirdPartyController {
 						full_name: employee.name || "",
 						permanent_address: employee.employeeaddress?.dataValues
 							? [
-									employee.employeeaddress?.dataValues?.permanentHouse || "",
-									employee.employeeaddress?.dataValues?.permanentStreet || "",
-									employee.employeeaddress?.dataValues?.permanentLandmark || "",
-									employee.employeeaddress?.dataValues?.permanentcity
-										?.cityName || "",
-									employee.employeeaddress?.dataValues?.permanentstate
-										?.stateName || "",
-									employee.employeeaddress?.dataValues?.permanentcountry
-										?.countryName || "",
-									employee.employeeaddress?.dataValues?.permanentpincode
-										?.pincode || "",
-								]
-									.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-									.join(", ")
+								employee.employeeaddress?.dataValues?.permanentHouse || "",
+								employee.employeeaddress?.dataValues?.permanentStreet || "",
+								employee.employeeaddress?.dataValues?.permanentLandmark || "",
+								employee.employeeaddress?.dataValues?.permanentcity
+									?.cityName || "",
+								employee.employeeaddress?.dataValues?.permanentstate
+									?.stateName || "",
+								employee.employeeaddress?.dataValues?.permanentcountry
+									?.countryName || "",
+								employee.employeeaddress?.dataValues?.permanentpincode
+									?.pincode || "",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
 							: "",
 						date_of_joining:
 							formatDate(
@@ -1198,24 +1198,21 @@ class ThirdPartyController {
 						base_office_location:
 							employee.companylocationmaster?.dataValues?.citymaster?.dataValues
 								?.cityName &&
-							employee.companylocationmaster?.companyLocationCode
-								? `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues?.cityName} ${
-										employee.companylocationmaster?.isHeadquarter === true
-											? "(Head Office)"
-											: "(Branch)"
-									} (${employee.companylocationmaster.companyLocationCode})`
+								employee.companylocationmaster?.companyLocationCode
+								? `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues?.cityName} ${employee.companylocationmaster?.isHeadquarter === true
+									? "(Head Office)"
+									: "(Branch)"
+								} (${employee.companylocationmaster.companyLocationCode})`
 								: "",
 						location_type:
 							employee.companylocationmaster?.isHeadquarter === true
 								? "Head Office"
 								: "Branch", //employee.locationType || "",
-						office_location: `${
-							employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+						office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
 								?.cityName || ""
-						}-${
-							employee.companylocationmaster?.dataValues?.statemaster
+							}-${employee.companylocationmaster?.dataValues?.statemaster
 								?.dataValues?.stateName || ""
-						}`,
+							}`,
 						education_details: mappedEducationDetails || [],
 						pt_state: "",
 						past_work_experience: pastWorkExperience, //
@@ -1240,30 +1237,28 @@ class ThirdPartyController {
 								?.emergency_contact_country_code || "",
 						emergency_address: employee.employeeaddress?.dataValues
 							? [
-									employee.employeeaddress?.dataValues?.emergencyHouse || "",
-									employee.employeeaddress?.dataValues?.emergencyStreet || "",
-									employee.employeeaddress?.dataValues?.emergencyLandmark || "",
-									employee.employeeaddress?.dataValues?.emergencycity
-										?.dataValues?.cityName || "",
-									employee.employeeaddress?.dataValues?.emergencystate
-										?.dataValues?.stateName || "",
-									employee.employeeaddress?.dataValues?.emergencycountry
-										?.dataValues?.countryName || "",
-									employee.employeeaddress?.dataValues?.emergencypincode
-										?.dataValues?.pincode || "",
-								]
-									.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-									.join(", ")
+								employee.employeeaddress?.dataValues?.emergencyHouse || "",
+								employee.employeeaddress?.dataValues?.emergencyStreet || "",
+								employee.employeeaddress?.dataValues?.emergencyLandmark || "",
+								employee.employeeaddress?.dataValues?.emergencycity
+									?.dataValues?.cityName || "",
+								employee.employeeaddress?.dataValues?.emergencystate
+									?.dataValues?.stateName || "",
+								employee.employeeaddress?.dataValues?.emergencycountry
+									?.dataValues?.countryName || "",
+								employee.employeeaddress?.dataValues?.emergencypincode
+									?.dataValues?.pincode || "",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
 							: "",
 
 						cost_center:
 							employee.costcentermaster?.dataValues?.costCenterName ||
-							employee.costcentermaster?.dataValues?.costCenterCode
-								? `${
-										employee.costcentermaster?.dataValues?.costCenterName || ""
-									} (${
-										employee.costcentermaster?.dataValues?.costCenterCode || ""
-									})`
+								employee.costcentermaster?.dataValues?.costCenterCode
+								? `${employee.costcentermaster?.dataValues?.costCenterName || ""
+								} (${employee.costcentermaster?.dataValues?.costCenterCode || ""
+								})`
 								: "",
 						salary_stopped: "",
 						vpf_amount: "",
@@ -1298,8 +1293,8 @@ class ThirdPartyController {
 							"",
 						customer_code: employee.employeejobdetail?.dataValues?.customerName
 							? (employee.employeejobdetail.dataValues.customerName.match(
-									/(C\d+)/,
-								) || [])[1] || ""
+								/(C\d+)/,
+							) || [])[1] || ""
 							: "",
 						// employee.employeejobdetail?.dataValues?.customerName || "",
 						project_code:
@@ -1346,8 +1341,8 @@ class ThirdPartyController {
 				const employeeData = await db.employeeMaster.findAll({
 					where: {
 						isActive: isActive,
-						companyId:companyId,
-						employeeType: [1, 2, 3, 4, 5],
+						companyId: companyId,
+						// employeeType: [1, 2, 3, 4, 5],
 						...(empCode && {
 							empCode: empCode,
 						}),
@@ -1692,10 +1687,10 @@ class ThirdPartyController {
 					const maritalStatus = employee.employeebiographicaldetail?.dataValues
 						?.maritalStatus
 						? Object.keys(maritalStatusOptions).find(
-								(key) =>
-									maritalStatusOptions[key] ===
-									employee.employeebiographicaldetail.dataValues.maritalStatus,
-							) || ""
+							(key) =>
+								maritalStatusOptions[key] ===
+								employee.employeebiographicaldetail.dataValues.maritalStatus,
+						) || ""
 						: "";
 					return {
 						isActive: employee.isActive == 1 ? "Yes" : "No",
@@ -1708,20 +1703,20 @@ class ThirdPartyController {
 							"",
 						current_address: employee.employeeaddress?.dataValues
 							? [
-									employee.employeeaddress?.dataValues?.currentHouse || "",
-									employee.employeeaddress?.dataValues?.currentStreet || "",
-									employee.employeeaddress?.dataValues?.currentLandmark || "",
-									employee.employeeaddress?.dataValues?.currentcity?.cityName ||
-										"",
-									employee.employeeaddress?.dataValues?.currentstate
-										?.stateName || "",
-									employee.employeeaddress?.dataValues?.currentcountry
-										?.countryName || "",
-									employee.employeeaddress?.dataValues?.currentpincode
-										?.pincode || "",
-								]
-									.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-									.join(", ")
+								employee.employeeaddress?.dataValues?.currentHouse || "",
+								employee.employeeaddress?.dataValues?.currentStreet || "",
+								employee.employeeaddress?.dataValues?.currentLandmark || "",
+								employee.employeeaddress?.dataValues?.currentcity?.cityName ||
+								"",
+								employee.employeeaddress?.dataValues?.currentstate
+									?.stateName || "",
+								employee.employeeaddress?.dataValues?.currentcountry
+									?.countryName || "",
+								employee.employeeaddress?.dataValues?.currentpincode
+									?.pincode || "",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
 							: "",
 						current_city:
 							employee.employeeaddress?.dataValues?.currentcity?.cityName,
@@ -1771,8 +1766,8 @@ class ThirdPartyController {
 								?.paymentAccountNumber || "",
 						date_of_resignation: employee.separationmaster
 							? moment(
-									employee.separationmaster.dataValues.resignationDate,
-								).format("DD-MM-YYYY")
+								employee.separationmaster.dataValues.resignationDate,
+							).format("DD-MM-YYYY")
 							: "",
 						date_of_exit: formatDate(employee.dateOfexit) || "", //employee.dateOfexit || "",
 						date_of_confirmation: "", // Custom field, left empty for now
@@ -1784,20 +1779,20 @@ class ThirdPartyController {
 						full_name: employee.name || "",
 						permanent_address: employee.employeeaddress?.dataValues
 							? [
-									employee.employeeaddress?.dataValues?.permanentHouse || "",
-									employee.employeeaddress?.dataValues?.permanentStreet || "",
-									employee.employeeaddress?.dataValues?.permanentLandmark || "",
-									employee.employeeaddress?.dataValues?.permanentcity
-										?.cityName || "",
-									employee.employeeaddress?.dataValues?.permanentstate
-										?.stateName || "",
-									employee.employeeaddress?.dataValues?.permanentcountry
-										?.countryName || "",
-									employee.employeeaddress?.dataValues?.permanentpincode
-										?.pincode || "",
-								]
-									.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-									.join(", ")
+								employee.employeeaddress?.dataValues?.permanentHouse || "",
+								employee.employeeaddress?.dataValues?.permanentStreet || "",
+								employee.employeeaddress?.dataValues?.permanentLandmark || "",
+								employee.employeeaddress?.dataValues?.permanentcity
+									?.cityName || "",
+								employee.employeeaddress?.dataValues?.permanentstate
+									?.stateName || "",
+								employee.employeeaddress?.dataValues?.permanentcountry
+									?.countryName || "",
+								employee.employeeaddress?.dataValues?.permanentpincode
+									?.pincode || "",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
 							: "",
 						date_of_joining:
 							formatDate(
@@ -1822,24 +1817,21 @@ class ThirdPartyController {
 						base_office_location:
 							employee.companylocationmaster?.dataValues?.citymaster?.dataValues
 								?.cityName &&
-							employee.companylocationmaster?.companyLocationCode
-								? `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues?.cityName} ${
-										employee.companylocationmaster?.isHeadquarter === true
-											? "(Head Office)"
-											: "(Branch)"
-									} (${employee.companylocationmaster.companyLocationCode})`
+								employee.companylocationmaster?.companyLocationCode
+								? `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues?.cityName} ${employee.companylocationmaster?.isHeadquarter === true
+									? "(Head Office)"
+									: "(Branch)"
+								} (${employee.companylocationmaster.companyLocationCode})`
 								: "",
 						location_type:
 							employee.companylocationmaster?.isHeadquarter === true
 								? "Head Office"
 								: "Branch", //employee.locationType || "",
-						office_location: `${
-							employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+						office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
 								?.cityName || ""
-						}-${
-							employee.companylocationmaster?.dataValues?.statemaster
+							}-${employee.companylocationmaster?.dataValues?.statemaster
 								?.dataValues?.stateName || ""
-						}`,
+							}`,
 						education_details: mappedEducationDetails || [],
 						pt_state: "",
 						past_work_experience: pastWorkExperience, //
@@ -1864,30 +1856,28 @@ class ThirdPartyController {
 								?.emergency_contact_country_code || "",
 						emergency_address: employee.employeeaddress?.dataValues
 							? [
-									employee.employeeaddress?.dataValues?.emergencyHouse || "",
-									employee.employeeaddress?.dataValues?.emergencyStreet || "",
-									employee.employeeaddress?.dataValues?.emergencyLandmark || "",
-									employee.employeeaddress?.dataValues?.emergencycity
-										?.dataValues?.cityName || "",
-									employee.employeeaddress?.dataValues?.emergencystate
-										?.dataValues?.stateName || "",
-									employee.employeeaddress?.dataValues?.emergencycountry
-										?.dataValues?.countryName || "",
-									employee.employeeaddress?.dataValues?.emergencypincode
-										?.dataValues?.pincode || "",
-								]
-									.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-									.join(", ")
+								employee.employeeaddress?.dataValues?.emergencyHouse || "",
+								employee.employeeaddress?.dataValues?.emergencyStreet || "",
+								employee.employeeaddress?.dataValues?.emergencyLandmark || "",
+								employee.employeeaddress?.dataValues?.emergencycity
+									?.dataValues?.cityName || "",
+								employee.employeeaddress?.dataValues?.emergencystate
+									?.dataValues?.stateName || "",
+								employee.employeeaddress?.dataValues?.emergencycountry
+									?.dataValues?.countryName || "",
+								employee.employeeaddress?.dataValues?.emergencypincode
+									?.dataValues?.pincode || "",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
 							: "",
 
 						cost_center:
 							employee.costcentermaster?.dataValues?.costCenterName ||
-							employee.costcentermaster?.dataValues?.costCenterCode
-								? `${
-										employee.costcentermaster?.dataValues?.costCenterName || ""
-									} (${
-										employee.costcentermaster?.dataValues?.costCenterCode || ""
-									})`
+								employee.costcentermaster?.dataValues?.costCenterCode
+								? `${employee.costcentermaster?.dataValues?.costCenterName || ""
+								} (${employee.costcentermaster?.dataValues?.costCenterCode || ""
+								})`
 								: "",
 						salary_stopped: "",
 						vpf_amount: "",
@@ -1922,8 +1912,8 @@ class ThirdPartyController {
 							"",
 						customer_code: employee.employeejobdetail?.dataValues?.customerName
 							? (employee.employeejobdetail.dataValues.customerName.match(
-									/(C\d+)/,
-								) || [])[1] || ""
+								/(C\d+)/,
+							) || [])[1] || ""
 							: "",
 						// employee.employeejobdetail?.dataValues?.customerName || "",
 						project_code:
