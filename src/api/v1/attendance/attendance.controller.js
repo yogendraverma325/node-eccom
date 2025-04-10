@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New Import Sandeep
 var _this = null;
 class AttendanceController {
 	constructor() {
@@ -59,6 +59,12 @@ class AttendanceController {
 				long: result.longitude,
 				createdBy: req.userId,
 				device: req.device,
+			});
+			// Sandeep
+			pushNotificationEmitter.emit("sendNotification", {
+				title: "Attendance Log",
+				body: "Your attendance request has been saved",
+				employeeId: req.userId,
 			});
 
 			const existEmployee = await db.employeeMaster.findOne({
@@ -940,41 +946,7 @@ class AttendanceController {
 				createdAt: moment(),
 			});
 
-			const empLeaveHeader = await db.EmployeeLeaveHeader.findOne({
-				where: {
-					employeeId: req.userId,
-					toDate: result.fromDate,
-					fromDate: result.fromDate,
-					source: "system_generated",
-					status: ["pending", "approved"],
-				},
-			});
-
-			if (empLeaveHeader) {
-				await db.EmployeeLeaveHeader.update(
-					{
-						status: "revoked",
-					},
-					{
-						where: {
-							employeeleaveheaderID:
-								empLeaveHeader.dataValues.employeeleaveheaderID,
-						},
-					},
-				);
-
-				await db.employeeLeaveTransactions.update(
-					{
-						status: "revoked",
-					},
-					{
-						where: {
-							employeeleaveheaderID:
-								empLeaveHeader.dataValues.employeeleaveheaderID,
-						},
-					},
-				);
-			}
+			await helper.revokeAppliedLeave(result.fromDate, req.userId);
 
 			eventEmitter.emit(
 				"regularizeRequestMail",
@@ -1557,17 +1529,30 @@ class AttendanceController {
 								"createdAt",
 								"updatedAt",
 								"updatedBy",
+								"createdBy"
 							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
-							include: {
-								model: db.employeeMaster,
-								attributes: ["id", "empCode", "name"],
-								as: "attendanceUpdatedBy",
-								include: {
-									model: db.roleMaster,
-									attributes: ["name"],
-								},
-							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "attendanceUpdatedBy",
+									include: {
+										model: db.roleMaster,
+										attributes: ["name"],
+									},
+							    },
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "attendanceCreatedBy",
+									include:
+									{
+										model: db.roleMaster,
+										attributes: ["name"]
+									},
+								}
+							],
 						},
 						{
 							model: db.holidayCompanyLocationConfiguration,
@@ -1599,12 +1584,14 @@ class AttendanceController {
 								status: ["pending", "approved"],
 								employeeId: user,
 							},
-							include: {
-								model: db.leaveMaster,
-								required: false,
-								as: "leaveMasterDetails",
-								attributes: ["leaveName", "leaveCode"],
-							},
+							include: [
+								{
+									model: db.leaveMaster,
+									required: false,
+									as: "leaveMasterDetails",
+									attributes: ["leaveName", "leaveCode"],
+								}	
+						    ],
 						},
 					],
 				}),
@@ -1673,6 +1660,12 @@ class AttendanceController {
 									as: "leaveUpdatedBy",
 									required: false,
 								},
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "leaveCreatedBy",
+									required: false
+								}	
 							],
 						},
 					],
@@ -2267,7 +2260,7 @@ class AttendanceController {
 				where: Object.assign(
 					query === "raisedByMe"
 						? {
-								createdBy: req.userId,
+								// createdBy: req.userId,
 								regularizeStatus: "Pending",
 							}
 						: {
@@ -2282,7 +2275,11 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
-						required: !!searchQuery,
+						where: { 
+							...(query === "raisedByMe" && { employeeId: req.userId } ),
+							...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId }}) 
+						},
+						required: true,
 						include: [
 							{
 								model: db.employeeMaster,
@@ -6395,7 +6392,7 @@ const attedanceRosterCron = async (user, date) => {
 			limit: 1,
 		});
 
-		if (punchOutAttendanceHistory) {
+		if (punchOutAttendanceHistory && punchInAttendanceHistory) {
 			const punchOutObject = {
 				attendancePunchOutTime: punchOutAttendanceHistory.dataValues.time,
 				attendanceShiftEndDate: punchOutAttendanceHistory.dataValues.date,
@@ -6416,6 +6413,47 @@ const attedanceRosterCron = async (user, date) => {
 			};
 
 			await db.attendanceMaster.update(punchOutObject, {
+				where: {
+					attendanceAutoId: attendanceData.dataValues.attendanceAutoId,
+				},
+			});
+		}
+
+		if (punchOutAttendanceHistory && !punchInAttendanceHistory) {
+			let punchInObject = {
+				attandanceShiftStartDate: punchOutAttendanceHistory.dataValues.date,
+				attendanceShiftId:
+					attendanceData.dataValues.employee.attendanceroster.shiftId,
+				weekOffId:
+					attendanceData.dataValues.employee.attendanceroster.weekOffId,
+				attendancePunchInTime: punchOutAttendanceHistory.dataValues.time,
+				attendanceStatus: "Punch In",
+				attendanceLateBy: await helper.calculateLateBy(
+					punchOutAttendanceHistory.dataValues.time,
+					shiftStartTimeGraceTimeClockIn.format("HH:mm:ss"),
+				),
+				attendancePresentStatus: "present",
+				attendancePunchInRemark:
+					punchOutAttendanceHistory.dataValues.userRemark,
+				attendancePunchInLocationType:
+					punchOutAttendanceHistory.dataValues.locationType,
+				attendancePunchInLocation:
+					punchOutAttendanceHistory.dataValues.location,
+				attendancePunchInLatitude: punchOutAttendanceHistory.dataValues.lat,
+				attendancePunchInLongitude: punchOutAttendanceHistory.dataValues.long,
+				punchInSource: punchOutAttendanceHistory.dataValues.device,
+				attendanceShiftEndDate: null,
+				attendancePunchOutTime: null,
+				attendancePunchOutRemark: null,
+				attendancePunchOutLocationType: null,
+				attendancePunchOutLocation: null,
+				attendancePunchOutLatitude: null,
+				attendancePunchOutLongitude: null,
+				attendanceWorkingTime: null,
+				punchOutSource: null,
+			};
+
+			await db.attendanceMaster.update(punchInObject, {
 				where: {
 					attendanceAutoId: attendanceData.dataValues.attendanceAutoId,
 				},

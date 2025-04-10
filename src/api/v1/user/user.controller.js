@@ -96,8 +96,19 @@ class UserController {
 					},
 					{
 						model: db.noticePeriodMaster,
-						required: false,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeejobdetail.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.buMaster,
@@ -589,6 +600,68 @@ class UserController {
 								attributes: ["pincodeId", "pincode"],
 								as: "emergencypincode",
 							},
+							//ritak adddress approval start
+{
+					model: db.cityMaster,
+					attributes: ["cityId", "cityName"],
+					as: "newCurrentCityDetails",
+				},
+				{
+					model: db.stateMaster,
+					attributes: ["stateId", "stateName"],
+					as: "newCurrentStateDetails",
+				},
+				{
+					model: db.countryMaster,
+					attributes: ["countryId", "countryName"],
+					as: "newCurrentCountryDetails",
+				},
+				{
+					model: db.pinCodeMaster,
+					attributes: ["pincodeId", "pincode"],
+					as: "newCurrentPincodeDetails",
+				},
+				{
+					model: db.cityMaster,
+					attributes: ["cityId", "cityName"],
+					as: "newPermanentCityDetails",
+				},
+				{
+					model: db.stateMaster,
+					attributes: ["stateId", "stateName"],
+					as: "newPermanentStateDetails",
+				},
+				{
+					model: db.countryMaster,
+					attributes: ["countryId", "countryName"],
+					as: "newPermanentCountryDetails",
+				},
+				{
+					model: db.pinCodeMaster,
+					attributes: ["pincodeId", "pincode"],
+					as: "newPermanentPincodeDetails",
+				},
+				{
+					model: db.cityMaster,
+					attributes: ["cityId", "cityName"],
+					as: "newEmergencyCityDetails",
+				},
+				{
+					model: db.stateMaster,
+					attributes: ["stateId", "stateName"],
+					as: "newEmergencyStateDetails",
+				},
+				{
+					model: db.countryMaster,
+					attributes: ["countryId", "countryName"],
+					as: "newEmergencyCountryDetails",
+				},
+				{
+					model: db.pinCodeMaster,
+					attributes: ["pincodeId", "pincode"],
+					as: "newEmergencyPincodeDetails",
+				},
+							//ritak address approval end
 						],
 					},
 					{
@@ -866,12 +939,28 @@ class UserController {
 					regularizeManagerId: userid,
 					regularizeStatus: "Pending",
 				},
+				include: {
+					model: db.attendanceMaster,
+					attributes: {
+						exclude: [],
+					},
+					where: { employeeId: { [Op.not]: req.userId } },
+					required: true
+				}
 			});
 			let pendingAttCount = await db.regularizationMaster.count({
 				where: {
 					regularizeStatus: "Pending",
-					createdBy: userid,
+					// createdBy: userid,
 				},
+				include: {
+					model: db.attendanceMaster,
+					attributes: {
+						exclude: [],
+					},
+					where: { employeeId: req.userId },
+					required: true,
+				}
 			});
 			// let pendingSeperationCount = await db.separationMaster.count(
 			// 	{
@@ -968,54 +1057,62 @@ class UserController {
 				usersData.permissionAndAccess,
 			);
 
-			const hasFilters = Object.values(filters).some((filter) => 
-				filter && Object.keys(filter).length > 0
+			const hasFilters = Object.values(filters).some(
+				(filter) => filter && Object.keys(filter).length > 0,
 			);
 
-			if((role_id == 2) || (role_id == 5 && hasFilters === true)) {
+			if (role_id == 2 || (role_id == 5 && hasFilters === true)) {
 				profileApprovalCount = await db.paymentDetails.count({
 					where: {
 						status: "pending",
 						// pendingAt: req.userId,
 					},
 					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							required: true,
+							include: [
 								{
-									model: db.employeeMaster,
-									attributes: ["id", "name", "empCode"],
-									required: true,
-									include: [
-										{
-											model: db.buMaster,
-											attributes: [],
-											where: {
-												...filters.buFIlter,
-											},
-										},
-										{
-											model: db.designationMaster,
-											attributes: [],
-											where: {
-												...filters.designationFIlter,
-											},
-										},
-										{
-											model: db.departmentMaster,
-											attributes: [],
-											where: {
-												...filters.departmentFIlter,
-											},
-										},
-										{
-											model: db.sbuMaster,
-											attributes: [],
-											where: {
-												...filters.sbbuFIlter,
-											},
-										},
-									]
-								}
-					]
+									model: db.buMaster,
+									attributes: [],
+									where: {
+										...filters.buFIlter,
+									},
+								},
+								{
+									model: db.designationMaster,
+									attributes: [],
+									where: {
+										...filters.designationFIlter,
+									},
+								},
+								{
+									model: db.departmentMaster,
+									attributes: [],
+									where: {
+										...filters.departmentFIlter,
+									},
+								},
+								{
+									model: db.sbuMaster,
+									attributes: [],
+									where: {
+										...filters.sbbuFIlter,
+									},
+								},
+							],
+						},
+					],
 				});
+
+				let addressCount = await db.employeeAddress.count({
+					where: {
+						status: "pending"
+					}
+				});
+
+				profileApprovalCount = profileApprovalCount + addressCount;
 			}
 
 			const pendingCompOffCount = await db.comp_off_credit_history.count({
@@ -1343,8 +1440,25 @@ class UserController {
 				},
 				include: [
 					{
+						model: db.jobDetails,
+						attributes: ["confirmationDate"],
+						as: "employeeJobDetails",
+					},
+					{
 						model: db.noticePeriodMaster,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeeJobDetails.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.departmentMaster,
@@ -1362,6 +1476,26 @@ class UserController {
 					{
 						model: db.companyMaster,
 						attributes: ["companyName", "senderEmail", "companyLogo"],
+					},
+				],
+			});
+
+			const headAndHrData = await db.buMapping.findOne({
+				where: {
+					buId: existUser.dataValues.buId,
+					companyId: existUser.dataValues.companyId,
+				},
+				attributes: ["buMappingId"],
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "email"],
+						as: "buHeadData",
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "email"],
+						as: "buhrData",
 					},
 				],
 			});
@@ -1454,6 +1588,20 @@ class UserController {
 				JSON.stringify({
 					email: existUser.dataValues.managerData.email,
 					recipientName: existUser.dataValues.managerData.name,
+					empName: existUser.dataValues.name,
+					empDesignation: existUser.dataValues.designationmaster.name,
+					empDepartment: existUser.dataValues.departmentmaster.departmentName,
+					companyName: existUser.dataValues.companymaster.companyName,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
+				}),
+			);
+
+			eventEmitter.emit(
+				"initiateSeparation",
+				JSON.stringify({
+					email: headAndHrData.dataValues.buhrData.email,
+					recipientName: headAndHrData.dataValues.buhrData.name,
 					empName: existUser.dataValues.name,
 					empDesignation: existUser.dataValues.designationmaster.name,
 					empDepartment: existUser.dataValues.departmentmaster.departmentName,
@@ -1744,8 +1892,25 @@ class UserController {
 				},
 				include: [
 					{
+						model: db.jobDetails,
+						attributes: ["confirmationDate"],
+						as: "employeeJobDetails",
+					},
+					{
 						model: db.noticePeriodMaster,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeeJobDetails.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.companyMaster,
@@ -1980,8 +2145,25 @@ class UserController {
 						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 					{
+						model: db.jobDetails,
+						attributes: ["confirmationDate"],
+						as: "employeeJobDetails",
+					},
+					{
 						model: db.noticePeriodMaster,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeeJobDetails.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.designationMaster,
@@ -3258,6 +3440,11 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
 							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
 						},
 						{
 							model: db.attendanceMaster,
@@ -3288,6 +3475,18 @@ class UserController {
 								},
 							],
 						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "attendanceCreatedBy",
+							required: false,
+							include:
+							{
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
+						}
 					],
 					limit,
 					offset,
@@ -3418,6 +3617,12 @@ class UserController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveCreatedBy",
+							required: false,
 						},
 					],
 					limit,
@@ -5841,6 +6046,11 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
 							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
 						},
 						{
 							model: db.attendanceMaster,
@@ -5863,6 +6073,18 @@ class UserController {
 								},
 							],
 						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "attendanceCreatedBy",
+							required: false,
+							include:
+							{
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false
+							},
+						}
 					],
 					limit,
 					offset,
@@ -5996,6 +6218,12 @@ class UserController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveCreatedBy",
+							required: false,
 						},
 					],
 					limit,
@@ -6186,6 +6414,7 @@ class UserController {
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
+							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6303,6 +6532,7 @@ class UserController {
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
+							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6810,6 +7040,212 @@ class UserController {
 			}
 		}
 	}
+
+	// ritak address approval module start
+async requestForAddressApproval(req, res) {
+    try {
+        const result = await validator.requestForAddressApprovalSchema.validateAsync(req.body);
+
+        const existUser = await db.employeeMaster.findOne({
+            raw: true,
+            where: {
+                id: req.userId,
+                isActive: 1,
+            },
+            attributes: ["name", "empCode", "profileImage"],
+            include: [
+                {
+                    model: db.companyMaster,
+                    attributes: ["senderEmail", "companyLogo"],
+                },
+            ],
+        });
+
+        const isSameDetails = await db.employeeAddress.findOne({
+            where: { employeeId: req.userId },
+        });
+
+        if (isSameDetails) {
+            if (
+                isSameDetails.currentHouse === result.currentHouse &&
+                isSameDetails.currentStreet === result.currentStreet &&
+                isSameDetails.currentStateId === result.currentStateId &&
+                isSameDetails.currentCityId === result.currentCityId &&
+                isSameDetails.currentCountryId === result.currentCountryId &&
+                isSameDetails.currentPincodeId === result.currentPincodeId &&
+                isSameDetails.currentLandmark === result.currentLandmark &&
+                isSameDetails.permanentHouse === result.permanentHouse &&
+                isSameDetails.permanentStreet === result.permanentStreet &&
+                isSameDetails.permanentStateId === result.permanentStateId &&
+                isSameDetails.permanentCityId === result.permanentCityId &&
+                isSameDetails.permanentCountryId === result.permanentCountryId &&
+                isSameDetails.permanentPincodeId === result.permanentPincodeId &&
+                isSameDetails.permanentLandmark === result.permanentLandmark &&
+                isSameDetails.emergencyHouse === result.emergencyHouse &&
+                isSameDetails.emergencyStreet === result.emergencyStreet &&
+                isSameDetails.emergencyStateId === result.emergencyStateId &&
+                isSameDetails.emergencyCityId === result.emergencyCityId &&
+                isSameDetails.emergencyCountryId === result.emergencyCountryId &&
+                isSameDetails.emergencyPincodeId === result.emergencyPincodeId &&
+                isSameDetails.emergencyLandmark === result.emergencyLandmark
+            ) {
+                return respHelper(res, {
+                    status: 400,
+                    msg: constant.ALREADY_EXISTS.replace("<module>", "Address Details"),
+                });
+            } else {
+                const objForApproval = {
+                    status: "pending",
+					createdByRole: "User",
+                    pendingAt: 2996, // Replace with the appropriate approver ID
+                    requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    ...(result.currentHouse !== isSameDetails.currentHouse && {
+                        newCurrentHouse: result.currentHouse,
+                    }),
+                    ...(result.currentStreet !== isSameDetails.currentStreet && {
+                        newCurrentStreet: result.currentStreet,
+                    }),
+                    ...(result.currentStateId !== isSameDetails.currentStateId && {
+                        newCurrentStateId: result.currentStateId,
+                    }),
+                    ...(result.currentCityId !== isSameDetails.currentCityId && {
+                        newCurrentCityId: result.currentCityId,
+                    }),
+                    ...(result.currentCountryId !== isSameDetails.currentCountryId && {
+                        newCurrentCountryId: result.currentCountryId,
+                    }),
+                    ...(result.currentPincodeId !== isSameDetails.currentPincodeId && {
+                        newCurrentPincodeId: result.currentPincodeId,
+                    }),
+                    ...(result.currentLandmark !== isSameDetails.currentLandmark && {
+                        newCurrentLandmark: result.currentLandmark,
+                    }),
+                    ...(result.permanentHouse !== isSameDetails.permanentHouse && {
+                        newPermanentHouse: result.permanentHouse,
+                    }),
+                    ...(result.permanentStreet !== isSameDetails.permanentStreet && {
+                        newPermanentStreet: result.permanentStreet,
+                    }),
+                    ...(result.permanentStateId !== isSameDetails.permanentStateId && {
+                        newPermanentStateId: result.permanentStateId,
+                    }),
+                    ...(result.permanentCityId !== isSameDetails.permanentCityId && {
+                        newPermanentCityId: result.permanentCityId,
+                    }),
+                    ...(result.permanentCountryId !== isSameDetails.permanentCountryId && {
+                        newPermanentCountryId: result.permanentCountryId,
+                    }),
+                    ...(result.permanentPincodeId !== isSameDetails.permanentPincodeId && {
+                        newPermanentPincodeId: result.permanentPincodeId,
+                    }),
+                    ...(result.permanentLandmark !== isSameDetails.permanentLandmark && {
+                        newPermanentLandmark: result.permanentLandmark,
+                    }),
+                    ...(result.emergencyHouse !== isSameDetails.emergencyHouse && {
+                        newEmergencyHouse: result.emergencyHouse,
+                    }),
+                    ...(result.emergencyStreet !== isSameDetails.emergencyStreet && {
+                        newEmergencyStreet: result.emergencyStreet,
+                    }),
+                    ...(result.emergencyStateId !== isSameDetails.emergencyStateId && {
+                        newEmergencyStateId: result.emergencyStateId,
+                    }),
+                    ...(result.emergencyCityId !== isSameDetails.emergencyCityId && {
+                        newEmergencyCityId: result.emergencyCityId,
+                    }),
+                    ...(result.emergencyCountryId !== isSameDetails.emergencyCountryId && {
+                        newEmergencyCountryId: result.emergencyCountryId,
+                    }),
+                    ...(result.emergencyPincodeId !== isSameDetails.emergencyPincodeId && {
+                        newEmergencyPincodeId: result.emergencyPincodeId,
+                    }),
+                    ...(result.emergencyLandmark !== isSameDetails.emergencyLandmark && {
+                        newEmergencyLandmark: result.emergencyLandmark,
+                    }),
+                    ...(result.comment ? { comment: result.comment } : { comment: null }),
+                };
+
+                await db.employeeAddress.update(objForApproval, {
+                    where: { employeeId: req.userId },
+                });
+
+                eventEmitter.emit(
+                    "addressDetailsApprovalRequestMail",
+                    JSON.stringify({
+                        email: result.email,
+                        name: existUser.name,
+                        senderEmail: existUser["companymaster.senderEmail"],
+                        companyLogo: existUser["companymaster.companyLogo"],
+                    }),
+                );
+
+                return respHelper(res, {
+                    status: 200,
+                    msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
+                });
+            }
+        } else {
+            const objForApproval = {
+                employeeId: req.userId,
+                status: "pending",
+				createdByRole: "User",
+                pendingAt: 2996, // Replace with the appropriate approver ID
+                requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
+                ...(result.currentHouse && { newCurrentHouse: result.currentHouse }),
+                ...(result.currentStreet && { newCurrentStreet: result.currentStreet }),
+                ...(result.currentStateId && { newCurrentStateId: result.currentStateId }),
+                ...(result.currentCityId && { newCurrentCityId: result.currentCityId }),
+                ...(result.currentCountryId && { newCurrentCountryId: result.currentCountryId }),
+                ...(result.currentPincodeId && { newCurrentPincodeId: result.currentPincodeId }),
+                ...(result.currentLandmark && { newCurrentLandmark: result.currentLandmark }),
+                ...(result.permanentHouse && { newPermanentHouse: result.permanentHouse }),
+                ...(result.permanentStreet && { newPermanentStreet: result.permanentStreet }),
+                ...(result.permanentStateId && { newPermanentStateId: result.permanentStateId }),
+                ...(result.permanentCityId && { newPermanentCityId: result.permanentCityId }),
+                ...(result.permanentCountryId && { newPermanentCountryId: result.permanentCountryId }),
+                ...(result.permanentPincodeId && { newPermanentPincodeId: result.permanentPincodeId }),
+                ...(result.permanentLandmark && { newPermanentLandmark: result.permanentLandmark }),
+                ...(result.emergencyHouse && { newEmergencyHouse: result.emergencyHouse }),
+                ...(result.emergencyStreet && { newEmergencyStreet: result.emergencyStreet }),
+                ...(result.emergencyStateId && { newEmergencyStateId: result.emergencyStateId }),
+                ...(result.emergencyCityId && { newEmergencyCityId: result.emergencyCityId }),
+                ...(result.emergencyCountryId && { newEmergencyCountryId: result.emergencyCountryId }),
+                ...(result.emergencyPincodeId && { newEmergencyPincodeId: result.emergencyPincodeId }),
+                ...(result.emergencyLandmark && { newEmergencyLandmark: result.emergencyLandmark }),
+                ...(result.comment ? { comment: result.comment } : { comment: null }),
+            };
+
+            await db.employeeAddress.create(objForApproval);
+
+            eventEmitter.emit(
+                "addressDetailsApprovalRequestMail",
+                JSON.stringify({
+                    email: result.email,
+                    name: existUser.name,
+                    senderEmail: existUser["companymaster.senderEmail"],
+                    companyLogo: existUser["companymaster.companyLogo"],
+                }),
+            );
+
+            return respHelper(res, {
+                status: 200,
+                msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        if (error.isJoi === true) {
+            return respHelper(res, {
+                status: 422,
+                msg: error.details[0].message,
+            });
+        }
+        return respHelper(res, {
+            status: 500,
+        });
+    }
+}
+// ritak address approval module end
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
@@ -6825,5 +7261,9 @@ const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
 		},
 	);
 };
+
+
+
+
 
 export default new UserController();

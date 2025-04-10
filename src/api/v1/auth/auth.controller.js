@@ -91,11 +91,11 @@ class AuthController {
 							},
 							existUser.dataValues.wrongPasswordCount === 2
 								? {
-										accountRecoveryTime: moment().add(
-											parseInt(process.env.ACCOUNT_RECOVERY_TIME),
-											"minutes",
-										),
-									}
+									accountRecoveryTime: moment().add(
+										parseInt(process.env.ACCOUNT_RECOVERY_TIME),
+										"minutes",
+									),
+								}
 								: null,
 						),
 						{
@@ -234,6 +234,30 @@ class AuthController {
 			});
 		}
 	}
+
+	// async test(req, res) {
+	// 	try {
+
+	// 		let joblevel = [1, 3, 4, 5, 6, 7, 8, 12, 20, 21, 22, 23, 24, 25, 26, 27]
+	// 		let funcArea = [23, 25, 73, 82, 84, 85, 86, 87, 94, 99, 106, 127, 137, 139, 140, 142, 146, 147, 148, 149, 150, 151, 152, 153, 155, 158, 159, 163, 166, 167, 168, 169, 170, 171, 179, 181, 182, 184, 187, 192, 193, 194, 198, 199, 201]
+
+	// 		for (let i = 0; i < joblevel.length; i++) {
+	// 			for (let j = 0; j < funcArea.length; j++) {
+	// 				const jobElement = joblevel[i];
+	// 				const funcElement = funcArea[j];
+					
+	// 				// Example: Access elements and do something with them
+	// 				console.log(`Job Level: ${jobElement}, Functional Area: ${funcElement}`);
+	// 			}
+	// 		}
+
+
+	// 	} catch (error) {
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 		});
+	// 	}
+	// }
 }
 
 const validateUser = async (req, existUser) => {
@@ -248,6 +272,7 @@ const validateUser = async (req, existUser) => {
 		employeeId: existUser.dataValues.id,
 		loginIP: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
 		loginDevice: req.headers.source ? req.headers.source : null,
+		firebasetoken: req.headers.firebasetoken, ///firebase token added
 		createdDt: moment(),
 	});
 
