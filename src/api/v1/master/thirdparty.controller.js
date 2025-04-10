@@ -1209,7 +1209,7 @@ class ThirdPartyController {
 								? "Head Office"
 								: "Branch", //employee.locationType || "",
 						office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-								?.cityName || ""
+							?.cityName || ""
 							}-${employee.companylocationmaster?.dataValues?.statemaster
 								?.dataValues?.stateName || ""
 							}`,
@@ -1344,7 +1344,7 @@ class ThirdPartyController {
 						companyId: companyId,
 						// employeeType: [1, 2, 3, 4, 5],
 						...(empCode && {
-							empCode: empCode,
+							empCode: { [Op.in]: empCode.split(",") },
 						}),
 					},
 					attributes: [
@@ -1828,7 +1828,7 @@ class ThirdPartyController {
 								? "Head Office"
 								: "Branch", //employee.locationType || "",
 						office_location: `${employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-								?.cityName || ""
+							?.cityName || ""
 							}-${employee.companylocationmaster?.dataValues?.statemaster
 								?.dataValues?.stateName || ""
 							}`,
