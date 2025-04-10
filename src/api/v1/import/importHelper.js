@@ -74,6 +74,9 @@ async function query(caseId, data, data2) {
 				return `SELECT SUM(CASE WHEN proceessId = ${data.processId} THEN 1 ELSE 0 END) AS total_processed, SUM(CASE WHEN proceessId = ${data.processId} AND payStatus = 8 THEN 1 ELSE 0 END) AS total_process_and_released FROM ${dbName}.payprocessdetails;`;
 				break;
 	
+				case 4:
+					return `DELETE FROM tara_hrms_live.importinfo WHERE importAutoId = ${data.importId};`
+					break;
 	}
 }
 export default {
