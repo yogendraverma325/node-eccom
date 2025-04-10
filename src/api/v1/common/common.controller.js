@@ -1970,6 +1970,21 @@ async profileUpdateActionPending(req, res) {
             usersData.permissionAndAccess,
         );
 
+		 const hasFilters = Object.values(filters).some((filter) =>
+                filter && Object.keys(filter).length > 0
+            );
+   
+            if (!hasFilters && usersData.role_id != 2) {
+                return respHelper(res, {
+                    status: 200,
+                    msg: constant.DATA_FETCHED,
+                    data: {
+                        count: 0,
+                        rows: []
+                    },
+                });
+            }
+
         let searchQuery = search
             ? {
                   [Op.or]: [
