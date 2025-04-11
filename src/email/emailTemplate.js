@@ -4709,8 +4709,8 @@ export default {
 	confirmationWorkFlownextLevel,
 	salarySlipPdf,
 	releasePaySlip,
-  //ritak address approval start
-  addressDetailsAdminActionMail,
-  addressDetailsApprovalRequestMail,
-  //ritak address approval end
+	//ritak address approval start
+	addressDetailsAdminActionMail,
+	addressDetailsApprovalRequestMail,
+	//ritak address approval end
 };
