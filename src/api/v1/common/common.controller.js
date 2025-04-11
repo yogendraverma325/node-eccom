@@ -2003,7 +2003,7 @@ async profileUpdateActionPending(req, res) {
                 {
                     model: db.employeeMaster,
                     attributes: ["id", "name", "empCode"],
-                    required: !!searchQuery,
+                    required: true,
                     where: searchQuery || undefined,
 					order: [["requrestTriggred", "DESC"]],
                     include: [
@@ -2062,7 +2062,7 @@ async profileUpdateActionPending(req, res) {
                 {
                     model: db.employeeMaster,
                     attributes: ["id", "name", "empCode"],
-                    required: !!searchQuery,
+                    required: true,
                     where: searchQuery || undefined,
 					order: [["requestTriggered", "DESC"]],
                     include: [
