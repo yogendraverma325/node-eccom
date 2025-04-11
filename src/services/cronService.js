@@ -3,8 +3,8 @@ import cronController from "../api/v1/cron/cron.controller.js";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
 import helper from "../helper/helper.js";
 
-cron.schedule("0 30 11 * * *", async () => {  // 12:01 AM
-    //await cronController.getEmpForWishes();
+cron.schedule("0 2 13 * * *", async () => {  // 12:01 AM
+    await cronController.getEmpForWishes();
 });
 
 cron.schedule("30 03 * * *", async () => {

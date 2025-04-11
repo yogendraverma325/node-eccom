@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { Op } from "sequelize";
+
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
@@ -11,6 +11,8 @@ import respHelper from "../../../helper/respHelper.js";
 import attendanceController from "../attendance/attendance.controller.js";
 import { NodeSSH } from "node-ssh";
 import Sequelize from "sequelize";
+import {where,Op, fn, col } from "sequelize";
+
 
 class CronController {
 	async updateAttendance() {
@@ -2091,25 +2093,44 @@ class CronController {
 			`Biometric Attendance Cron Completed in ${executionTime} milliseconds`,
 		);
 	}
-	async getEmpForWishes() {
-        try {
-            const today = moment().format("MM-DD");
-    
-            const employees = await db.employeeMaster.findAll({
+
+	async getEmpForWishes(){
+try{
+	 const today = moment().format("MM-DD");
+        
+            const employeesBirth = await db.biographicalDetails.findAll({
+                raw: true,
+                where: {
+                    [Op.and]: [
+                      where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), '04-11'),
+                      { isActive: 1 }
+                    ]
+                }
+            });
+			for (const emp of employeesBirth) {
+                const empId = emp.userId;
+                // Birthday Wishes
+                if (emp.dateOfBirth) {
+                    const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
+                    if (dobFormatted === today) {
+                        pushNotificationEmitter.emit("sendNotification", {
+                            title: "Alert!",
+                            body: "Best wishes on your birthday!",
+                            employeeId: 1043,//empId,
+                        });
+                    }
+                }
+            }
+			const employees = await db.employeeMaster.findAll({
                 raw: true,
                 where: {
                     isActive: 1,
-                },
-                include: [
-                    {
-                        model: db.biographicalDetails,
-                        attributes: ["dateOfBirth"],
-						wheer 
+                    dateOfJoining: {
+                        [Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
                     },
-                ],
+                },
             });
-    
-            for (const emp of employees) {
+			   for (const emp of employees) {
                 const empId = emp.id;
                 // Work Anniversary
                 if (emp.dateOfJoining) {
@@ -2118,27 +2139,18 @@ class CronController {
                         pushNotificationEmitter.emit("sendNotification", {
                             title: "Alert!",
                             body: "Best wishes on your work anniversary!",
-                            employeeId: empId,
-                        });
-                    }
-                }
-                // Birthday
-                const dob = emp["employeebiographicaldetail.dateOfBirth"];
-                if (dob) {
-                    const dobFormatted = moment(dob).format("MM-DD");
-                    if (dobFormatted === today) {
-                        pushNotificationEmitter.emit("sendNotification", {
-                            title: "Alert!",
-                            body: "Best wishes on your birthday!",
-                            employeeId: empId,
+                            employeeId: 1043,//empId,
                         });
                     }
                 }
             }
-        } catch (error) {
+
+}
+catch (error) {
             console.log("Error in Birthday/Anniversary Wishes", error);
         }
-    }
+	}
+	
 }
 
 export default new CronController();
