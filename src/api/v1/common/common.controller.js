@@ -1889,6 +1889,12 @@ class commonController {
 						companyLogo: existUser["companymaster.companyLogo"],
 					}),
 				);
+
+				pushNotificationEmitter.emit("sendNotification", {
+                    title: "Profile Request Acknowledgement",
+                    body: "Your profile update request has been acted upon.",
+                    employeeId: result.userId,
+                });
 				return respHelper(res, {
 					status: 200,
 					msg: constant.PAYMENT_REQUEST_REJECTED,

@@ -2091,6 +2091,54 @@ class CronController {
 			`Biometric Attendance Cron Completed in ${executionTime} milliseconds`,
 		);
 	}
+	async getEmpForWishes() {
+        try {
+            const today = moment().format("MM-DD");
+    
+            const employees = await db.employeeMaster.findAll({
+                raw: true,
+                where: {
+                    isActive: 1,
+                },
+                include: [
+                    {
+                        model: db.biographicalDetails,
+                        attributes: ["dateOfBirth"],
+						wheer 
+                    },
+                ],
+            });
+    
+            for (const emp of employees) {
+                const empId = emp.id;
+                // Work Anniversary
+                if (emp.dateOfJoining) {
+                    const dojFormatted = moment(emp.dateOfJoining).format("MM-DD");
+                    if (dojFormatted === today) {
+                        pushNotificationEmitter.emit("sendNotification", {
+                            title: "Alert!",
+                            body: "Best wishes on your work anniversary!",
+                            employeeId: empId,
+                        });
+                    }
+                }
+                // Birthday
+                const dob = emp["employeebiographicaldetail.dateOfBirth"];
+                if (dob) {
+                    const dobFormatted = moment(dob).format("MM-DD");
+                    if (dobFormatted === today) {
+                        pushNotificationEmitter.emit("sendNotification", {
+                            title: "Alert!",
+                            body: "Best wishes on your birthday!",
+                            employeeId: empId,
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.log("Error in Birthday/Anniversary Wishes", error);
+        }
+    }
 }
 
 export default new CronController();
