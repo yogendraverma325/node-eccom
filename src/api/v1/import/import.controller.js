@@ -39,17 +39,27 @@ class ImportController {
 				"Standard Deduction",
 				"Gross-Pay",
 				"Pay Slip Release",
+				"Delete TDS Deduction",
+				"Delete LOP",
+				"Delete Extra Payment",
+				"Delete Standard Deduction",
 			];
-
-			console.log(req.body.uploadType);
-
+			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
 				return respHelper(res, {
 					status: 400,
 					msg: "Service is comming soon : " + req.body.uploadType,
 				});
 			}
+			if (!req.body.operationType) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Operation not defined : ",
+				});
+			}
 
+			// console.log("Operation Type :: ",req.body.operationType);
+			// return;
 			let importInfoObject = {
 				createdBy: req.userData.id,
 				importType: req.body.uploadType,
@@ -58,38 +68,32 @@ class ImportController {
 				sbuId: req.userData.sbuId,
 				companyId: req.userData.companyId,
 			};
-
-			// let importInfo = await db.ImportInfo.create(importInfoObject);
-			// let importInfoRaw = importInfo.get({ plain: true });
-
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
-			var FILEDATA = pkg.utils.sheet_to_json(
-				workbookEmployee.Sheets[sheetNameEmployee],
-			);
+			var OperationType = req.body.operationType; // pkg.utils.sheet_to_json(
+			//workbookEmployee.Sheets[sheetNameEmployee],
+			//);
 
-			if (req.body.uploadType == "LOP") {
-				await lopUpload(req, res, FILEDATA,importInfoObject,);
-			} else if (req.body.uploadType == "TDS Deduction") {
-				await tdsUpload(req, res, FILEDATA,importInfoObject,);
-			} else if (req.body.uploadType == "Extra Payment") {
-				await extraPaymentUpload(
-					req,
-					res,
-					FILEDATA,
-					importInfoObject,
-				);
-			} else if (req.body.uploadType == "Standard Deduction") {
-				await extraDeductionsUpload(
-					req,
-					res,
-					FILEDATA,
-					importInfoObject,
-				);
+			if (["LOP", "Delete LOP"].includes(req.body.uploadType)) {
+				await lopUpload(req, res, OperationType, importInfoObject);
+			} else if (
+				["TDS Deduction", "Delete TDS Deduction"].includes(req.body.uploadType)
+			) {
+				await tdsUpload(req, res, OperationType, importInfoObject);
+			} else if (
+				["Extra Payment", "Delete Extra Payment"].includes(req.body.uploadType)
+			) {
+				await extraPaymentUpload(req, res, OperationType, importInfoObject);
+			} else if (
+				["Standard Deduction", "Delete Standard Deduction"].includes(
+					req.body.uploadType,
+				)
+			) {
+				await extraDeductionsUpload(req, res, OperationType, importInfoObject);
 			} else if (req.body.uploadType == "Gross-Pay") {
-				await uploadCTC(req, res, FILEDATA,importInfoObject,);
+				await uploadCTC(req, res, OperationType, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
-				await releasePaySlip(req, res, FILEDATA,importInfoObject,);
+				await releasePaySlip(req, res, OperationType, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -111,11 +115,7 @@ class ImportController {
 				sbuId: req.userData.sbuId,
 				isActive: req.userData.isActive,
 			});
-			// console.log("Role ID");
-			// console.log(req.userData.role_id);
-			// console.log("Role ID");
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
-			// console.log(queryForImportDetails);
 			return respHelper(res, {
 				status: 200,
 				data: importInfoList[0],
@@ -141,6 +141,10 @@ class ImportController {
 				LOP: "LOP",
 				GROSS_PAY: "Gross-Pay",
 				PAYSLIP: "Pay Slip Release",
+				DELETE_EXTRA_DEDUCTIONS: "Delete Standard Deduction",
+				DELETE_EXTRA_PAYMENT: "Delete Extra Payment",
+				DELETE_TDS_DEDUCTION: "Delete TDS Deduction",
+				DELETE_LOP: "Delete LOP",
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -587,45 +591,39 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 	}
 }
 
-async function extraPaymentUpload(req, res, FILEDATA, importParams) {
-	try
-	{
+async function extraPaymentUpload(req, res, OperationType, importParams) {
+	try {
 		if (!req.file) {
-			// let query = await importHelper.query(4,{importId:importId});
-		    //    await db.sequelize.query(query);
 			return respHelper(res, {
 				status: 400,
 				msg: "File is required!",
 			});
 		}
 		let isActive = req.query.isActive ? parseInt(req.query.isActive) : 1;
-
 		///////////////If File is provided by the users//////////////////
 		const workbookEmployee = pkg.readFile(req.file.path);
 		const sheetNameEmployee = workbookEmployee.SheetNames[0];
 		var tdsDetails = pkg.utils.sheet_to_json(
 			workbookEmployee.Sheets[sheetNameEmployee],
 		);
-
-		if (!tdsDetails[0]["Employee ID"] || !tdsDetails[0]["Effective Month"]  || !tdsDetails[0]['Amount'] || !tdsDetails[0]['Category']) {
-
-			// let query = await importHelper.query(4,{importId:importId});
-		    // await db.sequelize.query(query);
+		if (
+			!tdsDetails[0]["Employee ID"] ||
+			!tdsDetails[0]["Effective Month"] ||
+			!tdsDetails[0]["Amount"] ||
+			!tdsDetails[0]["Category"]
+		) {
 			return respHelper(res, {
 				status: 400,
 				msg: "Invalid File Format",
 			});
 		}
-
-
 		let importId = await createImportDetails(importParams);
 
 		var errorArray = [],
 			successArray = [];
 		for (const employeeExtraPayment of tdsDetails) {
-
 			if (employeeExtraPayment["Employee ID"]) {
-				console.log(employeeExtraPayment);
+				// console.log(employeeExtraPayment);
 				let employeeDetais = await db.employeeMaster.findOne({
 					where: {
 						empCode: employeeExtraPayment["Employee ID"],
@@ -634,7 +632,7 @@ async function extraPaymentUpload(req, res, FILEDATA, importParams) {
 					raw: true,
 					attributes: ["empCode", "id"],
 				});
-	
+
 				if (!employeeDetais) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeExtraPayment),
@@ -645,10 +643,17 @@ async function extraPaymentUpload(req, res, FILEDATA, importParams) {
 					});
 					continue;
 				}
-				let qeury ={payMonth:employeeExtraPayment["Effective Month"],EmployeeId:employeeDetais.id,payStatus:{[Op.in]:[1,2,3,6,7,8,9]}};
-				let salaryProcessingStatus = await db.payProcessDetails.findOne({where:qeury,raw:true,attributes:['payProcessDetailAutoId']})
-				if(salaryProcessingStatus)
-				{
+				let qeury = {
+					payMonth: employeeExtraPayment["Effective Month"],
+					EmployeeId: employeeDetais.id,
+					payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9] },
+				};
+				let salaryProcessingStatus = await db.payProcessDetails.findOne({
+					where: qeury,
+					raw: true,
+					attributes: ["payProcessDetailAutoId"],
+				});
+				if (salaryProcessingStatus) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeExtraPayment),
 						importAutoId: importId,
@@ -658,93 +663,111 @@ async function extraPaymentUpload(req, res, FILEDATA, importParams) {
 					});
 					continue;
 				}
-	
-				
-					let extraPaymentCategory = await db.CompensationCategoryMaster.findOne({
-						where: { name: employeeExtraPayment["Category"] },
-						raw: true,
-						attribute: ["compensationCategoryId", "name"],
+
+				let extraPaymentCategory = await db.CompensationCategoryMaster.findOne({
+					where: { name: employeeExtraPayment["Category"] },
+					raw: true,
+					attribute: ["compensationCategoryId", "name"],
+				});
+
+				// console.log(extraPaymentCategory);
+				// return;
+				if (!extraPaymentCategory) {
+					errorArray.push({
+						importedRow: JSON.stringify(employeeExtraPayment),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc:
+							"Invalid Category Name " +
+							"(" +
+							employeeExtraPayment["Category"] +
+							")",
 					});
-	
-					// console.log(extraPaymentCategory);
-					// return;
-					if (!extraPaymentCategory) {
+					continue;
+				}
+
+				let extraPayment = {
+					EmployeeId: employeeDetais.id,
+					paymentAmount: employeeExtraPayment["Amount"],
+					paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
+					category: employeeExtraPayment["Category"],
+					empCode: employeeExtraPayment["Employee ID"],
+					category: employeeExtraPayment["Category"],
+					paymentCategoryId: extraPaymentCategory.compensationCategoryId,
+					// delete: employeeExtraPayment["Delete"],
+				};
+				const { error } = await validator.extraPayment.validate(extraPayment);
+				if (error) {
+					errorArray.push({
+						importedRow: JSON.stringify(employeeExtraPayment),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc: error.details[0].message,
+					});
+				} else {
+					let existTDSDetails = await db.extraPayment.findOne({
+						where: {
+							EmployeeId: extraPayment.EmployeeId,
+							paymentMonth: extraPayment.paymentMonth,
+							category: extraPayment.category,
+						},
+						attribute: ["extraPaymentAutoId"],
+						raw: true,
+					});
+
+					if (!existTDSDetails && OperationType == 2) {
 						errorArray.push({
 							importedRow: JSON.stringify(employeeExtraPayment),
 							importAutoId: importId,
 							importStatus: 2,
 							createdBy: req.userData.id,
-							importStatusDesc:
-								"Invalid Category Name " +
-								"(" +
-								employeeExtraPayment["Category"] +
-								")",
+							importStatusDesc: "Data is  not available to delete.",
 						});
 						continue;
 					}
-	
-					let extraPayment = {
-						EmployeeId: employeeDetais.id,
-						paymentAmount: employeeExtraPayment["Amount"],
-						paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
-						category: employeeExtraPayment["Category"],
-						empCode: employeeExtraPayment["Employee ID"],
-						category: employeeExtraPayment["Category"],
-						paymentCategoryId: extraPaymentCategory.compensationCategoryId,
-					};
-	
-					// console.log(extraPayment);
-					// return;
-					const { error } = await validator.extraPayment.validate(extraPayment);
-					if (error) {
-						errorArray.push({
-							importedRow: JSON.stringify(employeeExtraPayment),
-							importAutoId: importId,
-							importStatus: 2,
-							createdBy: req.userData.id,
-							importStatusDesc: error.details[0].message,
-						});
-					} else {
-						let existTDSDetails = await db.extraPayment.findOne({
-							where: {
-								EmployeeId: extraPayment.EmployeeId,
-								paymentMonth: extraPayment.paymentMonth,
-								category: extraPayment.category,
-							},
-							raw: true,
-						});
-	
-						if (existTDSDetails) {
+
+					if (existTDSDetails) {
+						if (OperationType == 2) {
+							await db.extraPayment.destroy({
+								where: {
+									extraPaymentAutoId: existTDSDetails.extraPaymentAutoId,
+								},
+							});
+							extraPayment["ACTION_TYPE"] = "DELETE";
+							console.log("Extra Payment is getting delete :: ");
+						} else {
 							extraPayment["updatedBy"] = req.userData.id;
 							extraPayment["updatedAt"] = new Date();
-	
+
 							await db.extraPayment.update(extraPayment, {
 								where: {
-									EmployeeId: extraPayment.EmployeeId,
-									paymentMonth: extraPayment.paymentMonth,
-									category: extraPayment.category,
+									extraPaymentAutoId: existTDSDetails.extraPaymentAutoId,
 								},
 							});
 							extraPayment["ACTION_TYPE"] = "UPDATE";
-						} else {
-							extraPayment["createdBy"] = req.userData.id;
-							extraPayment["createdAt"] = new Date();
-							await db.extraPayment.create(extraPayment);
-							extraPayment["ACTION_TYPE"] = "CREATE";
 						}
-						// successArray.push(extraPayment);
-						successArray.push({
-							importedRow: JSON.stringify(employeeExtraPayment),
-							importAutoId: importId,
-							importStatus: 1,
-							createdBy: req.userData.id,
-							importStatusDesc: "Payment Uploaded Successfully.",
-						});
+					} else {
+						extraPayment["createdBy"] = req.userData.id;
+						extraPayment["createdAt"] = new Date();
+						await db.extraPayment.create(extraPayment);
+						extraPayment["ACTION_TYPE"] = "CREATE";
 					}
-				
-
+					// successArray.push(extraPayment);
+					successArray.push({
+						importedRow: JSON.stringify(employeeExtraPayment),
+						importAutoId: importId,
+						importStatus: 1,
+						createdBy: req.userData.id,
+						importStatusDesc: ["CREATE", "UPDATE"].includes(
+							extraPayment["ACTION_TYPE"],
+						)
+							? "Payment Uploaded Successfully."
+							: "Payment Deleted Successfully.",
+					});
+				}
 			}
-		
 		}
 
 		let importFinalResult = successArray.concat(errorArray);
@@ -778,7 +801,7 @@ async function extraPaymentUpload(req, res, FILEDATA, importParams) {
 	}
 }
 
-async function lopUpload(req, res, FILEDATA, importParams) {
+async function lopUpload(req, res, OperationType, importParams) {
 	try {
 		if (!req.file) {
 			// let query = await importHelper.query(4,{importId:importId});
@@ -797,7 +820,11 @@ async function lopUpload(req, res, FILEDATA, importParams) {
 		);
 		var errorArray = [],
 			successArray = [];
-		if (!lopDetails[0]["Employee ID"] || !lopDetails[0]["LOP DAYS"] || !lopDetails[0]["LOP Month (YYYY-MM)"]) {
+		if (
+			!lopDetails[0]["Employee ID"] ||
+			!lopDetails[0]["LOP DAYS"] ||
+			!lopDetails[0]["LOP Month (YYYY-MM)"]
+		) {
 			return respHelper(res, {
 				status: 400,
 				msg: "Invalid File Format",
@@ -822,10 +849,17 @@ async function lopUpload(req, res, FILEDATA, importParams) {
 					});
 					continue;
 				}
-				let qeury ={payMonth:employeeTds["LOP Month (YYYY-MM)"],EmployeeId:employeeDetais.id,payStatus:{[Op.in]:[1,2,3,6,7,8,9]}};
-				let salaryProcessingStatus = await db.payProcessDetails.findOne({where:qeury,raw:true,attributes:['payProcessDetailAutoId']})
-				if(salaryProcessingStatus)
-				{
+				let qeury = {
+					payMonth: employeeTds["LOP Month (YYYY-MM)"],
+					EmployeeId: employeeDetais.id,
+					payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9] },
+				};
+				let salaryProcessingStatus = await db.payProcessDetails.findOne({
+					where: qeury,
+					raw: true,
+					attributes: ["payProcessDetailAutoId"],
+				});
+				if (salaryProcessingStatus) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeTds),
 						importAutoId: importId,
@@ -844,8 +878,7 @@ async function lopUpload(req, res, FILEDATA, importParams) {
 				const { error } =
 					await validator.lopValidateSchama.validate(lopDeductions);
 				if (error) {
-	
-				errorArray.push({
+					errorArray.push({
 						importedRow: JSON.stringify(employeeTds),
 						importAutoId: importId,
 						importStatus: 2,
@@ -853,25 +886,44 @@ async function lopUpload(req, res, FILEDATA, importParams) {
 						importStatusDesc: error.details[0].message,
 					});
 				} else {
-					let existTDSDetails = await db.lopDeductions.findOne({
+					let existLOPDetails = await db.lopDeductions.findOne({
 						where: {
 							empCode: lopDeductions.empCode,
 							lopMonth: lopDeductions.lopMonth,
 						},
+						attributes: ["lopAutoId"],
 						raw: true,
 					});
-					if (existTDSDetails) {
-						lopDeductions["updatedBy"] = req.userData.id;
-						lopDeductions["updatedAt"] = new Date();
 
-						await db.lopDeductions.update(lopDeductions, {
-							where: {
-								EmployeeId: lopDeductions.EmployeeId,
-								lopMonth: lopDeductions.lopMonth,
-								empCode: lopDeductions.empCode,
-							},
+					if (!existLOPDetails && OperationType == 2) {
+						errorArray.push({
+							importedRow: JSON.stringify(employeeTds),
+							importAutoId: importId,
+							importStatus: 2,
+							createdBy: req.userData.id,
+							importStatusDesc: "Data is  not available to delete.",
 						});
-						lopDeductions["ACTION_TYPE"] = "UPDATE";
+						continue;
+					}
+					if (existLOPDetails) {
+						if (OperationType == 2) {
+							await db.lopDeductions.destroy({
+								where: {
+									lopAutoId: existLOPDetails.lopAutoId,
+								},
+							});
+							lopDeductions["ACTION_TYPE"] = "DELETE";
+						} else {
+							lopDeductions["updatedBy"] = req.userData.id;
+							lopDeductions["updatedAt"] = new Date();
+
+							await db.lopDeductions.update(lopDeductions, {
+								where: {
+									lopAutoId: existLOPDetails.lopAutoId,
+								},
+							});
+							lopDeductions["ACTION_TYPE"] = "UPDATE";
+						}
 					} else {
 						lopDeductions["createdBy"] = req.userData.id;
 						lopDeductions["createdAt"] = new Date();
@@ -883,7 +935,11 @@ async function lopUpload(req, res, FILEDATA, importParams) {
 						importAutoId: importId,
 						importStatus: 1,
 						createdBy: req.userData.id,
-						importStatusDesc: "Lop Uploaded Successfully.",
+						importStatusDesc: ["CREATE", "UPDATE"].includes(
+							lopDeductions["ACTION_TYPE"],
+						)
+							? "Lop Uploaded Successfully."
+							: "Lop Deleted Successfully.",
 					});
 					//successArray.push(lopDeductions);
 				}
@@ -921,7 +977,7 @@ async function lopUpload(req, res, FILEDATA, importParams) {
 	}
 }
 
-async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
+async function extraDeductionsUpload(req, res, OperationType, importParams) {
 	var errorArray = [],
 		successArray = [];
 	try {
@@ -941,9 +997,15 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 			workbookEmployee.Sheets[sheetNameEmployee],
 		);
 
-		if ( !extraDeductonsDetails[0]["Number Of Deductions"]  || !extraDeductonsDetails[0]["Start Month"] || !extraDeductonsDetails[0]["Employee ID"] || !extraDeductonsDetails[0]["Advance Category"] || !extraDeductonsDetails[0]["Total Amount/Percent/Hours/Days"]) {
+		if (
+			!extraDeductonsDetails[0]["Number Of Deductions"] ||
+			!extraDeductonsDetails[0]["Start Month"] ||
+			!extraDeductonsDetails[0]["Employee ID"] ||
+			!extraDeductonsDetails[0]["Advance Category"] ||
+			!extraDeductonsDetails[0]["Total Amount/Percent/Hours/Days"]
+		) {
 			// let query = await importHelper.query(4,{importId:importId});
-		    //    await db.sequelize.query(query);
+			//    await db.sequelize.query(query);
 			return respHelper(res, {
 				status: 400,
 				msg: "Invalid File Format",
@@ -957,7 +1019,6 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 					employeeExtraDeduction,
 				);
 				if (error) {
-		
 					errorArray.push({
 						importedRow: JSON.stringify(employeeExtraDeduction),
 						importAutoId: importId,
@@ -1011,11 +1072,17 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 					continue;
 				}
 
-
-				let qeury ={payMonth:employeeExtraDeduction["Start Month"],EmployeeId:employeeDetais.id,payStatus:{[Op.in]:[1,2,3,6,7,8,9]}};
-				let salaryProcessingStatus = await db.payProcessDetails.findOne({where:qeury,raw:true,attributes:['payProcessDetailAutoId']})
-				if(salaryProcessingStatus)
-				{
+				let qeury = {
+					payMonth: employeeExtraDeduction["Start Month"],
+					EmployeeId: employeeDetais.id,
+					payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9] },
+				};
+				let salaryProcessingStatus = await db.payProcessDetails.findOne({
+					where: qeury,
+					raw: true,
+					attributes: ["payProcessDetailAutoId"],
+				});
+				if (salaryProcessingStatus) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeExtraDeduction),
 						importAutoId: importId,
@@ -1025,8 +1092,6 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 					});
 					continue;
 				}
-
-
 
 				let extraDeductions = {
 					EmployeeId: employeeDetais.id,
@@ -1051,22 +1116,43 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 						deductionName: extraDeductions.deductionName,
 						startMonth: extraDeductions.startMonth,
 					},
+					attributes: ["extraDeductionsAutoId"],
 					raw: true,
 				});
 
-				if (existExtraDeductionDetails) {
-					extraDeductions["updatedBy"] = req.userData.id;
-					extraDeductions["updatedAt"] = new Date();
-
-					await db.extraDeduction.update(extraDeductions, {
-						where: {
-							empCode: extraDeductions.empCode,
-							deductionCategory: extraDeductions.deductionCategory,
-							deductionName: extraDeductions.deductionName,
-							startMonth: extraDeductions.startMonth,
-						},
+				if (OperationType == 2 && !existExtraDeductionDetails) {
+					errorArray.push({
+						importedRow: JSON.stringify(employeeExtraDeduction),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc: "Data is  not available to delete.",
 					});
-					extraDeductions["ACTION_TYPE"] = "UPDATE";
+
+					continue;
+				}
+
+				if (existExtraDeductionDetails) {
+					if (OperationType == 2) {
+						await db.extraDeduction.destroy({
+							where: {
+								extraDeductionsAutoId:
+									existExtraDeductionDetails.extraDeductionsAutoId,
+							},
+						});
+						extraDeductions["ACTION_TYPE"] = "DELETE";
+					} else {
+						extraDeductions["updatedBy"] = req.userData.id;
+						extraDeductions["updatedAt"] = new Date();
+
+						await db.extraDeduction.update(extraDeductions, {
+							where: {
+								extraDeductionsAutoId:
+									existExtraDeductionDetails.extraDeductionsAutoId,
+							},
+						});
+						extraDeductions["ACTION_TYPE"] = "UPDATE";
+					}
 				} else {
 					extraDeductions["createdBy"] = req.userData.id;
 					extraDeductions["createdAt"] = new Date();
@@ -1079,7 +1165,11 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 					importAutoId: importId,
 					importStatus: 1,
 					createdBy: req.userData.id,
-					importStatusDesc: "Extra Deductions Uploaded Successfully.",
+					importStatusDesc: ["CREATE", "UPDATE"].includes(
+						extraDeductions["ACTION_TYPE"],
+					)
+						? "Extra Deductions Uploaded Successfully."
+						: "Extra Deductions Deleted Successfully.",
 				});
 			}
 		}
@@ -1114,7 +1204,7 @@ async function extraDeductionsUpload(req, res, FILEDATA, importParams) {
 		});
 	}
 }
-async function tdsUpload(req, res, FILEDATA, importParams) {
+async function tdsUpload(req, res, OperationType, importParams) {
 	try {
 		if (!req.file) {
 			// let query = await importHelper.query(4,{importId:importId});
@@ -1132,9 +1222,13 @@ async function tdsUpload(req, res, FILEDATA, importParams) {
 		var tdsDetails = pkg.utils.sheet_to_json(
 			workbookEmployee.Sheets[sheetNameEmployee],
 		);
-		//	
+		//
 
-		if (!tdsDetails[0]["Employee ID"] || !tdsDetails[0]["TDS Deductions"] || !tdsDetails[0]["TDS Month (YYYY-MM)"]) {
+		if (
+			!tdsDetails[0]["Employee ID"] ||
+			!tdsDetails[0]["TDS Deductions"] ||
+			!tdsDetails[0]["TDS Month (YYYY-MM)"]
+		) {
 			// let query = await importHelper.query(4,{importId:importId});
 			// await db.sequelize.query(query);
 			return respHelper(res, {
@@ -1164,14 +1258,17 @@ async function tdsUpload(req, res, FILEDATA, importParams) {
 					continue;
 				}
 
-				let qeury ={payMonth:employeeTds["TDS Month (YYYY-MM)"],EmployeeId:employeeDetais.id,payStatus:{[Op.in]:[1,2,3,6,7,8,9]}};
-				let salaryProcessingStatus = await db.payProcessDetails.findOne({where:qeury,raw:true,attributes:['payProcessDetailAutoId']});
-
-				console.log(qeury);
-				console.log(salaryProcessingStatus);
-
-				if(salaryProcessingStatus)
-				{
+				let qeury = {
+					payMonth: employeeTds["TDS Month (YYYY-MM)"],
+					EmployeeId: employeeDetais.id,
+					payStatus: { [Op.in]: [1, 2, 3, 6, 7, 8, 9] },
+				};
+				let salaryProcessingStatus = await db.payProcessDetails.findOne({
+					where: qeury,
+					raw: true,
+					attributes: ["payProcessDetailAutoId"],
+				});
+				if (salaryProcessingStatus) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeTds),
 						importAutoId: importId,
@@ -1204,20 +1301,45 @@ async function tdsUpload(req, res, FILEDATA, importParams) {
 							EmployeeId: tdsDeductions.EmployeeId,
 							tdsMonth: tdsDeductions.tdsMonth,
 						},
+						attributes:['tdsDeductionAutoId'],
 						raw: true,
 					});
 
-					if (existTDSDetails) {
-						tdsDeductions["updatedBy"] = req.userData.id;
-						tdsDeductions["updatedAt"] = new Date();
-
-						await db.tdsDeductions.update(tdsDeductions, {
-							where: {
-								EmployeeId: tdsDeductions.EmployeeId,
-								tdsMonth: tdsDeductions.tdsMonth,
-							},
+					if(OperationType==2 && !existTDSDetails)
+					{
+						errorArray.push({
+							importedRow: JSON.stringify(employeeTds),
+							importAutoId: importId,
+							importStatus: 2,
+							createdBy: req.userData.id,
+							importStatusDesc: "Data is  not available to delete.",
 						});
-						tdsDeductions["ACTION_TYPE"] = "UPDATE";
+						continue;
+					}
+
+					if (existTDSDetails) {
+						if(OperationType==2)
+						{
+							await db.tdsDeductions.destroy({
+								where: {
+									tdsDeductionAutoId: existTDSDetails.tdsDeductionAutoId,
+								},
+							});
+							tdsDeductions["ACTION_TYPE"] = "DELETE";
+						}
+						else
+						{
+							tdsDeductions["updatedBy"] = req.userData.id;
+							tdsDeductions["updatedAt"] = new Date();
+	
+							await db.tdsDeductions.update(tdsDeductions, {
+								where: {
+									tdsDeductionAutoId: existTDSDetails.tdsDeductionAutoId,
+								},
+							});
+							tdsDeductions["ACTION_TYPE"] = "UPDATE";
+						}
+
 					} else {
 						tdsDeductions["createdBy"] = req.userData.id;
 						tdsDeductions["createdAt"] = new Date();
@@ -1230,7 +1352,7 @@ async function tdsUpload(req, res, FILEDATA, importParams) {
 						importAutoId: importId,
 						importStatus: 1,
 						createdBy: req.userData.id,
-						importStatusDesc: "TDS Uploaded Successfully.",
+						importStatusDesc: ["CREATE","UPDATE"].includes(tdsDeductions["ACTION_TYPE"])?"TDS Uploaded Successfully.":"TDS Deleted Successfully.",
 					});
 				}
 			}
@@ -1302,7 +1424,7 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 					where: {
 						EmployeeId: employeeDetails.id,
 						payMonth: paymonth,
-						payStatus: {[Op.in]:[7,9]},
+						payStatus: { [Op.in]: [7, 9] },
 					},
 					attributes: ["payProcessDetailAutoId", "proceessId"],
 					raw: true,
@@ -1314,7 +1436,7 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 							where: {
 								payProcessDetailAutoId:
 									employeeProcessDetails.payProcessDetailAutoId,
-									payStatus:{[Op.not]:9}
+								payStatus: { [Op.not]: 9 },
 							},
 						},
 					); //Update Emplplees pay status in preocess
@@ -1336,24 +1458,40 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 					);
 					let paySlipReleasedCountsInProcess = await db.sequelize.query(qeury);
 
-					if(paySlipReleasedCountsInProcess)
-					{
-						if(paySlipReleasedCountsInProcess[0][0].total_processed>0 && paySlipReleasedCountsInProcess[0][0].total_processed==paySlipReleasedCountsInProcess[0][0].total_process_and_released)
-						{
-							db.payProcessMaster.update({processFlowId:12},{where:{
-								payProcessMasterAutoId:employeeProcessDetails.proceessId
-							}});
-							db.payProcessDetails.update({processFlowId:12},{where:{
-								payStatus:9
-							}});
+					if (paySlipReleasedCountsInProcess) {
+						if (
+							paySlipReleasedCountsInProcess[0][0].total_processed > 0 &&
+							paySlipReleasedCountsInProcess[0][0].total_processed ==
+								paySlipReleasedCountsInProcess[0][0].total_process_and_released
+						) {
+							db.payProcessMaster.update(
+								{ processFlowId: 12 },
+								{
+									where: {
+										payProcessMasterAutoId: employeeProcessDetails.proceessId,
+									},
+								},
+							);
+							db.payProcessDetails.update(
+								{ processFlowId: 12 },
+								{
+									where: {
+										payStatus: 9,
+									},
+								},
+							);
 						}
-				
+
 						try {
-							sendMailAfterSalarySlipRelease([employeeDetails.id], paymonth, null);
+							sendMailAfterSalarySlipRelease(
+								[employeeDetails.id],
+								paymonth,
+								null,
+							);
 						} catch (e) {
 							console.log(e);
 						}
-	
+
 						successArray.push({
 							importedRow: JSON.stringify(paySlipObject),
 							importAutoId: importId,
@@ -1362,7 +1500,6 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 							importStatusDesc: "Payslip Released Successfully.",
 						});
 					}
-		
 				} else {
 					errorArray.push({
 						importedRow: JSON.stringify(paySlipObject),
