@@ -2233,7 +2233,6 @@ class commonController {
 											},
             ],
         });
-console.log("addressDetails", addressDetails);
           const paymentDataWithType = paymentDetails.map((item) => ({
             ...item.dataValues,
             type: "payment",
@@ -2247,7 +2246,6 @@ console.log("addressDetails", addressDetails);
 
         // Combine 
 		const combinedData = [ ...addressDataWithType,...paymentDataWithType];
-console.log("combinedData", combinedData);
 combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
         // Paginate combined data
         const paginatedData = combinedData.slice(offset, offset + limit);
