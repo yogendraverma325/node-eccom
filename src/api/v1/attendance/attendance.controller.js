@@ -61,11 +61,6 @@ class AttendanceController {
 				device: req.device,
 			});
 			// Sandeep
-			pushNotificationEmitter.emit("sendNotification", {
-				title: "Attendance Log",
-				body: "Your attendance request has been saved",
-				employeeId: req.userId,
-			});
 
 			const existEmployee = await db.employeeMaster.findOne({
 				where: {
@@ -963,6 +958,12 @@ class AttendanceController {
 						attendanceData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
+			pushNotificationEmitter.emit(
+                "sendNotification", {
+                title: message.ATTENDANCE_REQ,
+                body: message.ATTENDANCE_SUBMIT.replace("<name>", attendanceData.dataValues.employee.name),
+                employeeId:attendanceData.dataValues.employee.managerData.id,
+            });
 
 			await db.attendanceMaster.update(
 				{
@@ -1529,7 +1530,7 @@ class AttendanceController {
 								"createdAt",
 								"updatedAt",
 								"updatedBy",
-								"createdBy"
+								"createdBy",
 							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
 							include: [
@@ -1541,17 +1542,16 @@ class AttendanceController {
 										model: db.roleMaster,
 										attributes: ["name"],
 									},
-							    },
+								},
 								{
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
 									as: "attendanceCreatedBy",
-									include:
-									{
+									include: {
 										model: db.roleMaster,
-										attributes: ["name"]
+										attributes: ["name"],
 									},
-								}
+								},
 							],
 						},
 						{
@@ -1590,8 +1590,8 @@ class AttendanceController {
 									required: false,
 									as: "leaveMasterDetails",
 									attributes: ["leaveName", "leaveCode"],
-								}	
-						    ],
+								},
+							],
 						},
 					],
 				}),
@@ -1664,8 +1664,8 @@ class AttendanceController {
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
 									as: "leaveCreatedBy",
-									required: false
-								}	
+									required: false,
+								},
 							],
 						},
 					],
@@ -2213,6 +2213,14 @@ class AttendanceController {
 						],
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
+
+				 pushNotificationEmitter.emit("sendNotification", {
+                    title: message.ATTENDANCE_REQ_ACK,
+                    body: message.ATTENDANCE_REQ_STATUS.replace(
+                        "<status>",
+                        result.status ? "approved" : "rejected"),
+                    employeeId: regularizeData["attendancemaster.employee.id"],
+                });
 			}
 
 			return respHelper(res, {
@@ -2275,9 +2283,11 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
-						where: { 
-							...(query === "raisedByMe" && { employeeId: req.userId } ),
-							...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId }}) 
+						where: {
+							...(query === "raisedByMe" && { employeeId: req.userId }),
+							...(query === "assignedToMe" && {
+								employeeId: { [Op.not]: req.userId },
+							}),
 						},
 						required: true,
 						include: [
@@ -5321,6 +5331,14 @@ class AttendanceController {
 						],
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
+
+				 pushNotificationEmitter.emit("sendNotification", {
+                    title: message.ATTENDANCE_REQ_ACK,
+                    body: message.ATTENDANCE_REQ_STATUS.replace(
+                        "<status>",
+                        result.status ? "approved" : "rejected"),
+                    employeeId: regularizeData["attendancemaster.employee.id"],
+                });
 			}
 
 			return respHelper(res, {

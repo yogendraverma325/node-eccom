@@ -1249,7 +1249,7 @@ const autoLeaveDeduction = async (data) => {
                                 >
                                   To view the full message
                                   <a
-                                    href=${process.env.CLIENT_URL}#/dashbaord
+                                    href=${process.env.CLIENT_URL}#/dashboard
                                     rel="noreferrer"
                                     style="
                                       padding: 5px 10px;
@@ -4709,8 +4709,8 @@ export default {
 	confirmationWorkFlownextLevel,
 	salarySlipPdf,
 	releasePaySlip,
-  //ritak address approval start
-  addressDetailsAdminActionMail,
-  addressDetailsApprovalRequestMail,
-  //ritak address approval end
+	//ritak address approval start
+	addressDetailsAdminActionMail,
+	addressDetailsApprovalRequestMail,
+	//ritak address approval end
 };

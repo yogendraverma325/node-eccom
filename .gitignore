@@ -5,5 +5,5 @@ uploads/
 docs/
 package-lock.json
 config
-.vscode
+.vscode/settings.json
 .qodo

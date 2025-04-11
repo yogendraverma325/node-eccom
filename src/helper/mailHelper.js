@@ -122,7 +122,6 @@ export default function getAllListeners(eventEmitter) {
 		await releasePaySlip(input);
 	});
 
-
 	//ritak address approval start
 	eventEmitter.on("addressDetailsApprovalRequestMail", async (input) => {
 		await addressDetailsApprovalRequestMail(input);
