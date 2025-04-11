@@ -1529,7 +1529,7 @@ class AttendanceController {
 								"createdAt",
 								"updatedAt",
 								"updatedBy",
-								"createdBy"
+								"createdBy",
 							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
 							include: [
@@ -1541,17 +1541,16 @@ class AttendanceController {
 										model: db.roleMaster,
 										attributes: ["name"],
 									},
-							    },
+								},
 								{
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
 									as: "attendanceCreatedBy",
-									include:
-									{
+									include: {
 										model: db.roleMaster,
-										attributes: ["name"]
+										attributes: ["name"],
 									},
-								}
+								},
 							],
 						},
 						{
@@ -1590,8 +1589,8 @@ class AttendanceController {
 									required: false,
 									as: "leaveMasterDetails",
 									attributes: ["leaveName", "leaveCode"],
-								}	
-						    ],
+								},
+							],
 						},
 					],
 				}),
@@ -1664,8 +1663,8 @@ class AttendanceController {
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
 									as: "leaveCreatedBy",
-									required: false
-								}	
+									required: false,
+								},
 							],
 						},
 					],
@@ -2275,9 +2274,11 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
-						where: { 
-							...(query === "raisedByMe" && { employeeId: req.userId } ),
-							...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId }}) 
+						where: {
+							...(query === "raisedByMe" && { employeeId: req.userId }),
+							...(query === "assignedToMe" && {
+								employeeId: { [Op.not]: req.userId },
+							}),
 						},
 						required: true,
 						include: [

@@ -601,66 +601,66 @@ class UserController {
 								as: "emergencypincode",
 							},
 							//ritak adddress approval start
-{
-					model: db.cityMaster,
-					attributes: ["cityId", "cityName"],
-					as: "newCurrentCityDetails",
-				},
-				{
-					model: db.stateMaster,
-					attributes: ["stateId", "stateName"],
-					as: "newCurrentStateDetails",
-				},
-				{
-					model: db.countryMaster,
-					attributes: ["countryId", "countryName"],
-					as: "newCurrentCountryDetails",
-				},
-				{
-					model: db.pinCodeMaster,
-					attributes: ["pincodeId", "pincode"],
-					as: "newCurrentPincodeDetails",
-				},
-				{
-					model: db.cityMaster,
-					attributes: ["cityId", "cityName"],
-					as: "newPermanentCityDetails",
-				},
-				{
-					model: db.stateMaster,
-					attributes: ["stateId", "stateName"],
-					as: "newPermanentStateDetails",
-				},
-				{
-					model: db.countryMaster,
-					attributes: ["countryId", "countryName"],
-					as: "newPermanentCountryDetails",
-				},
-				{
-					model: db.pinCodeMaster,
-					attributes: ["pincodeId", "pincode"],
-					as: "newPermanentPincodeDetails",
-				},
-				{
-					model: db.cityMaster,
-					attributes: ["cityId", "cityName"],
-					as: "newEmergencyCityDetails",
-				},
-				{
-					model: db.stateMaster,
-					attributes: ["stateId", "stateName"],
-					as: "newEmergencyStateDetails",
-				},
-				{
-					model: db.countryMaster,
-					attributes: ["countryId", "countryName"],
-					as: "newEmergencyCountryDetails",
-				},
-				{
-					model: db.pinCodeMaster,
-					attributes: ["pincodeId", "pincode"],
-					as: "newEmergencyPincodeDetails",
-				},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "newCurrentCityDetails",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "newCurrentStateDetails",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "newCurrentCountryDetails",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "newCurrentPincodeDetails",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "newPermanentCityDetails",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "newPermanentStateDetails",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "newPermanentCountryDetails",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "newPermanentPincodeDetails",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "newEmergencyCityDetails",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "newEmergencyStateDetails",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "newEmergencyCountryDetails",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "newEmergencyPincodeDetails",
+							},
 							//ritak address approval end
 						],
 					},
@@ -945,8 +945,8 @@ class UserController {
 						exclude: [],
 					},
 					where: { employeeId: { [Op.not]: req.userId } },
-					required: true
-				}
+					required: true,
+				},
 			});
 			let pendingAttCount = await db.regularizationMaster.count({
 				where: {
@@ -960,7 +960,7 @@ class UserController {
 					},
 					where: { employeeId: req.userId },
 					required: true,
-				}
+				},
 			});
 			// let pendingSeperationCount = await db.separationMaster.count(
 			// 	{
@@ -1108,8 +1108,8 @@ class UserController {
 
 				let addressCount = await db.employeeAddress.count({
 					where: {
-						status: "pending"
-					}
+						status: "pending",
+					},
 				});
 
 				profileApprovalCount = profileApprovalCount + addressCount;
@@ -3443,7 +3443,7 @@ class UserController {
 							include: {
 								model: db.roleMaster,
 								attributes: ["name"],
-								required: false
+								required: false,
 							},
 						},
 						{
@@ -3480,13 +3480,12 @@ class UserController {
 							attributes: ["id", "empCode", "name"],
 							as: "attendanceCreatedBy",
 							required: false,
-							include:
-							{
+							include: {
 								model: db.roleMaster,
 								attributes: ["name"],
-								required: false
+								required: false,
 							},
-						}
+						},
 					],
 					limit,
 					offset,
@@ -6049,7 +6048,7 @@ class UserController {
 							include: {
 								model: db.roleMaster,
 								attributes: ["name"],
-								required: false
+								required: false,
 							},
 						},
 						{
@@ -6078,13 +6077,12 @@ class UserController {
 							attributes: ["id", "empCode", "name"],
 							as: "attendanceCreatedBy",
 							required: false,
-							include:
-							{
+							include: {
 								model: db.roleMaster,
 								attributes: ["name"],
-								required: false
+								required: false,
 							},
-						}
+						},
 					],
 					limit,
 					offset,
@@ -7042,210 +7040,259 @@ class UserController {
 	}
 
 	// ritak address approval module start
-async requestForAddressApproval(req, res) {
-    try {
-        const result = await validator.requestForAddressApprovalSchema.validateAsync(req.body);
+	async requestForAddressApproval(req, res) {
+		try {
+			const result =
+				await validator.requestForAddressApprovalSchema.validateAsync(req.body);
 
-        const existUser = await db.employeeMaster.findOne({
-            raw: true,
-            where: {
-                id: req.userId,
-                isActive: 1,
-            },
-            attributes: ["name", "empCode", "profileImage"],
-            include: [
-                {
-                    model: db.companyMaster,
-                    attributes: ["senderEmail", "companyLogo"],
-                },
-            ],
-        });
+			const existUser = await db.employeeMaster.findOne({
+				raw: true,
+				where: {
+					id: req.userId,
+					isActive: 1,
+				},
+				attributes: ["name", "empCode", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+				],
+			});
 
-        const isSameDetails = await db.employeeAddress.findOne({
-            where: { employeeId: req.userId },
-        });
+			const isSameDetails = await db.employeeAddress.findOne({
+				where: { employeeId: req.userId },
+			});
 
-        if (isSameDetails) {
-            if (
-                isSameDetails.currentHouse === result.currentHouse &&
-                isSameDetails.currentStreet === result.currentStreet &&
-                isSameDetails.currentStateId === result.currentStateId &&
-                isSameDetails.currentCityId === result.currentCityId &&
-                isSameDetails.currentCountryId === result.currentCountryId &&
-                isSameDetails.currentPincodeId === result.currentPincodeId &&
-                isSameDetails.currentLandmark === result.currentLandmark &&
-                isSameDetails.permanentHouse === result.permanentHouse &&
-                isSameDetails.permanentStreet === result.permanentStreet &&
-                isSameDetails.permanentStateId === result.permanentStateId &&
-                isSameDetails.permanentCityId === result.permanentCityId &&
-                isSameDetails.permanentCountryId === result.permanentCountryId &&
-                isSameDetails.permanentPincodeId === result.permanentPincodeId &&
-                isSameDetails.permanentLandmark === result.permanentLandmark &&
-                isSameDetails.emergencyHouse === result.emergencyHouse &&
-                isSameDetails.emergencyStreet === result.emergencyStreet &&
-                isSameDetails.emergencyStateId === result.emergencyStateId &&
-                isSameDetails.emergencyCityId === result.emergencyCityId &&
-                isSameDetails.emergencyCountryId === result.emergencyCountryId &&
-                isSameDetails.emergencyPincodeId === result.emergencyPincodeId &&
-                isSameDetails.emergencyLandmark === result.emergencyLandmark
-            ) {
-                return respHelper(res, {
-                    status: 400,
-                    msg: constant.ALREADY_EXISTS.replace("<module>", "Address Details"),
-                });
-            } else {
-                const objForApproval = {
-                    status: "pending",
+			if (isSameDetails) {
+				if (
+					isSameDetails.currentHouse === result.currentHouse &&
+					isSameDetails.currentStreet === result.currentStreet &&
+					isSameDetails.currentStateId === result.currentStateId &&
+					isSameDetails.currentCityId === result.currentCityId &&
+					isSameDetails.currentCountryId === result.currentCountryId &&
+					isSameDetails.currentPincodeId === result.currentPincodeId &&
+					isSameDetails.currentLandmark === result.currentLandmark &&
+					isSameDetails.permanentHouse === result.permanentHouse &&
+					isSameDetails.permanentStreet === result.permanentStreet &&
+					isSameDetails.permanentStateId === result.permanentStateId &&
+					isSameDetails.permanentCityId === result.permanentCityId &&
+					isSameDetails.permanentCountryId === result.permanentCountryId &&
+					isSameDetails.permanentPincodeId === result.permanentPincodeId &&
+					isSameDetails.permanentLandmark === result.permanentLandmark &&
+					isSameDetails.emergencyHouse === result.emergencyHouse &&
+					isSameDetails.emergencyStreet === result.emergencyStreet &&
+					isSameDetails.emergencyStateId === result.emergencyStateId &&
+					isSameDetails.emergencyCityId === result.emergencyCityId &&
+					isSameDetails.emergencyCountryId === result.emergencyCountryId &&
+					isSameDetails.emergencyPincodeId === result.emergencyPincodeId &&
+					isSameDetails.emergencyLandmark === result.emergencyLandmark
+				) {
+					return respHelper(res, {
+						status: 400,
+						msg: constant.ALREADY_EXISTS.replace("<module>", "Address Details"),
+					});
+				} else {
+					const objForApproval = {
+						status: "pending",
+						createdByRole: "User",
+						pendingAt: 2996, // Replace with the appropriate approver ID
+						requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
+						...(result.currentHouse !== isSameDetails.currentHouse && {
+							newCurrentHouse: result.currentHouse,
+						}),
+						...(result.currentStreet !== isSameDetails.currentStreet && {
+							newCurrentStreet: result.currentStreet,
+						}),
+						...(result.currentStateId !== isSameDetails.currentStateId && {
+							newCurrentStateId: result.currentStateId,
+						}),
+						...(result.currentCityId !== isSameDetails.currentCityId && {
+							newCurrentCityId: result.currentCityId,
+						}),
+						...(result.currentCountryId !== isSameDetails.currentCountryId && {
+							newCurrentCountryId: result.currentCountryId,
+						}),
+						...(result.currentPincodeId !== isSameDetails.currentPincodeId && {
+							newCurrentPincodeId: result.currentPincodeId,
+						}),
+						...(result.currentLandmark !== isSameDetails.currentLandmark && {
+							newCurrentLandmark: result.currentLandmark,
+						}),
+						...(result.permanentHouse !== isSameDetails.permanentHouse && {
+							newPermanentHouse: result.permanentHouse,
+						}),
+						...(result.permanentStreet !== isSameDetails.permanentStreet && {
+							newPermanentStreet: result.permanentStreet,
+						}),
+						...(result.permanentStateId !== isSameDetails.permanentStateId && {
+							newPermanentStateId: result.permanentStateId,
+						}),
+						...(result.permanentCityId !== isSameDetails.permanentCityId && {
+							newPermanentCityId: result.permanentCityId,
+						}),
+						...(result.permanentCountryId !==
+							isSameDetails.permanentCountryId && {
+							newPermanentCountryId: result.permanentCountryId,
+						}),
+						...(result.permanentPincodeId !==
+							isSameDetails.permanentPincodeId && {
+							newPermanentPincodeId: result.permanentPincodeId,
+						}),
+						...(result.permanentLandmark !==
+							isSameDetails.permanentLandmark && {
+							newPermanentLandmark: result.permanentLandmark,
+						}),
+						...(result.emergencyHouse !== isSameDetails.emergencyHouse && {
+							newEmergencyHouse: result.emergencyHouse,
+						}),
+						...(result.emergencyStreet !== isSameDetails.emergencyStreet && {
+							newEmergencyStreet: result.emergencyStreet,
+						}),
+						...(result.emergencyStateId !== isSameDetails.emergencyStateId && {
+							newEmergencyStateId: result.emergencyStateId,
+						}),
+						...(result.emergencyCityId !== isSameDetails.emergencyCityId && {
+							newEmergencyCityId: result.emergencyCityId,
+						}),
+						...(result.emergencyCountryId !==
+							isSameDetails.emergencyCountryId && {
+							newEmergencyCountryId: result.emergencyCountryId,
+						}),
+						...(result.emergencyPincodeId !==
+							isSameDetails.emergencyPincodeId && {
+							newEmergencyPincodeId: result.emergencyPincodeId,
+						}),
+						...(result.emergencyLandmark !==
+							isSameDetails.emergencyLandmark && {
+							newEmergencyLandmark: result.emergencyLandmark,
+						}),
+						...(result.comment
+							? { comment: result.comment }
+							: { comment: null }),
+					};
+
+					await db.employeeAddress.update(objForApproval, {
+						where: { employeeId: req.userId },
+					});
+
+					eventEmitter.emit(
+						"addressDetailsApprovalRequestMail",
+						JSON.stringify({
+							email: result.email,
+							name: existUser.name,
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+						}),
+					);
+
+					return respHelper(res, {
+						status: 200,
+						msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
+					});
+				}
+			} else {
+				const objForApproval = {
+					employeeId: req.userId,
+					status: "pending",
 					createdByRole: "User",
-                    pendingAt: 2996, // Replace with the appropriate approver ID
-                    requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
-                    ...(result.currentHouse !== isSameDetails.currentHouse && {
-                        newCurrentHouse: result.currentHouse,
-                    }),
-                    ...(result.currentStreet !== isSameDetails.currentStreet && {
-                        newCurrentStreet: result.currentStreet,
-                    }),
-                    ...(result.currentStateId !== isSameDetails.currentStateId && {
-                        newCurrentStateId: result.currentStateId,
-                    }),
-                    ...(result.currentCityId !== isSameDetails.currentCityId && {
-                        newCurrentCityId: result.currentCityId,
-                    }),
-                    ...(result.currentCountryId !== isSameDetails.currentCountryId && {
-                        newCurrentCountryId: result.currentCountryId,
-                    }),
-                    ...(result.currentPincodeId !== isSameDetails.currentPincodeId && {
-                        newCurrentPincodeId: result.currentPincodeId,
-                    }),
-                    ...(result.currentLandmark !== isSameDetails.currentLandmark && {
-                        newCurrentLandmark: result.currentLandmark,
-                    }),
-                    ...(result.permanentHouse !== isSameDetails.permanentHouse && {
-                        newPermanentHouse: result.permanentHouse,
-                    }),
-                    ...(result.permanentStreet !== isSameDetails.permanentStreet && {
-                        newPermanentStreet: result.permanentStreet,
-                    }),
-                    ...(result.permanentStateId !== isSameDetails.permanentStateId && {
-                        newPermanentStateId: result.permanentStateId,
-                    }),
-                    ...(result.permanentCityId !== isSameDetails.permanentCityId && {
-                        newPermanentCityId: result.permanentCityId,
-                    }),
-                    ...(result.permanentCountryId !== isSameDetails.permanentCountryId && {
-                        newPermanentCountryId: result.permanentCountryId,
-                    }),
-                    ...(result.permanentPincodeId !== isSameDetails.permanentPincodeId && {
-                        newPermanentPincodeId: result.permanentPincodeId,
-                    }),
-                    ...(result.permanentLandmark !== isSameDetails.permanentLandmark && {
-                        newPermanentLandmark: result.permanentLandmark,
-                    }),
-                    ...(result.emergencyHouse !== isSameDetails.emergencyHouse && {
-                        newEmergencyHouse: result.emergencyHouse,
-                    }),
-                    ...(result.emergencyStreet !== isSameDetails.emergencyStreet && {
-                        newEmergencyStreet: result.emergencyStreet,
-                    }),
-                    ...(result.emergencyStateId !== isSameDetails.emergencyStateId && {
-                        newEmergencyStateId: result.emergencyStateId,
-                    }),
-                    ...(result.emergencyCityId !== isSameDetails.emergencyCityId && {
-                        newEmergencyCityId: result.emergencyCityId,
-                    }),
-                    ...(result.emergencyCountryId !== isSameDetails.emergencyCountryId && {
-                        newEmergencyCountryId: result.emergencyCountryId,
-                    }),
-                    ...(result.emergencyPincodeId !== isSameDetails.emergencyPincodeId && {
-                        newEmergencyPincodeId: result.emergencyPincodeId,
-                    }),
-                    ...(result.emergencyLandmark !== isSameDetails.emergencyLandmark && {
-                        newEmergencyLandmark: result.emergencyLandmark,
-                    }),
-                    ...(result.comment ? { comment: result.comment } : { comment: null }),
-                };
+					pendingAt: 2996, // Replace with the appropriate approver ID
+					requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
+					...(result.currentHouse && { newCurrentHouse: result.currentHouse }),
+					...(result.currentStreet && {
+						newCurrentStreet: result.currentStreet,
+					}),
+					...(result.currentStateId && {
+						newCurrentStateId: result.currentStateId,
+					}),
+					...(result.currentCityId && {
+						newCurrentCityId: result.currentCityId,
+					}),
+					...(result.currentCountryId && {
+						newCurrentCountryId: result.currentCountryId,
+					}),
+					...(result.currentPincodeId && {
+						newCurrentPincodeId: result.currentPincodeId,
+					}),
+					...(result.currentLandmark && {
+						newCurrentLandmark: result.currentLandmark,
+					}),
+					...(result.permanentHouse && {
+						newPermanentHouse: result.permanentHouse,
+					}),
+					...(result.permanentStreet && {
+						newPermanentStreet: result.permanentStreet,
+					}),
+					...(result.permanentStateId && {
+						newPermanentStateId: result.permanentStateId,
+					}),
+					...(result.permanentCityId && {
+						newPermanentCityId: result.permanentCityId,
+					}),
+					...(result.permanentCountryId && {
+						newPermanentCountryId: result.permanentCountryId,
+					}),
+					...(result.permanentPincodeId && {
+						newPermanentPincodeId: result.permanentPincodeId,
+					}),
+					...(result.permanentLandmark && {
+						newPermanentLandmark: result.permanentLandmark,
+					}),
+					...(result.emergencyHouse && {
+						newEmergencyHouse: result.emergencyHouse,
+					}),
+					...(result.emergencyStreet && {
+						newEmergencyStreet: result.emergencyStreet,
+					}),
+					...(result.emergencyStateId && {
+						newEmergencyStateId: result.emergencyStateId,
+					}),
+					...(result.emergencyCityId && {
+						newEmergencyCityId: result.emergencyCityId,
+					}),
+					...(result.emergencyCountryId && {
+						newEmergencyCountryId: result.emergencyCountryId,
+					}),
+					...(result.emergencyPincodeId && {
+						newEmergencyPincodeId: result.emergencyPincodeId,
+					}),
+					...(result.emergencyLandmark && {
+						newEmergencyLandmark: result.emergencyLandmark,
+					}),
+					...(result.comment ? { comment: result.comment } : { comment: null }),
+				};
 
-                await db.employeeAddress.update(objForApproval, {
-                    where: { employeeId: req.userId },
-                });
+				await db.employeeAddress.create(objForApproval);
 
-                eventEmitter.emit(
-                    "addressDetailsApprovalRequestMail",
-                    JSON.stringify({
-                        email: result.email,
-                        name: existUser.name,
-                        senderEmail: existUser["companymaster.senderEmail"],
-                        companyLogo: existUser["companymaster.companyLogo"],
-                    }),
-                );
+				eventEmitter.emit(
+					"addressDetailsApprovalRequestMail",
+					JSON.stringify({
+						email: result.email,
+						name: existUser.name,
+						senderEmail: existUser["companymaster.senderEmail"],
+						companyLogo: existUser["companymaster.companyLogo"],
+					}),
+				);
 
-                return respHelper(res, {
-                    status: 200,
-                    msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
-                });
-            }
-        } else {
-            const objForApproval = {
-                employeeId: req.userId,
-                status: "pending",
-				createdByRole: "User",
-                pendingAt: 2996, // Replace with the appropriate approver ID
-                requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
-                ...(result.currentHouse && { newCurrentHouse: result.currentHouse }),
-                ...(result.currentStreet && { newCurrentStreet: result.currentStreet }),
-                ...(result.currentStateId && { newCurrentStateId: result.currentStateId }),
-                ...(result.currentCityId && { newCurrentCityId: result.currentCityId }),
-                ...(result.currentCountryId && { newCurrentCountryId: result.currentCountryId }),
-                ...(result.currentPincodeId && { newCurrentPincodeId: result.currentPincodeId }),
-                ...(result.currentLandmark && { newCurrentLandmark: result.currentLandmark }),
-                ...(result.permanentHouse && { newPermanentHouse: result.permanentHouse }),
-                ...(result.permanentStreet && { newPermanentStreet: result.permanentStreet }),
-                ...(result.permanentStateId && { newPermanentStateId: result.permanentStateId }),
-                ...(result.permanentCityId && { newPermanentCityId: result.permanentCityId }),
-                ...(result.permanentCountryId && { newPermanentCountryId: result.permanentCountryId }),
-                ...(result.permanentPincodeId && { newPermanentPincodeId: result.permanentPincodeId }),
-                ...(result.permanentLandmark && { newPermanentLandmark: result.permanentLandmark }),
-                ...(result.emergencyHouse && { newEmergencyHouse: result.emergencyHouse }),
-                ...(result.emergencyStreet && { newEmergencyStreet: result.emergencyStreet }),
-                ...(result.emergencyStateId && { newEmergencyStateId: result.emergencyStateId }),
-                ...(result.emergencyCityId && { newEmergencyCityId: result.emergencyCityId }),
-                ...(result.emergencyCountryId && { newEmergencyCountryId: result.emergencyCountryId }),
-                ...(result.emergencyPincodeId && { newEmergencyPincodeId: result.emergencyPincodeId }),
-                ...(result.emergencyLandmark && { newEmergencyLandmark: result.emergencyLandmark }),
-                ...(result.comment ? { comment: result.comment } : { comment: null }),
-            };
-
-            await db.employeeAddress.create(objForApproval);
-
-            eventEmitter.emit(
-                "addressDetailsApprovalRequestMail",
-                JSON.stringify({
-                    email: result.email,
-                    name: existUser.name,
-                    senderEmail: existUser["companymaster.senderEmail"],
-                    companyLogo: existUser["companymaster.companyLogo"],
-                }),
-            );
-
-            return respHelper(res, {
-                status: 200,
-                msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
-            });
-        }
-    } catch (error) {
-        console.log(error);
-        if (error.isJoi === true) {
-            return respHelper(res, {
-                status: 422,
-                msg: error.details[0].message,
-            });
-        }
-        return respHelper(res, {
-            status: 500,
-        });
-    }
-}
-// ritak address approval module end
+				return respHelper(res, {
+					status: 200,
+					msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
+				});
+			}
+		} catch (error) {
+			console.log(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	// ritak address approval module end
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
@@ -7261,9 +7308,5 @@ const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
 		},
 	);
 };
-
-
-
-
 
 export default new UserController();
