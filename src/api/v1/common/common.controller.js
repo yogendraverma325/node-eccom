@@ -2262,8 +2262,7 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
         });
     }
 }
-
-	// ritak address approval start
+// ritak address approval start
 	async actionOnAddressDetails(req, res) {
 		// try {
 			const result = await validator.actionAddressSchema.validateAsync(req.body);
@@ -2271,371 +2270,28 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 			const existUser = await db.employeeMaster.findOne({
 				raw: true,
 				where: {
-					status: "pending",
+					id: result.userId,
+					isActive: 1,
 				},
+				attributes: ["name", "empCode", "profileImage"],
 				include: [
 					{
-						model: db.employeeMaster,
-						attributes: ["id", "name", "empCode"],
-						required: !!searchQuery,
-						where: searchQuery || undefined,
-						order: [["requrestTriggred", "DESC"]],
-						include: [
-							{
-								model: db.buMaster,
-								attributes: ["buName", "buCode"],
-								where: {
-									...filters.buFIlter,
-								},
-							},
-							{
-								model: db.companyMaster,
-								attributes: ["companyName"],
-							},
-							{
-								model: db.designationMaster,
-								attributes: ["name", "code"],
-								where: {
-									...filters.designationFIlter,
-								},
-							},
-							{
-								model: db.departmentMaster,
-								attributes: ["departmentName", "departmentCode"],
-								where: {
-									...filters.departmentFIlter,
-								},
-							},
-							{
-								model: db.sbuMaster,
-								attributes: ["sbuname", "code"],
-								where: {
-									...filters.sbbuFIlter,
-								},
-							},
-						],
-					},
-					{
-						model: db.bankMaster,
-						attributes: ["bankId", "bankName", "bankIfsc"],
-					},
-					{
-						model: db.bankMaster,
-						attributes: ["bankId", "bankName", "bankIfsc"],
-						as: "newBankName",
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
 					},
 				],
 			});
 
-			// Fetch pending address details
-			const addressDetails = await db.employeeAddress.findAll({
-				where: {
-					status: "pending",
-				},
-				include: [
-					{
-						model: db.employeeMaster,
-						attributes: ["id", "name", "empCode"],
-						required: !!searchQuery,
-						where: searchQuery || undefined,
-						order: [["requestTriggered", "DESC"]],
-						include: [
-							{
-								model: db.buMaster,
-								attributes: ["buName", "buCode"],
-								where: {
-									...filters.buFIlter,
-								},
-							},
-							{
-								model: db.companyMaster,
-								attributes: ["companyName"],
-							},
-							{
-								model: db.designationMaster,
-								attributes: ["name", "code"],
-								where: {
-									...filters.designationFIlter,
-								},
-							},
-							{
-								model: db.departmentMaster,
-								attributes: ["departmentName", "departmentCode"],
-								where: {
-									...filters.departmentFIlter,
-								},
-							},
-							{
-								model: db.sbuMaster,
-								attributes: ["sbuname", "code"],
-								where: {
-									...filters.sbbuFIlter,
-								},
-							},
-						],
-					},
-					{
-						model: db.cityMaster,
-						attributes: ["cityId", "cityName"],
-						as: "newCurrentCityDetails",
-					},
-					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						as: "newCurrentStateDetails",
-					},
-					{
-						model: db.countryMaster,
-						attributes: ["countryId", "countryName"],
-						as: "newCurrentCountryDetails",
-					},
-					{
-						model: db.pinCodeMaster,
-						attributes: ["pincodeId", "pincode"],
-						as: "newCurrentPincodeDetails",
-					},
-					{
-						model: db.cityMaster,
-						attributes: ["cityId", "cityName"],
-						as: "newPermanentCityDetails",
-					},
-					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						as: "newPermanentStateDetails",
-					},
-					{
-						model: db.countryMaster,
-						attributes: ["countryId", "countryName"],
-						as: "newPermanentCountryDetails",
-					},
-					{
-						model: db.pinCodeMaster,
-						attributes: ["pincodeId", "pincode"],
-						as: "newPermanentPincodeDetails",
-					},
-					{
-						model: db.cityMaster,
-						attributes: ["cityId", "cityName"],
-						as: "newEmergencyCityDetails",
-					},
-					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						as: "newEmergencyStateDetails",
-					},
-					{
-						model: db.countryMaster,
-						attributes: ["countryId", "countryName"],
-						as: "newEmergencyCountryDetails",
-					},
-					{
-						model: db.pinCodeMaster,
-						attributes: ["pincodeId", "pincode"],
-						as: "newEmergencyPincodeDetails",
-					},
-					{
-						model: db.countryMaster,
-						attributes: ["countryId", "countryName"],
-						as: "currentcountry",
-					},
-					{
-						model: db.countryMaster,
-						attributes: ["countryId", "countryName"],
-						as: "permanentcountry",
-					},
-					{
-						model: db.countryMaster,
-						attributes: ["countryId", "countryName"],
-						as: "emergencycountry",
-					},
-					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						as: "currentstate",
-					},
-					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						as: "permanentstate",
-					},
-					{
-						model: db.stateMaster,
-						attributes: ["stateId", "stateName"],
-						as: "emergencystate",
-					},
-					{
-						model: db.cityMaster,
-						attributes: ["cityId", "cityName"],
-						as: "currentcity",
-					},
-					{
-						model: db.cityMaster,
-						attributes: ["cityId", "cityName"],
-						as: "permanentcity",
-					},
-					{
-						model: db.cityMaster,
-						attributes: ["cityId", "cityName"],
-						as: "emergencycity",
-					},
-					{
-						model: db.pinCodeMaster,
-						attributes: ["pincodeId", "pincode"],
-						as: "currentpincode",
-					},
-					{
-						model: db.pinCodeMaster,
-						attributes: ["pincodeId", "pincode"],
-						as: "permanentpincode",
-					},
-					{
-						model: db.pinCodeMaster,
-						attributes: ["pincodeId", "pincode"],
-						as: "emergencypincode",
-					},
-				],
-			});
-			console.log("addressDetails", addressDetails);
-			const paymentDataWithType = paymentDetails.map((item) => ({
-				...item.dataValues,
-				type: "payment",
-				requestTriggered: item.requrestTriggred,
-			}));
-
-			const addressDataWithType = addressDetails.map((item) => ({
-				...item.dataValues,
-				type: "address",
-			}));
-
-			// Combine
-			const combinedData = [...addressDataWithType, ...paymentDataWithType];
-			console.log("combinedData", combinedData);
-			combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
-			// Paginate combined data
-			const paginatedData = combinedData.slice(offset, offset + limit);
-
-			return respHelper(res, {
-				status: 200,
-				msg: constant.DATA_FETCHED,
-				data: {
-					count: combinedData.length,
-					rows: paginatedData,
-				},
-			});
-		} catch (error) {
-			console.log(error);
-			return respHelper(res, {
-				status: 500,
-			});
-		}
-	}
-
-	// ritak address approval start
-	async actionOnAddressDetails(req, res) {
-		// try {
-		const result = await validator.actionAddressSchema.validateAsync(req.body);
-
-		const existUser = await db.employeeMaster.findOne({
-			raw: true,
-			where: {
-				id: result.userId,
-				isActive: 1,
-			},
-			attributes: ["name", "empCode", "profileImage"],
-			include: [
-				{
-					model: db.companyMaster,
-					attributes: ["senderEmail", "companyLogo"],
-				},
-			],
-		});
-
-		if (result.status === 0) {
-			const getNewChanges = await db.employeeAddress.findOne({
-				where: { employeeId: result.userId, status: "pending" },
-				raw: true,
-			});
-
-			if (getNewChanges) {
-				// Rejection logic
-				const objForRejection = {
-					status: "rejected",
-					pendingAt: null,
-					newCurrentHouse: null,
-					newCurrentStreet: null,
-					newCurrentStateId: null,
-					newCurrentCityId: null,
-					newCurrentCountryId: null,
-					newCurrentPincodeId: null,
-					newCurrentLandmark: null,
-					newPermanentCityId: null,
-					newPermanentStateId: null,
-					newPermanentCountryId: null,
-					newPermanentPincodeId: null,
-					newPermanentStreet: null,
-					newPermanentHouse: null,
-					newPermanentLandmark: null,
-					newEmergencyStreet: null,
-					newEmergencyHouse: null,
-					newEmergencyCityId: null,
-					newEmergencyStateId: null,
-					newEmergencyCountryId: null,
-					newEmergencyPincodeId: null,
-					newEmergencyLandmark: null,
-					comment: result.comment,
-					updatedByRole: req.userData["role.name"],
-				};
-
-				// Add the comment field to the history data
-				const historyData = {
-					...getNewChanges,
-					status: "rejected",
-					updatedByRole: req.userData["role.name"],
-					comment: result.comment, // Explicitly add the comment
-				};
-
-				await db.employeeAddressHistory.create(historyData);
-
-				await db.employeeAddress.update(objForRejection, {
-					where: { employeeId: result.userId },
+			if (result.status === 0) {
+				const getNewChanges = await db.employeeAddress.findOne({
+					where: { employeeId: result.userId, status: "pending" },
+					raw: true,
 				});
 
-				eventEmitter.emit(
-					"addressDetailsAdminActionMail",
-					JSON.stringify({
-						email: existUser.email,
-						name: existUser.name,
-						fields: "Address Details",
-						status: "Rejected",
-						comment: result.comment || "",
-						senderEmail: existUser["companymaster.senderEmail"],
-						companyLogo: existUser["companymaster.companyLogo"],
-					}),
-				);
-
-				return respHelper(res, {
-					status: 200,
-					msg: constant.ADDRESS_REQUEST_REJECTED,
-				});
-			} else {
-				return respHelper(res, {
-					status: 404,
-					msg: constant.DETAILS_NOT_FOUND,
-				});
-			}
-		} else {
-			// Approval logic
-			const getNewChanges = await db.employeeAddress.findOne({
-				where: { employeeId: result.userId, status: "pending" },
-				raw: true,
-			});
-
-			if (getNewChanges) {
-				const objForApproval = {
-					...result,
-					...{
-						status: "approved",
+				if (getNewChanges) {
+					// Rejection logic
+					const objForRejection = {
+						status: "rejected",
 						pendingAt: null,
 						newCurrentHouse: null,
 						newCurrentStreet: null,
@@ -2659,49 +2315,124 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 						newEmergencyPincodeId: null,
 						newEmergencyLandmark: null,
 						comment: result.comment,
-						updatedBy: req.userId,
 						updatedByRole: req.userData["role.name"],
-						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-					},
-				};
+					};
 
-				// Add the comment field to the history data
-				const historyData = {
-					...getNewChanges,
-					status: "approved",
-					updatedByRole: req.userData["role.name"],
-					comment: result.comment, // Explicitly add the comment
-				};
+					// Add the comment field to the history data
+					const historyData = {
+						...getNewChanges,
+						status: "rejected",
+						updatedByRole: req.userData["role.name"],
+						comment: result.comment, // Explicitly add the comment
+					};
 
-				await db.employeeAddressHistory.create(historyData);
-				await db.employeeAddress.update(objForApproval, {
-					where: { employeeId: result.userId },
-				});
+					await db.employeeAddressHistory.create(historyData);
 
-				eventEmitter.emit(
-					"addressDetailsAdminActionMail",
-					JSON.stringify({
-						email: existUser.email,
-						name: existUser.name,
-						fields: "Address Details",
-						status: "Approved",
-						comment: result.comment || "",
-						senderEmail: existUser["companymaster.senderEmail"],
-						companyLogo: existUser["companymaster.companyLogo"],
-					}),
-				);
+					await db.employeeAddress.update(objForRejection, {
+						where: { employeeId: result.userId },
+					});
 
-				return respHelper(res, {
-					status: 200,
-					msg: constant.ADDRESS_REQUEST_APPROVED,
-				});
+					eventEmitter.emit(
+						"addressDetailsAdminActionMail",
+						JSON.stringify({
+							email: existUser.email,
+							name: existUser.name,
+							fields: "Address Details",
+							status: "Rejected",
+							comment: result.comment || "",
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+						}),
+					);
+
+					return respHelper(res, {
+						status: 200,
+						msg: constant.ADDRESS_REQUEST_REJECTED,
+					});
+				} else {
+					return respHelper(res, {
+						status: 404,
+						msg: constant.DETAILS_NOT_FOUND,
+					});
+				}
 			} else {
-				return respHelper(res, {
-					status: 404,
-					msg: constant.DETAILS_NOT_FOUND,
+				// Approval logic
+				const getNewChanges = await db.employeeAddress.findOne({
+					where: { employeeId: result.userId, status: "pending" },
+					raw: true,
 				});
+
+				if (getNewChanges) {
+					const objForApproval = {
+						...result,
+						...{
+							status: "approved",
+							pendingAt: null,
+							newCurrentHouse: null,
+							newCurrentStreet: null,
+							newCurrentStateId: null,
+							newCurrentCityId: null,
+							newCurrentCountryId: null,
+							newCurrentPincodeId: null,
+							newCurrentLandmark: null,
+							newPermanentCityId: null,
+							newPermanentStateId: null,
+							newPermanentCountryId: null,
+							newPermanentPincodeId: null,
+							newPermanentStreet: null,
+							newPermanentHouse: null,
+							newPermanentLandmark: null,
+							newEmergencyStreet: null,
+							newEmergencyHouse: null,
+							newEmergencyCityId: null,
+							newEmergencyStateId: null,
+							newEmergencyCountryId: null,
+							newEmergencyPincodeId: null,
+							newEmergencyLandmark: null,
+							comment: result.comment,
+							updatedBy: req.userId,
+							updatedByRole: req.userData["role.name"],
+							updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+						},
+					};
+
+					// Add the comment field to the history data
+					const historyData = {
+						...getNewChanges,
+						status: "approved",
+						updatedByRole: req.userData["role.name"],
+						comment: result.comment, // Explicitly add the comment
+					};
+
+					await db.employeeAddressHistory.create(historyData);
+					await db.employeeAddress.update(objForApproval, {
+						where: { employeeId: result.userId },
+					});
+
+					eventEmitter.emit(
+						"addressDetailsAdminActionMail",
+						JSON.stringify({
+							email: existUser.email,
+							name: existUser.name,
+							fields: "Address Details",
+							status: "Approved",
+							comment: result.comment || "",
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+						}),
+					);
+
+					return respHelper(res, {
+						status: 200,
+						msg: constant.ADDRESS_REQUEST_APPROVED,
+					});
+				} else {
+					return respHelper(res, {
+						status: 404,
+						msg: constant.DETAILS_NOT_FOUND,
+					});
+				}
 			}
-		}
 		// } catch (error) {
 		// 	console.log(error);
 		// 	return respHelper(res, {
@@ -2711,6 +2442,7 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 	}
 
 	// ritak address approval end
+
 }
 
 export default new commonController();
