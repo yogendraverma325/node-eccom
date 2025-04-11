@@ -6409,7 +6409,7 @@ const attedanceRosterCron = async (user, date) => {
 			limit: 1,
 		});
 
-		if (punchOutAttendanceHistory) {
+		if (punchOutAttendanceHistory && punchInAttendanceHistory) {
 			const punchOutObject = {
 				attendancePunchOutTime: punchOutAttendanceHistory.dataValues.time,
 				attendanceShiftEndDate: punchOutAttendanceHistory.dataValues.date,
