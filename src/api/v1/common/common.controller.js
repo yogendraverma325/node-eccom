@@ -8,7 +8,7 @@ import client from "../../../config/redisDb.config.js";
 import eventEmitter from "../../../services/eventService.js";
 import moment from "moment";
 import { Op } from "sequelize";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 const message = constant;
 class commonController {
 	async addBiographicalDetails(req, res) {
