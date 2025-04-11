@@ -12,7 +12,7 @@ import attendanceController from "../attendance/attendance.controller.js";
 import { NodeSSH } from "node-ssh";
 import Sequelize from "sequelize";
 import {where,Op, fn, col } from "sequelize";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New 
 
 class CronController {
 	async updateAttendance() {
