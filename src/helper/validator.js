@@ -1346,6 +1346,7 @@ const extraPayment = Joi.object({
 		.label("Employee Code"),
 	type: Joi.string().allow(null).label("Type"),
 	paymentCategoryId: Joi.number().integer().positive().required(),
+	// delete:Joi.number().required().valid(2, 1),
 });
 
 const lopValidateSchama = Joi.object({
