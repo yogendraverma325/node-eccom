@@ -1115,25 +1115,6 @@ class UserController {
 				profileApprovalCount = profileApprovalCount + addressCount;
 			}
 
-			const pendingCompOffCount = await db.comp_off_credit_history.count({
-				where: {
-					expiry_date: {
-						[Op.or]: [
-							{ [Op.eq]: null }, // Check if expiry_date is null
-							{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-						],
-					},
-					[Op.or]: [
-						{ pending_at: { [Op.like]: `${req.userId},%` } }, // Check if userId is at the start
-						{ pending_at: { [Op.like]: `%,${req.userId},%` } }, // Check if userId is in the middle
-						{ pending_at: { [Op.like]: `%,${req.userId}` } }, // Check if userId is at the end
-						{ pending_at: { [Op.eq]: `${req.userId}` } }, // Check if userId is the only value
-					],
-					//employee_Id: req.userId,
-					status: 3,
-				},
-			});
-
 			const totalCount =
 				countLeavePending +
 				countLeaveAssgined +
@@ -1143,7 +1124,7 @@ class UserController {
 				pendingSeperationCount +
 				pendingSeperationWorkFlowCount +
 				confirmationCount +
-				pendingCompOffCount +
+				compOffbalabceForUser +
 				profileApprovalCount;
 
 			return respHelper(res, {
@@ -1176,7 +1157,7 @@ class UserController {
 						},
 						compoffCount: {
 							raisedByMe: 0,
-							assignedToMe: pendingCompOffCount,
+							assignedToMe: compOffbalabceForUser,
 						},
 						profileApprovalCount: {
 							raisedByMe: 0,
@@ -6516,6 +6497,9 @@ class UserController {
 								{ [Op.eq]: null }, // Check if expiry_date is null
 								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 							],
+						},
+						taken_on: {
+							[Op.eq]: null, // Check if expiry_date is null
 						},
 						[Op.or]: [
 							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
