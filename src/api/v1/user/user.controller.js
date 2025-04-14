@@ -6388,12 +6388,14 @@ class UserController {
 				await db.comp_off_credit_history.findAndCountAll({
 					where: {
 						employee_Id: reporties,
+						status: {
+							[Op.ne]: 3, // status not equal to 3
+						},
 					},
 					include: [
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
-							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6430,6 +6432,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					group: ["employee_Id", "credit_for_date"],
 				});
 
 			return respHelper(res, {
@@ -6498,23 +6501,18 @@ class UserController {
 								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 							],
 						},
-						taken_on: {
-							[Op.eq]: null, // Check if expiry_date is null
-						},
 						[Op.or]: [
 							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
 							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
 							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
 							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
 						],
-						//employee_Id: req.userId,
 						status: 3,
 					},
 					include: [
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
-							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6544,6 +6542,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					group: ["credit_for_date", "employee_Id"],
 					required: !!searchQuery,
 				});
 
@@ -6565,57 +6564,43 @@ class UserController {
 			);
 			const userId = req.userId;
 			let comp_off_credit_history_auto_ids =
-				req.body.comp_off_credit_history_auto_id.split(",");
-			const comp_off_credit_historyData =
-				await db.comp_off_credit_history.findAll({
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-							],
-						},
-						[Op.or]: [
-							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
-							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
-							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
-							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
-						],
-						//employee_Id: req.userId,
-						status: 3,
-						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+				req.body.comp_off_credit_history_auto_id;
+			for (const singlecomp_off_credit_history_auto_ids of comp_off_credit_history_auto_ids) {
+				await db.comp_off_credit_history.update(
+					{
+						updatedBy: req.userId,
+						approver_remark: req.body.remarks,
+						status: req.body.status == 1 ? 1 : 5,
 					},
-				});
-			if (
-				comp_off_credit_historyData.length !=
-				comp_off_credit_history_auto_ids.length
-			) {
-				return respHelper(res, {
-					status: 400,
-					msg: "You Can't Approve Selected Comp Off Request",
-					data: {},
-				});
-			}
-			await db.comp_off_credit_history.update(
-				{
-					updatedBy: req.userId,
-					approver_remark: req.body.remarks,
+					{
+						where: {
+							expiry_date: {
+								[Op.or]: [
+									{ [Op.eq]: null }, // Check if expiry_date is null
+									{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+								],
+							},
+							employee_Id: singlecomp_off_credit_history_auto_ids.empId,
+							status: 3,
+							credit_for_date: singlecomp_off_credit_history_auto_ids.date,
+						},
+					},
+				);
+				let EMP_DATA_SELF = await helper.getEmpProfile(
+					singlecomp_off_credit_history_auto_ids.empId,
+				); // SELF Manager
+				const obj = {
+					email: EMP_DATA_SELF.email,
+					companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+					senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+					requesterName: EMP_DATA_SELF.name,
+					managerName: EMP_DATA_SELF.managerData.name,
 					status: req.body.status == 1 ? 1 : 5,
-				},
-				{
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-							],
-						},
-						//employee_Id: req.userId,
-						status: 3,
-						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
-					},
-				},
-			);
+					compOffDate: singlecomp_off_credit_history_auto_ids.date,
+				};
+				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
+			}
+
 			return respHelper(res, {
 				status: 200,
 				msg: "Updated",

@@ -109,6 +109,12 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("confirmationWorkflowNextLevel", async (input) => {
 		await confirmationWorkflowNextLevel(input);
 	});
+	eventEmitter.on("compOffMail", async (input) => {
+		await compOffMail(input);
+	});
+	eventEmitter.on("compOffMailApproval", async (input) => {
+		await compOffMailApproval(input);
+	});
 	//confirmation
 	eventEmitter.on("x", async (input) => {
 		await salarySlipPdf(input);
@@ -651,6 +657,36 @@ async function addressDetailsAdminActionMail(input) {
 	} catch (error) {
 		console.log(error);
 		logger.error(error);
+	}
+}
+async function compOffMail(input) {
+	try {
+		const userData = JSON.parse(input);
+		let response = await helper.mailService({
+			to: userData.email,
+			subject: `Comp off request has been raised for ${userData.requesterName}`,
+			html: await emailTemplate.compOffMail(userData),
+			senderEmail: userData.senderEmail,
+		});
+		return userData;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "ERROR THROWING WHEN SEND MAIL FOR RELEASE SALARY SLIP");
+	}
+}
+async function compOffMailApproval(input) {
+	try {
+		const userData = JSON.parse(input);
+		let response = await helper.mailService({
+			to: userData.email,
+			subject: `Comp off request has been ${userData.status == 1 ? "Approved" : "Rejected"} by  ${userData.managerName}`,
+			html: await emailTemplate.compOffMailAppval(userData),
+			senderEmail: userData.senderEmail,
+		});
+		return userData;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "ERROR THROWING WHEN SEND MAIL FOR RELEASE SALARY SLIP");
 	}
 }
 //ritak address approval end

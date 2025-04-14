@@ -1991,6 +1991,7 @@ class AttendanceController {
 						count: result.length,
 						rows: result,
 					},
+					compOffPolicy: compOffPolicy,
 				},
 			});
 		} catch (error) {
