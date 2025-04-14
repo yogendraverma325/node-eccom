@@ -358,6 +358,26 @@ const lwfMappingMasterSchema = Joi.object({
 
 // End schema by jay
 
+//ritak hr policy categories start
+const hrPolicyCategorySchema = Joi.object({
+	name: Joi.string().trim().required().label("Category Name"),
+});
+const hrPolicySchema = Joi.object({
+	name: Joi.string().trim().label("Policy Name"),
+	category_id: Joi.number().integer().allow(null).label("Category ID"),
+	policyDocument: Joi.string().allow(null, '').label("Policy Document"),
+	visibility: Joi.string().allow(null, '').label("Visibility"),
+	sign_off_enabled: Joi.number().valid(0, 1).default(0).label("Sign Off Enabled"),
+	sign_off_mandatory: Joi.number().valid(0, 1).default(0).label("Sign Off Mandatory"),
+	allow_decline: Joi.number().valid(0, 1).default(0).label("Allow Decline"),
+	isActive: Joi.number().valid(0, 1).default(1).label("Is Active"),
+	effective_date_from: Joi.date().allow(null).label("Effective Date From"),
+	effective_date_to: Joi.date().allow(null).label("Effective Date To"),
+  });
+  
+
+//ritak hr policy categories end
+
 export default {
 	companyTypeMasterSchema,
 	bandMasterSchema,
@@ -390,4 +410,8 @@ export default {
 	companyLocationMasterSchema,
 	lwfMappingMasterSchema,
 	// jay end
+	//ritak hr policy categories start
+	hrPolicyCategorySchema,
+	hrPolicySchema
+	//ritak hr policy categories end
 };

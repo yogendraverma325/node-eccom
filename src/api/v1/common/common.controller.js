@@ -10,6 +10,8 @@ import moment from "moment";
 import { Op } from "sequelize";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 const message = constant;
+import service from "./../admin/master/master.service.js";
+import adminValidator from "../../../helper/adminValidator.js";
 class commonController {
 	async addBiographicalDetails(req, res) {
 		try {
@@ -2445,6 +2447,340 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 	}
 
 	// ritak address approval end
+
+
+	//ritak Hr Policy start
+	async  getHrPolciyCategoryList(req, res) {
+		try {
+		  const { page = 1, limit = 10, search = '' } = req.query;
+		  const pageNumber = parseInt(page, 10);
+		  const pageLimit = parseInt(limit, 10);
+		  const offset = (pageNumber - 1) * pageLimit;
+	  
+		  const whereClause = search
+			? { name: { [Op.like]: `%${search}%` } }
+			: {};
+	  
+		  const [rows, count] = await Promise.all([
+			db.hrPolicyCategories.findAll({
+			  where: whereClause,
+			  limit: pageLimit,
+			  offset,
+			  order: [['createdAt', 'DESC']],
+			  include: [
+				{
+				  model: db.hrPolicies,
+				  as: 'policies', 
+				  required: false, // Optional: false = include even if no policies
+				},
+			  ],
+		
+			}),
+			db.hrPolicyCategories.count({ where: whereClause }),
+		  ]);
+	  
+		  return res.status(200).json({
+			status: true,
+			msg: 'Data Fetched successfully',
+			data: {
+			  rows,
+			  count,
+			},
+		  });
+		} catch (error) {
+		  console.error('Error fetching HR policy categories:', error);
+		  return res.status(500).json({
+			status: false,
+			msg: 'Internal server error',
+		  });
+		}
+	  }
+	async createHrPolicyCategory(req, res) {
+		try {
+			let result = await adminValidator.hrPolicyCategorySchema.validateAsync(req.body);
+			result = { ...result, createdBy: req.userId, isActive: 1 };
+			let model = db.hrPolicyCategories;
+			let query = { name: result.name };
+			let moduleName = "Hr Policy Category";
+			let response = await service.create(model, result, query, moduleName);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	
+	async updateHrPolicyCategory(req, res) {
+		try {
+			let result = await adminValidator.hrPolicyCategorySchema.validateAsync(req.body);
+			result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+			let model = db.hrPolicyCategories;
+			let query = { id: req.params.id };
+
+			let verifyQuery = {
+				[Op.not]: { id: req.params.id },
+				name: result.name,
+			};
+			let isVerify = await service.details(model, verifyQuery);
+
+			if (isVerify.status == 200) {
+				let response = {
+					status: 400,
+					msg: constant.ALREADY_EXISTS.replace("<module>", "Hr Policy Category"),
+				};
+				return respHelper(res, response);
+			} else {
+				let response = await service.update(model, result, query);
+				return respHelper(res, response);
+			}
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfHrPolicyCategory(req, res) {
+		try {
+			let model = db.hrPolicyCategories;
+			let query = { id: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteOfHrPolicyCategory(req, res) {
+		try {
+			let model = db.hrPolicyCategories;
+			let query = { id: req.params.id };
+			let updateMetaData = { isDeleted: 1 };
+			let moduleName = "Hr Policy Category";
+			let response = await service.delete(
+				model,
+				updateMetaData,
+				query,
+				moduleName,
+			);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+
+	async  getHrPolciyList(req, res) {
+		try {
+		  const { page = 1, limit = 10, search = '',categoryId = ''  } = req.query;
+		  const pageNumber = parseInt(page, 10);
+		  const pageLimit = parseInt(limit, 10);
+		  const offset = (pageNumber - 1) * pageLimit;
+	  
+		  const whereClause = {
+			category_id: categoryId, // always include category filter
+			...(search && {
+			  name: {
+				[Op.like]: `%${search}%`,
+			  },
+			}),
+		  };
+	  
+		  const [rows, count] = await Promise.all([
+			db.hrPolicies.findAll({
+			  where: whereClause,
+			  limit: pageLimit,
+			  offset,
+			  order: [['createdAt', 'DESC']],
+			  include: [
+				{
+				  model: db.hrPolicyCategories,
+				  as: 'category', 
+				  required: false, // Optional: false = include even if no policies
+				},
+			  ],
+		
+			}),
+			db.hrPolicies.count({ where: whereClause }),
+		  ]);
+	  
+		  return res.status(200).json({
+			status: true,
+			msg: 'Data Fetched successfully',
+			data: {
+			  rows,
+			  count,
+			},
+		  });
+		} catch (error) {
+		  console.error('Error fetching HR policy categories:', error);
+		  return res.status(500).json({
+			status: false,
+			msg: 'Internal server error',
+		  });
+		}
+	  }
+	  async createHrPolicy(req, res) {
+		try {
+			//console.log("req.body",req.body);
+		  let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
+		  result = { ...result, createdBy: req.userId, isActive: 1 };
+
+	  console.log("result",result);
+		  // Handle file upload for policy document
+		  if (result.policyDocument) {
+			if (!result.policyDocument.startsWith("uploads")) {
+			  try {
+				const timestamp = Date.now();
+				const uploadedFilePath = await helper.fileUpload(
+				  result.policyDocument,
+				  `policyDocument_${timestamp}`,
+				  `uploads/hr-documents`
+				);
+				result.policyDocument = uploadedFilePath;
+			  } catch (uploadError) {
+				logger.error("Error uploading policy document:", uploadError);
+				return respHelper(res, {
+				  status: 500,
+				  msg: "Error uploading policy document.",
+				});
+			  }
+			} else {
+			  result.policyDocument = result.policyDocument;
+			}
+		  }
+	  
+		  let model = db.hrPolicies;
+		  let query = { name: result.name };
+		  let moduleName = "Hr Policy";
+	  
+		  let response = await service.create(model, result, query, moduleName);
+		  return respHelper(res, response);
+	  
+		} catch (error) {
+console.log(error,"error");
+		  if (error.isJoi === true) {
+			return respHelper(res, {
+			  status: 422,
+			  msg: error.details[0].message,
+			});
+		  }
+		  return respHelper(res, {
+			status: 500,
+			msg: "Something went wrong.",
+		  });
+		}
+	  }
+	  
+	
+	async updateHrPolicy(req, res) {
+		try {
+			let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
+			result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+			let model = db.hrPolicies;
+			let query = { id: req.params.id };
+
+			let verifyQuery = {
+				[Op.not]: { id: req.params.id },
+				name: result.name,
+			};
+			let isVerify = await service.details(model, verifyQuery);
+
+			if (isVerify.status == 200) {
+				let response = {
+					status: 400,
+					msg: constant.ALREADY_EXISTS.replace("<module>", "Hr Policy"),
+				};
+				return respHelper(res, response);
+			} else {
+				let response = await service.update(model, result, query);
+				return respHelper(res, response);
+			}
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfHrPolicy(req, res) {
+		try {
+			let model = db.hrPolicies;
+			let query = { id: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteOfHrPolicy(req, res) {
+		try {
+			let model = db.hrPolicies;
+			let query = { id: req.params.id };
+			console.log("Received id:", req.params.id);
+
+			let updateMetaData = { isDeleted: 1 };
+			let moduleName = "Hr Policy";
+			let response = await service.delete(
+				model,
+				updateMetaData,
+				query,
+				moduleName,
+			);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	//ritak Hr Policy end
+
 
 }
 

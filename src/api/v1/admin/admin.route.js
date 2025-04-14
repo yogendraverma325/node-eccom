@@ -230,7 +230,62 @@ export default Express.Router()
 	//ritak address approval start
 	.post(
 		"/actionOnAddressDetails",
-		authorization("ADMIN", "HR_OPS"),
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.actionOnAddressDetails,
-	);
+	)
 //ritak address approval end
+
+//ritak Hr Policy start
+
+.get(
+	"/getHrPolciyCategoryList",
+	authorization("ADMIN", "HR_OPS"),
+	commonController.getHrPolciyCategoryList,
+)
+.post(
+	"/hrPolicyCategory",
+	authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+	commonController.createHrPolicyCategory,
+)
+.put(
+		"/hrPolicyCategory/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.updateHrPolicyCategory,
+	)
+	.patch(
+		"/hrPolicyCategory/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfHrPolicyCategory,
+	)
+	.delete(
+		"/hrPolicyCategory/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteOfHrPolicyCategory,
+	)
+
+	.get(
+		"/getHrPolciyList",
+		authorization("ADMIN", "HR_OPS"),
+		commonController.getHrPolciyList,
+	)
+	.post(
+		"/hrPolicy",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.createHrPolicy,
+	)
+	.put(
+			"/hrPolicy/:id",
+			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+			commonController.updateHrPolicy,
+		)
+		.patch(
+			"/hrPolicy/:id",
+			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+			commonController.changeStatusOfHrPolicy,
+		)
+		.delete(
+			"/hrPolicy/:id",
+			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+			commonController.deleteOfHrPolicy,
+		);
+//ritak Hr Policy end

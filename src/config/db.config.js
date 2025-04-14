@@ -187,7 +187,12 @@ import PushNotificationHistory from "../api/model/PushNotificationHistory.js";
 import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
 
 //ritak address approval end
+//ritak Hr Policy start
 
+import HrPolicyCategories from "../api/model/HrPolicyCategories.js";
+import HrPolicies from "../api/model/HrPolicies.js";
+
+//ritak Hr Policy end
 
 
 import literal from "sequelize";
@@ -480,6 +485,11 @@ db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
 
 //ritak address approval end
 
+//ritak Hr Policy start
+db.hrPolicyCategories = HrPolicyCategories(sequelize, Sequelize);
+db.hrPolicies = HrPolicies(sequelize, Sequelize);
+
+//ritak Hr Policy end
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -2173,5 +2183,18 @@ db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
 	sourceKey: "createdBy",
 	as: "leaveCreatedBy",
 });
+
+//ritak Hr Policy start
+
+db.hrPolicyCategories.hasMany(db.hrPolicies, {
+	foreignKey: 'category_id',
+	as: 'policies',
+  });
+  
+  db.hrPolicies.belongsTo(db.hrPolicyCategories, {
+	foreignKey: 'category_id',
+	as: 'category',
+  });
+//ritak Hr Policy end
 
 export default db;
