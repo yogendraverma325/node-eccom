@@ -84,7 +84,7 @@ class FnfController {
 				employeeForProcessingQuery,
 			);
 
-			console.log(employeeForProcessingQuery);
+			//console.log(employeeForProcessingQuery);
 
 			if (
 				!employeeForProcessing[0][0] ||
