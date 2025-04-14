@@ -87,96 +87,95 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATE,
 		},
 		createdByRole: {
-            type: Sequelize.STRING,
-        },
+			type: Sequelize.STRING,
+		},
 		updatedByRole: {
-            type: Sequelize.STRING,
-        },
+			type: Sequelize.STRING,
+		},
 		isActive: {
 			type: Sequelize.BOOLEAN,
 		},
-		 
-		 sectionType: {
-            type: Sequelize.STRING,
-            defaultValue: "Address Section",
-        },
+
+		sectionType: {
+			type: Sequelize.STRING,
+			defaultValue: "Address Section",
+		},
 		status: {
-            type: Sequelize.STRING,
-            defaultValue: "approved",
-        },
-        newCurrentHouse: {
-            type: Sequelize.STRING,
-        },
-        newCurrentStreet: {
-            type: Sequelize.STRING,
-        },
-        newCurrentStateId: {
-            type: Sequelize.INTEGER,
-        },
-        newCurrentCityId: {
-            type: Sequelize.INTEGER,
-        },
-        newCurrentCountryId: {
-            type: Sequelize.INTEGER,
-        },
-        newCurrentPincodeId: {
-            type: Sequelize.INTEGER,
-        },
-        newCurrentLandmark: {
-            type: Sequelize.STRING,
-        },
-        newPermanentCityId: {
-            type: Sequelize.INTEGER,
-        },
-        newPermanentStateId: {
-            type: Sequelize.INTEGER,
-        },
-        newPermanentCountryId: {
-            type: Sequelize.INTEGER,
-        },
-        newPermanentPincodeId: {
-            type: Sequelize.INTEGER,
-        },
-        newPermanentStreet: {
-            type: Sequelize.STRING,
-        },
-        newPermanentHouse: {
-            type: Sequelize.STRING,
-        },
-        newPermanentLandmark: {
-            type: Sequelize.STRING,
-        },
-        newEmergencyStreet: {
-            type: Sequelize.STRING,
-        },
-        newEmergencyHouse: {
-            type: Sequelize.STRING,
-        },
-        newEmergencyCityId: {
-            type: Sequelize.INTEGER,
-        },
-        newEmergencyStateId: {
-            type: Sequelize.INTEGER,
-        },
-        newEmergencyCountryId: {
-            type: Sequelize.INTEGER,
-        },
-        newEmergencyPincodeId: {
-            type: Sequelize.INTEGER,
-        },
-        newEmergencyLandmark: {
-            type: Sequelize.STRING,
-        },
-        pendingAt: {
-            type: Sequelize.INTEGER,
-        },
-        comment: {
-            type: Sequelize.TEXT,
-        },
-        requestTriggered: {
-            type: Sequelize.DATE,
-        },
-      
+			type: Sequelize.STRING,
+			defaultValue: "approved",
+		},
+		newCurrentHouse: {
+			type: Sequelize.STRING,
+		},
+		newCurrentStreet: {
+			type: Sequelize.STRING,
+		},
+		newCurrentStateId: {
+			type: Sequelize.INTEGER,
+		},
+		newCurrentCityId: {
+			type: Sequelize.INTEGER,
+		},
+		newCurrentCountryId: {
+			type: Sequelize.INTEGER,
+		},
+		newCurrentPincodeId: {
+			type: Sequelize.INTEGER,
+		},
+		newCurrentLandmark: {
+			type: Sequelize.STRING,
+		},
+		newPermanentCityId: {
+			type: Sequelize.INTEGER,
+		},
+		newPermanentStateId: {
+			type: Sequelize.INTEGER,
+		},
+		newPermanentCountryId: {
+			type: Sequelize.INTEGER,
+		},
+		newPermanentPincodeId: {
+			type: Sequelize.INTEGER,
+		},
+		newPermanentStreet: {
+			type: Sequelize.STRING,
+		},
+		newPermanentHouse: {
+			type: Sequelize.STRING,
+		},
+		newPermanentLandmark: {
+			type: Sequelize.STRING,
+		},
+		newEmergencyStreet: {
+			type: Sequelize.STRING,
+		},
+		newEmergencyHouse: {
+			type: Sequelize.STRING,
+		},
+		newEmergencyCityId: {
+			type: Sequelize.INTEGER,
+		},
+		newEmergencyStateId: {
+			type: Sequelize.INTEGER,
+		},
+		newEmergencyCountryId: {
+			type: Sequelize.INTEGER,
+		},
+		newEmergencyPincodeId: {
+			type: Sequelize.INTEGER,
+		},
+		newEmergencyLandmark: {
+			type: Sequelize.STRING,
+		},
+		pendingAt: {
+			type: Sequelize.INTEGER,
+		},
+		comment: {
+			type: Sequelize.TEXT,
+		},
+		requestTriggered: {
+			type: Sequelize.DATE,
+		},
 	});
 	return employeeAddress;
 };

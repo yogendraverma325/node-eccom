@@ -8,7 +8,7 @@ import client from "../../../config/redisDb.config.js";
 import eventEmitter from "../../../services/eventService.js";
 import moment from "moment";
 import { Op } from "sequelize";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 const message = constant;
 class commonController {
 	async addBiographicalDetails(req, res) {
@@ -1889,6 +1889,12 @@ class commonController {
 						companyLogo: existUser["companymaster.companyLogo"],
 					}),
 				);
+
+				pushNotificationEmitter.emit("sendNotification", {
+                    title: "Profile Request Acknowledgement",
+                    body: "Your profile update request has been acted upon.",
+                    employeeId: result.userId,
+                });
 				return respHelper(res, {
 					status: 200,
 					msg: constant.PAYMENT_REQUEST_REJECTED,
@@ -1935,6 +1941,11 @@ class commonController {
 							companyLogo: existUser["companymaster.companyLogo"],
 						}),
 					);
+					pushNotificationEmitter.emit("sendNotification", {
+                    title: "Profile Request Acknowledgement",
+                    body: "Your profile update request has been acted upon.",
+                    employeeId: result.userId,
+                });
 					return respHelper(res, {
 						status: 200,
 						msg: constant.PAYMENT_REQUEST_APPROVED,
@@ -1954,21 +1965,36 @@ class commonController {
 			});
 		}
 	}
-// ritak address approval update paymentaction pending to profileUpdateActionPending
-async profileUpdateActionPending(req, res) {
-    try {
-        // Add functionality for search and pagination
-        const limit = req.query.limit * 1 || 10;
-        const pageNo = req.query.page * 1 || 1;
-        const offset = (pageNo - 1) * limit;
+	// ritak address approval update paymentaction pending to profileUpdateActionPending
+	async profileUpdateActionPending(req, res) {
+		try {
+			// Add functionality for search and pagination
+			const limit = req.query.limit * 1 || 10;
+			const pageNo = req.query.page * 1 || 1;
+			const offset = (pageNo - 1) * limit;
 
-        const search = req.query.search;
+			const search = req.query.search;
 
-        const usersData = req.userData;
-        const filters = await helper.getFiltersByPermission(
-            usersData.role_id,
-            usersData.permissionAndAccess,
-        );
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+
+		 const hasFilters = Object.values(filters).some((filter) =>
+                filter && Object.keys(filter).length > 0
+            );
+   
+            if (!hasFilters && usersData.role_id != 2) {
+                return respHelper(res, {
+                    status: 200,
+                    msg: constant.DATA_FETCHED,
+                    data: {
+                        count: 0,
+                        rows: []
+                    },
+                });
+            }
 
         let searchQuery = search
             ? {
@@ -1988,7 +2014,7 @@ async profileUpdateActionPending(req, res) {
                 {
                     model: db.employeeMaster,
                     attributes: ["id", "name", "empCode"],
-                    required: !!searchQuery,
+                    required: true,
                     where: searchQuery || undefined,
 					order: [["requrestTriggred", "DESC"]],
                     include: [
@@ -2047,7 +2073,7 @@ async profileUpdateActionPending(req, res) {
                 {
                     model: db.employeeMaster,
                     attributes: ["id", "name", "empCode"],
-                    required: !!searchQuery,
+                    required: true,
                     where: searchQuery || undefined,
 					order: [["requestTriggered", "DESC"]],
                     include: [
@@ -2207,7 +2233,6 @@ async profileUpdateActionPending(req, res) {
 											},
             ],
         });
-console.log("addressDetails", addressDetails);
           const paymentDataWithType = paymentDetails.map((item) => ({
             ...item.dataValues,
             type: "payment",
@@ -2221,7 +2246,6 @@ console.log("addressDetails", addressDetails);
 
         // Combine 
 		const combinedData = [ ...addressDataWithType,...paymentDataWithType];
-console.log("combinedData", combinedData);
 combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
         // Paginate combined data
         const paginatedData = combinedData.slice(offset, offset + limit);
@@ -2241,8 +2265,7 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
         });
     }
 }
-
-	// ritak address approval start
+// ritak address approval start
 	async actionOnAddressDetails(req, res) {
 		// try {
 			const result = await validator.actionAddressSchema.validateAsync(req.body);
@@ -2422,6 +2445,7 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 	}
 
 	// ritak address approval end
+
 }
 
 export default new commonController();
