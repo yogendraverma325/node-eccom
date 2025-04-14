@@ -6,4 +6,8 @@ import authorization from "../../../middleware/authorization.js";
 export default Express.Router().post(
 	"/employeeData",
 	ThirdPartyController.employeeData,
-);
+)
+.post(
+	"/internalDataSync",
+	ThirdPartyController.internalDataSync,
+)
