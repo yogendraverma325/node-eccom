@@ -366,6 +366,11 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.actionOnCompoff,
 	)
+	.get(
+		"/getTaskHistoryComfOffDetails",
+		authentication.authenticate,
+		userController.getTaskHistoryComfOffDetails,
+	)
 	.get("/checkPolicy", authentication.authenticate, userController.checkPolicy)
 	//COMP OFF
 	.get(

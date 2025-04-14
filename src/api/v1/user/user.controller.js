@@ -6615,6 +6615,36 @@ class UserController {
 			}
 		}
 	}
+	async getTaskHistoryComfOffDetails(req, res) {
+		try {
+			const dataFor = req.query.dataFor;
+			const empid = req.query.empid;
+
+			const comp_off_credit_historyData =
+				await db.comp_off_credit_history.findAll({
+					where: {
+						credit_for_date: dataFor,
+						employee_Id: empid,
+					},
+					include: [
+						{
+							model: db.status_master,
+							attributes: ["name", "code"],
+						},
+					],
+				});
+
+			return respHelper(res, {
+				status: 200,
+				data: comp_off_credit_historyData,
+			});
+		} catch (error) {
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
 
 	async searchEmpForRoster(req, res) {
 		try {
