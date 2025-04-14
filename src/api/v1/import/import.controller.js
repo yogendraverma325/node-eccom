@@ -70,9 +70,10 @@ class ImportController {
 			};
 			const workbookEmployee = pkg.readFile(req.file.path);
 			const sheetNameEmployee = workbookEmployee.SheetNames[0];
-			var OperationType = req.body.operationType; // pkg.utils.sheet_to_json(
-			//workbookEmployee.Sheets[sheetNameEmployee],
-			//);
+			var OperationType = req.body.operationType; 
+			var FILEDATA= pkg.utils.sheet_to_json(
+			workbookEmployee.Sheets[sheetNameEmployee],
+			);
 
 			if (["LOP", "Delete LOP"].includes(req.body.uploadType)) {
 				await lopUpload(req, res, OperationType, importInfoObject);
@@ -93,7 +94,7 @@ class ImportController {
 			} else if (req.body.uploadType == "Gross-Pay") {
 				await uploadCTC(req, res, OperationType, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
-				await releasePaySlip(req, res, OperationType, importInfoObject);
+				await releasePaySlip(req, res, FILEDATA, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -1399,7 +1400,10 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 				msg: "File is required!",
 			});
 		}
-		if (!FILEDATA[0]["Pay Month(YYYY-MM"] || !FILEDATA[0]["Employee ID"]) {
+
+		console.log("PaySlip Release:::: ");
+		console.log(FILEDATA);
+		if (!FILEDATA[0]["Pay Month(YYYY-MM)"] || !FILEDATA[0]["Employee ID"]) {
 			// let query = await importHelper.query(4,{importId:importId});
 			// await db.sequelize.query(query);
 			return respHelper(res, {
