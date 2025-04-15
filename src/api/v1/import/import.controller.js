@@ -608,10 +608,20 @@ async function extraPaymentUpload(req, res, OperationType, importParams) {
 			workbookEmployee.Sheets[sheetNameEmployee],
 		);
 		if (
-			!tdsDetails[0]["Employee ID"] ||
-			!tdsDetails[0]["Effective Month"] ||
-			!tdsDetails[0]["Amount"] ||
-			!tdsDetails[0]["Category"]
+			(!tdsDetails[0]["Employee ID"] ||
+				!tdsDetails[0]["Effective Month"] ||
+				!tdsDetails[0]["Amount"] ||
+				!tdsDetails[0]["Category"]) && OperationType==1
+		) {
+			return respHelper(res, {
+				status: 400,
+				msg: "Invalid File Format",
+			});
+		}
+		if (
+			(!tdsDetails[0]["Employee ID"] ||
+				!tdsDetails[0]["Effective Month"] ||
+				!tdsDetails[0]["Category"]) && OperationType==2
 		) {
 			return respHelper(res, {
 				status: 400,
@@ -822,15 +832,26 @@ async function lopUpload(req, res, OperationType, importParams) {
 		var errorArray = [],
 			successArray = [];
 		if (
-			!lopDetails[0]["Employee ID"] ||
-			!lopDetails[0]["LOP DAYS"] ||
-			!lopDetails[0]["LOP Month (YYYY-MM)"]
+			(!lopDetails[0]["Employee ID"] ||
+				!lopDetails[0]["LOP Month (YYYY-MM)"]) && OperationType==2
 		) {
 			return respHelper(res, {
 				status: 400,
 				msg: "Invalid File Format",
 			});
 		}
+
+		if (
+			(!lopDetails[0]["Employee ID"] ||
+				!lopDetails[0]["LOP DAYS"] ||
+				!lopDetails[0]["LOP Month (YYYY-MM)"]) && OperationType==1
+		) {
+			return respHelper(res, {
+				status: 400,
+				msg: "Invalid File Format",
+			});
+		}
+
 		let importId = await createImportDetails(importParams);
 		for (const employeeTds of lopDetails) {
 			if (employeeTds["Employee ID"]) {
@@ -999,11 +1020,25 @@ async function extraDeductionsUpload(req, res, OperationType, importParams) {
 		);
 
 		if (
-			!extraDeductonsDetails[0]["Number Of Deductions"] ||
-			!extraDeductonsDetails[0]["Start Month"] ||
-			!extraDeductonsDetails[0]["Employee ID"] ||
-			!extraDeductonsDetails[0]["Advance Category"] ||
-			!extraDeductonsDetails[0]["Total Amount/Percent/Hours/Days"]
+			(!extraDeductonsDetails[0]["Number Of Deductions"] ||
+				!extraDeductonsDetails[0]["Start Month"] ||
+				!extraDeductonsDetails[0]["Employee ID"] ||
+				!extraDeductonsDetails[0]["Advance Category"] ||
+				!extraDeductonsDetails[0]["Total Amount/Percent/Hours/Days"]) && OperationType==1
+		) {
+			// let query = await importHelper.query(4,{importId:importId});
+			//    await db.sequelize.query(query);
+			return respHelper(res, {
+				status: 400,
+				msg: "Invalid File Format",
+			});
+		}
+
+		if (
+			(!extraDeductonsDetails[0]["Number Of Deductions"] ||
+				!extraDeductonsDetails[0]["Start Month"] ||
+				!extraDeductonsDetails[0]["Employee ID"] ||
+				!extraDeductonsDetails[0]["Advance Category"]) && OperationType==2
 		) {
 			// let query = await importHelper.query(4,{importId:importId});
 			//    await db.sequelize.query(query);
@@ -1226,9 +1261,9 @@ async function tdsUpload(req, res, OperationType, importParams) {
 		//
 
 		if (
-			!tdsDetails[0]["Employee ID"] ||
+		(	!tdsDetails[0]["Employee ID"] ||
 			!tdsDetails[0]["TDS Deductions"] ||
-			!tdsDetails[0]["TDS Month (YYYY-MM)"]
+			!tdsDetails[0]["TDS Month (YYYY-MM)"]) && OperationType==1
 		) {
 			// let query = await importHelper.query(4,{importId:importId});
 			// await db.sequelize.query(query);
@@ -1237,6 +1272,19 @@ async function tdsUpload(req, res, OperationType, importParams) {
 				msg: "Invalid File Format",
 			});
 		}
+
+		
+		if (
+			(	!tdsDetails[0]["Employee ID"] ||
+				!tdsDetails[0]["TDS Month (YYYY-MM)"]) && OperationType==2
+			) {
+				// let query = await importHelper.query(4,{importId:importId});
+				// await db.sequelize.query(query);
+				return respHelper(res, {
+					status: 400,
+					msg: "Invalid File Format",
+				});
+			}
 		let importId = await createImportDetails(importParams);
 		var errorArray = [],
 			successArray = [];
