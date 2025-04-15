@@ -2892,6 +2892,11 @@ class PaymentController {
 			//console.log(query);
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
+			processedData.sort((a, b) => {
+				const idA = a["Employee Id"];
+				const idB = b["Employee Id"];
+				return idA.localeCompare(idB, undefined, { numeric: true });
+			});
 			return respHelper(res, {
 				status: 200,
 				data: processedData,
