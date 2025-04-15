@@ -3915,11 +3915,11 @@ class PaymentController {
 				"Extra Payment Sample": 3,
 				"Standard Deduction Sample": 4,
 				"Salary Structure Component": 5,
-				"Pay Slip Release": 6,
-				"Delete TDS Deduction Sample": 7,
-				"Delete LOP Deduction Sample": 8,
-				"Delete Extra Payment Sample": 9,
-				"Delete Standard Deduction Sample": 10,
+				"Pay Slip Release": 7,
+				"Delete TDS Deduction Sample": 8,
+				"Delete LOP Deduction Sample": 9,
+				"Delete Extra Payment Sample": 10,
+				"Delete Standard Deduction Sample": 11,
 				
 			};
 			const getKeyByValue = async (value) => {
@@ -4013,7 +4013,7 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10].includes(Number(exportSheetAutoId))) {
+			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11].includes(Number(exportSheetAutoId))) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
 				const columns = headers.map((value) => ({
