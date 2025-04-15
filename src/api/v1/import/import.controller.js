@@ -709,7 +709,7 @@ async function extraPaymentUpload(req, res, OperationType, importParams) {
 					// delete: employeeExtraPayment["Delete"],
 				};
 				const { error } = await validator.extraPayment.validate(extraPayment);
-				if (error) {
+				if (error && OperationType==1) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeExtraPayment),
 						importAutoId: importId,
@@ -863,7 +863,7 @@ async function lopUpload(req, res, OperationType, importParams) {
 
 				if (!employeeDetais) {
 					errorArray.push({
-						importedRow: JSON.stringify(employeeExtraPayment),
+						importedRow: JSON.stringify(employeeTds),
 						importAutoId: importId,
 						importStatus: 2,
 						createdBy: req.userData.id,
@@ -899,7 +899,7 @@ async function lopUpload(req, res, OperationType, importParams) {
 				};
 				const { error } =
 					await validator.lopValidateSchama.validate(lopDeductions);
-				if (error) {
+				if (error && OperationType==1) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeTds),
 						importAutoId: importId,
@@ -1336,7 +1336,7 @@ async function tdsUpload(req, res, OperationType, importParams) {
 				};
 				const { error } =
 					await validator.tdsDeductionsSchema.validate(tdsDeductions);
-				if (error) {
+				if (error && OperationType==1) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeTds),
 						importAutoId: importId,
