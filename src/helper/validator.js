@@ -1262,11 +1262,11 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
 				"structureMappingDetails.componentDetails.salaryComponentAlias"
 			]
 				? salaryComponent[
-						"structureMappingDetails.componentDetails.salaryComponentAlias"
-					]
+				"structureMappingDetails.componentDetails.salaryComponentAlias"
+				]
 				: salaryComponent[
-						"structureMappingDetails.componentDetails.salaryComponentCode"
-					],
+				"structureMappingDetails.componentDetails.salaryComponentCode"
+				],
 		);
 	}
 	const dynamicFields = {
@@ -1523,10 +1523,7 @@ const rosterUploadSchema = Joi.array().items(
 //Attedance Roster Validations
 //COMP OFF
 const updateCompOffRequest = Joi.object({
-	comp_off_credit_history_auto_id: Joi.string()
-		.trim()
-		.required()
-		.label("comp_off_credit_history_auto_id ID"),
+	comp_off_credit_history_auto_id: Joi.any(),
 	status: Joi.string().trim().required().valid(1, 2).label("status"),
 	remarks: Joi.string().trim().allow("").max(100),
 });
