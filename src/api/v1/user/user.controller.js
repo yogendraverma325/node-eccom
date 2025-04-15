@@ -6388,12 +6388,14 @@ class UserController {
 				await db.comp_off_credit_history.findAndCountAll({
 					where: {
 						employee_Id: reporties,
+						status: {
+							[Op.ne]: 3, // status not equal to 3
+						},
 					},
 					include: [
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
-							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6430,6 +6432,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					group: ["employee_Id", "credit_for_date"],
 				});
 
 			return respHelper(res, {
@@ -6498,23 +6501,18 @@ class UserController {
 								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
 							],
 						},
-						taken_on: {
-							[Op.eq]: null, // Check if expiry_date is null
-						},
 						[Op.or]: [
 							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
 							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
 							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
 							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
 						],
-						//employee_Id: req.userId,
 						status: 3,
 					},
 					include: [
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
-							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6544,6 +6542,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					group: ["credit_for_date", "employee_Id"],
 					required: !!searchQuery,
 				});
 
@@ -6565,57 +6564,43 @@ class UserController {
 			);
 			const userId = req.userId;
 			let comp_off_credit_history_auto_ids =
-				req.body.comp_off_credit_history_auto_id.split(",");
-			const comp_off_credit_historyData =
-				await db.comp_off_credit_history.findAll({
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-							],
-						},
-						[Op.or]: [
-							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
-							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
-							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
-							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
-						],
-						//employee_Id: req.userId,
-						status: 3,
-						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+				req.body.comp_off_credit_history_auto_id;
+			for (const singlecomp_off_credit_history_auto_ids of comp_off_credit_history_auto_ids) {
+				await db.comp_off_credit_history.update(
+					{
+						updatedBy: req.userId,
+						approver_remark: req.body.remarks,
+						status: req.body.status == 1 ? 1 : 5,
 					},
-				});
-			if (
-				comp_off_credit_historyData.length !=
-				comp_off_credit_history_auto_ids.length
-			) {
-				return respHelper(res, {
-					status: 400,
-					msg: "You Can't Approve Selected Comp Off Request",
-					data: {},
-				});
-			}
-			await db.comp_off_credit_history.update(
-				{
-					updatedBy: req.userId,
-					approver_remark: req.body.remarks,
+					{
+						where: {
+							expiry_date: {
+								[Op.or]: [
+									{ [Op.eq]: null }, // Check if expiry_date is null
+									{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+								],
+							},
+							employee_Id: singlecomp_off_credit_history_auto_ids.empId,
+							status: 3,
+							credit_for_date: singlecomp_off_credit_history_auto_ids.date,
+						},
+					},
+				);
+				let EMP_DATA_SELF = await helper.getEmpProfile(
+					singlecomp_off_credit_history_auto_ids.empId,
+				); // SELF Manager
+				const obj = {
+					email: EMP_DATA_SELF.email,
+					companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+					senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+					requesterName: EMP_DATA_SELF.name,
+					managerName: EMP_DATA_SELF.managerData.name,
 					status: req.body.status == 1 ? 1 : 5,
-				},
-				{
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-							],
-						},
-						//employee_Id: req.userId,
-						status: 3,
-						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
-					},
-				},
-			);
+					compOffDate: singlecomp_off_credit_history_auto_ids.date,
+				};
+				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
+			}
+
 			return respHelper(res, {
 				status: 200,
 				msg: "Updated",
@@ -6628,6 +6613,36 @@ class UserController {
 					msg: error.details[0].message,
 				});
 			}
+		}
+	}
+	async getTaskHistoryComfOffDetails(req, res) {
+		try {
+			const dataFor = req.query.dataFor;
+			const empid = req.query.empid;
+
+			const comp_off_credit_historyData =
+				await db.comp_off_credit_history.findAll({
+					where: {
+						credit_for_date: dataFor,
+						employee_Id: empid,
+					},
+					include: [
+						{
+							model: db.status_master,
+							attributes: ["name", "code"],
+						},
+					],
+				});
+
+			return respHelper(res, {
+				status: 200,
+				data: comp_off_credit_historyData,
+			});
+		} catch (error) {
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
 		}
 	}
 
@@ -7078,91 +7093,6 @@ console.log("isSameDetails", isSameDetails);
                    msg: constant.ALREADY_EXISTS.replace("<module>", "Address Details"),
                });
            } else {
-
-
-               if (reqUserRole == "ADMIN" || reqUserRole == "HR_OPS" || reqUserRole == "BUHR") {
-                   console.log("Admin or HR_OPS or BUHR");
-                   const objForApproval = {
-                       status: "approved", // Directly approve the request
-                       updatedByRole: reqUserRole,
-                       pendingAt: null, // Clear the pending approver
-                       requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
-                       ...(result.currentHouse !== isSameDetails.currentHouse && {
-                           currentHouse: result.currentHouse,
-                       }),
-                       ...(result.currentStreet !== isSameDetails.currentStreet && {
-                           currentStreet: result.currentStreet,
-                       }),
-                       ...(result.currentStateId !== isSameDetails.currentStateId && {
-                           currentStateId: result.currentStateId,
-                       }),
-                       ...(result.currentCityId !== isSameDetails.currentCityId && {
-                           currentCityId: result.currentCityId,
-                       }),
-                       ...(result.currentCountryId !== isSameDetails.currentCountryId && {
-                           currentCountryId: result.currentCountryId,
-                       }),
-                       ...(result.currentPincodeId !== isSameDetails.currentPincodeId && {
-                           currentPincodeId: result.currentPincodeId,
-                       }),
-                       ...(result.currentLandmark !== isSameDetails.currentLandmark && {
-                           currentLandmark: result.currentLandmark,
-                       }),
-                       ...(result.permanentHouse !== isSameDetails.permanentHouse && {
-                           permanentHouse: result.permanentHouse,
-                       }),
-                       ...(result.permanentStreet !== isSameDetails.permanentStreet && {
-                           permanentStreet: result.permanentStreet,
-                       }),
-                       ...(result.permanentStateId !== isSameDetails.permanentStateId && {
-                           permanentStateId: result.permanentStateId,
-                       }),
-                       ...(result.permanentCityId !== isSameDetails.permanentCityId && {
-                           permanentCityId: result.permanentCityId,
-                       }),
-                       ...(result.permanentCountryId !== isSameDetails.permanentCountryId && {
-                           permanentCountryId: result.permanentCountryId,
-                       }),
-                       ...(result.permanentPincodeId !== isSameDetails.permanentPincodeId && {
-                           permanentPincodeId: result.permanentPincodeId,
-                       }),
-                       ...(result.permanentLandmark !== isSameDetails.permanentLandmark && {
-                           permanentLandmark: result.permanentLandmark,
-                       }),
-                       ...(result.emergencyHouse !== isSameDetails.emergencyHouse && {
-                           emergencyHouse: result.emergencyHouse,
-                       }),
-                       ...(result.emergencyStreet !== isSameDetails.emergencyStreet && {
-                           emergencyStreet: result.emergencyStreet,
-                       }),
-                       ...(result.emergencyStateId !== isSameDetails.emergencyStateId && {
-                           emergencyStateId: result.emergencyStateId,
-                       }),
-                       ...(result.emergencyCityId !== isSameDetails.emergencyCityId && {
-                           emergencyCityId: result.emergencyCityId,
-                       }),
-                       ...(result.emergencyCountryId !== isSameDetails.emergencyCountryId && {
-                           emergencyCountryId: result.emergencyCountryId,
-                       }),
-                       ...(result.emergencyPincodeId !== isSameDetails.emergencyPincodeId && {
-                           emergencyPincodeId: result.emergencyPincodeId,
-                       }),
-                       ...(result.emergencyLandmark !== isSameDetails.emergencyLandmark && {
-                           emergencyLandmark: result.emergencyLandmark,
-                       }),
-                       ...(result.comment ? { comment: result.comment } : { comment: null }),
-                   };
-              
-                   await db.employeeAddress.update(objForApproval, {
-                       where: { employeeId: (result.employeeId) ? result.employeeId : req.userId },
-                   });
-              
-                   return respHelper(res, {
-                       status: 200,
-                       msg: constant.ADDRESS_REQUEST_APPROVED,
-                   });
-               }
-
 
                const objForApproval = {
                    status: "pending",

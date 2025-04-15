@@ -1480,6 +1480,7 @@ class AttendanceController {
 				monthDays,
 				employeeLeaveTransactions,
 				shiftMasters,
+				compOffPolicy
 				//leaveLevelApproval
 			] = await Promise.all([
 				db.holidayCompanyLocationConfiguration.findAll({
@@ -1681,6 +1682,7 @@ class AttendanceController {
 						"isOverNight",
 					],
 				}),
+			    await helper.checkCompOffPolicyForUser(user),
 			]);
 
 			// Create a map for shiftMaster data
@@ -1989,6 +1991,7 @@ class AttendanceController {
 						count: result.length,
 						rows: result,
 					},
+					compOffPolicy: compOffPolicy,
 				},
 			});
 		} catch (error) {
