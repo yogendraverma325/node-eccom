@@ -128,4 +128,11 @@ export default Express.Router()
 		"/getFnfProcessDetails",
 		authentication.authenticate,
 		fnfController.getFnfProcessDetails,
+	)
+	
+	.post(
+		"/updateGratuityEncahsments",
+		authentication.authenticate,
+		fnfController.updateGratuityEncahsments,
 	);
+
