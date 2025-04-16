@@ -128,7 +128,7 @@ class FnfController {
 			var errorArray = [],
 				successArray = [];
 
-			if (!gratuityDetails[0]["Employee ID"]) {
+			if (!gratuityDetails[0]["Employee ID"] || !gratuityDetails[0]['GRATUITY DAYS']) {
 				return respHelper(res, {
 					status: 400,
 					msg: "Invalid File Format",
@@ -150,7 +150,6 @@ class FnfController {
 					let gratuityOverrides = {
 						EmployeeId: employeeDetais.id,
 						gratuityYears: employeeTds["GRATUITY DAYS"],
-						payMonth: employeeTds["PAY Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
 					const { error } =
@@ -161,10 +160,6 @@ class FnfController {
 							error: error.details[0].message,
 							employeeID: gratuityOverrides.empCode,
 						});
-						// return respHelper(res, {
-						//   status: 400,
-						//   msg: error.details[0],
-						// });
 					} else {
 						let existDetails = await db.gratuityOverrides.findOne({
 							where: {
@@ -1602,7 +1597,7 @@ class FnfController {
 		}
 	}
 
-	async updateGratuityEncahsments(req, res) {
+    async updateGratuityEncahsments(req, res) {
 		try {
 			let { employeeIds } = req.body;
 			if (!employeeIds) {
@@ -1660,10 +1655,7 @@ class FnfController {
 			}
 			return respHelper(res, {
 				status: 200,
-				data: {
-					currentStatusId: currentProcessStatus[0][0].currentStatusId,
-					stepperData: stepperData[0],
-				},
+				data: [],
 				msg: "Status List Fetched Successfully",
 			});
 		} catch (e) {

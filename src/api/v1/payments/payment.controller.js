@@ -3594,27 +3594,27 @@ class PaymentController {
 			console.log(req.query);
 
 			const sheetName = {
-				"TDS Deduction Sample": 1,
-				"LOP Deduction Sample": 2,
-				"Extra Payment Sample": 3,
-				"Standard Deduction Sample": 4,
-				"Salary Structure Component": 5,
-				"Processed Employee": 6,
-				"In Process Employee": 7,
-				"Total Employee": 8,
-				"Available Employee": 9,
-				"LOP Impacted Employees": 10,
-				"Extra Payment Impacted Employees": 11,
-				"Extra Deduction Impacted Employees": 12,
-				"TDS Impacted Employees": 13,
-				"Total Processed": 14,
-				"Successfully Processed": 15,
-				"Failed in Process": 16,
-				"Extra Benefit Sample": 17,
-				"Leave Encashment Sample": 18,
-				"Gratuity Sample": 19,
-				"PaySlip Released": 20,
-				"PaySlip Generated": 21,
+				"Processed Employee": 106,
+				"In Process Employee": 107,
+				"Total Employee": 108,
+				"Available Employee": 109,
+				"LOP Impacted Employees": 110,
+				"Extra Payment Impacted Employees": 111,
+				"Extra Deduction Impacted Employees": 112,
+				"TDS Impacted Employees": 113,
+				"Total Processed": 114,
+				"Successfully Processed": 115,
+				"Failed in Process": 116,
+				"PaySlip Released": 117,
+				"PaySlip Generated": 118,
+			    // "TDS Deduction Sample": 1,
+				// "LOP Deduction Sample": 2,
+				// "Extra Payment Sample": 3,
+				// "Standard Deduction Sample": 4,
+				// "Salary Structure Component": 5,
+				// "Extra Benefit Sample": 17,
+				// "Leave Encashment Sample": 18,
+				// "Gratuity Sample": 19,
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3678,7 +3678,7 @@ class PaymentController {
 			let employeeData = [];
 			if (
 				salalryStructureAutoId == 0 &&
-				[6, 20, 21].includes(Number(exportSheetAutoId))
+				[106, 117, 118].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
@@ -3695,7 +3695,7 @@ class PaymentController {
 
 			if (
 				salalryStructureAutoId == 0 &&
-				[10, 11, 12, 13, 14, 15, 16].includes(Number(exportSheetAutoId))
+				[110, 111, 112, 113, 114, 115, 116].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
 				const employeeIdss = employeeIds.split(","); // [employeeIds];
@@ -3704,21 +3704,21 @@ class PaymentController {
 
 				//return
 				const impactedEmployeeQueryObject = {
-					10: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
+					110: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
-					11: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
+					111: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
-					12: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where empCode in(${employeeIdss
+					112: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")}) and startMonth='${payMonth}' GROUP BY empCode;`,
-					13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM ${dbName}.tdsdeductions where empCode in(${employeeIdss
+					113: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM ${dbName}.tdsdeductions where empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")}) and tdsMonth='${payMonth}';`,
-					14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
-					15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
-					16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+					114: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
+					115: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
+					116: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
 				};
 				query = impactedEmployeeQueryObject[exportSheetAutoId];
 				if (query) {
@@ -3797,7 +3797,7 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[6, 7, 8, 9, 20, 21].includes(Number(exportSheetAutoId))
+				[106, 107, 108, 109, 117, 118].includes(Number(exportSheetAutoId))
 			) {
 				console.log("File is getting ready.....");
 				const data = [
@@ -3828,34 +3828,34 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[10, 11, 12, 13, 14, 15, 16].includes(Number(exportSheetAutoId))
+				[110, 111, 112, 113, 114, 115, 116].includes(Number(exportSheetAutoId))
 			) {
 				const columnsFroExcel = {
-					10: [
+					110: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Lop Days", value: "LOP Days" },
 					],
-					11: [
+					111: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Extra Amount", value: "Extra Payment Amount" },
 					],
-					12: [
+					112: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Deduction Amount", value: "TotalDeductionAmount" },
 					],
-					13: [
+					113: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "TDS Amount", value: "TDS Amount" },
 					],
-					14: [
+					114: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
 					],
-					15: [
+					115: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
 					],
-					16: [
+					116: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
 					],
@@ -3920,7 +3920,6 @@ class PaymentController {
 				"Delete LOP Deduction Sample": 9,
 				"Delete Extra Payment Sample": 10,
 				"Delete Standard Deduction Sample": 11,
-				
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -3930,6 +3929,8 @@ class PaymentController {
 			};
 			let sheetVal = await getKeyByValue(exportSheetAutoId);
 			sheetVal = customSheetName ? customSheetName : sheetVal;
+
+			console.log("sheetVal :: ",sheetVal)
 			// Check for required exportSheetAutoId
 			if (!exportSheetAutoId) {
 				return res.status(400).json({
