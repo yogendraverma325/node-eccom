@@ -6507,7 +6507,7 @@ class UserController {
 							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
 							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
 						],
-						status: 3,
+						//status: 3,
 					},
 					include: [
 						{
