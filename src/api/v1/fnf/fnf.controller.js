@@ -48,7 +48,8 @@ class FnfController {
 				(employee) => employee.EmployeeId,
 			);
 
-			console.log(employeeIds);
+			// console.log(employeeIds);
+			// console.log(employeeForProcessingQuery);
 
 			let processingCounts = await availableEmployeeForProcessing(
 				employeeIds,
@@ -928,11 +929,8 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-			// console.log(allEmployeeQuery);
-			// return;
 			const result = await db.sequelize.query(allEmployeeQuery);
-			// console.log(result[0]);
-			// return;
+	
 			if (result[0].length == 0) {
 				return respHelper(res, {
 					status: 400,
@@ -941,7 +939,6 @@ class FnfController {
 				});
 			}
 			const employeeIds = result[0].map((employee) => employee.EmployeeId);
-
 			let returnVAlue = await availableEmployeeForProcessing(
 				employeeIds,
 				value.paymonth,
