@@ -762,15 +762,6 @@ class UserController {
 		try {
 			let userid = req.userId;
 			let role_id = req.userData.role_id;
-			// const countLeavePending = await db.EmployeeLeaveHeader.count({
-			// 	where: {
-			// 		employeeId: userid,
-			// 		status: "pending",
-			// 		source: {
-			// 			[Op.ne]: "system_generated",
-			// 		},
-			// 	},
-			// });
 
 			const mainCondition = {
 				employeeId: req.userId,
@@ -863,37 +854,6 @@ class UserController {
 				distinct: true,
 			});
 
-			// const countLeaveAssginedForExistingFlow =
-			// 	await db.EmployeeLeaveHeader.count({
-			// 		where: {
-			// 			pendingAt: userid,
-			// 			status: "pending",
-			// 		},
-			// 	});
-
-			// const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
-			// 	where: {
-			// 		// pendingAt: userid,
-			// 		status: "pending",
-			// 	},
-			// 	include: [
-			// 		{
-			// 			model: db.leaveApprovalTrails,
-			// 			where: {
-			// 				isVisible: true,
-			// 				pendingOn: req.userId,
-			// 				isApproved: 0,
-			// 				isPending: 1,
-			// 				// pendingOn: req.userId,
-			// 				// isPending: 1,
-			// 				// isVisible:1
-			// 				//isApproved:0
-			// 			},
-			// 			//required:false
-			// 		},
-			// 	],
-			// });
-
 			const mainCondition1 = {
 				pendingAt: req.userId,
 				status: "pending",
@@ -962,22 +922,14 @@ class UserController {
 					required: true,
 				},
 			});
-			// let pendingSeperationCount = await db.separationMaster.count(
-			// 	{
-			// 		pendingAt: userid,
-			// 	},
-			// 	{
-			// 		where: {
-			// 			finalStatus: [2, 5, 9],
-			// 		},
-			// 	},
-			// );
 
 			let userId = req.userId;
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(
 				userId,
 				"Pending",
 			);
+
+			compOffbalabceForUser = compOffbalabceForUser?.length || 0;
 
 			let pendingSeperationCount = await db.separationMaster.count({
 				where: {
