@@ -2445,6 +2445,21 @@ const creditCompoff = async (inputObject) => {
 									await db.comp_off_credit_history.create(comp_off_data);
 								}
 							}
+							if (comp_off_data.pending_at != null) {
+								let EMP_DATA_SELF = await getEmpProfile(
+									comp_off_data.employee_Id,
+								); // SELF Manager
+
+								const obj = {
+									email: EMP_DATA_SELF.email,
+									companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+									senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+									requesterName: EMP_DATA_SELF.name,
+									managerName: EMP_DATA_SELF.managerData.name,
+									compOffDate: comp_off_data.credit_for_date,
+								};
+								eventEmitter.emit("compOffMail", JSON.stringify(obj));
+							}
 
 							// }
 						}
