@@ -2751,7 +2751,7 @@ class PaymentController {
 			);
 			var totaPaymentAmount = 0,
 				uniqueEmployeeImpacted = 0;
-			let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
+			let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrabenefit WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
 			let extraPayments = await db.sequelize.query(allDeductionQuery);
 			for (const singleEmployeePayment of extraPayments[0]) {
 				console.log(singleEmployeePayment);
@@ -3607,14 +3607,10 @@ class PaymentController {
 				"Failed in Process": 116,
 				"PaySlip Released": 117,
 				"PaySlip Generated": 118,
-			    // "TDS Deduction Sample": 1,
-				// "LOP Deduction Sample": 2,
-				// "Extra Payment Sample": 3,
-				// "Standard Deduction Sample": 4,
-				// "Salary Structure Component": 5,
-				// "Extra Benefit Sample": 17,
-				// "Leave Encashment Sample": 18,
-				// "Gratuity Sample": 19,
+				"Gratuity Sample": 119,
+				"Extra Benefit Sample": 120,
+				"Leave Encashment Sample": 121,
+
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3683,19 +3679,20 @@ class PaymentController {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
 				console.log(employeeIds);
-				query = `
-        SELECT name,empCode FROM ${dbName}.employee where id in (${employeeIdss})`;
+				query = `SELECT name,empCode FROM ${dbName}.employee where id in (${employeeIdss})`;
 
+			
 				if (query) {
 					const [results] = await db.sequelize.query(query, { raw: true });
 					employeeData = results;
 				}
 				console.log(query);
 			}
+		
 
 			if (
 				salalryStructureAutoId == 0 &&
-				[110, 111, 112, 113, 114, 115, 116].includes(Number(exportSheetAutoId))
+				[110, 111, 112, 113, 114, 115, 116,119,120,121].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
 				const employeeIdss = employeeIds.split(","); // [employeeIds];
@@ -3707,7 +3704,7 @@ class PaymentController {
 					110: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
-					111: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
+					111: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extraPayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
 					112: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where empCode in(${employeeIdss
@@ -3719,6 +3716,15 @@ class PaymentController {
 					114: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
 					115: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
 					116: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+					119: `SELECT gratuityYears as "Gratuity Years",empCode as EmployeeId FROM ${dbName}.gratuityoverrides where empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
+					120: `SELECT benefitAmount as "Extra Benefit Amount",empCode as EmployeeId FROM ${dbName}.extrabenefit where  empCode in(${employeeIdss
+							.map((id) => `'${id}'`)
+							.join(", ")});`,	
+					121: `SELECT leaveEncashmentDays as "LEAVE ENCASHMENT DAYS",empCode as EmployeeId FROM ${dbName}.leavencashmentoverrides where  empCode in(${employeeIdss
+								.map((id) => `'${id}'`)
+								.join(", ")});`,		
 				};
 				query = impactedEmployeeQueryObject[exportSheetAutoId];
 				if (query) {
@@ -3828,7 +3834,7 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[110, 111, 112, 113, 114, 115, 116].includes(Number(exportSheetAutoId))
+				[110, 111, 112, 113, 114, 115, 116,119,120,121].includes(Number(exportSheetAutoId))
 			) {
 				const columnsFroExcel = {
 					110: [
@@ -3858,6 +3864,18 @@ class PaymentController {
 					116: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
+					],
+					119: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "Gratuity Years", value: "Gratuity Years" },
+					],
+					120: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "Extra Benefit Amount", value: "Extra Benefit Amount" },
+					],
+					121: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "LEAVE ENCASHMENT DAYS", value: "LEAVE ENCASHMENT DAYS" },
 					],
 				};
 
@@ -3899,9 +3917,7 @@ class PaymentController {
 
 	async exportSampleV2(req, res) {
 		try {
-			console.log("LOP Sample Download....")
 			const { exportSheetAutoId } = req.query;
-
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
 			if (fileNameType === "1") {
@@ -3920,6 +3936,10 @@ class PaymentController {
 				"Delete LOP Deduction Sample": 9,
 				"Delete Extra Payment Sample": 10,
 				"Delete Standard Deduction Sample": 11,
+				"Gratuity Sample": 12,
+				"Extra Benefit Sample": 13,
+				"Leave Encashment Sample": 14,
+				
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -4014,7 +4034,7 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11].includes(Number(exportSheetAutoId))) {
+			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11,12,13,14].includes(Number(exportSheetAutoId))) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
 				const columns = headers.map((value) => ({
@@ -5383,7 +5403,7 @@ class PaymentController {
 							}
 						}
 
-						let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
+						let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrabenefit WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
 
 						let extraPaymentAmount =
 							await db.sequelize.query(allDeductionQuery);
@@ -6127,7 +6147,7 @@ async function processSalary(data) {
 					lwfAmount = lwfMappingDetails.lwfAmount || 0;
 				}
 			}
-			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
+			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrabenefit WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
 			const ptAmount1 =
 				ptDeducationDetails && ptDeducationDetails.ptApplicability == 1

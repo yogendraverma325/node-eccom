@@ -128,7 +128,7 @@ class FnfController {
 			var errorArray = [],
 				successArray = [];
 
-			if (!gratuityDetails[0]["Employee ID"] || !gratuityDetails[0]['GRATUITY DAYS']) {
+			if (!gratuityDetails[0]["Employee ID"] || !gratuityDetails[0]['Gratuity Years']) {
 				return respHelper(res, {
 					status: 400,
 					msg: "Invalid File Format",
@@ -149,7 +149,7 @@ class FnfController {
 
 					let gratuityOverrides = {
 						EmployeeId: employeeDetais.id,
-						gratuityYears: employeeTds["GRATUITY DAYS"],
+						gratuityYears: employeeTds["Gratuity Years"],
 						empCode: employeeTds["Employee ID"],
 					};
 					const { error } =
@@ -164,7 +164,6 @@ class FnfController {
 						let existDetails = await db.gratuityOverrides.findOne({
 							where: {
 								empCode: gratuityOverrides.empCode,
-								payMonth: gratuityOverrides.payMonth,
 							},
 							raw: true,
 						});
@@ -175,7 +174,6 @@ class FnfController {
 							await db.gratuityOverrides.update(gratuityOverrides, {
 								where: {
 									EmployeeId: gratuityOverrides.EmployeeId,
-									payMonth: gratuityOverrides.payMonth,
 									empCode: gratuityOverrides.empCode,
 								},
 							});
@@ -245,7 +243,7 @@ class FnfController {
 					let obj = {
 						EmployeeId: employeeDetais.id,
 						leaveEncashmentDays: employeeTds["LEAVE ENCASHMENT DAYS"],
-						payMonth: employeeTds["PAY Month (YYYY-MM)"],
+						// payMonth: employeeTds["PAY Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
 					const { error } =
@@ -264,7 +262,7 @@ class FnfController {
 						let existDetails = await db.leaveEncashmentOverrides.findOne({
 							where: {
 								empCode: obj.empCode,
-								payMonth: obj.payMonth,
+								// payMonth: obj.payMonth,
 							},
 							raw: true,
 						});
@@ -275,7 +273,7 @@ class FnfController {
 							await db.leaveEncashmentOverrides.update(obj, {
 								where: {
 									EmployeeId: obj.EmployeeId,
-									payMonth: obj.payMonth,
+									// payMonth: obj.payMonth,
 									empCode: obj.empCode,
 								},
 							});
@@ -646,7 +644,7 @@ class FnfController {
 				status: 200,
 				data: {
 					impactedEmployee: uniqueEmployeeImpacted,
-					totalGratuityYears: totalGratuityDays.toFixed(2),
+					impactedDaysYears: totalGratuityDays.toFixed(2),
 					impactedEmployeeDetails: gratuities[0],
 				},
 			});
@@ -692,7 +690,7 @@ class FnfController {
 
 			var totalLeaveEncashmentDays = 0,
 				uniqueEmployeeImpacted = 0;
-			let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(leaveEncashmentDays) AS leaveEncashmentDays from ${dbName}.leavencashmentoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+			let finalQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(leaveEncashmentDays) AS leaveEncashmentDays from ${dbName}.leavencashmentoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees})  GROUP BY EmployeeId, empCode;`;
 
 			let allData = await db.sequelize.query(finalQuery);
 
@@ -708,7 +706,7 @@ class FnfController {
 				status: 200,
 				data: {
 					impactedEmployee: uniqueEmployeeImpacted,
-					paymentAmount: totalLeaveEncashmentDays.toFixed(2),
+					impactedDaysYears: totalLeaveEncashmentDays.toFixed(2),
 					impactedEmployeeDetails: allData[0],
 				},
 			});
@@ -1434,8 +1432,7 @@ class FnfController {
 
 					let obj = {
 						EmployeeId: employeeDetais.id,
-						benefitAmount: employeeTds["BENEFIT AMOUNT"],
-						payMonth: employeeTds["PAY Month (YYYY-MM)"],
+						benefitAmount: employeeTds["Extra Benefit Amount"],
 						empCode: employeeTds["Employee ID"],
 					};
 					const { error } =
@@ -1454,7 +1451,6 @@ class FnfController {
 						let existDetails = await db.ExtraBenefits.findOne({
 							where: {
 								empCode: obj.empCode,
-								payMonth: obj.payMonth,
 							},
 							raw: true,
 						});
@@ -1465,7 +1461,6 @@ class FnfController {
 							await db.ExtraBenefits.update(obj, {
 								where: {
 									EmployeeId: obj.EmployeeId,
-									payMonth: obj.payMonth,
 									empCode: obj.empCode,
 								},
 							});
@@ -1530,7 +1525,8 @@ class FnfController {
 
 			var totalExtraBenefit = 0,
 				uniqueEmployeeImpacted = 0;
-			let allExtraBenefitQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(benefitAmount) AS benefitAmount from ${dbName}.extrabenefit WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+			//let allExtraBenefitQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(benefitAmount) AS benefitAmount from ${dbName}.extrabenefit WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+			let allExtraBenefitQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(benefitAmount) AS benefitAmount from ${dbName}.extrabenefit WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) GROUP BY EmployeeId, empCode;`;
 
 			let extraBenefits = await db.sequelize.query(allExtraBenefitQuery);
 
@@ -1662,6 +1658,138 @@ class FnfController {
 			console.log(e);
 		}
 	}
+
+async extraPaymentUpload(req, res) {
+			try {
+				if (!req.file) {
+					return respHelper(res, {
+						status: 400,
+						msg: "File is required!",
+					});
+				}
+				let isActive = req.query.isActive?parseInt(req.query.isActive):1;
+	
+				///////////////If File is provided by the users//////////////////
+				const workbookEmployee = pkg.readFile(req.file.path);
+				const sheetNameEmployee = workbookEmployee.SheetNames[0];
+				var tdsDetails = pkg.utils.sheet_to_json(
+					workbookEmployee.Sheets[sheetNameEmployee],
+				);
+	
+				if (!tdsDetails[0]["Employee ID"]) {
+					return respHelper(res, {
+						status: 400,
+						msg: "Invalid File Format",
+					});
+				}
+				var errorArray = [],
+					successArray = [];
+				for (const employeeExtraPayment of tdsDetails) {
+					if (employeeExtraPayment["Employee ID"]) {
+						let employeeDetais = await db.employeeMaster.findOne({
+							where: {
+								empCode: employeeExtraPayment["Employee ID"],
+								isActive: isActive,
+							},
+							raw: true,
+							attributes: ["empCode", "id"],
+						});
+	
+						if (!employeeDetais) {
+							errorArray.push({
+								index: errorArray.length,
+								errorDetails: "Employee not exist.",
+								employeeID: employeeExtraPayment["Employee ID"],
+							});
+							continue;
+						}
+	
+						let extraPaymentCategory =
+							await db.CompensationCategoryMaster.findOne({
+								where: { name: employeeExtraPayment["Category"] },
+								raw: true,
+								attribute: ["compensationCategoryId", "name"],
+							});
+	
+						// console.log(extraPaymentCategory);
+						// return;
+						if (!extraPaymentCategory) {
+							errorArray.push({
+								index: errorArray.length + 1,
+								errorDetails:
+									"Invalid Category Name " +
+									"(" +
+									employeeExtraPayment["Category"] +
+									")",
+								employeeID: employeeExtraPayment["Employee ID"],
+							});
+							continue;
+						}
+	
+						let extraPayment = {
+							EmployeeId: employeeDetais.id,
+							paymentAmount: employeeExtraPayment["Amount"],
+							paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
+							category: employeeExtraPayment["Category"],
+							empCode: employeeExtraPayment["Employee ID"],
+							category: employeeExtraPayment["Category"],
+							paymentCategoryId: extraPaymentCategory.compensationCategoryId,
+						};
+	
+						// console.log(extraPayment);
+						// return;
+						const { error } = await validator.extraPayment.validate(extraPayment);
+						if (error) {
+							errorArray.push({
+								index: errorArray.length + 1,
+								error: error.details[0].message,
+								employeeID: employeeExtraPayment["Employee ID"],
+							});
+						} else {
+							let existTDSDetails = await db.extraPayment.findOne({
+								where: {
+									EmployeeId: extraPayment.EmployeeId,
+									paymentMonth: extraPayment.paymentMonth,
+									category: extraPayment.category,
+								},
+								raw: true,
+							});
+	
+							if (existTDSDetails) {
+								extraPayment["updatedBy"] = req.userData.id;
+								extraPayment["updatedAt"] = new Date();
+	
+								await db.extraPayment.update(extraPayment, {
+									where: {
+										EmployeeId: extraPayment.EmployeeId,
+										paymentMonth: extraPayment.paymentMonth,
+										category: extraPayment.category,
+									},
+								});
+								extraPayment["ACTION_TYPE"] = "UPDATE";
+							} else {
+								extraPayment["createdBy"] = req.userData.id;
+								extraPayment["createdAt"] = new Date();
+								await db.extraPayment.create(extraPayment);
+								extraPayment["ACTION_TYPE"] = "CREATE";
+							}
+							successArray.push(extraPayment);
+						}
+					}
+				}
+	
+				return respHelper(res, {
+					status: 200,
+					data: { errorArray, successArray },
+					msg: "Extra Payment Uploaded Successfully",
+				});
+			} catch (error) {
+				console.log(error);
+				return respHelper(res, {
+					status: 500,
+				});
+			}
+		}
 }
 
 const groupByEmployeeId = (data) => {

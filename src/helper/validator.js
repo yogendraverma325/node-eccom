@@ -1615,7 +1615,7 @@ const generatePaySlipSchema = Joi.object({
 const gratuityValidateSchama = Joi.object({
 	gratuityAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	payMonth: Joi.string().max(255).optional(),
 	gratuityYears: Joi.number()
 		.precision(2)
 		.positive()
@@ -1635,7 +1635,7 @@ const gratuityValidateSchama = Joi.object({
 const leaveEncashmentValidateSchama = Joi.object({
 	gratuityAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	payMonth: Joi.string().max(255).optional(),
 	leaveEncashmentDays: Joi.number()
 		.precision(2)
 		.positive()
@@ -1711,7 +1711,7 @@ const noticeRecoveryValidateSchama = Joi.object({
 const extraBenefitValidateSchama = Joi.object({
 	extraBenefitAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	payMonth: Joi.string().max(255).optional(),
 	benefitAmount: Joi.number()
 		.precision(2)
 		.positive()
