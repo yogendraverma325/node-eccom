@@ -6388,9 +6388,9 @@ class UserController {
 				await db.comp_off_credit_history.findAndCountAll({
 					where: {
 						employee_Id: reporties,
-						status: {
-							[Op.ne]: 3, // status not equal to 3
-						},
+						// status: {
+						// 	[Op.ne]: 3, // status not equal to 3
+						// },
 					},
 					include: [
 						{
@@ -6507,7 +6507,7 @@ class UserController {
 							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
 							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
 						],
-						//status: 3,
+						status: 3,
 					},
 					include: [
 						{
