@@ -1682,7 +1682,7 @@ class AttendanceController {
 						"isOverNight",
 					],
 				}),
-			    await helper.checkCompOffPolicyForUser(user),
+				await helper.checkCompOffPolicyForUser(user),
 			]);
 
 			// Create a map for shiftMaster data
@@ -3810,15 +3810,7 @@ class AttendanceController {
 					} else {
 						presentStatus = "absent";
 					}
-					console.log("singleEmp.attendancemaster", singleEmp.attendancemaster);
-					console.log(
-						"singleEmp.attendancemaster.attendancePunchInTime",
-						singleEmp.attendancemaster.attendancePunchInTime,
-					);
-					console.log(
-						"singleEmp.attendancemaster.attendancePunchInTime",
-						singleEmp.attendancemaster.attendancePunchOutTime,
-					);
+
 					if (singleEmp.attendancemaster) {
 						if (
 							singleEmp.attendancemaster.attendancePunchInTime &&
@@ -4047,7 +4039,6 @@ class AttendanceController {
 						}
 						await db.attendanceMaster.update(
 							{
-								//attendanceShiftEndDate: moment().format("YYYY-MM-DD"),
 								attendancePresentStatus: presentStatus,
 								needAttendanceCron: 0,
 							},
@@ -4909,8 +4900,7 @@ class AttendanceController {
 				rosterWorkbook.Sheets[sheetNameEmployee],
 			);
 
-			const result =
-				await validator.rosterUploadSchema.validateAsync(rosterData);
+			const result = await validator.rosterUploadSchema.validateAsync(rosterData);
 
 			let failedRecords = [],
 				successRecords = [];
@@ -6304,6 +6294,32 @@ const attedanceRosterCron = async (user, date) => {
 			"minutes",
 		);
 
+		const shiftDate =
+			attendanceData.dataValues.employee.attendanceroster.shiftsmaster
+				.dataValues.isOverNight === 1
+				? moment(date).add(1, "days").format("YYYY-MM-DD")
+				: date;
+
+		let shiftEndTimePostBuffer = moment(
+			`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`,
+		);
+
+		shiftEndTimePostBuffer.add(
+			attendanceData.dataValues.employee.attendancePolicymaster
+				.allowBufferTime === 1
+				? attendanceData.dataValues.employee.attendancePolicymaster
+					.bufferTimePost
+				: 0,
+			"minutes",
+		);
+
+		// let shiftEndTimeGraceTimeClockOut = moment(
+		// 	`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`,
+		// );
+
+		console.log("shiftStartTimePreBuffer", shiftStartTimePreBuffer)
+		console.log("shiftEndTimePostBuffer", shiftEndTimePostBuffer)
+
 		const punchInAttendanceHistory = await db.attendanceHistory.findOne({
 			where: {
 				employeeId: user,
@@ -6313,18 +6329,26 @@ const attedanceRosterCron = async (user, date) => {
 							"concat",
 							db.Sequelize.col("date"),
 							" ",
-							db.Sequelize.col("time"),
+							db.Sequelize.col("time")
 						),
 						{
 							[Op.between]: [
 								new Date(shiftStartTimePreBuffer),
-								new Date(shiftStartTimeGraceTimeClockIn),
+								new Date(shiftEndTimePostBuffer),
 							],
-						},
+						}
 					),
 				],
 			},
-			order: [["attendanceHistoryId", "asc"]],
+			order: [[
+				db.Sequelize.fn(
+					"concat",
+					db.Sequelize.col("date"),
+					" ",
+					db.Sequelize.col("time")
+				),
+				"ASC",
+			]],
 			limit: 1,
 		});
 
@@ -6366,27 +6390,6 @@ const attedanceRosterCron = async (user, date) => {
 		});
 
 		// ---------------------------------------------- Punch Out ---------------------------------------------- //
-		const shiftDate =
-			attendanceData.dataValues.employee.attendanceroster.shiftsmaster
-				.dataValues.isOverNight === 1
-				? moment(date).add(1, "days").format("YYYY-MM-DD")
-				: date;
-
-		let shiftEndTimePostBuffer = moment(
-			`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`,
-		);
-		let shiftEndTimeGraceTimeClockOut = moment(
-			`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`,
-		);
-
-		shiftEndTimePostBuffer.add(
-			attendanceData.dataValues.employee.attendancePolicymaster
-				.allowBufferTime === 1
-				? attendanceData.dataValues.employee.attendancePolicymaster
-					.bufferTimePost
-				: 0,
-			"minutes",
-		);
 
 		const punchOutAttendanceHistory = await db.attendanceHistory.findOne({
 			where: {
@@ -6401,14 +6404,22 @@ const attedanceRosterCron = async (user, date) => {
 						),
 						{
 							[Op.between]: [
-								new Date(shiftEndTimeGraceTimeClockOut),
+								new Date(shiftStartTimePreBuffer),
 								new Date(shiftEndTimePostBuffer),
 							],
 						},
 					),
 				],
 			},
-			order: [["attendanceHistoryId", "desc"]],
+			order: [[
+				db.Sequelize.fn(
+					"concat",
+					db.Sequelize.col("date"),
+					" ",
+					db.Sequelize.col("time")
+				),
+				"DESC",
+			]],
 			limit: 1,
 		});
 
@@ -6431,6 +6442,24 @@ const attedanceRosterCron = async (user, date) => {
 				attendancePunchOutLongitude: punchOutAttendanceHistory.dataValues.long,
 				punchOutSource: punchOutAttendanceHistory.dataValues.device,
 			};
+
+			await db.attendanceMaster.update(punchOutObject, {
+				where: {
+					attendanceAutoId: attendanceData.dataValues.attendanceAutoId,
+				},
+			});
+		} else {
+			const punchOutObject = {
+				attendanceShiftEndDate: null,
+				attendancePunchOutTime: null,
+				attendancePunchOutRemark: null,
+				attendancePunchOutLocationType: null,
+				attendancePunchOutLocation: null,
+				attendancePunchOutLatitude: null,
+				attendancePunchOutLongitude: null,
+				attendanceWorkingTime: null,
+				punchOutSource: null,
+			}
 
 			await db.attendanceMaster.update(punchOutObject, {
 				where: {
