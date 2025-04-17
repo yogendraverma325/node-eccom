@@ -1640,7 +1640,7 @@ class AttendanceController {
 						},
 						{
 							model: db.EmployeeLeaveHeader,
-							attributes: ["employeeleaveheaderID", "role"],
+							attributes: ["employeeleaveheaderID", "role", "source"],
 							include: [
 								{
 									model: db.leaveApprovalTrails,

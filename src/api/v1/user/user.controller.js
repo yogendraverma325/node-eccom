@@ -806,9 +806,9 @@ class UserController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
+						// {
+						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						// },
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -822,7 +822,7 @@ class UserController {
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition,
 					},
 				],
@@ -871,9 +871,9 @@ class UserController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition1,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
+						// {
+						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						// },
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -887,7 +887,7 @@ class UserController {
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition2,
 					},
 				],
@@ -4192,6 +4192,11 @@ class UserController {
 							"dateOfJoining",
 							"dataCardAdmin",
 							"mobileAdmin",
+							"companyLocationId",
+							"manager",
+							"sbuId",
+							"buId",
+							"designation_id"
 						],
 						where: searchQuery || undefined,
 						include: [
@@ -4255,7 +4260,7 @@ class UserController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [["initiatedTaskAutoId", "DESC"]],
@@ -5024,7 +5029,7 @@ class UserController {
 				include: [
 					{
 						model: db.employeeMaster,
-						attributes: ["id", "empCode", "name", "email"],
+						attributes: ["id", "empCode", "name", "email", "departmentId", "companyLocationId", "designation_id"],
 						where: searchQuery || undefined,
 						include: [
 							{
@@ -5080,7 +5085,7 @@ class UserController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				distinct: true,
 				required: !!searchQuery,
 			});
