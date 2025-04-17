@@ -3610,6 +3610,9 @@ class PaymentController {
 				"Gratuity Sample": 119,
 				"Extra Benefit Sample": 120,
 				"Leave Encashment Sample": 121,
+				"PT Overrides": 122,
+				"LWF Overrides": 123,
+				"Notice Period Recovery": 124,
 
 			};
 
@@ -3692,14 +3695,10 @@ class PaymentController {
 
 			if (
 				salalryStructureAutoId == 0 &&
-				[110, 111, 112, 113, 114, 115, 116,119,120,121].includes(Number(exportSheetAutoId))
+				[110, 111, 112, 113, 114, 115, 116,119,120,121,122,123,124].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
-				const employeeIdss = employeeIds.split(","); // [employeeIds];
-				// employeeIdss.map(id => `'${id}'`).join(', ')
-				// console.log(employeeIdss);
-
-				//return
+				const employeeIdss = employeeIds.split(",");
 				const impactedEmployeeQueryObject = {
 					110: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
@@ -3725,8 +3724,18 @@ class PaymentController {
 					121: `SELECT leaveEncashmentDays as "LEAVE ENCASHMENT DAYS",empCode as EmployeeId FROM ${dbName}.leavencashmentoverrides where  empCode in(${employeeIdss
 								.map((id) => `'${id}'`)
 								.join(", ")});`,		
+					122: `SELECT ptAmount as "PT Amount",empCode as EmployeeId FROM ${dbName}.ptoverrides where ptMonth='${payMonth}' AND empCode in(${employeeIdss
+								.map((id) => `'${id}'`)
+								.join(", ")});`,
+					123: `SELECT lwfAmount as "LWF Amount",empCode as EmployeeId FROM ${dbName}.lwfoverrides where lwfMonth='${payMonth}' AND empCode in(${employeeIdss
+								.map((id) => `'${id}'`)
+								.join(", ")});`,	
+					124: `SELECT recoveryDays as "Notice Period Recovery Days",empCode as EmployeeId FROM ${dbName}.noticerecoveryovrrides where payMonth='${payMonth}' AND empCode in(${employeeIdss
+						  .map((id) => `'${id}'`)
+							.join(", ")});`,																									
 				};
 				query = impactedEmployeeQueryObject[exportSheetAutoId];
+				console.log(query);
 				if (query) {
 					const [results] = await db.sequelize.query(query, { raw: true });
 					employeeData = results;
@@ -3834,7 +3843,7 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[110, 111, 112, 113, 114, 115, 116,119,120,121].includes(Number(exportSheetAutoId))
+				[110, 111, 112, 113, 114, 115, 116,119,120,121,122,123,124].includes(Number(exportSheetAutoId))
 			) {
 				const columnsFroExcel = {
 					110: [
@@ -3876,6 +3885,18 @@ class PaymentController {
 					121: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "LEAVE ENCASHMENT DAYS", value: "LEAVE ENCASHMENT DAYS" },
+					],
+					122: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "PT Amount", value: "PT Amount" },
+					],
+					123: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "LWF Amount", value: "LWF Amount" },
+					],
+					124: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "Notice Period Recovery Days", value: "Notice Period Recovery Days" },
 					],
 				};
 
@@ -3939,6 +3960,9 @@ class PaymentController {
 				"Gratuity Sample": 12,
 				"Extra Benefit Sample": 13,
 				"Leave Encashment Sample": 14,
+				"PT Overrides": 15,
+				"LWF Overrides": 16,
+				"Notice Period Recovery": 17,
 				
 			};
 			const getKeyByValue = async (value) => {
@@ -4034,7 +4058,7 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11,12,13,14].includes(Number(exportSheetAutoId))) {
+			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17].includes(Number(exportSheetAutoId))) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
 				const columns = headers.map((value) => ({

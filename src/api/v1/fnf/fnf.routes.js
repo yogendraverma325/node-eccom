@@ -141,5 +141,11 @@ export default Express.Router()
 			authentication.authenticate,
 			fnfController.extraPaymentUpload,
 		)
+
+		.post(
+			"/syncDeductions",
+			authentication.authenticate,
+			fnfController.syncDeductions,
+		)
 	;
 

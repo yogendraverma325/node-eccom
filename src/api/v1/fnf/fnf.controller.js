@@ -129,7 +129,10 @@ class FnfController {
 			var errorArray = [],
 				successArray = [];
 
-			if (!gratuityDetails[0]["Employee ID"] || !gratuityDetails[0]['Gratuity Years']) {
+			if (
+				!gratuityDetails[0]["Employee ID"] ||
+				!gratuityDetails[0]["Gratuity Years"]
+			) {
 				return respHelper(res, {
 					status: 400,
 					msg: "Invalid File Format",
@@ -326,11 +329,10 @@ class FnfController {
 					msg: "Invalid File Format",
 				});
 			}
-
 			for (const employeeTds of jsonArr) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: 0 },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -341,10 +343,11 @@ class FnfController {
 
 					let obj = {
 						EmployeeId: employeeDetais.id,
-						ptAmount: employeeTds["PT AMOUNT"],
+						ptAmount: employeeTds["PT Amount"],
 						ptMonth: employeeTds["PT Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
+					console.log(obj);
 					const { error } = await validator.ptValidateSchama.validate(obj);
 					if (error) {
 						errorArray.push({
@@ -352,10 +355,6 @@ class FnfController {
 							error: error.details[0].message,
 							employeeID: obj.empCode,
 						});
-						// return respHelper(res, {
-						//   status: 400,
-						//   msg: error.details[0],
-						// });
 					} else {
 						let existDetails = await db.PTOverrides.findOne({
 							where: {
@@ -364,6 +363,7 @@ class FnfController {
 							},
 							raw: true,
 						});
+						console.log(existDetails);
 						if (existDetails) {
 							obj["updatedBy"] = req.userData.id;
 							obj["updatedAt"] = new Date();
@@ -390,7 +390,7 @@ class FnfController {
 			return respHelper(res, {
 				status: 200,
 				data: { errorArray, successArray },
-				msg: "Leave Encashment Uploaded Successfully.",
+				msg: "Professional Tax Uploaded Successfully.",
 			});
 		} catch (error) {
 			console.log(error);
@@ -423,11 +423,12 @@ class FnfController {
 					msg: "Invalid File Format",
 				});
 			}
+			console.log(jsonArr);
 
 			for (const employeeTds of jsonArr) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: 0 },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -438,10 +439,11 @@ class FnfController {
 
 					let obj = {
 						EmployeeId: employeeDetais.id,
-						lwfAmount: employeeTds["LWF AMOUNT"],
+						lwfAmount: employeeTds["LWF Amount"],
 						lwfMonth: employeeTds["LWF Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
+					console.log(obj);
 					const { error } = await validator.lwfValidateSchama.validate(obj);
 					if (error) {
 						errorArray.push({
@@ -524,7 +526,7 @@ class FnfController {
 			for (const employeeTds of jsonArr) {
 				if (employeeTds["Employee ID"]) {
 					let employeeDetais = await db.employeeMaster.findOne({
-						where: { empCode: employeeTds["Employee ID"], isActive: 1 },
+						where: { empCode: employeeTds["Employee ID"], isActive: 0 },
 						raw: true,
 						attributes: ["empCode", "id"],
 					});
@@ -535,7 +537,7 @@ class FnfController {
 
 					let obj = {
 						EmployeeId: employeeDetais.id,
-						recoveryDays: employeeTds["RECOVERY DAYS"],
+						recoveryDays: employeeTds["Notice Period Recovery Days"],
 						payMonth: employeeTds["PAY Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
@@ -547,10 +549,6 @@ class FnfController {
 							error: error.details[0].message,
 							employeeID: obj.empCode,
 						});
-						// return respHelper(res, {
-						//   status: 400,
-						//   msg: error.details[0],
-						// });
 					} else {
 						let existDetails = await db.noticeRecoveryOverrides.findOne({
 							where: {
@@ -930,7 +928,7 @@ class FnfController {
 				},
 			);
 			const result = await db.sequelize.query(allEmployeeQuery);
-	
+
 			if (result[0].length == 0) {
 				return respHelper(res, {
 					status: 400,
@@ -1590,7 +1588,7 @@ class FnfController {
 		}
 	}
 
-    async updateGratuityEncahsments(req, res) {
+	async updateGratuityEncahsments(req, res) {
 		try {
 			let { employeeIds } = req.body;
 			if (!employeeIds) {
@@ -1612,7 +1610,7 @@ class FnfController {
 							as: "employeeJobDetails",
 						},
 					],
-					attributes: ["dateOfExit","empCode"],
+					attributes: ["dateOfExit", "empCode"],
 					nest: true,
 				});
 				let dateOfJoining = employeejobdetails.employeeJobDetails.dateOfJoining;
@@ -1627,22 +1625,36 @@ class FnfController {
 				const days = endDate.diff(startDate, "days");
 				years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
 
-				if(years>=gratuityMinYears)
-				{
-					let existingGratuityDetails = await db.gratuityOverrides.findOne({where:{
-						EmployeeId:element
-					}});
+				if (years >= gratuityMinYears) {
+					let existingGratuityDetails = await db.gratuityOverrides.findOne({
+						where: {
+							EmployeeId: element,
+						},
+					});
 
 					console.log(existingGratuityDetails);
-					if(existingGratuityDetails)
-					{
-						await db.gratuityOverrides.update({gratuityYears:years,updatedBy:req.userData.id,updatedAt:new Date()},{where:{
-							EmployeeId:element
-						}});
-					}
-					else
-					{
-						 await db.gratuityOverrides.create({EmployeeId:element,gratuityYears:years,createdBy:req.userData.id,isActive:1,empCode:employeejobdetails.empCode,createdAt:new Date()});
+					if (existingGratuityDetails) {
+						await db.gratuityOverrides.update(
+							{
+								gratuityYears: years,
+								updatedBy: req.userData.id,
+								updatedAt: new Date(),
+							},
+							{
+								where: {
+									EmployeeId: element,
+								},
+							},
+						);
+					} else {
+						await db.gratuityOverrides.create({
+							EmployeeId: element,
+							gratuityYears: years,
+							createdBy: req.userData.id,
+							isActive: 1,
+							empCode: employeejobdetails.empCode,
+							createdAt: new Date(),
+						});
 					}
 				}
 			}
@@ -1656,137 +1668,198 @@ class FnfController {
 		}
 	}
 
-async extraPaymentUpload(req, res) {
-			try {
-				if (!req.file) {
-					return respHelper(res, {
-						status: 400,
-						msg: "File is required!",
+	async extraPaymentUpload(req, res) {
+		try {
+			if (!req.file) {
+				return respHelper(res, {
+					status: 400,
+					msg: "File is required!",
+				});
+			}
+			let isActive = req.query.isActive ? parseInt(req.query.isActive) : 1;
+
+			///////////////If File is provided by the users//////////////////
+			const workbookEmployee = pkg.readFile(req.file.path);
+			const sheetNameEmployee = workbookEmployee.SheetNames[0];
+			var tdsDetails = pkg.utils.sheet_to_json(
+				workbookEmployee.Sheets[sheetNameEmployee],
+			);
+
+			if (!tdsDetails[0]["Employee ID"]) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Invalid File Format",
+				});
+			}
+			var errorArray = [],
+				successArray = [];
+			for (const employeeExtraPayment of tdsDetails) {
+				if (employeeExtraPayment["Employee ID"]) {
+					let employeeDetais = await db.employeeMaster.findOne({
+						where: {
+							empCode: employeeExtraPayment["Employee ID"],
+							isActive: isActive,
+						},
+						raw: true,
+						attributes: ["empCode", "id"],
 					});
-				}
-				let isActive = req.query.isActive?parseInt(req.query.isActive):1;
-	
-				///////////////If File is provided by the users//////////////////
-				const workbookEmployee = pkg.readFile(req.file.path);
-				const sheetNameEmployee = workbookEmployee.SheetNames[0];
-				var tdsDetails = pkg.utils.sheet_to_json(
-					workbookEmployee.Sheets[sheetNameEmployee],
-				);
-	
-				if (!tdsDetails[0]["Employee ID"]) {
-					return respHelper(res, {
-						status: 400,
-						msg: "Invalid File Format",
-					});
-				}
-				var errorArray = [],
-					successArray = [];
-				for (const employeeExtraPayment of tdsDetails) {
-					if (employeeExtraPayment["Employee ID"]) {
-						let employeeDetais = await db.employeeMaster.findOne({
+
+					if (!employeeDetais) {
+						errorArray.push({
+							index: errorArray.length,
+							errorDetails: "Employee not exist.",
+							employeeID: employeeExtraPayment["Employee ID"],
+						});
+						continue;
+					}
+
+					let extraPaymentCategory =
+						await db.CompensationCategoryMaster.findOne({
+							where: { name: employeeExtraPayment["Category"] },
+							raw: true,
+							attribute: ["compensationCategoryId", "name"],
+						});
+
+					// console.log(extraPaymentCategory);
+					// return;
+					if (!extraPaymentCategory) {
+						errorArray.push({
+							index: errorArray.length + 1,
+							errorDetails:
+								"Invalid Category Name " +
+								"(" +
+								employeeExtraPayment["Category"] +
+								")",
+							employeeID: employeeExtraPayment["Employee ID"],
+						});
+						continue;
+					}
+
+					let extraPayment = {
+						EmployeeId: employeeDetais.id,
+						paymentAmount: employeeExtraPayment["Amount"],
+						paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
+						category: employeeExtraPayment["Category"],
+						empCode: employeeExtraPayment["Employee ID"],
+						category: employeeExtraPayment["Category"],
+						paymentCategoryId: extraPaymentCategory.compensationCategoryId,
+					};
+
+					// console.log(extraPayment);
+					// return;
+					const { error } = await validator.extraPayment.validate(extraPayment);
+					if (error) {
+						errorArray.push({
+							index: errorArray.length + 1,
+							error: error.details[0].message,
+							employeeID: employeeExtraPayment["Employee ID"],
+						});
+					} else {
+						let existTDSDetails = await db.extraPayment.findOne({
 							where: {
-								empCode: employeeExtraPayment["Employee ID"],
-								isActive: isActive,
+								EmployeeId: extraPayment.EmployeeId,
+								paymentMonth: extraPayment.paymentMonth,
+								category: extraPayment.category,
 							},
 							raw: true,
-							attributes: ["empCode", "id"],
 						});
-	
-						if (!employeeDetais) {
-							errorArray.push({
-								index: errorArray.length,
-								errorDetails: "Employee not exist.",
-								employeeID: employeeExtraPayment["Employee ID"],
-							});
-							continue;
-						}
-	
-						let extraPaymentCategory =
-							await db.CompensationCategoryMaster.findOne({
-								where: { name: employeeExtraPayment["Category"] },
-								raw: true,
-								attribute: ["compensationCategoryId", "name"],
-							});
-	
-						// console.log(extraPaymentCategory);
-						// return;
-						if (!extraPaymentCategory) {
-							errorArray.push({
-								index: errorArray.length + 1,
-								errorDetails:
-									"Invalid Category Name " +
-									"(" +
-									employeeExtraPayment["Category"] +
-									")",
-								employeeID: employeeExtraPayment["Employee ID"],
-							});
-							continue;
-						}
-	
-						let extraPayment = {
-							EmployeeId: employeeDetais.id,
-							paymentAmount: employeeExtraPayment["Amount"],
-							paymentMonth: employeeExtraPayment["Effective Month"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeTds['TDS Month (YYYY-MM)'])),
-							category: employeeExtraPayment["Category"],
-							empCode: employeeExtraPayment["Employee ID"],
-							category: employeeExtraPayment["Category"],
-							paymentCategoryId: extraPaymentCategory.compensationCategoryId,
-						};
-	
-						// console.log(extraPayment);
-						// return;
-						const { error } = await validator.extraPayment.validate(extraPayment);
-						if (error) {
-							errorArray.push({
-								index: errorArray.length + 1,
-								error: error.details[0].message,
-								employeeID: employeeExtraPayment["Employee ID"],
-							});
-						} else {
-							let existTDSDetails = await db.extraPayment.findOne({
+
+						if (existTDSDetails) {
+							extraPayment["updatedBy"] = req.userData.id;
+							extraPayment["updatedAt"] = new Date();
+
+							await db.extraPayment.update(extraPayment, {
 								where: {
 									EmployeeId: extraPayment.EmployeeId,
 									paymentMonth: extraPayment.paymentMonth,
 									category: extraPayment.category,
 								},
-								raw: true,
 							});
-	
-							if (existTDSDetails) {
-								extraPayment["updatedBy"] = req.userData.id;
-								extraPayment["updatedAt"] = new Date();
-	
-								await db.extraPayment.update(extraPayment, {
-									where: {
-										EmployeeId: extraPayment.EmployeeId,
-										paymentMonth: extraPayment.paymentMonth,
-										category: extraPayment.category,
-									},
-								});
-								extraPayment["ACTION_TYPE"] = "UPDATE";
-							} else {
-								extraPayment["createdBy"] = req.userData.id;
-								extraPayment["createdAt"] = new Date();
-								await db.extraPayment.create(extraPayment);
-								extraPayment["ACTION_TYPE"] = "CREATE";
-							}
-							successArray.push(extraPayment);
+							extraPayment["ACTION_TYPE"] = "UPDATE";
+						} else {
+							extraPayment["createdBy"] = req.userData.id;
+							extraPayment["createdAt"] = new Date();
+							await db.extraPayment.create(extraPayment);
+							extraPayment["ACTION_TYPE"] = "CREATE";
 						}
+						successArray.push(extraPayment);
 					}
 				}
-	
-				return respHelper(res, {
-					status: 200,
-					data: { errorArray, successArray },
-					msg: "Extra Payment Uploaded Successfully",
-				});
-			} catch (error) {
-				console.log(error);
-				return respHelper(res, {
-					status: 500,
-				});
 			}
+
+			return respHelper(res, {
+				status: 200,
+				data: { errorArray, successArray },
+				msg: "Extra Payment Uploaded Successfully",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
 		}
+	}
+	async syncDeductions(req, res) {
+		try 
+		{
+		const { error, value } = await validator.employeesForPayrollProcess.validate(req.body);
+		if (error) {
+			return respHelper(res, {
+				status: 400,
+				msg: error.details[0],
+			});
+		}
+		let ids = value.departmentId.split(",");
+		let allEmployeeQuery = await fnfHelper.query(
+			value.departmentId == 0 ? 6 : 5,
+			value.processingType,
+			{
+				departmentId: ids,
+				paymonth: value.paymonth,
+				companyId: value.companyId,
+			},
+		);
+
+		const result = await db.sequelize.query(allEmployeeQuery);
+		if (result[0].length == 0) {
+			return respHelper(res, {
+				status: 400,
+				data: [],
+				msg: "No data to process.",
+			});
+		}
+		const employeeIds = result[0].map((employee) => employee.EmployeeId);
+		let returnVAlue = await availableEmployeeForProcessing(
+			employeeIds,
+			value.paymonth,
+		);
+
+			let deductionQuery = await fnfHelper.query(23, {
+				deductionMonth: req.body.paymonth,
+				impactedEmployees: returnVAlue.avalialbleEmployees,
+			});
+			let dedcutionDetails = await db.sequelize.query(deductionQuery);
+			// console.log(deductionQuery);
+			// return;
+			Object.assign(dedcutionDetails[0][0], { ptImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].ptImpactedEmployees.split(",").length:0 });
+			Object.assign(dedcutionDetails[0][0], { lwfImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].lwfImpactedEmployees.split(",").length:0 });
+			Object.assign(dedcutionDetails[0][0], { noticePeriodImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length:0 });
+			Object.assign(dedcutionDetails[0][0], { noticePeriodImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length:0 });
+			Object.assign(dedcutionDetails[0][0], { extraDeductionImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].extraDeductionImpactedEmployees.split(",").length:0 });
+			Object.assign(dedcutionDetails[0][0], { tdsImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length:0 });
+			console.log(dedcutionDetails[0][0]);
+			return respHelper(res, {
+				status: 200,
+				data: dedcutionDetails[0],
+				msg: "Synced All Deductions",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 }
 
 const groupByEmployeeId = (data) => {
