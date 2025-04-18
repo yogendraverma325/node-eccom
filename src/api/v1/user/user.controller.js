@@ -765,7 +765,7 @@ class UserController {
 
 			const mainCondition = {
 				employeeId: req.userId,
-				// source: { [Op.ne]: "system_generated" },
+				source: { [Op.ne]: "system_generated" },
 				status: "pending",
 			};
 
