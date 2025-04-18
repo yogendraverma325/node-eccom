@@ -806,9 +806,9 @@ class UserController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition,
-						// {
-						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						// },
+						{
+							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						},
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -822,7 +822,7 @@ class UserController {
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: true,
+						required: false,
 						where: leaveApprovalCondition,
 					},
 				],
@@ -871,9 +871,9 @@ class UserController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition1,
-						// {
-						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						// },
+						{
+							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						},
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -891,7 +891,7 @@ class UserController {
 						where: leaveApprovalCondition2,
 					},
 				],
-				distinct: true,
+				distinct: false,
 			});
 
 			let assignedAttCount = await db.regularizationMaster.count({

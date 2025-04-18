@@ -191,7 +191,7 @@ class LeaveController {
 				query === "raisedByMe"
 					? {
 							employeeId: req.userId,
-							source: { [Op.ne]: "system_generated" },
+							// source: { [Op.ne]: "system_generated" },
 							status: "pending",
 						}
 					: {
@@ -248,9 +248,9 @@ class LeaveController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition,
-						// {
-						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						// },
+						{
+							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						},
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -297,8 +297,8 @@ class LeaveController {
 						],
 					},
 				],
-				limit,
-				offset,
+				// limit,
+				// offset,
 				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
