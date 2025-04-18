@@ -166,6 +166,7 @@ class LeaveController {
 	// 			});
 	// 		}
 	// 	}
+	
 	async leaveRequestList(req, res) {
 		try {
 			const query = req.query.listFor;
@@ -191,7 +192,7 @@ class LeaveController {
 				query === "raisedByMe"
 					? {
 							employeeId: req.userId,
-							// source: { [Op.ne]: "system_generated" },
+							source: { [Op.ne]: "system_generated" },
 							status: "pending",
 						}
 					: {
@@ -276,7 +277,7 @@ class LeaveController {
 					},
 					{
 						model: db.leaveApprovalTrails,
-						required: true,
+						required: false,
 						where: leaveApprovalCondition,
 						include: [
 							{
@@ -287,7 +288,7 @@ class LeaveController {
 					},
 					{
 						model: db.leaveApprovalTrails,
-						required: true,
+						required: false,
 						as: "trails",
 						include: [
 							{
@@ -297,9 +298,9 @@ class LeaveController {
 						],
 					},
 				],
-				// limit,
-				// offset,
-				// subQuery: false,
+				limit,
+				offset,
+				subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],
