@@ -1979,6 +1979,7 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 				//employee_Id: req.userId,
 				status: 3,
 			},
+			group: ["credit_for_date", "employee_Id"],
 		});
 	}
 

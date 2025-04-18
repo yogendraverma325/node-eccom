@@ -248,9 +248,9 @@ class LeaveController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
+						// {
+						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						// },
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -276,7 +276,7 @@ class LeaveController {
 					},
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition,
 						include: [
 							{
@@ -287,7 +287,7 @@ class LeaveController {
 					},
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						as: "trails",
 						include: [
 							{
@@ -299,7 +299,7 @@ class LeaveController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],

@@ -762,15 +762,6 @@ class UserController {
 		try {
 			let userid = req.userId;
 			let role_id = req.userData.role_id;
-			// const countLeavePending = await db.EmployeeLeaveHeader.count({
-			// 	where: {
-			// 		employeeId: userid,
-			// 		status: "pending",
-			// 		source: {
-			// 			[Op.ne]: "system_generated",
-			// 		},
-			// 	},
-			// });
 
 			const mainCondition = {
 				employeeId: req.userId,
@@ -815,9 +806,9 @@ class UserController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
+						// {
+						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						// },
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -831,7 +822,7 @@ class UserController {
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition,
 					},
 				],
@@ -863,37 +854,6 @@ class UserController {
 				distinct: true,
 			});
 
-			// const countLeaveAssginedForExistingFlow =
-			// 	await db.EmployeeLeaveHeader.count({
-			// 		where: {
-			// 			pendingAt: userid,
-			// 			status: "pending",
-			// 		},
-			// 	});
-
-			// const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
-			// 	where: {
-			// 		// pendingAt: userid,
-			// 		status: "pending",
-			// 	},
-			// 	include: [
-			// 		{
-			// 			model: db.leaveApprovalTrails,
-			// 			where: {
-			// 				isVisible: true,
-			// 				pendingOn: req.userId,
-			// 				isApproved: 0,
-			// 				isPending: 1,
-			// 				// pendingOn: req.userId,
-			// 				// isPending: 1,
-			// 				// isVisible:1
-			// 				//isApproved:0
-			// 			},
-			// 			//required:false
-			// 		},
-			// 	],
-			// });
-
 			const mainCondition1 = {
 				pendingAt: req.userId,
 				status: "pending",
@@ -911,9 +871,9 @@ class UserController {
 					status: "pending",
 					[Op.or]: [
 						mainCondition1,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
+						// {
+						// 	"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+						// },
 					],
 					...(excludedLeaveHeaderIds.length > 0 && {
 						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
@@ -927,7 +887,7 @@ class UserController {
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition2,
 					},
 				],
@@ -962,22 +922,14 @@ class UserController {
 					required: true,
 				},
 			});
-			// let pendingSeperationCount = await db.separationMaster.count(
-			// 	{
-			// 		pendingAt: userid,
-			// 	},
-			// 	{
-			// 		where: {
-			// 			finalStatus: [2, 5, 9],
-			// 		},
-			// 	},
-			// );
 
 			let userId = req.userId;
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(
 				userId,
 				"Pending",
 			);
+
+			compOffbalabceForUser = compOffbalabceForUser?.length || 0;
 
 			let pendingSeperationCount = await db.separationMaster.count({
 				where: {
@@ -4240,6 +4192,11 @@ class UserController {
 							"dateOfJoining",
 							"dataCardAdmin",
 							"mobileAdmin",
+							"companyLocationId",
+							"manager",
+							"sbuId",
+							"buId",
+							"designation_id"
 						],
 						where: searchQuery || undefined,
 						include: [
@@ -4303,7 +4260,7 @@ class UserController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [["initiatedTaskAutoId", "DESC"]],
@@ -5072,7 +5029,7 @@ class UserController {
 				include: [
 					{
 						model: db.employeeMaster,
-						attributes: ["id", "empCode", "name", "email"],
+						attributes: ["id", "empCode", "name", "email", "departmentId", "companyLocationId", "designation_id"],
 						where: searchQuery || undefined,
 						include: [
 							{
@@ -5128,7 +5085,7 @@ class UserController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				distinct: true,
 				required: !!searchQuery,
 			});
