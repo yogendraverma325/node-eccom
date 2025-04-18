@@ -1630,6 +1630,7 @@ class AttendanceController {
 								).daysInMonth()}`,
 							],
 						},
+						status: ["approved", "pending"],
 					},
 					include: [
 						{
