@@ -3575,9 +3575,6 @@ class PaymentController {
 				processId,
 			} = req.query;
 
-			console.log(req.query);
-			// return;
-
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
 			if (fileNameType === "1") {

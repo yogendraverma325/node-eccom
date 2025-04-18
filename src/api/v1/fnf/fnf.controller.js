@@ -1631,8 +1631,6 @@ class FnfController {
 							EmployeeId: element,
 						},
 					});
-
-					console.log(existingGratuityDetails);
 					if (existingGratuityDetails) {
 						await db.gratuityOverrides.update(
 							{
@@ -1658,6 +1656,68 @@ class FnfController {
 					}
 				}
 			}
+
+			let leaveEncashmentAndRevcoveryDaysQuery = await fnfHelper.query(24, {
+				employeeIds: employeeIds,
+			});
+			const leaveEncashmentAndRevcoveryDaysData = await db.sequelize.query(
+				leaveEncashmentAndRevcoveryDaysQuery,
+			);
+			for (const leaveEncashAndRevoceryObj of leaveEncashmentAndRevcoveryDaysData[0]) {
+				if(leaveEncashAndRevoceryObj.l2RecoveryDays && leaveEncashAndRevoceryObj.l2RecoveryDays>0)
+				{
+					console.log(leaveEncashAndRevoceryObj.l2RecoveryDays);
+					let recoveryDaysData = await db.noticeRecoveryOverrides.findOne({
+						where: { employeeId: leaveEncashAndRevoceryObj.id },
+						attributes: ["recoveryDaysAutoId"],
+						raw: true,
+					});
+	
+					if (recoveryDaysData) {
+						await db.noticeRecoveryOverrides.update(
+							{ recoveryDays: leaveEncashAndRevoceryObj.availableLeave },
+							{ where: { EmployeeId: leaveEncashAndRevoceryObj.id } },
+						);
+					} else {
+						await db.noticeRecoveryOverrides.create({
+							EmployeeId: leaveEncashAndRevoceryObj.id,
+							recoveryDays: leaveEncashAndRevoceryObj.l2RecoveryDays
+								? leaveEncashAndRevoceryObj.l2RecoveryDays
+								: 0,
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							empCode:leaveEncashAndRevoceryObj.empCode
+						});
+					}
+				}
+
+
+				if(leaveEncashAndRevoceryObj.availableLeave && leaveEncashAndRevoceryObj.availableLeave>0)
+				{
+					let leaveEncashmentData = await db.leaveEncashmentOverrides.findOne({
+						where: { EmployeeId: leaveEncashAndRevoceryObj.id },
+						attributes: ["leaveEncashmentAutoId"],
+						raw: true,
+					});
+			
+					if (leaveEncashmentData) {
+						await db.leaveEncashmentOverrides.update(
+							{ leaveEncashmentDays: leaveEncashAndRevoceryObj.availableLeave },
+							{ where: { EmployeeId: leaveEncashAndRevoceryObj.id } },
+						);
+					} else {
+						await db.leaveEncashmentOverrides.create({
+							EmployeeId: leaveEncashAndRevoceryObj.id,
+							leaveEncashmentDays: leaveEncashAndRevoceryObj.availableLeave,
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							empCode:leaveEncashAndRevoceryObj.empCode
+						});
+					}
+				}
+		
+			}
+
 			return respHelper(res, {
 				status: 200,
 				data: [],
@@ -1800,53 +1860,99 @@ class FnfController {
 		}
 	}
 	async syncDeductions(req, res) {
-		try 
-		{
-		const { error, value } = await validator.employeesForPayrollProcess.validate(req.body);
-		if (error) {
-			return respHelper(res, {
-				status: 400,
-				msg: error.details[0],
-			});
-		}
-		let ids = value.departmentId.split(",");
-		let allEmployeeQuery = await fnfHelper.query(
-			value.departmentId == 0 ? 6 : 5,
-			value.processingType,
-			{
-				departmentId: ids,
-				paymonth: value.paymonth,
-				companyId: value.companyId,
-			},
-		);
+		try {
+			const { error, value } =
+				await validator.employeesForPayrollProcess.validate(req.body);
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					msg: error.details[0],
+				});
+			}
+			let ids = value.departmentId.split(",");
+			let allEmployeeQuery = await fnfHelper.query(
+				value.departmentId == 0 ? 6 : 5,
+				value.processingType,
+				{
+					departmentId: ids,
+					paymonth: value.paymonth,
+					companyId: value.companyId,
+				},
+			);
 
-		const result = await db.sequelize.query(allEmployeeQuery);
-		if (result[0].length == 0) {
-			return respHelper(res, {
-				status: 400,
-				data: [],
-				msg: "No data to process.",
-			});
-		}
-		const employeeIds = result[0].map((employee) => employee.EmployeeId);
-		let returnVAlue = await availableEmployeeForProcessing(
-			employeeIds,
-			value.paymonth,
-		);
+
+			// console.log(allEmployeeQuery);
+			// return;
+
+
+			const result = await db.sequelize.query(allEmployeeQuery);
+			// console.log(result)
+			// return;
+			if (result[0].length == 0) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "No data to process.",
+				});
+			}
+			const employeeIds = result[0].map((employee) => employee.EmployeeId);
+			let returnVAlue = await availableEmployeeForProcessing(
+				employeeIds,
+				value.paymonth,
+			);
+
+
+			
 
 			let deductionQuery = await fnfHelper.query(23, {
 				deductionMonth: req.body.paymonth,
 				impactedEmployees: returnVAlue.avalialbleEmployees,
 			});
+
+
 			let dedcutionDetails = await db.sequelize.query(deductionQuery);
-			// console.log(deductionQuery);
+			// console.log(dedcutionDetails);
 			// return;
-			Object.assign(dedcutionDetails[0][0], { ptImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].ptImpactedEmployees.split(",").length:0 });
-			Object.assign(dedcutionDetails[0][0], { lwfImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].lwfImpactedEmployees.split(",").length:0 });
-			Object.assign(dedcutionDetails[0][0], { noticePeriodImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length:0 });
-			Object.assign(dedcutionDetails[0][0], { noticePeriodImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length:0 });
-			Object.assign(dedcutionDetails[0][0], { extraDeductionImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].extraDeductionImpactedEmployees.split(",").length:0 });
-			Object.assign(dedcutionDetails[0][0], { tdsImpactedCounts: dedcutionDetails[0][0]?dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length:0 });
+			Object.assign(dedcutionDetails[0][0], {
+				// ptImpactedEmployees: dedcutionDetails[0][0].ptImpactedEmployees
+				// ? dedcutionDetails[0][0].ptImpactedEmployees
+				// : 0,
+				ptImpactedCounts: dedcutionDetails[0][0].ptImpactedEmployees
+					? dedcutionDetails[0][0].ptImpactedEmployees.split(",").length
+					: 0,
+			});
+			Object.assign(dedcutionDetails[0][0], {
+				//lwfImpactedEmployees: dedcutionDetails[0][0].lwfImpactedEmployees?dedcutionDetails[0][0].lwfImpactedEmployees:0,
+
+				lwfImpactedCounts: dedcutionDetails[0][0].lwfImpactedEmployees
+					? dedcutionDetails[0][0].lwfImpactedEmployees.split(",").length
+					: 0,
+			});
+			Object.assign(dedcutionDetails[0][0], {
+				noticePeriodImpactedCounts: dedcutionDetails[0][0].noticeImpactedEmployees
+					? dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length
+					: 0,
+					// noticeImpactedEmployees: dedcutionDetails[0][0].noticeImpactedEmployees
+					// ? dedcutionDetails[0][0].noticeImpactedEmployees
+					// : 0,
+			});
+
+			Object.assign(dedcutionDetails[0][0], {
+				extraDeductionImpactedCounts: dedcutionDetails[0][0].extraDeductionImpactedEmployees
+					? dedcutionDetails[0][0].extraDeductionImpactedEmployees.split(",")
+							.length
+					: 0,
+					// extraDeductionImpactedEmployees: dedcutionDetails[0][0].extraDeductionImpactedEmployees
+					// ? dedcutionDetails[0][0].extraDeductionImpactedEmployees:0
+			});
+			Object.assign(dedcutionDetails[0][0], {
+				tdsImpactedCounts: dedcutionDetails[0][0]
+					? dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length
+					: 0,
+					// tdsImpactedEmployees: dedcutionDetails[0][0]
+					// ? dedcutionDetails[0][0].tdsImpactedEmployees
+					// : 0,
+			});
 			console.log(dedcutionDetails[0][0]);
 			return respHelper(res, {
 				status: 200,
