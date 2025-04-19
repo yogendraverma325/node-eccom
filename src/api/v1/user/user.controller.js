@@ -803,26 +803,27 @@ class UserController {
 
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
 				where: {
-					status: "pending",
-					[Op.or]: [
-						mainCondition,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
-					],
-					...(excludedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					}),
-					...(rejectedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					}),
+					// status: "pending",
+					...mainCondition,
+					// [Op.or]: [
+					// 	mainCondition,
+					// 	{
+					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+					// 	},
+					// ],
+					// ...(excludedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					// }),
+					// ...(rejectedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					// }),
 				},
 
 				attributes: [],
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition,
 					},
 				],
@@ -855,7 +856,7 @@ class UserController {
 			});
 
 			const mainCondition1 = {
-				pendingAt: req.userId,
+				// pendingAt: req.userId,
 				status: "pending",
 			};
 
@@ -868,19 +869,20 @@ class UserController {
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
-					status: "pending",
-					[Op.or]: [
-						mainCondition1,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
-					],
-					...(excludedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					}),
-					...(rejectedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					}),
+					// status: "pending",
+					...mainCondition1,
+					// [Op.or]: [
+					// 	mainCondition1,
+					// 	{
+					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+					// 	},
+					// ],
+					// ...(excludedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					// }),
+					// ...(rejectedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					// }),
 				},
 
 				attributes: [],

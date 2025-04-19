@@ -196,9 +196,9 @@ class LeaveController {
 							status: "pending",
 						}
 					: {
-							pendingAt: req.userId,
+							// pendingAt: req.userId,
 							status: "pending",
-							...(user && { employeeId: user }),
+							...(user && { employeeId: user })
 						};
 
 			const leaveApprovalCondition =
@@ -217,8 +217,8 @@ class LeaveController {
 							isApproved: 0,
 							isPending: 1,
 						};
-			// console.log("mainCondition", mainCondition);
-			// console.log("leaveApprovalCondition", leaveApprovalCondition);
+			console.log("mainCondition", mainCondition);
+			console.log("leaveApprovalCondition", leaveApprovalCondition);
 
 			const fullyApprovedLeaveHeaders = await db.leaveApprovalTrails.findAll({
 				attributes: ["leaveHeaderAutoId"],
@@ -246,19 +246,20 @@ class LeaveController {
 
 			const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({
 				where: {
-					status: "pending",
-					[Op.or]: [
-						mainCondition,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
-					],
-					...(excludedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					}),
-					...(rejectedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					}),
+					// status: "pending",
+					...mainCondition
+					// [Op.or]: [
+					// 	mainCondition,
+					// 	{
+					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+					// 	},
+					// ],
+					// ...(excludedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					// }),
+					// ...(rejectedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					// }),
 				},
 
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
@@ -277,7 +278,7 @@ class LeaveController {
 					},
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						where: leaveApprovalCondition,
 						include: [
 							{
@@ -288,7 +289,7 @@ class LeaveController {
 					},
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
+						required: true,
 						as: "trails",
 						include: [
 							{
@@ -300,7 +301,7 @@ class LeaveController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],
