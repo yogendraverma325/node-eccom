@@ -644,6 +644,12 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
+			console.log("item ",item)
+
+			if(item.leaveCompanyDetails.display_all==0){
+	console.log("displa ",)
+item.dataValues.is_active_for_display = item.leaveCompanyDetails.display_all;
+			}
 
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
@@ -740,6 +746,8 @@ const empLeaveDetails = async function (userId, type) {
 				item.dataValues.addOn = [...policy, ...adddon];
 			}
 		}
+
+		 
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
 			where: {

@@ -1669,7 +1669,7 @@ class AttendanceController {
 									include: {
 										model: db.roleMaster,
 										attributes: ["name"],
-										required:
+										required:false
 									},
 								},
 							],
