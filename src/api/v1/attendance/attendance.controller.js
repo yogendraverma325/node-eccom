@@ -1665,6 +1665,11 @@ class AttendanceController {
 									attributes: ["id", "empCode", "name"],
 									as: "leaveCreatedBy",
 									required: false,
+									include: {
+										model: db.roleMaster,
+										attributes: ["name"],
+										required:
+									},
 								},
 							],
 						},

@@ -3557,6 +3557,9 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "leaveCreatedBy",
 							required: false,
+							include: [
+								{ model: db.roleMaster, attributes: ['name'], required: false }
+							]
 						},
 					],
 					limit,
