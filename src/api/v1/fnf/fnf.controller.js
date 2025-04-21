@@ -29,8 +29,6 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-			// console.log(employeeForProcessingQuery);
-			// return;
 			let employeeForProcessing = await db.sequelize.query(
 				employeeForProcessingQuery,
 			);
@@ -79,7 +77,9 @@ class FnfController {
 	async employeesListForFnfProcessing(req, res) {
 		try {
 			let { companyId, year, month } = req.query;
-			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
+//			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
+
+			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) = ${month});`;
 
 			let employeeForProcessing = await db.sequelize.query(
 				employeeForProcessingQuery,
@@ -1214,6 +1214,8 @@ class FnfController {
 				});
 			}
 			const employeeIds = result[0].map((employee) => employee.EmployeeId);
+
+
 			let returnVAlue = await availableEmployeeForProcessing(
 				employeeIds,
 				value.paymonth,
@@ -1879,15 +1881,7 @@ class FnfController {
 					companyId: value.companyId,
 				},
 			);
-
-
-			// console.log(allEmployeeQuery);
-			// return;
-
-
 			const result = await db.sequelize.query(allEmployeeQuery);
-			// console.log(result)
-			// return;
 			if (result[0].length == 0) {
 				return respHelper(res, {
 					status: 400,
@@ -1900,30 +1894,17 @@ class FnfController {
 				employeeIds,
 				value.paymonth,
 			);
-
-
-			
-
 			let deductionQuery = await fnfHelper.query(23, {
 				deductionMonth: req.body.paymonth,
 				impactedEmployees: returnVAlue.avalialbleEmployees,
 			});
-
-
 			let dedcutionDetails = await db.sequelize.query(deductionQuery);
-			// console.log(dedcutionDetails);
-			// return;
 			Object.assign(dedcutionDetails[0][0], {
-				// ptImpactedEmployees: dedcutionDetails[0][0].ptImpactedEmployees
-				// ? dedcutionDetails[0][0].ptImpactedEmployees
-				// : 0,
 				ptImpactedCounts: dedcutionDetails[0][0].ptImpactedEmployees
 					? dedcutionDetails[0][0].ptImpactedEmployees.split(",").length
 					: 0,
 			});
 			Object.assign(dedcutionDetails[0][0], {
-				//lwfImpactedEmployees: dedcutionDetails[0][0].lwfImpactedEmployees?dedcutionDetails[0][0].lwfImpactedEmployees:0,
-
 				lwfImpactedCounts: dedcutionDetails[0][0].lwfImpactedEmployees
 					? dedcutionDetails[0][0].lwfImpactedEmployees.split(",").length
 					: 0,
@@ -1932,9 +1913,6 @@ class FnfController {
 				noticePeriodImpactedCounts: dedcutionDetails[0][0].noticeImpactedEmployees
 					? dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length
 					: 0,
-					// noticeImpactedEmployees: dedcutionDetails[0][0].noticeImpactedEmployees
-					// ? dedcutionDetails[0][0].noticeImpactedEmployees
-					// : 0,
 			});
 
 			Object.assign(dedcutionDetails[0][0], {
@@ -1942,16 +1920,11 @@ class FnfController {
 					? dedcutionDetails[0][0].extraDeductionImpactedEmployees.split(",")
 							.length
 					: 0,
-					// extraDeductionImpactedEmployees: dedcutionDetails[0][0].extraDeductionImpactedEmployees
-					// ? dedcutionDetails[0][0].extraDeductionImpactedEmployees:0
 			});
 			Object.assign(dedcutionDetails[0][0], {
 				tdsImpactedCounts: dedcutionDetails[0][0]
 					? dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length
 					: 0,
-					// tdsImpactedEmployees: dedcutionDetails[0][0]
-					// ? dedcutionDetails[0][0].tdsImpactedEmployees
-					// : 0,
 			});
 			console.log(dedcutionDetails[0][0]);
 			return respHelper(res, {
@@ -2048,11 +2021,8 @@ async function processFnf(data) {
 			year: result[0][0].payMonth.split("-")[0],
 			month: result[0][0].payMonth.split("-")[1],
 		});
-		const salaryRegisterArray = [],
-			errorProcessed = [];
-		let employees = employeeIds; //[484,560];//
 
-		//console.log("employeeIds :::: ", employeeIds);
+		let employees = employeeIds; //[484,560];//
 
 		for (const employee of employees) {
 			const actualWorkingDays = await fnfHelper.actualWorkingDays({
@@ -2259,15 +2229,12 @@ async function processFnf(data) {
 
 			let allExtraPaymenetQuery = `SELECT e.id AS EmployeeId, eb.benefitAmount AS ExtraBenefitAmount, epSummary.totalExtraPayment, epSummary.paymentCategories, lco.leaveEncashmentDays ,gor.gratuityYears FROM ${dbName}.employee e LEFT JOIN ${dbName}.extrabenefit eb ON e.id = eb.EmployeeId LEFT JOIN (SELECT EmployeeId, SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category, '(', paymentAmount, ')' ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment GROUP BY EmployeeId) epSummary ON e.id = epSummary.EmployeeId LEFT JOIN ${dbName}.leavencashmentoverrides lco ON e.id = lco.EmployeeId LEFT JOIN ${dbName}.gratuityoverrides gor ON e.id = gor.EmployeeId WHERE e.id =${employee};`
 			let allExtraEarnings = await db.sequelize.query(allExtraPaymenetQuery);
-			console.log(allExtraEarnings[0][0]);
-			// return;	
+			let deductionQuery = await fnfHelper.query(23, {
+				deductionMonth: result[0][0].salaryMonth,
+				impactedEmployees: employee,
+			});
 
-
-			// const extraPaymentAmount1 =
-			// 	allExtraEarnings[0].length > 0
-			// 		? allExtraEarnings[0][0]?.totalExtraPayment
-			// 		: 0;
-
+			let dedcutionDetails = await db.sequelize.query(deductionQuery);
 			const {
 				EmployeeId,
 				ExtraBenefitAmount,
@@ -2276,10 +2243,6 @@ async function processFnf(data) {
 				leaveEncashmentDays,
 				gratuityYears
 			  }		= allExtraEarnings[0][0];
-
-
-			
-
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
 				const queryForComponentConfiguration = await fnfHelper.query(
 					9,
