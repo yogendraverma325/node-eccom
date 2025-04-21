@@ -938,6 +938,7 @@ class AttendanceController {
 				regularizeStatus: "Pending",
 				createdBy: req.userId,
 				createdAt: moment(),
+				creatorRole: req.userRole
 			});
 
 			await helper.revokeAppliedLeave(result.fromDate, req.userId);
@@ -1531,26 +1532,20 @@ class AttendanceController {
 								"updatedAt",
 								"updatedBy",
 								"createdBy",
+								"creatorRole",
+								"updatorRole"
 							],
 							where: { regularizeStatus: ["Pending", "Approved"] },
 							include: [
 								{
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
-									as: "attendanceUpdatedBy",
-									include: {
-										model: db.roleMaster,
-										attributes: ["name"],
-									},
+									as: "attendanceUpdatedBy"
 								},
 								{
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
-									as: "attendanceCreatedBy",
-									include: {
-										model: db.roleMaster,
-										attributes: ["name"],
-									},
+									as: "attendanceCreatedBy"
 								},
 							],
 						},
@@ -1668,7 +1663,7 @@ class AttendanceController {
 									include: {
 										model: db.roleMaster,
 										attributes: ["name"],
-										required:
+										required: false
 									},
 								},
 							],
@@ -2094,6 +2089,7 @@ class AttendanceController {
 						regularizeStatus: result.status ? "Approved" : "Rejected",
 						updatedBy: req.userId,
 						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+						updatorRole: req.userRole
 					},
 					{
 						where: {
@@ -5062,7 +5058,7 @@ class AttendanceController {
 							regularizeStatus: "Pending",
 						}
 						: {
-							createdBy: { [Op.not]: req.userId },
+							// createdBy: { [Op.not]: req.userId },
 							//regularizeManagerId: req.userId,
 							regularizeStatus: "Pending",
 						},
@@ -5075,6 +5071,7 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
+						where: { ...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId } })},
 						include: [
 							{
 								model: db.employeeMaster,
@@ -5214,6 +5211,7 @@ class AttendanceController {
 						regularizeStatus: result.status ? "Approved" : "Rejected",
 						updatedBy: req.userId,
 						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+						updatorRole: req.userRole
 					},
 					{
 						where: {
