@@ -187,6 +187,14 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DECIMAL(10, 2),
 			allowNull: true,
 		},
+		leaveEncashmentDays:{
+			type:Sequelize.DECIMAL(10,2),
+			default:0,
+		},
+		ExtraBenefitAmount:{
+			type:Sequelize.DECIMAL(10,2),
+			default:0,
+		}
 	});
 	return PayMonthlyElement;
 };

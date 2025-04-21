@@ -1220,8 +1220,8 @@ class FnfController {
 			);
 			var totaPaymentAmount = 0,
 				uniqueEmployeeImpacted = 0;
-			let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
-			let extraPayments = await db.sequelize.query(allDeductionQuery);
+			let allExtraPaymenetQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
+			let extraPayments = await db.sequelize.query(allExtraPaymenetQuery);
 			for (const singleEmployeePayment of extraPayments[0]) {
 				console.log(singleEmployeePayment);
 				totaPaymentAmount += parseFloat(
@@ -2009,7 +2009,11 @@ const groupByEmployeeId = (data) => {
 				"PF Employee": item["PF Employee"],
 				"PF Employer": item["PF Employer"],
 				Gratuity: item["gratuityAmount"],
-				"Leave Encashment": item["leaveEncashmentAmount"],
+				"Leave Encashment Days": item['leaveEncashmentDays'],
+				"Leave Encashment Amount": item["leaveEncashmentAmount"],
+				"Extra Benefit Amount": item["ExtraBenefitAmount"],
+				
+			
 			};
 			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
 		}
@@ -2048,7 +2052,7 @@ async function processFnf(data) {
 			errorProcessed = [];
 		let employees = employeeIds; //[484,560];//
 
-		console.log("employeeIds :::: ", employeeIds);
+		//console.log("employeeIds :::: ", employeeIds);
 
 		for (const employee of employees) {
 			const actualWorkingDays = await fnfHelper.actualWorkingDays({
@@ -2077,9 +2081,9 @@ async function processFnf(data) {
 			const employeeDetailsComponentWise = await db.sequelize.query(
 				queryForEmployeePayDetails,
 			);
-			const leaveEncashmentDays =
-				employeeDetailsComponentWise[0][0]["leaveEncashmentDays"];
-			const gratuityYears = employeeDetailsComponentWise[0][0]["gratuityYears"];
+			// const leaveEncashmentDays =
+			// 	employeeDetailsComponentWise[0][0]["leaveEncashmentDays"];
+			//const gratuityYears = employeeDetailsComponentWise[0][0]["gratuityYears"];
 			// console.log("gratuityYears :::: "+gratuityYears);
 			// return;
 			if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
@@ -2251,12 +2255,31 @@ async function processFnf(data) {
 			////////////////////LWF-PT Variable validate and initialize////////////Verified
 			/////////////////////////Extra-Payment Extraction//////////////////Verified
 
-			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
-			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
-			const extraPaymentAmount1 =
-				extraPaymentAmount[0].length > 0
-					? extraPaymentAmount[0][0]?.totalExtraPayment
-					: 0;
+			// let allExtraPaymenetQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
+
+			let allExtraPaymenetQuery = `SELECT e.id AS EmployeeId, eb.benefitAmount AS ExtraBenefitAmount, epSummary.totalExtraPayment, epSummary.paymentCategories, lco.leaveEncashmentDays ,gor.gratuityYears FROM ${dbName}.employee e LEFT JOIN ${dbName}.extrabenefit eb ON e.id = eb.EmployeeId LEFT JOIN (SELECT EmployeeId, SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category, '(', paymentAmount, ')' ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment GROUP BY EmployeeId) epSummary ON e.id = epSummary.EmployeeId LEFT JOIN ${dbName}.leavencashmentoverrides lco ON e.id = lco.EmployeeId LEFT JOIN ${dbName}.gratuityoverrides gor ON e.id = gor.EmployeeId WHERE e.id =${employee};`
+			let allExtraEarnings = await db.sequelize.query(allExtraPaymenetQuery);
+			console.log(allExtraEarnings[0][0]);
+			// return;	
+
+
+			// const extraPaymentAmount1 =
+			// 	allExtraEarnings[0].length > 0
+			// 		? allExtraEarnings[0][0]?.totalExtraPayment
+			// 		: 0;
+
+			const {
+				EmployeeId,
+				ExtraBenefitAmount,
+				totalExtraPayment,
+				paymentCategories,
+				leaveEncashmentDays,
+				gratuityYears
+			  }		= allExtraEarnings[0][0];
+
+
+			
+
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
 				const queryForComponentConfiguration = await fnfHelper.query(
 					9,
@@ -2310,9 +2333,8 @@ async function processFnf(data) {
 				empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
 				empCopntWiseDetl["ptAmount"] = ptAmount1;
 				empCopntWiseDetl["lwfAmount"] = lwfAmount1;
-				empCopntWiseDetl["extraPaymentAmount"] = extraPaymentAmount1;
-				empCopntWiseDetl["extraPaymentCategories"] =
-					extraPaymentAmount[0][0]?.paymentCategories;
+				empCopntWiseDetl["extraPaymentAmount"] = totalExtraPayment?totalExtraPayment:0;
+				empCopntWiseDetl["extraPaymentCategories"] =paymentCategories?paymentCategories:"";
 				empCopntWiseDetl["processId"] = processId;
 
 				////////////////////////////////PF-Applicablity Keys////////////////////////
@@ -2354,6 +2376,8 @@ async function processFnf(data) {
 				empCopntWiseDetl["isGratuityApplicable"] = isGratuityApplicable;
 				empCopntWiseDetl["isLeaveEncashmentApplicable"] =
 					isLeaveEncashmentApplicable;
+				empCopntWiseDetl['leaveEncashmentDays']=leaveEncashmentDays?leaveEncashmentDays:0;	
+				empCopntWiseDetl['ExtraBenefitAmount'] = ExtraBenefitAmount?ExtraBenefitAmount:0;
 				// console.log(empCopntWiseDetl);
 
 				// //////////////////////////////PF-Applicablity Keys//////////////////////////////////
@@ -2383,13 +2407,13 @@ async function processFnf(data) {
 				await fnfHelper.getCalculatedESIC(payElementComponents);
 			let getCalculatedGratuity = await fnfHelper.calculateGratuity(
 				payElementComponents,
-				gratuityYears,
+				gratuityYears?gratuityYears:0,
 			);
 			// console.log(getCalculatedGratuity);
 			// return;
 			let leaveEncashmentAmount = await fnfHelper.leaveEncashmentAmount(
 				payElementComponents,
-				leaveEncashmentDays,
+				leaveEncashmentDays?leaveEncashmentDays:0,
 			);
 			//console.log(getCalculatedGratuity);
 			/////////////////Calculation And Updation of PF Amount //////////////////////
