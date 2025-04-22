@@ -1060,9 +1060,6 @@ class FnfController {
 					msg: "Pay Process Flow Not Defined",
 				});
 			}
-
-			console.log(processId);
-
 			if (nextStatusId == 7) {
 				await generatePaySlip({ processId: processId, req });
 			} else if (nextStatusId == 8) {
@@ -1562,8 +1559,8 @@ class FnfController {
 			const currentProcessStatus = await db.sequelize.query(
 				queryForProcessStatus,
 			);
-			console.log(queryForProcessStatus);
-			console.log("currentProcessStatus", currentProcessStatus);
+			// console.log(queryForProcessStatus);
+			// console.log("currentProcessStatus", currentProcessStatus);
 			// return;
 			if ([1, 2].includes(currentProcessStatus[0][0].currentStatusId)) {
 				stepperDataQuery = await fnfHelper.query(17, processId, null);
@@ -1573,9 +1570,9 @@ class FnfController {
 				[6, 7, 8].includes(currentProcessStatus[0][0].currentStatusId)
 			) {
 				stepperDataQuery = await fnfHelper.query(19, processId, null);
-				console.log(stepperDataQuery);
+				//console.log(stepperDataQuery);
 			}
-			console.log(stepperDataQuery);
+			//console.log(stepperDataQuery);
 			const stepperData = await db.sequelize.query(stepperDataQuery);
 			return respHelper(res, {
 				status: 200,
@@ -1600,6 +1597,7 @@ class FnfController {
 					msg: "Eployees Ids Not Available",
 				});
 			}
+			/////////////////////Gratuiy
 			let employeeIDsArray = employeeIds.split(",");
 			for (const element of employeeIDsArray) {
 				let employeejobdetails = await db.employeeMaster.findOne({
@@ -1985,8 +1983,7 @@ const groupByEmployeeId = (data) => {
 				"Leave Encashment Days": item['leaveEncashmentDays'],
 				"Leave Encashment Amount": item["leaveEncashmentAmount"],
 				"Extra Benefit Amount": item["ExtraBenefitAmount"],
-				
-			
+				"Notice Recovery Amount":item["noticeRecoveryAmount"]
 			};
 			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
 		}
@@ -2010,11 +2007,8 @@ const groupByEmployeeId = (data) => {
 
 async function processFnf(data) {
 	let { processId, req } = data;
-	var errorArray = [];
 	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
 	const result = await db.sequelize.query(queryForAllExecutableEmployee);
-	// console.log(queryForAllExecutableEmployee)
-	// return
 	if (result[0].length > 0) {
 		const employeeIds = result[0].map((item) => item.EmployeeId);
 		const totalWorkingDays = await fnfHelper.getDaysInCurrentMonth({
@@ -2051,11 +2045,6 @@ async function processFnf(data) {
 			const employeeDetailsComponentWise = await db.sequelize.query(
 				queryForEmployeePayDetails,
 			);
-			// const leaveEncashmentDays =
-			// 	employeeDetailsComponentWise[0][0]["leaveEncashmentDays"];
-			//const gratuityYears = employeeDetailsComponentWise[0][0]["gratuityYears"];
-			// console.log("gratuityYears :::: "+gratuityYears);
-			// return;
 			if (!employeeDetailsComponentWise[0][0].payPackageAutoId) {
 				await db.payProcessDetails.update(
 					{ payStatus: 101, payRemark: "Pay Package Not Assigned." },
@@ -2069,10 +2058,6 @@ async function processFnf(data) {
 
 				continue;
 			}
-
-			// console.log(queryForEmployeePayDetails);
-			// return;
-
 			const payPackageMonthlyCTC =
 				parseFloat(
 					employeeDetailsComponentWise?.[0]?.[0]?.payPackageMonthlyCTC,
@@ -2227,13 +2212,12 @@ async function processFnf(data) {
 
 			// let allExtraPaymenetQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 
-			let allExtraPaymenetQuery = `SELECT e.id AS EmployeeId, eb.benefitAmount AS ExtraBenefitAmount, epSummary.totalExtraPayment, epSummary.paymentCategories, lco.leaveEncashmentDays ,gor.gratuityYears FROM ${dbName}.employee e LEFT JOIN ${dbName}.extrabenefit eb ON e.id = eb.EmployeeId LEFT JOIN (SELECT EmployeeId, SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category, '(', paymentAmount, ')' ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment GROUP BY EmployeeId) epSummary ON e.id = epSummary.EmployeeId LEFT JOIN ${dbName}.leavencashmentoverrides lco ON e.id = lco.EmployeeId LEFT JOIN ${dbName}.gratuityoverrides gor ON e.id = gor.EmployeeId WHERE e.id =${employee};`
+			let allExtraPaymenetQuery = `SELECT e.id AS EmployeeId, eb.benefitAmount AS ExtraBenefitAmount, epSummary.totalExtraPayment, epSummary.paymentCategories, lco.leaveEncashmentDays ,gor.gratuityYears FROM ${dbName}.employee e LEFT JOIN ${dbName}.extrabenefit eb ON e.id = eb.EmployeeId LEFT JOIN (SELECT EmployeeId, SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category, '(', paymentAmount, ')' ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment where paymentMonth="${result[0][0].salaryMonth}" and EmployeeId = ${employee} GROUP BY EmployeeId) epSummary ON e.id = epSummary.EmployeeId LEFT JOIN ${dbName}.leavencashmentoverrides lco ON e.id = lco.EmployeeId LEFT JOIN ${dbName}.gratuityoverrides gor ON e.id = gor.EmployeeId WHERE e.id =${employee};`
 			let allExtraEarnings = await db.sequelize.query(allExtraPaymenetQuery);
 			let deductionQuery = await fnfHelper.query(23, {
 				deductionMonth: result[0][0].salaryMonth,
 				impactedEmployees: employee,
 			});
-
 			let dedcutionDetails = await db.sequelize.query(deductionQuery);
 			const {
 				EmployeeId,
@@ -2242,7 +2226,7 @@ async function processFnf(data) {
 				paymentCategories,
 				leaveEncashmentDays,
 				gratuityYears
-			  }		= allExtraEarnings[0][0];
+			  }= allExtraEarnings[0][0];
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
 				const queryForComponentConfiguration = await fnfHelper.query(
 					9,
@@ -2294,8 +2278,8 @@ async function processFnf(data) {
 				empCopntWiseDetl["createdAt"] = new Date();
 				empCopntWiseDetl["createdBy"] = req.userData.id;
 				empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
-				empCopntWiseDetl["ptAmount"] = ptAmount1;
-				empCopntWiseDetl["lwfAmount"] = lwfAmount1;
+				empCopntWiseDetl["ptAmount"] = dedcutionDetails[0][0].ptAggregateAmount?dedcutionDetails[0][0].ptAggregateAmount:ptAmount1;
+				empCopntWiseDetl["lwfAmount"] = dedcutionDetails[0][0].lwfAggregateAmount?dedcutionDetails[0][0].lwfAggregateAmount:lwfAmount1;
 				empCopntWiseDetl["extraPaymentAmount"] = totalExtraPayment?totalExtraPayment:0;
 				empCopntWiseDetl["extraPaymentCategories"] =paymentCategories?paymentCategories:"";
 				empCopntWiseDetl["processId"] = processId;
@@ -2323,6 +2307,10 @@ async function processFnf(data) {
 					"Affects Leave Encashments",
 					componentConfiguration[0],
 				);
+
+				let isNoticeRecoveryApplicable = fnfHelper.getElementValue(
+					"Affects Recovery Days",componentConfiguration[0]
+				)
 				empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
 				empCopntWiseDetl["isPfApplicable"] =
 					lwfDeducationDetails.pfApplicability;
@@ -2341,8 +2329,11 @@ async function processFnf(data) {
 					isLeaveEncashmentApplicable;
 				empCopntWiseDetl['leaveEncashmentDays']=leaveEncashmentDays?leaveEncashmentDays:0;	
 				empCopntWiseDetl['ExtraBenefitAmount'] = ExtraBenefitAmount?ExtraBenefitAmount:0;
+				empCopntWiseDetl['noticePeriodRecoveryDays'] =dedcutionDetails[0][0].noticeAggregateDays?dedcutionDetails[0][0].noticeAggregateDays:0;
+				empCopntWiseDetl['isNoticeRecoveryApplicable']=isNoticeRecoveryApplicable;
+			
 				// console.log(empCopntWiseDetl);
-
+				//  continue;
 				// //////////////////////////////PF-Applicablity Keys//////////////////////////////////
 				let existDetails = await db.payMonthlyElements.findOne({
 					where: {
@@ -2350,7 +2341,7 @@ async function processFnf(data) {
 						salaryComponentAutoId: empCopntWiseDetl.salaryComponentAutoId,
 						payMonth: result[0][0].payMonth,
 					},
-					raw: true,
+					raw: true,                                                           
 				});
 				if (!existDetails) {
 					await db.payMonthlyElements.create(empCopntWiseDetl);
@@ -2379,6 +2370,11 @@ async function processFnf(data) {
 				leaveEncashmentDays?leaveEncashmentDays:0,
 			);
 			//console.log(getCalculatedGratuity);
+			let noticePeriodRecoveryAmount = await fnfHelper.noticePeriodRecoveryAmount(
+				payElementComponents,
+				dedcutionDetails[0][0].noticeAggregateDays?dedcutionDetails[0][0].noticeAggregateDays:0
+			);
+			console.log("Notice Period Recovery Amount :: ",noticePeriodRecoveryAmount);
 			/////////////////Calculation And Updation of PF Amount //////////////////////
 			//console.log('Encanshment Amount :: '+fnfHelper.customRound(leaveEncashmentAmount));
 			await db.payMonthlyElements.update(
@@ -2392,12 +2388,14 @@ async function processFnf(data) {
 							? fnfHelper.customRound(getCalculatedGratuity.gratuityAmount)
 							: 0,
 					leaveEncashmentAmount: fnfHelper.customRound(leaveEncashmentAmount),
+					noticeRecoveryAmount: fnfHelper.customRound(noticePeriodRecoveryAmount),
+
 				},
 				{ where: { empId: employee, payMonth: result[0][0].payMonth } },
 			);
 			// /////////////////Calculation And Updation of ESIC Amount //////////////////////
 			await db.payProcessDetails.update(
-				{ payStatus: 2, payRemark: "Salary Processed." },
+				{ payStatus: 2, payRemark: "FNF Processed." },
 				{
 					where: {
 						EmployeeId: employee,
@@ -2448,7 +2446,7 @@ async function availableEmployeeForProcessing(employeeIds, paymonth) {
 }
 
 async function generatePaySlip(data) {
-	console.log("generate pay slip:::::");
+	// console.log("generate pay slip:::::");
 	try {
 		let { processId, req } = data;
 
@@ -2479,16 +2477,11 @@ async function generatePaySlip(data) {
 				currentProcessStatus[0][0].payMonth,
 				employeeIds,
 			);
-			console.log(
-				"queryForPayMonthlyElementsForSalarySlip  :: ",
-				queryForPayMonthlyElementsForSalarySlip,
-			);
+		
 			let payElements = await db.sequelize.query(
 				queryForPayMonthlyElementsForSalarySlip,
 			);
 
-			// console.log(queryForPayMonthlyElementsForSalarySlip);
-			// return
 			for (const payMonthlyElement of payElements[0]) {
 				let isExistPaySlip = await db.paySlips.findOne({
 					where: {
@@ -2539,13 +2532,28 @@ async function generatePaySlip(data) {
 						) +
 						parseFloat(
 							payMonthlyElement.lwfAmount ? payMonthlyElement.lwfAmount : 0,
+						)+parseFloat(
+							payMonthlyElement.noticeRecoveryAmount ? payMonthlyElement.noticeRecoveryAmount : 0,
 						);
 					totalPayslipDeductons = fnfHelper.customRound(totalPayslipDeductons);
+					console.log("Total Pay Slip Deductions :: ",totalPayslipDeductons);
 					let PaySlipNetPay =
 						parseFloat(payMonthlyElement.paySlipGrossEarning) +
 						parseFloat(
 							payMonthlyElement.extrapaymentAmount
 								? payMonthlyElement.extrapaymentAmount
+								: 0,
+						)+	parseFloat(
+							payMonthlyElement.ExtraBenefitAmount
+								? payMonthlyElement.ExtraBenefitAmount
+								: 0,
+						)+	parseFloat(
+							payMonthlyElement.leaveEncashmentAmount
+								? payMonthlyElement.leaveEncashmentAmount
+								: 0,
+						)+parseFloat(
+							payMonthlyElement.gratuityAmount
+								? payMonthlyElement.gratuityAmount
 								: 0,
 						);
 					PaySlipNetPay =
@@ -2572,7 +2580,13 @@ async function generatePaySlip(data) {
 								? payMonthlyElement.leaveEncashmentAmount
 								: 0,
 						);
-
+						GrossPayAfterExtraPay =
+						GrossPayAfterExtraPay +
+						parseFloat(
+							payMonthlyElement.ExtraBenefitAmount
+								? payMonthlyElement.ExtraBenefitAmount
+								: 0,
+						);					
 					GrossPayAfterExtraPay = fnfHelper.customRound(GrossPayAfterExtraPay);
 					isExistPaySlip = await db.paySlips.create({
 						EmployeeId: payMonthlyElement.empId,
@@ -2646,18 +2660,21 @@ async function generatePaySlip(data) {
 						});
 					}
 
-					// if (payMonthlyElement.extrapaymentAmount > 0) {
-					//   customeDeduction.push({
-					//     EmployeeId: payMonthlyElement.empId,
-					//     paySlipAutoId: paySlipAutoId,
-					//     salaryComponentAutoId: 0,
-					//     paySlipComponentName: "Extra Payment",
-					//     paySlipComponentAmount: payMonthlyElement.extrapaymentAmount,
-					//     paySlipComponentType: "Earning",
-					//     createdBy: req.userData.id,
-					//     createdAt: new Date(),
-					//   });
-					// }
+					if (payMonthlyElement.noticeRecoveryAmount > 0) {
+					  customeDeduction.push({
+					    EmployeeId: payMonthlyElement.empId,
+					    paySlipAutoId: paySlipAutoId,
+					    salaryComponentAutoId: 0,
+					    paySlipComponentName: "Notice Period Recovery Amount",
+					    paySlipComponentAmount: payMonthlyElement.noticeRecoveryAmount,
+					    paySlipComponentType: "Deduction",
+					    createdBy: req.userData.id,
+					    createdAt: new Date(),
+						salaryComponentSequenceNo: 999,
+					  });
+					}
+
+			
 
 					if (payMonthlyElement.esicEmployeeAmount > 0) {
 						customeDeduction.push({
@@ -2699,6 +2716,21 @@ async function generatePaySlip(data) {
 							salaryComponentSequenceNo: 999,
 						});
 					}
+
+					if (payMonthlyElement.ExtraBenefitAmount > 0) {
+						customeDeduction.push({
+						  EmployeeId: payMonthlyElement.empId,
+						  paySlipAutoId: paySlipAutoId,
+						  salaryComponentAutoId: 0,
+						  paySlipComponentName: "Extra Benefit",
+						  paySlipComponentAmount: payMonthlyElement.ExtraBenefitAmount,
+						  paySlipComponentType: "Earning",
+						  createdBy: req.userData.id,
+						  createdAt: new Date(),
+						  salaryComponentSequenceNo: 999,
+						});
+					  }
+					
 					if (payMonthlyElement.pfEmployeeAmount > 0) {
 						customeDeduction.push({
 							EmployeeId: payMonthlyElement.empId,
