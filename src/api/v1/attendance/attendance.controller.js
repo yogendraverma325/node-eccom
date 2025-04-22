@@ -2025,7 +2025,7 @@ class AttendanceController {
 					include: [
 						{
 							model: db.attendanceMaster,
-							attributes: ["attendanceAutoId", "employeeId"],
+							attributes: ["attendanceAutoId", "employeeId","attendanceDate"],
 							include: [
 								{
 									model: db.employeeMaster,
@@ -2074,6 +2074,9 @@ class AttendanceController {
 					});
 				}
 
+				
+				
+
 				let graceTime = moment(
 					regularizeData[
 					"attendancemaster.employee.shiftsmaster.shiftStartTime"
@@ -2118,8 +2121,8 @@ class AttendanceController {
 								`${regularizeData.regularizePunchOutDate} ${regularizeData.regularizePunchOutTime}`,
 							),
 							attendancePresentStatus: "present",
-							//attandanceShiftStartDate: regularizeData.regularizePunchInDate,
-							// attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
+							attandanceShiftStartDate: regularizeData.regularizePunchInDate,
+							 attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
 							attendancePunchInTime: regularizeData.regularizePunchInTime,
 							attendancePunchOutTime: regularizeData.regularizePunchOutTime,
 							attendanceRegularizeUserRemark:
@@ -2131,8 +2134,10 @@ class AttendanceController {
 							attendanceLateBy: await helper.calculateLateBy(
 								regularizeData.regularizePunchInTime,
 								withGraceTime,
-								regularizeData.regularizePunchInDate,
-								regularizeData.regularizePunchInDate,
+								regularizeData[
+					"attendancemaster.attendanceDate"
+					],
+								regularizeData.regularizePunchInDate, 
 							),
 							//createdBy: req.userId,
 							//createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -2145,9 +2150,12 @@ class AttendanceController {
 							},
 						},
 					);
+					
 					_this.attedanceCronManual(
 						regularizeData.attendanceAutoId,
-						regularizeData.regularizePunchInDate,
+						regularizeData[
+					"attendancemaster.attendanceDate"
+					],
 					);
 				} else {
 					await db.attendanceMaster.update(
@@ -5135,7 +5143,7 @@ class AttendanceController {
 					include: [
 						{
 							model: db.attendanceMaster,
-							attributes: ["attendanceAutoId", "employeeId"],
+							attributes: ["attendanceAutoId", "employeeId","attendanceDate"],
 							include: [
 								{
 									model: db.employeeMaster,
@@ -5216,14 +5224,14 @@ class AttendanceController {
 				if (result.status) {
 					await db.attendanceMaster.update(
 						{
-							attendanceDate: regularizeData.regularizePunchInDate,
+							//attendanceDate: regularizeData.regularizePunchInDate,
 							attendanceWorkingTime: await helper.timeDifference(
 								`${regularizeData.regularizePunchInDate} ${regularizeData.regularizePunchInTime}`,
 								`${regularizeData.regularizePunchOutDate} ${regularizeData.regularizePunchOutTime}`,
 							),
 							attendancePresentStatus: "present",
-							//attandanceShiftStartDate: regularizeData.regularizePunchInDate,
-							// attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
+							 attandanceShiftStartDate: regularizeData.regularizePunchInDate,
+							 attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
 							attendancePunchInTime: regularizeData.regularizePunchInTime,
 							attendancePunchOutTime: regularizeData.regularizePunchOutTime,
 							attendanceRegularizeUserRemark:
@@ -5235,10 +5243,12 @@ class AttendanceController {
 							attendanceLateBy: await helper.calculateLateBy(
 								regularizeData.regularizePunchInTime,
 								withGraceTime,
+								regularizeData[
+					"attendancemaster.attendanceDate"
+					],
 								regularizeData.regularizePunchInDate,
-								regularizeData.regularizePunchOutDate,
 							),
-							createdBy: req.userId,
+							//createdBy: req.userId,
 							//createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 							updatedBy: req.userId,
 							updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -5251,7 +5261,9 @@ class AttendanceController {
 					);
 					await _this.attedanceCronManual(
 						regularizeData.attendanceAutoId,
-						regularizeData.regularizePunchInDate,
+						regularizeData[
+					"attendancemaster.attendanceDate"
+					],
 					);
 				} else {
 					await db.attendanceMaster.update(
