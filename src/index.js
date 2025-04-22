@@ -34,6 +34,8 @@ app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // add this
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
+  
+  
 app.get("/api/uploads/:user/:fileName", (req, res) => {
 	res.sendFile(
 		path.join(rootpath, `../uploads/${req.params.user}/${req.params.fileName}`),

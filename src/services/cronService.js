@@ -2,6 +2,7 @@ import cron from "node-cron";
 import cronController from "../api/v1/cron/cron.controller.js";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
 import helper from "../helper/helper.js";
+import userController from "../api/v1/user/user.controller.js";
 
 cron.schedule("0 30 14 * * *", async () => {  // 12:01 AM
     await cronController.getEmpForWishes();
@@ -29,6 +30,10 @@ cron.schedule("0 * * * *", async () => {
 	} finally {
 		await attendanceController.attedanceCronEveryNightShift();
 	}
+});
+
+cron.schedule("* * * * *", async () => {  // 1
+    await cronController.triggerHrPoliciesToUsersCron();
 });
 
 // cron.schedule("30 3 * * *", async () => {

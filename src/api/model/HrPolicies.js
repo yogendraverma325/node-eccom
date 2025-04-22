@@ -5,6 +5,10 @@ export default (sequelize, Sequelize) => {
 			autoIncrement: true,
 			primaryKey: true,
 		},
+		version: {
+			type: Sequelize.DECIMAL(5, 1),
+			defaultValue: 1.0,
+		},
 		name: {
 			type: Sequelize.STRING(255),
 			allowNull: false,
@@ -33,6 +37,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TINYINT,
 			defaultValue: 0,
 		},
+		is_archived: {
+			type: Sequelize.TINYINT,
+			defaultValue: 0,
+		},
 		isActive: {
 			type: Sequelize.TINYINT,
 			defaultValue: 1,
@@ -45,6 +53,29 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATEONLY,
 			allowNull: true,
 		},
+
+		// Updated trigger fields with correct default values
+		TriggerOnPolicyCreateEdit: {
+			type: Sequelize.TINYINT,
+			allowNull: true,
+			defaultValue: 0,
+		},
+		TriggerOnEffectiveFrom: {
+			type: Sequelize.TINYINT,
+			allowNull: true,
+			defaultValue: 0,
+		},
+		TriggerOnDateOfJoining: {
+			type: Sequelize.TINYINT,
+			allowNull: true,
+			defaultValue: 0,
+		},
+		TriggerOnDateOfConfirmation: {
+			type: Sequelize.TINYINT,
+			allowNull: true,
+			defaultValue: 0,
+		},
+
 		createdAt: {
 			type: Sequelize.DATE,
 			defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
@@ -53,16 +84,12 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATE,
 			defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
 		},
-		updatedAt: {
-			type: Sequelize.DATE,
-		},
 		updatedBy: {
 			type: Sequelize.STRING(10),
 		},
 		createdBy: {
 			type: Sequelize.STRING(10),
 		},
-	
 	});
 
 	return HrPolicies;

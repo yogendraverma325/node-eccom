@@ -191,6 +191,7 @@ import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
 
 import HrPolicyCategories from "../api/model/HrPolicyCategories.js";
 import HrPolicies from "../api/model/HrPolicies.js";
+import HrPolicySignoffs from "../api/model/HrPolicySignoffs.js";
 
 //ritak Hr Policy end
 
@@ -488,6 +489,7 @@ db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
 //ritak Hr Policy start
 db.hrPolicyCategories = HrPolicyCategories(sequelize, Sequelize);
 db.hrPolicies = HrPolicies(sequelize, Sequelize);
+db.hrPolicySignoffs = HrPolicySignoffs(sequelize, Sequelize);
 
 //ritak Hr Policy end
 
@@ -2194,6 +2196,20 @@ db.hrPolicyCategories.hasMany(db.hrPolicies, {
   db.hrPolicies.belongsTo(db.hrPolicyCategories, {
 	foreignKey: 'category_id',
 	as: 'category',
+  });
+
+  db.hrPolicies.hasMany(db.hrPolicySignoffs, {
+	foreignKey: 'hr_policy_id',
+	sourceKey: 'id',
+  });
+  
+  db.hrPolicySignoffs.belongsTo(db.hrPolicies, {
+	foreignKey: 'hr_policy_id',
+	targetKey: 'id',
+  });
+  db.hrPolicySignoffs.belongsTo(db.employeeMaster, {
+	foreignKey: 'user_id',
+	targetKey: 'id',
   });
 //ritak Hr Policy end
 

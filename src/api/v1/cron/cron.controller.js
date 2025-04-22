@@ -11,7 +11,7 @@ import respHelper from "../../../helper/respHelper.js";
 import attendanceController from "../attendance/attendance.controller.js";
 import { NodeSSH } from "node-ssh";
 import Sequelize from "sequelize";
-import {where,Op, fn, col } from "sequelize";
+import { where, Op, fn, col } from "sequelize";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New 
 
 class CronController {
@@ -1863,11 +1863,11 @@ class CronController {
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-						}
+						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+					}
 					: {
-							password: process.env.SSH_PASSWORD,
-						},
+						password: process.env.SSH_PASSWORD,
+					},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1921,8 +1921,8 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-										instanceName: process.env.SERVER_DB_INSTANCE,
-									},
+									instanceName: process.env.SERVER_DB_INSTANCE,
+								},
 						),
 					},
 					logging: false,
@@ -2094,63 +2094,267 @@ class CronController {
 		);
 	}
 
-	async getEmpForWishes(){
-try{
-	 const today = moment().format("MM-DD");
-        
-            const employeesBirth = await db.biographicalDetails.findAll({
-                raw: true,
-                where: {
-                    [Op.and]: [
-                      where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), '04-11'),
-                      { isActive: 1 }
-                    ]
-                }
-            });
-			for (const emp of employeesBirth) {
-                const empId = emp.userId;
-                // Birthday Wishes
-                if (emp.dateOfBirth) {
-                    const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
-                    if (dobFormatted === today) {
-                        pushNotificationEmitter.emit("sendNotification", {
-                            title: "Alert!",
-                            body: "Best wishes on your birthday!",
-                            employeeId: 1043,//empId,
-                        });
-                    }
-                }
-            }
-			const employees = await db.employeeMaster.findAll({
-                raw: true,
-                where: {
-                    isActive: 1,
-                    dateOfJoining: {
-                        [Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
-                    },
-                },
-            });
-			   for (const emp of employees) {
-                const empId = emp.id;
-                // Work Anniversary
-                if (emp.dateOfJoining) {
-                    const dojFormatted = moment(emp.dateOfJoining).format("MM-DD");
-                    if (dojFormatted === today) {
-                        pushNotificationEmitter.emit("sendNotification", {
-                            title: "Alert!",
-                            body: "Best wishes on your work anniversary!",
-                            employeeId: 1043,//empId,
-                        });
-                    }
-                }
-            }
+	async getEmpForWishes() {
+		try {
+			const today = moment().format("MM-DD");
 
-}
-catch (error) {
-            console.log("Error in Birthday/Anniversary Wishes", error);
-        }
+			const employeesBirth = await db.biographicalDetails.findAll({
+				raw: true,
+				where: {
+					[Op.and]: [
+						where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), '04-11'),
+						{ isActive: 1 }
+					]
+				}
+			});
+			for (const emp of employeesBirth) {
+				const empId = emp.userId;
+				// Birthday Wishes
+				if (emp.dateOfBirth) {
+					const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
+					if (dobFormatted === today) {
+						pushNotificationEmitter.emit("sendNotification", {
+							title: "Alert!",
+							body: "Best wishes on your birthday!",
+							employeeId: 1043,//empId,
+						});
+					}
+				}
+			}
+			const employees = await db.employeeMaster.findAll({
+				raw: true,
+				where: {
+					isActive: 1,
+					dateOfJoining: {
+						[Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
+					},
+				},
+			});
+			for (const emp of employees) {
+				const empId = emp.id;
+				// Work Anniversary
+				if (emp.dateOfJoining) {
+					const dojFormatted = moment(emp.dateOfJoining).format("MM-DD");
+					if (dojFormatted === today) {
+						pushNotificationEmitter.emit("sendNotification", {
+							title: "Alert!",
+							body: "Best wishes on your work anniversary!",
+							employeeId: 1043,//empId,
+						});
+					}
+				}
+			}
+
+		}
+		catch (error) {
+			console.log("Error in Birthday/Anniversary Wishes", error);
+		}
 	}
-	
+
+
+	async triggerHrPoliciesToUsersCron() {
+		const start = performance.now();
+		console.log("🚀 Trigger HrPolicies To Users Cron Running");
+		console.log(`🕒 Start Time: ${start}`);
+
+		try {
+			const today = new Date().toISOString().split('T')[0];
+			const todayDate = new Date(today);
+			console.log(`📅 Today's Date: ${today}`);
+
+			// ⏳ Archive expired policies
+			// Fetch the expired policies before archiving
+			const expiredPolicies = await db.hrPolicies.findAll({
+				attributes: ['id', 'name', 'version'],
+				where: {
+					isActive: 1,
+					is_archived: 0,
+					effective_date_to: {
+						[Op.lt]: today
+					}
+				}
+			});
+
+			// Log the expired policies
+			expiredPolicies.forEach(policy => {
+				console.log(`Expired Policy - ID: ${policy.id}, Name: ${policy.name}, Version: ${policy.version}`);
+			});
+
+			// Now, update the expired policies
+			await db.hrPolicies.update(
+				{ is_archived: 1, isActive: 0 },
+				{
+					where: {
+						isActive: 1,
+						is_archived: 0,
+						effective_date_to: {
+							[Op.lt]: today
+						}
+					}
+				}
+			);
+
+			console.log(`📦 Archived expired policies (effective_date_to < ${today})`);
+
+			// 📥 Fetch active policies
+			const policies = await db.hrPolicies.findAll({
+				where: {
+					isActive: 1,
+					is_archived: 0,
+				}
+			});
+			console.log(`📄 Total Active Policies Found: ${policies.length}`);
+
+			const visibleEmployeeIds = [
+				...new Set(
+					policies
+						.map(p => p.visibility)
+						.filter(Boolean)
+						.flatMap(v => v.split(',').map(id => parseInt(id.trim())))
+				)
+			];
+			console.log(`👥 Unique Visible Employee IDs: ${visibleEmployeeIds.join(', ')}`);
+
+			const employees = await db.employeeMaster.findAll({
+				where: {
+					id: visibleEmployeeIds,
+					isActive: 1,
+				}
+			});
+			console.log(`✅ Active Employees Matched with Visibility: ${employees.length}`);
+			if (employees.length === 0) {
+				console.log("⛔ No eligible employees found. Cron execution stopped.");
+				return;
+			}
+
+			// 🛠️ Reusable signoff helper
+			async function upsertSignoff(policyId, userId, status) {
+				const existing = await db.hrPolicySignoffs.findOne({
+					where: { hr_policy_id: policyId, user_id: userId },
+				});
+
+				if (!existing) {
+					await db.hrPolicySignoffs.create({
+						hr_policy_id: policyId,
+						user_id: userId,
+						status,
+					});
+					console.log(`🆕 Created new signoff with status '${status}'`);
+				} else if (existing.status !== status) {
+					await db.hrPolicySignoffs.update(
+						{ status },
+						{ where: { hr_policy_id: policyId, user_id: userId } }
+					);
+					console.log(`🔁 Updated existing signoff to '${status}'`);
+				} else {
+					console.log(`⚠️ Signoff already in status '${status}', skipping update`);
+				}
+			}
+
+			// 🔁 Loop through each policy
+			for (const policy of policies) {
+				console.log('-----------------------------------');
+				console.log(`🔍 Processing Policy: '${policy.name}' - v${policy.version} (ID: ${policy.id})`);
+				console.log(`📝 Sign-off Required: ${policy.sign_off_enabled ? 'Yes' : 'No'}`);
+				console.log('-----------------------------------');
+
+				const visibleIdsForPolicy = policy.visibility
+					? policy.visibility.split(',').map(id => parseInt(id.trim()))
+					: [];
+
+				for (const employee of employees) {
+					if (!visibleIdsForPolicy.includes(employee.id)) {
+						console.log(`⛔ ${employee.name} (ID: ${employee.id}) not in visibility list. Skipping.`);
+						continue;
+					}
+
+					console.log(`➡️ Evaluating ${employee.name} (ID: ${employee.id})`);
+
+					// ✅ Auto-approve if sign-off is not required
+					if (!policy.sign_off_enabled) {
+						const effectiveFrom = policy.effective_date_from
+							? new Date(policy.effective_date_from)
+							: todayDate; // Default to today if missing
+
+						const effectiveTo = policy.effective_date_to
+							? new Date(policy.effective_date_to)
+							: null; // No end date if missing
+
+
+						const inRange = effectiveTo
+							? todayDate >= effectiveFrom && todayDate <= effectiveTo
+							: todayDate >= effectiveFrom; // If no end date, only check from
+						console.log(`📆 Auto-approve range check: ${inRange} (From: ${policy.effective_date_from}, To: ${policy.effective_date_to})`);
+
+						if (inRange) {
+							console.log(`✅ Auto-approving '${policy.name}' for ${employee.name}`);
+							await upsertSignoff(policy.id, employee.id, 'auto-approved');
+						} else {
+							console.log(`⏳ Policy not in effective range. Skipping auto-approval.`);
+						}
+
+						continue; // Skip the rest of the checks
+					}
+
+					// ✅ Evaluate all triggers
+					let shouldTrigger = false;
+
+					if (policy.TriggerOnPolicyCreateEdit) {
+						const updatedAtDate = new Date(policy.updatedAt).toISOString().split('T')[0];
+						const triggerToday = updatedAtDate === today;
+						console.log(`🛠️ TriggerOnPolicyCreateEdit: ${triggerToday}`);
+						if (triggerToday) shouldTrigger = true;
+					}
+
+					if (policy.TriggerOnEffectiveFrom) {
+						const isEffectiveToday = policy.effective_date_from === today;
+						console.log(`📌 TriggerOnEffectiveFrom: ${isEffectiveToday}`);
+						if (isEffectiveToday) shouldTrigger = true;
+
+						const isExpired = new Date(policy.effective_date_to) < todayDate;
+						console.log(`📌 TriggerOnEffectiveTo (Expired?): ${isExpired}`);
+						if (isExpired) shouldTrigger = false;
+					}
+
+					if (policy.TriggerOnDateOfJoining) {
+						const dojTrigger = employee.dateOfJoining === today;
+						console.log(`👶 TriggerOnDateOfJoining: ${dojTrigger}`);
+						if (dojTrigger) shouldTrigger = true;
+					}
+
+					if (policy.TriggerOnDateOfConfirmation) {
+						const docTrigger = employee.confirmationDate === today;
+						console.log(`🎓 TriggerOnDateOfConfirmation: ${docTrigger}`);
+						if (docTrigger) shouldTrigger = true;
+					}
+
+					if (!shouldTrigger) {
+						console.log(`⚠️ No trigger conditions met for ${employee.name}. Skipping.`);
+						continue;
+					}
+
+					// 🔔 Trigger sign-off
+					console.log(`🚀 Triggering '${policy.name}' for ${employee.name}`);
+					await upsertSignoff(policy.id, employee.id, 'pending');
+
+					await db.employeeMaster.update(
+						{ showHrPolicyModal: 1 },
+						{ where: { id: employee.id } }
+					);
+					console.log(`✅ Sign-off status set to 'pending' and modal enabled for ${employee.name}`);
+				}
+			}
+
+			const end = performance.now();
+			console.log(`⏱️ Cron Completed in ${(end - start).toFixed(2)} ms`);
+
+		} catch (error) {
+			console.error("❌ Error in HR Policy Trigger Cron:", error);
+		}
+	}
+
+
+
 }
 
 export default new CronController();

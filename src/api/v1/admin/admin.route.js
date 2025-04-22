@@ -283,6 +283,11 @@ export default Express.Router()
 			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 			commonController.changeStatusOfHrPolicy,
 		)
+		.patch(
+			"/hrPolicy/archiveAction/:id",
+			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+			commonController.archiveActionOfHrPolicy,
+		)
 		.delete(
 			"/hrPolicy/:id",
 			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),

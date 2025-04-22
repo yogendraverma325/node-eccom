@@ -365,14 +365,20 @@ const hrPolicyCategorySchema = Joi.object({
 const hrPolicySchema = Joi.object({
 	name: Joi.string().trim().label("Policy Name"),
 	category_id: Joi.number().integer().allow(null).label("Category ID"),
-	policyDocument: Joi.string().allow(null, '').label("Policy Document"),
+	policyDocument: Joi.string().allow(null).allow('').optional().label('Policy Document'),
 	visibility: Joi.string().allow(null, '').label("Visibility"),
 	sign_off_enabled: Joi.number().valid(0, 1).default(0).label("Sign Off Enabled"),
 	sign_off_mandatory: Joi.number().valid(0, 1).default(0).label("Sign Off Mandatory"),
 	allow_decline: Joi.number().valid(0, 1).default(0).label("Allow Decline"),
+	reviseVersion: Joi.number().valid(0, 1).default(0).label("Is revise Version request"),
 	isActive: Joi.number().valid(0, 1).default(1).label("Is Active"),
-	effective_date_from: Joi.date().allow(null).label("Effective Date From"),
-	effective_date_to: Joi.date().allow(null).label("Effective Date To"),
+	effective_date_from: Joi.date().allow(null,'').optional().label("Effective Date From"),
+	effective_date_to: Joi.date().allow(null,'').optional().label("Effective Date To"),
+	TriggerOnPolicyCreateEdit: Joi.number().valid(0, 1).default(0).label("Trigger On Policy Create Edit"),
+	TriggerOnEffectiveFrom: Joi.number().valid(0, 1).default(0).label("Trigger On Effective From"),
+	TriggerOnDateOfJoining: Joi.number().valid(0, 1).default(0).label("Trigger On Date Of Joining"),
+	TriggerOnDateOfConfirmation: Joi.number().allow(null).label("Trigger On Date Of Confirmation"),
+	
   });
   
 

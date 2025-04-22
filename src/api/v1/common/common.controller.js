@@ -2599,13 +2599,14 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 
 	async  getHrPolciyList(req, res) {
 		try {
-		  const { page = 1, limit = 10, search = '',categoryId = ''  } = req.query;
+		  const { page = 1, limit = 10, search = '',categoryId = '' ,is_archived='' } = req.query;
 		  const pageNumber = parseInt(page, 10);
 		  const pageLimit = parseInt(limit, 10);
 		  const offset = (pageNumber - 1) * pageLimit;
 	  
 		  const whereClause = {
 			category_id: categoryId, // always include category filter
+			...(is_archived !== '' && { is_archived }), 
 			...(search && {
 			  name: {
 				[Op.like]: `%${search}%`,
@@ -2625,6 +2626,17 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 				  as: 'category', 
 				  required: false, // Optional: false = include even if no policies
 				},
+				{
+					model: db.hrPolicySignoffs,		
+					required: false, // Optional: false = include even if no policies
+					include: [
+						{
+						  model: db.employeeMaster,
+						  attributes: ['empCode', 'name'],						  
+						  required: false, // Optional: false = include even if no policies
+						}
+					  ],
+				  },
 			  ],
 		
 			}),
@@ -2651,6 +2663,13 @@ combinedData.sort((a, b) => b.requestTriggered - a.requestTriggered);
 		try {
 			//console.log("req.body",req.body);
 		  let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
+		  ['effective_date_from', 'effective_date_to'].forEach((field) => {
+			const dateValue = result[field];
+			if (!dateValue || isNaN(new Date(dateValue).getTime())) {
+			  result[field] = null;
+			}
+		  });
+		  
 		  result = { ...result, createdBy: req.userId, isActive: 1 };
 
 	  console.log("result",result);
@@ -2700,43 +2719,95 @@ console.log(error,"error");
 	  }
 	  
 	
-	async updateHrPolicy(req, res) {
+	  async updateHrPolicy(req, res) {
 		try {
-			let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
-			result = { ...result, updatedBy: req.userId, updatedAt: moment() };
-			let model = db.hrPolicies;
-			let query = { id: req.params.id };
-
-			let verifyQuery = {
-				[Op.not]: { id: req.params.id },
-				name: result.name,
-			};
-			let isVerify = await service.details(model, verifyQuery);
-
-			if (isVerify.status == 200) {
-				let response = {
-					status: 400,
-					msg: constant.ALREADY_EXISTS.replace("<module>", "Hr Policy"),
-				};
-				return respHelper(res, response);
-			} else {
-				let response = await service.update(model, result, query);
-				return respHelper(res, response);
-			}
-		} catch (error) {
-			logger.error(error);
-			if (error.isJoi === true) {
-				return respHelper(res, {
-					status: 422,
-					msg: error.details[0].message,
-				});
-			}
-			return respHelper(res, {
+		  let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
+		  result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+	  
+		  // Handle file upload for policy document
+		  if (result.policyDocument && !result.policyDocument.startsWith("uploads")) {
+			try {
+			  const timestamp = Date.now();
+			  const uploadedFilePath = await helper.fileUpload(
+				result.policyDocument,
+				`policyDocument_${timestamp}`,
+				`uploads/hr-documents`
+			  );
+			  result.policyDocument = uploadedFilePath;
+			} catch (uploadError) {
+			  logger.error("Error uploading policy document:", uploadError);
+			  return respHelper(res, {
 				status: 500,
+				msg: "Error uploading policy document.",
+			  });
+			}
+		  }
+	  
+		  const model = db.hrPolicies;
+		  const policyId = req.params.id;
+	  
+		  // Revise version logic
+		  if (result.reviseVersion == 1) {
+			const existingPolicy = await model.findOne({ where: { id: policyId } });
+	  
+			if (!existingPolicy) {
+			  return respHelper(res, {
+				status: 404,
+				msg: "HR Policy not found.",
+			  });
+			}
+	  
+			// Archive the current policy
+			await model.update({ is_archived: 1 }, { where: { id: parseInt(policyId, 10) } });
+	  console.log(policyId,'policyId')
+			// Calculate the new version
+			const currentVersion = parseFloat(existingPolicy.version || 1.00);
+			const newVersion = parseFloat((currentVersion + 1.00).toFixed(2));
+	  
+			// Prepare new policy data
+			const newPolicyData = {
+			  ...existingPolicy.toJSON(),
+			  id: undefined, // So Sequelize generates a new ID
+			  version: newVersion,
+			  createdAt: moment(),
+			  updatedAt: moment(),
+			  createdBy: req.userId,
+			  updatedBy: req.userId,
+			  is_archive: 0,
+			};
+	  
+			// Apply any updates from request
+			Object.assign(newPolicyData, result);
+	  
+			// Create new revised policy
+			const newPolicy = await model.create(newPolicyData);
+	  
+			return respHelper(res, {
+			  status: 200,
+			  msg: "Policy revised successfully.",
+			  data: newPolicy,
 			});
+		  }
+		  // Normal update (not a revision)
+		  const response = await service.update(model, result, { id: policyId });
+		  return respHelper(res, response);
+	  
+		} catch (error) {
+		  console.error(error);
+		  if (error.isJoi === true) {
+			return respHelper(res, {
+			  status: 422,
+			  msg: error.details[0].message,
+			});
+		  }
+		  return respHelper(res, {
+			status: 500,
+			msg: "Something went wrong.",
+		  });
 		}
-	}
-
+	  }
+	  
+	  
 	async changeStatusOfHrPolicy(req, res) {
 		try {
 			let model = db.hrPolicies;
@@ -2756,7 +2827,42 @@ console.log(error,"error");
 			});
 		}
 	}
-
+	async archiveActionOfHrPolicy(req, res) {
+		try {
+			const model = db.hrPolicies;
+			const policyId = req.params.id;
+	
+			// Step 1: Find the policy
+			const policy = await model.findOne({ where: { id: policyId } });
+	
+			if (!policy) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Policy not found",
+				});
+			}
+	
+			// Step 2: Toggle the is_archived value
+			const newIsArchived = policy.is_archived ? 0 : 1;
+	
+			// Step 3: Update using service
+			const updateMetaData = { is_archived: newIsArchived };
+			const query = { id: policyId };
+			const response = await service.update(model, updateMetaData, query);
+	
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, { status: 500 });
+		}
+	}
+	
 	async deleteOfHrPolicy(req, res) {
 		try {
 			let model = db.hrPolicies;

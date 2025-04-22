@@ -7187,6 +7187,155 @@ console.log("isSameDetails", isSameDetails);
    }
 }
 // ritak address approval module end
+
+
+//hr policy for User start
+
+
+
+async fetchHrPolicyByEmpId(req, res) {
+	try {
+		const employeeId = req.query.employeeId || req.userId;
+
+		// Fetch unsigned (pending) HR policies
+		const unsignedPolicies = await db.hrPolicySignoffs.findAll({
+			where: {
+				user_id: employeeId,
+				status: 'pending'
+			},
+			include: [
+				{
+					model: db.hrPolicies,
+					where: { isActive: 1,is_archived:0 },
+					required: true,
+					include: [
+						{
+							model: db.hrPolicyCategories,
+							where: { isActive: 1 },
+							as:'category',
+							required: true
+						}
+					]
+				
+				}
+			]
+		});
+
+		// Fetch signed HR policies
+		const signedPolicies = await db.hrPolicySignoffs.findAll({
+			where: {
+				user_id: employeeId,
+				status: {
+					[Op.ne]: 'pending'
+				  }			
+				},
+			include: [
+				{
+					model: db.hrPolicies,
+					where: { isActive: 1,is_archived:0 },
+					required: true,
+					include: [
+						{
+							model: db.hrPolicyCategories,
+							where: { isActive: 1 },
+							as:'category',
+							required: true
+						}
+					]
+				}
+			]
+		});
+
+		if (!unsignedPolicies.length && !signedPolicies.length) {
+			return respHelper(res, {
+				status: 404,
+				msg: "No HR policies found for this employee"
+			});
+		}
+
+		return respHelper(res, {
+			status: 200,
+			msg: "Policies fetched successfully",
+			data: {
+				unsignedPolicies,
+				signedPolicies
+			}
+		});
+
+	} catch (error) {
+		console.error("❌ Error fetching HR policies:", error);
+		return respHelper(res, {
+			status: 500,
+			msg: "Internal server error"
+		});
+	}
+}
+
+
+  
+async acknowledgeHrPolicy(req, res) {
+    try {
+        const { policyId, action , declineReason} = req.body; // Expecting policyId and action (signed/declined)
+        const userId = req.userId; // Get the userId from the authenticated user
+
+        // Validate the action
+        if (action !== 'signed' && action !== 'declined' && action !== 'viewed') {
+            return respHelper(res, {
+                status: 400,
+                msg: "Invalid action. Only 'signed' or 'declined' or 'viewed' are allowed.",
+            });
+        }
+
+        // Check if the policy exists
+        const policyExists = await db.hrPolicies.findOne({
+            where: { id: policyId },
+        });
+
+        if (!policyExists) {
+            return respHelper(res, {
+                status: 400,
+                msg: "HR Policy does not exist.",
+            });
+        }
+
+        // Check if a pending policy signoff exists
+        let policySignoff = await db.hrPolicySignoffs.findOne({
+            where: {
+                hr_policy_id: policyId,
+                user_id: userId,
+            },
+        });
+
+        const now = moment().format("YYYY-MM-DD HH:mm:ss");
+
+           
+
+            // Update the existing record
+            await policySignoff.update({
+				
+				deviceIp: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
+				device: req.headers.source ? req.headers.source : null,						
+                status: action,
+				declineReason: declineReason ? declineReason: '',
+                updated_at: now,
+            });
+       					await db.employeeMaster.update(
+							{ showHrPolicyModal: 0 },
+							{ where: { id: userId } }
+						);
+
+        return respHelper(res, {
+            status: 200,
+            msg: `Policy ${action} successfully`,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return respHelper(res, { status: 500, msg: "Internal server error" });
+    }
+}
+
+  // hr policy for User end
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
@@ -7203,4 +7352,10 @@ const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
 	);
 };
 
+
+
+
 export default new UserController();
+
+
+
