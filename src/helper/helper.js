@@ -3673,7 +3673,8 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			await db.leaveMapping.update(
+			if(leave.dataValues.leaveAutoId!=6){
+				await db.leaveMapping.update(
 				{
 					availableLeave: db.sequelize.literal(
 						`availableLeave + ${leave.dataValues.leaveCount}`,
@@ -3689,6 +3690,22 @@ const revokeAppliedLeave = async (date, emp) => {
 					},
 				},
 			);
+
+			}else{
+				await db.leaveMapping.update(
+				{
+					utilizedThisYear: db.sequelize.literal(
+						`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+					),
+				},
+				{
+					where: {
+						EmployeeId: emp,
+						leaveAutoId: leave.dataValues.leaveAutoId,
+					},
+				},
+			);
+			}
 		}
 	}
 };
