@@ -217,8 +217,8 @@ class LeaveController {
 							isApproved: 0,
 							isPending: 1,
 						};
-			console.log("mainCondition", mainCondition);
-			console.log("leaveApprovalCondition", leaveApprovalCondition);
+			// console.log("mainCondition", mainCondition);
+			// console.log("leaveApprovalCondition", leaveApprovalCondition);
 
 			const fullyApprovedLeaveHeaders = await db.leaveApprovalTrails.findAll({
 				attributes: ["leaveHeaderAutoId"],
@@ -400,6 +400,7 @@ class LeaveController {
 									updatedBy: req.userId,
 									managerRemark: result.remark !== "" ? result.remark : null,
 									updatedAt: moment(),
+									role: helper.fetchEmployeeRole(req.userRole, null, req.userId)
 								},
 								{
 									where: {
@@ -427,6 +428,7 @@ class LeaveController {
 									remark: result.remark !== "" ? result.remark : null,
 									updatedBy: req.userId,
 									updatedAt: moment(),
+									updatorRole: helper.fetchEmployeeRole(req.userRole, null, req.userId)
 								},
 								{
 									where: {
@@ -647,6 +649,7 @@ class LeaveController {
 						updatedBy: req.userId,
 						managerRemark: result.remark != "" ? result.remark : null,
 						updatedAt: moment(),
+						role: helper.fetchEmployeeRole(req.userRole, null, req.userId)
 					},
 					{
 						where: {
@@ -664,6 +667,7 @@ class LeaveController {
 							updatedBy: req.userId,
 							updatedAt: moment(),
 							updatedBy: req.userId,
+						    updatorRole: helper.fetchEmployeeRole(req.userRole, null, req.userId)
 						},
 						{
 							where: {
@@ -2717,6 +2721,7 @@ class LeaveController {
 							isActive: 1,
 							createdAt: moment(),
 							createdBy: req.userId,
+							creatorRole: helper.fetchEmployeeRole(req.userRole, req.body.employeeId, req.userId)
 						});
 					} else if (leaveApproverGroup === "BUHR") {
 						console.log("BUHR");
@@ -2741,6 +2746,7 @@ class LeaveController {
 								isActive: 1,
 								createdAt: moment(),
 								createdBy: req.userId,
+								creatorRole: helper.fetchEmployeeRole(req.userRole, req.body.employeeId, req.userId)
 							});
 						}
 					} else if (leaveApproverGroup === "L2_MANAGER") {
@@ -2757,6 +2763,7 @@ class LeaveController {
 							isActive: 1,
 							createdAt: moment(),
 							createdBy: req.userId,
+							creatorRole: helper.fetchEmployeeRole(req.userRole, req.body.employeeId, req.userId)
 						});
 					}
 				}
@@ -3575,11 +3582,12 @@ class LeaveController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name"],
-						as: "leaveCreatedBy",
-						include: {
-							model: db.roleMaster,
-							attributes: ["name"],
-						},
+						as: "leaveCreatedBy"
+					},
+					{
+						model: db.leaveApprovalTrails,
+						attributes: ["creatorRole", "updatorRole"],
+						required: false
 					},
 				],
 				order: [["employeeleaveheaderID", "desc"]],
@@ -4836,7 +4844,7 @@ class LeaveController {
 									updatedBy: req.userId,
 									managerRemark: result.remark !== "" ? result.remark : null,
 									updatedAt: moment(),
-									role: req.userData["role.name"],
+									role: helper.fetchEmployeeRole(req.userRole, null, req.userId),
 								},
 								{
 									where: { employeeleaveheaderID: leaveID },
@@ -4862,7 +4870,8 @@ class LeaveController {
 										// isApproved: 1,
 										// remark: result.remark !== "" ? result.remark : null,
 										updatedBy: req.userId,
-										//updatedAt:moment()
+										//updatedAt:moment(),
+									    updatorRole: helper.fetchEmployeeRole(req.userRole, null, req.userId)
 									},
 									{
 										where: {
@@ -5376,10 +5385,11 @@ class LeaveController {
 							updatedBy: req.userId,
 							managerRemark: result.remark != "" ? result.remark : null,
 							updatedAt: moment(),
-							role:
-								req.userData.role_id == 2 || req.userData.role_id == 5
-									? req.userData["role.name"]
-									: null,
+							// role:
+							// 	req.userData.role_id == 2 || req.userData.role_id == 5
+							// 		? req.userData["role.name"]
+							// 		: null,
+							role: helper.fetchEmployeeRole(req.userRole, null, req.userId),
 						},
 						{
 							where: {

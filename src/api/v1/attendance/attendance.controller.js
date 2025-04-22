@@ -865,6 +865,7 @@ class AttendanceController {
 					"attendancePunchInTime",
 					"attendancePunchOutTime",
 					"attendanceRegularizeCount",
+					"employeeId"
 				],
 				include: [
 					{
@@ -938,7 +939,7 @@ class AttendanceController {
 				regularizeStatus: "Pending",
 				createdBy: req.userId,
 				createdAt: moment(),
-				creatorRole: req.userRole
+				creatorRole: helper.fetchEmployeeRole(req.userRole, attendanceData.dataValues.employeeId, req.userId)
 			});
 
 			await helper.revokeAppliedLeave(result.fromDate, req.userId);
@@ -1659,12 +1660,7 @@ class AttendanceController {
 									model: db.employeeMaster,
 									attributes: ["id", "empCode", "name"],
 									as: "leaveCreatedBy",
-									required: false,
-									include: {
-										model: db.roleMaster,
-										attributes: ["name"],
-										required: false
-									},
+									required: false
 								},
 							],
 						},
@@ -2061,6 +2057,7 @@ class AttendanceController {
 						},
 					],
 				});
+
 				if (!regularizeData) {
 					return respHelper(res, {
 						status: 400,
@@ -2089,7 +2086,7 @@ class AttendanceController {
 						regularizeStatus: result.status ? "Approved" : "Rejected",
 						updatedBy: req.userId,
 						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-						updatorRole: req.userRole
+						updatorRole: helper.fetchEmployeeRole(req.userRole, regularizeData["attendancemaster.employeeId"], req.userId)
 					},
 					{
 						where: {
@@ -5183,6 +5180,7 @@ class AttendanceController {
 						},
 					],
 				});
+
 				if (!regularizeData) {
 					return respHelper(res, {
 						status: 400,
@@ -5211,7 +5209,7 @@ class AttendanceController {
 						regularizeStatus: result.status ? "Approved" : "Rejected",
 						updatedBy: req.userId,
 						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-						updatorRole: req.userRole
+						updatorRole: helper.fetchEmployeeRole(req.userRole, regularizeData["attendancemaster.employeeId"], req.userId)
 					},
 					{
 						where: {

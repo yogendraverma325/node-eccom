@@ -1449,6 +1449,13 @@ ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `dateOfJoining`;
 
 //////////////////////////////////
 
+//////////////////////////22-04-2025////////////////
+
+ALTER TABLE `tara_hrms_live`.`leaveapprovaltrails` 
+ADD COLUMN `creatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `employeeId`,
+ADD COLUMN `updatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `creatorRole`;
+
+
 
 
 
