@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
-	const employeeAddress = sequelize.define("employeeaddress", {
-		addressId: {
+	const employeeAddress = sequelize.define("employeeaddresshistory", {
+		id: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
@@ -74,18 +74,6 @@ export default (sequelize, Sequelize) => {
 		emergencyLandmark: {
 			type: Sequelize.STRING,
 		},
-		// laptopSystem: {
-		//     type: Sequelize.STRING
-		// },
-		// backgroundVerification: {
-		//     type: Sequelize.BOOLEAN
-		// },
-		// gender: {
-		//     type: Sequelize.STRING
-		// },
-		// dateOfBirth: {
-		//     type: Sequelize.DATE
-		// },
 		createdAt: {
 			type: Sequelize.DATE,
 		},
@@ -107,7 +95,7 @@ export default (sequelize, Sequelize) => {
 		isActive: {
 			type: Sequelize.BOOLEAN,
 		},
-		// ritak address approval start
+
 		sectionType: {
 			type: Sequelize.STRING,
 			defaultValue: "Address Section",
@@ -188,7 +176,6 @@ export default (sequelize, Sequelize) => {
 		requestTriggered: {
 			type: Sequelize.DATE,
 		},
-		// ritak address approval end
 	});
 	return employeeAddress;
 };

@@ -366,6 +366,11 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.actionOnCompoff,
 	)
+	.get(
+		"/getTaskHistoryComfOffDetails",
+		authentication.authenticate,
+		userController.getTaskHistoryComfOffDetails,
+	)
 	.get("/checkPolicy", authentication.authenticate, userController.checkPolicy)
 	//COMP OFF
 	.get(
@@ -384,4 +389,12 @@ export default Express.Router()
 		"/actionOnLeaveCompoff",
 		authentication.authenticate,
 		userController.actionOnLeaveCompoff,
+	)
+
+	// ritak address approval module start
+	.post(
+		"/requestForAddressApproval",
+		authentication.authenticate,
+		userController.requestForAddressApproval,
 	);
+// ritak address approval module end

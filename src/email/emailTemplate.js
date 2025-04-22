@@ -1249,7 +1249,7 @@ const autoLeaveDeduction = async (data) => {
                                 >
                                   To view the full message
                                   <a
-                                    href=${process.env.CLIENT_URL}#/dashbaord
+                                    href=${process.env.CLIENT_URL}#/dashboard
                                     rel="noreferrer"
                                     style="
                                       padding: 5px 10px;
@@ -4398,47 +4398,77 @@ const salarySlipPdf = async (data) => {
 </html>`;
 };
 
-
-
 function numberToWords(num) {
-  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-  const teens = ["Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-  const tens = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-  const thousands = ["", "Thousand", "Lakh", "Crore"];
+	const ones = [
+		"",
+		"One",
+		"Two",
+		"Three",
+		"Four",
+		"Five",
+		"Six",
+		"Seven",
+		"Eight",
+		"Nine",
+	];
+	const teens = [
+		"Eleven",
+		"Twelve",
+		"Thirteen",
+		"Fourteen",
+		"Fifteen",
+		"Sixteen",
+		"Seventeen",
+		"Eighteen",
+		"Nineteen",
+	];
+	const tens = [
+		"",
+		"Ten",
+		"Twenty",
+		"Thirty",
+		"Forty",
+		"Fifty",
+		"Sixty",
+		"Seventy",
+		"Eighty",
+		"Ninety",
+	];
+	const thousands = ["", "Thousand", "Lakh", "Crore"];
 
-  if (num === 0) return "Zero Rupees";
+	if (num === 0) return "Zero Rupees";
 
-  function convertChunk(num) {
-      let words = "";
-      if (num >= 100) {
-          words += ones[Math.floor(num / 100)] + " Hundred ";
-          num %= 100;
-      }
-      if (num >= 11 && num <= 19) {
-          words += teens[num - 11] + " ";
-      } else {
-          words += tens[Math.floor(num / 10)] + " ";
-          words += ones[num % 10] + " ";
-      }
-      return words.trim();
-  }
+	function convertChunk(num) {
+		let words = "";
+		if (num >= 100) {
+			words += ones[Math.floor(num / 100)] + " Hundred ";
+			num %= 100;
+		}
+		if (num >= 11 && num <= 19) {
+			words += teens[num - 11] + " ";
+		} else {
+			words += tens[Math.floor(num / 10)] + " ";
+			words += ones[num % 10] + " ";
+		}
+		return words.trim();
+	}
 
-  let wordStr = "";
-  let chunkCount = 0;
-  const numStr = num.toString();
-  const numLen = numStr.length;
-  
-  let crore = numLen > 7 ? parseInt(numStr.slice(0, -7), 10) : 0;
-  let lakh = numLen > 5 ? parseInt(numStr.slice(-7, -5), 10) : 0;
-  let thousand = numLen > 3 ? parseInt(numStr.slice(-5, -3), 10) : 0;
-  let hundred = parseInt(numStr.slice(-3), 10);
+	let wordStr = "";
+	let chunkCount = 0;
+	const numStr = num.toString();
+	const numLen = numStr.length;
 
-  if (crore) wordStr += convertChunk(crore) + " Crore ";
-  if (lakh) wordStr += convertChunk(lakh) + " Lakh ";
-  if (thousand) wordStr += convertChunk(thousand) + " Thousand ";
-  if (hundred) wordStr += convertChunk(hundred);
+	let crore = numLen > 7 ? parseInt(numStr.slice(0, -7), 10) : 0;
+	let lakh = numLen > 5 ? parseInt(numStr.slice(-7, -5), 10) : 0;
+	let thousand = numLen > 3 ? parseInt(numStr.slice(-5, -3), 10) : 0;
+	let hundred = parseInt(numStr.slice(-3), 10);
 
-  return wordStr.trim() + " Rupees Only";
+	if (crore) wordStr += convertChunk(crore) + " Crore ";
+	if (lakh) wordStr += convertChunk(lakh) + " Lakh ";
+	if (thousand) wordStr += convertChunk(thousand) + " Thousand ";
+	if (hundred) wordStr += convertChunk(hundred);
+
+	return wordStr.trim() + " Rupees Only";
 }
 const releasePaySlip = async (data) => {
 	return `
@@ -4497,6 +4527,448 @@ const releasePaySlip = async (data) => {
     </html>`;
 };
 
+//ritak address approval start
+
+const addressDetailsAdminActionMail = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">Hi ${data.name}</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+           Request to update Address details in the profile has been acted upon by <strong>Tara Admin</strong>
+           
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+  Approver comments: ${data.comment}
+</p>
+          <p style="margin-top: 1rem;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+              "
+              target="_blank"
+              >Click Here</a
+            >
+            to view profile.<br />
+          </p>
+          <p><br /></p>
+         <p style="color: #000000;">Regards,</p>
+<p style="color: #000000;">TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const addressDetailsApprovalRequestMail = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+                                <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+                                  valign="middle">
+                                  <img
+                                      height="45"
+                                      src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                                      alt="Logo"
+                                  />
+                                  <img
+                                    height="45"
+                                    src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+                                    alt="Logo"
+                                    style="float: right"
+                                  />
+                              </tr>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">Hi ${data.name},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            Your request to update your <strong>Address Details</strong> in the profile has been submitted for approval.
+          </p>
+          <p style="margin-top: 1rem;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+              "
+              target="_blank"
+              >Click Here</a
+            >
+            for complete details of your profile update request.<br />
+          </p>
+          <p><br /></p>
+          <p>Regards,</p>
+          <p>TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+const compOffMail = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <table
+      style="
+        border-collapse: collapse;
+        line-height: 100% !important;
+        width: 100% !important;
+        font-family: sans-serif;
+      "
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      align="center"
+    >
+      <tbody>
+        <tr>
+          <td style="padding-top: 20px; padding-bottom: 20px">
+            <table
+              style="
+                border-collapse: collapse;
+                max-width: 635px;
+                min-width: 550px;
+                width: auto;
+                margin: 0 auto;
+                border: 0.5px solid #eee;
+              "
+              align="center"
+            >
+              <tbody>
+                <tr>
+                  <td>
+                    <table
+                      style="
+                        border-collapse: collapse;
+                        margin: 0 auto;
+                        width: 100%;
+                      "
+                      align="center"
+                    >
+                      <tbody>
+                        <tr style="background: #fff">
+                          <td
+                            colspan="2"
+                            style="padding: 20px; padding-bottom: 0"
+                            valign="top"
+                          >
+                            <table style="width: 100%">
+                              <tbody>
+                                <tr>
+                                  <td
+                            colspan="2"
+                            style="
+                              padding-bottom: 20px;
+                              text-align: left;
+                              border-bottom: 1px solid #eee;
+                              width: 100%;
+                            "
+                            valign="middle"
+                          >
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                              alt="Logo"
+                            />
+                            <img
+                              height="45"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
+                              alt="Logo"
+                               style="float:right"
+                            />
+                          </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr style="min-height: 300px; background: #fff">
+                          <td colspan="2" style="padding: 20px" valign="top">
+                            <div
+                              style="
+                                line-height: 1;
+                                line-height: 1;
+                                line-height: 1.8;
+                              "
+                            >
+                              <p>Hi <b>${data.managerName}</b>,</p>
+                              
+                              <p>
+                                 Comp off request has been raised for ${data.requesterName} for date ${moment(data.compOffDate).format("MMMM DD, YYYY")}
+                              </p>
+                              <p>
+                                <a 
+                                style="
+                                    padding: 5px 10px;
+                                    background: #0173c5;
+                                    color: #fff;
+                                    text-decoration: none;
+                                    border-radius: 2px;
+                                    font-size: 14px;
+                                    display: inline-block;
+                                  "
+                                  target="_blank"
+                                href=${
+																	process.env.CLIENT_URL
+																}>Click Here</a> to view the
+                                full request. <br />
+                              </p>
+                              <p><br /></p>
+                              <p>Regards,</p>
+                              <p>TARA HRMS<br /></p>
+                            </div>
+                            <table
+                              style="
+                                width: 100%;
+                                font-size: 12px;
+                                font-family: Century Gothic, CenturyGothic,
+                                  AppleGothic, sans-serif;
+                              "
+                            >
+                              <tbody></tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+`;
+};
+const compOffMailAppval = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <table
+      style="
+        border-collapse: collapse;
+        line-height: 100% !important;
+        width: 100% !important;
+        font-family: sans-serif;
+      "
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      align="center"
+    >
+      <tbody>
+        <tr>
+          <td style="padding-top: 20px; padding-bottom: 20px">
+            <table
+              style="
+                border-collapse: collapse;
+                max-width: 635px;
+                min-width: 550px;
+                width: auto;
+                margin: 0 auto;
+                border: 0.5px solid #eee;
+              "
+              align="center"
+            >
+              <tbody>
+                <tr>
+                  <td>
+                    <table
+                      style="
+                        border-collapse: collapse;
+                        margin: 0 auto;
+                        width: 100%;
+                      "
+                      align="center"
+                    >
+                      <tbody>
+                        <tr style="background: #fff">
+                          <td
+                            colspan="2"
+                            style="padding: 20px; padding-bottom: 0"
+                            valign="top"
+                          >
+                            <table style="width: 100%">
+                              <tbody>
+                                <tr>
+                                  <td
+                            colspan="2"
+                            style="
+                              padding-bottom: 20px;
+                              text-align: left;
+                              border-bottom: 1px solid #eee;
+                              width: 100%;
+                            "
+                            valign="middle"
+                          >
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                              alt="Logo"
+                            />
+                            <img
+                              height="45"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
+                              alt="Logo"
+                               style="float:right"
+                            />
+                          </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr style="min-height: 300px; background: #fff">
+                          <td colspan="2" style="padding: 20px" valign="top">
+                            <div
+                              style="
+                                line-height: 1;
+                                line-height: 1;
+                                line-height: 1.8;
+                              "
+                            >
+                              <p>Hi <b>${data.requesterName}</b>,</p>
+                              
+                              <p>
+                                 Comp off request has been ${data.status == 1 ? "Approved" : "Rejected"} by ${data.managerName} for date ${moment(data.compOffDate).format("MMMM DD, YYYY")}
+                              </p>
+                              <p>
+                                <a 
+                                style="
+                                    padding: 5px 10px;
+                                    background: #0173c5;
+                                    color: #fff;
+                                    text-decoration: none;
+                                    border-radius: 2px;
+                                    font-size: 14px;
+                                    display: inline-block;
+                                  "
+                                  target="_blank"
+                                href=${
+																	process.env.CLIENT_URL
+																}>Click Here</a> to view the
+                                full request. <br />
+                              </p>
+                              <p><br /></p>
+                              <p>Regards,</p>
+                              <p>TARA HRMS<br /></p>
+                            </div>
+                            <table
+                              style="
+                                width: 100%;
+                                font-size: 12px;
+                                font-family: Century Gothic, CenturyGothic,
+                                  AppleGothic, sans-serif;
+                              "
+                            >
+                              <tbody></tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+`;
+};
+//ritak address approval end
 export default {
 	regularizationRequestMail,
 	resetPasswordMail,
@@ -4529,4 +5001,10 @@ export default {
 	confirmationWorkFlownextLevel,
 	salarySlipPdf,
 	releasePaySlip,
+	//ritak address approval start
+	addressDetailsAdminActionMail,
+	addressDetailsApprovalRequestMail,
+  compOffMail,
+	compOffMailAppval,
+	//ritak address approval end
 };

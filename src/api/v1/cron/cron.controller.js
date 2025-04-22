@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { Op } from "sequelize";
+
 import db from "../../../config/db.config.js";
 import moment from "moment";
 import eventEmitter from "../../../services/eventService.js";
@@ -11,6 +11,8 @@ import respHelper from "../../../helper/respHelper.js";
 import attendanceController from "../attendance/attendance.controller.js";
 import { NodeSSH } from "node-ssh";
 import Sequelize from "sequelize";
+import {where,Op, fn, col } from "sequelize";
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New 
 
 class CronController {
 	async updateAttendance() {
@@ -368,14 +370,15 @@ class CronController {
 
 	async prePasswordExpiryNotification() {
 		try {
-
 			let updateQuery = `UPDATE employee AS emp
 					LEFT JOIN bumapping AS bumapping
 					ON bumapping.companyId = emp.companyId 
 					AND bumapping.buId = emp.buId
 					SET emp.buHRId = bumapping.buHrId
 					WHERE emp.buHRId IS NULL;`;
-			await db.sequelize.query("SET sql_safe_updates=0;", { type: db.QueryTypes.RAW });
+			await db.sequelize.query("SET sql_safe_updates=0;", {
+				type: db.QueryTypes.RAW,
+			});
 			await db.sequelize.query(updateQuery, { type: db.QueryTypes.UPDATE });
 
 			const existsUserData = await db.employeeMaster.findAll({
@@ -1845,22 +1848,26 @@ class CronController {
 	}
 
 	async biometricAttendance() {
+		const start = performance.now();
+		console.log("Biometric Attendance Cron Running");
+		console.log(`Biometric Start ${start}`);
 		try {
+			let cronArray = [];
 			const ssh = new NodeSSH();
 			const sshConfig = Object.assign(
 				{
 					host: process.env.SSH_HOST,
 					port: process.env.SSH_PORT,
 					username: process.env.SSH_USERNAME,
-					keepaliveInterval: 10000
+					keepaliveInterval: 10000,
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-					}
+							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+						}
 					: {
-						password: process.env.SSH_PASSWORD,
-					},
+							password: process.env.SSH_PASSWORD,
+						},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1914,15 +1921,15 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-									instanceName: process.env.SERVER_DB_INSTANCE,
-								},
+										instanceName: process.env.SERVER_DB_INSTANCE,
+									},
 						),
 					},
 					logging: false,
 				},
 			);
 			const SPECTRA_TABLE_NAME = process.env.SERVER_DB_TABLE;
-			sequelize
+			await sequelize
 				.authenticate()
 				.then(async () => {
 					console.log(
@@ -1932,6 +1939,73 @@ class CronController {
 						`SELECT * FROM ${SPECTRA_TABLE_NAME} WHERE IS_UNREAD=0 order by Punch_DateTime asc`,
 					);
 					if (result && result.length > 0) {
+						const sheetName = `uploads/temp/Spectra_Attendance_${moment().format("YYYY_MM_DD_HH_mm_ss")}`;
+						fs.writeFileSync(sheetName + ".xlsx", "", { flag: "a+" }, (err) => {
+							if (err) {
+								console.error("Error writing file:", err);
+								return;
+							}
+							console.log("File created successfully!");
+						});
+
+						let data = [
+							{
+								sheet: `Spectra_Attendance`,
+								columns: [
+									{ label: "ID", value: (row) => row.ID },
+									{ label: "Device_ID", value: (row) => row.DeviceID },
+									{
+										label: "Device_Name",
+										value: (row) => row.DeviceName,
+									},
+									{
+										label: "Employee_Code",
+										value: (row) => row.EmployeeCode,
+									},
+									{
+										label: "Employee_Name",
+										value: (row) => row.EmployeeName,
+									},
+									{
+										label: "Punch_Date",
+										value: (row) => moment(row.PunchDate).format("YYYY-MM-DD"),
+									},
+									{
+										label: "Punch_Time",
+										value: (row) => moment(row.PunchTime).format("HH:mm:ss"),
+									},
+									{ label: "Punch_Type", value: (row) => row.PunchType },
+									{
+										label: "IS_UNREAD",
+										value: (row) => row.IS_UNREAD,
+									},
+									{
+										label: "SYSDATE",
+										value: (row) =>
+											moment(row.SYSDATE).format("YYYY-MM-DD HH:mm:ss"),
+									},
+									{
+										label: "Punch_DateTime",
+										value: (row) =>
+											moment
+												.utc(row.Punch_DateTime)
+												.format("YYYY-MM-DD HH:mm:ss"),
+									},
+								],
+								content: result[0],
+							},
+						];
+
+						const settings = {
+							fileName: sheetName,
+							extraLength: 3,
+							writeMode: "writeFile",
+							writeOptions: {},
+							RTL: false,
+						};
+
+						xlsx(data, settings);
+
 						for (const element of result[0]) {
 							const incomingAttendanceData = {
 								autoId: element.ID,
@@ -1944,7 +2018,9 @@ class CronController {
 								punchType: element.PunchType,
 								createdDate: element.SYSDATE,
 								isRead: element.IS_UNREAD,
-								punchDateTime: moment.utc(element.Punch_DateTime).format("YYYY-MM-DD HH:mm:ss"),
+								punchDateTime: moment
+									.utc(element.Punch_DateTime)
+									.format("YYYY-MM-DD HH:mm:ss"),
 							};
 
 							const employeeData = await db.employeeMaster.findOne({
@@ -1954,19 +2030,22 @@ class CronController {
 								},
 								attributes: ["id", "empCode", "name"],
 							});
-
+							let updatedAttendance;
 							if (!employeeData) {
 								logger.error(
 									`Employee not found --->> ${incomingAttendanceData.empName}(${incomingAttendanceData.tmc})`,
 								);
 							} else {
-								await attendanceController.markBioMetricAttendance(
-									incomingAttendanceData,
-								);
+								updatedAttendance =
+									await attendanceController.markBioMetricAttendance(
+										incomingAttendanceData,
+									);
+
+								cronArray.push(updatedAttendance);
 							}
 
 							sequelize.query(
-								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=1 WHERE ID=${incomingAttendanceData.autoId}`,
+								`UPDATE ${SPECTRA_TABLE_NAME} SET IS_UNREAD=${updatedAttendance && updatedAttendance.status ? 1 : 2} WHERE ID=${incomingAttendanceData.autoId}`,
 								(err, result) => {
 									if (err) {
 										logger.error(`Error ${err}`);
@@ -1976,6 +2055,26 @@ class CronController {
 									console.log(result);
 								},
 							);
+						}
+
+						const uniqueRecords = cronArray.filter((item, index, self) => {
+							return (
+								index ===
+								self.findIndex(
+									(t) =>
+										t.attendanceAutoId === item.attendanceAutoId &&
+										t.date === item.date,
+								)
+							);
+						});
+
+						for (const element of uniqueRecords) {
+							if (moment().diff(moment(element.date), "days") > 1) {
+								attendanceController.attedanceCronManual(
+									element.attendanceAutoId,
+									element.date,
+								);
+							}
 						}
 					}
 				})
@@ -1987,7 +2086,71 @@ class CronController {
 			logger.error(`Error while connecting SSH ${error}`);
 			console.log(error);
 		}
+		const end = performance.now();
+		console.log(`Biometric End ${end}`);
+		const executionTime = end - start;
+		console.log(
+			`Biometric Attendance Cron Completed in ${executionTime} milliseconds`,
+		);
 	}
+
+	async getEmpForWishes(){
+try{
+	 const today = moment().format("MM-DD");
+        
+            const employeesBirth = await db.biographicalDetails.findAll({
+                raw: true,
+                where: {
+                    [Op.and]: [
+                      where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), '04-11'),
+                      { isActive: 1 }
+                    ]
+                }
+            });
+			for (const emp of employeesBirth) {
+                const empId = emp.userId;
+                // Birthday Wishes
+                if (emp.dateOfBirth) {
+                    const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
+                    if (dobFormatted === today) {
+                        pushNotificationEmitter.emit("sendNotification", {
+                            title: "Alert!",
+                            body: "Best wishes on your birthday!",
+                            employeeId: 1043,//empId,
+                        });
+                    }
+                }
+            }
+			const employees = await db.employeeMaster.findAll({
+                raw: true,
+                where: {
+                    isActive: 1,
+                    dateOfJoining: {
+                        [Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
+                    },
+                },
+            });
+			   for (const emp of employees) {
+                const empId = emp.id;
+                // Work Anniversary
+                if (emp.dateOfJoining) {
+                    const dojFormatted = moment(emp.dateOfJoining).format("MM-DD");
+                    if (dojFormatted === today) {
+                        pushNotificationEmitter.emit("sendNotification", {
+                            title: "Alert!",
+                            body: "Best wishes on your work anniversary!",
+                            employeeId: 1043,//empId,
+                        });
+                    }
+                }
+            }
+
+}
+catch (error) {
+            console.log("Error in Birthday/Anniversary Wishes", error);
+        }
+	}
+	
 }
 
 export default new CronController();

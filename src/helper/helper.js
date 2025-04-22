@@ -136,6 +136,11 @@ const mailService = async (data) => {
 };
 
 const smsService = async (data) => {
+	const testMobile = parseInt(process.env.TEST_MAIL);
+	const testMobileNumbers = testMobile
+		? process.env.TEST_MOBILE_NUMBER.split(",")
+		: data.mobile;
+
 	const axiosInstance = axios.create({
 		httpsAgent: new https.Agent({
 			rejectUnauthorized: false,
@@ -147,7 +152,7 @@ const smsService = async (data) => {
 			`${process.env.CENTRAL_MAIL_API}/process`,
 			{
 				template_code: data.template,
-				template_customer_number: data.mobile,
+				template_customer_number: testMobileNumbers,
 				template_id: data.templateId,
 			},
 			{
@@ -159,7 +164,7 @@ const smsService = async (data) => {
 			},
 		)
 		.then((response) => {
-			console.log("SMS Response", response.data);
+			console.log(`SMS Sent -->> ${data.mobile}`);
 			return true;
 		})
 		.catch((error) => {
@@ -639,6 +644,12 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
+			console.log("item ",item)
+
+			if(item.leaveCompanyDetails.display_all==0){
+	console.log("displa ",)
+item.dataValues.is_active_for_display = item.leaveCompanyDetails.display_all;
+			}
 
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
@@ -735,6 +746,8 @@ const empLeaveDetails = async function (userId, type) {
 				item.dataValues.addOn = [...policy, ...adddon];
 			}
 		}
+
+		 
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
 			where: {
@@ -848,7 +861,7 @@ const empMarkLeaveOfGivenDate = async function (
 			appliedFor: {
 				[Op.between]: [inputData.fromDate, inputData.toDate],
 			},
-			status: "approved",
+			status: ["approved", "pending"],
 			employeeId: userId,
 		},
 	});
@@ -1683,7 +1696,11 @@ const compareImages = async function (base64Image, folderImagePath) {
 };
 ///CONFIRMATION
 
-const generateFieldsForgivenLevel = async function (policyId, inputLevel,companyId) {
+const generateFieldsForgivenLevel = async function (
+	policyId,
+	inputLevel,
+	companyId,
+) {
 	//console.log("inputLevel", inputLevel);
 	let levelData = null;
 	let level = inputLevel;
@@ -1694,13 +1711,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 			isEnable: 1,
 			level: level,
 			companyId: {
-			[Op.or]: [
-				{ [Op.like]: `${companyId},%` },
-				{ [Op.like]: `%,${companyId},%` },
-				{ [Op.like]: `%,${companyId}` },
-				{ [Op.eq]: `${companyId}` },
-			],
-			}
+				[Op.or]: [
+					{ [Op.like]: `${companyId},%` },
+					{ [Op.like]: `%,${companyId},%` },
+					{ [Op.like]: `%,${companyId}` },
+					{ [Op.eq]: `${companyId}` },
+				],
+			},
 		},
 	});
 	if (!levelData) {
@@ -1711,14 +1728,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 				isEnable: 1,
 				level: level,
 				companyId: {
-						[Op.or]: [
-							{ [Op.like]: `${companyId},%` },
-							{ [Op.like]: `%,${companyId},%` },
-							{ [Op.like]: `%,${companyId}` },
-							{ [Op.eq]: `${companyId}` },
-						],
-					}
-
+					[Op.or]: [
+						{ [Op.like]: `${companyId},%` },
+						{ [Op.like]: `%,${companyId},%` },
+						{ [Op.like]: `%,${companyId}` },
+						{ [Op.eq]: `${companyId}` },
+					],
+				},
 			},
 		});
 	}
@@ -1730,13 +1746,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 				isEnable: 1,
 				level: level,
 				companyId: {
-						[Op.or]: [
-							{ [Op.like]: `${companyId},%` },
-							{ [Op.like]: `%,${companyId},%` },
-							{ [Op.like]: `%,${companyId}` },
-							{ [Op.eq]: `${companyId}` },
-						],
-					}
+					[Op.or]: [
+						{ [Op.like]: `${companyId},%` },
+						{ [Op.like]: `%,${companyId},%` },
+						{ [Op.like]: `%,${companyId}` },
+						{ [Op.eq]: `${companyId}` },
+					],
+				},
 			},
 		});
 	}
@@ -1748,13 +1764,13 @@ const generateFieldsForgivenLevel = async function (policyId, inputLevel,company
 				isEnable: 1,
 				level: level,
 				companyId: {
-						[Op.or]: [
-							{ [Op.like]: `${companyId},%` },
-							{ [Op.like]: `%,${companyId},%` },
-							{ [Op.like]: `%,${companyId}` },
-							{ [Op.eq]: `${companyId}` },
-						],
-					}
+					[Op.or]: [
+						{ [Op.like]: `${companyId},%` },
+						{ [Op.like]: `%,${companyId},%` },
+						{ [Op.like]: `%,${companyId}` },
+						{ [Op.eq]: `${companyId}` },
+					],
+				},
 			},
 		});
 	}
@@ -1823,12 +1839,13 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			model: db.comp_off_assignment_filters,
 		},
 	});
-	let whereCondition = {
-		isActive: 1,
-	};
-	let compOffPolicyAssignment = {};
-	let whereConditionJobdetails = {};
+	var compOffPolicyAssignment = {};
 	for (const single of compOffAissgments) {
+		var whereCondition = {
+			isActive: 1,
+		};
+
+		var whereConditionJobdetails = {};
 		for (const singlefilter of single.comp_off_assignment_filters) {
 			const columnName = mappingObject[singlefilter.filter_colum];
 			const validColumns = ["jobLevelId", "bandId", "gradeId"];
@@ -1858,6 +1875,11 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			...whereConditionJobdetails,
 			...{ userId: UserId },
 		};
+		console.log("================= start", single?.comp_off_assignment_auto_id);
+		console.log("whereCondition", whereCondition);
+		console.log("whereConditionJobdetails", whereConditionJobdetails);
+
+		console.log("================= end", single?.comp_off_assignment_auto_id);
 		const employee = await db.employeeMaster.findOne({
 			where: whereCondition,
 			attributes: [
@@ -1876,16 +1898,35 @@ const checkCompOffPolicyForUser = async (UserId) => {
 				where: whereConditionJobdetails,
 			},
 		});
+		console.log(
+			"employee",
+			employee ? "yes" : "NO",
+			" ==== single?.comp_off_assignment_auto_id",
+			single?.comp_off_assignment_auto_id,
+		);
 		if (employee) {
-			if (employee?.id in compOffPolicyAssignment) {
-				compOffPolicyAssignment[employee?.id] =
-					single?.comp_off_assignment_auto_id;
+			if (employee.id in compOffPolicyAssignment) {
+				compOffPolicyAssignment[employee.id] =
+					single.comp_off_assignment_auto_id;
 			} else {
-				compOffPolicyAssignment[employee?.id] =
-					single?.comp_off_assignment_auto_id;
+				console.log(
+					"employee?.id 1",
+					employee?.id,
+					"compOffPolicyAssignment",
+					compOffPolicyAssignment,
+				);
+				compOffPolicyAssignment[employee.id] =
+					single.comp_off_assignment_auto_id;
+				console.log(
+					"employee?.id 2",
+					employee?.id,
+					"compOffPolicyAssignment",
+					compOffPolicyAssignment,
+				);
 			}
 		}
 	}
+	console.log("compOffPolicyAssignment", compOffPolicyAssignment);
 	let compOffPolicyData = null;
 	if (Object.keys(compOffPolicyAssignment).length > 0) {
 		compOffPolicyData = await db.comp_off_polices.findOne({
@@ -1946,6 +1987,7 @@ const compOffbalabceForUser = async (UserId, status = "Approved") => {
 				//employee_Id: req.userId,
 				status: 3,
 			},
+			group: ["credit_for_date", "employee_Id"],
 		});
 	}
 
@@ -2182,7 +2224,7 @@ const creditCompoff = async (inputObject) => {
 
 		if (goAhead) {
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
-			console.log("compOffPolicyData", compOffPolicyData);
+			// console.log("compOffPolicyData", compOffPolicyData);
 			const startOfMonth = moment(attendanceDate)
 				.startOf("year")
 				.format("YYYY-MM-DD HH:mm:ss");
@@ -2241,13 +2283,19 @@ const creditCompoff = async (inputObject) => {
 							approvalRequiredKey,
 							approvalRequiredIdsKey,
 						) => {
-							if (policyData[fullDayKey]!=0 && policyData[fullDayKey] <= compOffHours) {
+							if (
+								policyData[fullDayKey] != 0 &&
+								policyData[fullDayKey] <= compOffHours
+							) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
 								}
 								return 1;
-							} else if (policyData[halfDayKey]!=0 && policyData[halfDayKey] <= compOffHours) {
+							} else if (
+								policyData[halfDayKey] != 0 &&
+								policyData[halfDayKey] <= compOffHours
+							) {
 								approvalRequired = policyData[approvalRequiredKey];
 								if (approvalRequired) {
 									approvalIds = policyData[approvalRequiredIdsKey].split(",");
@@ -2383,18 +2431,43 @@ const creditCompoff = async (inputObject) => {
 
 							comp_off_data.adjust_hours = time;
 							comp_off_data.total_hours = time;
+							const compOffCount = await db.comp_off_credit_history.findAll({
+								where: {
+									employee_Id: comp_off_data.employee_Id,
+									credit_for_date: comp_off_data.credit_for_date,
+								},
+							});
 
-							// const records = Array(50).fill(null); // Create an array with 50 null placeholders
-							// for (const [index] of records.entries()) {
 							if (comp_off_data.balance === 1) {
 								let comp_off_data_1 = { ...comp_off_data, balance: 0.5 };
 								let comp_off_data_2 = { ...comp_off_data, balance: 0.5 };
 
-								// Insert both objects into the database
-								await db.comp_off_credit_history.create(comp_off_data_1);
-								await db.comp_off_credit_history.create(comp_off_data_2);
+								if (compOffCount.length == 0) {
+									// Insert both objects into the database
+									await db.comp_off_credit_history.create(comp_off_data_1);
+									await db.comp_off_credit_history.create(comp_off_data_2);
+								} else if (compOffCount.length == 1) {
+									await db.comp_off_credit_history.create(comp_off_data_2);
+								}
 							} else {
-								await db.comp_off_credit_history.create(comp_off_data);
+								if (compOffCount.length == 0) {
+									await db.comp_off_credit_history.create(comp_off_data);
+								}
+							}
+							if (comp_off_data.pending_at != null) {
+								let EMP_DATA_SELF = await getEmpProfile(
+									comp_off_data.employee_Id,
+								); // SELF Manager
+
+								const obj = {
+									email: EMP_DATA_SELF.email,
+									companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+									senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+									requesterName: EMP_DATA_SELF.name,
+									managerName: EMP_DATA_SELF.managerData.name,
+									compOffDate: comp_off_data.credit_for_date,
+								};
+								eventEmitter.emit("compOffMail", JSON.stringify(obj));
 							}
 
 							// }
@@ -2475,6 +2548,7 @@ const actionOnLeaveCompOff = async (
 				employeeId: employeeId,
 				leaveAutoId: 9,
 				status: "approved",
+				employeeleaveheaderID: employeeLeaveTransactionsIds,
 			},
 			raw: false,
 		});
@@ -3450,7 +3524,11 @@ const getFiltersByPermission = async (roleId, permissionAndAccess) => {
 
 // START BY JAY GENERATE EMPLOYMENT HISTORY
 
-async function generateEmployementHistory(employeeDetails, createdBy, createdUserJobDetails) {
+async function generateEmployementHistory(
+	employeeDetails,
+	createdBy,
+	createdUserJobDetails,
+) {
 	// create designation history
 
 	let designationMetaData = {
@@ -3461,10 +3539,10 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		toDate: null,
 		isPromotion: 0,
 		createdBy: createdBy,
-		createdAt: employeeDetails.createdAt
-	}
+		createdAt: employeeDetails.createdAt,
+	};
 	await db.DesignationEmploymentHistory.create(designationMetaData);
-    
+
 	// create manager history
 
 	let managerMetaData = {
@@ -3472,8 +3550,8 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		managerId: employeeDetails.manager,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		createdBy: createdBy,
-		createdAt: employeeDetails.createdAt
-	}
+		createdAt: employeeDetails.createdAt,
+	};
 	await db.managerHistory.create(managerMetaData);
 
 	// create job level history
@@ -3488,9 +3566,9 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		toDate: null,
 		isPromotion: 0,
 		createdBy: createdBy,
-		createdAt: createdUserJobDetails.createdAt
+		createdAt: createdUserJobDetails.createdAt,
 	};
-    await db.JobLevelEmploymentHistory.create(jobLevelMetaData);
+	await db.JobLevelEmploymentHistory.create(jobLevelMetaData);
 
 	// create department history
 
@@ -3505,10 +3583,10 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		functionalAreaId: employeeDetails.functionalAreaId,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		toDate: null,
-        createdBy: createdBy,
-		createdAt: employeeDetails.createdAt
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt,
 	};
-    await db.DepartmentEmploymentHistory.create(departmentMetaData);
+	await db.DepartmentEmploymentHistory.create(departmentMetaData);
 
 	// create employee type history
 
@@ -3518,8 +3596,8 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		employeeType: employeeDetails.employeeType,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		toDate: null,
-	    createdBy: createdBy,
-		createdAt: employeeDetails.createdAt
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt,
 	};
 	await db.EmployeeTypeEmploymentHistory.create(employeeTypeMetaData);
 
@@ -3531,14 +3609,14 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 		companyLocationId: employeeDetails.companyLocationId,
 		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 		toDate: null,
-	    createdBy: createdBy,
-		createdAt: employeeDetails.createdAt
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt,
 	};
 	await db.OfficeLocationEmploymentHistory.create(companyLocationMetaData);
 
 	// create cost center history
 
-	if(employeeDetails.costId) {
+	if (employeeDetails.costId) {
 		let costCenterMetaData = {
 			employeeId: employeeDetails.id,
 			companyId: employeeDetails.companyId,
@@ -3546,14 +3624,123 @@ async function generateEmployementHistory(employeeDetails, createdBy, createdUse
 			fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
 			toDate: null,
 			createdBy: createdBy,
-			createdAt: employeeDetails.createdAt
+			createdAt: employeeDetails.createdAt,
 		};
-	
+
 		await db.CostCenterEmploymentHistory.create(costCenterMetaData);
 	}
-
 }
 
+const revokeAppliedLeave = async (date, emp) => {
+	const leave = await db.EmployeeLeaveHeader.findOne({
+		where: {
+			employeeId: emp,
+			fromDate: date,
+			status: {
+				[Op.in]: ["approved", "pending"],
+			},
+			source: "system_generated",
+		},
+	});
+
+	if (leave) {
+		await db.EmployeeLeaveHeader.update(
+			{
+				status: "revoked",
+				managerRemark:
+					"System Revoked: Your leave request has been revoked due to the latest attendance data update.",
+				updatedAt: moment(),
+			},
+			{
+				where: {
+					employeeleaveheaderID: leave.dataValues.employeeleaveheaderID,
+				},
+			},
+		);
+
+		await db.employeeLeaveTransactions.update(
+			{
+				status: "revoked",
+				managerRemark:
+					"System Revoked: Your leave request has been revoked due to the latest attendance data update.",
+				updatedAt: moment(),
+			},
+			{
+				where: {
+					employeeleaveheaderID: leave.dataValues.employeeleaveheaderID,
+				},
+			},
+		);
+
+		if (leave.dataValues.status === "approved") {
+			await db.leaveMapping.update(
+				{
+					availableLeave: db.sequelize.literal(
+						`availableLeave + ${leave.dataValues.leaveCount}`,
+					),
+					utilizedThisYear: db.sequelize.literal(
+						`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+					),
+				},
+				{
+					where: {
+						EmployeeId: emp,
+						leaveAutoId: leave.dataValues.leaveAutoId,
+					},
+				},
+			);
+		}
+	}
+};
+
+const activeCompOffMoreThanLeave = async (EMP_ID, leaveID) => {
+	const compOffHistory = await db.comp_off_credit_history.findAll({
+		attributes: [
+			"comp_off_credit_history_auto_id",
+			"employee_Id",
+			"balance",
+			"expiry_date",
+		],
+		where: {
+			employee_Id: EMP_ID,
+			status: 1,
+			expiry_date: {
+				[Op.or]: [
+					{ [Op.eq]: null },
+					{ [Op.gt]: moment().format("YYYY-MM-DD") },
+				],
+			},
+		},
+		order: [["expiry_date", "ASC"]],
+		raw: true,
+	});
+	//console.log("compOffHistory list");
+
+	if (compOffHistory.length === 0) {
+		return 0;
+	}
+	//console.log("compOffHistory checked");
+
+	const totalBalance = compOffHistory.reduce(
+		(sum, record) => sum + parseFloat(record.balance),
+		0,
+	);
+	const getLeaveRequest = await db.EmployeeLeaveHeader.findOne({
+		attributes: ["employeeId", "leaveAutoId", "leaveCount"],
+		where: {
+			employeeId: EMP_ID,
+			leaveAutoId: 9,
+			employeeleaveheaderID: leaveID,
+		},
+		raw: false,
+	});
+
+	if (totalBalance < parseFloat(getLeaveRequest.leaveCount)) {
+		return 0;
+	} else {
+		return 1;
+	}
+};
 // END BY JAY GENERATE EMPLOYMENT HISTORY
 
 export default {
@@ -3610,6 +3797,8 @@ export default {
 	fetchpermissoinAndAcessForEMP,
 	getFiltersByPermission,
 	// START BY JAY GENERATE EMPLOYMENT HISTORY
-	generateEmployementHistory
-	// END BY JAY GENERATE EMPLOYMENT HISTORY
+	generateEmployementHistory,
+	// END BY JAY GENERATE EMPLOYMENT HISTORY,
+	revokeAppliedLeave,
+	activeCompOffMoreThanLeave,
 };

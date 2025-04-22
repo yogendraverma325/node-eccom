@@ -96,8 +96,19 @@ class UserController {
 					},
 					{
 						model: db.noticePeriodMaster,
-						required: false,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeejobdetail.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.buMaster,
@@ -589,6 +600,68 @@ class UserController {
 								attributes: ["pincodeId", "pincode"],
 								as: "emergencypincode",
 							},
+							//ritak adddress approval start
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "newCurrentCityDetails",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "newCurrentStateDetails",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "newCurrentCountryDetails",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "newCurrentPincodeDetails",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "newPermanentCityDetails",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "newPermanentStateDetails",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "newPermanentCountryDetails",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "newPermanentPincodeDetails",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "newEmergencyCityDetails",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "newEmergencyStateDetails",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "newEmergencyCountryDetails",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "newEmergencyPincodeDetails",
+							},
+							//ritak address approval end
 						],
 					},
 					{
@@ -689,21 +762,12 @@ class UserController {
 		try {
 			let userid = req.userId;
 			let role_id = req.userData.role_id;
-			// const countLeavePending = await db.EmployeeLeaveHeader.count({
-			// 	where: {
-			// 		employeeId: userid,
-			// 		status: "pending",
-			// 		source: {
-			// 			[Op.ne]: "system_generated",
-			// 		},
-			// 	},
-			// });
-			
+
 			const mainCondition = {
 				employeeId: req.userId,
-				// source: { [Op.ne]: "system_generated" },
+				source: { [Op.ne]: "system_generated" },
 				status: "pending",
-			}
+			};
 
 			const leaveApprovalCondition = {
 				employeeId: req.userId,
@@ -711,8 +775,8 @@ class UserController {
 					[Op.notIn]: [2],
 				},
 				//isPending: 1,
-			}
-			
+			};
+
 			const fullyApprovedLeaveHeaders = await db.leaveApprovalTrails.findAll({
 				attributes: ["leaveHeaderAutoId"],
 				group: ["leaveHeaderAutoId"],
@@ -739,30 +803,31 @@ class UserController {
 
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
 				where: {
-					status: "pending",
-					[Op.or]: [
-						mainCondition,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
-					],
-					...(excludedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					}),
-					...(rejectedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					}),
+					// status: "pending",
+					...mainCondition,
+					// [Op.or]: [
+					// 	mainCondition,
+					// 	{
+					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+					// 	},
+					// ],
+					// ...(excludedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					// }),
+					// ...(rejectedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					// }),
 				},
 
 				attributes: [],
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
-						where: leaveApprovalCondition
-					}
+						required: true,
+						where: leaveApprovalCondition,
+					},
 				],
-				distinct: true
+				distinct: true,
 			});
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
@@ -787,78 +852,48 @@ class UserController {
 						attributes: ["id", "empCode", "name", "profileImage"],
 					},
 				],
-				distinct: true
+				distinct: true,
 			});
 
-			// const countLeaveAssginedForExistingFlow =
-			// 	await db.EmployeeLeaveHeader.count({
-			// 		where: {
-			// 			pendingAt: userid,
-			// 			status: "pending",
-			// 		},
-			// 	});
-
-			// const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
-			// 	where: {
-			// 		// pendingAt: userid,
-			// 		status: "pending",
-			// 	},
-			// 	include: [
-			// 		{
-			// 			model: db.leaveApprovalTrails,
-			// 			where: {
-			// 				isVisible: true,
-			// 				pendingOn: req.userId,
-			// 				isApproved: 0,
-			// 				isPending: 1,
-			// 				// pendingOn: req.userId,
-			// 				// isPending: 1,
-			// 				// isVisible:1
-			// 				//isApproved:0
-			// 			},
-			// 			//required:false
-			// 		},
-			// 	],
-			// });
-
 			const mainCondition1 = {
-				pendingAt: req.userId,
-				status: "pending"
+				// pendingAt: req.userId,
+				status: "pending",
 			};
 
 			const leaveApprovalCondition2 = {
 				isVisible: true,
 				pendingOn: req.userId,
 				isApproved: 0,
-				isPending: 1
-			}
+				isPending: 1,
+			};
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
 				where: {
-					status: "pending",
-					[Op.or]: [
-						mainCondition1,
-						{
-							"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-						},
-					],
-					...(excludedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					}),
-					...(rejectedLeaveHeaderIds.length > 0 && {
-						employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					}),
+					// status: "pending",
+					...mainCondition1,
+					// [Op.or]: [
+					// 	mainCondition1,
+					// 	{
+					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
+					// 	},
+					// ],
+					// ...(excludedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
+					// }),
+					// ...(rejectedLeaveHeaderIds.length > 0 && {
+					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
+					// }),
 				},
 
 				attributes: [],
 				include: [
 					{
 						model: db.leaveApprovalTrails,
-						required: false,
-						where: leaveApprovalCondition2
-					}
+						required: true,
+						where: leaveApprovalCondition2,
+					},
 				],
-				distinct: true
+				distinct: false,
 			});
 
 			let assignedAttCount = await db.regularizationMaster.count({
@@ -866,23 +901,29 @@ class UserController {
 					regularizeManagerId: userid,
 					regularizeStatus: "Pending",
 				},
+				include: {
+					model: db.attendanceMaster,
+					attributes: {
+						exclude: [],
+					},
+					where: { employeeId: { [Op.not]: req.userId } },
+					required: true,
+				},
 			});
 			let pendingAttCount = await db.regularizationMaster.count({
 				where: {
 					regularizeStatus: "Pending",
-					createdBy: userid,
+					// createdBy: userid,
+				},
+				include: {
+					model: db.attendanceMaster,
+					attributes: {
+						exclude: [],
+					},
+					where: { employeeId: req.userId },
+					required: true,
 				},
 			});
-			// let pendingSeperationCount = await db.separationMaster.count(
-			// 	{
-			// 		pendingAt: userid,
-			// 	},
-			// 	{
-			// 		where: {
-			// 			finalStatus: [2, 5, 9],
-			// 		},
-			// 	},
-			// );
 
 			let userId = req.userId;
 			let compOffbalabceForUser = await helper.compOffbalabceForUser(
@@ -890,60 +931,61 @@ class UserController {
 				"Pending",
 			);
 
-			let pendingSeperationCount = await db.separationMaster.count(
-				{
-					where: {
-						[Op.or]: [
-							{
-								employeeId: req.userId,
-								finalStatus: 1,
-							},
-							{
-								pendingAt: req.userId,
-								finalStatus: {
-									[Op.in]: [5, 2],
-								},
-							},
-						],
-					},
-				}
-			);
-			
-			const pendingSeperationWorkFlowCount = await db.separationInitiatedTask.count({
+			compOffbalabceForUser = compOffbalabceForUser?.length || 0;
+
+			let pendingSeperationCount = await db.separationMaster.count({
 				where: {
-					status: 0,
-					isActive: 1,
-				},
-				include: [
-					{
-						model: db.employeeMaster,
-						required: true,
-						attributes: [],
-						include: [
-							{
-								model: db.separationMaster,
-								attributes: [],
-								required: true,
-								where: {
-									finalStatus: 9,
-									resignationAutoId: db.Sequelize.col(
-										"separationinitiatedtask.resignationAutoId",
-									),
-								},
+					[Op.or]: [
+						{
+							employeeId: req.userId,
+							finalStatus: 1,
+						},
+						{
+							pendingAt: req.userId,
+							finalStatus: {
+								[Op.in]: [5, 2],
 							},
-						],
-					},
-					{
-						model: db.separationTaskOwner,
-						attributes: [],
-						required: true,
-						where: {
-							taskOwner: req.userId,
-						}
-					},
-				],
-				distinct: true
+						},
+					],
+				},
 			});
+
+			const pendingSeperationWorkFlowCount =
+				await db.separationInitiatedTask.count({
+					where: {
+						status: 0,
+						isActive: 1,
+					},
+					include: [
+						{
+							model: db.employeeMaster,
+							required: true,
+							attributes: [],
+							include: [
+								{
+									model: db.separationMaster,
+									attributes: [],
+									required: true,
+									where: {
+										finalStatus: 9,
+										resignationAutoId: db.Sequelize.col(
+											"separationinitiatedtask.resignationAutoId",
+										),
+									},
+								},
+							],
+						},
+						{
+							model: db.separationTaskOwner,
+							attributes: [],
+							required: true,
+							where: {
+								taskOwner: req.userId,
+							},
+						},
+					],
+					distinct: true,
+				});
 
 			const confirmationCount = await db.Confirmationinitiated.count({
 				where: {
@@ -955,47 +997,89 @@ class UserController {
 						attributes: [],
 						where: {
 							employeeId: req.userId,
-						}
-					}
+						},
+					},
 				],
-				distinct: true
+				distinct: true,
 			});
 
 			let profileApprovalCount = 0;
 
-			if(role_id == 2 || role_id == 5) {
+			const usersData = req.userData;
+			const filters = await helper.getFiltersByPermission(
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+
+			const hasFilters = Object.values(filters).some(
+				(filter) => filter && Object.keys(filter).length > 0,
+			);
+
+			if (role_id == 2 || (role_id == 5 && hasFilters === true)) {
 				profileApprovalCount = await db.paymentDetails.count({
 					where: {
 						status: "pending",
 						// pendingAt: req.userId,
-					}
-				});
-	
-			}
-
-			
-			const pendingCompOffCount =
-				await db.comp_off_credit_history.count({
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+					},
+					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							required: true,
+							include: [
+								{
+									model: db.buMaster,
+									attributes: [],
+									where: {
+										...filters.buFIlter,
+									},
+								},
+								{
+									model: db.designationMaster,
+									attributes: [],
+									where: {
+										...filters.designationFIlter,
+									},
+								},
+								{
+									model: db.departmentMaster,
+									attributes: [],
+									where: {
+										...filters.departmentFIlter,
+									},
+								},
+								{
+									model: db.sbuMaster,
+									attributes: [],
+									where: {
+										...filters.sbbuFIlter,
+									},
+								},
 							],
 						},
-						[Op.or]: [
-							{ pending_at: { [Op.like]: `${req.userId},%` } }, // Check if userId is at the start
-							{ pending_at: { [Op.like]: `%,${req.userId},%` } }, // Check if userId is in the middle
-							{ pending_at: { [Op.like]: `%,${req.userId}` } }, // Check if userId is at the end
-							{ pending_at: { [Op.eq]: `${req.userId}` } }, // Check if userId is the only value
-						],
-						//employee_Id: req.userId,
-						status: 3,
-					}
+					],
 				});
 
-			const totalCount = countLeavePending + countLeaveAssgined + pendingAttCount + assignedAttCount + pendingAttendanceCount +
-			pendingSeperationCount + pendingSeperationWorkFlowCount + confirmationCount + pendingCompOffCount + profileApprovalCount;
+				let addressCount = await db.employeeAddress.count({
+					where: {
+						status: "pending",
+					},
+				});
+
+				profileApprovalCount = profileApprovalCount + addressCount;
+			}
+
+			const totalCount =
+				countLeavePending +
+				countLeaveAssgined +
+				pendingAttCount +
+				assignedAttCount +
+				pendingAttendanceCount +
+				pendingSeperationCount +
+				pendingSeperationWorkFlowCount +
+				confirmationCount +
+				compOffbalabceForUser +
+				profileApprovalCount;
 
 			return respHelper(res, {
 				status: 200,
@@ -1027,13 +1111,13 @@ class UserController {
 						},
 						compoffCount: {
 							raisedByMe: 0,
-							assignedToMe: pendingCompOffCount
+							assignedToMe: compOffbalabceForUser,
 						},
 						profileApprovalCount: {
 							raisedByMe: 0,
-							assignedToMe: profileApprovalCount
+							assignedToMe: profileApprovalCount,
 						},
-						totalCount: totalCount 
+						totalCount: totalCount,
 					},
 					mobile: {
 						raisedByMe: {
@@ -1187,37 +1271,6 @@ class UserController {
 					data: {},
 				});
 			}
-
-			const otp = await helper.generateOTP(6);
-			eventEmitter.emit(
-				"forgotPasswordMail",
-				JSON.stringify({
-					email: getEmployee.dataValues.email,
-					otp: otp,
-				}),
-			);
-
-			if (getEmployee.dataValues.officeMobileNumber) {
-				eventEmitter.emit(
-					"forgotPasswordSMS",
-					JSON.stringify({
-						mobile: getEmployee.dataValues.officeMobileNumber.split(","),
-						otp: otp,
-					}),
-				);
-			}
-
-			const deocdeOTP = await helper.generateJwtOTPEncrypt({
-				id: getEmployee.id,
-				email: result.email,
-				otp: otp,
-			});
-
-			return respHelper(res, {
-				status: 200,
-				msg: constant.OTP_SENT,
-				data: deocdeOTP,
-			});
 		} catch (error) {
 			console.log(error);
 			if (error.isJoi === true) {
@@ -1322,8 +1375,25 @@ class UserController {
 				},
 				include: [
 					{
+						model: db.jobDetails,
+						attributes: ["confirmationDate"],
+						as: "employeeJobDetails",
+					},
+					{
 						model: db.noticePeriodMaster,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeeJobDetails.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.departmentMaster,
@@ -1341,6 +1411,26 @@ class UserController {
 					{
 						model: db.companyMaster,
 						attributes: ["companyName", "senderEmail", "companyLogo"],
+					},
+				],
+			});
+
+			const headAndHrData = await db.buMapping.findOne({
+				where: {
+					buId: existUser.dataValues.buId,
+					companyId: existUser.dataValues.companyId,
+				},
+				attributes: ["buMappingId"],
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "email"],
+						as: "buHeadData",
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "email"],
+						as: "buhrData",
 					},
 				],
 			});
@@ -1379,10 +1469,10 @@ class UserController {
 				finalStatus: 2,
 				empAttachment: result.attachment
 					? await helper.fileUpload(
-						result.attachment,
-						`separation_attachment_${d}`,
-						`uploads/${existUser.dataValues.empCode}`,
-					)
+							result.attachment,
+							`separation_attachment_${d}`,
+							`uploads/${existUser.dataValues.empCode}`,
+						)
 					: null,
 				empSubmissionDate: moment(),
 				createdDt: moment(),
@@ -1443,6 +1533,20 @@ class UserController {
 			);
 
 			eventEmitter.emit(
+				"initiateSeparation",
+				JSON.stringify({
+					email: headAndHrData.dataValues.buhrData.email,
+					recipientName: headAndHrData.dataValues.buhrData.name,
+					empName: existUser.dataValues.name,
+					empDesignation: existUser.dataValues.designationmaster.name,
+					empDepartment: existUser.dataValues.departmentmaster.departmentName,
+					companyName: existUser.dataValues.companymaster.companyName,
+					senderEmail: existUser.dataValues.companymaster.senderEmail,
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
+				}),
+			);
+
+			eventEmitter.emit(
 				"separationUserAcknowledge",
 				JSON.stringify({
 					email: existUser.dataValues.email,
@@ -1479,14 +1583,14 @@ class UserController {
 			const offset = (pageNo - 1) * limit;
 
 			const search = req.query.search;
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			const separationData = await db.separationMaster.findAndCountAll({
 				where: {
@@ -1508,7 +1612,7 @@ class UserController {
 						model: db.employeeMaster,
 						attributes: ["empCode", "name"],
 						required: !!searchQuery,
-						where: searchQuery || undefined
+						where: searchQuery || undefined,
 					},
 					{
 						model: db.separationStatus,
@@ -1538,7 +1642,7 @@ class UserController {
 				limit,
 				offset,
 				required: !!searchQuery,
-				distinct: true
+				distinct: true,
 			});
 
 			return respHelper(res, {
@@ -1612,10 +1716,10 @@ class UserController {
 					l1Remark: result.l1Remark,
 					l1Attachment: result.attachment
 						? await helper.fileUpload(
-							result.attachment,
-							`separation_attachment_${d}`,
-							`uploads/${separationData.dataValues.employee.empCode}`,
-						)
+								result.attachment,
+								`separation_attachment_${d}`,
+								`uploads/${separationData.dataValues.employee.empCode}`,
+							)
 						: null,
 					l1SubmissionDate: moment(),
 					pendingAt: separationData.dataValues.employee.buHRId,
@@ -1723,8 +1827,25 @@ class UserController {
 				},
 				include: [
 					{
+						model: db.jobDetails,
+						attributes: ["confirmationDate"],
+						as: "employeeJobDetails",
+					},
+					{
 						model: db.noticePeriodMaster,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeeJobDetails.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.companyMaster,
@@ -1852,7 +1973,7 @@ class UserController {
 					email: existUser.dataValues.email,
 					companyName: existUser.dataValues.companymaster.companyName,
 					senderEmail: existUser.dataValues.companymaster.senderEmail,
-					companyLogo: existUser.dataValues.companymaster.companyLogo
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -1866,7 +1987,7 @@ class UserController {
 					bu: existUser.dataValues.bumaster.buName,
 					managerName: existUser.dataValues.managerData.name,
 					senderEmail: existUser.dataValues.companymaster.senderEmail,
-					companyLogo: existUser.dataValues.companymaster.companyLogo
+					companyLogo: existUser.dataValues.companymaster.companyLogo,
 				}),
 			);
 
@@ -1959,8 +2080,25 @@ class UserController {
 						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 					{
+						model: db.jobDetails,
+						attributes: ["confirmationDate"],
+						as: "employeeJobDetails",
+					},
+					{
 						model: db.noticePeriodMaster,
-						attributes: ["nPDaysAfterConfirmation"],
+						attributes: [
+							[
+								db.sequelize.literal(`
+									CASE 
+										WHEN employeeJobDetails.confirmationDate IS NULL 
+										THEN noticeperiodmaster.nPDaysInProbation
+										ELSE noticeperiodmaster.nPDaysAfterConfirmation
+									END
+								`),
+								"nPDaysAfterConfirmation",
+							],
+						],
+						as: "noticeperiodmaster",
 					},
 					{
 						model: db.designationMaster,
@@ -2734,10 +2872,10 @@ class UserController {
 					l2Remark: result.l2Remark,
 					l2Attachment: result.attachment
 						? await helper.fileUpload(
-							result.attachment,
-							`separation_attachment_${d}`,
-							`uploads/${separationData.dataValues.employee.empCode}`,
-						)
+								result.attachment,
+								`separation_attachment_${d}`,
+								`uploads/${separationData.dataValues.employee.empCode}`,
+							)
 						: null,
 					l2SubmissionDate: moment(),
 					l2RequestStatus: "Approved",
@@ -2966,8 +3104,10 @@ class UserController {
 					companyName:
 						separationData.dataValues.employee.companymaster.companyName,
 					lastWorkingDay: result.l2LastWorkingDay,
-					senderEmail: separationData.dataValues.employee.companymaster.senderEmail,
-					companyLogo: separationData.dataValues.employee.companymaster.companyLogo,
+					senderEmail:
+						separationData.dataValues.employee.companymaster.senderEmail,
+					companyLogo:
+						separationData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
 
@@ -2996,8 +3136,10 @@ class UserController {
 						personalMailID: separationData.dataValues.employee.personalEmail,
 						personalMobileNumber:
 							separationData.dataValues.employee.personalMobileNumber,
-						senderEmail: separationData.dataValues.employee.companymaster.senderEmail,
-						companyLogo: separationData.dataValues.employee.companymaster.companyLogo,
+						senderEmail:
+							separationData.dataValues.employee.companymaster.senderEmail,
+						companyLogo:
+							separationData.dataValues.employee.companymaster.companyLogo,
 					}),
 				);
 			}
@@ -3222,10 +3364,10 @@ class UserController {
 						regularizeStatus: { [Op.ne]: "Pending" },
 						...(fromDate &&
 							extendedToDate && {
-							createdAt: {
-								[db.Sequelize.Op.between]: [fromDate, extendedToDate],
-							},
-						}),
+								createdAt: {
+									[db.Sequelize.Op.between]: [fromDate, extendedToDate],
+								},
+							}),
 					},
 					include: [
 						{
@@ -3233,6 +3375,11 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
 							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false,
+							},
 						},
 						{
 							model: db.attendanceMaster,
@@ -3245,11 +3392,11 @@ class UserController {
 										...(search && { name: { [Op.like]: `%${search}%` } }),
 										...(type === "all"
 											? {
-												[Op.or]: [
-													//{ id: req.userId },
-													{ manager: req.userId },
-												],
-											}
+													[Op.or]: [
+														//{ id: req.userId },
+														{ manager: req.userId },
+													],
+												}
 											: { id: req.userId }),
 									},
 									include: [
@@ -3262,6 +3409,17 @@ class UserController {
 									required: true,
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "attendanceCreatedBy",
+							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false,
+							},
 						},
 					],
 					limit,
@@ -3316,15 +3474,15 @@ class UserController {
 			const leaveApprovalCondition =
 				type === "self"
 					? {
-						//createdBy: req.userId,
-						isPending: 0,
-						isApproved: [1, 2, 0],
-						// isPending: 1,
-					}
+							//createdBy: req.userId,
+							isPending: 0,
+							isApproved: [1, 2, 0],
+							// isPending: 1,
+						}
 					: {
-						isPending: 0,
-						//  isApproved:[1,2]
-					};
+							isPending: 0,
+							//  isApproved:[1,2]
+						};
 
 			const { count, rows: leaveRequests } =
 				await db.EmployeeLeaveHeader.findAndCountAll({
@@ -3335,26 +3493,26 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(fromDate &&
 							toDate && {
-							appliedFor: {
-								[db.Sequelize.Op.between]: [fromDate, toDate],
-							},
-						}),
+								appliedFor: {
+									[db.Sequelize.Op.between]: [fromDate, toDate],
+								},
+							}),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-								[Op.or]: [
-									{
-										//pendingAt: req.userId,
-										source: { [Op.ne]: "system_generated" },
-									},
-								],
-							}
-							: type === "all" && isSystemGenerated == 1
-								? {
 									[Op.or]: [
-										{ employeeId: req.userId },
-										{ pendingAt: req.userId, source: "system_generated" },
+										{
+											//pendingAt: req.userId,
+											source: { [Op.ne]: "system_generated" },
+										},
 									],
 								}
+							: type === "all" && isSystemGenerated == 1
+								? {
+										[Op.or]: [
+											{ employeeId: req.userId },
+											{ pendingAt: req.userId, source: "system_generated" },
+										],
+									}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -3393,6 +3551,15 @@ class UserController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveCreatedBy",
+							required: false,
+							include: [
+								{ model: db.roleMaster, attributes: ['name'], required: false }
+							]
 						},
 					],
 					limit,
@@ -3968,8 +4135,10 @@ class UserController {
 							personalMailID: separationData.dataValues.employee.personalEmail,
 							personalMobileNumber:
 								separationData.dataValues.employee.personalMobileNumber,
-							senderEmail: separationData.dataValues.employee.companymaster.senderEmail,
-							companyLogo: separationData.dataValues.employee.companymaster.companyLogo,
+							senderEmail:
+								separationData.dataValues.employee.companymaster.senderEmail,
+							companyLogo:
+								separationData.dataValues.employee.companymaster.companyLogo,
 						}),
 					);
 				}
@@ -4002,14 +4171,14 @@ class UserController {
 			const offset = (pageNo - 1) * limit;
 
 			const search = req.query.search;
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			const separationTasks = await db.separationInitiatedTask.findAndCountAll({
 				where: {
@@ -4028,6 +4197,11 @@ class UserController {
 							"dateOfJoining",
 							"dataCardAdmin",
 							"mobileAdmin",
+							"companyLocationId",
+							"manager",
+							"sbuId",
+							"buId",
+							"designation_id"
 						],
 						where: searchQuery || undefined,
 						include: [
@@ -4091,7 +4265,7 @@ class UserController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [["initiatedTaskAutoId", "DESC"]],
@@ -4844,14 +5018,14 @@ class UserController {
 			const offset = (pageNo - 1) * limit;
 
 			const search = req.query.search;
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			const confirmationData = await db.Confirmationinitiated.findAndCountAll({
 				where: {
@@ -4860,7 +5034,7 @@ class UserController {
 				include: [
 					{
 						model: db.employeeMaster,
-						attributes: ["id", "empCode", "name", "email"],
+						attributes: ["id", "empCode", "name", "email", "departmentId", "companyLocationId", "designation_id"],
 						where: searchQuery || undefined,
 						include: [
 							{
@@ -4916,7 +5090,7 @@ class UserController {
 				],
 				limit,
 				offset,
-				subQuery: false,
+				// subQuery: false,
 				distinct: true,
 				required: !!searchQuery,
 			});
@@ -5011,7 +5185,7 @@ class UserController {
 			let respfrom = await helper.generateFieldsForgivenLevel(
 				employeeData?.employee?.confimationPolicyAutoId,
 				level + 1,
-				employeeData?.employee?.companyId
+				employeeData?.employee?.companyId,
 			);
 
 			await db.Confirmationowners.update(
@@ -5729,7 +5903,11 @@ class UserController {
 									},
 								],
 							},
-							{ model: db.employeeMaster, as: 'managerHistoryCreatedBy', attributes: ['id', 'name', 'empCode'] },
+							{
+								model: db.employeeMaster,
+								as: "managerHistoryCreatedBy",
+								attributes: ["id", "name", "empCode"],
+							},
 							// { model: db.employeeMaster, as: 'managerChangesFrom', attributes: ['id', 'name', 'empCode' ] },
 						],
 						where: { needAttendanceCron: 0, employeeId: userId },
@@ -5740,7 +5918,17 @@ class UserController {
 						model: db.jobDetails,
 						attributes: ["jobId", "userId", "dateOfJoining"],
 					},
-					{ model: db.noticePeriodMaster, attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"], required: false },
+					{
+						model: db.noticePeriodMaster,
+						attributes: [
+							"noticePeriodAutoId",
+							"noticePeriodName",
+							"noticePeriodCode",
+							"nPDaysAfterConfirmation",
+							"nPDaysInProbation",
+						],
+						required: false,
+					},
 				],
 				order: [
 					["designationHistories", "id", "ASC"], // Sorting for designationHistory
@@ -5800,6 +5988,11 @@ class UserController {
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
 							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false,
+							},
 						},
 						{
 							model: db.attendanceMaster,
@@ -5821,6 +6014,17 @@ class UserController {
 									required: true,
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "attendanceCreatedBy",
+							required: false,
+							include: {
+								model: db.roleMaster,
+								attributes: ["name"],
+								required: false,
+							},
 						},
 					],
 					limit,
@@ -5877,20 +6081,20 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-								[Op.or]: [
-									{
-										//updatedBy: req.userId,
-										source: { [Op.ne]: "system_generated" },
-									},
-								],
-							}
-							: type === "all" && isSystemGenerated == 1
-								? {
 									[Op.or]: [
-										{ employeeId: req.userId },
-										{ updatedBy: req.userId, source: "system_generated" },
+										{
+											//updatedBy: req.userId,
+											source: { [Op.ne]: "system_generated" },
+										},
 									],
 								}
+							: type === "all" && isSystemGenerated == 1
+								? {
+										[Op.or]: [
+											{ employeeId: req.userId },
+											{ updatedBy: req.userId, source: "system_generated" },
+										],
+									}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -5955,6 +6159,12 @@ class UserController {
 									attributes: ["id", "empCode", "name"],
 								},
 							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "name", "empCode"],
+							as: "leaveCreatedBy",
+							required: false,
 						},
 					],
 					limit,
@@ -6140,6 +6350,9 @@ class UserController {
 				await db.comp_off_credit_history.findAndCountAll({
 					where: {
 						employee_Id: reporties,
+						// status: {
+						// 	[Op.ne]: 3, // status not equal to 3
+						// },
 					},
 					include: [
 						{
@@ -6181,6 +6394,7 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
+					group: ["employee_Id", "credit_for_date"],
 				});
 
 			return respHelper(res, {
@@ -6207,14 +6421,14 @@ class UserController {
 			// add search functionality
 			const search = req.query.search;
 
-			let searchQuery = (search) 
-			? {
-				[Op.or]: [
-					{ empCode: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } }
-				],
-			  }
-			: undefined;
+			let searchQuery = search
+				? {
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
+				: undefined;
 
 			const userId = req.userId;
 			const comp_off_credit_historyData =
@@ -6255,7 +6469,6 @@ class UserController {
 							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
 							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
 						],
-						//employee_Id: req.userId,
 						status: 3,
 					},
 					include: [
@@ -6268,7 +6481,7 @@ class UserController {
 							as: "compOffEmpDetails",
 							attributes: ["id", "name", "profileImage", "empCode"],
 							required: !!searchQuery,
-							where: searchQuery || undefined
+							where: searchQuery || undefined,
 						},
 						{
 							model: db.attendanceMaster,
@@ -6291,7 +6504,8 @@ class UserController {
 					order: [
 						["comp_off_credit_history_auto_id", "DESC"], // Sorting
 					],
-					required: !!searchQuery
+					group: ["credit_for_date", "employee_Id"],
+					required: !!searchQuery,
 				});
 
 			return respHelper(res, {
@@ -6312,57 +6526,43 @@ class UserController {
 			);
 			const userId = req.userId;
 			let comp_off_credit_history_auto_ids =
-				req.body.comp_off_credit_history_auto_id.split(",");
-			const comp_off_credit_historyData =
-				await db.comp_off_credit_history.findAll({
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-							],
-						},
-						[Op.or]: [
-							{ pending_at: { [Op.like]: `${userId},%` } }, // Check if userId is at the start
-							{ pending_at: { [Op.like]: `%,${userId},%` } }, // Check if userId is in the middle
-							{ pending_at: { [Op.like]: `%,${userId}` } }, // Check if userId is at the end
-							{ pending_at: { [Op.eq]: `${userId}` } }, // Check if userId is the only value
-						],
-						//employee_Id: req.userId,
-						status: 3,
-						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
+				req.body.comp_off_credit_history_auto_id;
+			for (const singlecomp_off_credit_history_auto_ids of comp_off_credit_history_auto_ids) {
+				await db.comp_off_credit_history.update(
+					{
+						updatedBy: req.userId,
+						approver_remark: req.body.remarks,
+						status: req.body.status == 1 ? 1 : 5,
 					},
-				});
-			if (
-				comp_off_credit_historyData.length !=
-				comp_off_credit_history_auto_ids.length
-			) {
-				return respHelper(res, {
-					status: 400,
-					msg: "You Can't Approve Selected Comp Off Request",
-					data: {},
-				});
-			}
-			await db.comp_off_credit_history.update(
-				{
-					updatedBy: req.userId,
-					approver_remark: req.body.remarks,
+					{
+						where: {
+							expiry_date: {
+								[Op.or]: [
+									{ [Op.eq]: null }, // Check if expiry_date is null
+									{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
+								],
+							},
+							employee_Id: singlecomp_off_credit_history_auto_ids.empId,
+							status: 3,
+							credit_for_date: singlecomp_off_credit_history_auto_ids.date,
+						},
+					},
+				);
+				let EMP_DATA_SELF = await helper.getEmpProfile(
+					singlecomp_off_credit_history_auto_ids.empId,
+				); // SELF Manager
+				const obj = {
+					email: EMP_DATA_SELF.email,
+					companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+					senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+					requesterName: EMP_DATA_SELF.name,
+					managerName: EMP_DATA_SELF.managerData.name,
 					status: req.body.status == 1 ? 1 : 5,
-				},
-				{
-					where: {
-						expiry_date: {
-							[Op.or]: [
-								{ [Op.eq]: null }, // Check if expiry_date is null
-								{ [Op.gt]: moment().format("YYYY-MM-DD") }, // Check if expiry_date is greater than today
-							],
-						},
-						//employee_Id: req.userId,
-						status: 3,
-						comp_off_credit_history_auto_id: comp_off_credit_history_auto_ids,
-					},
-				},
-			);
+					compOffDate: singlecomp_off_credit_history_auto_ids.date,
+				};
+				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
+			}
+
 			return respHelper(res, {
 				status: 200,
 				msg: "Updated",
@@ -6375,6 +6575,36 @@ class UserController {
 					msg: error.details[0].message,
 				});
 			}
+		}
+	}
+	async getTaskHistoryComfOffDetails(req, res) {
+		try {
+			const dataFor = req.query.dataFor;
+			const empid = req.query.empid;
+
+			const comp_off_credit_historyData =
+				await db.comp_off_credit_history.findAll({
+					where: {
+						credit_for_date: dataFor,
+						employee_Id: empid,
+					},
+					include: [
+						{
+							model: db.status_master,
+							attributes: ["name", "code"],
+						},
+					],
+				});
+
+			return respHelper(res, {
+				status: 200,
+				data: comp_off_credit_historyData,
+			});
+		} catch (error) {
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
 		}
 	}
 
@@ -6392,39 +6622,39 @@ class UserController {
 				where: Object.assign(
 					!["ADMIN", "HR_OPS"].includes(req.userRole)
 						? {
-							manager: req.userId,
-						}
+								manager: req.userId,
+							}
 						: {},
 					{
 						isActive: 1,
 					},
 					search || search != ""
 						? {
-							[Op.or]: [
-								{
-									empCode: {
-										[Op.like]: `%${search}%`,
+								[Op.or]: [
+									{
+										empCode: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-								{
-									name: {
-										[Op.like]: `%${search}%`,
+									{
+										name: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-								{
-									email: {
-										[Op.like]: `%${search}%`,
+									{
+										email: {
+											[Op.like]: `%${search}%`,
+										},
 									},
-								},
-							],
-						}
+								],
+							}
 						: {},
 					selectedUser.length > 0
 						? {
-							id: {
-								[Op.notIn]: selectedUser,
-							},
-						}
+								id: {
+									[Op.notIn]: selectedUser,
+								},
+							}
 						: {},
 				),
 				attributes: ["id", "empCode", "name", "profileImage"],
@@ -6594,7 +6824,7 @@ class UserController {
 					name: user.dataValues.name,
 					rosterLimit: user.dataValues.attendancePolicymaster
 						? user.dataValues.attendancePolicymaster
-							.attendaceRosterLimitForPreviousDays
+								.attendaceRosterLimitForPreviousDays
 						: 0,
 					attendanceRosterData: await rosterData(),
 				});
@@ -6769,6 +6999,171 @@ class UserController {
 			}
 		}
 	}
+
+	// ritak address approval module start
+	async requestForAddressApproval(req, res) {
+   try {
+       const result = await validator.requestForAddressApprovalSchema.validateAsync(req.body);
+
+
+       const existUser = await db.employeeMaster.findOne({
+           raw: true,
+           where: {
+               id: req.userId,
+               isActive: 1,
+           },
+           attributes: ["name", "empCode", "profileImage"],
+           include: [
+               {
+                   model: db.companyMaster,
+                   attributes: ["senderEmail", "companyLogo"],
+               },
+           ],
+       });
+       var reqUserRole =req.userData["role.name"];
+      
+       const isSameDetails = await db.employeeAddress.findOne({
+           where: { employeeId: (result.employeeId) ? result.employeeId : req.userId },
+       });
+console.log("isSameDetails", isSameDetails);
+    
+           if (
+               isSameDetails.currentHouse === result.currentHouse &&
+               isSameDetails.currentStreet === result.currentStreet &&
+               isSameDetails.currentStateId === result.currentStateId &&
+               isSameDetails.currentCityId === result.currentCityId &&
+               isSameDetails.currentCountryId === result.currentCountryId &&
+               isSameDetails.currentPincodeId === result.currentPincodeId &&
+               isSameDetails.currentLandmark === result.currentLandmark &&
+               isSameDetails.permanentHouse === result.permanentHouse &&
+               isSameDetails.permanentStreet === result.permanentStreet &&
+               isSameDetails.permanentStateId === result.permanentStateId &&
+               isSameDetails.permanentCityId === result.permanentCityId &&
+               isSameDetails.permanentCountryId === result.permanentCountryId &&
+               isSameDetails.permanentPincodeId === result.permanentPincodeId &&
+               isSameDetails.permanentLandmark === result.permanentLandmark &&
+               isSameDetails.emergencyHouse === result.emergencyHouse &&
+               isSameDetails.emergencyStreet === result.emergencyStreet &&
+               isSameDetails.emergencyStateId === result.emergencyStateId &&
+               isSameDetails.emergencyCityId === result.emergencyCityId &&
+               isSameDetails.emergencyCountryId === result.emergencyCountryId &&
+               isSameDetails.emergencyPincodeId === result.emergencyPincodeId &&
+               isSameDetails.emergencyLandmark === result.emergencyLandmark
+           ) {
+               return respHelper(res, {
+                   status: 400,
+                   msg: constant.ALREADY_EXISTS.replace("<module>", "Address Details"),
+               });
+           } else {
+
+               const objForApproval = {
+                   status: "pending",
+                   createdByRole: "User",
+                   pendingAt: 2996, // Replace with the appropriate approver ID
+                   requestTriggered: moment().format("YYYY-MM-DD HH:mm:ss"),
+                   ...(result.currentHouse !== isSameDetails.currentHouse && {
+                       newCurrentHouse: result.currentHouse,
+                   }),
+                   ...(result.currentStreet !== isSameDetails.currentStreet && {
+                       newCurrentStreet: result.currentStreet,
+                   }),
+                   ...(result.currentStateId !== isSameDetails.currentStateId && {
+                       newCurrentStateId: result.currentStateId,
+                   }),
+                   ...(result.currentCityId !== isSameDetails.currentCityId && {
+                       newCurrentCityId: result.currentCityId,
+                   }),
+                   ...(result.currentCountryId !== isSameDetails.currentCountryId && {
+                       newCurrentCountryId: result.currentCountryId,
+                   }),
+                   ...(result.currentPincodeId !== isSameDetails.currentPincodeId && {
+                       newCurrentPincodeId: result.currentPincodeId,
+                   }),
+                   ...(result.currentLandmark !== isSameDetails.currentLandmark && {
+                       newCurrentLandmark: result.currentLandmark,
+                   }),
+                   ...(result.permanentHouse !== isSameDetails.permanentHouse && {
+                       newPermanentHouse: result.permanentHouse,
+                   }),
+                   ...(result.permanentStreet !== isSameDetails.permanentStreet && {
+                       newPermanentStreet: result.permanentStreet,
+                   }),
+                   ...(result.permanentStateId !== isSameDetails.permanentStateId && {
+                       newPermanentStateId: result.permanentStateId,
+                   }),
+                   ...(result.permanentCityId !== isSameDetails.permanentCityId && {
+                       newPermanentCityId: result.permanentCityId,
+                   }),
+                   ...(result.permanentCountryId !== isSameDetails.permanentCountryId && {
+                       newPermanentCountryId: result.permanentCountryId,
+                   }),
+                   ...(result.permanentPincodeId !== isSameDetails.permanentPincodeId && {
+                       newPermanentPincodeId: result.permanentPincodeId,
+                   }),
+                   ...(result.permanentLandmark !== isSameDetails.permanentLandmark && {
+                       newPermanentLandmark: result.permanentLandmark,
+                   }),
+                   ...(result.emergencyHouse !== isSameDetails.emergencyHouse && {
+                       newEmergencyHouse: result.emergencyHouse,
+                   }),
+                   ...(result.emergencyStreet !== isSameDetails.emergencyStreet && {
+                       newEmergencyStreet: result.emergencyStreet,
+                   }),
+                   ...(result.emergencyStateId !== isSameDetails.emergencyStateId && {
+                       newEmergencyStateId: result.emergencyStateId,
+                   }),
+                   ...(result.emergencyCityId !== isSameDetails.emergencyCityId && {
+                       newEmergencyCityId: result.emergencyCityId,
+                   }),
+                   ...(result.emergencyCountryId !== isSameDetails.emergencyCountryId && {
+                       newEmergencyCountryId: result.emergencyCountryId,
+                   }),
+                   ...(result.emergencyPincodeId !== isSameDetails.emergencyPincodeId && {
+                       newEmergencyPincodeId: result.emergencyPincodeId,
+                   }),
+                   ...(result.emergencyLandmark !== isSameDetails.emergencyLandmark && {
+                       newEmergencyLandmark: result.emergencyLandmark,
+                   }),
+                   ...(result.comment ? { comment: result.comment } : { comment: null }),
+               };
+
+
+               await db.employeeAddress.update(objForApproval, {
+                   where: { employeeId: req.userId },
+               });
+
+
+               eventEmitter.emit(
+                   "addressDetailsApprovalRequestMail",
+                   JSON.stringify({
+                       email: result.email,
+                       name: existUser.name,
+                       senderEmail: existUser["companymaster.senderEmail"],
+                       companyLogo: existUser["companymaster.companyLogo"],
+                   }),
+               );
+
+
+               return respHelper(res, {
+                   status: 200,
+                   msg: constant.ADDRESS_REQUEST_FOR_APPROVAL,
+               });
+           }
+      
+   } catch (error) {
+       console.log(error);
+       if (error.isJoi === true) {
+           return respHelper(res, {
+               status: 422,
+               msg: error.details[0].message,
+           });
+       }
+       return respHelper(res, {
+           status: 500,
+       });
+   }
+}
+// ritak address approval module end
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

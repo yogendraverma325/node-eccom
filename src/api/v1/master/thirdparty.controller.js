@@ -684,7 +684,7 @@ class ThirdPartyController {
 
 	async employeeData(req, res) {
 		try {
-			const { dataset, empCode, isActive } = req.body;
+			const { dataset, empCode, isActive, companyId } = req.body;
 
 			const taraEmailId = process.env.TARA_EMAIL_ID;
 			const taraSecretKey = process.env.TARA_SECRET_KEY;
@@ -1345,10 +1345,11 @@ class ThirdPartyController {
 				console.log("Hash matches! Validation successful for all employees.");
 				const employeeData = await db.employeeMaster.findAll({
 					where: {
-						//isActive: isActive,
-						employeeType: [1, 2, 3, 4, 5],
+						isActive: isActive,
+						companyId: companyId,
+						// employeeType: [1, 2, 3, 4, 5],
 						...(empCode && {
-							empCode: empCode,
+							empCode: { [Op.in]: empCode.split(",") },
 						}),
 					},
 					attributes: [
@@ -1973,6 +1974,346 @@ class ThirdPartyController {
 			});
 		}
 	}
+	async internalDataSync(req,res){
+		try {
+			const {search,empCode,isActive} = req.body;
+
+			const whereCondition = {
+				isActive,
+				...(search?.trim() && {
+				  [Op.or]: [
+					{ empCode: search.trim() },
+					{ email: search.trim() }
+				  ]
+				})
+			  };
+			const employeeData = await db.employeeMaster.findAll({
+				where: whereCondition,
+				attributes: [
+					"id",
+					"empCode",
+					"email",
+					"personalEmail",
+					"name",
+					"firstName",
+					"middleName",
+					"lastName",
+					"officeMobileNumber",
+					"personalMobileNumber",
+					"isActive",
+					"dateOfexit",
+					"uanNo",
+					"pfNo",
+					"esicNo",
+					"panNo",
+					"adhrNo",
+					"passportNumber",
+					"drivingLicence",
+				],
+				include: [
+					{
+						model: db.biographicalDetails,
+						attributes: [
+							"dateOfBirth",
+							"maritalStatus",
+							"maritalStatusSince",
+							"gender",
+						],
+						required: false,
+					},
+					{
+						model: db.designationMaster,
+						attributes: [
+			            "name","code"
+						],
+						required: false,
+					},
+					{
+						model: db.departmentMaster,
+						attributes: ["departmentName","departmentCode"],
+						required: false,
+					},
+					{
+						model: db.buMaster,
+						attributes: [["buName", "business_unit"]],
+						required: false,
+					},
+					{
+						model: db.employeeTypeMaster,
+						attributes: ["emptypename"],
+						required: false,
+					},
+					{
+						model: db.employeeMaster,
+						required: false,
+						as: "managerData",
+						attributes: ["empCode"],
+					},
+					{
+						model: db.jobDetails,
+						attributes: [
+							"dateOfJoining",
+							"residentEng",
+							"customerName",
+							"projectCode",
+							"esicNumber",
+							"pfRestricted",
+							"epfApplicable",
+							"esicApplicable",
+							"confirmationDate"
+						],
+						include: [
+							{ model: db.gradeMaster, attributes: ["gradeName"] },
+							{ model: db.bandMaster, attributes: ["bandDesc"] },
+							{
+								model: db.jobLevelMaster,
+								attributes: ["jobLevelName", "jobLevelCode"],
+							},
+						],
+					},
+					{
+						model: db.companyLocationMaster,
+						attributes: ["address1", "companyLocationCode", "isHeadquarter"],
+						include: [
+							{ model: db.countryMaster, attributes: ["countryName"] },
+							{ model: db.stateMaster, attributes: ["stateName"] },
+							{ model: db.cityMaster, attributes: ["cityName"] },
+							{ model: db.pinCodeMaster, attributes: ["pinCode"] },
+						],
+					},
+					{
+						model: db.costCenterMaster,
+						attributes: ["costCenterName", "costCenterCode"],
+						required: false,
+					},
+					{
+						model: db.functionalAreaMaster,
+						attributes: ["functionalAreaName", "functionalAreaCode"],
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyCode"],
+					},
+					{
+						model: db.buMaster,
+						attributes: ["buName", "buCode"],
+					},
+					{
+						model: db.sbuMaster,
+						attributes: ["sbuname", "code"],
+					},
+					{
+						model: db.paymentDetails,
+						attributes: ["paymentAccountNumber"],
+						required: false,
+						where: {
+							status: "approved",
+						},
+
+						include: [
+							{
+								model: db.bankMaster,
+								attributes: ["bankId", "bankName", "bankIfsc"],
+							},
+						],
+					},
+					{
+						model: db.employeeAddress,
+						include: [
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "currentcountry",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "permanentcountry",
+							},
+							{
+								model: db.countryMaster,
+								attributes: ["countryId", "countryName"],
+								as: "emergencycountry",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "currentstate",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "permanentstate",
+							},
+							{
+								model: db.stateMaster,
+								attributes: ["stateId", "stateName"],
+								as: "emergencystate",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "currentcity",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "permanentcity",
+							},
+							{
+								model: db.cityMaster,
+								attributes: ["cityId", "cityName"],
+								as: "emergencycity",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "currentpincode",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "permanentpincode",
+							},
+							{
+								model: db.pinCodeMaster,
+								attributes: ["pincodeId", "pincode"],
+								as: "emergencypincode",
+							},
+						],
+					},
+					{
+						model: db.educationDetails,
+						attributes: [
+							"educationDegree",
+							"educationSpecialisation",
+							"educationInstitute",
+							"educationRemark",
+							"educationStartDate",
+							"educationCompletionDate",
+						],
+						where: { isHighestEducation: 1 },
+						include: [
+							{
+								model: db.degreeMaster,
+							},
+						],
+						required: false,
+					},
+				],
+				
+			});
+
+			const manipulatedData = employeeData.map((employee) => {
+				const maritalStatusOptions = {
+					Married: 1,
+					Single: 2,
+					Divorced: 3,
+					Separated: 4,
+					Widowed: 5,
+					Others: 6,
+				};
+
+				const maritalStatus = employee.employeebiographicaldetail?.dataValues
+					?.maritalStatus
+					? Object.keys(maritalStatusOptions).find(
+							(key) =>
+								maritalStatusOptions[key] ===
+								employee.employeebiographicaldetail.dataValues.maritalStatus,
+						) || ""
+					: "";
+				return {
+				    "EmployeeSBU": employee.bumaster?.dataValues?.buCode || "",
+					"Key": "24;UBQAAAJ7BTIAMQAyADAANg==10;36511399090;",
+					"TMC": employee.empCode,
+					"Full_Name": employee.name,
+					"Department":employee.functionalareamaster?.dataValues?.functionalAreaCode ||
+					"",
+					"Designation":employee.designationmaster?.dataValues?.name || "",
+					"Branch": employee.companylocationmaster?.dataValues?.companyLocationCode ||
+					"",//"12",
+					"SBU": employee.bumaster?.dataValues?.buCode || "",
+					"SBUSpecified": true,
+					"Reporting_Head_ID": employee.managerData?.dataValues?.empCode || "",
+					"Date_of_Joining": employee.employeejobdetail?.dataValues?.dateOfJoining || "",
+					"Date_of_JoiningSpecified": true,
+					"Birth_Date": employee.employeebiographicaldetail?.dataValues?.dateOfBirth || "",
+					"Birth_DateSpecified": true,
+					"Comm_Addr": employee.employeeaddress?.dataValues
+					? [
+							employee.employeeaddress?.dataValues?.currentHouse || "",
+							employee.employeeaddress?.dataValues?.currentStreet || "",
+							employee.employeeaddress?.dataValues?.currentLandmark || "",
+							employee.employeeaddress?.dataValues?.currentcity?.cityName ||
+								"",
+							employee.employeeaddress?.dataValues?.currentstate
+								?.stateName || "",
+							employee.employeeaddress?.dataValues?.currentcountry
+								?.countryName || "",
+							employee.employeeaddress?.dataValues?.currentpincode
+								?.pincode || "",
+						]
+							.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+							.join(", ")
+					: "",
+					"Phone_No": employee.personalMobileNumber,
+					"Company_E_Mail": employee.email || "",
+					"Personal_E_Mail": employee.personalEmail || "",
+					"Bank_Name": employee.employeepaymentdetail?.dataValues?.bankmaster?.dataValues
+					?.bankName || "",
+					"Account_No": employee.employeepaymentdetail?.dataValues
+					?.paymentAccountNumber || "",
+					"SBUCode": employee.sbumaster?.dataValues?.code || "",
+					"Mobile_Phone_No": employee.officeMobileNumber || "",
+					"Location_Code": employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+					?.cityName,
+					"First_Name": employee.name || "",
+					"Qualification_Code": employee.employeeeducationdetails.length > 0 ? employee.employeeeducationdetails[0].educationSpecialisation:"",//"EDUCATION",
+					"Gender":employee.employeebiographicaldetail?.gender === "Male"
+					? 2
+					: employee.employeebiographicaldetail?.gender === "Female"
+					? 1
+					: 3,
+					"GenderSpecified": employee.employeebiographicaldetail?.gender ? true:false,
+					"Confirmation_Date": employee.employeejobdetail?.dataValues?.confirmationDate || "",
+					"Confirmation_DateSpecified": employee.employeejobdetail?.dataValues?.confirmationDate?true:false,
+					"Marital_Status": employee.employeebiographicaldetail?.dataValues
+					?.maritalStatus,
+					"Marital_StatusSpecified":employee.employeebiographicaldetail?.dataValues?.maritalStatus ? true : false,		
+					"Entitlement_to_ESI": employee.dataValues?.employeejobdetail
+					?.esicApplicable
+					? true
+					: false,
+					"Entitlement_to_ESISpecified": true, // fixed
+					"Is_Confirmed": true,
+					"Is_ConfirmedSpecified":employee.employeejobdetail?.dataValues?.confirmationDate?true:false,
+					"Probation_Status": 0,
+					"Probation_StatusSpecified": true,
+					"HR_Admin": true,
+					"HR_AdminSpecified": true,
+					"SUBBU_Code": employee.costcentermaster?.dataValues?.costCenterCode,
+					"Employee_Band":
+					employee.employeejobdetail?.dataValues?.grademaster?.dataValues
+						?.gradeName || "",
+
+					
+				};
+			});
+
+			res.status(200).json({
+				status: 1,
+				message: "Successfully loaded all employees data",
+				employee_data: manipulatedData,
+			});
+
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
 }
 
 export default new ThirdPartyController();

@@ -84,7 +84,7 @@ class FnfController {
 				employeeForProcessingQuery,
 			);
 
-			console.log(employeeForProcessingQuery);
+			//console.log(employeeForProcessingQuery);
 
 			if (
 				!employeeForProcessing[0][0] ||
@@ -637,12 +637,12 @@ class FnfController {
 
 			var totalGratuityDays = 0,
 				uniqueEmployeeImpacted = 0;
-			let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityYears) AS gratuityYears from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) AND payMonth = "${value.paymonth}" GROUP BY EmployeeId, empCode;`;
+			let allGratuityQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(gratuityYears) AS gratuityYears from ${dbName}.gratuityoverrides WHERE EmployeeId IN (${returnValue.avalialbleEmployees}) GROUP BY EmployeeId, empCode;`;
 
 			let gratuities = await db.sequelize.query(allGratuityQuery);
 
 			for (const singleEmployee of gratuities[0]) {
-				totalGratuityDays += parseFloat(singleEmployee.gratuityDays || 0);
+				totalGratuityDays += parseFloat(singleEmployee.gratuityYears || 0);
 				uniqueEmployeeImpacted =
 					singleEmployee.uniqueEmployeeImpacted + uniqueEmployeeImpacted;
 			}
@@ -651,7 +651,7 @@ class FnfController {
 				status: 200,
 				data: {
 					impactedEmployee: uniqueEmployeeImpacted,
-					paymentAmount: totalGratuityDays.toFixed(2),
+					totalGratuityYears: totalGratuityDays.toFixed(2),
 					impactedEmployeeDetails: gratuities[0],
 				},
 			});
@@ -1177,18 +1177,6 @@ class FnfController {
 			});
 
 			for (const lopSingleDetails of lopDeductions) {
-				let payPackageDetails = await db.payPackage.findOne({
-					where: {
-						EmployeeId: lopSingleDetails.EmployeeId,
-						payPackageFinancialYear: financialYearDetails?.financialYearName,
-					},
-					attributes: ["payPackageMonthlyCTC"],
-					raw: true,
-				});
-				let lopAmount =
-					(payPackageDetails.payPackageMonthlyCTC / workingDaysOfMonth) *
-					lopSingleDetails.lopDays;
-				totalLopAmount = lopAmount + totalLopAmount;
 				totalLOPDays =
 					parseFloat(lopSingleDetails.lopDays) + parseFloat(totalLOPDays);
 			}
@@ -1613,6 +1601,75 @@ class FnfController {
 			console.log(e);
 		}
 	}
+
+	async updateGratuityEncahsments(req, res) {
+		try {
+			let { employeeIds } = req.body;
+			if (!employeeIds) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: "Eployees Ids Not Available",
+				});
+			}
+			let employeeIDsArray = employeeIds.split(",");
+			for (const element of employeeIDsArray) {
+				let employeejobdetails = await db.employeeMaster.findOne({
+					where: { id: element },
+					raw: true,
+					include: [
+						{
+							model: db.jobDetails,
+							attributes: ["dateOfJoining"],
+							as: "employeeJobDetails",
+						},
+					],
+					attributes: ["dateOfExit","empCode"],
+					nest: true,
+				});
+				let dateOfJoining = employeejobdetails.employeeJobDetails.dateOfJoining;
+				let dateOfExit = employeejobdetails.dateOfExit;
+				let gratuityMinYears = 5;
+				const startDate = moment(dateOfJoining);
+				const endDate = moment(dateOfExit);
+				let years = endDate.diff(startDate, "years");
+				startDate.add(years, "years"); // Adjust startDate forward by counted years
+				const months = endDate.diff(startDate, "months");
+				startDate.add(months, "months"); // Adjust startDate forward by counted months
+				const days = endDate.diff(startDate, "days");
+				years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
+
+				if(years>=gratuityMinYears)
+				{
+					let existingGratuityDetails = await db.gratuityOverrides.findOne({where:{
+						EmployeeId:element
+					}});
+
+					console.log(existingGratuityDetails);
+					if(existingGratuityDetails)
+					{
+						await db.gratuityOverrides.update({gratuityYears:years,updatedBy:req.userData.id,updatedAt:new Date()},{where:{
+							EmployeeId:element
+						}});
+					}
+					else
+					{
+						 await db.gratuityOverrides.create({EmployeeId:element,gratuityYears:years,createdBy:req.userData.id,isActive:1,empCode:employeejobdetails.empCode,createdAt:new Date()});
+					}
+				}
+			}
+			return respHelper(res, {
+				status: 200,
+				data: {
+					currentStatusId: currentProcessStatus[0][0].currentStatusId,
+					stepperData: stepperData[0],
+				},
+				msg: "Status List Fetched Successfully",
+			});
+		} catch (e) {
+			console.log(e);
+		}
+	}
 }
 
 const groupByEmployeeId = (data) => {
@@ -1655,7 +1712,7 @@ const groupByEmployeeId = (data) => {
 				"ESIC Employee": item["ESIC Employee"],
 				"PF Employee": item["PF Employee"],
 				"PF Employer": item["PF Employer"],
-				"Gratuity": item["gratuityAmount"],
+				Gratuity: item["gratuityAmount"],
 				"Leave Encashment": item["leaveEncashmentAmount"],
 			};
 			//p.esicEmployerAmount as ESIC EMPLOYER,p.esicEmployeeAmount as ESIC EMPLOYEE,p.pfEmployeeAmount as PF EMPLOYEE,p.pfEmployerAmount as PF EMPLOYER,
@@ -1695,8 +1752,7 @@ async function processFnf(data) {
 			errorProcessed = [];
 		let employees = employeeIds; //[484,560];//
 
-
-		console.log("employeeIds :::: ",employeeIds);
+		console.log("employeeIds :::: ", employeeIds);
 
 		for (const employee of employees) {
 			const actualWorkingDays = await fnfHelper.actualWorkingDays({
