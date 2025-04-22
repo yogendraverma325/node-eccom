@@ -5277,11 +5277,6 @@ class AttendanceController {
 						},
 					);
 
-					await _this.attedanceCronManual(
-						regularizeData.attendanceAutoId,
-						regularizeData.regularizePunchInDate,
-					);
-
 					const attendanceData = await db.attendanceMaster.findOne({
 						where: {
 							attendanceAutoId: regularizeData.attendanceAutoId,
