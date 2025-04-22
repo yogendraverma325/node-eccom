@@ -2112,7 +2112,7 @@ class AttendanceController {
 					);
 					await db.attendanceMaster.update(
 						{
-							attendanceDate: regularizeData.regularizePunchInDate,
+							//attendanceDate: regularizeData.regularizePunchInDate,
 							attendanceWorkingTime: await helper.timeDifference(
 								`${regularizeData.regularizePunchInDate} ${regularizeData.regularizePunchInTime}`,
 								`${regularizeData.regularizePunchOutDate} ${regularizeData.regularizePunchOutTime}`,
@@ -2134,7 +2134,7 @@ class AttendanceController {
 								regularizeData.regularizePunchInDate,
 								regularizeData.regularizePunchInDate,
 							),
-							createdBy: req.userId,
+							//createdBy: req.userId,
 							//createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 							updatedBy: req.userId,
 							updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
