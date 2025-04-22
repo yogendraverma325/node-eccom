@@ -4047,14 +4047,14 @@ class AttendanceController {
 						} else {
 							if (
 								!singleEmp.attendancemaster.attendancePunchInTime &&
-								!singleEmp.attendancemaster.attendancePunchOutTime
+								singleEmp.attendancemaster.attendancePunchOutTime
 							) {
-								presentStatus = "absent";
+								presentStatus = "singlePunchAbsent";
 							} else {
 								presentStatus =
 									lastDayDate === moment().format("YYYY-MM-DD")
 										? singleEmp.attendancemaster.attendancePresentStatus
-										: "singlePunchAbsent";
+										: singleEmp.attendancemaster.attendancePresentStatus
 							}
 						}
 						await db.attendanceMaster.update(
