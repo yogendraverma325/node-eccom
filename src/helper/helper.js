@@ -576,9 +576,9 @@ const empLeaveDetails = async function (userId, type) {
 			where: {
 				status: "pending",
 				employeeId: userId,
-				// source: {
-				// 	[Op.ne]: "system_generated",
-				// },
+				source: {
+					[Op.ne]: "system_generated",
+				},
 			},
 			raw: true,
 		});
@@ -3760,6 +3760,20 @@ const activeCompOffMoreThanLeave = async (EMP_ID, leaveID) => {
 };
 // END BY JAY GENERATE EMPLOYMENT HISTORY
 
+// Return employee role based on condition for creator role and updator role
+
+const fetchEmployeeRole = (role, employeeId, actionBy) => {
+	if((employeeId === actionBy) && (role === 'USER')) {
+		return role;
+	}
+	else if((employeeId != actionBy) && (role === 'USER')) {
+		return "MANAGER";
+	}
+	else {
+		return role;
+	}
+}
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -3818,4 +3832,6 @@ export default {
 	// END BY JAY GENERATE EMPLOYMENT HISTORY,
 	revokeAppliedLeave,
 	activeCompOffMoreThanLeave,
+	// Export by jay
+	fetchEmployeeRole
 };

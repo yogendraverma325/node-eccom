@@ -47,6 +47,12 @@ export default (sequelize, Sequelize) => {
 		actualPunchOut: {
 			type: Sequelize.TIME,
 		},
+		creatorRole: {
+			type: Sequelize.STRING
+		},
+		updatorRole: {
+			type: Sequelize.STRING
+		},
 		createdBy: {
 			type: Sequelize.INTEGER,
 		},

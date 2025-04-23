@@ -3374,12 +3374,7 @@ class UserController {
 							model: db.employeeMaster,
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
-							required: false,
-							include: {
-								model: db.roleMaster,
-								attributes: ["name"],
-								required: false,
-							},
+							required: false
 						},
 						{
 							model: db.attendanceMaster,
@@ -3414,12 +3409,7 @@ class UserController {
 							model: db.employeeMaster,
 							attributes: ["id", "empCode", "name"],
 							as: "attendanceCreatedBy",
-							required: false,
-							include: {
-								model: db.roleMaster,
-								attributes: ["name"],
-								required: false,
-							},
+							required: false
 						},
 					],
 					limit,
@@ -3475,7 +3465,7 @@ class UserController {
 				type === "self"
 					? {
 							//createdBy: req.userId,
-							isPending: 0,
+							isPending: [0,1],
 							isApproved: [1, 2, 0],
 							// isPending: 1,
 						}
@@ -3556,10 +3546,7 @@ class UserController {
 							model: db.employeeMaster,
 							attributes: ["id", "name", "empCode"],
 							as: "leaveCreatedBy",
-							required: false,
-							include: [
-								{ model: db.roleMaster, attributes: ['name'], required: false }
-							]
+							required: false
 						},
 					],
 					limit,
@@ -5987,12 +5974,7 @@ class UserController {
 							model: db.employeeMaster,
 							attributes: ["id", "name", "empCode"],
 							as: "attendanceUpdatedBy",
-							required: false,
-							include: {
-								model: db.roleMaster,
-								attributes: ["name"],
-								required: false,
-							},
+							required: false
 						},
 						{
 							model: db.attendanceMaster,
@@ -6019,12 +6001,7 @@ class UserController {
 							model: db.employeeMaster,
 							attributes: ["id", "empCode", "name"],
 							as: "attendanceCreatedBy",
-							required: false,
-							include: {
-								model: db.roleMaster,
-								attributes: ["name"],
-								required: false,
-							},
+							required: false
 						},
 					],
 					limit,
