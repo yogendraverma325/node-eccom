@@ -1451,9 +1451,45 @@ ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `dateOfJoining`;
 
 //////////////////////////22-04-2025////////////////
 
-ALTER TABLE `tara_hrms_live`.`leaveapprovaltrails` 
+ALTER TABLE `tara`.`regularization` 
+ADD COLUMN `creatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `regularizeManagerId`,
+ADD COLUMN `updatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `creatorRole`;
+
+
+ALTER TABLE `tara`.`leaveapprovaltrails` 
 ADD COLUMN `creatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `employeeId`,
 ADD COLUMN `updatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `creatorRole`;
+
+CREATE TABLE `loginsessionhistory` (
+  `loginSessionHistoryId` int NOT NULL AUTO_INCREMENT,
+  `realUserId` int NOT NULL,
+  `targetUserId` int NOT NULL,
+  `loginIP` varchar(155) DEFAULT NULL,
+  `userAgent` varchar(255) DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` int DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`loginSessionHistoryId`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.loginsessionhistory;
+
+CREATE TABLE `qrsessionshistory` (
+  `qrSessionId` int NOT NULL AUTO_INCREMENT,
+  `sessionId` varchar(255) NOT NULL,
+  `employeeId` int DEFAULT NULL,
+  `loggedIn` tinyint DEFAULT '0',
+  `expiresAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `userAgent` varchar(255) DEFAULT NULL,
+  `loginIP` varchar(255) DEFAULT NULL,
+  `loginDevice` varchar(100) DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` int DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  PRIMARY KEY (`qrSessionId`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.qrsessionshistory;
 
 
 

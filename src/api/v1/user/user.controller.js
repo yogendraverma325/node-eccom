@@ -3465,7 +3465,7 @@ class UserController {
 				type === "self"
 					? {
 							//createdBy: req.userId,
-							isPending: 0,
+							isPending: [0,1],
 							isApproved: [1, 2, 0],
 							// isPending: 1,
 						}

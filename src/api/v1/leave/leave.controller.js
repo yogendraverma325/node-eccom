@@ -2874,6 +2874,7 @@ class LeaveController {
 					status: "revoked",
 					updatedBy: req.userId,
 					updatedAt: moment(),
+					role: helper.fetchEmployeeRole(req.userRole, req.userId, req.userId)
 				},
 				{
 					where: {
