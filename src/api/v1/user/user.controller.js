@@ -762,6 +762,8 @@ class UserController {
 		try {
 			let userid = req.userId;
 			let role_id = req.userData.role_id;
+			let user = req.query.user;
+			console.log(user);
 
 			const mainCondition = {
 				employeeId: req.userId,
@@ -774,51 +776,11 @@ class UserController {
 				isApproved: {
 					[Op.notIn]: [2],
 				},
-				//isPending: 1,
+				...(user && { createdBy: user })
 			};
 
-			const fullyApprovedLeaveHeaders = await db.leaveApprovalTrails.findAll({
-				attributes: ["leaveHeaderAutoId"],
-				group: ["leaveHeaderAutoId"],
-				having: db.sequelize.literal(`
-				SUM(CASE WHEN isApproved = 1 THEN 1 ELSE 0 END) = COUNT(*)
-			`), // Checks if ALL rows are approved
-				raw: true,
-			});
-
-			const excludedLeaveHeaderIds = fullyApprovedLeaveHeaders.map(
-				(row) => row.leaveHeaderAutoId,
-			);
-
-			const rejectedLeaveHeaders = await db.leaveApprovalTrails.findAll({
-				attributes: ["leaveHeaderAutoId"],
-				where: { isApproved: 2 },
-				group: ["leaveHeaderAutoId"],
-				raw: true,
-			});
-
-			const rejectedLeaveHeaderIds = rejectedLeaveHeaders.map(
-				(row) => row.leaveHeaderAutoId,
-			);
-
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
-				where: {
-					// status: "pending",
-					...mainCondition,
-					// [Op.or]: [
-					// 	mainCondition,
-					// 	{
-					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-					// 	},
-					// ],
-					// ...(excludedLeaveHeaderIds.length > 0 && {
-					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					// }),
-					// ...(rejectedLeaveHeaderIds.length > 0 && {
-					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					// }),
-				},
-
+				where: mainCondition,
 				attributes: [],
 				include: [
 					{
@@ -856,8 +818,7 @@ class UserController {
 			});
 
 			const mainCondition1 = {
-				// pendingAt: req.userId,
-				status: "pending",
+				status: "pending"
 			};
 
 			const leaveApprovalCondition2 = {
@@ -865,26 +826,11 @@ class UserController {
 				pendingOn: req.userId,
 				isApproved: 0,
 				isPending: 1,
+				...(user && { createdBy: user })
 			};
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
-				where: {
-					// status: "pending",
-					...mainCondition1,
-					// [Op.or]: [
-					// 	mainCondition1,
-					// 	{
-					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-					// 	},
-					// ],
-					// ...(excludedLeaveHeaderIds.length > 0 && {
-					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					// }),
-					// ...(rejectedLeaveHeaderIds.length > 0 && {
-					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					// }),
-				},
-
+				where: mainCondition1,
 				attributes: [],
 				include: [
 					{
