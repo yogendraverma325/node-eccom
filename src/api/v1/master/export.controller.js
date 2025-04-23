@@ -7863,8 +7863,12 @@ const groupByEmployeeId = (data) => {
 				"Employee Id": employeeId, //1
 				"Employee Name": item["Employee Name"], //2
 				"Date of Joining": item["Date of Joining"], //3
-				"Exit Date": item["Exit Date"], //4
-				"Total Days": item["Total Days"], //5
+						"Date of Joining": item["Date of Joining"]
+							? moment(item["Date of Joining"]).format("YYYY-MM-DD")
+							: "N/A", //3
+						"Exit Date": item["Exit Date"]
+							? moment(item["Exit Date"]).format("YYYY-MM-DD")
+							: "N/A", //4
 				"LOP Days": item["LOP Days"], //6
 				"Arrears Days": item["Arrears Days"], //7
 				"Present Days": item["Present Days"] ? item["Present Days"] : 0, //8

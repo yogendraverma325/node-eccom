@@ -1691,7 +1691,7 @@ const lwfValidateSchama = Joi.object({
 const noticeRecoveryValidateSchama = Joi.object({
 	recoveryDaysAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	// payMonth: Joi.string().max(255).required(),
 	recoveryDays: Joi.number()
 		.precision(2)
 		.positive()

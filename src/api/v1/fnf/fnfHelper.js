@@ -36,8 +36,10 @@ async function query(caseId, data, data2) {
 			return `SELECT e.name as empName, e.id as empId, lop.lopMonth, lop.lopDays, earn.arrearMonth, earn.arearDays, tds.tdsMonth, tds.tdsAmount, pp.payPackageAutoId, pp.salaryStructureAutoId, pp.payPackageMonthlyCTC, pp.payPackageEffectiveDate, pe.payElementAmount, sc.salaryComponentSequenceNo,sc.salaryComponentAutoId, sc.salaryComponentCode, sc.salaryComponentAlias, sc.salaryComponentEarningType, sc.includeInPackage, le.leaveEncashmentDays, gor.gratuityYears FROM employee e LEFT JOIN lopdeductions lop ON e.id = lop.EmployeeId AND lop.lopMonth = "${data2.payMonth}" LEFT JOIN earningarrears earn ON e.id = earn.EmployeeId AND earn.arrearMonth = "${data2.payMonth}"  LEFT JOIN tdsdeductions tds ON e.id = tds.EmployeeId AND tds.tdsMonth = "${data2.payMonth}" LEFT JOIN leavencashmentoverrides le ON e.id = le.EmployeeId LEFT JOIN gratuityoverrides gor ON e.id = gor.EmployeeId LEFT JOIN paypackage pp ON e.id = pp.EmployeeId LEFT JOIN payelement pe ON pp.payPackageAutoId = pe.payPackageAutoId LEFT JOIN salarycomponent sc ON pe.salaryComponentAutoId = sc.salaryComponentAutoId WHERE e.id = ${data}  and pp.isActive=1;`; //11
 			break;
 		case 8:
-			return `SELECT userId, dateOfJoining FROM employeejobdetails WHERE YEAR(dateOfJoining)=${data2.payYear} AND MONTH(dateOfJoining)=${data2.payMonth} AND userId=${data};`; //26
-			break;
+			//return `SELECT userId, dateOfJoining FROM employeejobdetails WHERE YEAR(dateOfJoining)=${data2.payYear} AND MONTH(dateOfJoining)=${data2.payMonth} AND userId=${data};`; //26
+			  //return `SELECT id, dateOfexit FROM tara_hrms_live.employee WHERE YEAR(dateOfexit)=${data2.payYear} AND MONTH(dateOfexit)=${data2.payMonth} AND id=${data}`
+			  return `SELECT e.dateOfexit, e.id, ejd.dateOfJoining FROM tara_hrms_live.employee e JOIN tara_hrms_live.employeejobdetails ejd ON e.id = ejd.userId WHERE e.id = 2774;`		
+			  break;
 		case 9:
 			return `SELECT sscm.salaryComponentAutoId, sscm.salaryStructureAutoId, scm.salaryComponentElementAutoId, scm.elementValue, sce.salaryComponentElementName, sce.salaryComponentElementCode FROM ${dbName}.salarystructurecomponentmapping sscm JOIN ${dbName}.salarycomponentmapping scm ON sscm.salaryStructurecomponentmappingAutoId = scm.salaryStructurecomponentmappingAutoId JOIN ${dbName}.salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sscm.salaryComponentAutoId = ${data} AND sscm.salaryStructureAutoId = ${data2};`; // 12
 			break;
@@ -46,7 +48,8 @@ async function query(caseId, data, data2) {
 			break;
 		case 11:
 			//return `SELECT  p.salaryComponentEarningType,p.esicEmployerAmount as "ESIC Employer",p.esicEmployeeAmount as "ESIC Employee",p.pfEmployeeAmount as "PF Employee",p.pfEmployerAmount as "PF Employer",p.salaryComponentCode,p.includeInPackage,p.isPfApplicableComponent,p.isPfApplicable,p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) - SUM(CASE WHEN p.salaryComponentEarningType = 'Deduction' THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
-			return `SELECT p.noticeRecoveryAmount,p.ExtraBenefitAmount,p.leaveEncashmentDays,p.leaveEncashmentAmount,p.gratuityAmount,p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`; //1
+			//return `SELECT p.noticeRecoveryAmount,p.ExtraBenefitAmount,p.leaveEncashmentDays,p.leaveEncashmentAmount,p.gratuityAmount,p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`; //1
+			return `SELECT p.noticeRecoveryAmount,p.ExtraBenefitAmount,p.leaveEncashmentDays,p.leaveEncashmentAmount,p.gratuityAmount,p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.employeejobdetails ej ON e.id = ej.userId LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN ${dbName}.bumaster bu ON e.buId = bu.buId LEFT JOIN ${dbName}.employeepaymentdetails epd ON e.id = epd.userId WHERE p.payMonth = '${data}' AND p.empId IN (${data2})  order by salaryComponentSequenceNo desc;`;
 			break;
 		case 12:
 			return `SELECT pf.refferenceFlowId, ps.currentRemark FROM ${dbName}.payprocessflowmaster pf INNER JOIN ${dbName}.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pf.nextstatus = ${data2} AND pf.currentstatus = ${data}`; //6
@@ -113,13 +116,11 @@ const actualWorkingDays = async function (data) {
 			queryForCurrentJoiningDate,
 		);
 		console.log(currentMonthJoiningDetails);
-		if (currentMonthJoiningDetails[0].length == 0) {
-			return data.totalWorkingDays;
-		} else {
-			let joiningDate = currentMonthJoiningDetails[0][0].dateOfJoining;
-			let leftDayaInMonth = daysLeftInMonth(joiningDate);
-			return leftDayaInMonth;
-		}
+		let exitDate = currentMonthJoiningDetails[0][0].dateOfexit;
+		let dateOfJoining = currentMonthJoiningDetails[0][0].dateOfJoining;
+		let leftDayaInMonth = workingDaysInMonth(exitDate,dateOfJoining);
+		return leftDayaInMonth;
+
 	} catch (e) {
 		console.log(e);
 		return null;
@@ -463,6 +464,38 @@ async function getExitMonth(employeeId)
 	const exitMonth = `${new Date(employeeExitDetails.dateOfExit).getFullYear()}-${String(new Date(employeeExitDetails.dateOfExit).getMonth() + 1).padStart(2, '0')}`;
 	return exitMonth;
 }
+
+function workingDaysInMonth(dateOfExit,dateOfJoining) {
+	var daysLeft=0;
+	const exitDate = new Date(dateOfExit);
+	const joiningDate = new Date(dateOfJoining);
+	// Get the current month and year from the date
+	const exitYear = exitDate.getFullYear();
+	const exitMonth = exitDate.getMonth(); // Note: Month is 0-indexed (0 = January)
+
+	const joiningYear = joiningDate.getFullYear();
+	const joiningMonth = joiningDate.getMonth(); // Note: Month is 0-indexed (0 = January)
+
+
+	const exitDay = exitDate.getDate();
+	const joiningDay = joiningDate.getDate();
+
+
+	if(exitMonth==joiningMonth && exitYear==joiningYear )
+	{
+		//If Employee Join and Exit in the same month.....
+		daysLeft = (exitDay - joiningDay) + 1;
+	}
+	else
+	{
+		//If Employee Join in different month and Exit in the different month.....
+		 daysLeft = exitDay;
+	}
+
+	// Calculate the remaining days including the given date
+	return daysLeft;
+}
+
 
 export default {
 	query,

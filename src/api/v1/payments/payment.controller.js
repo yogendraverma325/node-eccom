@@ -44,7 +44,7 @@ import logger from "../../../helper/logger.js";
 import { exit } from "process";
 import { checkPrimeSync } from "crypto";
 // import puppeteer from "puppeteer";
-		
+
 //import moment, { now } from "moment";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -1803,7 +1803,7 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
-			let isActive = req.query.isActive?parseInt(req.query.isActive):1;
+			let isActive = req.query.isActive ? parseInt(req.query.isActive) : 1;
 
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
@@ -2751,7 +2751,7 @@ class PaymentController {
 			);
 			var totaPaymentAmount = 0,
 				uniqueEmployeeImpacted = 0;
-			let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrabenefit WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
+			let allDeductionQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
 			let extraPayments = await db.sequelize.query(allDeductionQuery);
 			for (const singleEmployeePayment of extraPayments[0]) {
 				console.log(singleEmployeePayment);
@@ -3610,7 +3610,6 @@ class PaymentController {
 				"PT Overrides": 122,
 				"LWF Overrides": 123,
 				"Notice Period Recovery": 124,
-
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3681,18 +3680,18 @@ class PaymentController {
 				console.log(employeeIds);
 				query = `SELECT name,empCode FROM ${dbName}.employee where id in (${employeeIdss})`;
 
-			
 				if (query) {
 					const [results] = await db.sequelize.query(query, { raw: true });
 					employeeData = results;
 				}
 				console.log(query);
 			}
-		
 
 			if (
 				salalryStructureAutoId == 0 &&
-				[110, 111, 112, 113, 114, 115, 116,119,120,121,122,123,124].includes(Number(exportSheetAutoId))
+				[
+					110, 111, 112, 113, 114, 115, 116, 119, 120, 121, 122, 123, 124,
+				].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
@@ -3716,20 +3715,20 @@ class PaymentController {
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
 					120: `SELECT benefitAmount as "Extra Benefit Amount",empCode as EmployeeId FROM ${dbName}.extrabenefit where  empCode in(${employeeIdss
-							.map((id) => `'${id}'`)
-							.join(", ")});`,	
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
 					121: `SELECT leaveEncashmentDays as "LEAVE ENCASHMENT DAYS",empCode as EmployeeId FROM ${dbName}.leavencashmentoverrides where  empCode in(${employeeIdss
-								.map((id) => `'${id}'`)
-								.join(", ")});`,		
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
 					122: `SELECT ptAmount as "PT Amount",empCode as EmployeeId FROM ${dbName}.ptoverrides where ptMonth='${payMonth}' AND empCode in(${employeeIdss
-								.map((id) => `'${id}'`)
-								.join(", ")});`,
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
 					123: `SELECT lwfAmount as "LWF Amount",empCode as EmployeeId FROM ${dbName}.lwfoverrides where lwfMonth='${payMonth}' AND empCode in(${employeeIdss
-								.map((id) => `'${id}'`)
-								.join(", ")});`,	
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
 					124: `SELECT recoveryDays as "Notice Period Recovery Days",empCode as EmployeeId FROM ${dbName}.noticerecoveryovrrides where payMonth='${payMonth}' AND empCode in(${employeeIdss
-						  .map((id) => `'${id}'`)
-							.join(", ")});`,																									
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
 				};
 				query = impactedEmployeeQueryObject[exportSheetAutoId];
 				console.log(query);
@@ -3840,7 +3839,9 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[110, 111, 112, 113, 114, 115, 116,119,120,121,122,123,124].includes(Number(exportSheetAutoId))
+				[
+					110, 111, 112, 113, 114, 115, 116, 119, 120, 121, 122, 123, 124,
+				].includes(Number(exportSheetAutoId))
 			) {
 				const columnsFroExcel = {
 					110: [
@@ -3893,7 +3894,10 @@ class PaymentController {
 					],
 					124: [
 						{ label: "Employee Code", value: "EmployeeId" },
-						{ label: "Notice Period Recovery Days", value: "Notice Period Recovery Days" },
+						{
+							label: "Notice Period Recovery Days",
+							value: "Notice Period Recovery Days",
+						},
 					],
 				};
 
@@ -3960,7 +3964,6 @@ class PaymentController {
 				"PT Overrides": 15,
 				"LWF Overrides": 16,
 				"Notice Period Recovery": 17,
-				
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -3971,7 +3974,7 @@ class PaymentController {
 			let sheetVal = await getKeyByValue(exportSheetAutoId);
 			sheetVal = customSheetName ? customSheetName : sheetVal;
 
-			console.log("sheetVal :: ",sheetVal)
+			console.log("sheetVal :: ", sheetVal);
 			// Check for required exportSheetAutoId
 			if (!exportSheetAutoId) {
 				return res.status(400).json({
@@ -4055,7 +4058,12 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17].includes(Number(exportSheetAutoId))) {
+			} else if (
+				getColumns.length > 0 &&
+				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].includes(
+					Number(exportSheetAutoId),
+				)
+			) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
 				const columns = headers.map((value) => ({
@@ -5308,7 +5316,7 @@ class PaymentController {
 
 						const lopDays =
 							parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-						let actualWorkingDaysBeforeLop=actualWorkingDays;
+						let actualWorkingDaysBeforeLop = actualWorkingDays;
 						actualWorkingDays = actualWorkingDays - lopDays;
 						const lopMonthWiseCalculation =
 							totalWorkingDays > 0
@@ -5424,7 +5432,7 @@ class PaymentController {
 							}
 						}
 
-						let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrabenefit WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
+						let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result.payMonth}' AND EmployeeId = ${employee};`;
 
 						let extraPaymentAmount =
 							await db.sequelize.query(allDeductionQuery);
@@ -5910,7 +5918,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
 				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
 		);
-		totalDeduction=paymentHelper.customRound(totalDeduction)
+		totalDeduction = paymentHelper.customRound(totalDeduction);
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = paymentHelper.customRound(payableAmount);
 
@@ -5918,8 +5926,12 @@ const groupByEmployeeId = (data) => {
 			groupedData[employeeId] = {
 				"Employee Id": employeeId, //1
 				"Employee Name": item["Employee Name"], //2
-				"Date of Joining": item["Date of Joining"], //3
-				"Exit Date": item["Exit Date"], //4
+				"Date of Joining": item["Date of Joining"]
+					? moment(item["Date of Joining"]).format("YYYY-MM-DD")
+					: "N/A", //3
+				"Exit Date": item["Exit Date"]
+					? moment(item["Exit Date"]).format("YYYY-MM-DD")
+					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
 				"Arrears Days": item["Arrears Days"], //7
@@ -6057,7 +6069,7 @@ async function processSalary(data) {
 
 			const lopDays =
 				parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-			let actualWorkingDaysBeforeLop=actualWorkingDays;	
+			let actualWorkingDaysBeforeLop = actualWorkingDays;
 			actualWorkingDays = actualWorkingDays - lopDays;
 			const lopMonthWiseCalculation =
 				totalWorkingDays > 0
@@ -6168,7 +6180,7 @@ async function processSalary(data) {
 					lwfAmount = lwfMappingDetails.lwfAmount || 0;
 				}
 			}
-			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrabenefit WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
+			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
 			const ptAmount1 =
 				ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
@@ -6490,8 +6502,7 @@ async function generatePaySlip(data) {
 						financialYearId: financialYearDetails?.financialYearId,
 						paySlipDuration: paySlipDuration,
 						paySlipTotalDays: payMonthlyElement.totalWorkingDays,
-						paySlipWorkingDays:
-							payMonthlyElement.actualWorkingDays,
+						paySlipWorkingDays: payMonthlyElement.actualWorkingDays,
 						paySlipAbsentDays: payMonthlyElement.lopDays,
 						paySlipArrearDays: payMonthlyElement.arrearDays,
 						paySlipGrossEarning: GrossPayAfterExtraPay,
