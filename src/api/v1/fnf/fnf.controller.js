@@ -2029,10 +2029,11 @@ const groupByEmployeeId = (data) => {
 				)+
 				parseFloat(
 					item["gratuityAmount"] ? item["gratuityAmount"] : 0
-				)+parseFloat(
-					item["ExtraBenefitAmount"] ? item["ExtraBenefitAmount"] : 0
 				)
 		);
+		// +parseFloat(
+		// 	item["ExtraBenefitAmount"] ? item["ExtraBenefitAmount"] : 0
+		// )/// excluted on request of Rag and Mukesh
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
 				parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
@@ -2070,7 +2071,7 @@ const groupByEmployeeId = (data) => {
 				Gratuity: item["gratuityAmount"],
 				"Leave Encashment Days": item['leaveEncashmentDays'],
 				"Leave Encashment Amount": item["leaveEncashmentAmount"],
-				"Extra Benefit Amount": item["ExtraBenefitAmount"],
+				// "Extra Benefit Amount": item["ExtraBenefitAmount"],// excluted on request of Rag and Mukesh
 				"Notice Recovery Amount":item["noticeRecoveryAmount"],
 				///////////////FNF-Particular Details////////////////////
 				// "Personal Deduction Categories": item["Advance Name"],//29
@@ -2742,6 +2743,8 @@ async function generatePaySlip(data) {
 						paySlipStatus: 0,
 						createdAt: new Date(),
 						payMonth: payMonthlyElement.payMonth,
+						encashmentDays:payMonthlyElement.leaveEncashmentDays,
+						recoveryDays:payMonthlyElement.noticePeriodRecoveryDays,
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
 						? isExistPaySlip.dataValues.paySlipAutoId
@@ -2779,7 +2782,7 @@ async function generatePaySlip(data) {
 							EmployeeId: payMonthlyElement.empId,
 							paySlipAutoId: paySlipAutoId,
 							salaryComponentAutoId: 0,
-							paySlipComponentName: "Lwf Tax",
+							paySlipComponentName: "LWF Tax",
 							paySlipComponentAmount: payMonthlyElement.lwfAmount,
 							paySlipComponentType: "Deduction",
 							createdBy: req.userData.id,

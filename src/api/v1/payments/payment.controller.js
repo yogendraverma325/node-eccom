@@ -3726,7 +3726,7 @@ class PaymentController {
 					123: `SELECT lwfAmount as "LWF Amount",empCode as EmployeeId FROM ${dbName}.lwfoverrides where lwfMonth='${payMonth}' AND empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
-					124: `SELECT recoveryDays as "Notice Period Recovery Days",empCode as EmployeeId FROM ${dbName}.noticerecoveryovrrides where payMonth='${payMonth}' AND empCode in(${employeeIdss
+					124: `SELECT recoveryDays as "Notice Period Recovery Days",empCode as EmployeeId FROM ${dbName}.noticerecoveryovrrides where empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
 				};
@@ -5183,6 +5183,8 @@ class PaymentController {
 				totalArrearDays: salaryDetails[0]?.paySlipArrearDays,
 				providentFund: employee?.employeejobdetail?.pfNumber || "N.A",
 				esicNo: employee?.employeejobdetail?.esicNumber || "N.A",
+				encashmentDays: salaryDetails[0]?.encashmentDays || "N.A",
+				recoveryDays: salaryDetails[0]?.recoveryDays || "N.A",
 			};
 
 			//const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip

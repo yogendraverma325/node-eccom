@@ -1449,6 +1449,11 @@ ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `dateOfJoining`;
 
 //////////////////////////////////
 
+////////////FNF-PaySlip 2025-04-23//////////////
+
+ALTER TABLE `tara_hrms_live`.`payslip` 
+ADD COLUMN `encashmentDays` DECIMAL(10,2) NULL DEFAULT 0.0 AFTER `financialYearId`,
+ADD COLUMN `recoveryDays` DECIMAL(10,2) NULL DEFAULT 0.0 AFTER `encashmentDays`;
 
 
 
