@@ -865,7 +865,9 @@ class AttendanceController {
 					"attendancePunchInTime",
 					"attendancePunchOutTime",
 					"attendanceRegularizeCount",
-					"employeeId"
+					"employeeId",
+					"attandanceShiftStartDate",
+					"attendanceShiftEndDate"
 				],
 				include: [
 					{
@@ -939,7 +941,9 @@ class AttendanceController {
 				regularizeStatus: "Pending",
 				createdBy: req.userId,
 				createdAt: moment(),
-				creatorRole: helper.fetchEmployeeRole(req.userRole, attendanceData.dataValues.employeeId, req.userId)
+				creatorRole: helper.fetchEmployeeRole(req.userRole, attendanceData.dataValues.employeeId, req.userId),
+				attendanceShiftStartDate:attendanceData.dataValues.attandanceShiftStartDate,
+				attendanceShiftEndDate:attendanceData.dataValues.attendanceShiftEndDate
 			});
 
 			await helper.revokeAppliedLeave(result.fromDate, req.userId);

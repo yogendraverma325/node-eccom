@@ -65,6 +65,12 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		attendanceShiftStartDate: {
+			type: Sequelize.DATE,
+		},
+		attendanceShiftEndDate: {
+			type: Sequelize.DATE,
+		},
 	});
 	regularizationMaster.addScope("latest", {
 		order: [["createdAt", "DESC"]],
