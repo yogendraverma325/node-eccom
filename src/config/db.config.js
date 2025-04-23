@@ -180,6 +180,12 @@ import LeaveApprovalTrails from "../api/model/LeaveApprovalTrails.js";
 
 import ImportInfo from "../api/model/ImportInfo.js";
 import ImportData from "../api/model/ImportData.js";
+///////////////////Start Import Models By Jay////////
+
+import QRSessionHistory from "../api/model/QRSessionHistory.js";
+
+///////////////////End Import Models By Jay////////
+
 ///////////////////Import Models By Himanshu////////
 import PushNotificationHistory from "../api/model/PushNotificationHistory.js";
 
@@ -477,7 +483,7 @@ db.pushNotificationHistory = PushNotificationHistory(sequelize, Sequelize);
 
 //ritak address approval start
 db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
-
+db.qrSessionHistory = QRSessionHistory(sequelize, Sequelize);
 //ritak address approval end
 
 
@@ -2173,5 +2179,6 @@ db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
 	sourceKey: "createdBy",
 	as: "leaveCreatedBy",
 });
+
 
 export default db;

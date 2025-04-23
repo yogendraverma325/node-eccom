@@ -7646,12 +7646,18 @@ class MasterController {
 			if (employeeDataExisting.length > 0) {
 				const employeeIds = [];
 				for (const element of employeeDataExisting) {
-					console.log(element.id);
+					// console.log(element.id);
 					employeeIds.push(element.id);
 				}
 				const query = `SELECT p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.employeejobdetails ej ON e.id = ej.userId LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN ${dbName}.bumaster bu ON e.buId = bu.buId LEFT JOIN ${dbName}.employeepaymentdetails epd ON e.id = epd.userId WHERE p.payMonth = '${salaryMonth}' AND p.empId IN (${employeeIds})  order by salaryComponentSequenceNo desc;`;
 				const result1 = await db.sequelize.query(query);
-				const processedData = groupByEmployeeId(result1[0]);
+					const processedData = groupByEmployeeId(result1[0]);
+
+					processedData.sort((a, b) => {
+						const idA = a["Employee Id"];
+						const idB = b["Employee Id"];
+						return idA.localeCompare(idB, undefined, { numeric: true });
+					});
 
 				if (result1[0].length > 0) {
 					const uniqueKeys = getColumnsForSalaryregister(processedData);

@@ -172,6 +172,9 @@ export default (sequelize, Sequelize) => {
 		approvalFlow: {
 			type: Sequelize.INTEGER,
 		},
+		display_all: {
+			type: Sequelize.INTEGER,
+		},
 	});
 	return leaveCompanyMapping;
 };

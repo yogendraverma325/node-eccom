@@ -644,6 +644,12 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
+			console.log("item ",item)
+
+			if(item.leaveCompanyDetails.display_all==0){
+	console.log("displa ",)
+item.dataValues.is_active_for_display = item.leaveCompanyDetails.display_all;
+			}
 
 			if (item.leaveAutoId === 6 && item.leavemaster) {
 				item.leavemaster.dataValues.countApproved = totalLeaveCountApproved;
@@ -740,6 +746,8 @@ const empLeaveDetails = async function (userId, type) {
 				item.dataValues.addOn = [...policy, ...adddon];
 			}
 		}
+
+		 
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
 			where: {
@@ -2446,6 +2454,21 @@ const creditCompoff = async (inputObject) => {
 									await db.comp_off_credit_history.create(comp_off_data);
 								}
 							}
+							if (comp_off_data.pending_at != null) {
+								let EMP_DATA_SELF = await getEmpProfile(
+									comp_off_data.employee_Id,
+								); // SELF Manager
+
+								const obj = {
+									email: EMP_DATA_SELF.email,
+									companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+									senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+									requesterName: EMP_DATA_SELF.name,
+									managerName: EMP_DATA_SELF.managerData.name,
+									compOffDate: comp_off_data.credit_for_date,
+								};
+								eventEmitter.emit("compOffMail", JSON.stringify(obj));
+							}
 
 							// }
 						}
@@ -3650,7 +3673,8 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			await db.leaveMapping.update(
+			if(leave.dataValues.leaveAutoId!=6){
+				await db.leaveMapping.update(
 				{
 					availableLeave: db.sequelize.literal(
 						`availableLeave + ${leave.dataValues.leaveCount}`,
@@ -3666,6 +3690,22 @@ const revokeAppliedLeave = async (date, emp) => {
 					},
 				},
 			);
+
+			}else{
+				await db.leaveMapping.update(
+				{
+					utilizedThisYear: db.sequelize.literal(
+						`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+					),
+				},
+				{
+					where: {
+						EmployeeId: emp,
+						leaveAutoId: leave.dataValues.leaveAutoId,
+					},
+				},
+			);
+			}
 		}
 	}
 };
