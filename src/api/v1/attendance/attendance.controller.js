@@ -2867,7 +2867,10 @@ class AttendanceController {
 					{
 						attendanceShiftEndDate: moment()
 							.subtract(0, "day")
-							.format("YYYY-MM-DD"),
+							.format("YYYY-MM-DD"), 
+							attendanceShiftEndDate2: moment()
+							.subtract(0, "day")
+							.format("YYYY-MM-DD"), 
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
 						// weekOffId: singleEmp.weekOffMaster
@@ -2888,6 +2891,9 @@ class AttendanceController {
 					.subtract(1, "day")
 					.format("YYYY-MM-DD"),
 				attendanceShiftEndDate: moment()
+					.subtract(0, "day")
+					.format("YYYY-MM-DD"),
+				attendanceShiftEndDate2: moment()
 					.subtract(0, "day")
 					.format("YYYY-MM-DD"),
 				employeeId: singleEmp.id,
@@ -3306,6 +3312,9 @@ class AttendanceController {
 						attendanceShiftEndDate: moment()
 							.subtract(1, "day")
 							.format("YYYY-MM-DD"),
+						attendanceShiftEndDate2: moment()
+							.subtract(1, "day")
+							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
 					},
@@ -3324,6 +3333,9 @@ class AttendanceController {
 					.subtract(1, "day")
 					.format("YYYY-MM-DD"),
 				attendanceShiftEndDate: moment()
+					.subtract(1, "day")
+					.format("YYYY-MM-DD"),
+				attendanceShiftEndDate2: moment()
 					.subtract(1, "day")
 					.format("YYYY-MM-DD"),
 				employeeId: singleEmp.id,
@@ -5674,6 +5686,7 @@ class AttendanceController {
 							{
 								attendancePunchOutTime: currentDate.format("HH:mm:ss"),
 								attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+								attendanceShiftEndDate2: currentDate.format("YYYY-MM-DD"),
 								attendancePunchOutLocationType: "Office",
 								attendanceStatus: "Punch Out",
 								attendanceWorkingTime: await helper.timeDifference(
@@ -5820,6 +5833,7 @@ class AttendanceController {
 								{
 									attendancePunchOutTime: currentDate.format("HH:mm:ss"),
 									attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+									attendanceShiftEndDate2: currentDate.format("YYYY-MM-DD"),
 									attendancePunchOutLocationType: "Office",
 									attendanceStatus: "Punch Out",
 									attendanceWorkingTime: await helper.timeDifference(
@@ -6087,6 +6101,7 @@ class AttendanceController {
 								{
 									attendancePunchOutTime: currentDate.format("HH:mm:ss"),
 									attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
+									attendanceShiftEndDate2: currentDate.format("YYYY-MM-DD"),
 									attendancePunchOutLocationType: "Office",
 									attendanceStatus: "Punch Out",
 									attendanceWorkingTime: await helper.timeDifference(
