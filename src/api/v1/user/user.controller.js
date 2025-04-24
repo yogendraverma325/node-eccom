@@ -763,20 +763,19 @@ class UserController {
 			let userid = req.userId;
 			let role_id = req.userData.role_id;
 			let user = req.query.user;
-			console.log(user);
 
 			const mainCondition = {
 				employeeId: req.userId,
 				source: { [Op.ne]: "system_generated" },
 				status: "pending",
+				// ...(user && { createdBy: user })
 			};
 
 			const leaveApprovalCondition = {
 				employeeId: req.userId,
 				isApproved: {
 					[Op.notIn]: [2],
-				},
-				...(user && { createdBy: user })
+				}
 			};
 
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
@@ -818,15 +817,15 @@ class UserController {
 			});
 
 			const mainCondition1 = {
-				status: "pending"
+				status: "pending",
+				...(user && { employeeId: user })
 			};
 
 			const leaveApprovalCondition2 = {
 				isVisible: true,
 				pendingOn: req.userId,
 				isApproved: 0,
-				isPending: 1,
-				...(user && { createdBy: user })
+				isPending: 1
 			};
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({

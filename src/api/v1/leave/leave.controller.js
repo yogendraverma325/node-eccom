@@ -211,7 +211,7 @@ class LeaveController {
 							//isPending: 1,
 						}
 					: {
-							...(user && { createdBy: user }),
+							// ...(user && { createdBy: user }),
 							isVisible: true,
 							pendingOn: req.userId,
 							isApproved: 0,
