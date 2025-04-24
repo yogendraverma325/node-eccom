@@ -942,8 +942,8 @@ class AttendanceController {
 				createdBy: req.userId,
 				createdAt: moment(),
 				creatorRole: helper.fetchEmployeeRole(req.userRole, attendanceData.dataValues.employeeId, req.userId),
-				attendanceShiftStartDate:attendanceData.dataValues.attandanceShiftStartDate,
-				attendanceShiftEndDate:attendanceData.dataValues.attendanceShiftEndDate
+				attendanceShiftStartDate: attendanceData.dataValues.attandanceShiftStartDate,
+				attendanceShiftEndDate: attendanceData.dataValues.attendanceShiftEndDate
 			});
 
 			await helper.revokeAppliedLeave(result.fromDate, req.userId);
@@ -1669,7 +1669,7 @@ class AttendanceController {
 									include: {
 										model: db.roleMaster,
 										attributes: ["name"],
-										required:false
+										required: false
 									}
 								},
 							],
@@ -2025,7 +2025,7 @@ class AttendanceController {
 					include: [
 						{
 							model: db.attendanceMaster,
-							attributes: ["attendanceAutoId", "employeeId","attendanceDate"],
+							attributes: ["attendanceAutoId", "employeeId", "attendanceDate"],
 							include: [
 								{
 									model: db.employeeMaster,
@@ -2075,8 +2075,8 @@ class AttendanceController {
 					});
 				}
 
-				
-				
+
+
 
 				let graceTime = moment(
 					regularizeData[
@@ -2124,7 +2124,7 @@ class AttendanceController {
 							),
 							attendancePresentStatus: "present",
 							attandanceShiftStartDate: regularizeData.regularizePunchInDate,
-							 attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
+							attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
 							attendancePunchInTime: regularizeData.regularizePunchInTime,
 							attendancePunchOutTime: regularizeData.regularizePunchOutTime,
 							attendanceRegularizeUserRemark:
@@ -2137,9 +2137,9 @@ class AttendanceController {
 								regularizeData.regularizePunchInTime,
 								withGraceTime,
 								regularizeData[
-					"attendancemaster.attendanceDate"
-					],
-								regularizeData.regularizePunchInDate, 
+								"attendancemaster.attendanceDate"
+								],
+								regularizeData.regularizePunchInDate,
 							),
 							//createdBy: req.userId,
 							//createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -2152,12 +2152,12 @@ class AttendanceController {
 							},
 						},
 					);
-					
+
 					_this.attedanceCronManual(
 						regularizeData.attendanceAutoId,
 						regularizeData[
-					"attendancemaster.attendanceDate"
-					],
+						"attendancemaster.attendanceDate"
+						],
 					);
 				} else {
 					await db.attendanceMaster.update(
@@ -2867,10 +2867,10 @@ class AttendanceController {
 					{
 						attendanceShiftEndDate: moment()
 							.subtract(0, "day")
-							.format("YYYY-MM-DD"), 
-							attendanceShiftEndDate2: moment()
+							.format("YYYY-MM-DD"),
+						attendanceShiftEndDate2: moment()
 							.subtract(0, "day")
-							.format("YYYY-MM-DD"), 
+							.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
 						// weekOffId: singleEmp.weekOffMaster
@@ -3604,16 +3604,8 @@ class AttendanceController {
 				"minutes",
 			);
 
-			shiftStartDate =
-				existUser.shiftsmaster.dataValues.isOverNight &&
-					moment().isBefore(shiftStartDate)
-					? shiftStartDate.subtract(1, "day")
-					: shiftStartDate;
-			shiftEndDate =
-				existUser.shiftsmaster.dataValues.isOverNight &&
-					moment().isAfter(shiftStartDate)
-					? shiftEndDate.add(1, "day")
-					: shiftEndDate;
+			shiftStartDate = existUser.shiftsmaster.dataValues.isOverNight && moment().isBefore(shiftStartDate) ? shiftStartDate.subtract(1, "day") : shiftStartDate;
+			shiftEndDate = existUser.shiftsmaster.dataValues.isOverNight && moment().isAfter(shiftEndDate) ? shiftEndDate.add(1, "day") : shiftEndDate;
 
 			let attendanceData = await db.attendanceHistory.findOne({
 				where: {
@@ -5094,7 +5086,7 @@ class AttendanceController {
 						attributes: {
 							exclude: ["createdBy", "createdAt", "updatedBy", "updatedAt"],
 						},
-						where: { ...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId } })},
+						where: { ...(query === "assignedToMe" && { employeeId: { [Op.not]: req.userId } }) },
 						include: [
 							{
 								model: db.employeeMaster,
@@ -5164,7 +5156,7 @@ class AttendanceController {
 					include: [
 						{
 							model: db.attendanceMaster,
-							attributes: ["attendanceAutoId", "employeeId","attendanceDate"],
+							attributes: ["attendanceAutoId", "employeeId", "attendanceDate"],
 							include: [
 								{
 									model: db.employeeMaster,
@@ -5253,8 +5245,8 @@ class AttendanceController {
 								`${regularizeData.regularizePunchOutDate} ${regularizeData.regularizePunchOutTime}`,
 							),
 							attendancePresentStatus: "present",
-							 attandanceShiftStartDate: regularizeData.regularizePunchInDate,
-							 attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
+							attandanceShiftStartDate: regularizeData.regularizePunchInDate,
+							attendanceShiftEndDate: regularizeData.regularizePunchOutDate,
 							attendancePunchInTime: regularizeData.regularizePunchInTime,
 							attendancePunchOutTime: regularizeData.regularizePunchOutTime,
 							attendanceRegularizeUserRemark:
@@ -5267,8 +5259,8 @@ class AttendanceController {
 								regularizeData.regularizePunchInTime,
 								withGraceTime,
 								regularizeData[
-					"attendancemaster.attendanceDate"
-					],
+								"attendancemaster.attendanceDate"
+								],
 								regularizeData.regularizePunchInDate,
 							),
 							//createdBy: req.userId,
@@ -5285,8 +5277,8 @@ class AttendanceController {
 					await _this.attedanceCronManual(
 						regularizeData.attendanceAutoId,
 						regularizeData[
-					"attendancemaster.attendanceDate"
-					],
+						"attendancemaster.attendanceDate"
+						],
 					);
 				} else {
 					await db.attendanceMaster.update(
