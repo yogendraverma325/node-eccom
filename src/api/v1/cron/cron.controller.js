@@ -2102,7 +2102,7 @@ try{
                 raw: true,
                 where: {
                     [Op.and]: [
-                      where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), '04-11'),
+                      where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), today),
                       { isActive: 1 }
                     ]
                 }
@@ -2116,7 +2116,7 @@ try{
                         pushNotificationEmitter.emit("sendNotification", {
                             title: "Alert!",
                             body: "Best wishes on your birthday!",
-                            employeeId: 1043,//empId,
+                            employeeId: empId,
                         });
                     }
                 }
@@ -2139,7 +2139,7 @@ try{
                         pushNotificationEmitter.emit("sendNotification", {
                             title: "Alert!",
                             body: "Best wishes on your work anniversary!",
-                            employeeId: 1043,//empId,
+                            employeeId: empId,
                         });
                     }
                 }
