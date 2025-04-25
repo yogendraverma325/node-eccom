@@ -77,6 +77,7 @@ class AppraisalGoalsController {
 					...subGoalAttributesWithGoalId,
 				];
 
+				await db.goalAttributesMapping.destroy({where:{appraisalGoalId: createGoal.appraisalGoalId}})
 				await db.goalAttributesMapping.bulkCreate(mergeGoalAndSubGoals);
 			}
 
