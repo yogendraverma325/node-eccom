@@ -194,6 +194,18 @@ import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
 
 //ritak address approval end
 
+///////////////////Appraisal/////////////////////////
+import AppraisalGoalsMaster from "../api/model/AppraisalGoalsMaster.js";
+import UserAssignment from "../api/model/UserAssignment.js";
+import UserAssignmentAttributeMaster from "../api/model/userAssignmentAttributeMaster.js";
+import GoalAttributesConfigMaster from "../api/model/GoalAttributesConfigMaster.js";
+import GoalAttributesMapping from "../api/model/GoalAttributesMapping.js";
+import UserAssignementConfig from "../api/model/UserAssignmentConfig.js";
+import GoalAttributesOptions from "../api/model/GoalAttributesOptions.js";
+import GoalAreaForUser from "../api/model/GoalAreaForUser.js";
+import SubGoalAreaForUser from "../api/model/SubGoalAreaForUser.js";
+import GoalAreaPragatiTrail from "../api/model/goalAreaPragatiTrail.js";
+///////////////////Appraisal/////////////////////////
 
 
 import literal from "sequelize";
@@ -485,6 +497,19 @@ db.pushNotificationHistory = PushNotificationHistory(sequelize, Sequelize);
 db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
 db.qrSessionHistory = QRSessionHistory(sequelize, Sequelize);
 //ritak address approval end
+
+// appraisal //
+db.appraisalGoalsMaster = AppraisalGoalsMaster(sequelize,Sequelize)
+db.userassignment = UserAssignment(sequelize,Sequelize)
+db.userAssignmentAttributeMaster = UserAssignmentAttributeMaster(sequelize,Sequelize)
+db.goalAttributesConfigMaster = GoalAttributesConfigMaster(sequelize,Sequelize)
+db.goalAttributesMapping = GoalAttributesMapping(sequelize,Sequelize)
+db.userAssignmentConfig = UserAssignementConfig(sequelize,Sequelize)
+db.goalAttributesOptions = GoalAttributesOptions(sequelize,Sequelize)
+db.goalAreaForUser = GoalAreaForUser(sequelize,Sequelize)
+db.subGoalAreaForUser = SubGoalAreaForUser(sequelize,Sequelize)
+db.goalAreaPragatiTrail = GoalAreaPragatiTrail(sequelize,Sequelize)
+// appraisal //
 
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -2179,6 +2204,62 @@ db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
 	sourceKey: "createdBy",
 	as: "leaveCreatedBy",
 });
+
+//Appraisal JOINS
+db.appraisalGoalsMaster.hasMany(db.goalAttributesMapping, {
+	foreignKey: "appraisalGoalId",
+	sourceKey: "appraisalGoalId",
+	as:"goalAttributes"
+});
+
+db.appraisalGoalsMaster.hasMany(db.goalAttributesMapping, {
+	foreignKey: "appraisalGoalId",
+	sourceKey: "appraisalGoalId",
+	as:"subGoalAttributes"
+});
+
+db.appraisalGoalsMaster.hasOne(db.userassignment, {
+	foreignKey: "assignmentId",
+	sourceKey: "userAssignment",
+});
+
+db.goalAttributesMapping.hasOne(db.goalAttributesConfigMaster, {
+	foreignKey: "goalAttributeId",
+	sourceKey: "goalAttributeId",
+});
+
+db.goalAttributesConfigMaster.hasMany(db.goalAttributesOptions, 
+	{ foreignKey: "goalAttributeId",
+		sourceKey: "goalAttributeId",
+		as:"options"
+	 });
+	
+	 db.goalAreaForUser.hasMany(db.subGoalAreaForUser, 
+		{ foreignKey: "goalAreaId",
+			sourceKey: "goalAreaId",
+			as:"subGoals"
+		 });
+	
+	db.goalAreaForUser.hasOne(db.appraisalGoalsMaster, 
+		{ foreignKey: "appraisalGoalId",
+		 sourceKey: "goalPlanId",
+		 as:"goalPlanMaster"
+	}); 
+
+	db.goalAreaPragatiTrail.hasOne(db.employeeMaster, 
+		{ foreignKey: "id",
+		 sourceKey: "userId"
+	}); 
+
+	db.goalAreaPragatiTrail.hasOne(db.appraisalGoalsMaster, 
+		{ foreignKey: "appraisalGoalId",
+		 sourceKey: "goalPlanId"
+	}); 
+	
+	db.goalAreaForUser.hasOne(db.employeeMaster, 
+		{ foreignKey: "id",
+		 sourceKey: "userId"
+	}); 
 
 
 export default db;
