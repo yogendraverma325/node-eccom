@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-	const subGoalAreaOfUser = sequelize.define("subgoalareaofusers", {
+	const SubGoalAreaOfUser = sequelize.define("subgoalareaofusers", {
         subGoalAreaId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
@@ -48,5 +48,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 	});
-	return subGoalAreaOfUser;
+	return SubGoalAreaOfUser;
 };

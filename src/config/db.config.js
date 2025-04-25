@@ -195,6 +195,7 @@ import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
 //ritak address approval end
 
 ///////////////////Appraisal/////////////////////////
+
 import AppraisalGoalsMaster from "../api/model/AppraisalGoalsMaster.js";
 import UserAssignment from "../api/model/UserAssignment.js";
 import UserAssignmentAttributeMaster from "../api/model/UserAssignmentAttributeMaster.js";
@@ -205,6 +206,7 @@ import GoalAttributesOptions from "../api/model/GoalAttributesOptions.js";
 import GoalAreaForUser from "../api/model/GoalAreaForUser.js";
 import SubGoalAreaForUser from "../api/model/SubGoalAreaForUser.js";
 import GoalAreaPragatiTrail from "../api/model/GoalAreaPragatiTrail.js";
+
 ///////////////////Appraisal/////////////////////////
 
 
