@@ -2088,6 +2088,7 @@ const addGoalKeyAreaByUser = Joi.object({
 	empId: Joi.string().allow("").optional().label("Employee Id"),
 	goalName: Joi.string().required().label("Goal Name"),
 	goalDescription: Joi.string().allow("").optional().label("Goal Description"),
+	timelines: Joi.string().allow("").optional().label("Timelines"),
 	target: Joi.string().allow("").optional().label("Target"),
 	targetType: Joi.string().allow("").optional().label("Target Type"),
 	metric: Joi.string().allow("").optional().label("Metric"),
@@ -2133,7 +2134,7 @@ const addGoalKeyAreaByUser = Joi.object({
 					.allow("")
 					.optional()
 					.label("Sub Goal Description"),
-				timelines: Joi.string().allow("").optional().label("Timelines"),
+				timelines: Joi.string().allow("").optional().label("Timelinesn here"),
 				weightage: Joi.number()
 					.integer()
 					.min(1)
