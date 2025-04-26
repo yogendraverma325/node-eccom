@@ -5389,6 +5389,11 @@ class AttendanceController {
 			});
 		}
 	}
+
+	async cronforEMP(req, res){
+		console.log("req.body",req.body)
+
+	}
 	//BULK ACTION
 
 	async markBioMetricAttendance(incomingAttendanceData) {
