@@ -2153,7 +2153,7 @@ class AttendanceController {
 						},
 					);
 
-					_this.attedanceCronManual(
+					await _this.attedanceCronManual(
 						regularizeData.attendanceAutoId,
 						regularizeData[
 						"attendancemaster.attendanceDate"

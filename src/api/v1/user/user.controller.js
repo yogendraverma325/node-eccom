@@ -6335,6 +6335,7 @@ class UserController {
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
+							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6452,6 +6453,7 @@ class UserController {
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
+							required: true,
 						},
 						{
 							model: db.employeeMaster,
@@ -6569,6 +6571,7 @@ class UserController {
 						{
 							model: db.status_master,
 							attributes: ["name", "code"],
+							required: true,
 						},
 					],
 				});
