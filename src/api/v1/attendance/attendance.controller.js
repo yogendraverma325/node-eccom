@@ -2655,6 +2655,7 @@ class AttendanceController {
 			presentStatus = "absent";
 		}
 
+		await helper.revokeAppliedLeave(lastDayDate, empId);
 		if (singleEmp.attendancemaster) {
 			if (singleEmp.attendancemaster.needAttendanceCron == 1) {
 				if (
@@ -3101,6 +3102,7 @@ class AttendanceController {
 		} else {
 			presentStatus = "absent";
 		}
+		await helper.revokeAppliedLeave(lastDayDate, empId);
 
 		if (singleEmp.attendancemaster) {
 			//console.log("attendancce ka data hai");
@@ -5599,6 +5601,7 @@ class AttendanceController {
 					punchInSource: attendanceDevice,
 					holidayCompanyLocationConfigurationID:
 						existEmployee.companyLocationId,
+					needAttendanceCron: 1,
 				};
 
 				if (!existEmployee.dataValues.requiredAttendanceApproval) {
@@ -5627,7 +5630,7 @@ class AttendanceController {
 						? "approved"
 						: "pending",
 					createdBy: existEmployee.id,
-					createdAt: currentDate,
+					createdAt: moment(),
 					device: attendanceDevice,
 					shiftId: existEmployee.attendanceroster
 						? existEmployee.attendanceroster.shiftId
@@ -5663,6 +5666,7 @@ class AttendanceController {
 								attendancePunchInLocation: incomingAttendanceData.deviceName,
 								punchInSource: attendanceDevice,
 								updatedBy: existEmployee.id,
+								needAttendanceCron: 1,
 							},
 							{
 								where: {
@@ -5678,7 +5682,6 @@ class AttendanceController {
 							{
 								attendancePunchOutTime: currentDate.format("HH:mm:ss"),
 								attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-								attendanceShiftEndDate2: currentDate.format("YYYY-MM-DD"),
 								attendancePunchOutLocationType: "Office",
 								attendanceStatus: "Punch Out",
 								attendanceWorkingTime: await helper.timeDifference(
@@ -5688,6 +5691,7 @@ class AttendanceController {
 								attendancePunchOutLocation: incomingAttendanceData.deviceName,
 								punchOutSource: attendanceDevice,
 								updatedBy: existEmployee.id,
+								needAttendanceCron: 1,
 							},
 							{
 								where: {
@@ -5717,7 +5721,7 @@ class AttendanceController {
 							? "approved"
 							: "pending",
 						createdBy: existEmployee.id,
-						createdAt: currentDate,
+						createdAt: moment(),
 						device: attendanceDevice,
 						shiftId: existEmployee.attendanceroster
 							? existEmployee.attendanceroster.shiftId
@@ -5810,6 +5814,7 @@ class AttendanceController {
 									attendancePunchInLocation: incomingAttendanceData.deviceName,
 									punchInSource: attendanceDevice,
 									updatedBy: existEmployee.id,
+									needAttendanceCron: 1,
 								},
 								{
 									where: {
@@ -5825,7 +5830,6 @@ class AttendanceController {
 								{
 									attendancePunchOutTime: currentDate.format("HH:mm:ss"),
 									attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-									attendanceShiftEndDate2: currentDate.format("YYYY-MM-DD"),
 									attendancePunchOutLocationType: "Office",
 									attendanceStatus: "Punch Out",
 									attendanceWorkingTime: await helper.timeDifference(
@@ -5835,6 +5839,7 @@ class AttendanceController {
 									attendancePunchOutLocation: incomingAttendanceData.deviceName,
 									punchOutSource: attendanceDevice,
 									updatedBy: existEmployee.id,
+									needAttendanceCron: 1,
 								},
 								{
 									where: {
@@ -5864,7 +5869,7 @@ class AttendanceController {
 								? "approved"
 								: "pending",
 							createdBy: existEmployee.id,
-							createdAt: currentDate,
+							createdAt: moment(),
 							device: attendanceDevice,
 							shiftId: existEmployee.attendanceroster
 								? existEmployee.attendanceroster.shiftId
@@ -5876,63 +5881,6 @@ class AttendanceController {
 							companyLocationId: existEmployee.companyLocationId,
 						});
 					}
-
-					// if (!existEmployee.dataValues.requiredAttendanceApproval) {
-					// 	await db.attendanceMaster.update(
-					// 		{
-					// 			attendancePunchOutTime: currentDate.format("HH:mm:ss"),
-					// 			attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-					// 			attendancePunchOutLocationType: "Office",
-					// 			attendanceStatus: "Punch Out",
-					// 			attendanceWorkingTime: await helper.timeDifference(
-					// 				`${checkAttendance.attandanceShiftStartDate} ${checkAttendance.attendancePunchInTime}`,
-					// 				`${currentDate.format("YYYY-MM-DD")} ${currentDate.format(
-					// 					"HH:mm:ss",
-					// 				)}`,
-					// 			),
-					// 			attendancePunchOutLocation: incomingAttendanceData.deviceName,
-					// 			punchOutSource: attendanceDevice,
-					// 			updatedBy: existEmployee.id,
-					// 		},
-					// 		{
-					// 			where: {
-					// 				attendanceDate: currentDate.format("YYYY-MM-DD"),
-					// 				employeeId: existEmployee.id,
-					// 			},
-					// 		},
-					// 	);
-					// }
-
-					// const attendanceHistory = await db.attendanceHistory.findOne({
-					// 	where: {
-					// 		date: currentDate.format("YYYY-MM-DD"),
-					// 		employeeId: existEmployee.id,
-					// 	},
-					// });
-
-					// await db.attendanceHistory.create({
-					// 	date: currentDate.format("YYYY-MM-DD"),
-					// 	time: currentDate.format("HH:mm:ss"),
-					// 	status: attendanceHistory ? "Punch Out" : "Punch In",
-					// 	employeeId: existEmployee.id,
-					// 	location: incomingAttendanceData.deviceName,
-					// 	createdBy: existEmployee.id,
-					// 	createdAt: currentDate,
-					// 	locationType: "Office",
-					// 	attendanceStatus: !existEmployee.dataValues
-					// 		.requiredAttendanceApproval
-					// 		? "approved"
-					// 		: "pending",
-					// 	device: attendanceDevice,
-					// 	shiftId: existEmployee.attendanceroster
-					// 		? existEmployee.attendanceroster.shiftId
-					// 		: existEmployee.shiftsmaster.shiftId,
-					// 	weekOffId: existEmployee.attendanceroster
-					// 		? existEmployee.attendanceroster.weekOffId
-					// 		: existEmployee.weekOffId,
-					// 	attendancePolicyId: existEmployee.attendancePolicyId,
-					// 	companyLocationId: existEmployee.companyLocationId,
-					// });
 
 					return Object.assign(attedanceCronObject, {
 						attendanceAutoId: checkAttendance.attendanceAutoId,
@@ -5977,6 +5925,7 @@ class AttendanceController {
 						punchInSource: attendanceDevice,
 						holidayCompanyLocationConfigurationID:
 							existEmployee.companyLocationId,
+						needAttendanceCron: 1,
 					};
 
 					if (!existEmployee.dataValues.requiredAttendanceApproval) {
@@ -6007,7 +5956,7 @@ class AttendanceController {
 							? "approved"
 							: "pending",
 						createdBy: existEmployee.id,
-						createdAt: currentDate,
+						createdAt: moment(),
 						device: attendanceDevice,
 						shiftId: existEmployee.attendanceroster
 							? existEmployee.attendanceroster.shiftId
@@ -6078,6 +6027,7 @@ class AttendanceController {
 									attendancePunchInLocation: incomingAttendanceData.deviceName,
 									punchInSource: attendanceDevice,
 									updatedBy: existEmployee.id,
+									needAttendanceCron: 1,
 								},
 								{
 									where: {
@@ -6093,7 +6043,6 @@ class AttendanceController {
 								{
 									attendancePunchOutTime: currentDate.format("HH:mm:ss"),
 									attendanceShiftEndDate: currentDate.format("YYYY-MM-DD"),
-									attendanceShiftEndDate2: currentDate.format("YYYY-MM-DD"),
 									attendancePunchOutLocationType: "Office",
 									attendanceStatus: "Punch Out",
 									attendanceWorkingTime: await helper.timeDifference(
@@ -6103,6 +6052,7 @@ class AttendanceController {
 									attendancePunchOutLocation: incomingAttendanceData.deviceName,
 									punchOutSource: attendanceDevice,
 									updatedBy: existEmployee.id,
+									needAttendanceCron: 1,
 								},
 								{
 									where: {
@@ -6132,7 +6082,7 @@ class AttendanceController {
 								? "approved"
 								: "pending",
 							createdBy: existEmployee.id,
-							createdAt: currentDate,
+							createdAt: moment(),
 							device: attendanceDevice,
 							shiftId: existEmployee.attendanceroster
 								? existEmployee.attendanceroster.shiftId
@@ -6189,6 +6139,7 @@ class AttendanceController {
 						holidayCompanyLocationConfigurationID:
 							existEmployee.companyLocationId,
 						punchInSource: attendanceDevice,
+						needAttendanceCron: 1,
 					};
 
 					const attendanceHistory = await db.attendanceHistory.findOne({
@@ -6205,7 +6156,7 @@ class AttendanceController {
 						employeeId: existEmployee.id,
 						location: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
-						createdAt: currentDate,
+						createdAt: moment(),
 						locationType: "Office",
 						attendanceStatus: !existEmployee.dataValues
 							.requiredAttendanceApproval
