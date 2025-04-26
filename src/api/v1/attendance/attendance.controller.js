@@ -5393,15 +5393,15 @@ class AttendanceController {
 	async cronforEMP(req, res){
 		console.log("req.body",req.body)
 		let attendanceIds=req.body.attendanceIds;
-		for (const attendanceIds of attendanceIds) {
+		for (const attendanceIdSingle of attendanceIds) {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
-					attendanceAutoId: attendanceIds,
+					attendanceAutoId: attendanceIdSingle,
 				},
 			});
 			if(attendanceData){
 				await _this.attedanceCronManual(
-					attendanceIds,
+					attendanceIdSingle,
 					attendanceData.attendanceDate
 				);
 
