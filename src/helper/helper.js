@@ -218,17 +218,21 @@ const calculateLateBy = async (
 		console.log("combinedCurrentTime", combinedCurrentTime);
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
-			let duration = moment.duration(
-				combinedCurrentTime.diff(combinedLastDayTime),
-			);
-			let hours = Math.floor(duration.asHours());
-			let minutes = Math.floor(duration.minutes());
-			let seconds = Math.floor(duration.seconds());
-			return moment
-				.utc()
-				.startOf("day")
-				.add({ hours: hours, minutes: minutes, seconds: seconds })
-				.format("HH:mm:ss");
+			let duration = moment.duration(combinedCurrentTime.diff(combinedLastDayTime));
+
+    let days = duration.days(); // Days part
+    let hours = duration.hours(); // Hours part
+    let minutes = duration.minutes();
+    let seconds = duration.seconds();
+
+    // Add days also in hours (because you want total in HH:mm:ss)
+    hours = hours + (days * 24);
+
+    return moment
+        .utc()
+        .startOf("day")
+        .add({ hours: hours, minutes: minutes, seconds: seconds })
+        .format("HH:mm:ss");
 		} else {
 			return "00:00:00";
 		}
