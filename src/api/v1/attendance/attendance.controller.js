@@ -3822,7 +3822,7 @@ class AttendanceController {
 					let presentStatus = null;
 					console.log("singleEmp?.weekOffMaster",singleEmp?.weekOffMaster)
 					console.log("singleEmp?.attendanceroster",singleEmp?.attendanceroster)
-					console.log("lastDayDate",lastDayDate)
+					console.log("lastDayDate",lastDayDate,occurrenceDayCondition)
 
 					if (
 						singleEmp?.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
