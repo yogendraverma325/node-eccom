@@ -5404,6 +5404,24 @@ class AttendanceController {
 				},
 			});
 			if(attendanceData){
+
+				await db.attendanceMaster.update(
+					{
+						//attendanceDate: regularizeData.regularizePunchInDate,
+						attendanceWorkingTime: await helper.timeDifference(
+							`${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
+							`${attendanceData.attendanceShiftEndDate} ${attendanceData.attendancePunchOutTime}`,
+						),
+						
+					},
+					{
+						where: {
+							attendanceAutoId: attendanceIdSingle
+						},
+					},
+				);
+
+
 				await _this.attedanceCronManual(
 					attendanceIdSingle,
 					attendanceData.attendanceDate
