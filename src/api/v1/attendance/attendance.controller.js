@@ -3763,7 +3763,7 @@ class AttendanceController {
 							attendanceDate: lastDayDate,
 							attendanceAutoId: attendanceAutoId,
 						},
-						include: {
+						include: [{
 							model: db.weekOffMaster,
 							required: false,
 							where: {
@@ -3776,7 +3776,7 @@ class AttendanceController {
 									where: occurrenceDayCondition,
 								},
 							],
-						},
+						}],
 					},
 					{
 						model: db.employeeLeaveTransactions,
