@@ -2679,7 +2679,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						let totalMinutesLateMinutes =
-							time.hours() * 60 + time.minutes() + time.seconds() / 60;
+							time.asMinutes();
 						if (totalMinutesLateMinutes > 0) {
 							totalMinutesLateMinutes =
 								totalMinutesLateMinutes +
@@ -2720,9 +2720,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						const totalMinutesTotalHoursMinutes =
-							timeWorkDuration.hours() * 60 +
-							timeWorkDuration.minutes() +
-							timeWorkDuration.seconds() / 60;
+							timeWorkDuration.asMinutes();
 
 						if (
 							totalMinutesTotalHoursMinutes <
@@ -3127,7 +3125,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						let totalMinutesLateMinutes =
-							time.hours() * 60 + time.minutes() + time.seconds() / 60;
+							time.asMinutes();
 						if (totalMinutesLateMinutes > 0) {
 							totalMinutesLateMinutes =
 								totalMinutesLateMinutes +
@@ -3167,9 +3165,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						const totalMinutesTotalHoursMinutes =
-							timeWorkDuration.hours() * 60 +
-							timeWorkDuration.minutes() +
-							timeWorkDuration.seconds() / 60;
+							timeWorkDuration.asMinutes();
 
 						if (
 							totalMinutesTotalHoursMinutes <
@@ -3887,8 +3883,8 @@ class AttendanceController {
 
 								// Calculate the total minutes
 								let totalMinutesLateMinutes =
-									time.hours() * 60 + time.minutes() + time.seconds() / 60;
-								//console.log("totalMinutesLateMinutes", totalMinutesLateMinutes);
+									time.asMinutes();
+								 console.log("totalMinutesLateMinutes", totalMinutesLateMinutes,"late",singleEmp.attendancemaster.attendanceLateBy);
 								if (totalMinutesLateMinutes > 0) {
 									totalMinutesLateMinutes =
 										totalMinutesLateMinutes +
@@ -5463,11 +5459,11 @@ graceTime.add(
 	); // Add buffer time  to the selected time if buffer allow
 	const withGraceTime = graceTime.format("HH:mm:ss");
 
-	let attendanceLateBy= await helper.calculateLateBy(
+	let attendanceLateBy= await helper.calculateLateBy( 
 		attendanceData.attendancePunchInTime,
 		withGraceTime,
-		attendanceData.attandanceShiftStartDate,
-		attendanceData.attendanceDate
+		attendanceData.attendanceDate,
+		attendanceData.attandanceShiftStartDate
 	);
 
 	console.log("withGraceTime",withGraceTime,"attendanceLateBy",attendanceLateBy)
