@@ -218,7 +218,7 @@ const calculateLateBy = async (
 		console.log("combinedCurrentTime", combinedCurrentTime.format('YYYY-MM-DD HH:mm:ss'));
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
-			let diffMs = end.diff(start); // milliseconds
+			let diffMs = combinedCurrentTime.diff(combinedLastDayTime); // milliseconds
     let totalSeconds = Math.floor(diffMs / 1000);
 
     let hours = Math.floor(totalSeconds / 3600);
