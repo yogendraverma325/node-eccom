@@ -2679,7 +2679,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						let totalMinutesLateMinutes =
-							time.hours() * 60 + time.minutes() + time.seconds() / 60;
+							time.asMinutes();
 						if (totalMinutesLateMinutes > 0) {
 							totalMinutesLateMinutes =
 								totalMinutesLateMinutes +
@@ -2720,9 +2720,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						const totalMinutesTotalHoursMinutes =
-							timeWorkDuration.hours() * 60 +
-							timeWorkDuration.minutes() +
-							timeWorkDuration.seconds() / 60;
+							timeWorkDuration.asMinutes();
 
 						if (
 							totalMinutesTotalHoursMinutes <
@@ -3127,7 +3125,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						let totalMinutesLateMinutes =
-							time.hours() * 60 + time.minutes() + time.seconds() / 60;
+							time.asMinutes();
 						if (totalMinutesLateMinutes > 0) {
 							totalMinutesLateMinutes =
 								totalMinutesLateMinutes +
@@ -3167,9 +3165,7 @@ class AttendanceController {
 
 						// Calculate the total minutes
 						const totalMinutesTotalHoursMinutes =
-							timeWorkDuration.hours() * 60 +
-							timeWorkDuration.minutes() +
-							timeWorkDuration.seconds() / 60;
+							timeWorkDuration.asMinutes();
 
 						if (
 							totalMinutesTotalHoursMinutes <
