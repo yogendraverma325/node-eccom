@@ -3763,7 +3763,8 @@ class AttendanceController {
 							attendanceDate: lastDayDate,
 							attendanceAutoId: attendanceAutoId,
 						},
-						include: {
+						include: [
+							{
 							model: db.weekOffMaster,
 							required: false,
 							where: {
@@ -3777,6 +3778,28 @@ class AttendanceController {
 								},
 							],
 						},
+						{
+							model: db.shiftMaster,
+							required: false,
+							attributes: [
+								"shiftId",
+								"shiftName",
+								"shiftStartTime",
+								"shiftEndTime",
+								"isOverNight",
+							],
+							where: {
+								isActive: 1,
+							},
+						},
+						{
+							model: db.attendancePolicymaster,
+							required: false,
+							where: {
+								isActive: 1,
+							},
+						}
+					],
 					},
 					{
 						model: db.employeeLeaveTransactions,
