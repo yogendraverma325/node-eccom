@@ -4062,7 +4062,7 @@ class AttendanceController {
 								presentStatus =
 									lastDayDate === moment().format("YYYY-MM-DD")
 										? singleEmp.attendancemaster.attendancePresentStatus
-										: singleEmp.attendancemaster.attendancePresentStatus
+										: presentStatus
 							}
 						}
 						await db.attendanceMaster.update(
@@ -5394,6 +5394,7 @@ class AttendanceController {
 		console.log("req.body",req.body)
 		let attendanceIds=req.body.attendanceIds;
 		for (const attendanceIdSingle of attendanceIds) {
+
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 					attendanceAutoId: attendanceIdSingle,
