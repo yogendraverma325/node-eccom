@@ -3820,12 +3820,12 @@ class AttendanceController {
 			await Promise.all(
 				existEmployees.map(async (singleEmp) => {
 					let presentStatus = null;
-					console.log("singleEmp?.weekOffMaster",singleEmp?.weekOffMaster)
+					console.log("singleEmp?.weekOffMaster",singleEmp?.attendancemaster?.weekOffMaster)
 					console.log("singleEmp?.attendanceroster",singleEmp?.attendanceroster)
 					console.log("lastDayDate",lastDayDate,occurrenceDayCondition)
 
 					if (
-						singleEmp?.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
+						singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
 						(singleEmp.attendanceroster &&
 							singleEmp.attendanceroster.weekOffMaster &&
 							singleEmp.attendanceroster.weekOffMaster.weekOffDayMappingMasters
@@ -3992,8 +3992,8 @@ class AttendanceController {
 											createdAt: moment(), // Replace with actual creation date
 											weekOffId: singleEmp.attendanceroster
 												? singleEmp.attendanceroster.weekOffId
-												: singleEmp?.weekOffMaster
-													? singleEmp?.weekOffMaster?.weekOffId
+												: singleEmp?.attendancemaster?.weekOffMaster
+													? singleEmp?.attendancemaster?.weekOffMaster?.weekOffId
 													: 0,
 											punchInTime:
 												singleEmp.attendancemaster.attendancePunchInTime,
@@ -4050,7 +4050,7 @@ class AttendanceController {
 												.weekOffDayMappingMasters.length == 0
 											? singleEmp.attendanceroster.weekOffMaster
 												.weekOffDayMappingMasters
-											: singleEmp?.weekOffMaster?.weekOffDayMappingMasters,
+											: singleEmp?.attendancemaster?.weekOffMaster?.weekOffDayMappingMasters,
 								};
 
 								await helper.creditCompoff(employeeData);
