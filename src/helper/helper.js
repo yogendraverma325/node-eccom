@@ -218,16 +218,16 @@ const calculateLateBy = async (
 		console.log("combinedCurrentTime", combinedCurrentTime.format('YYYY-MM-DD HH:mm:ss'));
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
-			let diffMs = combinedCurrentTime.diff(combinedLastDayTime); // milliseconds
+			let diffMs = combinedCurrentTime.diff(combinedLastDayTime);
     let totalSeconds = Math.floor(diffMs / 1000);
 
     let hours = Math.floor(totalSeconds / 3600);
     let minutes = Math.floor((totalSeconds % 3600) / 60);
     let seconds = totalSeconds % 60;
 
-    const result = moment.utc().startOf('day').add({ hours, minutes, seconds }).format('HH:mm:ss');
-	console.log("result",result)
-	return result;
+    // Manually string bana rahe
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 		} else {
 			return "00:00:00";
 		}
