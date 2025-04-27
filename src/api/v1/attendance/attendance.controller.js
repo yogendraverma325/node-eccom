@@ -3956,8 +3956,8 @@ class AttendanceController {
 
 							if (
 								markHalfDay != null &&
-								singleEmp?.weekOffMaster &&
-								singleEmp?.weekOffMaster.weekOffDayMappingMasters.length == 0 &&
+								singleEmp?.attendancemaster?.weekOffMaster &&
+								singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters.length == 0 &&
 								!singleEmp.attendanceroster &&
 								singleEmp.holidaycompanylocationconfigurations &&
 								singleEmp.holidaycompanylocationconfigurations.length == 0
@@ -3970,9 +3970,9 @@ class AttendanceController {
 											employeeId: singleEmp.id, // Replace with actual employee ID
 											attendanceShiftId: singleEmp.attendanceroster
 												? singleEmp.attendanceroster.shiftsmaster.shiftId
-												: singleEmp.shiftsmaster.shiftId, // Replace with actual attendance shift ID
+												: singleEmp.attendancemaster?.shiftsmaster.shiftId, // Replace with actual attendance shift ID
 											attendancePolicyId:
-												singleEmp.attendancePolicymaster.attendancePolicyId, // Replace with actual attendance policy ID
+												singleEmp.attendancemaster.attendancePolicymaster.attendancePolicyId, // Replace with actual attendance policy ID
 											leaveAutoId:
 												singleEmp.attendancePolicymaster
 													.leaveDeductPolicyLateDurationLeaveType, // Replace with actual leave auto ID
