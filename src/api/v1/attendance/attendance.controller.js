@@ -3820,6 +3820,8 @@ class AttendanceController {
 			await Promise.all(
 				existEmployees.map(async (singleEmp) => {
 					let presentStatus = null;
+					console.log("singleEmp?.weekOffMaster",singleEmp?.weekOffMaster)
+					console.log("singleEmp?.attendanceroster",singleEmp?.attendanceroster)
 
 					if (
 						singleEmp?.weekOffMaster.weekOffDayMappingMasters.length > 0 ||
