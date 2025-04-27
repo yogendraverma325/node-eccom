@@ -5463,11 +5463,11 @@ graceTime.add(
 	); // Add buffer time  to the selected time if buffer allow
 	const withGraceTime = graceTime.format("HH:mm:ss");
 
-	let attendanceLateBy= await helper.calculateLateBy(
+	let attendanceLateBy= await helper.calculateLateBy( 
 		attendanceData.attendancePunchInTime,
 		withGraceTime,
-		attendanceData.attandanceShiftStartDate,
-		attendanceData.attendanceDate
+		attendanceData.attendanceDate,
+		attendanceData.attandanceShiftStartDate
 	);
 
 	console.log("withGraceTime",withGraceTime,"attendanceLateBy",attendanceLateBy)
