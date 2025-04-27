@@ -5402,8 +5402,51 @@ class AttendanceController {
 				where: {
 					attendanceAutoId: attendanceIdSingle,
 				},
+				include: [
+					{
+						model: db.shiftMaster,
+						required: false,
+						attributes: [
+							"shiftId",
+							"shiftName",
+							"shiftStartTime",
+							"shiftEndTime",
+							"isOverNight",
+						],
+						where: {
+							isActive: 1,
+						},
+					},
+					{
+						model: db.attendancePolicymaster,
+						required: false,
+						where: {
+							isActive: 1,
+						},
+					}
+				]
+
 			});
 			if(attendanceData){
+				
+const assignedShiftStartTime =attendanceData?.shiftsmaster?.shiftStartTime
+let graceTime = moment(assignedShiftStartTime, "HH:mm"); // set shift start time
+graceTime.add(
+	attendanceData.attendancePolicymaster.allowBufferTime == 1
+		? attendanceData.attendancePolicymaster.graceTimeClockIn
+		: 0,
+	"minutes",
+	); // Add buffer time  to the selected time if buffer allow
+	const withGraceTime = graceTime.format("HH:mm:ss");
+
+	let attendanceLateBy= await helper.calculateLateBy(
+		attendanceData.attendancePunchInTime,
+		withGraceTime,
+		attendanceData.attandanceShiftStartDate,
+		attendanceData.attendanceDate
+	);
+
+	console.log("withGraceTime",withGraceTime,"attendanceLateBy",attendanceLateBy)
 
 				await db.attendanceMaster.update(
 					{
