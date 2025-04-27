@@ -218,17 +218,16 @@ const calculateLateBy = async (
 		console.log("combinedCurrentTime", combinedCurrentTime.format('YYYY-MM-DD HH:mm:ss'));
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
-			let duration = moment.duration(combinedCurrentTime.diff(combinedLastDayTime));
+			let diffMs = end.diff(start); // milliseconds
+    let totalSeconds = Math.floor(diffMs / 1000);
 
-			let totalHours = Math.floor(duration.asHours()); // yeh pure ke pure hours deta hai
-			let minutes = duration.minutes(); 
-			let seconds = duration.seconds();
-		
-			return moment
-				.utc()
-				.startOf("day")
-				.add({ hours: totalHours, minutes: minutes, seconds: seconds })
-				.format("HH:mm:ss");
+    let hours = Math.floor(totalSeconds / 3600);
+    let minutes = Math.floor((totalSeconds % 3600) / 60);
+    let seconds = totalSeconds % 60;
+
+    const result = moment.utc().startOf('day').add({ hours, minutes, seconds }).format('HH:mm:ss');
+	console.log("result",result)
+	return result;
 		} else {
 			return "00:00:00";
 		}
