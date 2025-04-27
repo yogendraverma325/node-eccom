@@ -3887,7 +3887,7 @@ class AttendanceController {
 
 								// Calculate the total minutes
 								let totalMinutesLateMinutes =
-									time.hours() * 60 + time.minutes() + time.seconds() / 60;
+									time.asMinutes();
 								 console.log("totalMinutesLateMinutes", totalMinutesLateMinutes,"late",singleEmp.attendancemaster.attendanceLateBy);
 								if (totalMinutesLateMinutes > 0) {
 									totalMinutesLateMinutes =
