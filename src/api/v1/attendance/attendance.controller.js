@@ -3763,8 +3763,7 @@ class AttendanceController {
 							attendanceDate: lastDayDate,
 							attendanceAutoId: attendanceAutoId,
 						},
-						include: [
-							{
+						include: {
 							model: db.weekOffMaster,
 							required: false,
 							where: {
@@ -3778,28 +3777,6 @@ class AttendanceController {
 								},
 							],
 						},
-						{
-							model: db.shiftMaster,
-							required: false,
-							attributes: [
-								"shiftId",
-								"shiftName",
-								"shiftStartTime",
-								"shiftEndTime",
-								"isOverNight",
-							],
-							where: {
-								isActive: 1,
-							},
-						},
-						{
-							model: db.attendancePolicymaster,
-							required: false,
-							where: {
-								isActive: 1,
-							},
-						}
-					],
 					},
 					{
 						model: db.employeeLeaveTransactions,
@@ -3993,9 +3970,9 @@ class AttendanceController {
 											employeeId: singleEmp.id, // Replace with actual employee ID
 											attendanceShiftId: singleEmp.attendanceroster
 												? singleEmp.attendanceroster.shiftsmaster.shiftId
-												: singleEmp.attendancemaster?.shiftsmaster.shiftId, // Replace with actual attendance shift ID
+												: singleEmp.shiftsmaster.shiftId, // Replace with actual attendance shift ID
 											attendancePolicyId:
-												singleEmp.attendancemaster.attendancePolicymaster.attendancePolicyId, // Replace with actual attendance policy ID
+												singleEmp.attendancePolicymaster.attendancePolicyId, // Replace with actual attendance policy ID
 											leaveAutoId:
 												singleEmp.attendancePolicymaster
 													.leaveDeductPolicyLateDurationLeaveType, // Replace with actual leave auto ID
