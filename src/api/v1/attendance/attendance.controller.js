@@ -5455,6 +5455,7 @@ graceTime.add(
 							`${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
 							`${attendanceData.attendanceShiftEndDate} ${attendanceData.attendancePunchOutTime}`,
 						),
+						attendanceLateBy:attendanceLateBy
 						
 					},
 					{
