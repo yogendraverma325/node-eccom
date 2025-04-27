@@ -3924,9 +3924,7 @@ class AttendanceController {
 
 								// Calculate the total minutes
 								const totalMinutesTotalHoursMinutes =
-									timeWorkDuration.hours() * 60 +
-									timeWorkDuration.minutes() +
-									timeWorkDuration.seconds() / 60;
+									timeWorkDuration.asMinutes();
 
 								if (
 									totalMinutesTotalHoursMinutes <
