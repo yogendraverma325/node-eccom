@@ -1806,7 +1806,7 @@ class CronController {
 					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
 				},
 				status: {
-					[Op.in]: [1,3],
+					[Op.in]: [1, 3],
 				},
 			},
 		});
