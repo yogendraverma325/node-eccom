@@ -1919,7 +1919,7 @@ class FnfController {
 					: 0,
 			});
 			Object.assign(dedcutionDetails[0][0], {
-				tdsImpactedCounts: dedcutionDetails[0][0]
+				tdsImpactedCounts: dedcutionDetails[0][0].tdsImpactedEmployees
 					? dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length
 					: 0,
 			});
