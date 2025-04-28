@@ -893,6 +893,18 @@ class AttendanceController {
 							},
 						],
 					},
+					{
+						model: db.attendancePolicymaster,
+						attributes: ["graceTimeClockIn", "graceTimeClockOut", "bufferTimePre", "bufferTimePost"],
+						where: { isActive: 1 },
+						required: true
+					},
+					{
+						model: db.shiftMaster,
+						attributes: ["shiftId", "shiftStartTime", "shiftEndTime", "isOverNight"],
+						where: { isActive: 1 },
+						required: true
+					}
 				],
 			});
 
@@ -902,6 +914,47 @@ class AttendanceController {
 					msg: message.ATTENDANCE_NOT_AVAILABLE,
 				});
 			}
+
+			// handle shift start time and shift end time with grace and pre and post buffer time
+			
+			if(attendanceData.dataValues.attendancePolicymaster && attendanceData.dataValues.shiftsmaster) {
+                let attendancePolicyDetails = attendanceData?.dataValues?.attendancePolicymaster?.dataValues;
+				let shiftDetails = attendanceData?.dataValues?.shiftsmaster?.dataValues;
+
+				if(attendancePolicyDetails && shiftDetails) {
+					const shiftStartWithGrace = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
+					.add(attendancePolicyDetails.graceTimeClockIn, "minutes").format("HH:mm:ss");
+					// console.log("shiftStartWithGrace",shiftStartWithGrace);
+
+					const preShiftStart = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
+					.subtract(attendancePolicyDetails.bufferTimePre, "minutes").format("HH:mm:ss");
+					// console.log("preShiftStart",preShiftStart)
+
+					if(result.punchInTime < preShiftStart || result.punchInTime > shiftStartWithGrace) {
+						console.log("you are not able to regularize");
+					}
+
+					if(parseInt(shiftDetails.isOverNight) === 1) {
+						const postShiftEnd = moment(shiftDetails.shiftEndTime, "HH:mm:ss")
+						.add(attendancePolicyDetails.bufferTimePost, "minutes").format("HH:mm:ss");
+						console.log("postShiftEnd", postShiftEnd);
+						console.log("punchOutTime", result.punchOutTime);
+						if(result.punchOutTime > postShiftEnd) {
+							console.log("you are not able to regularize with isOverNight");
+						}
+						else {
+						  console.log("regularize success with isOverNight");
+						}
+					}
+					else {
+						console.log("regularize success");
+					}
+				}
+
+			}
+
+			return false
+
 
 			if (
 				attendanceData.dataValues.latest_Regularization_Request.length != 0 &&
