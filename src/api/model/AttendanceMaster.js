@@ -114,6 +114,9 @@ export default (sequelize, Sequelize) => {
 		punchOutSource: {
 			type: Sequelize.STRING,
 		},
+		attendanceShiftEndDate2: {
+			type: Sequelize.DATE,
+		},
 	});
 	return attendanceMaster;
 };

@@ -214,21 +214,26 @@ const calculateLateBy = async (
 			`${withToDate} ${actualTime}`,
 			"YYYY-MM-DD HH:mm:ss",
 		);
-		console.log("combinedLastDayTime", combinedLastDayTime);
-		console.log("combinedCurrentTime", combinedCurrentTime);
+		console.log(
+			"combinedLastDayTime",
+			combinedLastDayTime.format("YYYY-MM-DD HH:mm:ss"),
+		);
+		console.log(
+			"combinedCurrentTime",
+			combinedCurrentTime.format("YYYY-MM-DD HH:mm:ss"),
+		);
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
-			let duration = moment.duration(
-				combinedCurrentTime.diff(combinedLastDayTime),
-			);
-			let hours = Math.floor(duration.asHours());
-			let minutes = Math.floor(duration.minutes());
-			let seconds = Math.floor(duration.seconds());
-			return moment
-				.utc()
-				.startOf("day")
-				.add({ hours: hours, minutes: minutes, seconds: seconds })
-				.format("HH:mm:ss");
+			let diffMs = combinedCurrentTime.diff(combinedLastDayTime);
+			let totalSeconds = Math.floor(diffMs / 1000);
+
+			let hours = Math.floor(totalSeconds / 3600);
+			let minutes = Math.floor((totalSeconds % 3600) / 60);
+			let seconds = totalSeconds % 60;
+
+			// Manually string bana rahe
+			const pad = (n) => n.toString().padStart(2, "0");
+			return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 		} else {
 			return "00:00:00";
 		}
@@ -644,11 +649,12 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
-			console.log("item ",item)
+			console.log("item ", item);
 
-			if(item.leaveCompanyDetails.display_all==0){
-	console.log("displa ",)
-item.dataValues.is_active_for_display = item.leaveCompanyDetails.display_all;
+			if (item.leaveCompanyDetails.display_all == 0) {
+				console.log("displa ");
+				item.dataValues.is_active_for_display =
+					item.leaveCompanyDetails.display_all;
 			}
 
 			if (item.leaveAutoId === 6 && item.leavemaster) {
@@ -746,8 +752,6 @@ item.dataValues.is_active_for_display = item.leaveCompanyDetails.display_all;
 				item.dataValues.addOn = [...policy, ...adddon];
 			}
 		}
-
-		 
 	} else {
 		let countPendingLeave = await db.EmployeeLeaveHeader.count({
 			where: {
@@ -3673,38 +3677,37 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			if(leave.dataValues.leaveAutoId!=6){
+			if (leave.dataValues.leaveAutoId != 6) {
 				await db.leaveMapping.update(
-				{
-					availableLeave: db.sequelize.literal(
-						`availableLeave + ${leave.dataValues.leaveCount}`,
-					),
-					utilizedThisYear: db.sequelize.literal(
-						`utilizedThisYear - ${leave.dataValues.leaveCount}`,
-					),
-				},
-				{
-					where: {
-						EmployeeId: emp,
-						leaveAutoId: leave.dataValues.leaveAutoId,
+					{
+						availableLeave: db.sequelize.literal(
+							`availableLeave + ${leave.dataValues.leaveCount}`,
+						),
+						utilizedThisYear: db.sequelize.literal(
+							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+						),
 					},
-				},
-			);
-
-			}else{
+					{
+						where: {
+							EmployeeId: emp,
+							leaveAutoId: leave.dataValues.leaveAutoId,
+						},
+					},
+				);
+			} else {
 				await db.leaveMapping.update(
-				{
-					utilizedThisYear: db.sequelize.literal(
-						`utilizedThisYear - ${leave.dataValues.leaveCount}`,
-					),
-				},
-				{
-					where: {
-						EmployeeId: emp,
-						leaveAutoId: leave.dataValues.leaveAutoId,
+					{
+						utilizedThisYear: db.sequelize.literal(
+							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+						),
 					},
-				},
-			);
+					{
+						where: {
+							EmployeeId: emp,
+							leaveAutoId: leave.dataValues.leaveAutoId,
+						},
+					},
+				);
 			}
 		}
 	}
@@ -3763,16 +3766,14 @@ const activeCompOffMoreThanLeave = async (EMP_ID, leaveID) => {
 // Return employee role based on condition for creator role and updator role
 
 const fetchEmployeeRole = (role, employeeId, actionBy) => {
-	if((employeeId === actionBy) && (role === 'USER')) {
+	if (employeeId === actionBy && role === "USER") {
 		return role;
-	}
-	else if((employeeId != actionBy) && (role === 'USER')) {
+	} else if (employeeId != actionBy && role === "USER") {
 		return "MANAGER";
-	}
-	else {
+	} else {
 		return role;
 	}
-}
+};
 
 export default {
 	generateJwtToken,
@@ -3833,5 +3834,5 @@ export default {
 	revokeAppliedLeave,
 	activeCompOffMoreThanLeave,
 	// Export by jay
-	fetchEmployeeRole
+	fetchEmployeeRole,
 };

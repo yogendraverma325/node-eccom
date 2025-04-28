@@ -11,8 +11,8 @@ import respHelper from "../../../helper/respHelper.js";
 import attendanceController from "../attendance/attendance.controller.js";
 import { NodeSSH } from "node-ssh";
 import Sequelize from "sequelize";
-import {where,Op, fn, col } from "sequelize";
-import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New 
+import { where, Op, fn, col } from "sequelize";
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 
 class CronController {
 	async updateAttendance() {
@@ -1805,7 +1805,9 @@ class CronController {
 				expiry_date: {
 					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
 				},
-				status: 1,
+				status: {
+					[Op.in]: [1, 3],
+				},
 			},
 		});
 		if (expiredLeaves.length > 0) {
@@ -2094,63 +2096,60 @@ class CronController {
 		);
 	}
 
-	async getEmpForWishes(){
-try{
-	 const today = moment().format("MM-DD");
-        
-            const employeesBirth = await db.biographicalDetails.findAll({
-                raw: true,
-                where: {
-                    [Op.and]: [
-                      where(fn('DATE_FORMAT', col('dateOfBirth'), '%m-%d'), '04-11'),
-                      { isActive: 1 }
-                    ]
-                }
-            });
-			for (const emp of employeesBirth) {
-                const empId = emp.userId;
-                // Birthday Wishes
-                if (emp.dateOfBirth) {
-                    const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
-                    if (dobFormatted === today) {
-                        pushNotificationEmitter.emit("sendNotification", {
-                            title: "Alert!",
-                            body: "Best wishes on your birthday!",
-                            employeeId: 1043,//empId,
-                        });
-                    }
-                }
-            }
-			const employees = await db.employeeMaster.findAll({
-                raw: true,
-                where: {
-                    isActive: 1,
-                    dateOfJoining: {
-                        [Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
-                    },
-                },
-            });
-			   for (const emp of employees) {
-                const empId = emp.id;
-                // Work Anniversary
-                if (emp.dateOfJoining) {
-                    const dojFormatted = moment(emp.dateOfJoining).format("MM-DD");
-                    if (dojFormatted === today) {
-                        pushNotificationEmitter.emit("sendNotification", {
-                            title: "Alert!",
-                            body: "Best wishes on your work anniversary!",
-                            employeeId: 1043,//empId,
-                        });
-                    }
-                }
-            }
+	async getEmpForWishes() {
+		try {
+			const today = moment().format("MM-DD");
 
-}
-catch (error) {
-            console.log("Error in Birthday/Anniversary Wishes", error);
-        }
+			const employeesBirth = await db.biographicalDetails.findAll({
+				raw: true,
+				where: {
+					[Op.and]: [
+						where(fn("DATE_FORMAT", col("dateOfBirth"), "%m-%d"), today),
+						{ isActive: 1 },
+					],
+				},
+			});
+			for (const emp of employeesBirth) {
+				const empId = emp.userId;
+				// Birthday Wishes
+				if (emp.dateOfBirth) {
+					const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
+					if (dobFormatted === today) {
+						pushNotificationEmitter.emit("sendNotification", {
+							title: "Alert!",
+							body: "Best wishes on your birthday!",
+							employeeId: empId,
+						});
+					}
+				}
+			}
+			const employees = await db.employeeMaster.findAll({
+				raw: true,
+				where: {
+					isActive: 1,
+					dateOfJoining: {
+						[Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
+					},
+				},
+			});
+			for (const emp of employees) {
+				const empId = emp.id;
+				// Work Anniversary
+				if (emp.dateOfJoining) {
+					const dojFormatted = moment(emp.dateOfJoining).format("MM-DD");
+					if (dojFormatted === today) {
+						pushNotificationEmitter.emit("sendNotification", {
+							title: "Alert!",
+							body: "Best wishes on your work anniversary!",
+							employeeId: empId,
+						});
+					}
+				}
+			}
+		} catch (error) {
+			console.log("Error in Birthday/Anniversary Wishes", error);
+		}
 	}
-	
 }
 
 export default new CronController();

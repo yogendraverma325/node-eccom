@@ -6,7 +6,7 @@ import validator from "../../../helper/validator.js";
 import helper from "../../../helper/helper.js";
 import eventEmitter from "../../../services/eventService.js";
 import { Op } from "sequelize";
-import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New 
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 
 var _this = this;
 
@@ -166,7 +166,7 @@ class LeaveController {
 	// 			});
 	// 		}
 	// 	}
-	
+
 	async leaveRequestList(req, res) {
 		try {
 			const query = req.query.listFor;
@@ -198,7 +198,7 @@ class LeaveController {
 					: {
 							// pendingAt: req.userId,
 							status: "pending",
-							...(user && { employeeId: user })
+							...(user && { employeeId: user }),
 						};
 
 			const leaveApprovalCondition =
@@ -359,7 +359,11 @@ class LeaveController {
 									updatedBy: req.userId,
 									managerRemark: result.remark !== "" ? result.remark : null,
 									updatedAt: moment(),
-									role: helper.fetchEmployeeRole(req.userRole, null, req.userId)
+									role: helper.fetchEmployeeRole(
+										req.userRole,
+										null,
+										req.userId,
+									),
 								},
 								{
 									where: {
@@ -387,7 +391,11 @@ class LeaveController {
 									remark: result.remark !== "" ? result.remark : null,
 									updatedBy: req.userId,
 									updatedAt: moment(),
-									updatorRole: helper.fetchEmployeeRole(req.userRole, null, req.userId)
+									updatorRole: helper.fetchEmployeeRole(
+										req.userRole,
+										null,
+										req.userId,
+									),
 								},
 								{
 									where: {
@@ -482,14 +490,13 @@ class LeaveController {
 								eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 
 								pushNotificationEmitter.emit("sendNotification", {
-								title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
-								body: message.LEAVE.LEAVE_REQ_STATUS.replace(
-								"<status>",result.status === "approved" ? "approved" : "rejected"
-								),
-								employeeId: leaveHeaderSingleRecords.employeeId,
+									title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
+									body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+										"<status>",
+										result.status === "approved" ? "approved" : "rejected",
+									),
+									employeeId: leaveHeaderSingleRecords.employeeId,
 								});
-
-
 
 								const existingRecordSWholes =
 									await db.employeeLeaveTransactions.findAll({
@@ -608,7 +615,7 @@ class LeaveController {
 						updatedBy: req.userId,
 						managerRemark: result.remark != "" ? result.remark : null,
 						updatedAt: moment(),
-						role: helper.fetchEmployeeRole(req.userRole, null, req.userId)
+						role: helper.fetchEmployeeRole(req.userRole, null, req.userId),
 					},
 					{
 						where: {
@@ -626,7 +633,11 @@ class LeaveController {
 							updatedBy: req.userId,
 							updatedAt: moment(),
 							updatedBy: req.userId,
-						    updatorRole: helper.fetchEmployeeRole(req.userRole, null, req.userId)
+							updatorRole: helper.fetchEmployeeRole(
+								req.userRole,
+								null,
+								req.userId,
+							),
 						},
 						{
 							where: {
@@ -688,12 +699,13 @@ class LeaveController {
 					eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 
 					pushNotificationEmitter.emit("sendNotification", {
-								title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
-								body: message.LEAVE.LEAVE_REQ_STATUS.replace(
-								"<status>",result.status === "approved" ? "approved" : "rejected"
-								),
-								employeeId: leaveHeaderSingleRecords.employeeId,
-								});
+						title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
+						body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+							"<status>",
+							result.status === "approved" ? "approved" : "rejected",
+						),
+						employeeId: leaveHeaderSingleRecords.employeeId,
+					});
 				}
 			}
 
@@ -2680,7 +2692,11 @@ class LeaveController {
 							isActive: 1,
 							createdAt: moment(),
 							createdBy: req.userId,
-							creatorRole: helper.fetchEmployeeRole(req.userRole, req.body.employeeId, req.userId)
+							creatorRole: helper.fetchEmployeeRole(
+								req.userRole,
+								req.body.employeeId,
+								req.userId,
+							),
 						});
 					} else if (leaveApproverGroup === "BUHR") {
 						console.log("BUHR");
@@ -2705,7 +2721,11 @@ class LeaveController {
 								isActive: 1,
 								createdAt: moment(),
 								createdBy: req.userId,
-								creatorRole: helper.fetchEmployeeRole(req.userRole, req.body.employeeId, req.userId)
+								creatorRole: helper.fetchEmployeeRole(
+									req.userRole,
+									req.body.employeeId,
+									req.userId,
+								),
 							});
 						}
 					} else if (leaveApproverGroup === "L2_MANAGER") {
@@ -2722,7 +2742,11 @@ class LeaveController {
 							isActive: 1,
 							createdAt: moment(),
 							createdBy: req.userId,
-							creatorRole: helper.fetchEmployeeRole(req.userRole, req.body.employeeId, req.userId)
+							creatorRole: helper.fetchEmployeeRole(
+								req.userRole,
+								req.body.employeeId,
+								req.userId,
+							),
 						});
 					}
 				}
@@ -2751,7 +2775,7 @@ class LeaveController {
 					{
 						model: db.employeeMaster,
 						as: "managerData",
-						attributes: ["name", "email","id"],
+						attributes: ["name", "email", "id"],
 					},
 				],
 			});
@@ -2786,10 +2810,10 @@ class LeaveController {
 				}),
 			);
 			pushNotificationEmitter.emit("sendNotification", {
-                title: message.LEAVE.LEAVE_REQ,
-                body: `${employeeData.dataValues.name} has requested for ${leaveType.dataValues.leaveName}.`,
-                employeeId: employeeData.dataValues.managerData.id,
-            });
+				title: message.LEAVE.LEAVE_REQ,
+				body: `${employeeData.dataValues.name} has requested for ${leaveType.dataValues.leaveName}.`,
+				employeeId: employeeData.dataValues.managerData.id,
+			});
 
 			return respHelper(res, {
 				status: 200,
@@ -2833,7 +2857,7 @@ class LeaveController {
 					status: "revoked",
 					updatedBy: req.userId,
 					updatedAt: moment(),
-					role: helper.fetchEmployeeRole(req.userRole, req.userId, req.userId)
+					role: helper.fetchEmployeeRole(req.userRole, req.userId, req.userId),
 				},
 				{
 					where: {
@@ -3542,12 +3566,12 @@ class LeaveController {
 					{
 						model: db.employeeMaster,
 						attributes: ["id", "empCode", "name"],
-						as: "leaveCreatedBy"
+						as: "leaveCreatedBy",
 					},
 					{
 						model: db.leaveApprovalTrails,
 						attributes: ["creatorRole", "updatorRole"],
-						required: false
+						required: false,
 					},
 				],
 				order: [["employeeleaveheaderID", "desc"]],
@@ -4804,7 +4828,11 @@ class LeaveController {
 									updatedBy: req.userId,
 									managerRemark: result.remark !== "" ? result.remark : null,
 									updatedAt: moment(),
-									role: helper.fetchEmployeeRole(req.userRole, null, req.userId),
+									role: helper.fetchEmployeeRole(
+										req.userRole,
+										null,
+										req.userId,
+									),
 								},
 								{
 									where: { employeeleaveheaderID: leaveID },
@@ -4831,7 +4859,11 @@ class LeaveController {
 										// remark: result.remark !== "" ? result.remark : null,
 										updatedBy: req.userId,
 										//updatedAt:moment(),
-									    updatorRole: helper.fetchEmployeeRole(req.userRole, null, req.userId)
+										updatorRole: helper.fetchEmployeeRole(
+											req.userRole,
+											null,
+											req.userId,
+										),
 									},
 									{
 										where: {
@@ -4931,11 +4963,12 @@ class LeaveController {
 								eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 
 								pushNotificationEmitter.emit("sendNotification", {
-								title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
-								body: message.LEAVE.LEAVE_REQ_STATUS.replace(
-								"<status>",result.status === "approved" ? "approved" : "rejected"
-								),
-								employeeId: leaveHeaderSingleRecords.employeeId,
+									title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
+									body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+										"<status>",
+										result.status === "approved" ? "approved" : "rejected",
+									),
+									employeeId: leaveHeaderSingleRecords.employeeId,
 								});
 
 								const existingRecordSWholes =
@@ -5217,12 +5250,13 @@ class LeaveController {
 									};
 									eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 									pushNotificationEmitter.emit("sendNotification", {
-								title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
-								body: message.LEAVE.LEAVE_REQ_STATUS.replace(
-								"<status>",result.status === "approved" ? "approved" : "rejected"
-								),
-								employeeId: leaveHeaderSingleRecords.employeeId,
-								});
+										title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
+										body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+											"<status>",
+											result.status === "approved" ? "approved" : "rejected",
+										),
+										employeeId: leaveHeaderSingleRecords.employeeId,
+									});
 
 									const existingRecordSWholes =
 										await db.employeeLeaveTransactions.findAll({
@@ -5411,12 +5445,13 @@ class LeaveController {
 					eventEmitter.emit("leaveAckMail", JSON.stringify(obj));
 
 					pushNotificationEmitter.emit("sendNotification", {
-								title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
-								body: message.LEAVE.LEAVE_REQ_STATUS.replace(
-								"<status>",result.status === "approved" ? "approved" : "rejected"
-								),
-								employeeId: leaveHeaderSingleRecords.employeeId,
-								});
+						title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
+						body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+							"<status>",
+							result.status === "approved" ? "approved" : "rejected",
+						),
+						employeeId: leaveHeaderSingleRecords.employeeId,
+					});
 
 					if (req.userData.role_id == 2) {
 						await db.leaveApprovalTrails.update(

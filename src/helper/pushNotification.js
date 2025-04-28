@@ -52,7 +52,7 @@ const sendPushNotification = async (title, body, employeeId) => {
 			});
 		}
 	} catch (error) {
-		console.log("Error sending notification:", error);
+		//console.log("Error sending notification:", error);
 		await db.pushNotificationHistory.create({
 			employeeId,
 			title,

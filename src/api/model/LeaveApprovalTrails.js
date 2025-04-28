@@ -48,11 +48,11 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.INTEGER,
 		},
 		creatorRole: {
-			type: Sequelize.STRING
+			type: Sequelize.STRING,
 		},
 		updatorRole: {
-			type: Sequelize.STRING
-		}
+			type: Sequelize.STRING,
+		},
 	});
 	return leaveApprovalTrails;
 };

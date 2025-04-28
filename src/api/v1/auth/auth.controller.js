@@ -238,8 +238,8 @@ class AuthController {
 	async createSession(req, res) {
 		try {
 			let id = req.userData.id;
-            const sessionId = crypto.randomBytes(32).toString("hex");
-            const userAgent = req.headers['user-agent'];
+			const sessionId = crypto.randomBytes(32).toString("hex");
+			const userAgent = req.headers["user-agent"];
 
 			let secret = process.env.QR_SESSION_SECRET;
 			let signedToken = signSessionId(sessionId, secret);
@@ -250,7 +250,7 @@ class AuthController {
 		catch (error) {
 			console.log(error);
 			return respHelper(res, {
-				status: 500
+				status: 500,
 			});
 		}
 	}
@@ -262,34 +262,48 @@ class AuthController {
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
-			let verifySession = await db.qrSessionHistory.findOne({ where: { sessionId: sessionId }, attributes: ['qrSessionId', 'sessionId', 'employeeId', 'loggedIn', 'expiresAt'], raw: true });
-			
-			if(!verifySession || !verifySessionId) {
+			let verifySession = await db.qrSessionHistory.findOne({
+				where: { sessionId: sessionId },
+				attributes: [
+					"qrSessionId",
+					"sessionId",
+					"employeeId",
+					"loggedIn",
+					"expiresAt",
+				],
+				raw: true,
+			});
+
+			if (!verifySession || !verifySessionId) {
 				return respHelper(res, {
 					status: 404,
 					msg: "Invalid Session Id",
-					data: {}
+					data: {},
 				});
 			}
 
-			if(new Date() > new Date(verifySession.expiresAt)) {
+			if (new Date() > new Date(verifySession.expiresAt)) {
 				return respHelper(res, {
 					status: 403,
 					msg: "QR code expired",
-					data: {}
+					data: {},
 				});
 			}
 
 			return respHelper(res, {
 				status: 200,
-				msg: (verifySession.loggedIn) ? "QR code verified" : "QR code is not verify",
-				data: { sessionId: verifySession.sessionId, loggedIn: verifySession.loggedIn }
+				msg: verifySession.loggedIn
+					? "QR code verified"
+					: "QR code is not verify",
+				data: {
+					sessionId: verifySession.sessionId,
+					loggedIn: verifySession.loggedIn,
+				},
 			});
-		}
-		catch (error) {
+		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
-				status: 500
+				status: 500,
 			});
 		}
 	}
@@ -297,7 +311,7 @@ class AuthController {
 	// check status and login by qr code
 	async loginWithQRCode(req, res) {
 		try {
-            const { sessionId } = req.params;
+			const { sessionId } = req.params;
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
@@ -307,15 +321,15 @@ class AuthController {
 				return respHelper(res, {
 					status: 404,
 					msg: "Invalid Session Id",
-					data: {}
-				})
+					data: {},
+				});
 			}
 
-			if(new Date() > new Date(verifySession.expiresAt)) {
+			if (new Date() > new Date(verifySession.expiresAt)) {
 				return respHelper(res, {
 					status: 403,
 					msg: "QR code expired",
-					data: {}
+					data: {},
 				});
 			}
 
@@ -364,12 +378,19 @@ class AuthController {
 			const loggedInUser = await validateUser(req, existUser);
 
 			// update status of loggedIn in qrsession table after login successfully
-			
-			await db.qrSessionHistory.update({ 
-				employeeId: existUser.id, loggedIn: true, updatedBy: existUser.id, updatedAt: new Date(),
-				loginIP: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
-		        loginDevice: req.headers.source ? req.headers.source : null,
-			}, { where: { sessionId: sessionId }});
+
+			await db.qrSessionHistory.update(
+				{
+					employeeId: existUser.id,
+					loggedIn: true,
+					updatedBy: existUser.id,
+					updatedAt: new Date(),
+					loginIP:
+						req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
+					loginDevice: req.headers.source ? req.headers.source : null,
+				},
+				{ where: { sessionId: sessionId } },
+			);
 
 			return respHelper(res, {
 				status: 200,
@@ -377,17 +398,13 @@ class AuthController {
 				token: loggedInUser.token,
 				data: loggedInUser.userData,
 			});
-			
-		}
-		catch (error) {
+		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
-				status: 500
+				status: 500,
 			});
 		}
 	}
-
-
 }
 
 const validateUser = async (req, existUser) => {
@@ -430,13 +447,19 @@ const validateUser = async (req, existUser) => {
 	};
 };
 function signSessionId(sessionId, secret) {
-	const signature = crypto.createHmac("sha256", secret).update(sessionId).digest("hex");
+	const signature = crypto
+		.createHmac("sha256", secret)
+		.update(sessionId)
+		.digest("hex");
 	return `${sessionId}.${signature}`;
 }
-  
+
 function verifySignedSessionId(token, secret) {
 	const [sessionId, signature] = token.split(".");
-	const expectedSig = crypto.createHmac("sha256", secret).update(sessionId).digest("hex");
+	const expectedSig = crypto
+		.createHmac("sha256", secret)
+		.update(sessionId)
+		.digest("hex");
 	return signature === expectedSig ? sessionId : null;
 }
 
