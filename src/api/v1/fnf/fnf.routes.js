@@ -134,5 +134,18 @@ export default Express.Router()
 		"/updateGratuityEncahsments",
 		authentication.authenticate,
 		fnfController.updateGratuityEncahsments,
-	);
+	)
+		.post(
+			"/extraPaymentUpload",
+			upload.single("excelFile"),
+			authentication.authenticate,
+			fnfController.extraPaymentUpload,
+		)
+
+		.post(
+			"/syncDeductions",
+			authentication.authenticate,
+			fnfController.syncDeductions,
+		)
+	;
 

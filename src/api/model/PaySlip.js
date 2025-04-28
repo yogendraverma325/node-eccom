@@ -78,6 +78,12 @@ export default (sequelize, Sequelize) => {
 		financialYearId: {
 			type: Sequelize.INTEGER,
 		},
+		encashmentDays:{
+			type: Sequelize.DECIMAL(3, 2),
+		},
+		recoveryDays:{
+			type: Sequelize.DECIMAL(3, 2),
+		}
 	});
 	return paySlips;
 };
