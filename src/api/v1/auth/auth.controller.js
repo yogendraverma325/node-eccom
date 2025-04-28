@@ -243,20 +243,11 @@ class AuthController {
 
 			let secret = process.env.QR_SESSION_SECRET;
 			let signedToken = signSessionId(sessionId, secret);
-			const expiresAt = new Date(Date.now() + 50 * 1000); // 60 seconds from now
-			await db.qrSessionHistory.create({
-				sessionId: signedToken,
-				employeeId: id,
-				createdBy: id,
-				expiresAt: expiresAt,
-				userAgent: userAgent,
-			});
-			return respHelper(res, {
-				status: 200,
-				msg: "Session id generated successfully",
-				data: { sessionId: signedToken, loggedIn: false },
-			});
-		} catch (error) {
+			const expiresAt = new Date(Date.now() + 50 * 1000); // 50 seconds from now
+			await db.qrSessionHistory.create({ sessionId: signedToken, employeeId: id, createdBy: id, expiresAt: expiresAt, userAgent: userAgent });
+			return respHelper(res, { status: 200, msg: "Session id generated successfully", data: { sessionId: signedToken, loggedIn: false } });
+		}
+		catch (error) {
 			console.log(error);
 			return respHelper(res, {
 				status: 500,
@@ -267,8 +258,7 @@ class AuthController {
 	// authenticate session
 	async authenticateSessionStatus(req, res) {
 		try {
-			const { sessionId } = req.params;
-			const employeeId = req.userData.id;
+            const { sessionId } = req.params;
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
@@ -325,19 +315,9 @@ class AuthController {
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
-			let verifySession = await db.qrSessionHistory.findOne({
-				where: { sessionId: sessionId },
-				attributes: [
-					"qrSessionId",
-					"sessionId",
-					"employeeId",
-					"loggedIn",
-					"expiresAt",
-				],
-				raw: true,
-			});
-
-			if (!verifySession || !verifySessionId) {
+			let verifySession = await db.qrSessionHistory.findOne({ where: { sessionId: sessionId, loggedIn: false }, attributes: ['qrSessionId', 'sessionId', 'employeeId', 'loggedIn', 'expiresAt'], raw: true });
+			
+			if(!verifySession || !verifySessionId) {
 				return respHelper(res, {
 					status: 404,
 					msg: "Invalid Session Id",

@@ -211,7 +211,7 @@ class LeaveController {
 							//isPending: 1,
 						}
 					: {
-							...(user && { createdBy: user }),
+							// ...(user && { createdBy: user }),
 							isVisible: true,
 							pendingOn: req.userId,
 							isApproved: 0,
@@ -220,48 +220,8 @@ class LeaveController {
 			// console.log("mainCondition", mainCondition);
 			// console.log("leaveApprovalCondition", leaveApprovalCondition);
 
-			const fullyApprovedLeaveHeaders = await db.leaveApprovalTrails.findAll({
-				attributes: ["leaveHeaderAutoId"],
-				group: ["leaveHeaderAutoId"],
-				having: db.sequelize.literal(`
-				SUM(CASE WHEN isApproved = 1 THEN 1 ELSE 0 END) = COUNT(*)
-			`), // Checks if ALL rows are approved
-				raw: true,
-			});
-
-			const excludedLeaveHeaderIds = fullyApprovedLeaveHeaders.map(
-				(row) => row.leaveHeaderAutoId,
-			);
-
-			const rejectedLeaveHeaders = await db.leaveApprovalTrails.findAll({
-				attributes: ["leaveHeaderAutoId"],
-				where: { isApproved: 2 },
-				group: ["leaveHeaderAutoId"],
-				raw: true,
-			});
-
-			const rejectedLeaveHeaderIds = rejectedLeaveHeaders.map(
-				(row) => row.leaveHeaderAutoId,
-			);
-
 			const regularizeList = await db.EmployeeLeaveHeader.findAndCountAll({
-				where: {
-					// status: "pending",
-					...mainCondition,
-					// [Op.or]: [
-					// 	mainCondition,
-					// 	{
-					// 		"$leaveapprovaltrails.leaveTrailAutoId$": { [Op.ne]: null },
-					// 	},
-					// ],
-					// ...(excludedLeaveHeaderIds.length > 0 && {
-					// 	employeeleaveheaderID: { [Op.notIn]: excludedLeaveHeaderIds },
-					// }),
-					// ...(rejectedLeaveHeaderIds.length > 0 && {
-					// 	employeeleaveheaderID: { [Op.notIn]: rejectedLeaveHeaderIds },
-					// }),
-				},
-
+				where: mainCondition,
 				attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
 				include: [
 					{
@@ -301,7 +261,6 @@ class LeaveController {
 				],
 				limit,
 				offset,
-				// subQuery: false,
 				required: !!searchQuery,
 				distinct: true,
 				order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],
