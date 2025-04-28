@@ -630,19 +630,19 @@ async function releasePaySlip(input) {
 
 //ritak address approval start
 async function addressDetailsApprovalRequestMail(input) {
-	try {
-		const userData = JSON.parse(input);
-		console.log("userData>>>>>", userData);
-		await helper.mailService({
-			to: process.env.NEW_EMPLOYEE_JOINING,
-			subject: `Your profile update request has been submitted for approval of Address Details`,
-			html: await emailTemplate.addressDetailsApprovalRequestMail(userData),
-			senderEmail: userData.senderEmail,
-		});
-	} catch (error) {
-		console.log(error);
-		logger.error(error);
-	}
+    try {
+        const userData = JSON.parse(input);
+        console.log("userData>>>>>111", userData.email);
+        await helper.mailService({
+            to: userData.email,
+            subject: `Your profile update request has been submitted for approval of Address Details`,
+            html: await emailTemplate.addressDetailsApprovalRequestMail(userData),
+            senderEmail: userData.senderEmail,
+        });
+    } catch (error) {
+        console.log(error);
+        logger.error(error);
+    }
 }
 
 async function addressDetailsAdminActionMail(input) {

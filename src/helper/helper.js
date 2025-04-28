@@ -2135,13 +2135,14 @@ const leaveCountForUserForMonth = async (
 			},
 		});
 	} else {
-		const fromMoment = moment(date);
-		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
-		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
-		console.log("monthStart", monthStart);
-		console.log("monthEnd", monthEnd);
-		console.log("leaveId", leaveId);
-		console.log("UserId", UserId);
+		console.log("date",date)
+		console.log("lastDate",lastDate)
+		console.log("UserId",UserId)
+		console.log("leaveId",leaveId)
+		
+		const monthStart = moment(date).format("YYYY-MM-DD");
+		const monthEnd = moment(lastDate).format("YYYY-MM-DD"); // Today's date
+		
 
 		let leaves = await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
@@ -3791,6 +3792,36 @@ async function convertEmptyStringsToNull(obj) {
     }
     return obj;
 }
+async function chekcMonthCountInArray(dates) {
+	const monthCountMap = {};
+    dates.forEach(date => {
+  const month = date.substring(0, 7); // "2025-04"
+
+  if (monthCountMap[month]) {
+    monthCountMap[month].count++;
+  } else {
+    const [year, monthPart] = month.split('-');
+    const startDate = `${year}-${monthPart}-01`;
+
+    // Now correctly calculate end of month
+    const endDateObj = new Date(parseInt(year), parseInt(monthPart), 0);
+    const yyyy = endDateObj.getFullYear();
+    const mm = String(endDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(endDateObj.getDate()).padStart(2, '0');
+    const endDate = `${yyyy}-${mm}-${dd}`;
+
+    monthCountMap[month] = {
+      month: month,
+      count: 1,
+      startDate: startDate,
+      endDate: endDate
+    };
+  }
+});
+
+const monthCountArray = Object.values(monthCountMap);
+return monthCountArray;
+}
 
 
 export default {
@@ -3853,6 +3884,7 @@ export default {
 	activeCompOffMoreThanLeave,
 	// Export by jay
 	fetchEmployeeRole,
-	convertEmptyStringsToNull
+	convertEmptyStringsToNull,
+	chekcMonthCountInArray
 
 };
