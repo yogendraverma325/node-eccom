@@ -1805,7 +1805,9 @@ class CronController {
 				expiry_date: {
 					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
 				},
-				status: 1,
+				status: {
+						[Op.in]: [1,3],
+					},
 			},
 		});
 		if (expiredLeaves.length > 0) {
