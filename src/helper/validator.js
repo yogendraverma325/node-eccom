@@ -1835,6 +1835,475 @@ const actionAddressSchema = Joi.object({
 
 // ritak address approval module end
 
+const dateFormatRegex = /^\d{4}-\d{2}-\d{2}$/; // Ensures YYYY-MM-DD format
+
+const createAppraisalGoals = Joi.object({
+	goalPlanName: Joi.string().label("Goal Plan Name").required(),
+	goalPlanId: Joi.string().label("Goal Plan Id").required(),
+	goalPlanDescription: Joi.string().label("Goal Plan Description").allow(""),
+	goalPlanApprover: Joi.string().label("Goal Approver").required(),
+	allowEmployeeToAddGoals: Joi.boolean()
+		.label("Allow Employee to Add Goals")
+		.default(false),
+	allowEmployeeToEditGoals: Joi.boolean()
+		.label("Allow Employee to Edit Goals")
+		.default(false),
+	allowApproverToAddAndEditGoals: Joi.boolean()
+		.label("Allow Approver to Add and Edit Goals")
+		.default(false),
+	allowEmployeeAndApproverToDeleteGoals: Joi.boolean()
+		.label("Allow Employee and Approver to Delete Goals")
+		.default(false),
+	allowEmpAndApproverToAddFromPreviousGoalPlan: Joi.boolean()
+		.label("Allow Emp and Approver to Add from Previous Goal Plan")
+		.default(false),
+	allowEmpAndApproverToEditSysAssginedIndividualGoals: Joi.boolean()
+		.label("Allow Emp and Approver to Edit System Assigned Individual Goals")
+		.default(false),
+	goalAttributes: Joi.array()
+		.items(
+			Joi.object({
+				goalAttributesId: Joi.number()
+					.integer()
+					.required()
+					.label("Sub Goal Attribute ID"),
+				goalNameEnable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Enable"),
+				goalMandate: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Mandatory"),
+				goalEditable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Editable"),
+				goalNeedApproval: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Needs Approval"),
+			}),
+		)
+		.required()
+		.label("Goal Attributes"),
+	subGoalAttributes: Joi.array()
+		.items(
+			Joi.object({
+				goalAttributesId: Joi.number()
+					.integer()
+					.required()
+					.label("Sub Goal Attribute ID"),
+				goalNameEnable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Enable"),
+				goalMandate: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Mandatory"),
+				goalEditable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Editable"),
+				goalNeedApproval: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Needs Approval"),
+			}),
+		)
+		.required()
+		.label("Sub Goal Attributes"),
+	startDate: Joi.string()
+		.label("Start Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "Start Date must be in YYYY-MM-DD format",
+		}),
+	endDate: Joi.string()
+		.label("End Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
+		}),
+	userAssignment: Joi.number()
+		.integer()
+		.valid(0, 1)
+		.required()
+		.label("User Assignment"),
+	exclusionSetting: Joi.number().integer().required(),
+	enableSubGoals: Joi.number()
+		.integer()
+		.valid(0, 1)
+		.required()
+		.label("Enable Sub Goals"),
+}).custom((value, helpers) => {
+	const startDate = new Date(value.startDate);
+	const endDate = new Date(value.endDate);
+
+	if (startDate >= endDate) {
+		return helpers.message("Start Date should be less than End Date");
+	}
+
+	return value;
+});
+
+const editAppraisalGoals = Joi.object({
+	appraisalGoalId: Joi.number()
+		.integer()
+		.required()
+		.label("Sub Goal Attribute ID"),
+	goalPlanName: Joi.string().label("Goal Plan Name").required(),
+	goalPlanId: Joi.string().label("Goal Plan Id").required(),
+	goalPlanDescription: Joi.string().label("Goal Plan Description").allow(""),
+	goalPlanApprover: Joi.string().label("Goal Approver").required(),
+	allowEmployeeToAddGoals: Joi.boolean()
+		.label("Allow Employee to Add Goals")
+		.default(false),
+	allowEmployeeToEditGoals: Joi.boolean()
+		.label("Allow Employee to Edit Goals")
+		.default(false),
+	allowApproverToAddAndEditGoals: Joi.boolean()
+		.label("Allow Approver to Add and Edit Goals")
+		.default(false),
+	allowEmployeeAndApproverToDeleteGoals: Joi.boolean()
+		.label("Allow Employee and Approver to Delete Goals")
+		.default(false),
+	allowEmpAndApproverToAddFromPreviousGoalPlan: Joi.boolean()
+		.label("Allow Emp and Approver to Add from Previous Goal Plan")
+		.default(false),
+	allowEmpAndApproverToEditSysAssginedIndividualGoals: Joi.boolean()
+		.label("Allow Emp and Approver to Edit System Assigned Individual Goals")
+		.default(false),
+	goalAttributes: Joi.array()
+		.items(
+			Joi.object({
+				goalAttributesId: Joi.number()
+					.integer()
+					.required()
+					.label("Goal Attribute ID"),
+				goalNameEnable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Enable"),
+				goalMandate: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Mandatory"),
+				goalEditable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Editable"),
+				goalNeedApproval: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Needs Approval"),
+			}),
+		)
+		.required()
+		.label("Goal Attributes"),
+	subGoalAttributes: Joi.array()
+		.items(
+			Joi.object({
+				goalAttributesId: Joi.number()
+					.integer()
+					.required()
+					.label("Sub Goal Attribute ID"),
+				goalNameEnable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Enable"),
+				goalMandate: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Mandatory"),
+				goalEditable: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Editable"),
+				goalNeedApproval: Joi.alternatives()
+					.try(Joi.boolean(), Joi.number().valid(0, 1))
+					.custom((val) => !!val)
+					.required()
+					.label("Needs Approval"),
+			}),
+		)
+		.required()
+		.label("Sub Goal Attributes"),
+	startDate: Joi.string()
+		.label("Start Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "Start Date must be in YYYY-MM-DD format",
+		}),
+	endDate: Joi.string()
+		.label("End Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
+		}),
+	userAssignment: Joi.number()
+		.integer()
+		.valid(0, 1)
+		.required()
+		.label("User Assignment"),
+	exclusionSetting: Joi.number().integer().required(),
+	enableSubGoals: Joi.number()
+		.integer()
+		.valid(0, 1)
+		.required()
+		.label("Enable Sub Goals"),
+}).custom((value, helpers) => {
+	const startDate = new Date(value.startDate);
+	const endDate = new Date(value.endDate);
+
+	if (startDate >= endDate) {
+		return helpers.message("Start Date should be less than End Date");
+	}
+
+	return value;
+});
+
+const addGoalKeyAreaByUser = Joi.object({
+	goalPlanId: Joi.number().integer().required().label("Goal Attribute ID"),
+	empId: Joi.string().allow("").optional().label("Employee Id"),
+	goalName: Joi.string().required().label("Goal Name"),
+	goalDescription: Joi.string().allow("").optional().label("Goal Description"),
+	timelines: Joi.string().allow("").optional().label("Timelines"),
+	target: Joi.string().allow("").optional().label("Target"),
+	targetType: Joi.string().allow("").optional().label("Target Type"),
+	metric: Joi.string().allow("").optional().label("Metric"),
+	weightage: Joi.number()
+		.integer()
+		.min(1)
+		.max(100)
+		.required()
+		.invalid("")
+		.messages({
+			"any.invalid": `"Weightage" cannot be an empty`,
+			"any.required": `"Weightage" is required`,
+			"number.base": `"Weightage" must be a number`,
+			"number.integer": `"Weightage" must be an integer`,
+		}),
+	archived: Joi.string().allow("").optional().label("Archived"),
+	achievmentPercentage: Joi.string()
+		.allow("")
+		.optional()
+		.label("Achievement Percentage"),
+	goalStatus: Joi.string().allow("").optional().label("Goal Status"),
+	tags: Joi.string().allow("").optional().label("Tags"),
+	scorecardPillar: Joi.string().allow("").optional().label("Score Card Pillar"),
+	achievmentMatrix: Joi.string()
+		.allow("")
+		.optional()
+		.label("Achievment Matrix"),
+	achievmentMapping: Joi.string()
+		.allow("")
+		.optional()
+		.label("Achievment Mapping"),
+	alignedTo: Joi.string().allow("").optional().label("Aligned To"),
+	goalScore: Joi.string().allow("").optional().label("Goal Score"),
+	goalScoreFormula: Joi.string()
+		.allow("")
+		.optional()
+		.label("Goal Score Formula"),
+	subGoals: Joi.array()
+		.items(
+			Joi.object({
+				subGoalName: Joi.string().min(1).required().label("Sub Goal Title"),
+				subGoalDescription: Joi.string()
+					.allow("")
+					.optional()
+					.label("Sub Goal Description"),
+				timelines: Joi.string().allow("").optional().label("Timelinesn here"),
+				weightage: Joi.number()
+					.integer()
+					.min(1)
+					.max(100)
+					.required()
+					.invalid("")
+					.messages({
+						"any.invalid": `"Weightage" cannot be an empty`,
+						"any.required": `"Weightage" is required`,
+						"number.base": `"Weightage" must be a number`,
+						"number.integer": `"Weightage" must be an integer`,
+					}),
+				subGoalStatus: Joi.string()
+					.allow("")
+					.optional()
+					.label("Sub Goal Status"),
+				// subGoalScore: Joi.number().optional().label("Sub Goal Score"),
+				subGoalScore: Joi.string().allow("").optional().label("Sub Goal Score"),
+				subGoalScoreFormula: Joi.string()
+					.allow("")
+					.optional()
+					.label("Sub Goal Score Formula"),
+			}),
+		)
+		.optional()
+		.label("Sub Goals"),
+});
+
+const editGoalKeyAreaByUser = Joi.object({
+	empId: Joi.number().required().label("Employee ID"),
+	mode: Joi.number().required().label("Flow Mode"),
+	goalAreaId: Joi.number().integer().required().label("Goal ID"),
+	goalPlanId: Joi.number().integer().required().label("Goal Attribute ID"),
+	goalName: Joi.string().required().label("Goal Name"),
+	goalDescription: Joi.string().allow("").optional().label("Goal Description"),
+	timelines: Joi.string().allow("").optional().label("Timelines"),
+	target: Joi.string().allow("").optional().label("Target"),
+	targetType: Joi.string().allow("").optional().label("Target Type"),
+	metric: Joi.string().allow("").optional().label("Metric"),
+	weightage: Joi.number()
+		.integer()
+		.min(1)
+		.max(100)
+		.required()
+		.invalid("")
+		.messages({
+			"any.invalid": `"Weightage" cannot be an empty`,
+			"any.required": `"Weightage" is required`,
+			"number.base": `"Weightage" must be a number`,
+			"number.integer": `"Weightage" must be an integer`,
+		}),
+	archived: Joi.string().allow("").optional().label("Archived"),
+	achievmentPercentage: Joi.string()
+		.allow("")
+		.optional()
+		.label("Achievement Percentage"),
+	goalStatus: Joi.string().allow("").optional().label("Goal Status"),
+	tags: Joi.string().allow("").optional().label("Tags"),
+	scorecardPillar: Joi.string().allow("").optional().label("Score Card Pillar"),
+	achievmentMatrix: Joi.string()
+		.allow("")
+		.optional()
+		.label("Achievment Matrix"),
+	achievmentMapping: Joi.string()
+		.allow("")
+		.optional()
+		.label("Achievment Mapping"),
+	alignedTo: Joi.string().allow("").optional().label("Aligned To"),
+	goalScore: Joi.string().allow("").optional().label("Goal Score"),
+	goalScoreFormula: Joi.string()
+		.allow("")
+		.optional()
+		.label("Goal Score Formula"),
+	subGoals: Joi.array()
+		.items(
+			Joi.object({
+				subGoalName: Joi.string().min(1).required().label("Sub Goal Title"),
+				subGoalDescription: Joi.string()
+					.allow("")
+					.optional()
+					.label("Sub Goal Description"),
+				timelines: Joi.string().allow("").optional().label("Timelines"),
+				// weightage: Joi.number().min(0).max(100).optional().label("Weightage"),
+				weightage: Joi.number()
+					.integer()
+					.min(1)
+					.max(100)
+					.required()
+					.invalid("")
+					.messages({
+						"any.invalid": `"Weightage" cannot be an empty`,
+						"any.required": `"Weightage" is required`,
+						"number.base": `"Weightage" must be a number`,
+						"number.integer": `"Weightage" must be an integer`,
+					}),
+				subGoalStatus: Joi.string()
+					.allow("")
+					.optional()
+					.label("Sub Goal Status"),
+				// subGoalScore: Joi.number().optional().label("Sub Goal Score"),
+				subGoalScore: Joi.string().allow("").optional().label("Sub Goal Score"),
+				subGoalScoreFormula: Joi.string()
+					.allow("")
+					.optional()
+					.label("Sub Goal Score Formula"),
+			}),
+		)
+		.optional()
+		.label("Sub Goals"),
+});
+
+const goalSubmittionSchema = Joi.object({
+	goalPlanId: Joi.number().required().label("Goal Plan ID"),
+	empId: Joi.number().required().label("Employee ID"),
+	mode: Joi.number().required().label("Flow Mode"),
+	existingGoals: Joi.array()
+		.items(
+			Joi.object({
+				goalAreaId: Joi.number().required().label("Goal Area ID"),
+
+				goalPlanId: Joi.number().required().label("Goal Plan ID (Nested)"),
+
+				goalName: Joi.string().required().label("Goal Name"),
+
+				weightage: Joi.number()
+					.min(1)
+					.max(100)
+					.required()
+					.label("Goal Weightage"),
+
+				subGoals: Joi.array()
+					.items(
+						Joi.object({
+							subGoalAreaId: Joi.number().required().label("Sub Goal Area ID"),
+
+							goalAreaId: Joi.number()
+								.required()
+								.label("Goal Area ID (Sub Goal)"),
+
+							subGoalName: Joi.string().required().label("Sub Goal Name"),
+
+							weightage: Joi.number()
+								.min(1)
+								.max(100)
+								.required()
+								.label("Sub Goal Weightage"),
+						}),
+					)
+					.required()
+					.label("Sub Goals"),
+			}),
+		)
+		.required()
+		.label("Existing Goals"),
+
+	comment: Joi.string().optional().allow("").label("Comment"),
+});
+
+const goalApprovalSchema = Joi.object({
+	goalPlanId: Joi.number().integer().required().label("Goal Plan ID"),
+	userId: Joi.number().integer().required().label("User ID"),
+	isApproved: Joi.number().integer().required().label("Status"),
+	goalAreaId: Joi.array()
+		.items(Joi.number().integer().label("Goal Area ID"))
+		.min(1)
+		.required()
+		.label("Goal Area IDs"),
+});
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -1925,4 +2394,12 @@ export default {
 	requestForAddressApprovalSchema,
 	actionAddressSchema,
 	// ritak request approval module end
+
+	createAppraisalGoals,
+	editAppraisalGoals,
+	addGoalKeyAreaByUser,
+	editGoalKeyAreaByUser,
+	goalSubmittionSchema,
+	goalApprovalSchema
+
 };
