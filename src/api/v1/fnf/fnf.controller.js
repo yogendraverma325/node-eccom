@@ -77,7 +77,7 @@ class FnfController {
 	async employeesListForFnfProcessing(req, res) {
 		try {
 			let { companyId, year, month } = req.query;
-//			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
+			//			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) < ${year} OR (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) <= ${month}));`;
 
 			let employeeForProcessingQuery = `SELECT DISTINCT ejd.dateOfJoining, e.empCode AS empId, e.name AS empName FROM ${dbName}.employee e JOIN ${dbName}.paypackage p ON e.id = p.EmployeeId JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE (e.dateOfexit IS NOT NULL OR MONTH(e.dateOfexit) != MONTH(CURDATE()) OR YEAR(e.dateOfexit) != YEAR(CURDATE())) AND p.payPackageAutoId IS NOT NULL AND e.companyId IN (${companyId}) AND e.isActive = 0 AND (YEAR(e.dateOfExit) = ${year} AND MONTH(e.dateOfExit) = ${month});`;
 
@@ -1211,7 +1211,6 @@ class FnfController {
 			}
 			const employeeIds = result[0].map((employee) => employee.EmployeeId);
 
-
 			let returnVAlue = await availableEmployeeForProcessing(
 				employeeIds,
 				value.paymonth,
@@ -1660,15 +1659,17 @@ class FnfController {
 				leaveEncashmentAndRevcoveryDaysQuery,
 			);
 			for (const leaveEncashAndRevoceryObj of leaveEncashmentAndRevcoveryDaysData[0]) {
-				if(leaveEncashAndRevoceryObj.l2RecoveryDays && leaveEncashAndRevoceryObj.l2RecoveryDays>0)
-				{
+				if (
+					leaveEncashAndRevoceryObj.l2RecoveryDays &&
+					leaveEncashAndRevoceryObj.l2RecoveryDays > 0
+				) {
 					console.log(leaveEncashAndRevoceryObj.l2RecoveryDays);
 					let recoveryDaysData = await db.noticeRecoveryOverrides.findOne({
 						where: { employeeId: leaveEncashAndRevoceryObj.id },
 						attributes: ["recoveryDaysAutoId"],
 						raw: true,
 					});
-	
+
 					if (recoveryDaysData) {
 						await db.noticeRecoveryOverrides.update(
 							{ recoveryDays: leaveEncashAndRevoceryObj.availableLeave },
@@ -1682,20 +1683,21 @@ class FnfController {
 								: 0,
 							createdBy: req.userData.id,
 							createdAt: new Date(),
-							empCode:leaveEncashAndRevoceryObj.empCode
+							empCode: leaveEncashAndRevoceryObj.empCode,
 						});
 					}
 				}
 
-
-				if(leaveEncashAndRevoceryObj.availableLeave && leaveEncashAndRevoceryObj.availableLeave>0)
-				{
+				if (
+					leaveEncashAndRevoceryObj.availableLeave &&
+					leaveEncashAndRevoceryObj.availableLeave > 0
+				) {
 					let leaveEncashmentData = await db.leaveEncashmentOverrides.findOne({
 						where: { EmployeeId: leaveEncashAndRevoceryObj.id },
 						attributes: ["leaveEncashmentAutoId"],
 						raw: true,
 					});
-			
+
 					if (leaveEncashmentData) {
 						await db.leaveEncashmentOverrides.update(
 							{ leaveEncashmentDays: leaveEncashAndRevoceryObj.availableLeave },
@@ -1707,11 +1709,10 @@ class FnfController {
 							leaveEncashmentDays: leaveEncashAndRevoceryObj.availableLeave,
 							createdBy: req.userData.id,
 							createdAt: new Date(),
-							empCode:leaveEncashAndRevoceryObj.empCode
+							empCode: leaveEncashAndRevoceryObj.empCode,
 						});
 					}
 				}
-		
 			}
 
 			return respHelper(res, {
@@ -1904,13 +1905,15 @@ class FnfController {
 					: 0,
 			});
 			Object.assign(dedcutionDetails[0][0], {
-				noticePeriodImpactedCounts: dedcutionDetails[0][0].noticeImpactedEmployees
+				noticePeriodImpactedCounts: dedcutionDetails[0][0]
+					.noticeImpactedEmployees
 					? dedcutionDetails[0][0].noticeImpactedEmployees.split(",").length
 					: 0,
 			});
 
 			Object.assign(dedcutionDetails[0][0], {
-				extraDeductionImpactedCounts: dedcutionDetails[0][0].extraDeductionImpactedEmployees
+				extraDeductionImpactedCounts: dedcutionDetails[0][0]
+					.extraDeductionImpactedEmployees
 					? dedcutionDetails[0][0].extraDeductionImpactedEmployees.split(",")
 							.length
 					: 0,
@@ -2012,7 +2015,6 @@ class FnfController {
 // 	return Object.values(groupedData); // Convert the grouped data object back to an array
 // };
 
-
 const groupByEmployeeId = (data) => {
 	const groupedData = {};
 
@@ -2024,12 +2026,11 @@ const groupByEmployeeId = (data) => {
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
-				)+parseFloat(
-					item["leaveEncashmentAmount"] ? item["leaveEncashmentAmount"] : 0
-				)+
+				) +
 				parseFloat(
-					item["gratuityAmount"] ? item["gratuityAmount"] : 0
-				)
+					item["leaveEncashmentAmount"] ? item["leaveEncashmentAmount"] : 0,
+				) +
+				parseFloat(item["gratuityAmount"] ? item["gratuityAmount"] : 0),
 		);
 		// +parseFloat(
 		// 	item["ExtraBenefitAmount"] ? item["ExtraBenefitAmount"] : 0
@@ -2040,10 +2041,12 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
-				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0)+
-				parseFloat(item["noticeRecoveryAmount"] ? item["noticeRecoveryAmount"] : 0),
+				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
+				parseFloat(
+					item["noticeRecoveryAmount"] ? item["noticeRecoveryAmount"] : 0,
+				),
 		);
-		totalDeduction=fnfHelper.customRound(totalDeduction)
+		totalDeduction = fnfHelper.customRound(totalDeduction);
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = fnfHelper.customRound(payableAmount);
 
@@ -2051,8 +2054,12 @@ const groupByEmployeeId = (data) => {
 			groupedData[employeeId] = {
 				"Employee Id": employeeId, //1
 				"Employee Name": item["Employee Name"], //2
-				"Date of Joining": item["Date of Joining"]?moment(item["Date of Joining"]).format("YYYY-MM-DD"):'N/A', //3
-				"Exit Date": item["Exit Date"]?moment(item["Exit Date"]).format("YYYY-MM-DD"):'N/A', //4
+				"Date of Joining": item["Date of Joining"]
+					? moment(item["Date of Joining"]).format("YYYY-MM-DD")
+					: "N/A", //3
+				"Exit Date": item["Exit Date"]
+					? moment(item["Exit Date"]).format("YYYY-MM-DD")
+					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
 				"Arrears Days": item["Arrears Days"], //7
@@ -2069,10 +2076,10 @@ const groupByEmployeeId = (data) => {
 				"Statuary PF": item["PF Employee"], //28
 				///////////////FNF-Particular Details////////////////////
 				Gratuity: item["gratuityAmount"],
-				"Leave Encashment Days": item['leaveEncashmentDays'],
+				"Leave Encashment Days": item["leaveEncashmentDays"],
 				"Leave Encashment Amount": item["leaveEncashmentAmount"],
 				// "Extra Benefit Amount": item["ExtraBenefitAmount"],// excluted on request of Rag and Mukesh
-				"Notice Recovery Amount":item["noticeRecoveryAmount"],
+				"Notice Recovery Amount": item["noticeRecoveryAmount"],
 				///////////////FNF-Particular Details////////////////////
 				// "Personal Deduction Categories": item["Advance Name"],//29
 				// "Personal Deduction": item["Advance Amount"],//30
@@ -2127,7 +2134,6 @@ const mergeObjects = (objA, objB, afterKey) => {
 	});
 	return result;
 };
-
 
 async function processFnf(data) {
 	let { processId, req } = data;
@@ -2188,8 +2194,8 @@ async function processFnf(data) {
 				) || 0;
 			const lopDays =
 				parseFloat(employeeDetailsComponentWise?.[0]?.[0]?.lopDays) || 0;
-				let actualWorkingDaysBeforeLop=actualWorkingDays;	
-				actualWorkingDays = actualWorkingDays - lopDays;
+			let actualWorkingDaysBeforeLop = actualWorkingDays;
+			actualWorkingDays = actualWorkingDays - lopDays;
 			////////////////Verification for PayPackage Assigned/////////////
 
 			//////////////////Extra Deduciton Verification/////////////
@@ -2338,7 +2344,7 @@ async function processFnf(data) {
 
 			// let allExtraPaymenetQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 
-			let allExtraPaymenetQuery = `SELECT e.id AS EmployeeId, eb.benefitAmount AS ExtraBenefitAmount, epSummary.totalExtraPayment, epSummary.paymentCategories, lco.leaveEncashmentDays ,gor.gratuityYears FROM ${dbName}.employee e LEFT JOIN ${dbName}.extrabenefit eb ON e.id = eb.EmployeeId LEFT JOIN (SELECT EmployeeId, SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category, '(', paymentAmount, ')' ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment where paymentMonth="${result[0][0].salaryMonth}" and EmployeeId = ${employee} GROUP BY EmployeeId) epSummary ON e.id = epSummary.EmployeeId LEFT JOIN ${dbName}.leavencashmentoverrides lco ON e.id = lco.EmployeeId LEFT JOIN ${dbName}.gratuityoverrides gor ON e.id = gor.EmployeeId WHERE e.id =${employee};`
+			let allExtraPaymenetQuery = `SELECT e.id AS EmployeeId, eb.benefitAmount AS ExtraBenefitAmount, epSummary.totalExtraPayment, epSummary.paymentCategories, lco.leaveEncashmentDays ,gor.gratuityYears FROM ${dbName}.employee e LEFT JOIN ${dbName}.extrabenefit eb ON e.id = eb.EmployeeId LEFT JOIN (SELECT EmployeeId, SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category, '(', paymentAmount, ')' ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment where paymentMonth="${result[0][0].salaryMonth}" and EmployeeId = ${employee} GROUP BY EmployeeId) epSummary ON e.id = epSummary.EmployeeId LEFT JOIN ${dbName}.leavencashmentoverrides lco ON e.id = lco.EmployeeId LEFT JOIN ${dbName}.gratuityoverrides gor ON e.id = gor.EmployeeId WHERE e.id =${employee};`;
 			let allExtraEarnings = await db.sequelize.query(allExtraPaymenetQuery);
 			let deductionQuery = await fnfHelper.query(23, {
 				deductionMonth: result[0][0].salaryMonth,
@@ -2351,8 +2357,8 @@ async function processFnf(data) {
 				totalExtraPayment,
 				paymentCategories,
 				leaveEncashmentDays,
-				gratuityYears
-			  }= allExtraEarnings[0][0];
+				gratuityYears,
+			} = allExtraEarnings[0][0];
 			for (const empCopntWiseDetl of employeeDetailsComponentWise[0]) {
 				const queryForComponentConfiguration = await fnfHelper.query(
 					9,
@@ -2404,10 +2410,19 @@ async function processFnf(data) {
 				empCopntWiseDetl["createdAt"] = new Date();
 				empCopntWiseDetl["createdBy"] = req.userData.id;
 				empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
-				empCopntWiseDetl["ptAmount"] = dedcutionDetails[0][0].ptAggregateAmount?dedcutionDetails[0][0].ptAggregateAmount:ptAmount1;
-				empCopntWiseDetl["lwfAmount"] = dedcutionDetails[0][0].lwfAggregateAmount?dedcutionDetails[0][0].lwfAggregateAmount:lwfAmount1;
-				empCopntWiseDetl["extraPaymentAmount"] = totalExtraPayment?totalExtraPayment:0;
-				empCopntWiseDetl["extraPaymentCategories"] =paymentCategories?paymentCategories:"";
+				empCopntWiseDetl["ptAmount"] = dedcutionDetails[0][0].ptAggregateAmount
+					? dedcutionDetails[0][0].ptAggregateAmount
+					: ptAmount1;
+				empCopntWiseDetl["lwfAmount"] = dedcutionDetails[0][0]
+					.lwfAggregateAmount
+					? dedcutionDetails[0][0].lwfAggregateAmount
+					: lwfAmount1;
+				empCopntWiseDetl["extraPaymentAmount"] = totalExtraPayment
+					? totalExtraPayment
+					: 0;
+				empCopntWiseDetl["extraPaymentCategories"] = paymentCategories
+					? paymentCategories
+					: "";
 				empCopntWiseDetl["processId"] = processId;
 
 				////////////////////////////////PF-Applicablity Keys////////////////////////
@@ -2435,8 +2450,9 @@ async function processFnf(data) {
 				);
 
 				let isNoticeRecoveryApplicable = fnfHelper.getElementValue(
-					"Affects Recovery Days",componentConfiguration[0]
-				)
+					"Affects Recovery Days",
+					componentConfiguration[0],
+				);
 				empCopntWiseDetl["isPfApplicableComponent"] = pafApplicableComponet;
 				empCopntWiseDetl["isPfApplicable"] =
 					lwfDeducationDetails.pfApplicability;
@@ -2453,11 +2469,19 @@ async function processFnf(data) {
 				empCopntWiseDetl["isGratuityApplicable"] = isGratuityApplicable;
 				empCopntWiseDetl["isLeaveEncashmentApplicable"] =
 					isLeaveEncashmentApplicable;
-				empCopntWiseDetl['leaveEncashmentDays']=leaveEncashmentDays?leaveEncashmentDays:0;	
-				empCopntWiseDetl['ExtraBenefitAmount'] = ExtraBenefitAmount?ExtraBenefitAmount:0;
-				empCopntWiseDetl['noticePeriodRecoveryDays'] =dedcutionDetails[0][0].noticeAggregateDays?dedcutionDetails[0][0].noticeAggregateDays:0;
-				empCopntWiseDetl['isNoticeRecoveryApplicable']=isNoticeRecoveryApplicable;
-			
+				empCopntWiseDetl["leaveEncashmentDays"] = leaveEncashmentDays
+					? leaveEncashmentDays
+					: 0;
+				empCopntWiseDetl["ExtraBenefitAmount"] = ExtraBenefitAmount
+					? ExtraBenefitAmount
+					: 0;
+				empCopntWiseDetl["noticePeriodRecoveryDays"] = dedcutionDetails[0][0]
+					.noticeAggregateDays
+					? dedcutionDetails[0][0].noticeAggregateDays
+					: 0;
+				empCopntWiseDetl["isNoticeRecoveryApplicable"] =
+					isNoticeRecoveryApplicable;
+
 				// console.log(empCopntWiseDetl);
 				//  continue;
 				// //////////////////////////////PF-Applicablity Keys//////////////////////////////////
@@ -2467,7 +2491,7 @@ async function processFnf(data) {
 						salaryComponentAutoId: empCopntWiseDetl.salaryComponentAutoId,
 						payMonth: result[0][0].payMonth,
 					},
-					raw: true,                                                           
+					raw: true,
 				});
 				if (!existDetails) {
 					await db.payMonthlyElements.create(empCopntWiseDetl);
@@ -2487,20 +2511,26 @@ async function processFnf(data) {
 				await fnfHelper.getCalculatedESIC(payElementComponents);
 			let getCalculatedGratuity = await fnfHelper.calculateGratuity(
 				payElementComponents,
-				gratuityYears?gratuityYears:0,
+				gratuityYears ? gratuityYears : 0,
 			);
 			// console.log(getCalculatedGratuity);
 			// return;
 			let leaveEncashmentAmount = await fnfHelper.leaveEncashmentAmount(
 				payElementComponents,
-				leaveEncashmentDays?leaveEncashmentDays:0,
+				leaveEncashmentDays ? leaveEncashmentDays : 0,
 			);
 			//console.log(getCalculatedGratuity);
-			let noticePeriodRecoveryAmount = await fnfHelper.noticePeriodRecoveryAmount(
-				payElementComponents,
-				dedcutionDetails[0][0].noticeAggregateDays?dedcutionDetails[0][0].noticeAggregateDays:0
+			let noticePeriodRecoveryAmount =
+				await fnfHelper.noticePeriodRecoveryAmount(
+					payElementComponents,
+					dedcutionDetails[0][0].noticeAggregateDays
+						? dedcutionDetails[0][0].noticeAggregateDays
+						: 0,
+				);
+			console.log(
+				"Notice Period Recovery Amount :: ",
+				noticePeriodRecoveryAmount,
 			);
-			console.log("Notice Period Recovery Amount :: ",noticePeriodRecoveryAmount);
 			/////////////////Calculation And Updation of PF Amount //////////////////////
 			//console.log('Encanshment Amount :: '+fnfHelper.customRound(leaveEncashmentAmount));
 			await db.payMonthlyElements.update(
@@ -2514,8 +2544,9 @@ async function processFnf(data) {
 							? fnfHelper.customRound(getCalculatedGratuity.gratuityAmount)
 							: 0,
 					leaveEncashmentAmount: fnfHelper.customRound(leaveEncashmentAmount),
-					noticeRecoveryAmount: fnfHelper.customRound(noticePeriodRecoveryAmount),
-
+					noticeRecoveryAmount: fnfHelper.customRound(
+						noticePeriodRecoveryAmount,
+					),
 				},
 				{ where: { empId: employee, payMonth: result[0][0].payMonth } },
 			);
@@ -2603,13 +2634,17 @@ async function generatePaySlip(data) {
 				currentProcessStatus[0][0].payMonth,
 				employeeIds,
 			);
-		
+
 			let payElements = await db.sequelize.query(
 				queryForPayMonthlyElementsForSalarySlip,
 			);
 
 			for (const payMonthlyElement of payElements[0]) {
-				let employeeExitDate = await db.employeeMaster.findOne({where:{id:payMonthlyElement.empId},attributes:['dateOfexit'],raw:true});
+				let employeeExitDate = await db.employeeMaster.findOne({
+					where: { id: payMonthlyElement.empId },
+					attributes: ["dateOfexit"],
+					raw: true,
+				});
 				let isExistPaySlip = await db.paySlips.findOne({
 					where: {
 						EmployeeId: payMonthlyElement.empId,
@@ -2624,7 +2659,6 @@ async function generatePaySlip(data) {
 					month: payMonthlyElement.payMonth.split("-")[1],
 					year: payMonthlyElement.payMonth.split("-")[0],
 				});
-
 
 				let paySlipDuration = `01/${parseInt(
 					currentMonth,
@@ -2661,8 +2695,11 @@ async function generatePaySlip(data) {
 						) +
 						parseFloat(
 							payMonthlyElement.lwfAmount ? payMonthlyElement.lwfAmount : 0,
-						)+parseFloat(
-							payMonthlyElement.noticeRecoveryAmount ? payMonthlyElement.noticeRecoveryAmount : 0,
+						) +
+						parseFloat(
+							payMonthlyElement.noticeRecoveryAmount
+								? payMonthlyElement.noticeRecoveryAmount
+								: 0,
 						);
 					totalPayslipDeductons = fnfHelper.customRound(totalPayslipDeductons);
 					//console.log("Total Pay Slip Deductions :: ",totalPayslipDeductons);
@@ -2672,15 +2709,18 @@ async function generatePaySlip(data) {
 							payMonthlyElement.extrapaymentAmount
 								? payMonthlyElement.extrapaymentAmount
 								: 0,
-						)+	parseFloat(
+						) +
+						parseFloat(
 							payMonthlyElement.ExtraBenefitAmount
 								? payMonthlyElement.ExtraBenefitAmount
 								: 0,
-						)+	parseFloat(
+						) +
+						parseFloat(
 							payMonthlyElement.leaveEncashmentAmount
 								? payMonthlyElement.leaveEncashmentAmount
 								: 0,
-						)+parseFloat(
+						) +
+						parseFloat(
 							payMonthlyElement.gratuityAmount
 								? payMonthlyElement.gratuityAmount
 								: 0,
@@ -2709,13 +2749,13 @@ async function generatePaySlip(data) {
 								? payMonthlyElement.leaveEncashmentAmount
 								: 0,
 						);
-						GrossPayAfterExtraPay =
+					GrossPayAfterExtraPay =
 						GrossPayAfterExtraPay +
 						parseFloat(
 							payMonthlyElement.ExtraBenefitAmount
 								? payMonthlyElement.ExtraBenefitAmount
 								: 0,
-						);					
+						);
 					GrossPayAfterExtraPay = fnfHelper.customRound(GrossPayAfterExtraPay);
 					isExistPaySlip = await db.paySlips.create({
 						EmployeeId: payMonthlyElement.empId,
@@ -2743,8 +2783,8 @@ async function generatePaySlip(data) {
 						paySlipStatus: 0,
 						createdAt: new Date(),
 						payMonth: payMonthlyElement.payMonth,
-						encashmentDays:payMonthlyElement.leaveEncashmentDays,
-						recoveryDays:payMonthlyElement.noticePeriodRecoveryDays,
+						encashmentDays: payMonthlyElement.leaveEncashmentDays,
+						recoveryDays: payMonthlyElement.noticePeriodRecoveryDays,
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
 						? isExistPaySlip.dataValues.paySlipAutoId
@@ -2792,20 +2832,18 @@ async function generatePaySlip(data) {
 					}
 
 					if (payMonthlyElement.noticeRecoveryAmount > 0) {
-					  customeDeduction.push({
-					    EmployeeId: payMonthlyElement.empId,
-					    paySlipAutoId: paySlipAutoId,
-					    salaryComponentAutoId: 0,
-					    paySlipComponentName: "Notice Period Recovery Amount",
-					    paySlipComponentAmount: payMonthlyElement.noticeRecoveryAmount,
-					    paySlipComponentType: "Deduction",
-					    createdBy: req.userData.id,
-					    createdAt: new Date(),
-						salaryComponentSequenceNo: 999,
-					  });
+						customeDeduction.push({
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: "Notice Period Recovery Amount",
+							paySlipComponentAmount: payMonthlyElement.noticeRecoveryAmount,
+							paySlipComponentType: "Deduction",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: 999,
+						});
 					}
-
-			
 
 					if (payMonthlyElement.esicEmployeeAmount > 0) {
 						customeDeduction.push({
@@ -2850,18 +2888,18 @@ async function generatePaySlip(data) {
 
 					if (payMonthlyElement.ExtraBenefitAmount > 0) {
 						customeDeduction.push({
-						  EmployeeId: payMonthlyElement.empId,
-						  paySlipAutoId: paySlipAutoId,
-						  salaryComponentAutoId: 0,
-						  paySlipComponentName: "Extra Benefit",
-						  paySlipComponentAmount: payMonthlyElement.ExtraBenefitAmount,
-						  paySlipComponentType: "Earning",
-						  createdBy: req.userData.id,
-						  createdAt: new Date(),
-						  salaryComponentSequenceNo: 999,
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: "Extra Benefit",
+							paySlipComponentAmount: payMonthlyElement.ExtraBenefitAmount,
+							paySlipComponentType: "Earning",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: 999,
 						});
-					  }
-					
+					}
+
 					if (payMonthlyElement.pfEmployeeAmount > 0) {
 						customeDeduction.push({
 							EmployeeId: payMonthlyElement.empId,

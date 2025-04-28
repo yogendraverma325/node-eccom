@@ -37,9 +37,9 @@ async function query(caseId, data, data2) {
 			break;
 		case 8:
 			//return `SELECT userId, dateOfJoining FROM employeejobdetails WHERE YEAR(dateOfJoining)=${data2.payYear} AND MONTH(dateOfJoining)=${data2.payMonth} AND userId=${data};`; //26
-			  //return `SELECT id, dateOfexit FROM tara_hrms_live.employee WHERE YEAR(dateOfexit)=${data2.payYear} AND MONTH(dateOfexit)=${data2.payMonth} AND id=${data}`
-			  return `SELECT e.dateOfexit, e.id, ejd.dateOfJoining FROM tara_hrms_live.employee e JOIN tara_hrms_live.employeejobdetails ejd ON e.id = ejd.userId WHERE e.id = ${data};`		
-			  break;
+			//return `SELECT id, dateOfexit FROM tara_hrms_live.employee WHERE YEAR(dateOfexit)=${data2.payYear} AND MONTH(dateOfexit)=${data2.payMonth} AND id=${data}`
+			return `SELECT e.dateOfexit, e.id, ejd.dateOfJoining FROM tara_hrms_live.employee e JOIN tara_hrms_live.employeejobdetails ejd ON e.id = ejd.userId WHERE e.id = ${data};`;
+			break;
 		case 9:
 			return `SELECT sscm.salaryComponentAutoId, sscm.salaryStructureAutoId, scm.salaryComponentElementAutoId, scm.elementValue, sce.salaryComponentElementName, sce.salaryComponentElementCode FROM ${dbName}.salarystructurecomponentmapping sscm JOIN ${dbName}.salarycomponentmapping scm ON sscm.salaryStructurecomponentmappingAutoId = scm.salaryStructurecomponentmappingAutoId JOIN ${dbName}.salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sscm.salaryComponentAutoId = ${data} AND sscm.salaryStructureAutoId = ${data2};`; // 12
 			break;
@@ -84,13 +84,13 @@ async function query(caseId, data, data2) {
 		case 22:
 			return `SELECT SUM(deductionAmount) AS totalDeduction, GROUP_CONCAT(deductionCategory,'(',deductionAmount,')'  ORDER BY deductionCategory SEPARATOR ' | ') AS deductionCategories FROM ${dbName}.extradeductions WHERE startMonth = '${data2}' AND EmployeeId = ${data};`; //14
 			break;
-			case 23:
+		case 23:
 			//return `SELECT SUM(ptAmount) AS ptAggregateAmount, GROUP_CONCAT(empCode) AS ptImpactedEmployees FROM ${dbName}.ptoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND ptMonth = '${data.deductionMonth}' CROSS JOIN (SELECT SUM(lwfAmount) AS lwfAggregateAmount, GROUP_CONCAT(empCode) AS lwfImpactedEmployees FROM ${dbName}.lwfoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND lwfMonth = '${data.deductionMonth}') AS lwf CROSS JOIN (SELECT SUM(recoveryDays) AS noticeAggregateDays, GROUP_CONCAT(empCode) AS noticeImpactedEmployees FROM ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${data.impactedEmployees}) AND payMonth = '${data.deductionMonth}') AS nr;`; //14
 			//return `SELECT pt.ptAggregateAmount, pt.ptImpactedEmployees, lwf.lwfAggregateAmount, lwf.lwfImpactedEmployees, nr.noticeAggregateDays, nr.noticeImpactedEmployees FROM (SELECT SUM(ptAmount) AS ptAggregateAmount, GROUP_CONCAT(empCode) AS ptImpactedEmployees FROM ${dbName}.ptoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND ptMonth = '${data.deductionMonth}') AS pt CROSS JOIN (SELECT SUM(lwfAmount) AS lwfAggregateAmount, GROUP_CONCAT(empCode) AS lwfImpactedEmployees FROM ${dbName}.lwfoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND lwfMonth = '${data.deductionMonth}') AS lwf CROSS JOIN (SELECT SUM(recoveryDays) AS noticeAggregateDays, GROUP_CONCAT(empCode) AS noticeImpactedEmployees FROM ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${data.impactedEmployees}) AND payMonth = '${data.deductionMonth}') AS nr;`
-			 return `SELECT    ue.uniqueEmployeeCounts,pt.ptAggregateAmount, pt.ptImpactedEmployees, lwf.lwfAggregateAmount, lwf.lwfImpactedEmployees, nr.noticeAggregateDays, nr.noticeImpactedEmployees, ed.extraDeductionAggregateAmount, ed.extraDeductionImpactedEmployees, tds.tdsAggregateAmount, tds.tdsImpactedEmployees FROM (SELECT SUM(ptAmount) AS ptAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS ptImpactedEmployees FROM ${dbName}.ptoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND ptMonth = '${data.deductionMonth}') AS pt CROSS JOIN (SELECT SUM(lwfAmount) AS lwfAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS lwfImpactedEmployees FROM ${dbName}.lwfoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND lwfMonth = '${data.deductionMonth}') AS lwf CROSS JOIN (SELECT SUM(recoveryDays) AS noticeAggregateDays, GROUP_CONCAT( DISTINCT empCode) AS noticeImpactedEmployees FROM ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${data.impactedEmployees}))  AS nr CROSS JOIN (SELECT SUM(deductionAmount) AS extraDeductionAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS extraDeductionImpactedEmployees FROM ${dbName}.extradeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND startMonth = '${data.deductionMonth}') AS ed CROSS JOIN (SELECT SUM(tdsAmount) AS tdsAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS tdsImpactedEmployees FROM ${dbName}.tdsdeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND tdsMonth = '${data.deductionMonth}') AS tds CROSS JOIN (SELECT COUNT(DISTINCT EmployeeId) AS uniqueEmployeeCounts FROM (SELECT EmployeeId FROM ${dbName}.ptoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND ptMonth = '${data.deductionMonth}' UNION SELECT EmployeeId FROM ${dbName}.lwfoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND lwfMonth = '${data.deductionMonth}' UNION SELECT EmployeeId FROM ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${data.impactedEmployees})  UNION SELECT EmployeeId FROM ${dbName}.extradeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND startMonth = '${data.deductionMonth}' UNION SELECT EmployeeId FROM ${dbName}.tdsdeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND tdsMonth = '${data.deductionMonth}') AS combined_ids) AS ue;`
-			break;	
-			case 24: 
-			return `SELECT e.empCode, e.id, s.l2RecoveryDays, l.availableLeave FROM ${dbName}.employee e JOIN ${dbName}.separationmaster s ON e.id = s.employeeId JOIN ${dbName}.leavemapping l ON e.id = l.EmployeeId JOIN ${dbName}.leavemaster lm ON l.leaveAutoId = lm.leaveId WHERE lm.leaveCode = 'EL' AND e.id IN (${data.employeeIds});`
+			return `SELECT    ue.uniqueEmployeeCounts,pt.ptAggregateAmount, pt.ptImpactedEmployees, lwf.lwfAggregateAmount, lwf.lwfImpactedEmployees, nr.noticeAggregateDays, nr.noticeImpactedEmployees, ed.extraDeductionAggregateAmount, ed.extraDeductionImpactedEmployees, tds.tdsAggregateAmount, tds.tdsImpactedEmployees FROM (SELECT SUM(ptAmount) AS ptAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS ptImpactedEmployees FROM ${dbName}.ptoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND ptMonth = '${data.deductionMonth}') AS pt CROSS JOIN (SELECT SUM(lwfAmount) AS lwfAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS lwfImpactedEmployees FROM ${dbName}.lwfoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND lwfMonth = '${data.deductionMonth}') AS lwf CROSS JOIN (SELECT SUM(recoveryDays) AS noticeAggregateDays, GROUP_CONCAT( DISTINCT empCode) AS noticeImpactedEmployees FROM ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${data.impactedEmployees}))  AS nr CROSS JOIN (SELECT SUM(deductionAmount) AS extraDeductionAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS extraDeductionImpactedEmployees FROM ${dbName}.extradeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND startMonth = '${data.deductionMonth}') AS ed CROSS JOIN (SELECT SUM(tdsAmount) AS tdsAggregateAmount, GROUP_CONCAT( DISTINCT empCode) AS tdsImpactedEmployees FROM ${dbName}.tdsdeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND tdsMonth = '${data.deductionMonth}') AS tds CROSS JOIN (SELECT COUNT(DISTINCT EmployeeId) AS uniqueEmployeeCounts FROM (SELECT EmployeeId FROM ${dbName}.ptoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND ptMonth = '${data.deductionMonth}' UNION SELECT EmployeeId FROM ${dbName}.lwfoverrides WHERE EmployeeId IN (${data.impactedEmployees}) AND lwfMonth = '${data.deductionMonth}' UNION SELECT EmployeeId FROM ${dbName}.noticerecoveryovrrides WHERE EmployeeId IN (${data.impactedEmployees})  UNION SELECT EmployeeId FROM ${dbName}.extradeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND startMonth = '${data.deductionMonth}' UNION SELECT EmployeeId FROM ${dbName}.tdsdeductions WHERE EmployeeId IN (${data.impactedEmployees}) AND tdsMonth = '${data.deductionMonth}') AS combined_ids) AS ue;`;
+			break;
+		case 24:
+			return `SELECT e.empCode, e.id, s.l2RecoveryDays, l.availableLeave FROM ${dbName}.employee e JOIN ${dbName}.separationmaster s ON e.id = s.employeeId JOIN ${dbName}.leavemapping l ON e.id = l.EmployeeId JOIN ${dbName}.leavemaster lm ON l.leaveAutoId = lm.leaveId WHERE lm.leaveCode = 'EL' AND e.id IN (${data.employeeIds});`;
 	}
 }
 
@@ -118,9 +118,8 @@ const actualWorkingDays = async function (data) {
 		console.log(currentMonthJoiningDetails);
 		let exitDate = currentMonthJoiningDetails[0][0].dateOfexit;
 		let dateOfJoining = currentMonthJoiningDetails[0][0].dateOfJoining;
-		let leftDayaInMonth = workingDaysInMonth(exitDate,dateOfJoining);
+		let leftDayaInMonth = workingDaysInMonth(exitDate, dateOfJoining);
 		return leftDayaInMonth;
-
 	} catch (e) {
 		console.log(e);
 		return null;
@@ -434,7 +433,6 @@ async function leaveEncashmentAmount(applicableComponents, encashmentDays) {
 	return encashmentApplicableAmount;
 }
 
-
 async function noticePeriodRecoveryAmount(applicableComponents, recoveryDays) {
 	if (!recoveryDays) {
 		return 0;
@@ -451,22 +449,22 @@ async function noticePeriodRecoveryAmount(applicableComponents, recoveryDays) {
 		"Leave Encashment Applicable Amount :: ",
 		recoveryApplicableAmount,
 	);
-	recoveryApplicableAmount =
-		(recoveryApplicableAmount / 30) * recoveryDays;
+	recoveryApplicableAmount = (recoveryApplicableAmount / 30) * recoveryDays;
 	return recoveryApplicableAmount;
 }
 
-
-
-async function getExitMonth(employeeId)
-{
-	let employeeExitDetails = await db.employeeMaster.findOne({where:{id:employeeId},attributes:['id',"dateOfExit"],raw:true});
-	const exitMonth = `${new Date(employeeExitDetails.dateOfExit).getFullYear()}-${String(new Date(employeeExitDetails.dateOfExit).getMonth() + 1).padStart(2, '0')}`;
+async function getExitMonth(employeeId) {
+	let employeeExitDetails = await db.employeeMaster.findOne({
+		where: { id: employeeId },
+		attributes: ["id", "dateOfExit"],
+		raw: true,
+	});
+	const exitMonth = `${new Date(employeeExitDetails.dateOfExit).getFullYear()}-${String(new Date(employeeExitDetails.dateOfExit).getMonth() + 1).padStart(2, "0")}`;
 	return exitMonth;
 }
 
-function workingDaysInMonth(dateOfExit,dateOfJoining) {
-	var daysLeft=0;
+function workingDaysInMonth(dateOfExit, dateOfJoining) {
+	var daysLeft = 0;
 	const exitDate = new Date(dateOfExit);
 	const joiningDate = new Date(dateOfJoining);
 	// Get the current month and year from the date
@@ -476,25 +474,19 @@ function workingDaysInMonth(dateOfExit,dateOfJoining) {
 	const joiningYear = joiningDate.getFullYear();
 	const joiningMonth = joiningDate.getMonth(); // Note: Month is 0-indexed (0 = January)
 
-
 	const exitDay = exitDate.getDate();
 	const joiningDay = joiningDate.getDate();
 
-
-	if(exitMonth==joiningMonth && exitYear==joiningYear )
-	{
+	if (exitMonth == joiningMonth && exitYear == joiningYear) {
 		//If Employee Join and Exit in the same month.....
-		daysLeft = (exitDay - joiningDay) + 1;
-	}
-	else
-	{
+		daysLeft = exitDay - joiningDay + 1;
+	} else {
 		//If Employee Join in different month and Exit in the different month.....
-		 daysLeft = exitDay;
+		daysLeft = exitDay;
 	}
 	// Calculate the remaining days including the given date
 	return daysLeft;
 }
-
 
 export default {
 	query,
@@ -513,5 +505,5 @@ export default {
 	calculateGratuity,
 	leaveEncashmentAmount,
 	getExitMonth,
-	noticePeriodRecoveryAmount
+	noticePeriodRecoveryAmount,
 };

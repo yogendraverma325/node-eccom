@@ -187,24 +187,24 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DECIMAL(10, 2),
 			allowNull: true,
 		},
-		leaveEncashmentDays:{
-			type:Sequelize.DECIMAL(3,2),
-			default:0,
+		leaveEncashmentDays: {
+			type: Sequelize.DECIMAL(3, 2),
+			default: 0,
 		},
-		ExtraBenefitAmount:{
-			type:Sequelize.DECIMAL(10,2),
-			default:0,
+		ExtraBenefitAmount: {
+			type: Sequelize.DECIMAL(10, 2),
+			default: 0,
 		},
-		noticePeriodRecoveryDays:{
-			type:Sequelize.DECIMAL(3,2),
-			default:0,
+		noticePeriodRecoveryDays: {
+			type: Sequelize.DECIMAL(3, 2),
+			default: 0,
 		},
 		isNoticeRecoveryApplicable: {
 			type: Sequelize.INTEGER,
 			default: 0,
 		},
 		noticeRecoveryAmount: {
-			type:Sequelize.DECIMAL(10,2),
+			type: Sequelize.DECIMAL(10, 2),
 			default: 0,
 		},
 	});
