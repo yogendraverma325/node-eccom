@@ -8,9 +8,9 @@ export default (sequelize, Sequelize) => {
 		EmployeeId: {
 			type: Sequelize.INTEGER,
 		},
-		payMonth: {
-			type: Sequelize.STRING,
-		},
+		// payMonth: {
+		// 	type: Sequelize.STRING,
+		// },
 		recoveryDays: {
 			type: Sequelize.DECIMAL,
 		},

@@ -1974,19 +1974,16 @@ class ThirdPartyController {
 			});
 		}
 	}
-	async internalDataSync(req,res){
+	async internalDataSync(req, res) {
 		try {
-			const {search,empCode,isActive} = req.body;
+			const { search, empCode, isActive } = req.body;
 
 			const whereCondition = {
 				isActive,
 				...(search?.trim() && {
-				  [Op.or]: [
-					{ empCode: search.trim() },
-					{ email: search.trim() }
-				  ]
-				})
-			  };
+					[Op.or]: [{ empCode: search.trim() }, { email: search.trim() }],
+				}),
+			};
 			const employeeData = await db.employeeMaster.findAll({
 				where: whereCondition,
 				attributes: [
@@ -2023,14 +2020,12 @@ class ThirdPartyController {
 					},
 					{
 						model: db.designationMaster,
-						attributes: [
-			            "name","code"
-						],
+						attributes: ["name", "code"],
 						required: false,
 					},
 					{
 						model: db.departmentMaster,
-						attributes: ["departmentName","departmentCode"],
+						attributes: ["departmentName", "departmentCode"],
 						required: false,
 					},
 					{
@@ -2060,7 +2055,7 @@ class ThirdPartyController {
 							"pfRestricted",
 							"epfApplicable",
 							"esicApplicable",
-							"confirmationDate"
+							"confirmationDate",
 						],
 						include: [
 							{ model: db.gradeMaster, attributes: ["gradeName"] },
@@ -2201,7 +2196,6 @@ class ThirdPartyController {
 						required: false,
 					},
 				],
-				
 			});
 
 			const manipulatedData = employeeData.map((employee) => {
@@ -2223,80 +2217,100 @@ class ThirdPartyController {
 						) || ""
 					: "";
 				return {
-				    "EmployeeSBU": employee.bumaster?.dataValues?.buCode || "",
-					"Key": "24;UBQAAAJ7BTIAMQAyADAANg==10;36511399090;",
-					"TMC": employee.empCode,
-					"Full_Name": employee.name,
-					"Department":employee.functionalareamaster?.dataValues?.functionalAreaCode ||
-					"",
-					"Designation":employee.designationmaster?.dataValues?.name || "",
-					"Branch": employee.companylocationmaster?.dataValues?.companyLocationCode ||
-					"",//"12",
-					"SBU": employee.bumaster?.dataValues?.buCode || "",
-					"SBUSpecified": true,
-					"Reporting_Head_ID": employee.managerData?.dataValues?.empCode || "",
-					"Date_of_Joining": employee.employeejobdetail?.dataValues?.dateOfJoining || "",
-					"Date_of_JoiningSpecified": true,
-					"Birth_Date": employee.employeebiographicaldetail?.dataValues?.dateOfBirth || "",
-					"Birth_DateSpecified": true,
-					"Comm_Addr": employee.employeeaddress?.dataValues
-					? [
-							employee.employeeaddress?.dataValues?.currentHouse || "",
-							employee.employeeaddress?.dataValues?.currentStreet || "",
-							employee.employeeaddress?.dataValues?.currentLandmark || "",
-							employee.employeeaddress?.dataValues?.currentcity?.cityName ||
-								"",
-							employee.employeeaddress?.dataValues?.currentstate
-								?.stateName || "",
-							employee.employeeaddress?.dataValues?.currentcountry
-								?.countryName || "",
-							employee.employeeaddress?.dataValues?.currentpincode
-								?.pincode || "",
-						]
-							.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-							.join(", ")
-					: "",
-					"Phone_No": employee.personalMobileNumber,
-					"Company_E_Mail": employee.email || "",
-					"Personal_E_Mail": employee.personalEmail || "",
-					"Bank_Name": employee.employeepaymentdetail?.dataValues?.bankmaster?.dataValues
-					?.bankName || "",
-					"Account_No": employee.employeepaymentdetail?.dataValues
-					?.paymentAccountNumber || "",
-					"SBUCode": employee.sbumaster?.dataValues?.code || "",
-					"Mobile_Phone_No": employee.officeMobileNumber || "",
-					"Location_Code": employee.companylocationmaster?.dataValues?.citymaster?.dataValues
-					?.cityName,
-					"First_Name": employee.name || "",
-					"Qualification_Code": employee.employeeeducationdetails.length > 0 ? employee.employeeeducationdetails[0].educationSpecialisation:"",//"EDUCATION",
-					"Gender":employee.employeebiographicaldetail?.gender === "Male"
-					? 2
-					: employee.employeebiographicaldetail?.gender === "Female"
-					? 1
-					: 3,
-					"GenderSpecified": employee.employeebiographicaldetail?.gender ? true:false,
-					"Confirmation_Date": employee.employeejobdetail?.dataValues?.confirmationDate || "",
-					"Confirmation_DateSpecified": employee.employeejobdetail?.dataValues?.confirmationDate?true:false,
-					"Marital_Status": employee.employeebiographicaldetail?.dataValues
-					?.maritalStatus,
-					"Marital_StatusSpecified":employee.employeebiographicaldetail?.dataValues?.maritalStatus ? true : false,		
-					"Entitlement_to_ESI": employee.dataValues?.employeejobdetail
-					?.esicApplicable
-					? true
-					: false,
-					"Entitlement_to_ESISpecified": true, // fixed
-					"Is_Confirmed": true,
-					"Is_ConfirmedSpecified":employee.employeejobdetail?.dataValues?.confirmationDate?true:false,
-					"Probation_Status": 0,
-					"Probation_StatusSpecified": true,
-					"HR_Admin": true,
-					"HR_AdminSpecified": true,
-					"SUBBU_Code": employee.costcentermaster?.dataValues?.costCenterCode,
-					"Employee_Band":
-					employee.employeejobdetail?.dataValues?.grademaster?.dataValues
-						?.gradeName || "",
-
-					
+					EmployeeSBU: employee.bumaster?.dataValues?.buCode || "",
+					Key: "24;UBQAAAJ7BTIAMQAyADAANg==10;36511399090;",
+					TMC: employee.empCode,
+					Full_Name: employee.name,
+					Department:
+						employee.functionalareamaster?.dataValues?.functionalAreaCode || "",
+					Designation: employee.designationmaster?.dataValues?.name || "",
+					Branch:
+						employee.companylocationmaster?.dataValues?.companyLocationCode ||
+						"", //"12",
+					SBU: employee.bumaster?.dataValues?.buCode || "",
+					SBUSpecified: true,
+					Reporting_Head_ID: employee.managerData?.dataValues?.empCode || "",
+					Date_of_Joining:
+						employee.employeejobdetail?.dataValues?.dateOfJoining || "",
+					Date_of_JoiningSpecified: true,
+					Birth_Date:
+						employee.employeebiographicaldetail?.dataValues?.dateOfBirth || "",
+					Birth_DateSpecified: true,
+					Comm_Addr: employee.employeeaddress?.dataValues
+						? [
+								employee.employeeaddress?.dataValues?.currentHouse || "",
+								employee.employeeaddress?.dataValues?.currentStreet || "",
+								employee.employeeaddress?.dataValues?.currentLandmark || "",
+								employee.employeeaddress?.dataValues?.currentcity?.cityName ||
+									"",
+								employee.employeeaddress?.dataValues?.currentstate?.stateName ||
+									"",
+								employee.employeeaddress?.dataValues?.currentcountry
+									?.countryName || "",
+								employee.employeeaddress?.dataValues?.currentpincode?.pincode ||
+									"",
+							]
+								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+								.join(", ")
+						: "",
+					Phone_No: employee.personalMobileNumber,
+					Company_E_Mail: employee.email || "",
+					Personal_E_Mail: employee.personalEmail || "",
+					Bank_Name:
+						employee.employeepaymentdetail?.dataValues?.bankmaster?.dataValues
+							?.bankName || "",
+					Account_No:
+						employee.employeepaymentdetail?.dataValues?.paymentAccountNumber ||
+						"",
+					SBUCode: employee.sbumaster?.dataValues?.code || "",
+					Mobile_Phone_No: employee.officeMobileNumber || "",
+					Location_Code:
+						employee.companylocationmaster?.dataValues?.citymaster?.dataValues
+							?.cityName,
+					First_Name: employee.name || "",
+					Qualification_Code:
+						employee.employeeeducationdetails.length > 0
+							? employee.employeeeducationdetails[0].educationSpecialisation
+							: "", //"EDUCATION",
+					Gender:
+						employee.employeebiographicaldetail?.gender === "Male"
+							? 2
+							: employee.employeebiographicaldetail?.gender === "Female"
+								? 1
+								: 3,
+					GenderSpecified: employee.employeebiographicaldetail?.gender
+						? true
+						: false,
+					Confirmation_Date:
+						employee.employeejobdetail?.dataValues?.confirmationDate || "",
+					Confirmation_DateSpecified: employee.employeejobdetail?.dataValues
+						?.confirmationDate
+						? true
+						: false,
+					Marital_Status:
+						employee.employeebiographicaldetail?.dataValues?.maritalStatus,
+					Marital_StatusSpecified: employee.employeebiographicaldetail
+						?.dataValues?.maritalStatus
+						? true
+						: false,
+					Entitlement_to_ESI: employee.dataValues?.employeejobdetail
+						?.esicApplicable
+						? true
+						: false,
+					Entitlement_to_ESISpecified: true, // fixed
+					Is_Confirmed: true,
+					Is_ConfirmedSpecified: employee.employeejobdetail?.dataValues
+						?.confirmationDate
+						? true
+						: false,
+					Probation_Status: 0,
+					Probation_StatusSpecified: true,
+					HR_Admin: true,
+					HR_AdminSpecified: true,
+					SUBBU_Code: employee.costcentermaster?.dataValues?.costCenterCode,
+					Employee_Band:
+						employee.employeejobdetail?.dataValues?.grademaster?.dataValues
+							?.gradeName || "",
 				};
 			});
 
@@ -2305,7 +2319,6 @@ class ThirdPartyController {
 				message: "Successfully loaded all employees data",
 				employee_data: manipulatedData,
 			});
-
 		} catch (error) {
 			console.error(error);
 			return respHelper(res, {
@@ -2313,7 +2326,6 @@ class ThirdPartyController {
 			});
 		}
 	}
-
 }
 
 export default new ThirdPartyController();

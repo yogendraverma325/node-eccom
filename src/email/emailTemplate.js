@@ -5004,7 +5004,7 @@ export default {
 	//ritak address approval start
 	addressDetailsAdminActionMail,
 	addressDetailsApprovalRequestMail,
-  compOffMail,
+	compOffMail,
 	compOffMailAppval,
 	//ritak address approval end
 };
