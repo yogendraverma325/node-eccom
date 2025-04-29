@@ -860,6 +860,8 @@ class AttendanceController {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 					attendanceAutoId: result.attendanceAutoId,
+					attendanceDate: { [Op.lte]: result.fromDate },
+					attendanceShiftEndDate: { [Op.gte]: result.toDate }
 				},
 				attributes: [
 					"attendancePunchInTime",
@@ -915,46 +917,41 @@ class AttendanceController {
 				});
 			}
 
-			// handle shift start time and shift end time with grace and pre and post buffer time
-			
-			if(attendanceData.dataValues.attendancePolicymaster && attendanceData.dataValues.shiftsmaster) {
-                let attendancePolicyDetails = attendanceData?.dataValues?.attendancePolicymaster?.dataValues;
-				let shiftDetails = attendanceData?.dataValues?.shiftsmaster?.dataValues;
+			// handle shift start time and shift end time with grace, pre and post buffer time
 
-				if(attendancePolicyDetails && shiftDetails) {
-					const shiftStartWithGrace = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
-					.add(attendancePolicyDetails.graceTimeClockIn, "minutes").format("HH:mm:ss");
-					// console.log("shiftStartWithGrace",shiftStartWithGrace);
+			let attendancePolicyDetails = attendanceData?.dataValues?.attendancePolicymaster?.dataValues || "";
+			let shiftDetails = attendanceData?.dataValues?.shiftsmaster?.dataValues || "";
 
-					const preShiftStart = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
-					.subtract(attendancePolicyDetails.bufferTimePre, "minutes").format("HH:mm:ss");
-					// console.log("preShiftStart",preShiftStart)
+			if(attendancePolicyDetails && shiftDetails) {
+				const shiftStartWithGrace = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
+				.add(attendancePolicyDetails.graceTimeClockIn, "minutes").format("HH:mm:ss");
+				// console.log("shiftStartWithGrace",shiftStartWithGrace);
 
-					if(result.punchInTime < preShiftStart || result.punchInTime > shiftStartWithGrace) {
-						console.log("you are not able to regularize");
-					}
+				const preShiftStart = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
+				.subtract(attendancePolicyDetails.bufferTimePre, "minutes").format("HH:mm:ss");
+				// console.log("preShiftStart",preShiftStart)
 
-					if(parseInt(shiftDetails.isOverNight) === 1) {
-						const postShiftEnd = moment(shiftDetails.shiftEndTime, "HH:mm:ss")
-						.add(attendancePolicyDetails.bufferTimePost, "minutes").format("HH:mm:ss");
-						console.log("postShiftEnd", postShiftEnd);
-						console.log("punchOutTime", result.punchOutTime);
-						if(result.punchOutTime > postShiftEnd) {
-							console.log("you are not able to regularize with isOverNight");
-						}
-						else {
-						  console.log("regularize success with isOverNight");
-						}
-					}
-					else {
-						console.log("regularize success");
-					}
+				if(result.punchInTime < preShiftStart || result.punchInTime > shiftStartWithGrace) {
+					// console.log("you are not able to regularize");
+					return respHelper(res, {
+						status: 400,
+						msg: "Invalid punchIn/punchOut time",
+					});
 				}
 
+				const postShiftEnd = moment(shiftDetails.shiftEndTime, "HH:mm:ss")
+					.add(attendancePolicyDetails.bufferTimePost, "minutes").format("HH:mm:ss");
+					// console.log("postShiftEnd", postShiftEnd);
+					// console.log("punchOutTime", result.punchOutTime);
+
+				if((parseInt(shiftDetails.isOverNight) === 1) && result.punchOutTime > postShiftEnd) {
+					// console.log("you are not able to regularize with isOverNight");
+					return respHelper(res, {
+						status: 400,
+						msg: "Invalid punch out time",
+					});
+				}
 			}
-
-			return false
-
 
 			if (
 				attendanceData.dataValues.latest_Regularization_Request.length != 0 &&
