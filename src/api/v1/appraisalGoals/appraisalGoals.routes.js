@@ -1,5 +1,5 @@
 import Express from "express";
-import appraisalGoalsController from "../appraisalGoals/appraisalGoals.controller.js";
+import appraisalGoalsController from "../appraisalGoals/appraisalGoals.controller.js"
 import multer from "multer";
 import authentication from "../../../middleware/authentication.js";
 import authorization from "../../../middleware/authorization.js";

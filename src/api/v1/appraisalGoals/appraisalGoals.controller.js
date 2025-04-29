@@ -11,7 +11,6 @@ import path from "path";
 import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
 
-
 class AppraisalGoalsController {
 	async createGoalPlan(req, res) {
 		try {
@@ -77,7 +76,9 @@ class AppraisalGoalsController {
 					...subGoalAttributesWithGoalId,
 				];
 
-				await db.goalAttributesMapping.destroy({where:{appraisalGoalId: createGoal.appraisalGoalId}})
+				await db.goalAttributesMapping.destroy({
+					where: { appraisalGoalId: createGoal.appraisalGoalId },
+				});
 				await db.goalAttributesMapping.bulkCreate(mergeGoalAndSubGoals);
 			}
 
@@ -321,17 +322,28 @@ class AppraisalGoalsController {
 	async activeGoalPlan(req, res) {
 		try {
 			const { appraisalGoalId } = req.body;
-			const changeDraftToActive = await db.appraisalGoalsMaster.update(
-				{ type: 1 },
-				{
-					where: { appraisalGoalId: appraisalGoalId },
-				},
-			);
-			return respHelper(res, {
-				status: 200,
-				data: {},
-				msg: message.APPRAISAL.GOAL_ACTIVE,
+
+			const getAlreadyActivePlan = await db.appraisalGoalsMaster.findOne({
+				where: { type: 1, isDeleted: 0 },
 			});
+			if (getAlreadyActivePlan) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.GOAL_ALREADY_ACTIVATED,
+				});
+			} else {
+				const changeDraftToActive = await db.appraisalGoalsMaster.update(
+					{ type: 1 },
+					{
+						where: { appraisalGoalId: appraisalGoalId },
+					},
+				);
+				return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: message.APPRAISAL.GOAL_ACTIVE,
+				});
+			}
 		} catch (error) {
 			console.log(error);
 			if (error.isJoi === true) {
@@ -923,6 +935,7 @@ class AppraisalGoalsController {
 					goalPlanId: appraisalGoalId,
 					userId: forEmp, //req.userId,
 					isActive: [0, 1, 2],
+					isDeleted: 0,
 				},
 				include: [
 					{
@@ -1025,6 +1038,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "Completed",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1032,6 +1046,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "Not Started",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1039,6 +1054,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "In Progress",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1046,6 +1062,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "On Hold",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1053,6 +1070,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "Delayed",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1060,6 +1078,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "At Risk",
+						isDeleted: 0,
 					},
 				}),
 			]);
@@ -1444,7 +1463,9 @@ class AppraisalGoalsController {
 
 			try {
 				//const userId = req.userId;
-				const getManagerId = await db.employeeMaster.findOne({ where: {id: empId} });
+				const getManagerId = await db.employeeMaster.findOne({
+					where: { id: empId },
+				});
 
 				// 🔁 Collect all goalAreaIds from request
 				const goalAreaIds = existingGoals.map((goal) => goal.goalAreaId);
@@ -1551,43 +1572,19 @@ class AppraisalGoalsController {
 								taskName: "Pragati Approval",
 								level: 1,
 								pendingAt: getManagerId ? getManagerId?.manager : null, //req.userData?.manager || null,
+								createdBy:req.userId,
+								createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 							},
 							{ transaction },
 						);
 					} else {
 						let buttonStatus = 0;
 
-						// const allGoals = await db.goalAreaForUser.findAll({
-						//   where: {
-						// 	isActive: [0, 1, 2],
-						// 	userId: req.userId,
-						// 	goalPlanId: goalPlanId,
-						// 	isDeleted: 0,
-						//   },
-						// });
-
-						// if (allGoals.length > 0) {
-						//   const draftExists = allGoals.some((goal) => goal.isActive === 0);
-
-						//   if (!draftExists) {
-						// 	const submittedCount = allGoals.filter(
-						// 	  (goal) => goal.isActive === 1,
-						// 	).length;
-						// 	const actionTakenCount = allGoals.filter(
-						// 	  (goal) => goal.isActive === 2,
-						// 	).length;
-
-						// 	if (submittedCount === allGoals.length) {
-						// 	  buttonStatus = 1; // All submitted
-						// 	} else if (actionTakenCount === allGoals.length) {
-						// 	  buttonStatus = 2; // All action taken
-						// 	}
-						//   }
-						// }
-
 						await db.goalAreaPragatiTrail.update(
 							{
 								isApproved: 0,
+								createdBy:req.userId,
+								createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 								updatedBy: req.userId, //userId,
 								updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 								pendingAt: getManagerId ? getManagerId?.manager : null, //req.userData?.manager || null,
@@ -1849,7 +1846,7 @@ class AppraisalGoalsController {
 				where: {
 					goalPlanId: goalPlanId,
 					userId: userId,
-					//isDeleted:0
+					isDeleted:0
 					//isActive: [0, 1],
 				},
 				include: [
@@ -1871,7 +1868,7 @@ class AppraisalGoalsController {
 						userId: userId,
 						goalPlanId: goalPlanId,
 						// isActive: 0,
-						// isDeleted: 0,
+						 isDeleted: 0
 					},
 				})) || 0;
 

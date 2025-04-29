@@ -153,7 +153,8 @@ const message = {
 		GOAL_EDIT_SAVE:"Your changes saved Successfully",
 		GOAL_APPROVED:"Goal Successfully Approved",
 		GOAL_REJECTED:"Goal Successfully Rejected",
-		GOAL_RECALLED: "Goal Recalled Successfully"
+		GOAL_RECALLED: "Goal Recalled Successfully",
+		GOAL_ALREADY_ACTIVATED: "You Already Have an Active Goal Plan.",
 	}
 
 };
