@@ -9,6 +9,7 @@ import Employee from "../../model/Employee.js";
 import paymentHelper from "./paymentHelper.js";
 import helper from "../../../helper/helper.js";
 import Sequelize from "sequelize";
+import { parse } from "dotenv";
 import xlsx from "json-as-xlsx";
 import { fileURLToPath } from "url"; // Import for resolving __dirname equivalent
 import emailTemplate from "../../../email/emailTemplate.js";
@@ -40,6 +41,8 @@ import Constant from "../../../constant/messages.js";
 import service from "./payment.service.js";
 import Pagination from "../../../helper/pagination.js";
 import logger from "../../../helper/logger.js";
+import { exit } from "process";
+import { checkPrimeSync } from "crypto";
 // import puppeteer from "puppeteer";
 
 //import moment, { now } from "moment";
@@ -1800,7 +1803,7 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
-			let isActive = req.query.isActive?parseInt(req.query.isActive):1;
+			let isActive = req.query.isActive ? parseInt(req.query.isActive) : 1;
 
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
@@ -3572,9 +3575,6 @@ class PaymentController {
 				processId,
 			} = req.query;
 
-			console.log(req.query);
-			// return;
-
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
 			if (fileNameType === "1") {
@@ -3591,27 +3591,25 @@ class PaymentController {
 			console.log(req.query);
 
 			const sheetName = {
-				"TDS Deduction Sample": 1,
-				"LOP Deduction Sample": 2,
-				"Extra Payment Sample": 3,
-				"Standard Deduction Sample": 4,
-				"Salary Structure Component": 5,
-				"Processed Employee": 6,
-				"In Process Employee": 7,
-				"Total Employee": 8,
-				"Available Employee": 9,
-				"LOP Impacted Employees": 10,
-				"Extra Payment Impacted Employees": 11,
-				"Extra Deduction Impacted Employees": 12,
-				"TDS Impacted Employees": 13,
-				"Total Processed": 14,
-				"Successfully Processed": 15,
-				"Failed in Process": 16,
-				"Extra Benefit Sample": 17,
-				"Leave Encashment Sample": 18,
-				"Gratuity Sample": 19,
-				"PaySlip Released": 20,
-				"PaySlip Generated": 21,
+				"Processed Employee": 106,
+				"In Process Employee": 107,
+				"Total Employee": 108,
+				"Available Employee": 109,
+				"LOP Impacted Employees": 110,
+				"Extra Payment Impacted Employees": 111,
+				"Extra Deduction Impacted Employees": 112,
+				"TDS Impacted Employees": 113,
+				"Total Processed": 114,
+				"Successfully Processed": 115,
+				"Failed in Process": 116,
+				"PaySlip Released": 117,
+				"PaySlip Generated": 118,
+				"Gratuity Sample": 119,
+				"Extra Benefit Sample": 120,
+				"Leave Encashment Sample": 121,
+				"PT Overrides": 122,
+				"LWF Overrides": 123,
+				"Notice Period Recovery": 124,
 			};
 
 			const getKeyByValue = async (value) => {
@@ -3675,13 +3673,12 @@ class PaymentController {
 			let employeeData = [];
 			if (
 				salalryStructureAutoId == 0 &&
-				[6, 20, 21].includes(Number(exportSheetAutoId))
+				[106, 117, 118].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
 				const employeeIdss = employeeIds.split(",");
 				console.log(employeeIds);
-				query = `
-        SELECT name,empCode FROM ${dbName}.employee where id in (${employeeIdss})`;
+				query = `SELECT name,empCode FROM ${dbName}.employee where id in (${employeeIdss})`;
 
 				if (query) {
 					const [results] = await db.sequelize.query(query, { raw: true });
@@ -3692,32 +3689,49 @@ class PaymentController {
 
 			if (
 				salalryStructureAutoId == 0 &&
-				[10, 11, 12, 13, 14, 15, 16].includes(Number(exportSheetAutoId))
+				[
+					110, 111, 112, 113, 114, 115, 116, 119, 120, 121, 122, 123, 124,
+				].includes(Number(exportSheetAutoId))
 			) {
 				let query = "";
-				const employeeIdss = employeeIds.split(","); // [employeeIds];
-				// employeeIdss.map(id => `'${id}'`).join(', ')
-				// console.log(employeeIdss);
-
-				//return
+				const employeeIdss = employeeIds.split(",");
 				const impactedEmployeeQueryObject = {
-					10: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
+					110: `SELECT empCode as EmployeeId , lopDays as "LOP Days" FROM ${dbName}.lopdeductions where lopMonth ='${payMonth}' and empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
-					11: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extrapayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
+					111: `SELECT paymentAmount as "Extra Payment Amount",empCode as EmployeeId FROM ${dbName}.extraPayment where paymentMonth='${payMonth}' and  empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")});`,
-					12: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where empCode in(${employeeIdss
+					112: `SELECT empCode AS EmployeeId ,SUM(deductionAmount) AS TotalDeductionAmount FROM ${dbName}.extradeductions where empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")}) and startMonth='${payMonth}' GROUP BY empCode;`,
-					13: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM ${dbName}.tdsdeductions where empCode in(${employeeIdss
+					113: `SELECT empCode as EmployeeId, tdsAmount as 'TDS Amount' FROM ${dbName}.tdsdeductions where empCode in(${employeeIdss
 						.map((id) => `'${id}'`)
 						.join(", ")}) and tdsMonth='${payMonth}';`,
-					14: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
-					15: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
-					16: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+					114: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId};`,
+					115: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (2);`,
+					116: `SELECT  p.payRemark as Remark, e.empCode as EmployeeId FROM ${dbName}.payprocessdetails p JOIN ${dbName}.employee e ON p.EmployeeId = e.id WHERE p.proceessId = ${processId} AND p.payStatus IN (101);`,
+					119: `SELECT gratuityYears as "Gratuity Years",empCode as EmployeeId FROM ${dbName}.gratuityoverrides where empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
+					120: `SELECT benefitAmount as "Extra Benefit Amount",empCode as EmployeeId FROM ${dbName}.extrabenefit where  empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
+					121: `SELECT leaveEncashmentDays as "LEAVE ENCASHMENT DAYS",empCode as EmployeeId FROM ${dbName}.leavencashmentoverrides where  empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
+					122: `SELECT ptAmount as "PT Amount",empCode as EmployeeId FROM ${dbName}.ptoverrides where ptMonth='${payMonth}' AND empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
+					123: `SELECT lwfAmount as "LWF Amount",empCode as EmployeeId FROM ${dbName}.lwfoverrides where lwfMonth='${payMonth}' AND empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
+					124: `SELECT recoveryDays as "Notice Period Recovery Days",empCode as EmployeeId FROM ${dbName}.noticerecoveryovrrides where empCode in(${employeeIdss
+						.map((id) => `'${id}'`)
+						.join(", ")});`,
 				};
 				query = impactedEmployeeQueryObject[exportSheetAutoId];
+				console.log(query);
 				if (query) {
 					const [results] = await db.sequelize.query(query, { raw: true });
 					employeeData = results;
@@ -3794,7 +3808,7 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[6, 7, 8, 9, 20, 21].includes(Number(exportSheetAutoId))
+				[106, 107, 108, 109, 117, 118].includes(Number(exportSheetAutoId))
 			) {
 				console.log("File is getting ready.....");
 				const data = [
@@ -3825,36 +3839,65 @@ class PaymentController {
 			} else if (
 				getColumns.length == 0 &&
 				salalryStructureAutoId == 0 &&
-				[10, 11, 12, 13, 14, 15, 16].includes(Number(exportSheetAutoId))
+				[
+					110, 111, 112, 113, 114, 115, 116, 119, 120, 121, 122, 123, 124,
+				].includes(Number(exportSheetAutoId))
 			) {
 				const columnsFroExcel = {
-					10: [
+					110: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Lop Days", value: "LOP Days" },
 					],
-					11: [
+					111: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Extra Amount", value: "Extra Payment Amount" },
 					],
-					12: [
+					112: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Deduction Amount", value: "TotalDeductionAmount" },
 					],
-					13: [
+					113: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "TDS Amount", value: "TDS Amount" },
 					],
-					14: [
+					114: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
 					],
-					15: [
+					115: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
 					],
-					16: [
+					116: [
 						{ label: "Employee Code", value: "EmployeeId" },
 						{ label: "Remark", value: "Remark" },
+					],
+					119: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "Gratuity Years", value: "Gratuity Years" },
+					],
+					120: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "Extra Benefit Amount", value: "Extra Benefit Amount" },
+					],
+					121: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "LEAVE ENCASHMENT DAYS", value: "LEAVE ENCASHMENT DAYS" },
+					],
+					122: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "PT Amount", value: "PT Amount" },
+					],
+					123: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{ label: "LWF Amount", value: "LWF Amount" },
+					],
+					124: [
+						{ label: "Employee Code", value: "EmployeeId" },
+						{
+							label: "Notice Period Recovery Days",
+							value: "Notice Period Recovery Days",
+						},
 					],
 				};
 
@@ -3896,9 +3939,7 @@ class PaymentController {
 
 	async exportSampleV2(req, res) {
 		try {
-			console.log("LOP Sample Download....")
 			const { exportSheetAutoId } = req.query;
-
 			let fileNameType = req.query.fileNameType || "";
 			let customSheetName = "";
 			if (fileNameType === "1") {
@@ -3917,7 +3958,12 @@ class PaymentController {
 				"Delete LOP Deduction Sample": 9,
 				"Delete Extra Payment Sample": 10,
 				"Delete Standard Deduction Sample": 11,
-				
+				"Gratuity Sample": 12,
+				"Extra Benefit Sample": 13,
+				"Leave Encashment Sample": 14,
+				"PT Overrides": 15,
+				"LWF Overrides": 16,
+				"Notice Period Recovery": 17,
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -3927,6 +3973,8 @@ class PaymentController {
 			};
 			let sheetVal = await getKeyByValue(exportSheetAutoId);
 			sheetVal = customSheetName ? customSheetName : sheetVal;
+
+			console.log("sheetVal :: ", sheetVal);
 			// Check for required exportSheetAutoId
 			if (!exportSheetAutoId) {
 				return res.status(400).json({
@@ -4010,7 +4058,12 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11].includes(Number(exportSheetAutoId))) {
+			} else if (
+				getColumns.length > 0 &&
+				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].includes(
+					Number(exportSheetAutoId),
+				)
+			) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
 				const columns = headers.map((value) => ({
@@ -5130,6 +5183,8 @@ class PaymentController {
 				totalArrearDays: salaryDetails[0]?.paySlipArrearDays,
 				providentFund: employee?.employeejobdetail?.pfNumber || "N.A",
 				esicNo: employee?.employeejobdetail?.esicNumber || "N.A",
+				encashmentDays: salaryDetails[0]?.encashmentDays || "N.A",
+				recoveryDays: salaryDetails[0]?.recoveryDays || "N.A",
 			};
 
 			//const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
@@ -5873,8 +5928,12 @@ const groupByEmployeeId = (data) => {
 			groupedData[employeeId] = {
 				"Employee Id": employeeId, //1
 				"Employee Name": item["Employee Name"], //2
-				"Date of Joining": item["Date of Joining"], //3
-				"Exit Date": item["Exit Date"], //4
+				"Date of Joining": item["Date of Joining"]
+					? moment(item["Date of Joining"]).format("YYYY-MM-DD")
+					: "N/A", //3
+				"Exit Date": item["Exit Date"]
+					? moment(item["Exit Date"]).format("YYYY-MM-DD")
+					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
 				"Arrears Days": item["Arrears Days"], //7

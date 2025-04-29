@@ -3,11 +3,6 @@ import ThirdPartyController from "../master/thirdparty.controller.js";
 import authentication from "../../../middleware/authentication.js";
 import authorization from "../../../middleware/authorization.js";
 
-export default Express.Router().post(
-	"/employeeData",
-	ThirdPartyController.employeeData,
-)
-.post(
-	"/internalDataSync",
-	ThirdPartyController.internalDataSync,
-)
+export default Express.Router()
+	.post("/employeeData", ThirdPartyController.employeeData)
+	.post("/internalDataSync", ThirdPartyController.internalDataSync);

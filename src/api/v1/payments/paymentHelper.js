@@ -1,5 +1,6 @@
-import { Sequelize } from "sequelize";
+import { Op, Sequelize, where } from "sequelize";
 import db from "../../../config/db.config.js";
+import { parse } from "dotenv";
 import moment from "moment";
 
 const dbName = process.env.DB_NAME;

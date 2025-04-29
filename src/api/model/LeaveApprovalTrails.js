@@ -47,6 +47,12 @@ export default (sequelize, Sequelize) => {
 		employeeId: {
 			type: Sequelize.INTEGER,
 		},
+		creatorRole: {
+			type: Sequelize.STRING,
+		},
+		updatorRole: {
+			type: Sequelize.STRING,
+		},
 	});
 	return leaveApprovalTrails;
 };
