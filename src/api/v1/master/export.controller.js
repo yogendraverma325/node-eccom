@@ -7481,7 +7481,7 @@ class MasterController {
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
-				const resultData = 	getColumnsForSalary(result);
+				const resultData = getColumnsForSalary(result);
 				// const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
 				const resultColumns = Object.fromEntries(
 					resultData.map((key) => [key, 0]),
@@ -7960,7 +7960,7 @@ const transformData = (data) => {
 				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
-			"Date Of Joining" :employee.employeejobdetail.dateOfJoining
+			"Date Of Joining": employee.employeejobdetail.dateOfJoining,
 		};
 
 		// employee.packageDetails.empPayElements.forEach((element) => {
@@ -7996,7 +7996,7 @@ const transformData = (data) => {
 
 		transformedObj["Gross Pay"] = grossCTC;
 		transformedObj["Monthly CTC"] = totalCTC;
-		transformedObj["Annual CTC"] = totalCTC*12;
+		transformedObj["Annual CTC"] = totalCTC * 12;
 		return transformedObj;
 	});
 };
@@ -8264,7 +8264,7 @@ function getColumnsForSalary(processedData) {
 			"Company Name",
 		],
 		middleArray = [],
-		lastArray = ["Gross Pay","Monthly CTC","Annual CTC"];
+		lastArray = ["Gross Pay", "Monthly CTC", "Annual CTC"];
 	for (const element of uniqueKeys) {
 		if (!preArray.includes(element) && !lastArray.includes(element)) {
 			middleArray.push(element);
