@@ -366,7 +366,7 @@ const hrPolicySchema = Joi.object({
 	name: Joi.string().trim().label("Policy Name"),
 	category_id: Joi.number().integer().allow(null).label("Category ID"),
 	policyDocument: Joi.string().allow(null).allow('').optional().label('Policy Document'),
-	visibility: Joi.string().allow(null, '').label("Visibility"),
+	selectedUsers: Joi.string().allow(null, '').label("Selected Users"),
 	sign_off_enabled: Joi.number().valid(0, 1).default(0).label("Sign Off Enabled"),
 	sign_off_mandatory: Joi.number().valid(0, 1).default(0).label("Sign Off Mandatory"),
 	allow_decline: Joi.number().valid(0, 1).default(0).label("Allow Decline"),
@@ -381,6 +381,17 @@ const hrPolicySchema = Joi.object({
 	
   });
   
+  const userAssignmentSchema = Joi.object({
+	name: Joi.string().required(),
+	process_id: Joi.number().optional().allow(null),
+	conditions: Joi.array().items(
+		Joi.object({
+			attribute: Joi.string().required(),
+			condition_type: Joi.string().valid("INCLUDE", "EXCLUDE").required(),
+			attribute_values: Joi.array().items(Joi.string()).required(), // ["1", "2", "3"]
+		})
+	).optional(),
+})
 
 //ritak hr policy categories end
 
@@ -418,6 +429,7 @@ export default {
 	// jay end
 	//ritak hr policy categories start
 	hrPolicyCategorySchema,
-	hrPolicySchema
+	hrPolicySchema,
+	userAssignmentSchema
 	//ritak hr policy categories end
 };

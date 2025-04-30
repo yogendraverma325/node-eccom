@@ -32,9 +32,12 @@ cron.schedule("0 * * * *", async () => {
 	}
 });
 
-cron.schedule("* * * * *", async () => {  // 1
-    await cronController.triggerHrPoliciesToUsersCron();
-});
+// cron.schedule("* * * * *", async () => {  // 1
+//     await cronController.triggerHrPoliciesToUsersCron();
+// });
+// cron.schedule("30 23 * * *", async () => {  // 1
+//     await cronController.triggerHrPoliciesToUsersCron();
+// });
 
 // cron.schedule("30 3 * * *", async () => {
 // 	await cronController.leaveActivation();

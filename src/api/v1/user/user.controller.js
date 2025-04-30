@@ -7035,7 +7035,7 @@ class UserController {
                id: req.userId,
                isActive: 1,
            },
-           attributes: ["name", "empCode", "profileImage"],
+           attributes: ["name", "empCode", "profileImage","email"],
            include: [
                {
                    model: db.companyMaster,
@@ -7043,13 +7043,30 @@ class UserController {
                },
            ],
        });
+
        var reqUserRole =req.userData["role.name"];
       
        const isSameDetails = await db.employeeAddress.findOne({
            where: { employeeId: (result.employeeId) ? result.employeeId : req.userId },
        });
-console.log("isSameDetails", isSameDetails);
-    
+		console.log("isSameDetails", isSameDetails);
+		if (!isSameDetails) {
+			let obj = {
+				...result,
+				...{ createdBy: req.userId },
+				...{ createdAt: moment() },
+				...{ employeeId: req.userId },
+				...{ isActive: 1 },
+			};
+	
+			await db.employeeAddress.create(obj);
+	
+			return respHelper(res, {
+				status: 200,
+				msg: constant.INSERT_SUCCESS,
+			});
+		   }
+
            if (
                isSameDetails.currentHouse === result.currentHouse &&
                isSameDetails.currentStreet === result.currentStreet &&
@@ -7155,11 +7172,12 @@ console.log("isSameDetails", isSameDetails);
                    where: { employeeId: req.userId },
                });
 
+			   console.log("existUser.email", existUser);
 
                eventEmitter.emit(
                    "addressDetailsApprovalRequestMail",
                    JSON.stringify({
-                       email: result.email,
+                       email: existUser.email,
                        name: existUser.name,
                        senderEmail: existUser["companymaster.senderEmail"],
                        companyLogo: existUser["companymaster.companyLogo"],
@@ -7243,7 +7261,9 @@ async fetchHrPolicyByEmpId(req, res) {
 						}
 					]
 				}
-			]
+			],
+			order: [[db.hrPolicies, 'updatedAt', 'DESC']] // 👈 Sort by newest
+
 		});
 
 		if (!unsignedPolicies.length && !signedPolicies.length) {
@@ -7275,58 +7295,78 @@ async fetchHrPolicyByEmpId(req, res) {
   
 async acknowledgeHrPolicy(req, res) {
     try {
-        const { policyId, action , declineReason} = req.body; // Expecting policyId and action (signed/declined)
-        const userId = req.userId; // Get the userId from the authenticated user
+        let { policyId, action, declineReason } = req.body;
+        const userId = req.userId;
 
         // Validate the action
-        if (action !== 'signed' && action !== 'declined' && action !== 'viewed') {
+        if (!['signed', 'declined', 'viewed'].includes(action)) {
             return respHelper(res, {
                 status: 400,
-                msg: "Invalid action. Only 'signed' or 'declined' or 'viewed' are allowed.",
+                msg: "Invalid action. Only 'signed', 'declined', or 'viewed' are allowed.",
             });
         }
 
-        // Check if the policy exists
-        const policyExists = await db.hrPolicies.findOne({
-            where: { id: policyId },
-        });
-
-        if (!policyExists) {
+		if (!policyId || policyId === 'null') {
             return respHelper(res, {
                 status: 400,
-                msg: "HR Policy does not exist.",
+                msg: "Policy ID is required.",
             });
         }
+        // Normalize policyId to an array
+        let policyIds = [];
+		console.log("policyId",typeof(policyId));
+        if (typeof policyId === 'string') {
+            // If policyId has commas, split it into an array, else handle as a single ID
+            policyIds = policyId.split(',').map(id => id.trim()).filter(id => id);
+        } else {
+            policyIds = [policyId];
+        }
 
-        // Check if a pending policy signoff exists
-        let policySignoff = await db.hrPolicySignoffs.findOne({
-            where: {
-                hr_policy_id: policyId,
-                user_id: userId,
-            },
-        });
+        // If the policyIds array is empty after splitting, return an error
+        if (policyIds.length === 0) {
+            return respHelper(res, {
+                status: 400,
+                msg: "No valid policy IDs provided.",
+            });
+        }
 
         const now = moment().format("YYYY-MM-DD HH:mm:ss");
 
-           
+        for (const id of policyIds) {
+            // Check if the policy exists
+            const policyExists = await db.hrPolicies.findOne({ where: { id } });
+            if (!policyExists) {
+                continue; // Skip invalid policy
+            }
 
-            // Update the existing record
-            await policySignoff.update({
-				
-				deviceIp: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
-				device: req.headers.source ? req.headers.source : null,						
-                status: action,
-				declineReason: declineReason ? declineReason: '',
-                updated_at: now,
+            // Check for existing signoff
+            let policySignoff = await db.hrPolicySignoffs.findOne({
+                where: {
+                    hr_policy_id: id,
+                    user_id: userId,
+                },
             });
-       					await db.employeeMaster.update(
-							{ showHrPolicyModal: 0 },
-							{ where: { id: userId } }
-						);
+
+            if (policySignoff) {
+                await policySignoff.update({
+                    deviceIp: req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
+                    device: req.headers.source || null,
+                    status: action,
+                    declineReason: declineReason || '',
+                    updated_at: now,
+                });
+            }
+        }
+
+        // Update the flag for the user
+        await db.employeeMaster.update(
+            { showHrPolicyModal: 0 },
+            { where: { id: userId } }
+        );
 
         return respHelper(res, {
             status: 200,
-            msg: `Policy ${action} successfully`,
+            msg: `Policy(ies) ${action} successfully`,
         });
 
     } catch (error) {
@@ -7334,6 +7374,7 @@ async acknowledgeHrPolicy(req, res) {
         return respHelper(res, { status: 500, msg: "Internal server error" });
     }
 }
+
 
   // hr policy for User end
 }

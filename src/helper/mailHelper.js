@@ -626,9 +626,9 @@ async function releasePaySlip(input) {
 async function addressDetailsApprovalRequestMail(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>", userData);
+		console.log("userData>>>>>111", userData.email);
 		await helper.mailService({
-			to: process.env.NEW_EMPLOYEE_JOINING,
+			to: userData.email,
 			subject: `Your profile update request has been submitted for approval of Address Details`,
 			html: await emailTemplate.addressDetailsApprovalRequestMail(userData),
 			senderEmail: userData.senderEmail,

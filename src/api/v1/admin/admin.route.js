@@ -95,11 +95,11 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.updateEmergencyContact,
 	)
-	.post(
-		"/updateAddress",
-		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-		commonController.updateAddress,
-	)
+	// .post(
+	// 	"/updateAddress",
+	// 	authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+	// 	commonController.updateAddress,
+	// )
 	.get(
 		"/getSalutation",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
@@ -292,5 +292,24 @@ export default Express.Router()
 			"/hrPolicy/:id",
 			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 			commonController.deleteOfHrPolicy,
-		);
+		)
+
+		.post(
+			"/user-assignment/createUserAssignment",
+			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+			commonController.createUserAssignment,
+		)
+		.put(
+			"/user-assignment/editUserAssignment/:id",
+			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+			commonController.editUserAssignment,
+		)
+		.get("/user-assignment/assignment-list", commonController.getUserAssignmentList)
+
+		.get("/user-assignment/process-list", commonController.getUserAssignmentProcessList)
+		.get("/user-assignment/attribute-list", commonController.getUserAssignmentAttributeList)
+		.get("/user-assignment/attribute-data/:attribute", commonController.getUserAssignmentAttributeData)
+
+		.get("/user-assignment/employees/:id/", commonController.exportEmployeesByUserAssignmentId)
+
 //ritak Hr Policy end

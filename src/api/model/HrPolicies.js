@@ -21,7 +21,7 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TEXT,
 			allowNull: true,
 		},
-		visibility: {
+		selectedUsers: {
 			type: Sequelize.TEXT,
 			allowNull: true,
 		},

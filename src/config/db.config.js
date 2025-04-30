@@ -193,6 +193,11 @@ import HrPolicyCategories from "../api/model/HrPolicyCategories.js";
 import HrPolicies from "../api/model/HrPolicies.js";
 import HrPolicySignoffs from "../api/model/HrPolicySignoffs.js";
 
+import user_assignment from "../api/model/user_assignment.js";
+import user_assignment_process_master from "../api/model/user_assignment_process_master.js";
+import user_assignment_condition from "../api/model/user_assignment_condition.js";
+import user_assignment_attribute_master from "../api/model/user_assignment_attribute_master.js";
+
 //ritak Hr Policy end
 
 
@@ -490,7 +495,10 @@ db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
 db.hrPolicyCategories = HrPolicyCategories(sequelize, Sequelize);
 db.hrPolicies = HrPolicies(sequelize, Sequelize);
 db.hrPolicySignoffs = HrPolicySignoffs(sequelize, Sequelize);
-
+db.user_assignment = user_assignment(sequelize, Sequelize);
+db.user_assignment_process_master = user_assignment_process_master(sequelize, Sequelize);
+db.user_assignment_attribute_master=user_assignment_attribute_master(sequelize, Sequelize);
+db.user_assignment_condition=user_assignment_condition(sequelize, Sequelize);
 //ritak Hr Policy end
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
@@ -2211,6 +2219,17 @@ db.hrPolicyCategories.hasMany(db.hrPolicies, {
 	foreignKey: 'user_id',
 	targetKey: 'id',
   });
+  db.user_assignment.belongsTo(db.user_assignment_process_master, {
+	foreignKey: 'process_id',
+	as: 'process',
+});db.user_assignment_condition.belongsTo(db.user_assignment, { foreignKey: 'user_assignment_id' });
+db.user_assignment_condition.belongsTo(db.user_assignment_attribute_master, {
+	foreignKey: 'attribute_id',
+	as: 'attribute',
+});db.user_assignment.hasMany(db.user_assignment_condition, {
+	foreignKey: 'user_assignment_id',
+	as: 'conditions',
+});
 //ritak Hr Policy end
 
 export default db;
