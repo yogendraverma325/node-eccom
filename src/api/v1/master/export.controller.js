@@ -7479,7 +7479,7 @@ class MasterController {
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
-				const resultData = getColumnsForSalary(result);
+				const resultData = 	getColumnsForSalary(result);
 				// const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
 				const resultColumns = Object.fromEntries(
 					resultData.map((key) => [key, 0]),
@@ -8258,10 +8258,9 @@ function getColumnsForSalary(processedData) {
 			"Department",
 			"Business Unit",
 			"Company Name",
-			"Gross Pay",
 		],
 		middleArray = [],
-		lastArray = ["Total CTC"];
+		lastArray = ["Gross Pay","Total CTC"];
 	for (const element of uniqueKeys) {
 		if (!preArray.includes(element) && !lastArray.includes(element)) {
 			middleArray.push(element);
