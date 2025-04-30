@@ -7459,7 +7459,12 @@ class MasterController {
 								include: [
 									{
 										model: db.salaryComponent,
-										attributes: ["salaryComponentCode", "salaryComponentAlias"],
+										attributes: [
+											"salaryComponentCode",
+											"salaryComponentAlias",
+											"salaryComponentSequenceNo",
+											"includeInPackage",
+										],
 									},
 								],
 							},
@@ -7470,18 +7475,22 @@ class MasterController {
 			});
 
 			// console.log(employeeDataExisting);
-			// return;
+			//return;
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
-				const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
+				const resultData = getColumnsForSalary(result);
+				// const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
 				const resultColumns = Object.fromEntries(
-					uniqueKeys.map((key) => [key, 0]),
+					resultData.map((key) => [key, 0]),
 				);
+
 				const columns = Object.keys(resultColumns).map((key) => ({
 					label: key,
 					value: key,
 				}));
+
+				// console.log(columns);
 				const data = [
 					{
 						sheet: "Employee",
@@ -7511,7 +7520,6 @@ class MasterController {
 			return res.status(500).send(fileAccessErrorResponse(500));
 		}
 	}
-
 	async salaryGenerated(req, res) {
 		try {
 			const {
@@ -8213,6 +8221,28 @@ function getColumnsForSalaryregister(processedData) {
 	}
 	let finalArray = preArray.concat(middleArray, lastArray);
 	return finalArray;
+}
+
+function getColumnsForSalary(processedData) {
+	const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
+	let preArray = [
+			"Employee ID",
+			"Name",
+			"Job Title",
+			"Department",
+			"Business Unit",
+			"Company Name",
+			"Gross Pay",
+		],
+		middleArray = [],
+		lastArray = ["Total CTC"];
+	for (const element of uniqueKeys) {
+		if (!preArray.includes(element) && !lastArray.includes(element)) {
+			middleArray.push(element);
+		}
+	}
+	let finalarray = preArray.concat(middleArray, lastArray);
+	return finalarray;
 }
 
 export default new MasterController();
