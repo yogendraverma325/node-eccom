@@ -11,12 +11,12 @@ export default (sequelize, Sequelize) => {
 		level: {
 			type: Sequelize.INTEGER,
 		},
-        taskName:{
+		taskName: {
 			type: Sequelize.STRING,
-        },
-        taskRole:{
-            type: Sequelize.STRING,
-        },
+		},
+		taskRole: {
+			type: Sequelize.STRING,
+		},
 		pendingAt: {
 			type: Sequelize.INTEGER,
 		},
@@ -41,9 +41,9 @@ export default (sequelize, Sequelize) => {
 		userId: {
 			type: Sequelize.INTEGER,
 		},
-		role:{
+		role: {
 			type: Sequelize.STRING,
-		}
+		},
 	});
 	return GoalAreaPragatiTrail;
 };

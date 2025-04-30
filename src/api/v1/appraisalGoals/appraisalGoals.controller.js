@@ -972,7 +972,10 @@ class AppraisalGoalsController {
 			});
 
 			if (allGoals.length > 0) {
-				const totalWeightage = allGoals.reduce((sum, goal) => sum + (goal.weightage || 0), 0);
+				const totalWeightage = allGoals.reduce(
+					(sum, goal) => sum + (goal.weightage || 0),
+					0,
+				);
 
 				if (allGoals.some((goal) => goal.isActive === 0)) {
 					buttonStatus = 0; // Draft exists
@@ -1151,7 +1154,10 @@ class AppraisalGoalsController {
 				where: { id: result.empId },
 			});
 			await db.goalAreaPragatiTrail.update(
-				{ isApproved: 0, pendingAt: getManagerId ? getManagerId?.manager : null},
+				{
+					isApproved: 0,
+					pendingAt: getManagerId ? getManagerId?.manager : null,
+				},
 				{
 					where: {
 						pendingAt: req.userId,
@@ -1184,10 +1190,7 @@ class AppraisalGoalsController {
 		try {
 			const { goalAreaId } = req.body;
 			await Promise.all([
-				db.goalAreaForUser.update(
-					{ isDeleted: 1 },
-					{ where: { goalAreaId } },
-				),
+				db.goalAreaForUser.update({ isDeleted: 1 }, { where: { goalAreaId } }),
 				db.subGoalAreaForUser.update(
 					{ isDeleted: 1 },
 					{ where: { goalAreaId } },

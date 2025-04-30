@@ -3776,22 +3776,23 @@ const fetchEmployeeRole = (role, employeeId, actionBy) => {
 };
 
 async function convertEmptyStringsToNull(obj) {
-    if (Array.isArray(obj)) {
-        return Promise.all(obj.map(async (item) => await convertEmptyStringsToNull(item)));
-    } else if (obj && typeof obj === 'object' && obj !== null) {
-        const entries = await Promise.all(
-            Object.entries(obj).map(async ([key, value]) => {
-                const resolvedValue = await Promise.resolve(value); // Resolves the promise
-                return [key, await convertEmptyStringsToNull(resolvedValue)];
-            })
-        );
-        return Object.fromEntries(entries);
-    } else if (obj === '') {
-        return null;
-    }
-    return obj;
+	if (Array.isArray(obj)) {
+		return Promise.all(
+			obj.map(async (item) => await convertEmptyStringsToNull(item)),
+		);
+	} else if (obj && typeof obj === "object" && obj !== null) {
+		const entries = await Promise.all(
+			Object.entries(obj).map(async ([key, value]) => {
+				const resolvedValue = await Promise.resolve(value); // Resolves the promise
+				return [key, await convertEmptyStringsToNull(resolvedValue)];
+			}),
+		);
+		return Object.fromEntries(entries);
+	} else if (obj === "") {
+		return null;
+	}
+	return obj;
 }
-
 
 export default {
 	generateJwtToken,
@@ -3853,6 +3854,5 @@ export default {
 	activeCompOffMoreThanLeave,
 	// Export by jay
 	fetchEmployeeRole,
-	convertEmptyStringsToNull
-
+	convertEmptyStringsToNull,
 };

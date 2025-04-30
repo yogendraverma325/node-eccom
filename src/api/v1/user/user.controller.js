@@ -775,7 +775,7 @@ class UserController {
 				employeeId: req.userId,
 				isApproved: {
 					[Op.notIn]: [2],
-				}
+				},
 			};
 
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
@@ -818,14 +818,14 @@ class UserController {
 
 			const mainCondition1 = {
 				status: "pending",
-				...(user && { employeeId: user })
+				...(user && { employeeId: user }),
 			};
 
 			const leaveApprovalCondition2 = {
 				isVisible: true,
 				pendingOn: req.userId,
 				isApproved: 0,
-				isPending: 1
+				isPending: 1,
 			};
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({

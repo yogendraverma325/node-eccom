@@ -20,34 +20,34 @@ export default (sequelize, Sequelize) => {
 		endDate: {
 			type: Sequelize.STRING,
 		},
-        enableSubGoals:{
-            type: Sequelize.BOOLEAN,
-        },
+		enableSubGoals: {
+			type: Sequelize.BOOLEAN,
+		},
 		userAssignment: {
 			type: Sequelize.INTEGER,
 		},
-        exclusionSetting: {
+		exclusionSetting: {
 			type: Sequelize.INTEGER,
 		},
-		goalPlanApprover:{
+		goalPlanApprover: {
 			type: Sequelize.STRING,
 		},
-		allowEmployeeToAddGoals:{
+		allowEmployeeToAddGoals: {
 			type: Sequelize.BOOLEAN,
 		},
-		allowEmployeeToEditGoals:{
+		allowEmployeeToEditGoals: {
 			type: Sequelize.BOOLEAN,
 		},
-		allowApproverToAddAndEditGoals:{
+		allowApproverToAddAndEditGoals: {
 			type: Sequelize.BOOLEAN,
 		},
-		allowEmployeeAndApproverToDeleteGoals:{
+		allowEmployeeAndApproverToDeleteGoals: {
 			type: Sequelize.BOOLEAN,
 		},
-		allowEmpAndApproverToAddFromPreviousGoalPlan:{
+		allowEmpAndApproverToAddFromPreviousGoalPlan: {
 			type: Sequelize.BOOLEAN,
 		},
-		allowEmpAndApproverToEditSysAssginedIndividualGoals:{
+		allowEmpAndApproverToEditSysAssginedIndividualGoals: {
 			type: Sequelize.BOOLEAN,
 		},
 		createdBy: {
@@ -62,14 +62,12 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		type:{
+		type: {
 			type: Sequelize.INTEGER, // 0=> Draft 1=> Active 2=> Archived
 		},
-        isDeleted: {
+		isDeleted: {
 			type: Sequelize.BOOLEAN,
-		}
-		
+		},
 	});
 	return appraisalGoalsMaster;
 };
-

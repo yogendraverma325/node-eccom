@@ -8,9 +8,9 @@ export default (sequelize, Sequelize) => {
 		userAssignmentAttributeId: {
 			type: Sequelize.STRING,
 		},
-        assignmentId:{
-            type: Sequelize.INTEGER,
-        },
+		assignmentId: {
+			type: Sequelize.INTEGER,
+		},
 		values: {
 			type: Sequelize.STRING,
 		},
@@ -25,7 +25,7 @@ export default (sequelize, Sequelize) => {
 		},
 		updatedAt: {
 			type: Sequelize.DATE,
-		}
+		},
 	});
 	return UserAssignementConfig;
 };
