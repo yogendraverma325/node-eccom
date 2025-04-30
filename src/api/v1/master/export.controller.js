@@ -7960,13 +7960,39 @@ const transformData = (data) => {
 			"Company Name": employee.companymaster.companyName,
 		};
 
-		employee.packageDetails.empPayElements.forEach((element) => {
+		// employee.packageDetails.empPayElements.forEach((element) => {
+		// 	const keyName =
+		// 		element.salarycomponent.salaryComponentAlias ||
+		// 		element.salarycomponent.salaryComponentCode;
+		// 	transformedObj[keyName] = element.payElementAmount;
+		// 	transformedObj['salaryComponentSequenceNo']= element.salaryComponent.salaryComponentSequenceNo;
+		// });
+
+		// First, sort the elements based on salaryComponentSequenceNo
+		const sortedElements = employee.packageDetails.empPayElements.sort(
+			(a, b) =>
+				a.salarycomponent.salaryComponentSequenceNo -
+				b.salarycomponent.salaryComponentSequenceNo,
+		);
+
+		// console.log(sortedElements);
+		let totalCTC = 0,
+			grossCTC = 0;
+		// Then, build the transformedObj in that order
+		sortedElements.forEach((element) => {
 			const keyName =
-				element.salarycomponent.salaryComponentAlias ||
-				element.salarycomponent.salaryComponentCode;
+				element.dataValues.salarycomponent.dataValues.salaryComponentAlias ||
+				element.dataValues.salarycomponent.dataValues.salaryComponentCode;
 			transformedObj[keyName] = element.payElementAmount;
+			// console.log(element.payElementAmount);
+			totalCTC = parseFloat(totalCTC) + parseFloat(element.payElementAmount);
+			if (element.dataValues.salarycomponent.dataValues.includeInPackage == 1) {
+				grossCTC = parseFloat(grossCTC) + parseFloat(element.payElementAmount);
+			}
 		});
 
+		transformedObj["Gross Pay"] = grossCTC;
+		transformedObj["Total CTC"] = totalCTC;
 		return transformedObj;
 	});
 };
