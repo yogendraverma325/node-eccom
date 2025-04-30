@@ -7470,12 +7470,14 @@ class MasterController {
 							},
 						],
 					},
+					{
+						model: db.jobDetails,
+						attributes: ["dateOfJoining"],
+						required: true,
+					},
 				],
 				distinct: true,
 			});
-
-			// console.log(employeeDataExisting);
-			//return;
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
@@ -7958,6 +7960,7 @@ const transformData = (data) => {
 				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
+			"Date Of Joining" :employee.employeejobdetail.dateOfJoining
 		};
 
 		// employee.packageDetails.empPayElements.forEach((element) => {
@@ -7992,7 +7995,8 @@ const transformData = (data) => {
 		});
 
 		transformedObj["Gross Pay"] = grossCTC;
-		transformedObj["Total CTC"] = totalCTC;
+		transformedObj["Monthly CTC"] = totalCTC;
+		transformedObj["Annual CTC"] = totalCTC*12;
 		return transformedObj;
 	});
 };
@@ -8260,7 +8264,7 @@ function getColumnsForSalary(processedData) {
 			"Company Name",
 		],
 		middleArray = [],
-		lastArray = ["Gross Pay","Total CTC"];
+		lastArray = ["Gross Pay","Monthly CTC","Annual CTC"];
 	for (const element of uniqueKeys) {
 		if (!preArray.includes(element) && !lastArray.includes(element)) {
 			middleArray.push(element);
