@@ -2148,7 +2148,7 @@ class CronController {
 				}
 			}
 
-			console.log("employeesBirth:-", employeesBirth.length);
+			//console.log("employeesBirth:-", employeesBirth.length);
 			//console.log("employeesBirth:-", employeesBirth);
 			
 			/// Send Birthday Wishes
@@ -2233,8 +2233,8 @@ class CronController {
 				}
 			}
 
-			console.log("work anniversary Length:-", employees.length);
-			console.log("work anniversary:-", employees);
+			//console.log("work anniversary Length:-", employees.length);
+			//console.log("work anniversary:-", employees);
 			for (const emp of employees) {
 				const empId = emp.id;
 				// Work Anniversary
@@ -2251,9 +2251,9 @@ class CronController {
 						const buhrEmail = emp.buhrData.email;
 						const buHeadEmail = emp.buHeadData.email;
 						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(email => email !== null);
-						console.log("ccEmail:-",ccEmail)
+						//console.log("ccEmail:-",ccEmail)
 						const workDuration  = await helper.getWorkDuration(emp.dateOfJoining);
-						console.log("workDuration:-",workDuration)
+						//console.log("workDuration:-",workDuration)
 
 
 						 eventEmitter.emit(
