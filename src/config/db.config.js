@@ -206,6 +206,7 @@ import GoalAttributesOptions from "../api/model/GoalAttributesOptions.js";
 import GoalAreaForUser from "../api/model/GoalAreaForUser.js";
 import SubGoalAreaForUser from "../api/model/SubGoalAreaForUser.js";
 import GoalAreaPragatiTrail from "../api/model/GoalAreaPragatiTrail.js";
+import PragatiActivity from "../api/model/PragatiActivity.js";
 
 ///////////////////Appraisal/////////////////////////
 
@@ -511,6 +512,7 @@ db.goalAttributesOptions = GoalAttributesOptions(sequelize,Sequelize)
 db.goalAreaForUser = GoalAreaForUser(sequelize,Sequelize)
 db.subGoalAreaForUser = SubGoalAreaForUser(sequelize,Sequelize)
 db.goalAreaPragatiTrail = GoalAreaPragatiTrail(sequelize,Sequelize)
+db.pragatiActivity = PragatiActivity(sequelize,Sequelize)
 // appraisal //
 
 

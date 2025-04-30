@@ -155,6 +155,7 @@ const message = {
 		GOAL_REJECTED:"Goal Successfully Rejected",
 		GOAL_RECALLED: "Goal Recalled Successfully",
 		GOAL_ALREADY_ACTIVATED: "You Already Have an Active Goal Plan.",
+		ARCHIVED_GOAL: "You Can't Submit Archived Goals.",
 	}
 
 };

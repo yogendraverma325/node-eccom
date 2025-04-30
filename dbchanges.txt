@@ -1,3 +1,18 @@
+// --------------------------------------2025-04-29--------------------------------------------------//
+
+CREATE TABLE `tara`.`pragatiactivities` (
+  `activityId` INT NOT NULL AUTO_INCREMENT,
+  `message` VARCHAR(255) NULL,
+  `forUserId` INT NULL DEFAULT NULL,
+  `byUserId` INT NULL DEFAULT NULL,
+  `isRead` INT NULL DEFAULT 0,
+  `createdAt` VARCHAR(45) NULL DEFAULT 'CURRENT_TIMESTAMP',
+  `createdBy` VARCHAR(45) NULL DEFAULT NULL,
+  `updatedAt` VARCHAR(45) NULL DEFAULT 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+  `updatedBy` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`activityId`));
+
+
 // ------------------------------------- 2025-03-21 ---------------------------------------------------//
 ALTER TABLE `tara_hrms_live`.`employee` 
 ADD COLUMN `enableBiometricAttendance` TINYINT NULL DEFAULT 0 AFTER `payrollInclude`,

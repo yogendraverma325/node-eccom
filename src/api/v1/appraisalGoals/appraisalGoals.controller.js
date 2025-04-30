@@ -972,12 +972,15 @@ class AppraisalGoalsController {
 			});
 
 			if (allGoals.length > 0) {
+				const totalWeightage = allGoals.reduce((sum, goal) => sum + (goal.weightage || 0), 0);
+
 				if (allGoals.some((goal) => goal.isActive === 0)) {
 					buttonStatus = 0; // Draft exists
 				} else if (allGoals.some((goal) => goal.isActive === 1)) {
 					buttonStatus = 1; // At least one submitted
 				} else if (allGoals.every((goal) => goal.isActive === 2)) {
-					buttonStatus = 2; // All action taken
+					//buttonStatus = 2; // All action taken
+					buttonStatus = totalWeightage === 100 ? 2 : 0; // All action taken and weightage is 100
 				}
 
 				if (allGoals.every((goal) => goal.isActive === 1)) {
@@ -1144,8 +1147,11 @@ class AppraisalGoalsController {
 
 			//if (result.mode == 1) {
 
+			const getManagerId = await db.employeeMaster.findOne({
+				where: { id: result.empId },
+			});
 			await db.goalAreaPragatiTrail.update(
-				{ isApproved: 0, pendingAt: req.userData?.manager || null },
+				{ isApproved: 0, pendingAt: getManagerId ? getManagerId?.manager : null},
 				{
 					where: {
 						pendingAt: req.userId,
@@ -1179,11 +1185,11 @@ class AppraisalGoalsController {
 			const { goalAreaId } = req.body;
 			await Promise.all([
 				db.goalAreaForUser.update(
-					{ isActive: 0, isDeleted: 1 },
+					{ isDeleted: 1 },
 					{ where: { goalAreaId } },
 				),
 				db.subGoalAreaForUser.update(
-					{ isActive: 0, isDeleted: 1 },
+					{ isDeleted: 1 },
 					{ where: { goalAreaId } },
 				),
 			]);
@@ -1424,6 +1430,17 @@ class AppraisalGoalsController {
 			const result = await helper.convertEmptyStringsToNull(validatedData);
 			const { existingGoals, comment, goalPlanId, mode, empId } = result;
 
+			const isGoalPlanArchive = await db.appraisalGoalsMaster.findOne({
+				where: { appraisalGoalId: result.goalPlanId, type: 2 },
+			});
+
+			if (isGoalPlanArchive) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.ARCHIVED_GOAL,
+				});
+			}
+
 			// ✅ Step 1: Validate total goal weightage
 			const totalGoalWeightage = existingGoals.reduce(
 				(sum, goal) => sum + Number(goal.weightage || 0),
@@ -1572,7 +1589,7 @@ class AppraisalGoalsController {
 								taskName: "Pragati Approval",
 								level: 1,
 								pendingAt: getManagerId ? getManagerId?.manager : null, //req.userData?.manager || null,
-								createdBy:req.userId,
+								createdBy: req.userId,
 								createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 							},
 							{ transaction },
@@ -1583,7 +1600,7 @@ class AppraisalGoalsController {
 						await db.goalAreaPragatiTrail.update(
 							{
 								isApproved: 0,
-								createdBy:req.userId,
+								createdBy: req.userId,
 								createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 								updatedBy: req.userId, //userId,
 								updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -1599,6 +1616,12 @@ class AppraisalGoalsController {
 							},
 						);
 					}
+
+					// await db.pragatiActivity.create({
+					// 	message:"has submitted their Goal Plan for approval",
+					// 	forUserId:req.userId,
+					// 	byUserId:result.empId
+					// })
 				}
 				if (mode == 1) {
 					await db.goalAreaPragatiTrail.update(
@@ -1619,6 +1642,12 @@ class AppraisalGoalsController {
 							transaction,
 						},
 					);
+
+					// await db.pragatiActivity.create({
+					// 	message:"Your manager has partially approved changes to your Goal Plan",
+					// 	forUserId:result.empId,
+					// 	byUserId:req.userId
+					// })
 				}
 
 				// Commit transaction
@@ -1846,7 +1875,7 @@ class AppraisalGoalsController {
 				where: {
 					goalPlanId: goalPlanId,
 					userId: userId,
-					isDeleted:0
+					isDeleted: 0,
 					//isActive: [0, 1],
 				},
 				include: [
@@ -1868,7 +1897,7 @@ class AppraisalGoalsController {
 						userId: userId,
 						goalPlanId: goalPlanId,
 						// isActive: 0,
-						 isDeleted: 0
+						isDeleted: 0,
 					},
 				})) || 0;
 
