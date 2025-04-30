@@ -2100,38 +2100,141 @@ class CronController {
 		try {
 			const today = moment().format("MM-DD");
 
-			const employeesBirth = await db.biographicalDetails.findAll({
+			const employeesBirth = await db.employeeMaster.findAll({
 				raw: true,
-				where: {
-					[Op.and]: [
-						where(fn("DATE_FORMAT", col("dateOfBirth"), "%m-%d"), today),
-						{ isActive: 1 },
-					],
-				},
+				attributes: ["id", "name", "email","firstName","buId","companyId"],
+				include:[
+                       {
+						model: db.biographicalDetails,
+						attributes: ["dateOfBirth"],
+						where: {
+							[Op.and]: [
+								where(fn("DATE_FORMAT", col("dateOfBirth"), "%m-%d"), today),
+								{ isActive: 1 },
+							],
+						},
+					   },
+					   	{ model: db.companyMaster,
+							attributes: ["companyLogo","senderEmail"],
+						 },
+						{
+								model: db.employeeMaster,
+								as: "managerData",
+								attributes: ["name", "email"],
+							},
+				]
 			});
+
+			/// Fetch BuHead and HR data for each employee through buMapping
+			for(const emp of employeesBirth) {
+				const headAndHrData = await db.buMapping.findOne({
+					where: { buId: emp.buId, companyId: emp.companyId },
+					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["name", "email"],
+							as: "buHeadData",
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["name", "email"],
+							as: "buhrData",
+						},
+					],
+				});
+				if (headAndHrData) {
+					emp.buHeadData = headAndHrData.buHeadData.dataValues;
+					emp.buhrData = headAndHrData.buhrData.dataValues;
+				}
+			}
+
+			console.log("employeesBirth:-", employeesBirth.length);
+			//console.log("employeesBirth:-", employeesBirth);
+			
+			/// Send Birthday Wishes
 			for (const emp of employeesBirth) {
-				const empId = emp.userId;
+				const empId = emp.id;
 				// Birthday Wishes
-				if (emp.dateOfBirth) {
-					const dobFormatted = moment(emp.dateOfBirth).format("MM-DD");
+				const dateOfBirth = emp['employeebiographicaldetail.dateOfBirth'];
+				if (dateOfBirth) {
+					const dobFormatted = moment(dateOfBirth).format("MM-DD");
 					if (dobFormatted === today) {
 						pushNotificationEmitter.emit("sendNotification", {
 							title: "Alert!",
 							body: "Best wishes on your birthday!",
 							employeeId: empId,
 						});
+
+						const managerEmail = emp['managerData.email'];
+						const buhrEmail = emp.buhrData.email;
+						const buHeadEmail = emp.buHeadData.email;
+						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(email => email !== null);
+						console.log("Birth ccEmail:-",ccEmail)
+
+						eventEmitter.emit(
+							"sendBirthWishMail",
+							JSON.stringify({
+								userEmail: emp.email,
+								firstName: emp.firstName,
+								//cc: ccEmail.join(","),
+								companyLogo:emp['companymaster.companyLogo'],
+								senderEmail: emp['companymaster.senderEmail'],
+							}),
+						);
 					}
 				}
 			}
+
+///=================================================================================
+
+			/// Fetching Emplyoees for Work Anniversary Wishes
 			const employees = await db.employeeMaster.findAll({
 				raw: true,
+				attributes: ["id", "name", "email","firstName","buId","companyId","dateOfJoining"],
 				where: {
 					isActive: 1,
 					dateOfJoining: {
 						[Op.regexp]: `^\\d{4}-${today}`, // Matches YYYY-MM-DD where MM-DD = today
 					},
 				},
+				include: [
+					{ model: db.companyMaster ,
+						attributes: ["companyLogo","senderEmail"],
+					},
+					{
+						model:db.employeeMaster,
+						as: "managerData",
+						attributes: ["name", "email"],
+					},
+					
+				],
 			});
+
+			/// Fetch BuHead and HR data for each employee through buMapping
+			for(const emp of employees) {
+				const headAndHrData = await db.buMapping.findOne({
+					where: { buId: emp.buId, companyId: emp.companyId },
+					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["name", "email"],
+							as: "buHeadData",
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["name", "email"],
+							as: "buhrData",
+						},
+					],
+				});
+				if (headAndHrData) {
+					emp.buHeadData = headAndHrData.buHeadData.dataValues;
+					emp.buhrData = headAndHrData.buhrData.dataValues;
+				}
+			}
+
+			console.log("work anniversary Length:-", employees.length);
+			console.log("work anniversary:-", employees);
 			for (const emp of employees) {
 				const empId = emp.id;
 				// Work Anniversary
@@ -2143,11 +2246,32 @@ class CronController {
 							body: "Best wishes on your work anniversary!",
 							employeeId: empId,
 						});
+
+						const managerEmail = emp['managerData.email'];
+						const buhrEmail = emp.buhrData.email;
+						const buHeadEmail = emp.buHeadData.email;
+						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(email => email !== null);
+						console.log("ccEmail:-",ccEmail)
+						const workDuration  = await helper.getWorkDuration(emp.dateOfJoining);
+						console.log("workDuration:-",workDuration)
+
+
+						 eventEmitter.emit(
+							"sendWorkWishMail",
+							JSON.stringify({
+								userEmail: emp.email,
+								firstName:emp.firstName,
+								duration:workDuration,
+								//cc: ccEmail.join(","),
+								companyLogo:emp['companymaster.companyLogo'],
+								senderEmail: emp['companymaster.senderEmail'],
+							}),
+						);
 					}
 				}
 			}
 		} catch (error) {
-			console.log("Error in Birthday/Anniversary Wishes", error);
+			console.log("Error in Birthday/Work Anniversary Wishes", error);
 		}
 	}
 }

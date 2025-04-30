@@ -3823,6 +3823,20 @@ const monthCountArray = Object.values(monthCountMap);
 return monthCountArray;
 }
 
+const getWorkDuration = async(dateOfJoining) => { /// Sandeep
+	const today = moment();
+    const joinDate = moment(dateOfJoining);
+
+    const years = today.diff(joinDate, 'years');
+    joinDate.add(years, 'years');
+
+    const months = today.diff(joinDate, 'months');
+    joinDate.add(months, 'months');
+
+    const days = today.diff(joinDate, 'days');
+
+    return `${String(years).padStart(2, '0')}y ${String(months).padStart(2, '0')}m ${String(days).padStart(2, '0')}d`;
+}
 
 export default {
 	generateJwtToken,
@@ -3885,6 +3899,6 @@ export default {
 	// Export by jay
 	fetchEmployeeRole,
 	convertEmptyStringsToNull,
-	chekcMonthCountInArray
-
+	chekcMonthCountInArray,
+	getWorkDuration
 };
