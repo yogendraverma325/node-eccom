@@ -11,56 +11,56 @@ export default (sequelize, Sequelize) => {
 		userId: {
 			type: Sequelize.INTEGER,
 		},
-		goalName: { 
-			type: Sequelize.STRING 
+		goalName: {
+			type: Sequelize.STRING,
 		},
-		goalDescription: { 
-			type: Sequelize.TEXT 
+		goalDescription: {
+			type: Sequelize.TEXT,
 		},
-		timelines: { 
-			type: Sequelize.STRING
-		 },
-		target: { 
-			type: Sequelize.STRING 
+		timelines: {
+			type: Sequelize.STRING,
 		},
-		targetType: { 
-			type: Sequelize.STRING 
+		target: {
+			type: Sequelize.STRING,
 		},
-		metric: { 
-			type: Sequelize.STRING 
+		targetType: {
+			type: Sequelize.STRING,
 		},
-		weightage: { 
-			type: Sequelize.INTEGER, 
+		metric: {
+			type: Sequelize.STRING,
 		},
-		archived: { 
-			type: Sequelize.STRING, 
+		weightage: {
+			type: Sequelize.INTEGER,
 		},
-		achievmentPercentage: { 
-			type: Sequelize.STRING 
+		archived: {
+			type: Sequelize.STRING,
 		},
-		goalStatus: { 
-			type: Sequelize.STRING
-		 },
-		tags: { 
-			type: Sequelize.STRING 
+		achievmentPercentage: {
+			type: Sequelize.STRING,
 		},
-		scorecardPillar: { 
-			type: Sequelize.STRING 
+		goalStatus: {
+			type: Sequelize.STRING,
 		},
-		achievmentMatrix: { 
-			type: Sequelize.TEXT 
+		tags: {
+			type: Sequelize.STRING,
+		},
+		scorecardPillar: {
+			type: Sequelize.STRING,
+		},
+		achievmentMatrix: {
+			type: Sequelize.TEXT,
 		},
 		achievmentMapping: {
-			 type: Sequelize.STRING 
-			},
-		alignedTo: { 
-			type: Sequelize.STRING 
-		}, 
-		goalScore: { 
-			type: Sequelize.FLOAT 
+			type: Sequelize.STRING,
 		},
-		goalScoreFormula: { 
-			type: Sequelize.TEXT 
+		alignedTo: {
+			type: Sequelize.STRING,
+		},
+		goalScore: {
+			type: Sequelize.FLOAT,
+		},
+		goalScoreFormula: {
+			type: Sequelize.TEXT,
 		},
 		createdAt: {
 			type: Sequelize.DATE,
@@ -74,17 +74,17 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		isDeleted:{
+		isDeleted: {
 			type: Sequelize.INTEGER,
 		},
 		isActive: {
 			type: Sequelize.INTEGER, // 0=>Draft 1=>Submitted 2=>Action Taken
 		},
-		isApproved:{
+		isApproved: {
 			type: Sequelize.INTEGER, // 0=> Pending 1=>Approved 2=>Rejected
 		},
-		comment:{
-			type: Sequelize.TEXT
+		comment: {
+			type: Sequelize.TEXT,
 		},
 	});
 	return goalAreaForUser;

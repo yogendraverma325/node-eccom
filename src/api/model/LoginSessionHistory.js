@@ -12,10 +12,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.INTEGER,
 		},
 		loginIP: {
-			type: Sequelize.STRING
+			type: Sequelize.STRING,
 		},
 		userAgent: {
-			type: Sequelize.STRING
+			type: Sequelize.STRING,
 		},
 		createdAt: {
 			type: Sequelize.DATE,
@@ -28,7 +28,7 @@ export default (sequelize, Sequelize) => {
 		},
 		updatedAt: {
 			type: Sequelize.DATE,
-		}
+		},
 	});
 	return loginSessionHistory;
 };

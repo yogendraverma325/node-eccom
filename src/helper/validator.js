@@ -2308,10 +2308,10 @@ const goalApprovalSchema = Joi.object({
 
 const proxyLoginSchema = Joi.object({
 	proxyType: Joi.number().required(),
-	targetUserId: Joi.when("proxyType", { 
-		is: 1, 
+	targetUserId: Joi.when("proxyType", {
+		is: 1,
 		then: Joi.number().required().label("Target User Id"),
-		otherwise: Joi.number().optional()
+		otherwise: Joi.number().optional(),
 	}),
 	realUserId: Joi.number().required().label("Real User Id"),
 });
@@ -2415,6 +2415,6 @@ export default {
 	editGoalKeyAreaByUser,
 	goalSubmittionSchema,
 	goalApprovalSchema,
-    // Proxy Login
-    proxyLoginSchema
+	// Proxy Login
+	proxyLoginSchema,
 };

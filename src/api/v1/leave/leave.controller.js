@@ -2171,7 +2171,7 @@ class LeaveController {
 			// Calculate the difference in days
 
 			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
-			
+
 			if (differenceInDaystotal > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
 					return respHelper(res, {
@@ -2359,36 +2359,32 @@ class LeaveController {
 				});
 			}
 
-			let monthleaveCounts=await helper.chekcMonthCountInArray(
-			  remainingLeaveCountRESP
+			let monthleaveCounts = await helper.chekcMonthCountInArray(
+				remainingLeaveCountRESP,
 			);
 
-				let maxMonthCount=[];
-	    for (const singleMonthleaveCounts of monthleaveCounts) {
-			let monthCounts = await helper.leaveCountForUserForMonth(
-				req.body.employeeId,
-				singleMonthleaveCounts.startDate,
-				req.body.leaveAutoId,
-				"OTHER",
-				singleMonthleaveCounts.endDate
+			let maxMonthCount = [];
+			for (const singleMonthleaveCounts of monthleaveCounts) {
+				let monthCounts = await helper.leaveCountForUserForMonth(
+					req.body.employeeId,
+					singleMonthleaveCounts.startDate,
+					req.body.leaveAutoId,
+					"OTHER",
+					singleMonthleaveCounts.endDate,
 				);
-				monthCounts+=singleMonthleaveCounts.count;
+				monthCounts += singleMonthleaveCounts.count;
 				if (
-				leaveMasterData?.max_month_count != 0 &&
-				monthCounts > leaveMasterData?.max_month_count
+					leaveMasterData?.max_month_count != 0 &&
+					monthCounts > leaveMasterData?.max_month_count
 				) {
 					maxMonthCount.push({
-						"MONTH_START":singleMonthleaveCounts.startDate,
-						"MONTH_END":singleMonthleaveCounts.endDate,
-						"MONTH_COUNT":monthCounts
-					})
-
+						MONTH_START: singleMonthleaveCounts.startDate,
+						MONTH_END: singleMonthleaveCounts.endDate,
+						MONTH_COUNT: monthCounts,
+					});
 				}
-
 			}
-			if (
-		  	maxMonthCount.length >0
-			) {
+			if (maxMonthCount.length > 0) {
 				return respHelper(res, {
 					status: 404,
 					data: {},
@@ -2399,7 +2395,6 @@ class LeaveController {
 				});
 			}
 
-		
 			const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
 				where: {
 					appliedFor: {
