@@ -869,7 +869,8 @@ class AttendanceController {
 					"attendanceRegularizeCount",
 					"employeeId",
 					"attandanceShiftStartDate",
-					"attendanceShiftEndDate"
+					"attendanceShiftEndDate",
+					"attendanceDate"
 				],
 				include: [
 					{
@@ -930,12 +931,20 @@ class AttendanceController {
 				const preShiftStart = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
 				.subtract(attendancePolicyDetails.bufferTimePre, "minutes").format("HH:mm:ss");
 				// console.log("preShiftStart",preShiftStart)
+				const startRegularizeDateTime = `${result.fromDate}T${result.punchInTime}`;
+				const preAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${preShiftStart}`;
+				const graceAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${shiftStartWithGrace}`;
+				// console.log("startRegularizeDateTime", startRegularizeDateTime)
+				// console.log("preAttendanceDateTime", preAttendanceDateTime)
+				// console.log("graceAttendanceDateTime", graceAttendanceDateTime)
+				let isOverNight = parseInt(shiftDetails.isOverNight);
 
-				if(result.punchInTime < preShiftStart || result.punchInTime > shiftStartWithGrace) {
+
+				if((startRegularizeDateTime < preAttendanceDateTime || startRegularizeDateTime > graceAttendanceDateTime) && (isOverNight === 0)) {
 					// console.log("you are not able to regularize");
 					return respHelper(res, {
 						status: 400,
-						msg: "Invalid punchIn/punchOut time",
+						msg: "Invalid punchIn/punchOut day time",
 					});
 				}
 
@@ -943,12 +952,15 @@ class AttendanceController {
 					.add(attendancePolicyDetails.bufferTimePost, "minutes").format("HH:mm:ss");
 					// console.log("postShiftEnd", postShiftEnd);
 					// console.log("punchOutTime", result.punchOutTime);
+				const endRegularizeDateTime = `${result.toDate}T${result.punchOutTime}`;
+				const postAttendanceDateTime = `${attendanceData?.dataValues?.attendanceShiftEndDate}T${postShiftEnd}`;
+				// console.log("postAttendanceDateTime", postAttendanceDateTime)
 
-				if((parseInt(shiftDetails.isOverNight) === 1) && result.punchOutTime > postShiftEnd) {
+				if((preAttendanceDateTime > startRegularizeDateTime) || (endRegularizeDateTime > postAttendanceDateTime) && (isOverNight === 1)) {
 					// console.log("you are not able to regularize with isOverNight");
 					return respHelper(res, {
 						status: 400,
-						msg: "Invalid punch out time",
+						msg: "Invalid punchIn/punchOut night time",
 					});
 				}
 			}
