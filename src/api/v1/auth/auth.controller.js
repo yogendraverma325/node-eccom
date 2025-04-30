@@ -405,6 +405,91 @@ class AuthController {
 			});
 		}
 	}
+
+	// start proxy login functionality area
+
+	async proxyLogin(req, res) {
+		try {
+			let result = await validator.proxyLoginSchema.validateAsync(req.body);
+
+			const existUser = await db.employeeMaster.findOne({
+				where: { id: (result.targetUserId) ? result.targetUserId : result.realUserId, isActive: 1 },
+				include: [
+					{
+						model: db.roleMaster,
+						attributes: ["role_id", "name"],
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["designationId", "name"],
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyLogo"],
+					},
+				],
+			});
+
+			if (!existUser) {
+				return respHelper(res, {
+					status: 404,
+					msg: constant.USER_NOT_EXIST,
+				});
+			}
+
+			if (!existUser.dataValues.isLoginActive) {
+				return respHelper(res, {
+					status: 404,
+					msg: constant.LOGIN_BLOCKED,
+				});
+			}
+
+			if (
+				existUser.dataValues.wrongPasswordCount ===
+				parseInt(process.env.WRONG_PASSWORD_LIMIT)
+			) {
+				return respHelper(res, {
+					status: 404,
+					msg: constant.ACCOUNT_LOCKED,
+				});
+			}
+
+			if(result.targetUserId) {
+				let generateSessionHistory = await db.LoginSessionHistory.create({ 
+					targetUserId: result.targetUserId, realUserId: result.realUserId, createdBy: result.realUserId,
+					loginIP: req.headers["x-real-ip"] || await helper.ip(req._remoteAddress),
+                    userAgent: req.headers["user-agent"]
+				});
+				req.body.loginSessionHistoryId = generateSessionHistory?.dataValues?.loginSessionHistoryId;
+			}
+
+			if(req.loginSessionHistoryId) {
+				await db.LoginSessionHistory.update({ updatedBy: result.realUserId, updatedAt: new Date() }, { where: { loginSessionHistoryId: req.loginSessionHistoryId }});
+			}
+
+			const loggedInUser = await validateUser(req, existUser);
+
+			return respHelper(res, {
+				status: 200,
+				msg: constant.LOGIN_SUCCESS,
+				token: loggedInUser.token,
+				data: loggedInUser.userData,
+			});
+		} catch (error) {
+			console.log("Proxy login", error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// end proxy login functionality area 
 }
 
 const validateUser = async (req, existUser) => {

@@ -209,6 +209,10 @@ import GoalAreaPragatiTrail from "../api/model/GoalAreaPragatiTrail.js";
 
 ///////////////////Appraisal/////////////////////////
 
+// start import model by jay
+import LoginSessionHistory from "../api/model/LoginSessionHistory.js";
+// end by jay
+
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -512,6 +516,10 @@ db.goalAreaForUser = GoalAreaForUser(sequelize,Sequelize)
 db.subGoalAreaForUser = SubGoalAreaForUser(sequelize,Sequelize)
 db.goalAreaPragatiTrail = GoalAreaPragatiTrail(sequelize,Sequelize)
 // appraisal //
+
+// start by jay
+db.LoginSessionHistory = LoginSessionHistory(sequelize, Sequelize);
+// end by jay
 
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
