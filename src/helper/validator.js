@@ -2304,6 +2304,20 @@ const goalApprovalSchema = Joi.object({
 		.label("Goal Area IDs"),
 });
 
+// Start proxy validation area
+
+const proxyLoginSchema = Joi.object({
+	proxyType: Joi.number().required(),
+	targetUserId: Joi.when("proxyType", { 
+		is: 1, 
+		then: Joi.number().required().label("Target User Id"),
+		otherwise: Joi.number().optional()
+	}),
+	realUserId: Joi.number().required().label("Real User Id"),
+});
+
+// End proxy validation area
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2400,6 +2414,7 @@ export default {
 	addGoalKeyAreaByUser,
 	editGoalKeyAreaByUser,
 	goalSubmittionSchema,
-	goalApprovalSchema
-
+	goalApprovalSchema,
+    // Proxy Login
+    proxyLoginSchema
 };

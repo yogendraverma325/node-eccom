@@ -17,4 +17,13 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN", "USER"),
 		authController.authenticateSessionStatus,
 	)
-	.post("/login-with-qrcode/:sessionId", authController.loginWithQRCode);
+	.post("/login-with-qrcode/:sessionId", authController.loginWithQRCode)
+
+	/**
+	 * Admin work as super admin
+	 * admin proxy login
+	 * admin exit proxy
+	 */
+
+	.post("/proxy-login", authentication.authenticate, authorization("ADMIN"), authController.proxyLogin)
+	.post("/proxy-logout", authentication.authenticate, authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN", "USER"), authController.proxyLogin)
