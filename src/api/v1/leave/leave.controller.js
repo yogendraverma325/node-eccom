@@ -2171,12 +2171,7 @@ class LeaveController {
 			// Calculate the difference in days
 
 			const differenceInDaystotal = currentDateOnly.diff(fromDateOnly, "days");
-			console.log(
-				"differenceInDays",
-				differenceInDays,
-				"differenceInDaystotal",
-				differenceInDaystotal,
-			);
+			
 			if (differenceInDaystotal > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
 					return respHelper(res, {
@@ -2364,20 +2359,35 @@ class LeaveController {
 				});
 			}
 
-			let monthCount = await helper.leaveCountForUserForMonth(
-				req.body.employeeId,
-				fromDateReq,
-				req.body.leaveAutoId,
+			let monthleaveCounts=await helper.chekcMonthCountInArray(
+			  remainingLeaveCountRESP
 			);
-			console.log(
-				"leaveMasterData?.max_month_count",
-				leaveMasterData?.max_month_count,
-			);
-			console.log("monthCount", monthCount);
 
-			if (
+				let maxMonthCount=[];
+	    for (const singleMonthleaveCounts of monthleaveCounts) {
+			let monthCounts = await helper.leaveCountForUserForMonth(
+				req.body.employeeId,
+				singleMonthleaveCounts.startDate,
+				req.body.leaveAutoId,
+				"OTHER",
+				singleMonthleaveCounts.endDate
+				);
+				monthCounts+=singleMonthleaveCounts.count;
+				if (
 				leaveMasterData?.max_month_count != 0 &&
-				monthCount > leaveMasterData?.max_month_count
+				monthCounts > leaveMasterData?.max_month_count
+				) {
+					maxMonthCount.push({
+						"MONTH_START":singleMonthleaveCounts.startDate,
+						"MONTH_END":singleMonthleaveCounts.endDate,
+						"MONTH_COUNT":monthCounts
+					})
+
+				}
+
+			}
+			if (
+		  	maxMonthCount.length >0
 			) {
 				return respHelper(res, {
 					status: 404,
@@ -2389,26 +2399,7 @@ class LeaveController {
 				});
 			}
 
-			let monthCountTo = await helper.leaveCountForUserForMonth(
-				req.body.employeeId,
-				toDateReq,
-				req.body.leaveAutoId,
-			);
-			console.log("monthCountTo", monthCountTo);
-
-			if (
-				leaveMasterData?.max_month_count != 0 &&
-				monthCountTo >= leaveMasterData?.max_month_count
-			) {
-				return respHelper(res, {
-					status: 404,
-					data: {},
-					msg: message.LEAVE.MAX_DAY_MONTH.replace(
-						"#",
-						leaveMasterData?.max_month_count,
-					),
-				});
-			}
+		
 			const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
 				where: {
 					appliedFor: {
