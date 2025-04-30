@@ -1,17 +1,20 @@
 export default (sequelize, Sequelize) => {
-	const reportType = sequelize.define("reporttype", {
-		reportTypeId: {
+	const PragatiActivities = sequelize.define("pragatiactivities", {
+		activityId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		reportModuleId: {
-			type: Sequelize.INTEGER,
-		},
-		reportTypeName: {
+		message: {
 			type: Sequelize.STRING,
 		},
-		forManagerReport: {
+		isRead: {
+			type: Sequelize.INTEGER,
+		},
+		forUserId: {
+			type: Sequelize.INTEGER,
+		},
+		byUserId: {
 			type: Sequelize.INTEGER,
 		},
 		createdAt: {
@@ -20,15 +23,12 @@ export default (sequelize, Sequelize) => {
 		createdBy: {
 			type: Sequelize.INTEGER,
 		},
-		updatedBy: {
-			type: Sequelize.INTEGER,
-		},
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		isActive: {
-			type: Sequelize.BOOLEAN,
+		updatedBy: {
+			type: Sequelize.INTEGER,
 		},
 	});
-	return reportType;
+	return PragatiActivities;
 };

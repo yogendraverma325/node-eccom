@@ -25,5 +25,15 @@ export default Express.Router()
 	 * admin exit proxy
 	 */
 
-	.post("/proxy-login", authentication.authenticate, authorization("ADMIN"), authController.proxyLogin)
-	.post("/proxy-logout", authentication.authenticate, authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN", "USER"), authController.proxyLogin)
+	.post(
+		"/proxy-login",
+		authentication.authenticate,
+		authorization("ADMIN"),
+		authController.proxyLogin,
+	)
+	.post(
+		"/proxy-logout",
+		authentication.authenticate,
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN", "USER"),
+		authController.proxyLogin,
+	);

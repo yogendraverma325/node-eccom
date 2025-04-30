@@ -11,7 +11,6 @@ import path from "path";
 import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
 
-
 class AppraisalGoalsController {
 	async createGoalPlan(req, res) {
 		try {
@@ -77,7 +76,9 @@ class AppraisalGoalsController {
 					...subGoalAttributesWithGoalId,
 				];
 
-				await db.goalAttributesMapping.destroy({where:{appraisalGoalId: createGoal.appraisalGoalId}})
+				await db.goalAttributesMapping.destroy({
+					where: { appraisalGoalId: createGoal.appraisalGoalId },
+				});
 				await db.goalAttributesMapping.bulkCreate(mergeGoalAndSubGoals);
 			}
 
@@ -321,17 +322,28 @@ class AppraisalGoalsController {
 	async activeGoalPlan(req, res) {
 		try {
 			const { appraisalGoalId } = req.body;
-			const changeDraftToActive = await db.appraisalGoalsMaster.update(
-				{ type: 1 },
-				{
-					where: { appraisalGoalId: appraisalGoalId },
-				},
-			);
-			return respHelper(res, {
-				status: 200,
-				data: {},
-				msg: message.APPRAISAL.GOAL_ACTIVE,
+
+			const getAlreadyActivePlan = await db.appraisalGoalsMaster.findOne({
+				where: { type: 1, isDeleted: 0 },
 			});
+			if (getAlreadyActivePlan) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.GOAL_ALREADY_ACTIVATED,
+				});
+			} else {
+				const changeDraftToActive = await db.appraisalGoalsMaster.update(
+					{ type: 1 },
+					{
+						where: { appraisalGoalId: appraisalGoalId },
+					},
+				);
+				return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: message.APPRAISAL.GOAL_ACTIVE,
+				});
+			}
 		} catch (error) {
 			console.log(error);
 			if (error.isJoi === true) {
@@ -923,6 +935,7 @@ class AppraisalGoalsController {
 					goalPlanId: appraisalGoalId,
 					userId: forEmp, //req.userId,
 					isActive: [0, 1, 2],
+					isDeleted: 0,
 				},
 				include: [
 					{
@@ -959,12 +972,18 @@ class AppraisalGoalsController {
 			});
 
 			if (allGoals.length > 0) {
+				const totalWeightage = allGoals.reduce(
+					(sum, goal) => sum + (goal.weightage || 0),
+					0,
+				);
+
 				if (allGoals.some((goal) => goal.isActive === 0)) {
 					buttonStatus = 0; // Draft exists
 				} else if (allGoals.some((goal) => goal.isActive === 1)) {
 					buttonStatus = 1; // At least one submitted
 				} else if (allGoals.every((goal) => goal.isActive === 2)) {
-					buttonStatus = 2; // All action taken
+					//buttonStatus = 2; // All action taken
+					buttonStatus = totalWeightage === 100 ? 2 : 0; // All action taken and weightage is 100
 				}
 
 				if (allGoals.every((goal) => goal.isActive === 1)) {
@@ -1025,6 +1044,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "Completed",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1032,6 +1052,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "Not Started",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1039,6 +1060,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "In Progress",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1046,6 +1068,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "On Hold",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1053,6 +1076,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "Delayed",
+						isDeleted: 0,
 					},
 				}),
 				db.goalAreaForUser.count({
@@ -1060,6 +1084,7 @@ class AppraisalGoalsController {
 						userId: forEmp,
 						goalPlanId: appraisalGoalId,
 						goalStatus: "At Risk",
+						isDeleted: 0,
 					},
 				}),
 			]);
@@ -1125,8 +1150,14 @@ class AppraisalGoalsController {
 
 			//if (result.mode == 1) {
 
+			const getManagerId = await db.employeeMaster.findOne({
+				where: { id: result.empId },
+			});
 			await db.goalAreaPragatiTrail.update(
-				{ isApproved: 0, pendingAt: req.userData?.manager || null },
+				{
+					isApproved: 0,
+					pendingAt: getManagerId ? getManagerId?.manager : null,
+				},
 				{
 					where: {
 						pendingAt: req.userId,
@@ -1159,12 +1190,9 @@ class AppraisalGoalsController {
 		try {
 			const { goalAreaId } = req.body;
 			await Promise.all([
-				db.goalAreaForUser.update(
-					{ isActive: 0, isDeleted: 1 },
-					{ where: { goalAreaId } },
-				),
+				db.goalAreaForUser.update({ isDeleted: 1 }, { where: { goalAreaId } }),
 				db.subGoalAreaForUser.update(
-					{ isActive: 0, isDeleted: 1 },
+					{ isDeleted: 1 },
 					{ where: { goalAreaId } },
 				),
 			]);
@@ -1405,6 +1433,17 @@ class AppraisalGoalsController {
 			const result = await helper.convertEmptyStringsToNull(validatedData);
 			const { existingGoals, comment, goalPlanId, mode, empId } = result;
 
+			const isGoalPlanArchive = await db.appraisalGoalsMaster.findOne({
+				where: { appraisalGoalId: result.goalPlanId, type: 2 },
+			});
+
+			if (isGoalPlanArchive) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.ARCHIVED_GOAL,
+				});
+			}
+
 			// ✅ Step 1: Validate total goal weightage
 			const totalGoalWeightage = existingGoals.reduce(
 				(sum, goal) => sum + Number(goal.weightage || 0),
@@ -1444,7 +1483,9 @@ class AppraisalGoalsController {
 
 			try {
 				//const userId = req.userId;
-				const getManagerId = await db.employeeMaster.findOne({ where: {id: empId} });
+				const getManagerId = await db.employeeMaster.findOne({
+					where: { id: empId },
+				});
 
 				// 🔁 Collect all goalAreaIds from request
 				const goalAreaIds = existingGoals.map((goal) => goal.goalAreaId);
@@ -1551,43 +1592,19 @@ class AppraisalGoalsController {
 								taskName: "Pragati Approval",
 								level: 1,
 								pendingAt: getManagerId ? getManagerId?.manager : null, //req.userData?.manager || null,
+								createdBy: req.userId,
+								createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 							},
 							{ transaction },
 						);
 					} else {
 						let buttonStatus = 0;
 
-						// const allGoals = await db.goalAreaForUser.findAll({
-						//   where: {
-						// 	isActive: [0, 1, 2],
-						// 	userId: req.userId,
-						// 	goalPlanId: goalPlanId,
-						// 	isDeleted: 0,
-						//   },
-						// });
-
-						// if (allGoals.length > 0) {
-						//   const draftExists = allGoals.some((goal) => goal.isActive === 0);
-
-						//   if (!draftExists) {
-						// 	const submittedCount = allGoals.filter(
-						// 	  (goal) => goal.isActive === 1,
-						// 	).length;
-						// 	const actionTakenCount = allGoals.filter(
-						// 	  (goal) => goal.isActive === 2,
-						// 	).length;
-
-						// 	if (submittedCount === allGoals.length) {
-						// 	  buttonStatus = 1; // All submitted
-						// 	} else if (actionTakenCount === allGoals.length) {
-						// 	  buttonStatus = 2; // All action taken
-						// 	}
-						//   }
-						// }
-
 						await db.goalAreaPragatiTrail.update(
 							{
 								isApproved: 0,
+								createdBy: req.userId,
+								createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 								updatedBy: req.userId, //userId,
 								updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 								pendingAt: getManagerId ? getManagerId?.manager : null, //req.userData?.manager || null,
@@ -1602,6 +1619,12 @@ class AppraisalGoalsController {
 							},
 						);
 					}
+
+					// await db.pragatiActivity.create({
+					// 	message:"has submitted their Goal Plan for approval",
+					// 	forUserId:req.userId,
+					// 	byUserId:result.empId
+					// })
 				}
 				if (mode == 1) {
 					await db.goalAreaPragatiTrail.update(
@@ -1622,6 +1645,12 @@ class AppraisalGoalsController {
 							transaction,
 						},
 					);
+
+					// await db.pragatiActivity.create({
+					// 	message:"Your manager has partially approved changes to your Goal Plan",
+					// 	forUserId:result.empId,
+					// 	byUserId:req.userId
+					// })
 				}
 
 				// Commit transaction
@@ -1849,7 +1878,7 @@ class AppraisalGoalsController {
 				where: {
 					goalPlanId: goalPlanId,
 					userId: userId,
-					//isDeleted:0
+					isDeleted: 0,
 					//isActive: [0, 1],
 				},
 				include: [
@@ -1871,7 +1900,7 @@ class AppraisalGoalsController {
 						userId: userId,
 						goalPlanId: goalPlanId,
 						// isActive: 0,
-						// isDeleted: 0,
+						isDeleted: 0,
 					},
 				})) || 0;
 

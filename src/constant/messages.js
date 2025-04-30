@@ -135,27 +135,30 @@ const message = {
 	ATTENDANCE_REQ_ACK: "Attendance Request Acknowledgement", ///Sandeep
 	ATTENDANCE_SUBMIT: "<name> has submitted the regularise request.", ///Sandeep
 
-	APPRAISAL:{
+	APPRAISAL: {
 		GOAL_CREATION: "Goal Created Successfully",
 		GOAL_PLAN_NAME_ALREADY_EXISTS: "Goal Plan Name Already Exists",
 		GOAL_PLAN_YEAR_ALREADY_EXISTS: "Goal Plan Year Already Exists",
-		GOAL_DELETED:"Goal Plan Deleted Successfully",
-		GOAL_UPDATED:"Goal Plan Updated Successfully",
-		GOAL_ACTIVE:"Goal Plan Active Successfully",
-		GOAL_ARCIVED:"Goal Plan Archived Sucessfully",
-		GOAL_DETAILS:"Goal Details Found Successfully",
-		WEIGHTAGE_ABOVE_100: "Total Goal Weightage Must Be Exactly 100%. Please Review And Adjust Accordingly.",
-		DELETE_SUCCESS:"Deleted Successfully",
-	    GET_LIST_PREVIOUS:"Prvious Goal Paln List",
-		SUBGOAL_WEIGHTAGE_ABOVE_100:"Sub-goals must total 100%. Please review and adjust the weights.",
-		GOAL_SUBMITTED:"Goal Submitted Successfully",
-		GET_LIST:"Goal List Found Successfully",
-		GOAL_EDIT_SAVE:"Your changes saved Successfully",
-		GOAL_APPROVED:"Goal Successfully Approved",
-		GOAL_REJECTED:"Goal Successfully Rejected",
-		GOAL_RECALLED: "Goal Recalled Successfully"
-	}
-
+		GOAL_DELETED: "Goal Plan Deleted Successfully",
+		GOAL_UPDATED: "Goal Plan Updated Successfully",
+		GOAL_ACTIVE: "Goal Plan Active Successfully",
+		GOAL_ARCIVED: "Goal Plan Archived Sucessfully",
+		GOAL_DETAILS: "Goal Details Found Successfully",
+		WEIGHTAGE_ABOVE_100:
+			"Total Goal Weightage Must Be Exactly 100%. Please Review And Adjust Accordingly.",
+		DELETE_SUCCESS: "Deleted Successfully",
+		GET_LIST_PREVIOUS: "Prvious Goal Paln List",
+		SUBGOAL_WEIGHTAGE_ABOVE_100:
+			"Sub-goals must total 100%. Please review and adjust the weights.",
+		GOAL_SUBMITTED: "Goal Submitted Successfully",
+		GET_LIST: "Goal List Found Successfully",
+		GOAL_EDIT_SAVE: "Your changes saved Successfully",
+		GOAL_APPROVED: "Goal Successfully Approved",
+		GOAL_REJECTED: "Goal Successfully Rejected",
+		GOAL_RECALLED: "Goal Recalled Successfully",
+		GOAL_ALREADY_ACTIVATED: "You Already Have an Active Goal Plan.",
+		ARCHIVED_GOAL: "You Can't Submit Archived Goals.",
+	},
 };
 
 export default message;

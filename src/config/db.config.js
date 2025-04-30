@@ -212,7 +212,7 @@ import GoalAreaPragatiTrail from "../api/model/GoalAreaPragatiTrail.js";
 // start import model by jay
 import LoginSessionHistory from "../api/model/LoginSessionHistory.js";
 // end by jay
-
+import PragatiActivity from "../api/model/PragatiActivity.js";
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -515,6 +515,7 @@ db.goalAttributesOptions = GoalAttributesOptions(sequelize,Sequelize)
 db.goalAreaForUser = GoalAreaForUser(sequelize,Sequelize)
 db.subGoalAreaForUser = SubGoalAreaForUser(sequelize,Sequelize)
 db.goalAreaPragatiTrail = GoalAreaPragatiTrail(sequelize,Sequelize)
+db.pragatiActivity = PragatiActivity(sequelize,Sequelize);
 // appraisal //
 
 // start by jay
