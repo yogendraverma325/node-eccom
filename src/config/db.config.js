@@ -572,6 +572,13 @@ db.RegularizationRevokeTransaction = RegularizationRevokeTransaction(sequelize,S
 db.employeeleave_revoke_transaction = employeeleave_revoke_transaction(sequelize,Sequelize)
 //REVOKE
 
+//REVOKE
+db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
+//REVOKE
+
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
 	sourceKey: "holidayId",

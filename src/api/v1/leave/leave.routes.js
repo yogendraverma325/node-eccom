@@ -61,5 +61,7 @@ export default Express.Router()
 
 //REVOKE
 	.post("/revokeApprovedLeaves", authentication.authenticate,LeaveController.revokeApprovedLeaves)
-	.post("/approvedLeaverevoke", authentication.authenticate,LeaveController.approvedLeaverevoke);
+	.post("/approvedLeaverevoke", authentication.authenticate,LeaveController.approvedLeaverevoke)
+	.post("/revokeLeaverevokeRequest", authentication.authenticate,LeaveController.revokeLeaverevokeRequest)
+	.get("/revokeLeaveRequestPendingForApproval", authentication.authenticate,LeaveController.revokeLeaveRequestPendingForApproval);
 	//REVOKE

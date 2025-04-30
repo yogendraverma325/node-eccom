@@ -2579,14 +2579,14 @@ const updateRatingScaleSchema = Joi.object({
 	const revokeApprovedRegularizationsValidation = Joi.object({
 	attendanceAutoId: Joi.number(),
 	regularizeId: Joi.number(),
-	remark: Joi.string().trim().required().max(100).label("Remark"),
+	//remark: Joi.string().trim().required().max(100).label("Remark"),
 	});
 	const revokeApprovedLeaveValidation = Joi.object({
 	employeeleaveheaderID: Joi.number(),
 	remark: Joi.string().trim().required().max(100).label("Remark"),
 	});
 	const approvalrevokeApprovedLeaveValidation = Joi.object({
-	leaverevokeAutoId: Joi.string()
+	employeeLeaveTransactionsIds: Joi.string()
 		.trim()
 		.required(),
 	status: Joi.string()
@@ -2595,6 +2595,11 @@ const updateRatingScaleSchema = Joi.object({
 		.valid("approved", "rejected")
 		.label("status"),
 	remark: Joi.string().trim().required().max(100).label("Remark"),
+	});
+	const revokeLeaverevokeRequestValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string()
+		.trim()
+		.required(),
 	});
 //REVOKE
 export default {
@@ -2701,6 +2706,7 @@ export default {
 	//REVOKE
 	revokeApprovedRegularizationsValidation,
 	revokeApprovedLeaveValidation,
-	approvalrevokeApprovedLeaveValidation
+	approvalrevokeApprovedLeaveValidation,
+	revokeLeaverevokeRequestValidation
 	//REVOKE
 };

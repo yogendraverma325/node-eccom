@@ -5611,20 +5611,36 @@ class LeaveController {
 	///LEAVE REVOKE
 	async revokeApprovedLeaves(req, res){
 				try {
+					const startOfYear = moment().startOf('year').toDate();
+					const endOfYear = moment().endOf('year').toDate();
 					const result = await validator.revokeApprovedLeaveValidation.validateAsync(req.body);
-					const empLeaveHeader = await db.EmployeeLeaveHeader.findOne({
-									where: {
-									employeeleaveheaderID:result.employeeleaveheaderID,
-									status: {
-									[Op.in]:['approved']
-									},
-									source: { [Op.ne]: "system_generated" },
-								},
-					});
+						const empLeaveHeader = await db.EmployeeLeaveHeader.findOne({
+						where: {
+						[Op.or]: [
+						{
+						fromDate: {
+						[Op.between]: [startOfYear, endOfYear]
+						}
+						},
+						{
+						toDate: {
+						[Op.between]: [startOfYear, endOfYear]
+						}
+						}
+						],
+						employeeleaveheaderID: result.employeeleaveheaderID,
+						status: {
+						[Op.in]: ['approved']
+						},
+						source: {
+						[Op.ne]: "system_generated"
+						}
+						}
+});
 					if(!empLeaveHeader){
 					return respHelper(res, {
 					status: 400,
-					msg: `Revoke Application can't be place before approval`,
+					msg: `Revoke Application can't be placed`,
 					});
 					}
 
@@ -5679,8 +5695,12 @@ class LeaveController {
 	async approvedLeaverevoke(req, res){
 			const t = await db.sequelize.transaction();
 				try {
+					
+					const startOfYear = moment().startOf('year').toDate();
+					const endOfYear = moment().endOf('year').toDate();
+
 					const result = await validator.approvalrevokeApprovedLeaveValidation.validateAsync(req.body);
-					let leaveRevokeRequestIDS=result.leaverevokeAutoId.split(',');
+					let leaveRevokeRequestIDS=result.employeeLeaveTransactionsIds.split(',');
 
 					const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.count({
 					where: {
@@ -5689,12 +5709,30 @@ class LeaveController {
 						},
 						status: 'pending'
 					},
+					include:
+						{
+						model: db.EmployeeLeaveHeader,
+						required: true,
+						where:{
+							[Op.and]: [
+							{
+							fromDate: {
+							[Op.between]: [startOfYear, endOfYear] //current year only
+							}
+							},
+							{
+							toDate: {
+							[Op.between]: [startOfYear, endOfYear] //current year only
+							}
+							}
+							]
+						}
+						}
 					});
-
 				if(leaveRevokeRequestIDS.length!=employeeleave_revoke_transactionData || employeeleave_revoke_transactionData==0){
 					return respHelper(res, {
 					status: 400,
-					msg: `Can't ${result.status=='approved'?'approve':'reject'} Leave`,
+					msg: `Can't ${result.status=='approved'?'approve':'reject'} selected Leave(s)`,
 					});
 				}
 				
@@ -5761,11 +5799,7 @@ class LeaveController {
 					});
 
 				}
-
-					
-
-					
-					
+	
 				}
 				catch (error) {
 			if (error.isJoi === true) {
@@ -5782,7 +5816,173 @@ class LeaveController {
 			});
 		}
 	}
-	///LEAVE REVOKE
+	async revokeLeaverevokeRequest(req, res){
+			const t = await db.sequelize.transaction();
+				try {
+					const result = await validator.revokeLeaverevokeRequestValidation.validateAsync(req.body);
+					let leaveRevokeRequestIDS=result.employeeLeaveTransactionsIds.split(',');
+
+					const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.count({
+					where: {
+						leaverevokeAutoId: {
+						[Op.in]:leaveRevokeRequestIDS
+						},
+						status: 'pending'
+					},
+					include:
+						{
+						model: db.EmployeeLeaveHeader,
+						required: true
+						}
+					});
+				if(leaveRevokeRequestIDS.length!=employeeleave_revoke_transactionData || employeeleave_revoke_transactionData==0){
+					return respHelper(res, {
+					status: 400,
+					msg: `Can't revoke selected Leave(s)`,
+					});
+				}
+
+				const allSelectedRevokeRequests = await db.employeeleave_revoke_transaction.findAll({
+						attributes:['leaverevokeAutoId','employeeleaveheaderID','employeeId','status'],
+					where: {
+						leaverevokeAutoId: {
+						[Op.in]:leaveRevokeRequestIDS
+						},
+						status: 'pending'
+					},
+					});
+
+					for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
+						await db.employeeleave_revoke_transaction.update(
+									{
+										status:'revoked',
+										updatorRemark:result.remark,
+										updatedBy:req.userData.id,
+										updatorRole:(req.userData.id==singleSelectedRevokeRequested.employeeId)?'SELF':req.userData['role.name']
+									},
+									{
+									where: {
+									leaverevokeAutoId: singleSelectedRevokeRequested.leaverevokeAutoId
+									},
+									},
+									{ transaction: t }
+								);
+
+					}
+				   
+
+								await t.commit();
+								return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: 'Leave Revoke request has been revoked',
+					});
+	
+				}
+				catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			await t.rollback();
+
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async revokeLeaveRequestPendingForApproval(req,res){
+						const query = req.query.listFor;
+						const search = req.query.search;
+						
+						
+			          const usersData = req.userData;
+
+						const permissoinArray = await helper.fetchpermissoinAndAcessForEMP(
+										usersData.permissionAndAccess,
+										usersData.role_id,
+									);
+						console.log("permissoinArray",permissoinArray)
+
+						// search and pagination functionality added
+
+						const limit = req.query.limit * 1 || 10;
+						const pageNo = req.query.page * 1 || 1;
+						const offset = (pageNo - 1) * limit;
+						
+
+				const leaveApprovalCondition =
+				query === "raisedByMe"
+				? {
+				employeeId: req.userId,
+				status: 'pending',
+				}
+				: (usersData.role_id === 4 || usersData.role_id === 5)
+				? {
+				employeeId: { [Op.not]: req.userId },
+				status: 'pending',
+				}
+				: {
+				managerId: req.userId,
+				status: 'pending',
+				
+				};
+		const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.findAndCountAll({
+					where:leaveApprovalCondition,
+					include:
+						{
+						model: db.EmployeeLeaveHeader,
+						required: true,
+								include:
+								[
+								{
+								model: db.leaveMaster,
+								attributes:["leaveId","leaveName","leaveCode"],
+								required: true,
+								as:'leaveMasterDetails'
+								},
+								{
+								model: db.employeeMaster,
+								attributes:["id","empCode","name"],
+								required: true,
+								where: {
+									...(search && {
+										[Op.or]: [
+											{ name: { [Op.like]: `%${search}%` } }, // Search in 'name'
+											{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
+										],
+									}),
+									...(usersData.role_id === 4 || usersData.role_id === 5
+										? {
+												...(permissoinArray.COMPANY.length > 0 && {
+													companyId: { [Op.in]: permissoinArray.COMPANY },
+												}),
+												...(permissoinArray.BU.length > 0 && {
+													buId: { [Op.in]: permissoinArray.BU },
+												}),
+												...(permissoinArray.SBU.length > 0 && {
+													sbuId: { [Op.in]: permissoinArray.SBU },
+												}),
+											}
+										: null),
+								},
+								}
+							],
+
+						},
+						limit,
+						offset,
+					});
+				return respHelper(res, {
+				status: 200,
+				data: employeeleave_revoke_transactionData,
+				msg: 'Leave Revoke request Listed',
+				});
+
+	}
 }
 
 export default new LeaveController();

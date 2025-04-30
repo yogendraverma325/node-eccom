@@ -3485,7 +3485,7 @@ const confirmationPolicyAssignment = async (empIdsInput) => {
 };
 /// CONFIRMATION POLICY ASSIGNMENT
 
-const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
+const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => { 
 	let permissionAssignTousers = [];
 	if (PERMISSION) {
 		permissionAssignTousers = PERMISSION.split(",").map((el) => parseInt(el));
@@ -3864,6 +3864,21 @@ const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //T
 	}
 
 }
+const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE) => { //TYPE WILL BE ADD, SUB
+	     await db.comp_off_credit_history.update(
+					{
+						taken_on:null
+					},
+					{
+						where: {
+							employee_Id: EMP_ID,
+							taken_on: DATE
+						},
+					},
+				);
+			
+
+}
 const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) => {
 	const leaves = await db.EmployeeLeaveHeader.findOne({
 			where: {
@@ -3883,38 +3898,58 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 	});
 	if(leaves){
 		for (const Singleleaves of leaves.employeeleavetransactions) {
-			console.log("Singleleaves",Singleleaves.appliedFor)
-			//await AttendanceController.attedanceCronManual()
-				// await db.employeeLeaveTransactions.update(
-				// {
-				// status: 'revoked',
-				// updatedBy: userData.id,
-				// message: result.remark != "" ? result.remark : null,
-				// updatedAt: moment(),
-				// },
-				// {
-				// where: {
-				// employeeLeaveTransactionsId: Singleleaves.employeeLeaveTransactionsId,
-				// },
-				// },
-				// { transaction: t }
-				// );
-				// await maintainleaveCountOfEmployee(Singleleaves.employeeId,Singleleaves.leaveAutoId,Singleleaves.leaveCount,'ADD');
-				// await db.EmployeeLeaveHeader.update(
-				// {
-				// status: 'revoked',
-				// updatedBy: userData.id,
-				// message: result.remark != "" ? result.remark : null,
-				// updatedAt: moment(),
-				// },
-				// {
-				// where: {
-				// employeeleaveheaderID: Singleleaves.employeeleaveheaderID,
-				// },
-				// },
-				// { transaction: t }
-				// );
+			
+			 
+				await db.employeeLeaveTransactions.update(
+				{
+				status: 'revoked',
+				updatedBy: userData.id,
+				message: result.remark != "" ? result.remark : null,
+				updatedAt: moment(),
+				},
+				{
+				where: {
+				employeeLeaveTransactionsId: Singleleaves.employeeLeaveTransactionsId,
+				},
+				},
+				{ transaction: t }
+				);
+				console.log("Singleleaves.employeeId",Singleleaves.employeeId)
+				console.log("Singleleaves.leaveCount",Singleleaves.leaveCount)
+				console.log("Singleleaves.leaveAutoId",Singleleaves.leaveAutoId)
+				await maintainleaveCountOfEmployee(Singleleaves.employeeId,Singleleaves.leaveAutoId,Singleleaves.leaveCount,'ADD');
+				if(Singleleaves.leaveAutoId==9){
+					console.log("Singleleaves.employeeId",Singleleaves.employeeId)
+					console.log("Singleleaves.appliedFor",Singleleaves.appliedFor)
+				await releaseCompOffTheEmployeeForDate(Singleleaves.employeeId,Singleleaves.appliedFor);
+				}
+				
+				const checkAttendance = await db.attendanceMaster.findOne({
+								where: {
+									employeeId: Singleleaves.employeeId,
+									attendanceDate: Singleleaves.appliedFor,
+								},
+							});
+					if(checkAttendance){
+						//await attendanceController.attedanceCronManual(checkAttendance.attendanceAutoId,Singleleaves.appliedFor);
+					}
+				
+
 		}
+		await db.EmployeeLeaveHeader.update(
+				{
+				status: 'revoked',
+				updatedBy: userData.id,
+				message: result.remark != "" ? result.remark : null,
+				updatedAt: moment(),
+				},
+				{
+				where: {
+				employeeleaveheaderID: leaveHeaderAutoId
+				},
+				},
+				{ transaction: t }
+				);
 	
 	}
 		return leaves;
@@ -4115,7 +4150,8 @@ export default {
 	chekcMonthCountInArray,
 	getWorkDuration,
 	//REVOKE
-	revokeApprovedAppliedLeave
+	revokeApprovedAppliedLeave,
+	releaseCompOffTheEmployeeForDate
 	//REVOKE
 
 };
