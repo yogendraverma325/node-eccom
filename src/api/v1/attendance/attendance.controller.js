@@ -860,8 +860,8 @@ class AttendanceController {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 					attendanceAutoId: result.attendanceAutoId,
-					// attendanceDate: { [Op.lte]: result.fromDate },
-					// attendanceShiftEndDate: { [Op.gte]: result.toDate }
+					attendanceDate: { [Op.lte]: result.fromDate },
+					attendanceShiftEndDate: { [Op.gte]: result.toDate }
 				},
 				attributes: [
 					"attendancePunchInTime",
@@ -934,8 +934,8 @@ class AttendanceController {
 				const startRegularizeDateTime = `${result.fromDate}T${result.punchInTime}`;
 				const preAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${preShiftStart}`;
 				const graceAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${shiftStartWithGrace}`;
-				// console.log("startRegularizeDateTime", startRegularizeDateTime)
-				// console.log("preAttendanceDateTime", preAttendanceDateTime)
+				console.log("startRegularizeDateTime", startRegularizeDateTime)
+				console.log("preAttendanceDateTime", preAttendanceDateTime)
 				// console.log("graceAttendanceDateTime", graceAttendanceDateTime)
 				let isOverNight = parseInt(shiftDetails.isOverNight);
 
@@ -954,13 +954,22 @@ class AttendanceController {
 					// console.log("punchOutTime", result.punchOutTime);
 				const endRegularizeDateTime = `${result.toDate}T${result.punchOutTime}`;
 				const postAttendanceDateTime = `${attendanceData?.dataValues?.attendanceShiftEndDate}T${postShiftEnd}`;
-				// console.log("postAttendanceDateTime", postAttendanceDateTime)
+				console.log("endRegularizeDateTime", endRegularizeDateTime)
+				console.log("postAttendanceDateTime", postAttendanceDateTime)
 
 				if((preAttendanceDateTime > startRegularizeDateTime) || (endRegularizeDateTime > postAttendanceDateTime) && (isOverNight === 1)) {
 					// console.log("you are not able to regularize with isOverNight");
 					return respHelper(res, {
 						status: 400,
 						msg: "Invalid punchIn/punchOut night time",
+					});
+				}
+
+				if((attendanceData?.dataValues?.attendanceDate === result.fromDate) && (result.punchInTime > shiftStartWithGrace) && (isOverNight === 1)) {
+					// console.log("you are not able to regularize with isOverNight");
+					return respHelper(res, {
+						status: 400,
+						msg: "Invalid punchIn/punchOut night time grace",
 					});
 				}
 			}
