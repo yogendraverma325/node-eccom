@@ -3774,6 +3774,7 @@ const fetchEmployeeRole = (role, employeeId, actionBy) => {
 		return role;
 	}
 };
+<<<<<<< HEAD
 
 async function convertEmptyStringsToNull(obj) {
 	if (Array.isArray(obj)) {
@@ -3823,6 +3824,8 @@ async function chekcMonthCountInArray(dates) {
 	const monthCountArray = Object.values(monthCountMap);
 	return monthCountArray;
 }
+=======
+>>>>>>> regularization_request_dev_26_04_2025
 
 export default {
 	generateJwtToken,
@@ -3884,6 +3887,9 @@ export default {
 	activeCompOffMoreThanLeave,
 	// Export by jay
 	fetchEmployeeRole,
+<<<<<<< HEAD
 	convertEmptyStringsToNull,
 	chekcMonthCountInArray,
+=======
+>>>>>>> regularization_request_dev_26_04_2025
 };

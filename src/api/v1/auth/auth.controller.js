@@ -243,7 +243,7 @@ class AuthController {
 
 			let secret = process.env.QR_SESSION_SECRET;
 			let signedToken = signSessionId(sessionId, secret);
-			const expiresAt = new Date(Date.now() + 50 * 1000); // 50 seconds from now
+			const expiresAt = new Date(Date.now() + 50 * 1000); // 60 seconds from now
 			await db.qrSessionHistory.create({
 				sessionId: signedToken,
 				employeeId: id,
@@ -268,6 +268,7 @@ class AuthController {
 	async authenticateSessionStatus(req, res) {
 		try {
 			const { sessionId } = req.params;
+			const employeeId = req.userData.id;
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
