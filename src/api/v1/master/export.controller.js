@@ -4118,37 +4118,40 @@ class MasterController {
 					//   ? (ele.employeejobdetail.dataValues.customerName.match(/(C\d+)/) ||
 					//     [])[1] || ""
 					//   : "",
-					
-					 current_address : ele.employeeaddress?.dataValues
-  ? [
-      ele.employeeaddress.dataValues.currentHouse || "",
-      ele.employeeaddress.dataValues.currentStreet || "",
-      ele.employeeaddress.dataValues.currentLandmark || "",
-      ele.employeeaddress.dataValues.currentcity?.cityName || "",
-      ele.employeeaddress.dataValues.currentstate?.stateName || "",
-      ele.employeeaddress.dataValues.currentcountry?.countryName || "",
-      ele.employeeaddress.dataValues.currentPincodeId?.toString() || "", // convert to string safely
-    ]
-      .map((item) => (item ?? "").toString().trim()) // ensure item is string, trim whitespace
-      .filter((item) => item !== "")
-      .join(", ")
-  : "",
 
- permanent_address : ele.employeeaddress?.dataValues
-  ? [
-      ele.employeeaddress.dataValues.permanentHouse || "",
-      ele.employeeaddress.dataValues.permanentStreet || "",
-      ele.employeeaddress.dataValues.permanentLandmark || "",
-      ele.employeeaddress.dataValues.permanentcity?.cityName || "",
-      ele.employeeaddress.dataValues.permanentstate?.stateName || "",
-      ele.employeeaddress.dataValues.permanentcountry?.countryName || "",
-      ele.employeeaddress.dataValues.permanentPincodeId?.toString() || "",
-    ]
-      .map((item) => (item ?? "").toString().trim())
-      .filter((item) => item !== "")
-      .join(", ")
-  : "",
+					current_address: ele.employeeaddress?.dataValues
+						? [
+								ele.employeeaddress.dataValues.currentHouse || "",
+								ele.employeeaddress.dataValues.currentStreet || "",
+								ele.employeeaddress.dataValues.currentLandmark || "",
+								ele.employeeaddress.dataValues.currentcity?.cityName || "",
+								ele.employeeaddress.dataValues.currentstate?.stateName || "",
+								ele.employeeaddress.dataValues.currentcountry?.countryName ||
+									"",
+								ele.employeeaddress.dataValues.currentPincodeId?.toString() ||
+									"", // convert to string safely
+							]
+								.map((item) => (item ?? "").toString().trim()) // ensure item is string, trim whitespace
+								.filter((item) => item !== "")
+								.join(", ")
+						: "",
 
+					permanent_address: ele.employeeaddress?.dataValues
+						? [
+								ele.employeeaddress.dataValues.permanentHouse || "",
+								ele.employeeaddress.dataValues.permanentStreet || "",
+								ele.employeeaddress.dataValues.permanentLandmark || "",
+								ele.employeeaddress.dataValues.permanentcity?.cityName || "",
+								ele.employeeaddress.dataValues.permanentstate?.stateName || "",
+								ele.employeeaddress.dataValues.permanentcountry?.countryName ||
+									"",
+								ele.employeeaddress.dataValues.permanentPincodeId?.toString() ||
+									"",
+							]
+								.map((item) => (item ?? "").toString().trim())
+								.filter((item) => item !== "")
+								.join(", ")
+						: "",
 				};
 
 				arr.push(data);

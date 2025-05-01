@@ -392,13 +392,20 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.requestForAddressApproval,
 	)
-// ritak address approval module end
+	// ritak address approval module end
 
+	//hr policy for user start
+	.get(
+		"/hrPolicy/assigned",
+		authentication.authenticate,
+		userController.fetchHrPolicyByEmpId,
+	)
 
-//hr policy for user start
-.get('/hrPolicy/assigned', authentication.authenticate, userController.fetchHrPolicyByEmpId)
-
-// Route to acknowledge or decline an HR policy
-.post('/hrPolicy/acknowledge', authentication.authenticate, userController.acknowledgeHrPolicy);
+	// Route to acknowledge or decline an HR policy
+	.post(
+		"/hrPolicy/acknowledge",
+		authentication.authenticate,
+		userController.acknowledgeHrPolicy,
+	);
 
 //hr policy for user end

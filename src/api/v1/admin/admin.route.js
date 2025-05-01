@@ -233,21 +233,21 @@ export default Express.Router()
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.actionOnAddressDetails,
 	)
-//ritak address approval end
+	//ritak address approval end
 
-//ritak Hr Policy start
+	//ritak Hr Policy start
 
-.get(
-	"/getHrPolciyCategoryList",
-	authorization("ADMIN", "HR_OPS"),
-	commonController.getHrPolciyCategoryList,
-)
-.post(
-	"/hrPolicyCategory",
-	authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-	commonController.createHrPolicyCategory,
-)
-.put(
+	.get(
+		"/getHrPolciyCategoryList",
+		authorization("ADMIN", "HR_OPS"),
+		commonController.getHrPolciyCategoryList,
+	)
+	.post(
+		"/hrPolicyCategory",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.createHrPolicyCategory,
+	)
+	.put(
 		"/hrPolicyCategory/:id",
 		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
 		commonController.updateHrPolicyCategory,
@@ -274,42 +274,57 @@ export default Express.Router()
 		commonController.createHrPolicy,
 	)
 	.put(
-			"/hrPolicy/:id",
-			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-			commonController.updateHrPolicy,
-		)
-		.patch(
-			"/hrPolicy/:id",
-			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-			commonController.changeStatusOfHrPolicy,
-		)
-		.patch(
-			"/hrPolicy/archiveAction/:id",
-			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-			commonController.archiveActionOfHrPolicy,
-		)
-		.delete(
-			"/hrPolicy/:id",
-			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-			commonController.deleteOfHrPolicy,
-		)
+		"/hrPolicy/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.updateHrPolicy,
+	)
+	.patch(
+		"/hrPolicy/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.changeStatusOfHrPolicy,
+	)
+	.patch(
+		"/hrPolicy/archiveAction/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.archiveActionOfHrPolicy,
+	)
+	.delete(
+		"/hrPolicy/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.deleteOfHrPolicy,
+	)
 
-		.post(
-			"/user-assignment/createUserAssignment",
-			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-			commonController.createUserAssignment,
-		)
-		.put(
-			"/user-assignment/editUserAssignment/:id",
-			authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
-			commonController.editUserAssignment,
-		)
-		.get("/user-assignment/assignment-list", commonController.getUserAssignmentList)
+	.post(
+		"/user-assignment/createUserAssignment",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.createUserAssignment,
+	)
+	.put(
+		"/user-assignment/editUserAssignment/:id",
+		authorization("ADMIN", "BUHR", "HR_OPS", "SUPERADMIN"),
+		commonController.editUserAssignment,
+	)
+	.get(
+		"/user-assignment/assignment-list",
+		commonController.getUserAssignmentList,
+	)
 
-		.get("/user-assignment/process-list", commonController.getUserAssignmentProcessList)
-		.get("/user-assignment/attribute-list", commonController.getUserAssignmentAttributeList)
-		.get("/user-assignment/attribute-data/:attribute", commonController.getUserAssignmentAttributeData)
+	.get(
+		"/user-assignment/process-list",
+		commonController.getUserAssignmentProcessList,
+	)
+	.get(
+		"/user-assignment/attribute-list",
+		commonController.getUserAssignmentAttributeList,
+	)
+	.get(
+		"/user-assignment/attribute-data/:attribute",
+		commonController.getUserAssignmentAttributeData,
+	)
 
-		.get("/user-assignment/employees/:id/", commonController.exportEmployeesByUserAssignmentId)
+	.get(
+		"/user-assignment/employees/:id/",
+		commonController.exportEmployeesByUserAssignmentId,
+	);
 
 //ritak Hr Policy end

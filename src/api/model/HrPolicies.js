@@ -78,11 +78,11 @@ export default (sequelize, Sequelize) => {
 
 		createdAt: {
 			type: Sequelize.DATE,
-			defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+			defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
 		},
 		updatedAt: {
 			type: Sequelize.DATE,
-			defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+			defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
 		},
 		updatedBy: {
 			type: Sequelize.STRING(10),

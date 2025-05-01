@@ -4,8 +4,9 @@ import attendanceController from "../api/v1/attendance/attendance.controller.js"
 import helper from "../helper/helper.js";
 import userController from "../api/v1/user/user.controller.js";
 
-cron.schedule("0 30 14 * * *", async () => {  // 12:01 AM
-    await cronController.getEmpForWishes();
+cron.schedule("0 30 14 * * *", async () => {
+	// 12:01 AM
+	await cronController.getEmpForWishes();
 });
 
 cron.schedule("30 03 * * *", async () => {

@@ -958,12 +958,14 @@ class AttendanceController {
 						attendanceData.dataValues.employee.companymaster.companyLogo,
 				}),
 			);
-			pushNotificationEmitter.emit(
-                "sendNotification", {
-                title: message.ATTENDANCE_REQ,
-                body: message.ATTENDANCE_SUBMIT.replace("<name>", attendanceData.dataValues.employee.name),
-                employeeId:attendanceData.dataValues.employee.managerData.id,
-            });
+			pushNotificationEmitter.emit("sendNotification", {
+				title: message.ATTENDANCE_REQ,
+				body: message.ATTENDANCE_SUBMIT.replace(
+					"<name>",
+					attendanceData.dataValues.employee.name,
+				),
+				employeeId: attendanceData.dataValues.employee.managerData.id,
+			});
 
 			await db.attendanceMaster.update(
 				{
@@ -2214,13 +2216,14 @@ class AttendanceController {
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
 
-				 pushNotificationEmitter.emit("sendNotification", {
-                    title: message.ATTENDANCE_REQ_ACK,
-                    body: message.ATTENDANCE_REQ_STATUS.replace(
-                        "<status>",
-                        result.status ? "approved" : "rejected"),
-                    employeeId: regularizeData["attendancemaster.employee.id"],
-                });
+				pushNotificationEmitter.emit("sendNotification", {
+					title: message.ATTENDANCE_REQ_ACK,
+					body: message.ATTENDANCE_REQ_STATUS.replace(
+						"<status>",
+						result.status ? "approved" : "rejected",
+					),
+					employeeId: regularizeData["attendancemaster.employee.id"],
+				});
 			}
 
 			return respHelper(res, {
@@ -5332,13 +5335,14 @@ class AttendanceController {
 				};
 				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
 
-				 pushNotificationEmitter.emit("sendNotification", {
-                    title: message.ATTENDANCE_REQ_ACK,
-                    body: message.ATTENDANCE_REQ_STATUS.replace(
-                        "<status>",
-                        result.status ? "approved" : "rejected"),
-                    employeeId: regularizeData["attendancemaster.employee.id"],
-                });
+				pushNotificationEmitter.emit("sendNotification", {
+					title: message.ATTENDANCE_REQ_ACK,
+					body: message.ATTENDANCE_REQ_STATUS.replace(
+						"<status>",
+						result.status ? "approved" : "rejected",
+					),
+					employeeId: regularizeData["attendancemaster.employee.id"],
+				});
 			}
 
 			return respHelper(res, {

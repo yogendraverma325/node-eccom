@@ -69,14 +69,14 @@ async function query(caseId, data, data2) {
 			//return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId DESC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId DESC;`;
 			return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId ASC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM  ${dbName}.importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} AND impInfo.companyId =${data.companyId} AND impInfo.buId =${data.buId} AND impInfo.sbuId =${data.sbuId} AND impInfo.isActive =${data.isActive} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId ASC;`;
 			break;
-			case 3:
-				//return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId DESC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId DESC;`;
-				return `SELECT SUM(CASE WHEN proceessId = ${data.processId} THEN 1 ELSE 0 END) AS total_processed, SUM(CASE WHEN proceessId = ${data.processId} AND payStatus = 8 THEN 1 ELSE 0 END) AS total_process_and_released FROM ${dbName}.payprocessdetails;`;
-				break;
-	
-				case 4:
-					return `DELETE FROM tara_hrms_live.importinfo WHERE importAutoId = ${data.importId};`
-					break;
+		case 3:
+			//return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId DESC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId DESC;`;
+			return `SELECT SUM(CASE WHEN proceessId = ${data.processId} THEN 1 ELSE 0 END) AS total_processed, SUM(CASE WHEN proceessId = ${data.processId} AND payStatus = 8 THEN 1 ELSE 0 END) AS total_process_and_released FROM ${dbName}.payprocessdetails;`;
+			break;
+
+		case 4:
+			return `DELETE FROM tara_hrms_live.importinfo WHERE importAutoId = ${data.importId};`;
+			break;
 	}
 }
 export default {
