@@ -2,14 +2,11 @@ import cron from "node-cron";
 import cronController from "../api/v1/cron/cron.controller.js";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
 import helper from "../helper/helper.js";
+import userController from "../api/v1/user/user.controller.js";
 
-<<<<<<< HEAD
-cron.schedule("0 30 14 * * *", async () => {
-	// 12:01 AM
-=======
+
 cron.schedule("00 05 * * *", async () => {
->>>>>>> regularization_request_dev_26_04_2025
-	await cronController.getEmpForWishes();
+await cronController.getEmpForWishes();
 });
 
 cron.schedule("30 03 * * *", async () => {
@@ -44,6 +41,11 @@ cron.schedule("10 8 * * *", async () => {
 	await helper.leaveCreditMonthCron();
 	await helper.leaveRefil();
 });
+
+cron.schedule("0 1 * * *", async () => {  // 1
+    await cronController.triggerHrPoliciesToUsersCron();
+});
+
 
 cron.schedule("0 6 * * *", async () => {
 	await cronController.generateConfirmation();
