@@ -1648,6 +1648,22 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 					raw: true,
 					attributes: ["empCode", "id","companyId",'buId','sbuId'],
 				});
+
+				if(!employeeDetais)
+				{
+					errorArray.push({
+						importedRow: JSON.stringify(employeeArrears),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc: "Employee not found or deactivated.",
+					});
+
+					continue;
+				}
+
+				console.log(employeeDetais);
+				continue;
 				let earningArears = {
 					EmployeeId: employeeDetais.id,
 					arrearMonth: employeeArrears["Arrear Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Month (YYYY-MM)'])),
@@ -1678,10 +1694,11 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 						createdBy: req.userData.id,
 						importStatusDesc:error.details[0].message,
 					});
-					return respHelper(res, {
-						status: 400,
-						msg: error.details[0],
-					});
+					continue;
+					// return respHelper(res, {
+					// 	status: 400,
+					// 	msg: error.details[0],
+					// });
 				} else {
 					let existArrear = await db.earningsArears.findOne({
 						where: {
