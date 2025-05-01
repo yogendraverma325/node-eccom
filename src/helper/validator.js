@@ -1262,11 +1262,11 @@ async function createDynamicPayPackageSchema(structureDetails, employee) {
 				"structureMappingDetails.componentDetails.salaryComponentAlias"
 			]
 				? salaryComponent[
-				"structureMappingDetails.componentDetails.salaryComponentAlias"
-				]
+						"structureMappingDetails.componentDetails.salaryComponentAlias"
+					]
 				: salaryComponent[
-				"structureMappingDetails.componentDetails.salaryComponentCode"
-				],
+						"structureMappingDetails.componentDetails.salaryComponentCode"
+					],
 		);
 	}
 	const dynamicFields = {
@@ -1804,12 +1804,18 @@ const actionAddressSchema = Joi.object({
 	currentStateId: Joi.number().label("Current State").optional(),
 	currentCityId: Joi.number().label("Current City").optional(),
 	currentCountryId: Joi.number().label("Current Country").optional(),
-	currentPincodeId: Joi.number().label("Current Pincode").allow(null, "").optional(),
+	currentPincodeId: Joi.number()
+		.label("Current Pincode")
+		.allow(null, "")
+		.optional(),
 	currentLandmark: Joi.string().label("Current Landmark").optional(),
 	permanentCityId: Joi.number().label("Permanent City").optional(),
 	permanentStateId: Joi.number().label("Permanent State").optional(),
 	permanentCountryId: Joi.number().label("Permanent Country").optional(),
-	permanentPincodeId: Joi.number().label("Permanent Pincode").allow(null, "").optional(),
+	permanentPincodeId: Joi.number()
+		.label("Permanent Pincode")
+		.allow(null, "")
+		.optional(),
 	permanentStreet: Joi.string().label("Permanent Street").optional(),
 	permanentHouse: Joi.string().label("Permanent House").optional(),
 	permanentLandmark: Joi.string().label("Permanent Landmark").optional(),
@@ -1818,7 +1824,10 @@ const actionAddressSchema = Joi.object({
 	emergencyCityId: Joi.number().label("Emergency City").optional(),
 	emergencyStateId: Joi.number().label("Emergency State").optional(),
 	emergencyCountryId: Joi.number().label("Emergency Country").optional(),
-	emergencyPincodeId: Joi.number().label("Emergency Pincode").allow(null, "").optional(),
+	emergencyPincodeId: Joi.number()
+		.label("Emergency Pincode")
+		.allow(null, "")
+		.optional(),
 	emergencyLandmark: Joi.string().label("Emergency Landmark").optional(),
 	status: Joi.number().valid(0, 1).label("Status").required(), // 0 for rejected, 1 for approved
 	comment: Joi.string().label("Comment").allow(null, "").optional(),

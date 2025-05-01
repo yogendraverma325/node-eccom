@@ -1624,7 +1624,7 @@ class FnfController {
 							as: "employeeJobDetails",
 						},
 					],
-					attributes: ["dateOfExit","empCode"],
+					attributes: ["dateOfExit", "empCode"],
 					nest: true,
 				});
 				let dateOfJoining = employeejobdetails.employeeJobDetails.dateOfJoining;
@@ -1639,22 +1639,36 @@ class FnfController {
 				const days = endDate.diff(startDate, "days");
 				years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
 
-				if(years>=gratuityMinYears)
-				{
-					let existingGratuityDetails = await db.gratuityOverrides.findOne({where:{
-						EmployeeId:element
-					}});
+				if (years >= gratuityMinYears) {
+					let existingGratuityDetails = await db.gratuityOverrides.findOne({
+						where: {
+							EmployeeId: element,
+						},
+					});
 
 					console.log(existingGratuityDetails);
-					if(existingGratuityDetails)
-					{
-						await db.gratuityOverrides.update({gratuityYears:years,updatedBy:req.userData.id,updatedAt:new Date()},{where:{
-							EmployeeId:element
-						}});
-					}
-					else
-					{
-						 await db.gratuityOverrides.create({EmployeeId:element,gratuityYears:years,createdBy:req.userData.id,isActive:1,empCode:employeejobdetails.empCode,createdAt:new Date()});
+					if (existingGratuityDetails) {
+						await db.gratuityOverrides.update(
+							{
+								gratuityYears: years,
+								updatedBy: req.userData.id,
+								updatedAt: new Date(),
+							},
+							{
+								where: {
+									EmployeeId: element,
+								},
+							},
+						);
+					} else {
+						await db.gratuityOverrides.create({
+							EmployeeId: element,
+							gratuityYears: years,
+							createdBy: req.userData.id,
+							isActive: 1,
+							empCode: employeejobdetails.empCode,
+							createdAt: new Date(),
+						});
 					}
 				}
 			}

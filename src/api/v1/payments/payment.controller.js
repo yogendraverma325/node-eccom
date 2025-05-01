@@ -1800,7 +1800,7 @@ class PaymentController {
 					msg: "File is required!",
 				});
 			}
-			let isActive = req.query.isActive?parseInt(req.query.isActive):1;
+			let isActive = req.query.isActive ? parseInt(req.query.isActive) : 1;
 
 			///////////////If File is provided by the users//////////////////
 			const workbookEmployee = pkg.readFile(req.file.path);
@@ -3896,7 +3896,7 @@ class PaymentController {
 
 	async exportSampleV2(req, res) {
 		try {
-			console.log("LOP Sample Download....")
+			console.log("LOP Sample Download....");
 			const { exportSheetAutoId } = req.query;
 
 			let fileNameType = req.query.fileNameType || "";
@@ -3917,7 +3917,6 @@ class PaymentController {
 				"Delete LOP Deduction Sample": 9,
 				"Delete Extra Payment Sample": 10,
 				"Delete Standard Deduction Sample": 11,
-				
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -4010,7 +4009,10 @@ class PaymentController {
 					`attachment; filename=${sheetVal}_${timestamp}.xlsx`,
 				);
 				return res.end(report);
-			} else if (getColumns.length > 0 && [1,2,3,4,6,7,8,9,10,11].includes(Number(exportSheetAutoId))) {
+			} else if (
+				getColumns.length > 0 &&
+				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11].includes(Number(exportSheetAutoId))
+			) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
 				const columns = headers.map((value) => ({

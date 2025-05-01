@@ -43,8 +43,5 @@ export default Express.Router()
 		upload.single("attendanceroster"),
 		attendanceController.uploadAttendanceRoster,
 	)
-	.post(
-		"/cronforEMP",
-		attendanceController.cronforEMP,
-	);
+	.post("/cronforEMP", attendanceController.cronforEMP);
 //Attendance Roster

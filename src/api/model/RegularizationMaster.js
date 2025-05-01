@@ -48,10 +48,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TIME,
 		},
 		creatorRole: {
-			type: Sequelize.STRING
+			type: Sequelize.STRING,
 		},
 		updatorRole: {
-			type: Sequelize.STRING
+			type: Sequelize.STRING,
 		},
 		createdBy: {
 			type: Sequelize.INTEGER,

@@ -129,10 +129,9 @@ export default Express.Router()
 		authentication.authenticate,
 		fnfController.getFnfProcessDetails,
 	)
-	
+
 	.post(
 		"/updateGratuityEncahsments",
 		authentication.authenticate,
 		fnfController.updateGratuityEncahsments,
 	);
-
