@@ -7464,7 +7464,7 @@ class MasterController {
 											"salaryComponentAlias",
 											"salaryComponentSequenceNo",
 											"includeInPackage",
-											"salaryComponentEarningType"
+											"salaryComponentEarningType",
 										],
 									},
 								],
@@ -7989,13 +7989,23 @@ const transformData = (data) => {
 				element.dataValues.salarycomponent.dataValues.salaryComponentCode;
 			transformedObj[keyName] = element.payElementAmount;
 			// console.log(element.payElementAmount);
-			
 
-			if (['Earning','Balancing','OTC'].includes(element.dataValues.salarycomponent.dataValues.salaryComponentEarningType)) {
+			if (
+				["Earning", "Balancing", "OTC"].includes(
+					element.dataValues.salarycomponent.dataValues
+						.salaryComponentEarningType,
+				)
+			) {
 				totalCTC = parseFloat(totalCTC) + parseFloat(element.payElementAmount);
 			}
 
-			if (element.dataValues.salarycomponent.dataValues.includeInPackage == 1 && ['Earning','Balancing'].includes(element.dataValues.salarycomponent.dataValues.salaryComponentEarningType)) {
+			if (
+				element.dataValues.salarycomponent.dataValues.includeInPackage == 1 &&
+				["Earning", "Balancing"].includes(
+					element.dataValues.salarycomponent.dataValues
+						.salaryComponentEarningType,
+				)
+			) {
 				grossCTC = parseFloat(grossCTC) + parseFloat(element.payElementAmount);
 			}
 		});
