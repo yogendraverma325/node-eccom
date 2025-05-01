@@ -75,7 +75,7 @@ async function query(caseId, data, data2) {
 			break;
 
 		case 4:
-			return `DELETE FROM tara_hrms_live.importinfo WHERE importAutoId = ${data.importId};`;
+			return `DELETE FROM  ${dbName}.importinfo WHERE importAutoId = ${data.importId};`;
 			break;
 	}
 }
