@@ -42,7 +42,7 @@ cron.schedule("10 8 * * *", async () => {
 	await helper.leaveRefil();
 });
 
-cron.schedule("0 1 * * *", async () => {  // 1
+cron.schedule("0 1 * * *", async () => {  // 1 AM
     await cronController.triggerHrPoliciesToUsersCron();
 });
 
