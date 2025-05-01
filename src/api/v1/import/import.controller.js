@@ -43,6 +43,7 @@ class ImportController {
 				"Delete LOP",
 				"Delete Extra Payment",
 				"Delete Standard Deduction",
+				"Arrears",
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -51,14 +52,14 @@ class ImportController {
 					msg: "Service is comming soon : " + req.body.uploadType,
 				});
 			}
-			if (!req.body.operationType) {
+			if (!req.body.operationType) { /// OpreationType 1 OR 2
 				return respHelper(res, {
 					status: 400,
 					msg: "Operation not defined : ",
 				});
 			}
 
-			// console.log("Operation Type :: ",req.body.operationType);
+			// console.log("Operation Type :: ",req.body.uploadType);
 			// return;
 			let importInfoObject = {
 				createdBy: req.userData.id,
@@ -96,6 +97,9 @@ class ImportController {
 			} else if (req.body.uploadType == "Pay Slip Release") {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
 			}
+			else if (req.body.uploadType == "Arrears") {
+				await arrearsUpload(req, res, OperationType, importInfoObject);
+			}
 		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
@@ -116,6 +120,7 @@ class ImportController {
 				sbuId: req.userData.sbuId,
 				isActive: req.userData.isActive,
 			});
+			console.log(queryForImportDetails);
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
 			return respHelper(res, {
 				status: 200,
@@ -146,6 +151,7 @@ class ImportController {
 				DELETE_EXTRA_PAYMENT: "Delete Extra Payment",
 				DELETE_TDS_DEDUCTION: "Delete TDS Deduction",
 				DELETE_LOP: "Delete LOP",
+				ARREARS: "Arrears",
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -1597,6 +1603,169 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 		console.log(e);
 	}
 }
+
+async function arrearsUpload(req, res, OperationType, importParams) {
+	try {
+		if (!req.file) {
+			return respHelper(res, {
+				status: 400,
+				msg: "File is required!",
+			});
+		}
+		///////////////If File is provided by the users//////////////////
+		const workbookEmployee = pkg.readFile(req.file.path);
+		const sheetNameEmployee = workbookEmployee.SheetNames[0];
+		var arrearsDetais = pkg.utils.sheet_to_json(
+			workbookEmployee.Sheets[sheetNameEmployee],
+		);
+		if (!arrearsDetais[0]["Employee ID"] ||
+				!arrearsDetais[0]['Arrear Pay Month (YYYY-MM)'] ||
+				!arrearsDetais[0]['Arrear Type(LOP/Increment)'] ||
+				!arrearsDetais[0]['Arrear Month (YYYY-MM)'] ||
+				!arrearsDetais[0]['Arrear Days'] ||
+				!arrearsDetais[0]['Has PF Arrear? (Yes/No)'] ||
+				!arrearsDetais[0]['Compute ESIC Arrear (Yes/No)'] ||
+				!arrearsDetais[0]['Delete Arrear? (Yes/No)']
+		) {
+			return respHelper(res, {
+				status: 400,
+				msg: "Invalid File Format",
+			});
+		}
+
+		let financialYearDetails = await importHelper.getFinancialYear(new Date().getFullYear());
+		var errorArray = [],
+			successArray = [];
+			let importId = await createImportDetails(importParams);
+
+
+		for (const employeeArrears of arrearsDetais) {
+			
+			if(employeeArrears['Employee ID'])
+			{
+				let employeeDetais = await db.employeeMaster.findOne({
+					where: { empCode: employeeArrears["Employee ID"], isActive: 1 },
+					raw: true,
+					attributes: ["empCode", "id","companyId",'buId','sbuId'],
+				});
+				let earningArears = {
+					EmployeeId: employeeDetais.id,
+					arrearMonth: employeeArrears["Arrear Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Month (YYYY-MM)'])),
+					arrearPayMonth: employeeArrears["Arrear Pay Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Pay Month (YYYY-MM)'])),//employeeArrears['Arrear Pay Month (YYYY-MM)'],
+					arearDays: employeeArrears["Arrear Days"],
+					arearType: employeeArrears["Arrear Type(LOP/Increment)"],
+					hasPF: employeeArrears["Has PF Arrear? (Yes/No)"],
+					computeESIC: employeeArrears["Compute ESIC Arrear (Yes/No)"],
+					empCode:employeeArrears["Employee ID"],
+					isActive:1,
+					companyId:employeeDetais.companyId,
+					buId:employeeDetais.buId,
+					sbuId:employeeDetais.sbuId,
+					financialYearId:financialYearDetails.financialYearId,
+		
+				};
+	
+				console.log(earningArears);
+	
+				const { error } =
+					await validator.earningArrearsSchema.validate(earningArears);
+	
+				if (error) {
+					errorArray.push({
+						importedRow: JSON.stringify(employeeArrears),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc:error.details[0].message,
+					});
+					return respHelper(res, {
+						status: 400,
+						msg: error.details[0],
+					});
+				} else {
+					let existArrear = await db.earningsArears.findOne({
+						where: {
+							EmployeeId: earningArears.EmployeeId,
+							arrearMonth: earningArears.arrearMonth,
+							arearType: earningArears.arearType,
+						},
+						raw: true,
+					});
+	
+					if (OperationType == 2 && !existArrear) {
+						errorArray.push({
+							importedRow: JSON.stringify(existArrear),
+							importAutoId: importId,
+							importStatus: 2,
+							createdBy: req.userData.id,
+							importStatusDesc: "Data is  not available to delete.",
+						});
+	
+						continue;
+					}
+	
+					if (existArrear) {
+						earningArears["updatedBy"] = req.userData.id;
+						earningArears["updatedAt"] = new Date();
+						await db.earningsArears.update(earningArears, {
+							where: {
+								EmployeeId: earningArears.EmployeeId,
+								arrearMonth: earningArears.arrearMonth,
+								arearType: earningArears.arearType,
+							},
+						});
+						earningArears["ACTION_TYPE"] = "UPDATE";
+					} else {
+						earningArears["createdBy"] = req.userData.id;
+						earningArears['createdAt'] = new Date();
+						await db.earningsArears.create(earningArears);
+						earningArears["ACTION_TYPE"] = "CREATE";
+					}
+					successArray.push({
+						importedRow: JSON.stringify(earningArears),
+						importAutoId: importId,
+						importStatus: 1,
+						createdBy: req.userData.id,
+						importStatusDesc: "Arrears Uploaded Successfully.",
+					});
+				}
+			}
+		}
+
+		if(importId)
+		{
+			let importFinalResult = successArray.concat(errorArray);
+			await db.ImportData.bulkCreate(importFinalResult);
+			await db.ImportInfo.update(
+				{
+					importStatusDesc:
+						"Import Executed with " +
+						successArray.length +
+						" success and " +
+						errorArray.length +
+						" error records",
+					importStatus: 1,
+				},
+				{ where: { importAutoId: importId } },
+			);
+	
+			return respHelper(res, {
+				status: 200,
+				data: {
+					SuccessRecord: successArray.length,
+					ErrorRecord: errorArray.length,
+				},
+				msg: "Extra Deductions Uploaded Successfully.",
+			});
+		}
+
+	} catch (error) {
+		console.log(error);
+		return respHelper(res, {
+			status: 500,
+		});
+	}
+}
 async function sendMailAfterSalarySlipRelease(
 	employeeIds,
 	payMonth,
@@ -1657,6 +1826,9 @@ async function sendMailAfterSalarySlipRelease(
 		}
 	}
 }
+
+
+
 async function createImportDetails(params) {
 	let importInfo = await db.ImportInfo.create(params);
 	let importInfoRaw = importInfo.get({ plain: true });

@@ -79,6 +79,8 @@ async function query(caseId, data, data2) {
 			break;
 	}
 }
+
+
 export default {
 	getFinancialYear,
 	getFromattedDate,
