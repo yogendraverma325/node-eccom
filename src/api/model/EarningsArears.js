@@ -57,6 +57,27 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 			default: 0,
 		},
+		empCode:{
+			type:Sequelize.STRING,
+			default:null,
+		},
+		companyId:{
+			type: Sequelize.INTEGER,
+			//default: null,
+
+		},
+		buId:{
+			type: Sequelize.INTEGER,
+			//default: null,
+		},
+		sbuId:{
+			type: Sequelize.INTEGER,
+			//default: null,
+		},
+		financialYearId:{
+			type: Sequelize.INTEGER,
+			//default: null,		
+		}
 	});
 	return earningArrears;
 };

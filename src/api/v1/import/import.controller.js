@@ -1662,8 +1662,8 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 					continue;
 				}
 
-				console.log(employeeDetais);
-				continue;
+			// console.log(employeeDetais);
+			// 	continue;	
 				let earningArears = {
 					EmployeeId: employeeDetais.id,
 					arrearMonth: employeeArrears["Arrear Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Month (YYYY-MM)'])),
