@@ -1238,21 +1238,21 @@ const earningArrearsSchema = Joi.object({
 		.allow(null)
 		.max(45)
 		.optional()
-		.valid("New Joinee", "LOP", "Increment"), // Optional, can be null
+		.valid("LOP", "Increment"), // Optional, can be null
 	hasPF: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
 	computeESIC: Joi.string().allow(null).max(45).optional().valid("Yes", "No"),
-	isDeleteArrear: Joi.string()
-		.allow(null)
-		.max(45)
-		.optional()
-		.valid("Yes", "No"),
-	lopDate: Joi.date().allow(null).optional(),
 	createdBy: Joi.number().integer().positive().allow(null).optional(),
 	createdAt: Joi.date().allow(null).optional(),
 	updatedBy: Joi.number().integer().positive().allow(null).optional(),
 	updatedAt: Joi.date().allow(null).optional(),
-	isActive: Joi.boolean().default(false).optional(), // Defaults to false if not provided
+	isActive: Joi.number().default(0).optional(), // Defaults to false if not provided
+	empCode:Joi.string().required(),
+	companyId: Joi.number().required(), // Defaults to false if not provided
+	buId: Joi.number().required(), // Defaults to false if not provided
+	sbuId: Joi.number().required(), // Defaults to false if not provided
+	financialYearId: Joi.number().required(), // Defaults to false if not provided
 });
+
 
 async function createDynamicPayPackageSchema(structureDetails, employee) {
 	let dynamicArray = [];
