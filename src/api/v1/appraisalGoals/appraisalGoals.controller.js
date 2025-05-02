@@ -2216,7 +2216,7 @@ class AppraisalGoalsController {
 					},
 				},
 			);
-
+console.log(">>>>>>>>>>>>>>>>>")
 			await db.goalAreaPragatiTrail.update(
 				{
 					isApproved: 3,
