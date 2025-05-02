@@ -15,4 +15,5 @@ export default Express.Router()
 	.get("/generatConfiramtionletter", cronController.generatConfiramtionletter)
 	//CONFIRMATION
 
-	.get("/biometricAttendance", cronController.biometricAttendance);
+	.get("/biometricAttendance", cronController.biometricAttendance)
+	.get("/getEmpForWishes", cronController.getEmpForWishes);
