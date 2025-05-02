@@ -5165,7 +5165,11 @@ const goalSubmission = async (data) => {
       <tr>
         <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
             valign="middle">
-          <img height="45" alt="Logo" />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
           <img height="45" alt="Logo" style="float: right" />
         </td>
       </tr>
