@@ -1231,11 +1231,11 @@ class AppraisalGoalsController {
 				),
 			]);
 
-
+			const getUserId  =  await db.goalAreaForUser.findOne({where:{goalAreaId}})
 			const existUser = await db.employeeMaster.findOne({
 				raw: true,
 				where: {
-					id: req.userId,
+					id: getUserId.userId,
 					isActive: 1,
 				},
 				attributes: ["name", "empCode", "email", "profileImage"],
