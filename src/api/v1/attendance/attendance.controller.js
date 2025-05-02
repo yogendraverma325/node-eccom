@@ -12261,7 +12261,9 @@ class AttendanceController {
 	async revokeApprovedRegularizations(req, res){
 				try {
 
+					
 					const result = await validator.revokeApprovedRegularizationsValidation.validateAsync(req.body);
+					
 
 					const regularizeData = await db.regularizationMaster.findOne({
 					where: {
