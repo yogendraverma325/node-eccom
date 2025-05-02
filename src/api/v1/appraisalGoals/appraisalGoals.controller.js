@@ -1222,7 +1222,7 @@ class AppraisalGoalsController {
 	async deleteGoalKeyAreaByUser(req, res) {
 		try {
 			const { goalAreaId } = req.body;
-			
+
 			await Promise.all([
 				db.goalAreaForUser.update({ isDeleted: 1 }, { where: { goalAreaId } }),
 				db.subGoalAreaForUser.update(
@@ -1231,7 +1231,9 @@ class AppraisalGoalsController {
 				),
 			]);
 
-			const getUserId  =  await db.goalAreaForUser.findOne({where:{goalAreaId}})
+			const getUserId = await db.goalAreaForUser.findOne({
+				where: { goalAreaId },
+			});
 			const existUser = await db.employeeMaster.findOne({
 				raw: true,
 				where: {
@@ -1242,7 +1244,7 @@ class AppraisalGoalsController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyName","senderEmail", "companyLogo"],
+						attributes: ["companyName", "senderEmail", "companyLogo"],
 					},
 					{
 						model: db.employeeMaster,
@@ -1259,7 +1261,7 @@ class AppraisalGoalsController {
 					managerName: existUser["managerData.name"],
 					senderEmail: existUser["companymaster.senderEmail"],
 					companyLogo: existUser["companymaster.companyLogo"],
-					companyName:existUser['companymaster.companyName']
+					companyName: existUser["companymaster.companyName"],
 				}),
 			);
 			return respHelper(res, {
@@ -2081,13 +2083,13 @@ class AppraisalGoalsController {
 					include: [
 						{
 							model: db.companyMaster,
-							attributes: ["companyName","senderEmail", "companyLogo"],
+							attributes: ["companyName", "senderEmail", "companyLogo"],
 						},
 						{
 							model: db.employeeMaster,
 							as: "managerData",
 							attributes: ["name", "email"],
-						}
+						},
 					],
 				});
 				console.log(">>>>>>>>>>>>", existUser);
@@ -2131,7 +2133,7 @@ class AppraisalGoalsController {
 							companyLogo: existUser["companymaster.companyLogo"],
 							statusName: "Approved",
 							subject: 1,
-							companyName:existUser['companymaster.companyName']
+							companyName: existUser["companymaster.companyName"],
 						}),
 					);
 				} else {
@@ -2145,7 +2147,7 @@ class AppraisalGoalsController {
 							companyLogo: existUser["companymaster.companyLogo"],
 							statusName: isApproved == 1 ? "Approved" : "Rejected",
 							subject: 0,
-							companyName:existUser['companymaster.companyName']
+							companyName: existUser["companymaster.companyName"],
 						}),
 					);
 				}
@@ -2216,7 +2218,7 @@ class AppraisalGoalsController {
 					},
 				},
 			);
-console.log(">>>>>>>>>>>>>>>>>")
+			console.log(">>>>>>>>>>>>>>>>>");
 			await db.goalAreaPragatiTrail.update(
 				{
 					isApproved: 3,

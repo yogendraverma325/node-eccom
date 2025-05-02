@@ -5389,7 +5389,7 @@ const goalPartiallyActionOrApprovedAll = async (data) => {
 };
 
 const goalDeletedNotification = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -5449,7 +5449,6 @@ const goalDeletedNotification = async (data) => {
   </body>
 </html>`;
 };
-
 
 // goal-appraisal
 export default {

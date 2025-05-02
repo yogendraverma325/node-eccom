@@ -790,12 +790,11 @@ async function goalPartiallyActionOrApprovedAll(input) {
 	}
 }
 
-
 async function goalDeletedNotification(input) {
 	try {
 		const userData = JSON.parse(input);
 		console.log("userData>>>>>>", userData);
-	
+
 		await helper.mailService({
 			to: userData.email,
 			subject: "Goal deleted",
