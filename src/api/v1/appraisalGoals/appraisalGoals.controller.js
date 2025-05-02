@@ -11,7 +11,6 @@ import path from "path";
 import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
 
-
 class AppraisalGoalsController {
 	async createGoalPlan(req, res) {
 		try {
@@ -77,7 +76,9 @@ class AppraisalGoalsController {
 					...subGoalAttributesWithGoalId,
 				];
 
-				await db.goalAttributesMapping.destroy({where:{appraisalGoalId: createGoal.appraisalGoalId}})
+				await db.goalAttributesMapping.destroy({
+					where: { appraisalGoalId: createGoal.appraisalGoalId },
+				});
 				await db.goalAttributesMapping.bulkCreate(mergeGoalAndSubGoals);
 			}
 
@@ -1444,7 +1445,9 @@ class AppraisalGoalsController {
 
 			try {
 				//const userId = req.userId;
-				const getManagerId = await db.employeeMaster.findOne({ where: {id: empId} });
+				const getManagerId = await db.employeeMaster.findOne({
+					where: { id: empId },
+				});
 
 				// 🔁 Collect all goalAreaIds from request
 				const goalAreaIds = existingGoals.map((goal) => goal.goalAreaId);

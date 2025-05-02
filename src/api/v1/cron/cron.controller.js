@@ -2102,9 +2102,9 @@ class CronController {
 
 			const employeesBirth = await db.employeeMaster.findAll({
 				raw: true,
-				attributes: ["id", "name", "email","firstName","buId","companyId"],
-				include:[
-                       {
+				attributes: ["id", "name", "email", "firstName", "buId", "companyId"],
+				include: [
+					{
 						model: db.biographicalDetails,
 						attributes: ["dateOfBirth"],
 						where: {
@@ -2113,20 +2113,21 @@ class CronController {
 								{ isActive: 1 },
 							],
 						},
-					   },
-					   	{ model: db.companyMaster,
-							attributes: ["companyLogo","senderEmail"],
-						 },
-						{
-								model: db.employeeMaster,
-								as: "managerData",
-								attributes: ["name", "email"],
-							},
-				]
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyLogo", "senderEmail"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "managerData",
+						attributes: ["name", "email"],
+					},
+				],
 			});
 
 			/// Fetch BuHead and HR data for each employee through buMapping
-			for(const emp of employeesBirth) {
+			for (const emp of employeesBirth) {
 				const headAndHrData = await db.buMapping.findOne({
 					where: { buId: emp.buId, companyId: emp.companyId },
 					include: [
@@ -2150,12 +2151,12 @@ class CronController {
 
 			//console.log("employeesBirth:-", employeesBirth.length);
 			//console.log("employeesBirth:-", employeesBirth);
-			
+
 			/// Send Birthday Wishes
 			for (const emp of employeesBirth) {
 				const empId = emp.id;
 				// Birthday Wishes
-				const dateOfBirth = emp['employeebiographicaldetail.dateOfBirth'];
+				const dateOfBirth = emp["employeebiographicaldetail.dateOfBirth"];
 				if (dateOfBirth) {
 					const dobFormatted = moment(dateOfBirth).format("MM-DD");
 					if (dobFormatted === today) {
@@ -2165,11 +2166,13 @@ class CronController {
 							employeeId: empId,
 						});
 
-						const managerEmail = emp['managerData.email'];
+						const managerEmail = emp["managerData.email"];
 						const buhrEmail = emp.buhrData.email;
 						const buHeadEmail = emp.buHeadData.email;
-						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(email => email !== null);
-						console.log("Birth ccEmail:-",ccEmail)
+						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(
+							(email) => email !== null,
+						);
+						console.log("Birth ccEmail:-", ccEmail);
 
 						eventEmitter.emit(
 							"sendBirthWishMail",
@@ -2177,20 +2180,28 @@ class CronController {
 								userEmail: emp.email,
 								firstName: emp.firstName,
 								//cc: ccEmail.join(","),
-								companyLogo:emp['companymaster.companyLogo'],
-								senderEmail: emp['companymaster.senderEmail'],
+								companyLogo: emp["companymaster.companyLogo"],
+								senderEmail: emp["companymaster.senderEmail"],
 							}),
 						);
 					}
 				}
 			}
 
-///=================================================================================
+			///=================================================================================
 
 			/// Fetching Emplyoees for Work Anniversary Wishes
 			const employees = await db.employeeMaster.findAll({
 				raw: true,
-				attributes: ["id", "name", "email","firstName","buId","companyId","dateOfJoining"],
+				attributes: [
+					"id",
+					"name",
+					"email",
+					"firstName",
+					"buId",
+					"companyId",
+					"dateOfJoining",
+				],
 				where: {
 					isActive: 1,
 					dateOfJoining: {
@@ -2198,20 +2209,20 @@ class CronController {
 					},
 				},
 				include: [
-					{ model: db.companyMaster ,
-						attributes: ["companyLogo","senderEmail"],
+					{
+						model: db.companyMaster,
+						attributes: ["companyLogo", "senderEmail"],
 					},
 					{
-						model:db.employeeMaster,
+						model: db.employeeMaster,
 						as: "managerData",
 						attributes: ["name", "email"],
 					},
-					
 				],
 			});
 
 			/// Fetch BuHead and HR data for each employee through buMapping
-			for(const emp of employees) {
+			for (const emp of employees) {
 				const headAndHrData = await db.buMapping.findOne({
 					where: { buId: emp.buId, companyId: emp.companyId },
 					include: [
@@ -2247,24 +2258,27 @@ class CronController {
 							employeeId: empId,
 						});
 
-						const managerEmail = emp['managerData.email'];
+						const managerEmail = emp["managerData.email"];
 						const buhrEmail = emp.buhrData.email;
 						const buHeadEmail = emp.buHeadData.email;
-						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(email => email !== null);
+						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(
+							(email) => email !== null,
+						);
 						//console.log("ccEmail:-",ccEmail)
-						const workDuration  = await helper.getWorkDuration(emp.dateOfJoining);
+						const workDuration = await helper.getWorkDuration(
+							emp.dateOfJoining,
+						);
 						//console.log("workDuration:-",workDuration)
 
-
-						 eventEmitter.emit(
+						eventEmitter.emit(
 							"sendWorkWishMail",
 							JSON.stringify({
 								userEmail: emp.email,
-								firstName:emp.firstName,
-								duration:workDuration,
+								firstName: emp.firstName,
+								duration: workDuration,
 								//cc: ccEmail.join(","),
-								companyLogo:emp['companymaster.companyLogo'],
-								senderEmail: emp['companymaster.senderEmail'],
+								companyLogo: emp["companymaster.companyLogo"],
+								senderEmail: emp["companymaster.senderEmail"],
 							}),
 						);
 					}

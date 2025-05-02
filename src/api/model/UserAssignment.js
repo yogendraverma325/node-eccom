@@ -23,10 +23,9 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-        isActive: {
+		isActive: {
 			type: Sequelize.BOOLEAN,
-		}
-		
+		},
 	});
 	return UserAssignement;
 };

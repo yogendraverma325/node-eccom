@@ -5055,7 +5055,7 @@ const sendWorkAnniversaryMail = async (data) => {
 };
 
 const sendBirthWishMailToEmp = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -5133,8 +5133,8 @@ const sendBirthWishMailToEmp = async (data) => {
     </div>
 </body>
 </html>
-`
-}
+`;
+};
 //ritak address approval end
 export default {
 	regularizationRequestMail,
@@ -5174,6 +5174,6 @@ export default {
 	compOffMail,
 	compOffMailAppval,
 	//ritak address approval end
-  sendWorkAnniversaryMail,
-  sendBirthWishMailToEmp
+	sendWorkAnniversaryMail,
+	sendBirthWishMailToEmp,
 };

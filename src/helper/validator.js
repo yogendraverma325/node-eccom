@@ -2400,6 +2400,5 @@ export default {
 	addGoalKeyAreaByUser,
 	editGoalKeyAreaByUser,
 	goalSubmittionSchema,
-	goalApprovalSchema
-
+	goalApprovalSchema,
 };

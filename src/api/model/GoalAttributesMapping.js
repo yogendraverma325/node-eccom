@@ -5,15 +5,15 @@ export default (sequelize, Sequelize) => {
 			primaryKey: true,
 			autoIncrement: true,
 		},
-        appraisalGoalId:{
-            type: Sequelize.INTEGER,
-        },
-        companyId:{
+		appraisalGoalId: {
 			type: Sequelize.INTEGER,
-        },
-        goalAttributeId:{
+		},
+		companyId: {
 			type: Sequelize.INTEGER,
-        },
+		},
+		goalAttributeId: {
+			type: Sequelize.INTEGER,
+		},
 		enable: {
 			type: Sequelize.BOOLEAN,
 		},
@@ -26,28 +26,27 @@ export default (sequelize, Sequelize) => {
 		needsApproval: {
 			type: Sequelize.BOOLEAN,
 		},
-		isDisableMandate:{
-			type: Sequelize.BOOLEAN
+		isDisableMandate: {
+			type: Sequelize.BOOLEAN,
 		},
-		goalType:{
-			type: Sequelize.INTEGER
+		goalType: {
+			type: Sequelize.INTEGER,
 		},
 		createdBy: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
 		createdAt: {
-			type: Sequelize.DATE
+			type: Sequelize.DATE,
 		},
 		updatedBy: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
 		updatedAt: {
-			type: Sequelize.DATE
+			type: Sequelize.DATE,
 		},
-        isActive: {
-			type: Sequelize.BOOLEAN
-		}
-		
+		isActive: {
+			type: Sequelize.BOOLEAN,
+		},
 	});
 	return GoalAttributesMapping;
 };
