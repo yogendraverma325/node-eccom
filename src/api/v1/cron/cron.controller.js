@@ -16,7 +16,14 @@ import pushNotificationEmitter from "../../../services/pushNotificationEventServ
 import { getEmployeesByUserAssignmentId } from "../../v1/common/common.controller.js";
 import { exec } from "child_process";
 
+var _this = null;
+
 class CronController {
+
+	constructor() {
+		_this = this;
+	}
+	
 	async updateAttendance() {
 		const existEmployees = await db.employeeMaster.findAll({
 			attributes: ["id", "empCode", "name", "email", "shiftId"],
@@ -2290,6 +2297,295 @@ class CronController {
 			console.log("Error in Birthday/Work Anniversary Wishes", error);
 		}
 	}
+
+	async triggerHrPoliciesToUsersCron() {
+		const start = performance.now();
+		console.log("🚀 Trigger HrPolicies To Users Cron Running");
+		console.log(`🕒 Start Time: ${start}`);
+
+		try {
+			const today = new Date().toISOString().split("T")[0];
+			const todayDate = new Date(today);
+			console.log(`📅 Today's Date: ${today}`);
+
+			// 1. Archive expired policies
+			const expiredPolicies = await db.hrPolicies.findAll({
+				attributes: ["id", "name", "version"],
+				where: {
+					isActive: 1,
+					is_archived: 0,
+					effective_date_to: {
+						[Op.lt]: today,
+					},
+				},
+			});
+
+			expiredPolicies.forEach((policy) => {
+				console.log(
+					`Expired Policy - ID: ${policy.id}, Name: ${policy.name}, Version: ${policy.version}`,
+				);
+			});
+
+			await db.hrPolicies.update(
+				{ is_archived: 1, isActive: 0 },
+				{
+					where: {
+						isActive: 1,
+						is_archived: 0,
+						effective_date_to: {
+							[Op.lt]: today,
+						},
+					},
+				},
+			);
+			console.log(
+				`📦 Archived expired policies (effective_date_to < ${today})`,
+			);
+
+			// 2. Fetch active policies
+			const policies = await db.hrPolicies.findAll({
+				where: {
+					isActive: 1,
+					is_archived: 0,
+				},
+			});
+			console.log(`📄 Total Active Policies Found: ${policies.length}`);
+
+			// Helper: Upsert sign-off
+			async function upsertSignoff(policyId, userId, status) {
+				const existing = await db.hrPolicySignoffs.findOne({
+					where: { hr_policy_id: policyId, user_id: userId },
+				});
+
+				if (!existing) {
+					await db.hrPolicySignoffs.create({
+						hr_policy_id: policyId,
+						user_id: userId,
+						status,
+					});
+					console.log(`🆕 Created new signoff with status '${status}'`);
+				} else if (existing.status !== status) {
+					await db.hrPolicySignoffs.update(
+						{ status },
+						{ where: { hr_policy_id: policyId, user_id: userId } },
+					);
+					console.log(`🔁 Updated existing signoff to '${status}'`);
+				} else {
+					console.log(
+						`⚠️ Signoff already in status '${status}', skipping update`,
+					);
+				}
+			}
+
+			// 3. Loop policies
+			for (const policy of policies) {
+				console.log("-----------------------------------");
+				console.log(
+					`🔍 Processing Policy: '${policy.name}' - v${policy.version} (ID: ${policy.id})`,
+				);
+				console.log(
+					`📝 Sign-off Required: ${policy.sign_off_enabled ? "Yes" : "No"}`,
+				);
+				console.log("-----------------------------------");
+
+				// Fetch employees for this policy
+				let employees;
+
+				try {
+					employees = await getEmployeesByUserAssignmentId(
+						policy.selectedUsers,
+					);
+
+					if (!Array.isArray(employees)) {
+						throw new Error("Employees data not found");
+					}
+
+					console.log(
+						`👥 Employees for Policy ID ${policy.id}: ${employees.length} found`,
+					);
+				} catch (empErr) {
+					console.error(
+						`❌ Failed to fetch employees for policy '${policy.name}' (ID: ${policy.id}). Skipping this policy.`,
+					);
+					console.error(`🔍 Error: ${empErr.message}`);
+					continue; // Skip this policy and move to next
+				}
+
+				try {
+					const employeeIds = employees.map(
+						(emp) => emp.dataValues?.id || emp.id,
+					);
+
+					const assignedSignoffs = await db.hrPolicySignoffs.findAll({
+						where: { hr_policy_id: policy.id },
+					});
+
+					for (const signoff of assignedSignoffs) {
+						if (!employeeIds.includes(signoff.user_id)) {
+							await db.hrPolicySignoffs.destroy({
+								where: {
+									hr_policy_id: policy.id,
+									user_id: signoff.user_id,
+								},
+							});
+							console.log(
+								`🗑️ Removed obsolete signoff for User ID: ${signoff.user_id} from Policy ID: ${policy.id}`,
+							);
+						}
+					}
+				} catch (cleanupErr) {
+					console.error(
+						`⚠️ Error while cleaning up obsolete signoffs for Policy ID: ${policy.id}`,
+						cleanupErr,
+					);
+				}
+
+				for (const emp of employees) {
+					const employee = emp.dataValues || emp; // Adjust if needed
+					console.log("-----------------------------------");
+					console.log(`➡️ Evaluating ${employee.name} (ID: ${employee.id})`);
+
+					// 4. Auto SignedOff if sign-off not needed
+					if (!policy.sign_off_enabled) {
+						const effectiveFrom = policy.effective_date_from
+							? new Date(policy.effective_date_from)
+							: todayDate;
+						const effectiveTo = policy.effective_date_to
+							? new Date(policy.effective_date_to)
+							: null;
+
+						const inRange = effectiveTo
+							? todayDate >= effectiveFrom && todayDate <= effectiveTo
+							: todayDate >= effectiveFrom;
+
+						console.log(`📆 Auto-SignedOff range check: ${inRange}`);
+
+						if (inRange) {
+							console.log(
+								`✅ Auto-SignedOff '${policy.name}' for ${employee.name}`,
+							);
+							await upsertSignoff(policy.id, employee.id, "auto-signedOff");
+						} else {
+							console.log(
+								`⏳ Policy not in effective range. Skipping Auto-SignedOff.`,
+							);
+						}
+						continue; // Skip to next employee
+					}
+
+					// 5. Evaluate triggers
+					let shouldTrigger = false;
+
+					if (policy.TriggerOnPolicyCreateEdit) {
+						const updatedAtDate = new Date(policy.updatedAt).toISOString().split('T')[0];
+						const triggerToday = updatedAtDate === today;
+						console.log(`🛠️ TriggerOnPolicyCreateEdit: ${triggerToday}`);
+						if (triggerToday) shouldTrigger = true;
+					}
+
+					// if (policy.TriggerOnPolicyCreateEdit) {
+					// 	const updatedAtPlusOneDay = new Date(policy.updatedAt);
+					// 	updatedAtPlusOneDay.setDate(updatedAtPlusOneDay.getDate() + 1);
+					// 	const updatedAtPlusOneDate = updatedAtPlusOneDay
+					// 		.toISOString()
+					// 		.split("T")[0];
+
+					// 	const triggerToday = updatedAtPlusOneDate === today;
+					// 	console.log(
+					// 		`🛠️ TriggerOnPolicyCreateEdit (+1 day): ${triggerToday}`,
+					// 	);
+
+					// 	if (triggerToday) shouldTrigger = true;
+					// }
+
+					if (policy.TriggerOnEffectiveFrom) {
+						const isEffectiveToday = policy.effective_date_from === today;
+						console.log(`📌 TriggerOnEffectiveFrom: ${isEffectiveToday}`);
+						if (isEffectiveToday) shouldTrigger = true;
+
+						const isExpired = new Date(policy.effective_date_to) < todayDate;
+						console.log(`📌 TriggerOnEffectiveTo (Expired?): ${isExpired}`);
+						if (isExpired) shouldTrigger = false;
+					}
+
+					if (policy.TriggerOnDateOfJoining) {
+						const dojTrigger = employee.dateOfJoining === today;
+						console.log(`👶 TriggerOnDateOfJoining: ${dojTrigger}`);
+						if (dojTrigger) shouldTrigger = true;
+					}
+
+					if (policy.TriggerOnDateOfConfirmation) {
+						const docTrigger = employee.confirmationDate === today;
+						console.log(`🎓 TriggerOnDateOfConfirmation: ${docTrigger}`);
+						if (docTrigger) shouldTrigger = true;
+					}
+
+					if (!shouldTrigger) {
+						console.log(
+							`⚠️ No trigger conditions met for ${employee.name}. Skipping.`,
+						);
+						continue;
+					}
+
+					// 6. Trigger sign-off
+					console.log(`🚀 Triggering '${policy.name}' for ${employee.name}`);
+					await upsertSignoff(policy.id, employee.id, "pending");
+
+					await db.employeeMaster.update(
+						{ showHrPolicyModal: 1 },
+						{ where: { id: employee.id } },
+					);
+					console.log(
+						`✅ Sign-off status set to 'pending' and modal enabled for ${employee.name}`,
+					);
+				}
+			}
+
+			const end = performance.now();
+			console.log("-----------------------------------");
+			console.log(`⏱️ Cron Completed in ${(end - start).toFixed(2)} ms`);
+		} catch (error) {
+			console.error("❌ Error in HR Policy Trigger Cron:", error);
+		}
+	}
+	async getPm2Logs(req, res) {
+		const appName = req.params.appName;
+		const lines = req.query.lines || 100;
+
+		// Basic validation to avoid command injection
+		if (!/^[a-zA-Z0-9-_]+$/.test(appName)) {
+			return res.status(400).json({ error: "Invalid app name" });
+		}
+
+		const cmd = `pm2 logs ${appName} --lines ${lines} --nostream`;
+
+		exec(cmd, (error, stdout, stderr) => {
+			if (error) {
+				return res
+					.status(500)
+					.json({ error: stderr || "Failed to fetch logs" });
+			}
+			res.type("text/plain").send(stdout);
+		});
+	}
+
+	async triggerHrPoliciesToUsersRoute(req, res) {
+	    try {
+			let response = await _this.triggerHrPoliciesToUsersCron();
+			return res.status(200).json({
+				status: true,
+				msg: "Cron run successfully",
+			});
+		}
+		catch(error) {
+			console.error("Error fetching in triggerHrPoliciesToUsersCron :", error);
+			return res.status(500).json({
+				status: false,
+				msg: "Internal server error",
+			});
+		}
+	}
+
 }
 
 export default new CronController();
