@@ -1018,7 +1018,7 @@ class AttendanceController {
 
 			if (
 				attendanceData &&
-				attendanceData.dataValues.attendanceRegularizeCount >= 3
+				attendanceData.dataValues.attendanceRegularizeCount >= 30
 			) {
 				return respHelper(res, {
 					status: 400,

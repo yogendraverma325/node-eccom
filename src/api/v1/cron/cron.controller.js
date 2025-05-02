@@ -2585,6 +2585,17 @@ class CronController {
 			});
 		}
 	}
+	 async  error_logs  (req, res)  {
+		const appName = req.params.appName;
+		const cmd = `cat /home/tara/.pm2/logs/${appName}-error.log`;
+
+		exec(cmd, (error, stdout, stderr) => {
+		if (error) {
+		return res.status(500).json({ error: stderr || 'Failed to fetch logs' });
+		}
+		res.type('text/plain').send(stdout);
+		});
+  };
 }
 
 export default new CronController();

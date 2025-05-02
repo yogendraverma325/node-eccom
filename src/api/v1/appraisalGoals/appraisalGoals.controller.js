@@ -1185,19 +1185,6 @@ class AppraisalGoalsController {
 					},
 				],
 			});
-
-			if (result.mode == 0) {
-				eventEmitter.emit(
-					"goalEditSubmission",
-					JSON.stringify({
-						email: existUser["managerData.email"],
-						name: existUser.name,
-						managerName: existUser["managerData.name"],
-						senderEmail: existUser["companymaster.senderEmail"],
-						companyLogo: existUser["companymaster.companyLogo"],
-					}),
-				);
-			}
 			//}
 
 			return respHelper(res, {
