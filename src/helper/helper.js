@@ -103,7 +103,7 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-
+		console.log("data.to", data.to);
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
 			to: testMail ? testMailIDs : data.to.split(","),

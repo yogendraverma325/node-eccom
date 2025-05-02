@@ -358,6 +358,74 @@ const lwfMappingMasterSchema = Joi.object({
 
 // End schema by jay
 
+//ritak hr policy categories start
+const hrPolicyCategorySchema = Joi.object({
+	name: Joi.string().trim().required().label("Category Name"),
+});
+const hrPolicySchema = Joi.object({
+	name: Joi.string().trim().label("Policy Name"),
+	category_id: Joi.number().integer().allow(null).label("Category ID"),
+	policyDocument: Joi.string()
+		.allow(null)
+		.allow("")
+		.optional()
+		.label("Policy Document"),
+	selectedUsers: Joi.string().allow(null, "").label("Selected Users"),
+	sign_off_enabled: Joi.number()
+		.valid(0, 1)
+		.default(0)
+		.label("Sign Off Enabled"),
+	sign_off_mandatory: Joi.number()
+		.valid(0, 1)
+		.default(0)
+		.label("Sign Off Mandatory"),
+	allow_decline: Joi.number().valid(0, 1).default(0).label("Allow Decline"),
+	reviseVersion: Joi.number()
+		.valid(0, 1)
+		.default(0)
+		.label("Is revise Version request"),
+	isActive: Joi.number().valid(0, 1).default(1).label("Is Active"),
+	effective_date_from: Joi.date()
+		.allow(null, "")
+		.optional()
+		.label("Effective Date From"),
+	effective_date_to: Joi.date()
+		.allow(null, "")
+		.optional()
+		.label("Effective Date To"),
+	TriggerOnPolicyCreateEdit: Joi.number()
+		.valid(0, 1)
+		.default(0)
+		.label("Trigger On Policy Create Edit"),
+	TriggerOnEffectiveFrom: Joi.number()
+		.valid(0, 1)
+		.default(0)
+		.label("Trigger On Effective From"),
+	TriggerOnDateOfJoining: Joi.number()
+		.valid(0, 1)
+		.default(0)
+		.label("Trigger On Date Of Joining"),
+	TriggerOnDateOfConfirmation: Joi.number()
+		.allow(null)
+		.label("Trigger On Date Of Confirmation"),
+});
+
+const userAssignmentSchema = Joi.object({
+	name: Joi.string().required(),
+	process_id: Joi.number().optional().allow(null),
+	conditions: Joi.array()
+		.items(
+			Joi.object({
+				attribute: Joi.string().required(),
+				condition_type: Joi.string().valid("INCLUDE", "EXCLUDE").required(),
+				attribute_values: Joi.array().items(Joi.string()).required(), // ["1", "2", "3"]
+			}),
+		)
+		.optional(),
+});
+
+//ritak hr policy categories end
+
 export default {
 	companyTypeMasterSchema,
 	bandMasterSchema,
@@ -390,4 +458,9 @@ export default {
 	companyLocationMasterSchema,
 	lwfMappingMasterSchema,
 	// jay end
+	//ritak hr policy categories start
+	hrPolicyCategorySchema,
+	hrPolicySchema,
+	userAssignmentSchema,
+	//ritak hr policy categories end
 };
