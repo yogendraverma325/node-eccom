@@ -5,31 +5,30 @@ export default (sequelize, Sequelize) => {
 			primaryKey: true,
 			autoIncrement: true,
 		},
-        goalAttributeId:{
-            type: Sequelize.INTEGER,
-        },
-        label:{
-            type: Sequelize.INTEGER,
-        },
-		value:{
-            type: Sequelize.INTEGER,
-        },
+		goalAttributeId: {
+			type: Sequelize.INTEGER,
+		},
+		label: {
+			type: Sequelize.INTEGER,
+		},
+		value: {
+			type: Sequelize.INTEGER,
+		},
 		createdBy: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
 		createdAt: {
-			type: Sequelize.DATE
+			type: Sequelize.DATE,
 		},
 		updatedBy: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
 		updatedAt: {
-			type: Sequelize.DATE
+			type: Sequelize.DATE,
 		},
-        isActive: {
-			type: Sequelize.BOOLEAN
-		}
-		
+		isActive: {
+			type: Sequelize.BOOLEAN,
+		},
 	});
 	return GoalAttributesOptions;
 };

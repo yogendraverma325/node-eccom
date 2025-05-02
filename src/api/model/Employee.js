@@ -226,6 +226,9 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 			defaultValue: 1,
 		},
+		showHrPolicyModal: {
+			type: Sequelize.BOOLEAN,
+		},
 		passwordExpiryDate: {
 			type: Sequelize.DATE,
 		},

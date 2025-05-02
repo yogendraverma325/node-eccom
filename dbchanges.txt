@@ -1,3 +1,1502 @@
+<<<<<<< HEAD
+// ------------------------------------- 2025-03-21 ---------------------------------------------------//
+ALTER TABLE `tara_hrms_live`.`employee` 
+ADD COLUMN `enableBiometricAttendance` TINYINT NULL DEFAULT 0 AFTER `payrollInclude`,
+ADD COLUMN `enableMobileAttendance` TINYINT NULL DEFAULT 1 AFTER `enableBiometricAttendance`,
+ADD COLUMN `enableWebAttendance` TINYINT NULL DEFAULT 1 AFTER `enableMobileAttendance`;
+
+
+// ---------------------------------------- 2025-03-07 ------------------------------------------------//
+
+ALTER TABLE `tara_hrms`.`companymaster` 
+ADD COLUMN `letterHeader` VARCHAR(100) NULL DEFAULT NULL AFTER `senderEmail`,
+ADD COLUMN `letterFooter` VARCHAR(100) NULL DEFAULT NULL AFTER `letterHeader`;
+
+
+
+//------------------------------------------2025-02-17-------------------------------------------------//
+
+ALTER TABLE `tara`.`employeeleaveheader` 
+ADD COLUMN `approvalFlowExist` INT NULL DEFAULT 0 AFTER `source`;
+
+// ----------------------------------------- 2025-02-12 -----------------------------------------------//
+CREATE TABLE leave_assignment_filters (
+  leave_assignment_filters_auto_id INT NOT NULL AUTO_INCREMENT,
+  leave_workflow_id INT DEFAULT NULL,
+  filter_type VARCHAR(45) DEFAULT 'INCLUDE',
+  filter_column VARCHAR(45) DEFAULT NULL,
+  filter_data VARCHAR(45) DEFAULT NULL,
+  updatedAt DATE DEFAULT NULL,
+  updatedBy INT DEFAULT NULL,
+  createdAt DATE NOT NULL,
+  createdBy INT NOT NULL,
+  isActive BOOLEAN DEFAULT 1,
+  PRIMARY KEY (leave_assignment_filters_auto_id)
+);
+
+
+CREATE TABLE approval_flow (
+  approvalFlow_Auto_Id INT NOT NULL AUTO_INCREMENT,
+  approvalFlow_Name VARCHAR(255) NOT NULL,
+  approvalFlow_Code VARCHAR(255) NOT NULL,
+  maxApprovalLevel INT NOT NULL,
+  ccUsers VARCHAR(255) DEFAULT NULL,
+  updatedAt DATE DEFAULT NULL,
+  updatedBy INT DEFAULT NULL,
+  createdAt DATE NOT NULL,
+  createdBy INT NOT NULL,
+  isActive BOOLEAN DEFAULT 1,
+  PRIMARY KEY (approvalFlow_Auto_Id)
+);
+
+
+ALTER TABLE `leavecompanymapping` 
+ADD COLUMN `approvalFlow` TINYINT NULL DEFAULT 0 AFTER `creditOnAccuralBasis`;
+
+
+CREATE TABLE leave_approval_levels (
+  leaveApprovalLevelAutoId INT NOT NULL AUTO_INCREMENT,
+  approvalFlow_Auto_Id INT NOT NULL,
+  assignmentFilter VARCHAR(255) DEFAULT NULL,
+  allowRevoke BOOLEAN DEFAULT NULL,
+  includeOthers BOOLEAN DEFAULT NULL,
+  empId INT NOT NULL,
+  updatedAt DATE DEFAULT NULL,
+  updatedBy INT DEFAULT NULL,
+  createdAt DATE NOT NULL,
+  createdBy INT NOT NULL,
+  isActive BOOLEAN DEFAULT 1,
+  PRIMARY KEY (leaveApprovalLevelAutoId)
+);
+
+
+ALTER TABLE `tara_live`.`leaveapprovaltrails` 
+ADD COLUMN `approvalFlowAutoId` INT NULL DEFAULT NULL AFTER `leaveHeaderAutoId`;
+
+
+
+
+//------------------------------------------2024-12-19--------------------------------------------------//
+ALTER TABLE `tara`.`paypackage` 
+ADD COLUMN `salaryStructureAutoId` INT NULL DEFAULT '0' AFTER `isActive`;
+
+//------------------------------------------2024-12-10--------------------------------------------------//
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `extraPaymentAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `lwfAmount`;
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `lwfAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `ptAmount`;
+
+ALTER TABLE `tara`.`employee` 
+ADD COLUMN `lwfDesignationId` INT NULL DEFAULT NULL AFTER `ptLocationId`;
+
+CREATE TABLE `tara`.`lwfmapping` (
+  `lwfMappingId` INT NOT NULL AUTO_INCREMENT,
+  `lwfDesignationId` INT NULL,
+  `contributorType` VARCHAR(150) NULL DEFAULT NULL,
+  `stateId` INT NULL,
+  `apr` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `may` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jun` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jul` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `aug` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `sep` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `oct` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `nov` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `dec` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jan` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `feb` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `mar` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` INT NULL DEFAULT '1',
+  PRIMARY KEY (`lwfMappingId`));
+
+
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `ptAmount` DECIMAL(10,2) NULL DEFAULT NULL AFTER `payMonth`;
+
+ALTER TABLE `tara`.`employee` 
+ADD COLUMN `ptLocationId` INT NULL DEFAULT NULL AFTER `confimationPolicyAutoId`;
+
+//------------------------------------------2024-12-05------------------------------------------------//
+
+ALTER TABLE `tara`.`ptmapping` 
+ADD COLUMN `createdBy` INT NULL DEFAULT NULL AFTER `createdAt`,
+ADD COLUMN `updatedBy` INT NULL DEFAULT NULL AFTER `createdBy`;
+
+
+CREATE TABLE `tara`.`ptmapping` (
+  `ptmappingId` INT NOT NULL AUTO_INCREMENT,
+  `ptCategoryId` VARCHAR(45) NULL,
+  `minValue` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `maxValue` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `apr` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `may` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jun` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jul` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `aug` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `sep` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `oct` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `nov` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `dec` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `jan` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `feb` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `mar` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` INT NULL DEFAULT 1,
+  PRIMARY KEY (`ptmappingId`));
+
+
+
+
+ALTER TABLE `tara_hrms_live`.`ptlocationmaster` 
+ADD COLUMN `ptCategoryId` INT NULL DEFAULT NULL AFTER `isActive`,
+ADD COLUMN `ptCategoryName` VARCHAR(255) NULL DEFAULT NULL AFTER `ptCategoryId`,
+ADD COLUMN `frequencyType` INT NULL DEFAULT NULL AFTER `ptCategoryName`;
+
+// --------------------------------------- 2024-12-12 -----------------------------------------------//
+ALTER TABLE `tara_hrms_live`.`attendancehistory` 
+ADD COLUMN `locationType` VARCHAR(45) NULL DEFAULT NULL AFTER `isApproved`,
+ADD COLUMN `userRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `locationType`,
+ADD COLUMN `managerRemark` VARCHAR(45) NULL DEFAULT NULL AFTER `userRemark`;
+// ----------------------------------- 2025-01-02 (Attendance Roster) -------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`attendancepolicymaster` 
+ADD COLUMN `attendaceRosterLimitForPreviousDays` INT NULL DEFAULT NULL AFTER `leaveDeductPolicyWorkDurationLeaveType`;
+
+CREATE TABLE `attendanceroster` (
+  `rosterAutoId` int NOT NULL AUTO_INCREMENT,
+  `employeeId` int NOT NULL,
+  `attendanceDate` date NOT NULL,
+  `shiftId` int DEFAULT NULL,
+  `weekOffId` int DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '1',
+  `createdDt` datetime DEFAULT NULL,
+  `createdAt` int DEFAULT NULL,
+  `updatedBy` datetime DEFAULT NULL,
+  `updatedAt` int DEFAULT NULL,
+  PRIMARY KEY (`rosterAutoId`)
+)
+
+// --------------------------------------- 2024-12-12 -----------------------------------------------//
+ALTER TABLE `tara`.`attendanceHistory` 
+ADD COLUMN `device` VARCHAR(45) NULL DEFAULT NULL AFTER `location`,
+ADD COLUMN `shiftId` INT NULL DEFAULT NULL AFTER `approverRemark`,
+ADD COLUMN `attendancePolicyId` INT NULL DEFAULT NULL AFTER `shiftId`,
+ADD COLUMN `weekOffId` INT NULL DEFAULT NULL AFTER `attendancePolicyId`,
+ADD COLUMN `companyLocationId` INT NULL DEFAULT NULL AFTER `weekOffId`,
+CHANGE COLUMN `isApproved` `attendanceStatus` VARCHAR(45) NULL DEFAULT NULL ,
+CHANGE COLUMN `managerRemark` `approverRemark` VARCHAR(45) NULL DEFAULT NULL ;
+
+ALTER TABLE `tara_hrms_live`.`employee` 
+ADD COLUMN `requiredAttendanceApproval` TINYINT(1) NULL DEFAULT 0 AFTER `confimationPolicyAutoId`;
+
+//-----------------------------------------2024-12-09------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
+ADD COLUMN `dateOfProbationEnd` DATE NULL DEFAULT NULL AFTER `projectCode`;
+
+//------------------------------------------2024-12-04-----------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `requrestTriggred` DATETIME NULL DEFAULT NULL AFTER `comment`;
+
+//------------------------------------------2024-11-28------------------------------------------------//
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5154');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5155');
+
+
+INSERT INTO `tara_hrms_live`.`bankmaster` (`bankName`, `bankIfsc`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`, `isActive`) VALUES ('INDIAN BANK', 'IDIB000T170', '1', '2024-05-17 16:11:13', '1', '2024-11-27 16:11:13', '1');
+INSERT INTO `tara_hrms_live`.`bankmaster` (`bankName`, `bankIfsc`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`, `isActive`) VALUES ('UNION BANK OF INDIA', 'UBIN0806544', '1', '2024-11-27 16:11:13', '1', '2024-11-27 16:11:13', '1');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5064');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5065');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5059');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5060');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5076');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '158' WHERE (`id` = '4885');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '158' WHERE (`id` = '5053');
+
+//-------------------------------------------2024-11-27------------------------------------------------//
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5153');
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5073');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5074');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5075');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5151');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5152');
+
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5068');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '143' WHERE (`id` = '5069');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5070');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '167' WHERE (`id` = '5071');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '175' WHERE (`id` = '5072');
+
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '171' WHERE (`id` = '5054');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5055');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '161' WHERE (`id` = '5056');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '171' WHERE (`id` = '5057');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '176' WHERE (`id` = '5058');
+
+
+
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5048');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5049');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5050');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5051');
+UPDATE `tara_hrms_live`.`employee` SET `costId` = '165' WHERE (`id` = '5052');
+
+
+
+
+
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '1811');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '1812');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2254');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2338');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2339');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '2756');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3328');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3403');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3499');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3784');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '3786');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4295');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4297');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4316');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4560');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4610');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4633');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4671');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4704');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4734');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4783');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4885');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '4927');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5022');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5028');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5030');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5032');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5033');
+UPDATE `tara`.`employee` SET `costId` = '189' WHERE (`id` = '5034');
+
+
+
+
+
+INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('Enterprise Application', '12296', '1');
+INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('Enterprise Application', '12600', '1');
+INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('MWS', '12610', '1');
+INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('Information Security', '11600', '1');
+INSERT INTO `tara`.`costcentermaster` (`costCenterName`, `costCenterCode`, `isActive`) VALUES ('Business Application Shared', '12615', '1');
+
+
+//-------------------------------------------2024-11-12------------------------------------------------//
+ALTER TABLE `tara`.`employeepaymentdetails` 
+ADD COLUMN `sectionType` VARCHAR(255) NULL DEFAULT 'Payment Section' AFTER `newBankId`;
+
+ALTER TABLE `tara`.`employeepaymentdetails` 
+ADD COLUMN `newBankId` INT NULL DEFAULT NULL AFTER `isActive`;
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `bankId` INT NULL DEFAULT NULL AFTER `userId`;
+
+ALTER TABLE `tara`.`taskfiltermaster` 
+ADD COLUMN `taskForWeb` INT NULL DEFAULT NULL AFTER `taskFor`,
+ADD COLUMN `taskForApp` INT NULL DEFAULT NULL AFTER `taskForWeb`;
+
+
+//-------------------------------------------2024-11-08-------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `comment` TEXT NULL DEFAULT NULL AFTER `pendingAt`;
+
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `pendingAt` INT NULL DEFAULT NULL AFTER `newSupportingDocument`;
+
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `newBankNameReq` VARCHAR(255) NULL DEFAULT NULL AFTER `isActive`,
+ADD COLUMN `newAccountNumberReq` VARCHAR(255) NULL DEFAULT NULL AFTER `newBankNameReq`,
+ADD COLUMN `newAccountHolderNameReq` VARCHAR(255) NULL DEFAULT NULL AFTER `newAccountNumberReq`,
+ADD COLUMN `newIfscCodeReq` VARCHAR(255) NULL DEFAULT NULL AFTER `newAccountHolderNameReq`,
+ADD COLUMN `newPaymentAttachment` VARCHAR(255) NULL DEFAULT NULL AFTER `newIfscCodeReq`,
+ADD COLUMN `newSupportingDocument` VARCHAR(255) NULL DEFAULT NULL AFTER `newPaymentAttachment`;
+
+
+ALTER TABLE `tara_hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `supportingDocument` VARCHAR(255) NULL DEFAULT NULL AFTER `paymentAttachment`;
+
+
+//-------------------------------------------2024-11-05-------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
+ADD COLUMN `probationId` INT NULL DEFAULT NULL AFTER `probationDays`;
+----------------------------------------- 2024-11-15 ----------------------------------------------------
+ALTER TABLE `tara_hrms_live`.`separationinitiatedtask` 
+ADD COLUMN `resignationAutoId` INT NULL DEFAULT NULL AFTER `employeeId`;
+
+------------------------------------------ 2024-11-13 ----------------------------------------------------
+ALTER TABLE `tara`.`employee` 
+ADD COLUMN `passwordExpiryDate` DATE NULL DEFAULT NULL AFTER `dateOfexit`;
+
+------------------------------------------- 2024-11-12 ----------------------------------------------------
+ALTER TABLE `tara_hrms_live`.`employee` 
+ADD COLUMN `isLoginActive` TINYINT(1) NULL AFTER `dateOfexit`;
+
+
+------------------------------------------- 2024-11-05 --------------------------------------------------
+
+ALTER TABLE `tara_hrms_live`.`separationmaster` 
+ADD COLUMN `doNotReHireRemark` VARCHAR(100) NULL DEFAULT NULL AFTER `doNotReHire`;
+
+---------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE `tara_hrms_live`.`separationmaster` 
+ADD COLUMN `shortfallPayoutRequired` TINYINT NULL DEFAULT NULL AFTER `shortFallPayoutDays`;
+
+ALTER TABLE `tara_hrms_live`.`separationtrail` 
+ADD COLUMN `actionUserRole` VARCHAR(50) NULL DEFAULT NULL AFTER `pendingAt`;
+
+
+
+//-----------------------------------------------2024-10-21------------------------------------------------//
+
+ALTER TABLE `tara`.`separationmaster` 
+CHANGE COLUMN `initiatedBy` `initiatedBy` ENUM('Self', 'Manager', 'BuHr', 'Other') NOT NULL ;
+
+//-----------------------------------------------2024-10-11------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`regularization` 
+ADD COLUMN `actualPunchIn` TIME NULL DEFAULT NULL AFTER `regularizeManagerRemark`,
+ADD COLUMN `actualPunchOut` TIME NULL DEFAULT NULL AFTER `actualPunchIn`;
+
+//----------------------------------------------- 2024-10-07-----------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`taskfiltermaster` 
+ADD COLUMN `  ` VARCHAR(45) NULL DEFAULT NULL AFTER `taskFilterName`;
+
+//------------------------------------------------2024-10-03-----------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`taskhistorymaster` 
+CHANGE COLUMN `createdAt` `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,
+CHANGE COLUMN `updatedAt` `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ;
+
+
+//------------------------------------------------2024-10-03-------------------------------------------------//
+
+CREATE TABLE `tara_hrms_live`.`taskhistorymaster` (
+  `taskHistoryId` INT NOT NULL AUTO_INCREMENT,
+  `taskHistoryName` VARCHAR(255) NULL DEFAULT NULL,
+  `createdAt` INT NULL DEFAULT NULL,
+  `createdBy` VARCHAR(255) NULL,
+  `updatedAt` INT NULL DEFAULT NULL,
+  `isActive` TINYINT(1) NULL DEFAULT 1,
+  PRIMARY KEY (`taskHistoryId`));
+
+//-------------------------------------------------2024-09-30-------------------------------------------------//
+
+ALTER TABLE `tara_hrms_live`.`reporttype` 
+ADD COLUMN `reportModuleId` INT NULL DEFAULT NULL AFTER `reportTypeId`;
+
+
+CREATE TABLE `reporttype` (
+  `reportTypeId` INT NOT NULL,
+  `reportTypeName` VARCHAR(255) NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` TINYINT(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`reportTypeId`));
+
+
+CREATE TABLE `reportmodulemaster` (
+  `reportModuleId` INT NOT NULL,
+  `reportModuleName` VARCHAR(255) NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` TINYINT(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`reportModuleId`));
+
+//-------------------------------------------------------------------------------------------------------------//
+
+INSERT INTO `tara`.`pincodemaster` (`pincode`, `cityId`, `areaName`, `isHead`, `createdAt`) VALUES ('110044', '568', 'NA', '0', '2024-02-29 15:55:22.833');
+
+//--------------------------------2024-09-19----------------------------------------//
+ALTER TABLE tara.managerhistory 
+CHANGE COLUMN fromDate fromDate DATE NOT NULL ,
+CHANGE COLUMN toDate toDate DATE NULL DEFAULT NULL ;
+
+//-----------------------------------2024-09-16---------------------------------------------//
+ALTER TABLE `tara`.`regularization` 
+ADD COLUMN `regularizeLocationType` VARCHAR(100) NULL DEFAULT NULL AFTER `regularizePunchOutDate`;
+
+// ----------------------------------- 2024-09-11 -----------------------------------------//
+
+ALTER TABLE `hrms_live`.`separationmaster` 
+CHANGE COLUMN `l1ReasonOfResignation` `l1ReasonOfResignation` INT NULL DEFAULT NULL ,
+CHANGE COLUMN `l2SeparationType` `l2SeparationType` INT NULL DEFAULT NULL ,
+CHANGE COLUMN `l2ReasonOfSeparation` `l2ReasonOfSeparation` INT NULL DEFAULT NULL ;
+
+
+//------------------------------------ 2024-09-09 -----------------------------------------//
+
+ALTER TABLE hrms_live.employeetypemaster 
+ADD COLUMN startingIndex INT NULL DEFAULT 0 AFTER parentEmpTypeId;
+
+ALTER TABLE hrms_live.employee 
+ADD COLUMN positionType VARCHAR(45) NULL DEFAULT NULL AFTER costId;
+
+ALTER TABLE hrms_live.employee 
+ADD COLUMN newCustomerName VARCHAR(45) NULL DEFAULT NULL AFTER positionType;
+
+CREATE TABLE employeestaging (
+  id int NOT NULL AUTO_INCREMENT,
+  empCode varchar(10) DEFAULT NULL,
+  name varchar(255) DEFAULT NULL,
+  email varchar(255) DEFAULT NULL,
+  personalEmail varchar(255) DEFAULT NULL,
+  firstName varchar(255) DEFAULT NULL,
+  middleName varchar(255) DEFAULT NULL,
+  lastName varchar(255) DEFAULT NULL,
+  panNo varchar(50) DEFAULT NULL,
+  esicNo varchar(50) DEFAULT NULL,
+  uanNo varchar(50) DEFAULT NULL,
+  pfNo varchar(50) DEFAULT NULL,
+  gender varchar(50) DEFAULT NULL,
+  maritalStatus int DEFAULT NULL,
+  maritalStatusSince varchar(45) DEFAULT NULL,
+  nationality varchar(50) DEFAULT NULL,
+  probationId int DEFAULT NULL,
+  dateOfBirth date DEFAULT NULL,
+  newCustomerName varchar(50) DEFAULT NULL,
+  iqTestApplicable int DEFAULT NULL,
+  positionType varchar(25) DEFAULT NULL,
+  employeeType varchar(10) DEFAULT NULL,
+  profileImage varchar(255) DEFAULT NULL,
+  password varchar(255) DEFAULT NULL,
+  officeMobileNumber varchar(20) DEFAULT NULL,
+  personalMobileNumber varchar(20) DEFAULT NULL,
+  dateOfJoining date DEFAULT NULL,
+  wrongPasswordCount int DEFAULT NULL,
+  accountRecoveryTime date DEFAULT NULL,
+  manager int DEFAULT NULL,
+  role_id int DEFAULT NULL,
+  designation_id int DEFAULT NULL,
+  functionalAreaId int DEFAULT NULL,
+  buId int DEFAULT NULL,
+  sbuId int DEFAULT NULL,
+  shiftId int DEFAULT NULL,
+  departmentId int DEFAULT NULL,
+  companyId int DEFAULT NULL,
+  lastLogin date DEFAULT NULL,
+  buHRId int DEFAULT NULL,
+  buHeadId int DEFAULT NULL,
+  attendancePolicyId int DEFAULT NULL,
+  companyLocationId int DEFAULT NULL,
+  weekOffId int DEFAULT NULL,
+  permissionAndAccess varchar(255) DEFAULT NULL,
+  createdBy int DEFAULT NULL,
+  updatedBy int DEFAULT NULL,
+  createdAt timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt timestamp NULL DEFAULT NULL,
+  isActive int DEFAULT '1',
+  isTempPassword tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+ALTER TABLE `hrms_live`.`attendancepolicymaster` 
+ADD COLUMN `policyCode` VARCHAR(255) NULL DEFAULT NULL AFTER `policyName`;
+
+ALTER TABLE `hrms_live`.`separationmaster` 
+ADD COLUMN `l1RejectionReason` VARCHAR(100) NULL DEFAULT NULL AFTER `l1RevokeDate`,
+ADD COLUMN `l2RejectionReason` VARCHAR(100) NULL DEFAULT NULL AFTER `l2RequestStatus`;
+//---------------------------------2024-09-10---------------------------------------------//
+
+ALTER TABLE `hrms_live`.`employeefamilyhistory` 
+ADD COLUMN `memberAddress` VARCHAR(255) NULL DEFAULT NULL AFTER `relationWithEmp`;
+
+ALTER TABLE `hrms_live`.`employeejobdetailshistory` 
+ADD COLUMN unionId INT DEFAULT NULL AFTER languagesSpoken,
+ADD COLUMN bandId INT DEFAULT NULL AFTER unionId,
+ADD COLUMN gradeId INT DEFAULT NULL AFTER bandId,
+ADD COLUMN jobLevelId INT DEFAULT NULL AFTER gradeId,
+ADD COLUMN residentEng TINYINT DEFAULT NULL AFTER jobLevelId,
+ADD COLUMN customerName VARCHAR(255) DEFAULT NULL AFTER residentEng,
+ADD COLUMN epsApplicability TINYINT DEFAULT NULL AFTER customerName,
+ADD COLUMN esicApplicable TINYINT DEFAULT NULL AFTER epsApplicability,
+ADD COLUMN lwfApplicable TINYINT DEFAULT NULL AFTER esicApplicable,
+ADD COLUMN pfRestricted TINYINT DEFAULT NULL AFTER lwfApplicable,
+ADD COLUMN pfApplicability TINYINT DEFAULT NULL AFTER pfRestricted,
+ADD COLUMN epfApplicable TINYINT DEFAULT NULL AFTER pfApplicability,
+ADD COLUMN esicNumber TEXT AFTER epfApplicable,
+ADD COLUMN pfNumber TEXT AFTER esicNumber,
+ADD COLUMN uanNumber TEXT AFTER pfNumber;
+
+
+ALTER TABLE `hrms_live`.`employeejobdetailshistory` 
+ADD COLUMN `lwfDesignation` INT NULL DEFAULT NULL AFTER `uanNumber`,
+ADD COLUMN `lwfState` INT NULL DEFAULT NULL AFTER `lwfDesignation`,
+ADD COLUMN `restrictCompanyPf` TINYINT NULL DEFAULT NULL AFTER `lwfState`,
+ADD COLUMN `pranNumber` TEXT NULL DEFAULT NULL AFTER `restrictCompanyPf`,
+ADD COLUMN `npsNumber` TEXT NULL DEFAULT NULL AFTER `pranNumber`;
+
+
+ALTER TABLE `hrms_live`.`separationmaster` 
+ADD COLUMN `submitType` INT NULL DEFAULT NULL AFTER `l2RevokeDate`;
+
+
+CREATE TABLE `hrms_live`.`lwfdesignationmaster` (
+  `lwfDesignationId` INT NOT NULL AUTO_INCREMENT,
+  `lwfDesignationName` VARCHAR(45) NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `isActive` TINYINT(1) NULL DEFAULT '1',
+  PRIMARY KEY (`lwfDesignationId`));
+
+
+//-------------------------------------2024-09-05------------------------------------------//
+ALTER TABLE `hrms_live`.`employee` 
+ADD COLUMN `dataCardAdmin` INT NULL DEFAULT NULL AFTER `mbtiType`,
+ADD COLUMN `visitingCardAdmin` INT NULL DEFAULT NULL AFTER `dataCardAdmin`,
+ADD COLUMN `workstationAdmin` INT NULL DEFAULT NULL AFTER `visitingCardAdmin`,
+ADD COLUMN `lastIncrementDate` VARCHAR(255) NULL DEFAULT NULL AFTER `workstationAdmin`,
+ADD COLUMN `iqTestApplicable` INT NULL DEFAULT NULL AFTER `lastIncrementDate`,
+ADD COLUMN `mobileAdmin` INT NULL DEFAULT NULL AFTER `iqTestApplicable`,
+ADD COLUMN `recruiterName` VARCHAR(255) NULL DEFAULT NULL AFTER `mobileAdmin`;
+ADD COLUMN `costId` INT NULL DEFAULT NULL AFTER `recruiterName`;
+
+
+ALTER TABLE `hrms_live`.`hrletters` 
+ADD COLUMN `documentType` INT NULL DEFAULT NULL AFTER `userId`;
+
+CREATE TABLE `hrms_live`.`hrdocumentmaster` (
+  `documentId` INT NOT NULL AUTO_INCREMENT,
+  `documentName` VARCHAR(255) NULL DEFAULT NULL,
+  `typeUpdate` INT NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `isActive` TINYINT(1) NULL DEFAULT 1,
+  PRIMARY KEY (`documentId`));
+
+//-------------------------------------2024-09-04-------------------------------------------//
+
+CREATE TABLE `hrms_live`.`hrletters` (
+  `letterId` INT NOT NULL AUTO_INCREMENT,
+  `userId` INT NULL DEFAULT NULL,
+  `meritPlanningLetters` VARCHAR(255) NULL DEFAULT NULL,
+  `confirmationLetters` VARCHAR(255) NULL DEFAULT NULL,
+  `pipLetters` VARCHAR(255) NULL DEFAULT NULL,
+  `bgvReport` VARCHAR(255) NULL DEFAULT NULL,
+  `employmentRelated` VARCHAR(255) NULL DEFAULT NULL,
+  `insuranceCards` VARCHAR(255) NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `isActive` tinyint NULL DEFAULT NULL,
+  PRIMARY KEY (`letterId`));
+
+
+CREATE TABLE `hrms_live`.`employeecertificates` (
+  `certificateId` INT NOT NULL AUTO_INCREMENT,
+  `userId` INT NULL DEFAULT NULL,
+  `certification` TEXT NULL,
+  `expiryDate` TEXT NULL,
+  `programName` TEXT NULL,
+  `skillProduct` TEXT NULL,
+  `oem` TEXT NULL,
+  `completionStatus` VARCHAR(255) NULL,
+  `certificationAndValidityFirst` TEXT NULL,
+  `certificationAndValiditySecond` TEXT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updatedBy` INT NULL,
+  `isActive` tinyint NULL,
+  PRIMARY KEY (`certificateId`));
+
+
+
+CREATE TABLE `hrms_live`.`employeeworkexperience` (
+  `workExperienceId` INT NOT NULL AUTO_INCREMENT,
+  `userId` INT NULL DEFAULT NULL,
+  `companyName` TEXT NULL DEFAULT NULL,
+  `jobTitle` TEXT NULL DEFAULT NULL,
+  `jobLocation` VARCHAR(255) NULL DEFAULT NULL,
+  `currentlyWorking` TINYINT NULL DEFAULT NULL,
+  `fromDate` DATE NULL DEFAULT NULL,
+  `toDate` DATE NULL DEFAULT NULL,
+  `jobSummary` TEXT NULL DEFAULT NULL,
+  `Skills` TEXT NULL DEFAULT NULL,
+  `experienceletter` VARCHAR(255) NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL,
+  `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updatedBy` INT NULL,
+   `isActive` tinyint NULL,
+  PRIMARY KEY (`workExperienceId`));
+
+
+ALTER TABLE `hrms_live`.`employee` 
+ADD COLUMN `abstractReasoning` TEXT NULL DEFAULT NULL AFTER `passportImg`,
+ADD COLUMN `numericalSequences` TEXT NULL DEFAULT NULL AFTER `abstractReasoning`,
+ADD COLUMN `numericalCalculation` TEXT NULL DEFAULT NULL AFTER `numericalSequences`,
+ADD COLUMN `mbtiType` TEXT NULL DEFAULT NULL AFTER `numericalCalculation`;
+
+
+
+ALTER TABLE `hrms_live`.`employeefamilydetails` 
+ADD COLUMN `memberAddress` VARCHAR(255) NULL DEFAULT NULL AFTER `relationWithEmp`;
+
+ALTER TABLE `hrms_live`.`employeepaymentdetails` 
+ADD COLUMN `ptApplicability` TINYINT NULL DEFAULT NULL AFTER `paymentAttachment`,
+ADD COLUMN `ptStateId` INT NULL DEFAULT NULL AFTER `ptApplicability`,
+ADD COLUMN `ptLocationId` INT NULL DEFAULT NULL AFTER `ptStateId`,
+ADD COLUMN `tdsApplicability` TINYINT NULL DEFAULT NULL AFTER `ptLocationId`,
+ADD COLUMN `itrFiling` TINYINT NULL DEFAULT NULL AFTER `tdsApplicability`;
+ADD COLUMN `status` VARCHAR(155) NULL DEFAULT pending AFTER `itrFiling`;
+
+
+ALTER TABLE `hrms_live`.`employee` 
+ADD COLUMN `panImg` VARCHAR(255) NULL AFTER `panNo`,
+ADD COLUMN `dlImage` VARCHAR(255) NULL AFTER `drivingLicence`;
+
+//-------------------------------------2024-09-03--------------------------------------------
+
+ALTER TABLE `hrms_live`.`employee` 
+ADD COLUMN `middleName` VARCHAR(255) NULL DEFAULT NULL AFTER `firstName`;
+
+-------------------------------------2024-08-30-----------------------------------------------
+CREATE TABLE `hrms_live`.`employeeaddress` (
+  `addressId` INT NOT NULL AUTO_INCREMENT,
+  `employeeId` INT NULL,
+  `addressType` INT NULL,
+  `currentHouse` VARCHAR(255) NULL DEFAULT NULL,
+  `currentStreet` VARCHAR(255) NULL DEFAULT NULL,
+  `currentStateId` INT NULL DEFAULT NULL,
+  `currentCityId` INT NULL DEFAULT NULL,
+  `currentCountryId` INT NULL DEFAULT NULL,
+  `currentPincodeId` INT NULL DEFAULT NULL,
+  `currentLandmark` VARCHAR(255) NULL DEFAULT NULL,
+  `permanentCityId` INT NULL DEFAULT NULL,
+  `permanentStateId` INT NULL DEFAULT NULL,
+  `permanentCountryId` INT NULL DEFAULT NULL,
+  `permanentPincodeId` INT NULL DEFAULT NULL,
+  `permanentStreet` VARCHAR(255) NULL DEFAULT NULL,
+  `permanentHouse` VARCHAR(255) NULL DEFAULT NULL,
+  `permanentLandmark` VARCHAR(255) NULL DEFAULT NULL,
+  `emergencyStreet` VARCHAR(255) NULL DEFAULT NULL,
+  `emergencyHouse` VARCHAR(255) NULL DEFAULT NULL,
+  `emergencyCityId` INT NULL DEFAULT NULL,
+  `emergencyStateId` INT NULL DEFAULT NULL,
+  `emergencyCountryId` INT NULL DEFAULT NULL,
+  `emergencyPincodeId` INT NULL DEFAULT NULL,
+  `emergencyLandmark` VARCHAR(255) NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  PRIMARY KEY (`addressId`));
+
+
+
+CREATE TABLE `hrms_live`.`unioncodemaster` (
+  `unioncodeId` INT NOT NULL AUTO_INCREMENT,
+  `unionCode` VARCHAR(100) NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `isActive` TINYINT NULL DEFAULT NULL,
+  PRIMARY KEY (`unioncodeId`));
+
+
+ALTER TABLE `hrms_live`.`salutationmaster` 
+ADD COLUMN `isActive` TINYINT NULL AFTER `updatedBy`;
+
+CREATE TABLE `hrms_live`.`salutationmaster` (
+  `salutationId` INT NOT NULL AUTO_INCREMENT,
+  `salutation` VARCHAR(45) NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  PRIMARY KEY (`salutationId`));
+
+
+ALTER TABLE employee
+ADD COLUMN middleName VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER firstName,
+ADD COLUMN salutationId INT DEFAULT NULL AFTER name,
+ADD COLUMN adhrNo VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER permissionAndAccess,
+ADD COLUMN drivingLicence VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER adhrNo,
+ADD COLUMN adhrFront VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER drivingLicence,
+ADD COLUMN adhrBack VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER adhrFront,
+ADD COLUMN passportNumber VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER adhrBack,
+ADD COLUMN passportImg VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER passportNumber;
+ADD COLUMN panImg VARCHAR(255) NULL AFTER `panNo,
+ADD COLUMN dlImg VARCHAR(255) NULL AFTER drivingLicence;
+
+ALTER TABLE `hrms_live`.`employeeemergencycontact` 
+ADD COLUMN `emergencyBloodGroup` VARCHAR(45) NULL DEFAULT NULL AFTER `emergencyContactRelation`;
+
+ALTER TABLE `hrms_live`.`employeebiographicaldetails` 
+ADD COLUMN `maritalStatusSince` VARCHAR(255) NULL DEFAULT NULL AFTER `backgroundVerification`;
+
+ALTER TABLE employeejobdetails
+ADD COLUMN unionId INT DEFAULT NULL AFTER languageSpoken,
+ADD COLUMN bandId INT DEFAULT NULL AFTER unionId,
+ADD COLUMN gradeId INT DEFAULT NULL AFTER bandId,
+ADD COLUMN jobLevelId INT DEFAULT NULL AFTER gradeId,
+ADD COLUMN residentEng TINYINT DEFAULT NULL AFTER jobLevelId,
+ADD COLUMN customerName VARCHAR(255) DEFAULT NULL AFTER residentEng,
+ADD COLUMN epsApplicability TINYINT DEFAULT NULL AFTER customerName,
+ADD COLUMN esicApplicable TINYINT DEFAULT NULL AFTER epsApplicability,
+ADD COLUMN lwfApplicable TINYINT DEFAULT NULL AFTER esicApplicable,
+ADD COLUMN pfRestricted TINYINT DEFAULT NULL AFTER lwfApplicable,
+ADD COLUMN pfApplicability TINYINT DEFAULT NULL AFTER pfRestricted,
+ADD COLUMN epfApplicable TINYINT DEFAULT NULL AFTER pfApplicability,
+ADD COLUMN esicNumber TEXT AFTER epfApplicable,
+ADD COLUMN pfNumber TEXT AFTER esicNumber,
+ADD COLUMN uanNumber TEXT AFTER pfNumber;
+
+
+ALTER TABLE `hrms_live`.`employeejobdetails` 
+ADD COLUMN `lwfDesignation` INT NULL DEFAULT NULL AFTER `isActive`,
+ADD COLUMN `lwfState` INT NULL DEFAULT NULL AFTER `lwfDesignation`,
+ADD COLUMN `restrictCompanyPf` TINYINT NULL DEFAULT NULL AFTER `lwfState`,
+ADD COLUMN `pranNumber` TEXT NULL DEFAULT NULL AFTER `restrictCompanyPf`,
+ADD COLUMN `npsNumber` TEXT NULL DEFAULT NULL AFTER `pranNumber`;
+
+-------------------------------
+
+
+------------------------------- 
+
+ALTER TABLE `hrms_dev`.`leavemapping` 
+ADD COLUMN `utilizedThisYear` DECIMAL(10,2) NULL DEFAULT NULL AFTER `annualAllotment`;
+
+
+------------------------------13-08-2024 (Harish)-------------------------------------------
+
+CREATE TABLE `hrms_dev`.`attendanceHistory` (
+  `attendanceHistoryId` INT NOT NULL AUTO_INCREMENT,
+  `employeeId` INT NULL DEFAULT NULL,
+  `date` DATE NULL DEFAULT NULL,
+  `time` TIME NULL DEFAULT NULL,
+  `status` VARCHAR(145) NULL DEFAULT NULL,
+  `lat` VARCHAR(255) NULL DEFAULT NULL,
+  `long` VARCHAR(255) NULL DEFAULT NULL,
+  `location` VARCHAR(255) NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  PRIMARY KEY (`attendanceHistoryId`));
+------------------------------ 13-08-2024 (Manish) -----------------------------------------
+
+ALTER TABLE `hrms_dev`.`employeeleavetransactions` 
+ADD COLUMN `managerRemark` VARCHAR(50) NULL DEFAULT NULL AFTER `status`;
+
+
+------------------------------07-08-2024 (Harish)--------------------------------------------
+
+CREATE TABLE employeeeducationHistory (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT,
+    educationDegree INT,
+    educationSpecialisation VARCHAR(255),
+    educationStartDate DATE,
+    educationCompletionDate DATE,
+    educationInstitute VARCHAR(255),
+    educationAttachments VARCHAR(255),
+    educationRemark VARCHAR(255),
+    educationActivities VARCHAR(255),
+    isHighestEducation BOOLEAN,
+    createdBy INT,
+    createdAt DATETIME,
+    updatedBy INT,
+    updatedAt DATETIME
+);
+
+
+
+ALTER TABLE `hrms_dev`.`employeejobdetailshistory` 
+CHANGE COLUMN `createdAt` `createdAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP AFTER `updatedBy`,
+CHANGE COLUMN `jobId` `jobHistoryId` INT NOT NULL AUTO_INCREMENT ,
+CHANGE COLUMN `userId` `userId` INT NOT NULL ,
+CHANGE COLUMN `dateOfJoining` `dateOfJoining` VARCHAR(255) NULL DEFAULT NULL ,
+CHANGE COLUMN `updatedAt` `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ;
+
+CREATE TABLE employeejobdetailshistory (
+    jobHistoryId INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT,
+    dateOfJoining DATE,
+    probationPeriod VARCHAR(255),
+    languagesSpoken VARCHAR(255),
+    createdAt DATETIME,
+    createdBy INT,
+    updatedBy INT,
+    updatedAt DATETIME
+);
+
+ALTER TABLE `hrms_dev`.`employee` 
+ADD COLUMN `createdBy` INT NULL DEFAULT 1 AFTER `permissionAndAccess`,
+ADD COLUMN `updatedBy` INT NULL DEFAULT 1 AFTER `createdBy`,
+ADD COLUMN `createdAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP AFTER `updatedBy`,
+ADD COLUMN `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `createdAt`;
+
+
+CREATE TABLE `hrms_dev`.`managerhistory` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `employeeId` INT NOT NULL,
+  `managerId` INT NOT NULL,
+  `fromDate` VARCHAR(255) NOT NULL,
+  `toDate` VARCHAR(255) NOT NULL,
+  `createdBy` INT NOT NULL,
+  `updatedBy` INT NOT NULL,
+  `createdAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`));
+
+
+------------------------------22-07-2024 (Harish)-----------------------------------------
+ALTER TABLE `hrms_dev`.`dashboardcard` 
+ADD COLUMN `isCardWorking` INT NULL DEFAULT 0 AFTER `mobileDarkBackgroundColor`;
+
+----------------------------- 19-07-2024 (Manish)------------------------------------------
+
+CREATE TABLE logindetails (
+    loginDetailsId INT AUTO_INCREMENT PRIMARY KEY,
+    employeeId INT,
+    loginIP VARCHAR(255),
+    loginLatitude VARCHAR(50),
+    loginLongitude VARCHAR(50),
+    loginDevice VARCHAR(100),
+    createdDt DATE
+);
+
+----------------------------17-06-2024 (Yogi)---------------
+ALTER TABLE hrms_dev.employee 
+ADD COLUMN buHRId INT NULL AFTER accountRecoveryTime,
+ADD COLUMN buHeadId INT NULL AFTER buHRId;
+-------------------------------------------------- 05-06-2024 (Manish) --------------------------------------------------------------
+
+ALTER TABLE `hrms`.`employeefamilydetails` 
+ADD COLUMN `isActive` TINYINT(1) NULL DEFAULT 1 AFTER `updatedAt`;
+
+---------------------------------------------------- 30-01-2024 (Manish)--------------------------------------------------------------
+CREATE TABLE dashboardcard (
+    cardId INT AUTO_INCREMENT PRIMARY KEY,
+    cardName VARCHAR(45),
+    webUrl VARCHAR(255),
+    webFontColor VARCHAR(255),
+    webIcon VARCHAR(255),
+    webBackgroundColor VARCHAR(255),
+    webPosition INT,
+    mobileUrl VARCHAR(255),
+    mobileLightFontColor VARCHAR(255),
+    mobileIcon VARCHAR(255),
+    mobileLightBackgroundColor VARCHAR(255),
+    mobilePosition INT,
+    mobileDarkFontColor VARCHAR(255),
+    mobileDarkBackgroundColor VARCHAR(255),
+    createdAt DATETIME(3),
+    updatedAt DATETIME(3),
+    createdBy INT,
+    updatedBy INT,
+    isActive TINYINT(1)
+);
+
+------------------------------------------------------ 27-05-2024 (Manish)-------------------------------------------------------------
+
+ALTER TABLE `hrms`.`employee` 
+ADD COLUMN `wrongPasswordCount` INT NULL DEFAULT NULL AFTER `personalMobileNumber`,
+ADD COLUMN `accountRecoveryTime` DATETIME NULL DEFAULT NULL AFTER `wrongPasswordCount`;
+
+ALTER TABLE `hrms`.`employee` 
+CHANGE COLUMN `wrongPasswordCount` `wrongPasswordCount` INT NULL DEFAULT 0 ;
+
+ALTER TABLE `hrms`.`regularization` 
+CHANGE COLUMN `regularizeMailSentId` `regularizeManagerId` INT NULL DEFAULT NULL ;
+
+
+------------------------------------------------------ 23-05-2024 (Harish)--------------------------------------------------------------
+
+CREATE TABLE `hrms`.`dashboardcard` (
+  `cardId` INT NOT NULL AUTO_INCREMENT,
+  `cardName` VARCHAR(45) NULL,
+  `url` VARCHAR(255) NULL,
+  `fontColor` VARCHAR(255) NULL,
+  `icon` VARCHAR(255) NULL,
+  `backgroundColor` VARCHAR(255) NULL,
+  `position` INT NOT NULL,
+  `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `createdBy` INT NULL,
+  `updatedBy` INT NULL,
+  `isActive` TINYINT(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`cardId`));
+
+------------------------------------------------------- 21-05-2024 (Manish Maurya)--------------------------------------------------------------
+
+ALTER TABLE `hrms`.`attendancemaster` 
+DROP COLUMN `attendanceRegularizeManagerRemark`,
+DROP COLUMN `attendanceRegularizeUserRemark`,
+DROP COLUMN `attendanceRegularizeReason`,
+DROP COLUMN `attendanceRegularizePunchOutTime`,
+DROP COLUMN `attendanceRegularizePunchInTime`,
+ADD COLUMN `attendanceRegularizeId` INT NULL AFTER `attendanceShiftId`,
+ADD COLUMN `attendanceLateBy` TIME NULL DEFAULT NULL AFTER `attendancePunchOutTime`;
+
+------------------------------------------------------ 20-05-2024 (Manish Maurya)--------------------------------------------------------------
+
+ALTER TABLE `hrms`.`sbumaster` 
+ADD COLUMN `createdBy` INT NULL AFTER `sbuname`,
+ADD COLUMN `createdAt` DATETIME NULL AFTER `createdBy`,
+ADD COLUMN `updatedBy` INT NULL AFTER `createdAt`,
+ADD COLUMN `updatedAt` DATETIME NULL AFTER `updatedBy`,
+ADD COLUMN `isActive` TINYINT NULL AFTER `updatedAt`,
+CHANGE COLUMN `id` `sbuId` INT NOT NULL AUTO_INCREMENT ;
+
+ALTER TABLE `hrms`.`sbumaster` 
+CHANGE COLUMN `sbuname` `sbuName` VARCHAR(45) NOT NULL ;
+
+
+ALTER TABLE `hrms`.`sbumapping` 
+CHANGE COLUMN `buId` `buMappingId` INT NULL DEFAULT NULL ;
+
+CREATE TABLE regularization (
+    regularizeId INT PRIMARY KEY,
+    attendanceAutoId INT,
+    regularizePunchInDate DATE,
+    regularizePunchOutDate DATE,
+    regularizeUserRemark VARCHAR(255),
+    regularizeMailSentDate DATETIME,
+    regularizeMailSentId VARCHAR(255),
+    regularizePunchInTime TIME,
+    regularizePunchOutTime TIME,
+    regularizeReason VARCHAR(255),
+    regularizeStatus VARCHAR(50),
+    regularizeManagerRemark VARCHAR(255),
+    createdBy INT,
+    createdAt DATETIME,
+    updatedBy INT,
+    updatedAt DATETIME
+);
+
+ALTER TABLE `hrms`.`attendancemaster` 
+ADD COLUMN `attendanceShiftEndDate` DATE NULL DEFAULT NULL AFTER `attandanceShiftStartDate`,
+ADD COLUMN `attendancePunchOutLocationType` VARCHAR(50) NULL DEFAULT NULL AFTER `attendancePunchInLocationType`,
+CHANGE COLUMN `attandanceDate` `attandanceShiftStartDate` DATE NULL DEFAULT NULL ,
+CHANGE COLUMN `attendanceLocationType` `attendancePunchInLocationType` VARCHAR(50) NULL DEFAULT NULL ;
+
+ALTER TABLE `hrms`.`attendancemaster` 
+ADD COLUMN `attendanceDate` DATE NULL DEFAULT NULL AFTER `attendanceShiftId`;
+
+
+Jay Prakash Singh
+
+Date 27-08-2024
+
+ALTER TABLE `hrms_live`.`employeetypemaster` 
+ADD COLUMN `startingIndex` INT NULL DEFAULT 0 AFTER `parentEmpTypeId`;
+
+also modal
+
+add new column in employee modal of source code as "dateOfJoining"
+
+Date 09-09-2024
+
+ALTER TABLE `hrms_live`.`employee` 
+ADD COLUMN `positionType` VARCHAR(45) NULL DEFAULT NULL AFTER `costId`;
+ALTER TABLE `hrms_live`.`employee` 
+ADD COLUMN `newCustomerName` VARCHAR(45) NULL DEFAULT NULL AFTER `positionType`;
+
+ALTER TABLE `hrms_live`.`employeejobdetails`
+ADD COLUMN `probationDays` INT NULL DEFAULT NULL AFTER `probationPeriod`;
+
+ALTER TABLE `hrms_live`.`employeestaging` 
+ADD COLUMN `maritalStatusSince` VARCHAR(45) NULL DEFAULT NULL AFTER `maritalStatus`;
+
+Date 09-17-2024
+
+ALTER TABLE `tara`.`employeestaging` 
+CHANGE COLUMN `employeeType` `employeeType` INT NULL DEFAULT NULL ;
+
+Date 09-23-2024
+
+newCustomerName make INT from string
+
+ALTER TABLE `tara`.`employeestaging` 
+CHANGE COLUMN `newCustomerName` `newCustomerId` INT NULL DEFAULT NULL ;
+
+ALTER TABLE `tara`.`employeestaging` 
+CHANGE COLUMN `newCustomerId` `newCustomerNameId` INT NULL DEFAULT NULL ;
+
+ALTER TABLE tara.companylocationmaster 
+ADD COLUMN companyLocationCode VARCHAR(100) NULL DEFAULT NULL AFTER companyId;
+
+Create new table as newcustomernamemaster
+
+25-09-2024
+
+ALTER TABLE `tara`.`employeetypemaster` 
+ADD COLUMN `companyId` INT NOT NULL DEFAULT 1 AFTER `startingIndex`,
+ADD COLUMN `prefix` VARCHAR(45) NULL DEFAULT NULL AFTER `companyId`,
+ADD COLUMN `postfix` VARCHAR(45) NULL DEFAULT NULL AFTER `prefix`;
+
+01-10-2024
+
+ALTER TABLE `tara`.`companytypemaster` 
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NOT NULL DEFAULT 1 ;
+
+14-10-2024
+
+ALTER TABLE `tara`.`employeebiographicaldetails` 
+ADD COLUMN `nomineeName` VARCHAR(255) NULL DEFAULT NULL AFTER `dateOfBirth`,
+ADD COLUMN `nomineeRelation` VARCHAR(255) NULL DEFAULT NULL AFTER `nomineeName`;
+
+create new table as "ptlocationmaster" for professional tax location master regarding update employee payment details "PT Location"
+
+INSERT INTO `tara`.`hrdocumentmaster` (`documentId`, `documentName`, `typeUpdate`, `isActive`) VALUES ('7', 'Contract Letter', '0', '1');
+ALTER TABLE `tara`.`hrletters` 
+CHANGE COLUMN `isActive` `isActive` INT NULL DEFAULT 1 ;
+
+
+ALTER TABLE `tara`.`employeestaging` 
+ADD COLUMN `selfService` TINYINT(1) NULL DEFAULT '0' AFTER `isDeleted`,
+ADD COLUMN `mobileAccess` TINYINT(1) NULL DEFAULT '0' AFTER `selfService`,
+ADD COLUMN `laptopSystem` TINYINT(1) NULL DEFAULT '0' AFTER `mobileAccess`,
+ADD COLUMN `backgroundVerification` TINYINT(1) NULL DEFAULT '0' AFTER `laptopSystem`,
+ADD COLUMN `workstationAdmin` TINYINT(1) NULL DEFAULT '0' AFTER `backgroundVerification`,
+ADD COLUMN `mobileAdmin` TINYINT(1) NULL DEFAULT '0' AFTER `workstationAdmin`,
+ADD COLUMN `dataCardAdmin` TINYINT(1) NULL DEFAULT '0' AFTER `mobileAdmin`,
+ADD COLUMN `visitingCardAdmin` TINYINT(1) NULL DEFAULT '0' AFTER `dataCardAdmin`,
+ADD COLUMN `recruiterName` VARCHAR(255) NULL DEFAULT NULL AFTER `visitingCardAdmin`,
+ADD COLUMN `offRoleCTC` INT NULL DEFAULT NULL AFTER `recruiterName`,
+ADD COLUMN `highestQualification` VARCHAR(255) NULL DEFAULT NULL AFTER `offRoleCTC`,
+ADD COLUMN `ESICPFDeduction` VARCHAR(255) NULL DEFAULT NULL AFTER `highestQualification`,
+ADD COLUMN `fatherName` VARCHAR(255) NULL DEFAULT NULL AFTER `ESICPFDeduction`,
+ADD COLUMN `paymentAccountNumber` VARCHAR(255) NULL DEFAULT NULL AFTER `fatherName`,
+ADD COLUMN `paymentBankName` VARCHAR(255) NULL DEFAULT NULL AFTER `paymentAccountNumber`,
+ADD COLUMN `paymentBankIfsc` VARCHAR(255) NULL DEFAULT NULL AFTER `paymentBankName`;
+
+ALTER TABLE `tara`.`employeestaging` 
+CHANGE COLUMN `laptopSystem` `laptopSystem` VARCHAR(255) NULL DEFAULT NULL ;
+
+
+ALTER TABLE `tara`.`employee` 
+ADD COLUMN `selfService` TINYINT(1) NULL DEFAULT '0' AFTER `newCustomerName`,
+ADD COLUMN `offRoleCTC` INT NULL DEFAULT NULL AFTER `selfService`,
+ADD COLUMN `highestQualification` VARCHAR(255) NULL DEFAULT NULL AFTER `offRoleCTC`,
+ADD COLUMN `ESICPFDeduction` VARCHAR(255) NULL DEFAULT NULL AFTER `highestQualification`,
+ADD COLUMN `fatherName` VARCHAR(255) NULL DEFAULT NULL AFTER `ESICPFDeduction`;
+
+ALTER TABLE `tara`.`employee` 
+CHANGE COLUMN `email` `email` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NULL DEFAULT NULL ,
+DROP INDEX `email` ;
+;
+
+24-10-2024
+
+ALTER TABLE `tara`.`companytypemaster` 
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NOT NULL DEFAULT 1 ;
+
+28-10-2024
+
+ALTER TABLE `tara`.`employeestaging` 
+CHANGE COLUMN `highestQualification` `highestQualification` INT NULL DEFAULT NULL ;
+
+20-11-2024 (by Jay)
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetails` 
+ADD COLUMN `projectCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `customerCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `nextAppraisalDue` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`;
+
+ALTER TABLE `tara_hrms_live`.`employeejobdetailshistory` 
+ADD COLUMN `projectCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `customerCode` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`,
+ADD COLUMN `nextAppraisalDue` VARCHAR(255) NULL DEFAULT NULL AFTER `npsNumber`;
+
+CREATE TABLE `tara`.`joblevelmapping` (
+  `jobLevelMappingId` INT NOT NULL AUTO_INCREMENT,
+  `companyId` INT NULL DEFAULT NULL,
+  `bandId` INT NULL DEFAULT NULL,
+  `gradeId` INT NULL DEFAULT NULL,
+  `jobLevelId` INT NULL DEFAULT NULL,
+  `createdBy` INT NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT NULL,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `updatedAt` DATETIME NULL DEFAULT NULL,
+  `isActive` TINYINT NULL DEFAULT NULL,
+  PRIMARY KEY (`jobLevelMappingId`),
+  UNIQUE INDEX `jobLevelMappingId_UNIQUE` (`jobLevelMappingId` ASC) VISIBLE);
+
+
+jay prakash singh (28-11-2024)
+
+ALTER TABLE tara_hrms_live.employeejobdetails 
+ADD COLUMN projectCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN customerCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
+
+ALTER TABLE tara_hrms_live.employeejobdetailshistory 
+ADD COLUMN projectCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN customerCode VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber,
+ADD COLUMN nextAppraisalDue VARCHAR(255) NULL DEFAULT NULL AFTER npsNumber;
+
+
+  CREATE TABLE `tara_hrms_live`.`departmentemploymenthistory` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `employeeId` INT NULL,
+  `companyId` INT NULL,
+  `buId` INT NULL,
+  `sbuId` INT NULL,
+  `buHeadId` INT NULL,
+  `buHRId` INT NULL,
+  `designation_id` INT NULL,
+  `functionalAreaId` INT NULL,
+  `fromDate` DATE NULL,
+  `toDate` DATE NULL DEFAULT NULL,
+  `isPromotion` TINYINT(1) NULL DEFAULT NULL,
+  `createdAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` INT NULL,
+  `updatedAt` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updatedBy` INT NULL DEFAULT NULL,
+  PRIMARY KEY (`id`));
+
+  Jay changes for payroll
+
+  03-01-2025
+
+  ALTER TABLE `tara`.`extradeductions` 
+CHANGE COLUMN `status` `status` INT NULL DEFAULT 0 ,
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
+
+06-01-2025
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `financialYear` VARCHAR(45) NULL DEFAULT NULL AFTER `currencyCode`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `financialYear` VARCHAR(45) NULL DEFAULT NULL AFTER `type`;
+
+ALTER TABLE `tara`.`extrapayment` 
+CHANGE COLUMN `isActive` `isActive` TINYINT(1) NULL DEFAULT 1 ;
+
+09-01-2025
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `isActive`;
+
+ALTER TABLE `tara`.`extrapayment` 
+DROP COLUMN `financialYear`,
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `empCode`;
+
+10-01-2025
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `status` INT NULL DEFAULT 0 AFTER `financialYearId`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `paymentType` VARCHAR(45) NULL DEFAULT NULL AFTER `status`;
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `deductionType` VARCHAR(45) NULL DEFAULT NULL AFTER `financialYearId`;
+
+13-01-2025
+
+ALTER TABLE `tara`.`payslip` 
+ADD COLUMN `sendEmail` INT NULL DEFAULT 0 AFTER `payMonth`;
+
+15-01-2025
+
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `companyId` INT NULL DEFAULT NULL AFTER `payMonth`;
+
+ALTER TABLE `tara`.`payprocessmaster` 
+ADD COLUMN `filterType` INT NULL DEFAULT 0 AFTER `financialYearId`;
+
+17-01-2025
+
+create new table as compensationcategorymaster
+
+ALTER TABLE `tara`.`extradeductions` 
+ADD COLUMN `deductionCategoryId` INT NULL DEFAULT NULL AFTER `deductionType`;
+
+ALTER TABLE `tara`.`extrapayment` 
+ADD COLUMN `paymentCategoryId` INT NULL DEFAULT NULL AFTER `paymentType`;
+
+ALTER TABLE `tara`.`payslip` 
+ADD COLUMN `paySlipType` VARCHAR(45) NULL DEFAULT 'Regular' AFTER `sendEmail`;
+
+27-01-2025
+
+ALTER TABLE `tara`.`paypackage` 
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `salaryStructureAutoId`;
+
+ALTER TABLE `tara`.`payslip` 
+ADD COLUMN `financialYearId` INT NULL DEFAULT 3 AFTER `paySlipType`;
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `totalWorkingDays` INT GENERATED ALWAYS AS (0) VIRTUAL AFTER `extraPaymentCategories`,
+ADD COLUMN `actualWorkingDays` INT NULL DEFAULT 0 AFTER `totalWorkingDays`;
+
+29-01-2025
+
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '1');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '4');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '7');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '11');
+UPDATE `tara`.`exportsheetmappings` SET `columnName` = 'Employee ID' WHERE (`exportSheetMappingId` = '21');
+  ALTER TABLE `tara_hrms_live`.`designationemploymenthistory` 
+  ADD COLUMN `oldDesignationId` INT NULL DEFAULT NULL AFTER `designation_id`;
+
+  ALTER TABLE `tara_hrms_live`.`ptlocationmaster` 
+  ADD COLUMN `frequency` VARCHAR(45) NULL DEFAULT 'Monthly' AFTER `stateId`;
+
+27-02-2025
+
+  ALTER TABLE `tara_hrms_live`.`payprocessmaster` 
+ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `filterType`;
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------2025-01-06------------------------
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `processId` INT NOT NULL DEFAULT 0 AFTER `pfEmployerAmount`;
+
+-------------------------2025-01-06---------------------------
+
+Create by jay on 01-07-2025
+
+CREATE TABLE `tara`.`financialyear` (
+  `financialyearId` INT NOT NULL,
+  `financialYearName` VARCHAR(45) NOT NULL,
+  `status` INT NULL DEFAULT 1,
+  `createdBy` INT NULL DEFAULT 1,
+  `updatedBy` INT NULL DEFAULT NULL,
+  `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` DATETIME NULL,
+  PRIMARY KEY (`financialyearId`),
+  UNIQUE INDEX `financialyearId_UNIQUE` (`financialyearId` ASC) VISIBLE,
+  UNIQUE INDEX `financialYearName_UNIQUE` (`financialYearName` ASC) VISIBLE);
+
+
+
+
+
+
+
+------------------Add in Payslip component 14-01-2025-----------
+fixedPayElementAmount
+
+
+--------------------Add Below Tables ---------------------
+
+---Eargings ----
+
+gratuityOverrides
+CREATE TABLE `gratuityOverrides` (
+  `gratuityAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int NOT NULL,
+  `payMonth` varchar(45) NOT NULL,
+  `gratuityDays` decimal(10,2) NOT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`gratuityAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.gratuityOverrides;
+
+leavEncashmentOverrides
+
+CREATE TABLE `leavEncashmentOverrides` (
+  `leaveEncashmentAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int NOT NULL,
+  `payMonth` varchar(45) NOT NULL,
+  `leaveEncashmentDays` decimal(10,2) NOT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`leaveEncashmentAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.leavEncashmentOverrides;
+
+
+---   flexiClaimOverrides
+
+------Deductions------------
+
+---  loansOverrides
+ptOverrides
+CREATE TABLE `ptOverrides` (
+  `ptDeductionAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int DEFAULT NULL,
+  `ptMonth` varchar(255) DEFAULT NULL,
+  `ptAmount` decimal(10,2) DEFAULT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`ptDeductionAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+lwfOverrides
+CREATE TABLE `lwfOverrides` (
+  `lwfDeductionAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int DEFAULT NULL,
+  `lwfMonth` varchar(255) DEFAULT NULL,
+  `lwfAmount` decimal(10,2) DEFAULT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`lwfDeductionAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+recoveryOvrrides
+
+CREATE TABLE `noticerecoveryOvrrides` (
+  `recoveryDaysAutoId` int NOT NULL AUTO_INCREMENT,
+  `EmployeeId` int NOT NULL,
+  `payMonth` varchar(45) NOT NULL,
+  `recoveryDays` decimal(10,2) NOT NULL,
+  `createdBy` int DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '0',
+  `empCode` varchar(45) NOT NULL,
+  PRIMARY KEY (`recoveryDaysAutoId`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.noticerecoveryOvrrides;
+
+--------------------------------------------
+
+
+//////////////payprocessdetails/////////24-02-2025///////
+
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `dateOfexit` DATE NULL DEFAULT NULL AFTER `companyId`,
+ADD COLUMN `dateOfJoining` DATE NULL DEFAULT NULL AFTER `dateOfexit`;
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `isGratuityApplicable` INT NULL DEFAULT '0' AFTER `salaryComponentSequenceNo`;
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `gratuityAmount` DECIMAL(10,2) NULL DEFAULT 0.00 AFTER `isGratuityApplicable`;
+
+
+////////////////////////fnf-process//////27-02-2025/////////////////
+
+ALTER TABLE `tara`.`paymonthlyelement` 
+ADD COLUMN `isLeaveEncashmentApplicable` INT NULL DEFAULT 0 AFTER `gratuityAmount`,
+ADD COLUMN `leaveEncashmentAmount` DECIMAL(10,2) NULL DEFAULT 0.00 AFTER `isLeaveEncashmentApplicable`;
+
+ALTER TABLE `tara`.`gratuityoverrides` 
+CHANGE COLUMN `gratuityDays` `gratuityYears` DECIMAL(10,2) NOT NULL ;
+
+
+///////////////////////////02-03-2025////////////
+
+ALTER TABLE `tara`.`payprocessdetails` 
+ADD COLUMN `processType` VARCHAR(45) NULL DEFAULT NULL AFTER `dateOfJoining`;
+
+//////////////////////////////////
+
+//////////////////////////22-04-2025////////////////
+
+ALTER TABLE `tara`.`regularization` 
+ADD COLUMN `creatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `regularizeManagerId`,
+ADD COLUMN `updatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `creatorRole`;
+
+
+ALTER TABLE `tara`.`leaveapprovaltrails` 
+ADD COLUMN `creatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `employeeId`,
+ADD COLUMN `updatorRole` VARCHAR(45) NULL DEFAULT NULL AFTER `creatorRole`;
+
+CREATE TABLE `loginsessionhistory` (
+  `loginSessionHistoryId` int NOT NULL AUTO_INCREMENT,
+  `realUserId` int NOT NULL,
+  `targetUserId` int NOT NULL,
+  `loginIP` varchar(155) DEFAULT NULL,
+  `userAgent` varchar(255) DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` int DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  `updatedAt` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`loginSessionHistoryId`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.loginsessionhistory;
+
+CREATE TABLE `qrsessionshistory` (
+  `qrSessionId` int NOT NULL AUTO_INCREMENT,
+  `sessionId` varchar(255) NOT NULL,
+  `employeeId` int DEFAULT NULL,
+  `loggedIn` tinyint DEFAULT '0',
+  `expiresAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `userAgent` varchar(255) DEFAULT NULL,
+  `loginIP` varchar(255) DEFAULT NULL,
+  `loginDevice` varchar(100) DEFAULT NULL,
+  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `createdBy` int DEFAULT NULL,
+  `updatedBy` int DEFAULT NULL,
+  PRIMARY KEY (`qrSessionId`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM tara.qrsessionshistory;
+
+
+
+
+
+=======
 // --------------------------------------2025-04-29--------------------------------------------------//
 
 CREATE TABLE `tara`.`pragatiactivities` (
@@ -1510,3 +3009,4 @@ SELECT * FROM tara.qrsessionshistory;
 
 
 
+>>>>>>> harish_payroll_uat_release_appraisal

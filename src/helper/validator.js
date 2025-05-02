@@ -1612,7 +1612,7 @@ const generatePaySlipSchema = Joi.object({
 const gratuityValidateSchama = Joi.object({
 	gratuityAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	//payMonth: Joi.string().max(255).required(),
 	gratuityYears: Joi.number()
 		.precision(2)
 		.positive()
@@ -1632,7 +1632,7 @@ const gratuityValidateSchama = Joi.object({
 const leaveEncashmentValidateSchama = Joi.object({
 	gratuityAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	//payMonth: Joi.string().max(255).required(),
 	leaveEncashmentDays: Joi.number()
 		.precision(2)
 		.positive()
@@ -1688,7 +1688,7 @@ const lwfValidateSchama = Joi.object({
 const noticeRecoveryValidateSchama = Joi.object({
 	recoveryDaysAutoId: Joi.number().integer().positive().optional(), // Auto-incremented primary key, not required in most cases.
 	EmployeeId: Joi.number().integer().positive().required(), // Employee ID is required.
-	payMonth: Joi.string().max(255).required(),
+	//payMonth: Joi.string().max(255).required(),
 	recoveryDays: Joi.number()
 		.precision(2)
 		.positive()
@@ -2304,6 +2304,20 @@ const goalApprovalSchema = Joi.object({
 		.label("Goal Area IDs"),
 });
 
+// Start proxy validation area
+
+const proxyLoginSchema = Joi.object({
+	proxyType: Joi.number().required(),
+	targetUserId: Joi.when("proxyType", {
+		is: 1,
+		then: Joi.number().required().label("Target User Id"),
+		otherwise: Joi.number().optional(),
+	}),
+	realUserId: Joi.number().required().label("Real User Id"),
+});
+
+// End proxy validation area
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2400,6 +2414,7 @@ export default {
 	addGoalKeyAreaByUser,
 	editGoalKeyAreaByUser,
 	goalSubmittionSchema,
-	goalApprovalSchema
-
+	goalApprovalSchema,
+	// Proxy Login
+	proxyLoginSchema,
 };

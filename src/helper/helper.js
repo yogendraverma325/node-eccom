@@ -103,7 +103,7 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-
+		console.log("data.to", data.to);
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
 			to: testMail ? testMailIDs : data.to.split(","),
@@ -113,7 +113,7 @@ const mailService = async (data) => {
 			bcc: data.bcc ? data.bcc : [],
 			time: data.time ? data.time : "",
 			html: data.html,
-			cc: data.cc ? data.cc.split(",") : [],
+			cc: testMail ? [] : data.cc ? data.cc.split(",") : [],
 			attachments:
 				data.attachments && data.attachments.length > 0 ? data.attachments : [],
 		});
@@ -2135,13 +2135,13 @@ const leaveCountForUserForMonth = async (
 			},
 		});
 	} else {
-		const fromMoment = moment(date);
-		const monthStart = fromMoment.clone().startOf("month").format("YYYY-MM-DD"); // Start of the month
-		const monthEnd = fromMoment.clone().endOf("month").format("YYYY-MM-DD"); // End of the month
-		console.log("monthStart", monthStart);
-		console.log("monthEnd", monthEnd);
-		console.log("leaveId", leaveId);
+		console.log("date", date);
+		console.log("lastDate", lastDate);
 		console.log("UserId", UserId);
+		console.log("leaveId", leaveId);
+
+		const monthStart = moment(date).format("YYYY-MM-DD");
+		const monthEnd = moment(lastDate).format("YYYY-MM-DD"); // Today's date
 
 		let leaves = await db.employeeLeaveTransactions.sum("leaveCount", {
 			where: {
@@ -3776,22 +3776,69 @@ const fetchEmployeeRole = (role, employeeId, actionBy) => {
 };
 
 async function convertEmptyStringsToNull(obj) {
-    if (Array.isArray(obj)) {
-        return Promise.all(obj.map(async (item) => await convertEmptyStringsToNull(item)));
-    } else if (obj && typeof obj === 'object' && obj !== null) {
-        const entries = await Promise.all(
-            Object.entries(obj).map(async ([key, value]) => {
-                const resolvedValue = await Promise.resolve(value); // Resolves the promise
-                return [key, await convertEmptyStringsToNull(resolvedValue)];
-            })
-        );
-        return Object.fromEntries(entries);
-    } else if (obj === '') {
-        return null;
-    }
-    return obj;
+	if (Array.isArray(obj)) {
+		return Promise.all(
+			obj.map(async (item) => await convertEmptyStringsToNull(item)),
+		);
+	} else if (obj && typeof obj === "object" && obj !== null) {
+		const entries = await Promise.all(
+			Object.entries(obj).map(async ([key, value]) => {
+				const resolvedValue = await Promise.resolve(value); // Resolves the promise
+				return [key, await convertEmptyStringsToNull(resolvedValue)];
+			}),
+		);
+		return Object.fromEntries(entries);
+	} else if (obj === "") {
+		return null;
+	}
+	return obj;
+}
+async function chekcMonthCountInArray(dates) {
+	const monthCountMap = {};
+	dates.forEach((date) => {
+		const month = date.substring(0, 7); // "2025-04"
+
+		if (monthCountMap[month]) {
+			monthCountMap[month].count++;
+		} else {
+			const [year, monthPart] = month.split("-");
+			const startDate = `${year}-${monthPart}-01`;
+
+			// Now correctly calculate end of month
+			const endDateObj = new Date(parseInt(year), parseInt(monthPart), 0);
+			const yyyy = endDateObj.getFullYear();
+			const mm = String(endDateObj.getMonth() + 1).padStart(2, "0");
+			const dd = String(endDateObj.getDate()).padStart(2, "0");
+			const endDate = `${yyyy}-${mm}-${dd}`;
+
+			monthCountMap[month] = {
+				month: month,
+				count: 1,
+				startDate: startDate,
+				endDate: endDate,
+			};
+		}
+	});
+
+	const monthCountArray = Object.values(monthCountMap);
+	return monthCountArray;
 }
 
+const getWorkDuration = async (dateOfJoining) => {
+	/// Sandeep
+	const today = moment();
+	const joinDate = moment(dateOfJoining);
+
+	const years = today.diff(joinDate, "years");
+	joinDate.add(years, "years");
+
+	const months = today.diff(joinDate, "months");
+	joinDate.add(months, "months");
+
+	const days = today.diff(joinDate, "days");
+
+	return `${String(years).padStart(2, "0")}y ${String(months).padStart(2, "0")}m ${String(days).padStart(2, "0")}d`;
+};
 
 export default {
 	generateJwtToken,
@@ -3853,6 +3900,7 @@ export default {
 	activeCompOffMoreThanLeave,
 	// Export by jay
 	fetchEmployeeRole,
-	convertEmptyStringsToNull
-
+	convertEmptyStringsToNull,
+	chekcMonthCountInArray,
+	getWorkDuration,
 };

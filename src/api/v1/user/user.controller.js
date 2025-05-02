@@ -775,7 +775,7 @@ class UserController {
 				employeeId: req.userId,
 				isApproved: {
 					[Op.notIn]: [2],
-				}
+				},
 			};
 
 			const countLeavePending = await db.EmployeeLeaveHeader.count({
@@ -818,14 +818,14 @@ class UserController {
 
 			const mainCondition1 = {
 				status: "pending",
-				...(user && { employeeId: user })
+				...(user && { employeeId: user }),
 			};
 
 			const leaveApprovalCondition2 = {
 				isVisible: true,
 				pendingOn: req.userId,
 				isApproved: 0,
-				isPending: 1
+				isPending: 1,
 			};
 
 			const countLeaveAssgined = await db.EmployeeLeaveHeader.count({
@@ -6945,7 +6945,9 @@ class UserController {
 					id: req.userId,
 					isActive: 1,
 				},
-				attributes: ["name", "empCode", "profileImage"],
+
+				attributes: ["name", "empCode", "profileImage", "email"],
+
 				include: [
 					{
 						model: db.companyMaster,
@@ -6953,6 +6955,7 @@ class UserController {
 					},
 				],
 			});
+
 			var reqUserRole = req.userData["role.name"];
 
 			const isSameDetails = await db.employeeAddress.findOne({
@@ -6961,6 +6964,22 @@ class UserController {
 				},
 			});
 			console.log("isSameDetails", isSameDetails);
+			if (!isSameDetails) {
+				let obj = {
+					...result,
+					...{ createdBy: req.userId },
+					...{ createdAt: moment() },
+					...{ employeeId: req.userId },
+					...{ isActive: 1 },
+				};
+
+				await db.employeeAddress.create(obj);
+
+				return respHelper(res, {
+					status: 200,
+					msg: constant.INSERT_SUCCESS,
+				});
+			}
 
 			if (
 				isSameDetails.currentHouse === result.currentHouse &&
@@ -7069,10 +7088,12 @@ class UserController {
 					where: { employeeId: req.userId },
 				});
 
+				console.log("existUser.email", existUser);
+
 				eventEmitter.emit(
 					"addressDetailsApprovalRequestMail",
 					JSON.stringify({
-						email: result.email,
+						email: existUser.email,
 						name: existUser.name,
 						senderEmail: existUser["companymaster.senderEmail"],
 						companyLogo: existUser["companymaster.companyLogo"],
@@ -7098,6 +7119,172 @@ class UserController {
 		}
 	}
 	// ritak address approval module end
+
+	//hr policy for User start
+
+	async fetchHrPolicyByEmpId(req, res) {
+		try {
+			const employeeId = req.query.employeeId || req.userId;
+
+			// Fetch unsigned (pending) HR policies
+			const unsignedPolicies = await db.hrPolicySignoffs.findAll({
+				where: {
+					user_id: employeeId,
+					status: "pending",
+				},
+				include: [
+					{
+						model: db.hrPolicies,
+						where: { isActive: 1, is_archived: 0 },
+						required: true,
+						include: [
+							{
+								model: db.hrPolicyCategories,
+								where: { isActive: 1 },
+								as: "category",
+								required: true,
+							},
+						],
+					},
+				],
+			});
+
+			// Fetch signed HR policies
+			const signedPolicies = await db.hrPolicySignoffs.findAll({
+				where: {
+					user_id: employeeId,
+					status: {
+						[Op.ne]: "pending",
+					},
+				},
+				include: [
+					{
+						model: db.hrPolicies,
+						where: { isActive: 1, is_archived: 0 },
+						required: true,
+						include: [
+							{
+								model: db.hrPolicyCategories,
+								where: { isActive: 1 },
+								as: "category",
+								required: true,
+							},
+						],
+					},
+				],
+				order: [[db.hrPolicies, "updatedAt", "DESC"]], // 👈 Sort by newest
+			});
+
+			if (!unsignedPolicies.length && !signedPolicies.length) {
+				return respHelper(res, {
+					status: 404,
+					msg: "No HR policies found for this employee",
+				});
+			}
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Policies fetched successfully",
+				data: {
+					unsignedPolicies,
+					signedPolicies,
+				},
+			});
+		} catch (error) {
+			console.error("❌ Error fetching HR policies:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async acknowledgeHrPolicy(req, res) {
+		try {
+			let { policyId, action, declineReason } = req.body;
+			const userId = req.userId;
+
+			// Validate the action
+			if (!["signed", "declined", "viewed"].includes(action)) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Invalid action. Only 'signed', 'declined', or 'viewed' are allowed.",
+				});
+			}
+
+			if (!policyId || policyId === "null") {
+				return respHelper(res, {
+					status: 400,
+					msg: "Policy ID is required.",
+				});
+			}
+			// Normalize policyId to an array
+			let policyIds = [];
+			console.log("policyId", typeof policyId);
+			if (typeof policyId === "string") {
+				// If policyId has commas, split it into an array, else handle as a single ID
+				policyIds = policyId
+					.split(",")
+					.map((id) => id.trim())
+					.filter((id) => id);
+			} else {
+				policyIds = [policyId];
+			}
+
+			// If the policyIds array is empty after splitting, return an error
+			if (policyIds.length === 0) {
+				return respHelper(res, {
+					status: 400,
+					msg: "No valid policy IDs provided.",
+				});
+			}
+
+			const now = moment().format("YYYY-MM-DD HH:mm:ss");
+
+			for (const id of policyIds) {
+				// Check if the policy exists
+				const policyExists = await db.hrPolicies.findOne({ where: { id } });
+				if (!policyExists) {
+					continue; // Skip invalid policy
+				}
+
+				// Check for existing signoff
+				let policySignoff = await db.hrPolicySignoffs.findOne({
+					where: {
+						hr_policy_id: id,
+						user_id: userId,
+					},
+				});
+
+				if (policySignoff) {
+					await policySignoff.update({
+						deviceIp:
+							req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
+						device: req.headers.source || null,
+						status: action,
+						declineReason: declineReason || "",
+						updated_at: now,
+					});
+				}
+			}
+
+			// Update the flag for the user
+			await db.employeeMaster.update(
+				{ showHrPolicyModal: 0 },
+				{ where: { id: userId } },
+			);
+
+			return respHelper(res, {
+				status: 200,
+				msg: `Policy(ies) ${action} successfully`,
+			});
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, { status: 500, msg: "Internal server error" });
+		}
+	}
+
+	// hr policy for User end
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

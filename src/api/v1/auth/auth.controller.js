@@ -243,11 +243,20 @@ class AuthController {
 
 			let secret = process.env.QR_SESSION_SECRET;
 			let signedToken = signSessionId(sessionId, secret);
-			const expiresAt = new Date(Date.now() + 50 * 1000); // 50 seconds from now
-			await db.qrSessionHistory.create({ sessionId: signedToken, employeeId: id, createdBy: id, expiresAt: expiresAt, userAgent: userAgent });
-			return respHelper(res, { status: 200, msg: "Session id generated successfully", data: { sessionId: signedToken, loggedIn: false } });
-		}
-		catch (error) {
+			const expiresAt = new Date(Date.now() + 50 * 1000); // 60 seconds from now
+			await db.qrSessionHistory.create({
+				sessionId: signedToken,
+				employeeId: id,
+				createdBy: id,
+				expiresAt: expiresAt,
+				userAgent: userAgent,
+			});
+			return respHelper(res, {
+				status: 200,
+				msg: "Session id generated successfully",
+				data: { sessionId: signedToken, loggedIn: false },
+			});
+		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
 				status: 500,
@@ -258,7 +267,8 @@ class AuthController {
 	// authenticate session
 	async authenticateSessionStatus(req, res) {
 		try {
-            const { sessionId } = req.params;
+			const { sessionId } = req.params;
+			const employeeId = req.userData.id;
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
@@ -315,9 +325,19 @@ class AuthController {
 			let secret = process.env.QR_SESSION_SECRET;
 			let verifySessionId = verifySignedSessionId(sessionId, secret);
 
-			let verifySession = await db.qrSessionHistory.findOne({ where: { sessionId: sessionId, loggedIn: false }, attributes: ['qrSessionId', 'sessionId', 'employeeId', 'loggedIn', 'expiresAt'], raw: true });
-			
-			if(!verifySession || !verifySessionId) {
+			let verifySession = await db.qrSessionHistory.findOne({
+				where: { sessionId: sessionId, loggedIn: false },
+				attributes: [
+					"qrSessionId",
+					"sessionId",
+					"employeeId",
+					"loggedIn",
+					"expiresAt",
+				],
+				raw: true,
+			});
+
+			if (!verifySession || !verifySessionId) {
 				return respHelper(res, {
 					status: 404,
 					msg: "Invalid Session Id",
@@ -405,6 +425,101 @@ class AuthController {
 			});
 		}
 	}
+
+	// start proxy login functionality area
+
+	async proxyLogin(req, res) {
+		try {
+			let result = await validator.proxyLoginSchema.validateAsync(req.body);
+
+			const existUser = await db.employeeMaster.findOne({
+				where: {
+					id: result.targetUserId ? result.targetUserId : result.realUserId,
+					isActive: 1,
+				},
+				include: [
+					{
+						model: db.roleMaster,
+						attributes: ["role_id", "name"],
+					},
+					{
+						model: db.designationMaster,
+						attributes: ["designationId", "name"],
+					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName", "companyLogo"],
+					},
+				],
+			});
+
+			if (!existUser) {
+				return respHelper(res, {
+					status: 404,
+					msg: constant.USER_NOT_EXIST,
+				});
+			}
+
+			if (!existUser.dataValues.isLoginActive) {
+				return respHelper(res, {
+					status: 404,
+					msg: constant.LOGIN_BLOCKED,
+				});
+			}
+
+			if (
+				existUser.dataValues.wrongPasswordCount ===
+				parseInt(process.env.WRONG_PASSWORD_LIMIT)
+			) {
+				return respHelper(res, {
+					status: 404,
+					msg: constant.ACCOUNT_LOCKED,
+				});
+			}
+
+			if (result.targetUserId) {
+				let generateSessionHistory = await db.LoginSessionHistory.create({
+					targetUserId: result.targetUserId,
+					realUserId: result.realUserId,
+					createdBy: result.realUserId,
+					loginIP:
+						req.headers["x-real-ip"] || (await helper.ip(req._remoteAddress)),
+					userAgent: req.headers["user-agent"],
+				});
+				req.body.loginSessionHistoryId =
+					generateSessionHistory?.dataValues?.loginSessionHistoryId;
+			}
+
+			if (req.loginSessionHistoryId) {
+				await db.LoginSessionHistory.update(
+					{ updatedBy: result.realUserId, updatedAt: new Date() },
+					{ where: { loginSessionHistoryId: req.loginSessionHistoryId } },
+				);
+			}
+
+			const loggedInUser = await validateUser(req, existUser);
+
+			return respHelper(res, {
+				status: 200,
+				msg: constant.LOGIN_SUCCESS,
+				token: loggedInUser.token,
+				data: loggedInUser.userData,
+			});
+		} catch (error) {
+			console.log("Proxy login", error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// end proxy login functionality area
 }
 
 const validateUser = async (req, existUser) => {

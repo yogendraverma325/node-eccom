@@ -5,30 +5,30 @@ export default (sequelize, Sequelize) => {
 			primaryKey: true,
 			autoIncrement: true,
 		},
-        message:{
-            type: Sequelize.STRING
-        },
-        isRead:{
-            type: Sequelize.INTEGER
-        },
+		message: {
+			type: Sequelize.STRING,
+		},
+		isRead: {
+			type: Sequelize.INTEGER,
+		},
 		forUserId: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
 		byUserId: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
 		createdAt: {
-			type: Sequelize.DATE
+			type: Sequelize.DATE,
 		},
 		createdBy: {
-			type: Sequelize.INTEGER
+			type: Sequelize.INTEGER,
 		},
-        updatedAt: {
-			type: Sequelize.DATE
+		updatedAt: {
+			type: Sequelize.DATE,
 		},
 		updatedBy: {
-			type: Sequelize.INTEGER
-		}
+			type: Sequelize.INTEGER,
+		},
 	});
 	return PragatiActivities;
 };

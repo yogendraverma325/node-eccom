@@ -44,5 +44,4 @@ router.use("/fnf", fnfRoutes);
 router.use("/imports", imports);
 router.use("/appraisalgoals", appraisalGoalsRoutes);
 
-
 export default router;

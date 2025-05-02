@@ -37,8 +37,8 @@ async function query(caseId, data, data2) {
 			break;
 		case 8:
 			//return `SELECT userId, dateOfJoining FROM employeejobdetails WHERE YEAR(dateOfJoining)=${data2.payYear} AND MONTH(dateOfJoining)=${data2.payMonth} AND userId=${data};`; //26
-			//return `SELECT id, dateOfexit FROM tara_hrms_live.employee WHERE YEAR(dateOfexit)=${data2.payYear} AND MONTH(dateOfexit)=${data2.payMonth} AND id=${data}`
-			return `SELECT e.dateOfexit, e.id, ejd.dateOfJoining FROM tara_hrms_live.employee e JOIN tara_hrms_live.employeejobdetails ejd ON e.id = ejd.userId WHERE e.id = ${data};`;
+			//return `SELECT id, dateOfexit FROM ${dbName}.employee WHERE YEAR(dateOfexit)=${data2.payYear} AND MONTH(dateOfexit)=${data2.payMonth} AND id=${data}`
+			return `SELECT e.dateOfexit, e.id, ejd.dateOfJoining FROM ${dbName}.employee e JOIN ${dbName}.employeejobdetails ejd ON e.id = ejd.userId WHERE e.id = ${data};`;
 			break;
 		case 9:
 			return `SELECT sscm.salaryComponentAutoId, sscm.salaryStructureAutoId, scm.salaryComponentElementAutoId, scm.elementValue, sce.salaryComponentElementName, sce.salaryComponentElementCode FROM ${dbName}.salarystructurecomponentmapping sscm JOIN ${dbName}.salarycomponentmapping scm ON sscm.salaryStructurecomponentmappingAutoId = scm.salaryStructurecomponentmappingAutoId JOIN ${dbName}.salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sscm.salaryComponentAutoId = ${data} AND sscm.salaryStructureAutoId = ${data2};`; // 12

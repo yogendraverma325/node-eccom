@@ -8,8 +8,14 @@ import client from "../../../config/redisDb.config.js";
 import eventEmitter from "../../../services/eventService.js";
 import moment from "moment";
 import { Op } from "sequelize";
+import xlsx from "json-as-xlsx";
+import fs from "fs";
+import pkg from "xlsx";
+import { writeFileSync } from "fs";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 const message = constant;
+import service from "./../admin/master/master.service.js";
+import adminValidator from "../../../helper/adminValidator.js";
 class commonController {
 	async addBiographicalDetails(req, res) {
 		try {
@@ -2445,6 +2451,1033 @@ class commonController {
 	}
 
 	// ritak address approval end
+
+	//ritak Hr Policy start
+	async getHrPolciyCategoryList(req, res) {
+		try {
+			const { page = 1, limit = 10, search = "" } = req.query;
+			const pageNumber = parseInt(page, 10);
+			const pageLimit = parseInt(limit, 10);
+			const offset = (pageNumber - 1) * pageLimit;
+
+			const whereClause = search ? { name: { [Op.like]: `%${search}%` } } : {};
+
+			const [rows, count] = await Promise.all([
+				db.hrPolicyCategories.findAll({
+					where: whereClause,
+					limit: pageLimit,
+					offset,
+					order: [["createdAt", "DESC"]],
+					include: [
+						{
+							model: db.hrPolicies,
+							as: "policies",
+							required: false, // Optional: false = include even if no policies
+						},
+					],
+				}),
+				db.hrPolicyCategories.count({ where: whereClause }),
+			]);
+
+			return res.status(200).json({
+				status: true,
+				msg: "Data Fetched successfully",
+				data: {
+					rows,
+					count,
+				},
+			});
+		} catch (error) {
+			console.error("Error fetching HR policy categories:", error);
+			return res.status(500).json({
+				status: false,
+				msg: "Internal server error",
+			});
+		}
+	}
+	async createHrPolicyCategory(req, res) {
+		try {
+			let result = await adminValidator.hrPolicyCategorySchema.validateAsync(
+				req.body,
+			);
+			result = { ...result, createdBy: req.userId, isActive: 1 };
+			let model = db.hrPolicyCategories;
+			let query = { name: result.name };
+			let moduleName = "Hr Policy Category";
+			let response = await service.create(model, result, query, moduleName);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async updateHrPolicyCategory(req, res) {
+		try {
+			let result = await adminValidator.hrPolicyCategorySchema.validateAsync(
+				req.body,
+			);
+			result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+			let model = db.hrPolicyCategories;
+			let query = { id: req.params.id };
+
+			let verifyQuery = {
+				[Op.not]: { id: req.params.id },
+				name: result.name,
+			};
+			let isVerify = await service.details(model, verifyQuery);
+
+			if (isVerify.status == 200) {
+				let response = {
+					status: 400,
+					msg: constant.ALREADY_EXISTS.replace(
+						"<module>",
+						"Hr Policy Category",
+					),
+				};
+				return respHelper(res, response);
+			} else {
+				let response = await service.update(model, result, query);
+				return respHelper(res, response);
+			}
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async changeStatusOfHrPolicyCategory(req, res) {
+		try {
+			let model = db.hrPolicyCategories;
+			let query = { id: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async deleteOfHrPolicyCategory(req, res) {
+		try {
+			let model = db.hrPolicyCategories;
+			let query = { id: req.params.id };
+			let updateMetaData = { isDeleted: 1 };
+			let moduleName = "Hr Policy Category";
+			let response = await service.delete(
+				model,
+				updateMetaData,
+				query,
+				moduleName,
+			);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async getHrPolciyList(req, res) {
+		try {
+			const {
+				page = 1,
+				limit = 10,
+				search = "",
+				categoryId = "",
+				is_archived = "",
+			} = req.query;
+			const pageNumber = parseInt(page, 10);
+			const pageLimit = parseInt(limit, 10);
+			const offset = (pageNumber - 1) * pageLimit;
+
+			const whereClause = {
+				category_id: categoryId, // always include category filter
+				...(is_archived !== "" && { is_archived }),
+				...(search && {
+					name: {
+						[Op.like]: `%${search}%`,
+					},
+				}),
+			};
+
+			const [rows, count] = await Promise.all([
+				db.hrPolicies.findAll({
+					where: whereClause,
+					limit: pageLimit,
+					offset,
+					order: [["createdAt", "DESC"]],
+					include: [
+						{
+							model: db.hrPolicyCategories,
+							as: "category",
+							required: false, // Optional: false = include even if no policies
+						},
+						{
+							model: db.hrPolicySignoffs,
+							required: false, // Optional: false = include even if no policies
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["empCode", "name"],
+									required: false, // Optional: false = include even if no policies
+								},
+							],
+						},
+					],
+				}),
+				db.hrPolicies.count({ where: whereClause }),
+			]);
+
+			return res.status(200).json({
+				status: true,
+				msg: "Data Fetched successfully",
+				data: {
+					rows,
+					count,
+				},
+			});
+		} catch (error) {
+			console.error("Error fetching HR policy categories:", error);
+			return res.status(500).json({
+				status: false,
+				msg: "Internal server error",
+			});
+		}
+	}
+	async createHrPolicy(req, res) {
+		try {
+			//console.log("req.body",req.body);
+			let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
+			["effective_date_from", "effective_date_to"].forEach((field) => {
+				const dateValue = result[field];
+				if (!dateValue || isNaN(new Date(dateValue).getTime())) {
+					result[field] = null;
+				}
+			});
+
+			result = { ...result, createdBy: req.userId, isActive: 1 };
+
+			console.log("result", result);
+			// Handle file upload for policy document
+			if (result.policyDocument) {
+				if (!result.policyDocument.startsWith("uploads")) {
+					try {
+						const timestamp = Date.now();
+						const uploadedFilePath = await helper.fileUpload(
+							result.policyDocument,
+							`policyDocument_${timestamp}`,
+							`uploads/hr-documents`,
+						);
+						result.policyDocument = uploadedFilePath;
+					} catch (uploadError) {
+						logger.error("Error uploading policy document:", uploadError);
+						return respHelper(res, {
+							status: 500,
+							msg: "Error uploading policy document.",
+						});
+					}
+				} else {
+					result.policyDocument = result.policyDocument;
+				}
+			}
+
+			let model = db.hrPolicies;
+			let query = { name: result.name };
+			let moduleName = "Hr Policy";
+
+			let response = await service.create(model, result, query, moduleName);
+			return respHelper(res, response);
+		} catch (error) {
+			console.log(error, "error");
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong.",
+			});
+		}
+	}
+
+	async updateHrPolicy(req, res) {
+		try {
+			let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
+			result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+
+			// Handle file upload for policy document
+			if (
+				result.policyDocument &&
+				!result.policyDocument.startsWith("uploads")
+			) {
+				try {
+					const timestamp = Date.now();
+					const uploadedFilePath = await helper.fileUpload(
+						result.policyDocument,
+						`policyDocument_${timestamp}`,
+						`uploads/hr-documents`,
+					);
+					result.policyDocument = uploadedFilePath;
+				} catch (uploadError) {
+					logger.error("Error uploading policy document:", uploadError);
+					return respHelper(res, {
+						status: 500,
+						msg: "Error uploading policy document.",
+					});
+				}
+			}
+
+			const model = db.hrPolicies;
+			const policyId = req.params.id;
+
+			// Revise version logic
+			if (result.reviseVersion == 1) {
+				const existingPolicy = await model.findOne({ where: { id: policyId } });
+
+				if (!existingPolicy) {
+					return respHelper(res, {
+						status: 404,
+						msg: "HR Policy not found.",
+					});
+				}
+
+				// Archive the current policy
+				await model.update(
+					{ is_archived: 1 },
+					{ where: { id: parseInt(policyId, 10) } },
+				);
+				console.log(policyId, "policyId");
+				// Calculate the new version
+				const currentVersion = parseFloat(existingPolicy.version || 1.0);
+				const newVersion = parseFloat((currentVersion + 1.0).toFixed(2));
+
+				// Prepare new policy data
+				const newPolicyData = {
+					...existingPolicy.toJSON(),
+					id: undefined, // So Sequelize generates a new ID
+					version: newVersion,
+					createdAt: moment(),
+					updatedAt: moment(),
+					createdBy: req.userId,
+					updatedBy: req.userId,
+					is_archive: 0,
+				};
+
+				// Apply any updates from request
+				Object.assign(newPolicyData, result);
+
+				// Create new revised policy
+				const newPolicy = await model.create(newPolicyData);
+
+				return respHelper(res, {
+					status: 200,
+					msg: "Policy revised successfully.",
+					data: newPolicy,
+				});
+			}
+			// Normal update (not a revision)
+			const response = await service.update(model, result, { id: policyId });
+			return respHelper(res, response);
+		} catch (error) {
+			console.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong.",
+			});
+		}
+	}
+
+	async changeStatusOfHrPolicy(req, res) {
+		try {
+			let model = db.hrPolicies;
+			let query = { id: req.params.id };
+			let response = await service.changeStatus(model, query);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async archiveActionOfHrPolicy(req, res) {
+		try {
+			const model = db.hrPolicies;
+			const policyId = req.params.id;
+
+			// Step 1: Find the policy
+			const policy = await model.findOne({ where: { id: policyId } });
+
+			if (!policy) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Policy not found",
+				});
+			}
+
+			// Step 2: Toggle the is_archived value
+			const newIsArchived = policy.is_archived ? 0 : 1;
+
+			// Step 3: Update using service
+			const updateMetaData = { is_archived: newIsArchived };
+			const query = { id: policyId };
+			const response = await service.update(model, updateMetaData, query);
+
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, { status: 500 });
+		}
+	}
+
+	async deleteOfHrPolicy(req, res) {
+		try {
+			let model = db.hrPolicies;
+			let query = { id: req.params.id };
+			console.log("Received id:", req.params.id);
+
+			let updateMetaData = { isDeleted: 1 };
+			let moduleName = "Hr Policy";
+			let response = await service.delete(
+				model,
+				updateMetaData,
+				query,
+				moduleName,
+			);
+			return respHelper(res, response);
+		} catch (error) {
+			logger.error(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async createUserAssignment(req, res) {
+		try {
+			const result = await adminValidator.userAssignmentSchema.validateAsync(
+				req.body,
+			);
+			const { name, process_id, conditions } = result;
+
+			const newAssignment = {
+				name,
+				process_id,
+				created_at: new Date(),
+				updated_at: new Date(),
+			};
+
+			// Create main user_assignment record
+			const assignment = await db.user_assignment.create(newAssignment);
+
+			const generatedCode = `UA${String(assignment.id).padStart(3, "0")}`;
+			await assignment.update({ code: generatedCode });
+
+			// If conditions are passed, insert them
+			if (conditions && conditions.length > 0) {
+				const conditionRecords = await Promise.all(
+					conditions.map(async (cond) => {
+						const attribute = await db.user_assignment_attribute_master.findOne(
+							{
+								where: { code: cond.attribute },
+							},
+						);
+
+						if (!attribute) {
+							throw new Error(
+								`Attribute not found for code: ${cond.attribute}`,
+							);
+						}
+
+						return {
+							user_assignment_id: assignment.id,
+							attribute_id: attribute.id,
+							condition_type: cond.condition_type,
+							attribute_values: cond.attribute_values.join(","),
+							created_at: new Date(),
+							updated_at: new Date(),
+						};
+					}),
+				);
+
+				await db.user_assignment_condition.bulkCreate(conditionRecords);
+			}
+
+			return respHelper(res, {
+				status: 200,
+				msg: "User Assignment created successfully.",
+				data: assignment,
+			});
+		} catch (error) {
+			console.error("Error in createUserAssignment:", error);
+
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong.",
+			});
+		}
+	}
+
+	async editUserAssignment(req, res) {
+		try {
+			const assignmentId = req.params.id;
+
+			// Validate request body
+			const result = await adminValidator.userAssignmentSchema.validateAsync(
+				req.body,
+			);
+			const { name, process_id, conditions } = result;
+
+			// Check if assignment exists
+			const existingAssignment =
+				await db.user_assignment.findByPk(assignmentId);
+			if (!existingAssignment) {
+				return respHelper(res, {
+					status: 404,
+					msg: "User Assignment not found.",
+				});
+			}
+
+			// Update the main assignment record
+			await db.user_assignment.update(
+				{
+					name,
+					process_id,
+					updated_at: new Date(),
+				},
+				{
+					where: { id: assignmentId },
+				},
+			);
+
+			// Step 1: Fetch existing conditions for this assignment
+			const existingConditions = await db.user_assignment_condition.findAll({
+				where: { user_assignment_id: assignmentId },
+			});
+
+			// Step 2: Create a map of existing conditions for quick lookup
+			const existingMap = new Map();
+			existingConditions.forEach((cond) => {
+				existingMap.set(cond.attribute_id, cond); // key: attribute_id
+			});
+
+			// Step 3: Process incoming conditions
+			for (const cond of conditions) {
+				const attribute = await db.user_assignment_attribute_master.findOne({
+					where: { code: cond.attribute },
+				});
+
+				if (!attribute) {
+					throw new Error(`Attribute not found for code: ${cond.attribute}`);
+				}
+
+				const existing = existingMap.get(attribute.id);
+
+				if (existing) {
+					// Update existing condition
+					await db.user_assignment_condition.update(
+						{
+							condition_type: cond.condition_type,
+							attribute_values: cond.attribute_values.join(","),
+							updated_at: new Date(),
+						},
+						{
+							where: { id: existing.id },
+						},
+					);
+					existingMap.delete(attribute.id); // Mark as handled
+				} else {
+					// Insert new condition
+					await db.user_assignment_condition.create({
+						user_assignment_id: assignmentId,
+						attribute_id: attribute.id,
+						condition_type: cond.condition_type,
+						attribute_values: cond.attribute_values.join(","),
+						created_at: new Date(),
+						updated_at: new Date(),
+					});
+				}
+			}
+
+			// Step 4 (Optional): Delete conditions not present in the new input
+			for (const [unusedAttrId, unusedCond] of existingMap.entries()) {
+				await db.user_assignment_condition.destroy({
+					where: { id: unusedCond.id },
+				});
+			}
+
+			// Fetch updated assignment (if needed)
+			const updatedAssignment = await db.user_assignment.findByPk(assignmentId);
+
+			return respHelper(res, {
+				status: 200,
+				msg: "User Assignment updated successfully.",
+				data: updatedAssignment,
+			});
+		} catch (error) {
+			console.error("Error in editUserAssignment:", error);
+
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong.",
+			});
+		}
+	}
+
+	async getUserAssignmentList(req, res) {
+		try {
+			const { process_id } = req.query;
+
+			const whereClause = process_id
+				? {
+						[Op.or]: [{ process_id: process_id }, { process_id: 1 }],
+					}
+				: {};
+
+			const data = await db.user_assignment.findAll({
+				where: whereClause,
+				include: [
+					{
+						model: db.user_assignment_process_master,
+						as: "process",
+						attributes: ["name"],
+						required: true,
+					},
+					{
+						model: db.user_assignment_condition,
+						as: "conditions", //  alias for conditions
+						include: [
+							{
+								model: db.user_assignment_attribute_master,
+								as: "attribute", // optional: alias for attribute master
+								attributes: ["name", "code"],
+							},
+						],
+					},
+				],
+				order: [["name", "ASC"]],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Process Masters fetched successfully.",
+				data,
+			});
+		} catch (error) {
+			console.error("Error in listProcessMasters:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong while fetching process masters.",
+			});
+		}
+	}
+
+	async exportEmployeesByUserAssignmentId(req, res) {
+		const { id } = req.params;
+
+		try {
+			const assignment = await db.user_assignment.findOne({
+				where: { id },
+				include: [
+					{
+						model: db.user_assignment_condition,
+						as: "conditions",
+						include: [
+							{
+								model: db.user_assignment_attribute_master,
+								as: "attribute",
+								attributes: ["code", "name", "column_mapping"],
+							},
+						],
+					},
+				],
+			});
+
+			if (!assignment) {
+				return respHelper(res, {
+					status: 404,
+					msg: "User assignment not found.",
+				});
+			}
+
+			const whereEmployee = {};
+			const whereJobDetails = {};
+			const validJobColumns = ["jobLevelId", "bandId", "gradeId"];
+
+			for (const condition of assignment.conditions || []) {
+				const columnName = condition?.attribute?.column_mapping;
+				if (!columnName) continue;
+
+				const valueList = (condition.attribute_values || "")
+					.split(",")
+					.map((v) => v.trim())
+					.filter((v) => v !== "");
+
+				if (!valueList.length) continue;
+
+				const isNumeric = !isNaN(Number(valueList[0]));
+				const parsedValues = isNumeric ? valueList.map(Number) : valueList;
+
+				const conditionObject =
+					condition.condition_type === "INCLUDE"
+						? { [Op.in]: parsedValues }
+						: { [Op.notIn]: parsedValues };
+
+				if (validJobColumns.includes(columnName)) {
+					whereJobDetails[columnName] = conditionObject;
+				} else {
+					whereEmployee[columnName] = conditionObject;
+				}
+			}
+
+			const { rows: employees } = await db.employeeMaster.findAndCountAll({
+				where: {
+					...whereEmployee,
+					isActive: 1,
+				},
+				include: [
+					{
+						model: db.jobDetails,
+						where: whereJobDetails,
+						required: Object.keys(whereJobDetails).length > 0,
+						attributes: [],
+					},
+				],
+				attributes: ["id", "empCode", "name", "email"],
+			});
+
+			if (!employees.length) {
+				return respHelper(res, {
+					status: 200,
+					msg: "No employees found matching assignment conditions.",
+					data: [],
+				});
+			}
+
+			// Prepare data for Excel
+			const data = [
+				{
+					sheet: "Employees",
+					columns: [
+						{ label: "Employee ID", value: "id" },
+						{ label: "Employee Code", value: "empCode" },
+						{ label: "Name", value: "name" },
+						{ label: "Email", value: "email" },
+						{ label: "Department", value: "department" },
+					],
+					content: employees.map((emp) => emp.dataValues),
+				},
+			];
+
+			const settings = {
+				fileName: `Assignment_${id}_Employee_List`,
+				extraLength: 3,
+				writeOptions: {
+					type: "buffer",
+					bookType: "xlsx",
+				},
+			};
+
+			const file = Buffer.from(xlsx(data, settings));
+
+			res.setHeader(
+				"Content-Type",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			);
+			res.attachment(`Assignment_${id}_Employee_List.xlsx`);
+			res.end(file);
+		} catch (error) {
+			console.error("Error in exportEmployeesByUserAssignmentId:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong while exporting employees.",
+			});
+		}
+	}
+
+	async getUserAssignmentProcessList(req, res) {
+		try {
+			const data = await db.user_assignment_process_master.findAll({
+				where: {},
+				order: [["name", "ASC"]],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Process Masters fetched successfully.",
+				data,
+			});
+		} catch (error) {
+			console.error("Error in listProcessMasters:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong while fetching process masters.",
+			});
+		}
+	}
+	async getUserAssignmentAttributeList(req, res) {
+		try {
+			const data = await db.user_assignment_attribute_master.findAll({
+				where: {},
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Attribute Masters fetched successfully.",
+				data,
+			});
+		} catch (error) {
+			console.error("Error in listAttributeMasters:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong while fetching attribute masters.",
+			});
+		}
+	}
+
+	async getUserAssignmentAttributeData(req, res) {
+		try {
+			const attribute = req.params.attribute?.toUpperCase();
+			//console.log("attribute", attribute);
+
+			const attributeModelMap = {
+				BU: { model: db.buMaster, idField: "buId", nameField: "buName" },
+				SBU: { model: db.sbuMaster, idField: "sbuId", nameField: "sbuName" },
+				DEPARTMENT: {
+					model: db.departmentMaster,
+					idField: "departmentId",
+					nameField: "departmentName",
+				},
+				LOCATION: {
+					model: db.cityMaster,
+					idField: "cityId",
+					nameField: "cityName",
+				},
+				EMP_TYPE: {
+					model: db.employeeTypeMaster,
+					idField: "empTypeId",
+					nameField: "emptypename",
+				},
+				EMPID: { model: db.employeeMaster, idField: "id", nameField: "name" },
+				COMPANY: {
+					model: db.companyMaster,
+					idField: "companyId",
+					nameField: "companyName",
+				},
+				BAND: {
+					model: db.bandMaster,
+					idField: "bandId",
+					nameField: "bandDesc",
+				},
+				FUNCTIONALAREA: {
+					model: db.functionalAreaMaster,
+					idField: "functionalAreaId",
+					nameField: "functionalAreaName",
+				},
+				GRADE: {
+					model: db.gradeMaster,
+					idField: "gradeId",
+					nameField: "gradeName",
+				},
+				JOBLEVEL: {
+					model: db.jobLevelMaster,
+					idField: "jobLevelId",
+					nameField: "jobLevelName",
+				},
+			};
+
+			const modelDetails = attributeModelMap[attribute];
+			//	console.log("modelDetails", modelDetails);
+
+			if (!modelDetails) {
+				return respHelper(res, { status: 400, msg: "Invalid attribute type" });
+			}
+
+			const model = modelDetails.model;
+			const idField = modelDetails.idField;
+			const nameField = modelDetails.nameField;
+
+			// Determine fields to fetch
+			const attributesToFetch = [idField, nameField];
+			if (attribute === "EMPID") {
+				attributesToFetch.push("empCode");
+			}
+
+			// Fetch data
+			const data = await model.findAll({
+				where: { isActive: true },
+				attributes: attributesToFetch,
+			});
+
+			// Map data
+			const mappedData = data.map((item) => {
+				const id = item[idField];
+				const name = item[nameField];
+
+				if (attribute === "EMPID") {
+					return {
+						id,
+						name: `${item.empCode} - ${name}`,
+					};
+				}
+
+				return { id, name };
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Attribute data fetched",
+				data: mappedData,
+			});
+		} catch (error) {
+			console.error("Error in getUserAssignmentAttributeData:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Failed to fetch attribute values",
+			});
+		}
+	}
+
+	//ritak Hr Policy end
+}
+
+export async function getEmployeesByUserAssignmentId(id) {
+	try {
+		const assignment = await db.user_assignment.findOne({
+			where: { id },
+			include: [
+				{
+					model: db.user_assignment_condition,
+					as: "conditions",
+					include: [
+						{
+							model: db.user_assignment_attribute_master,
+							as: "attribute",
+							attributes: ["code", "name", "column_mapping"],
+						},
+					],
+				},
+			],
+		});
+
+		//console.log("assignment", assignment);
+
+		if (!assignment) {
+			return null; // or throw an error if you prefer
+		}
+
+		const whereEmployee = {};
+		const whereJobDetails = {};
+
+		const validJobColumns = ["jobLevelId", "bandId", "gradeId"];
+
+		for (const condition of assignment.conditions || []) {
+			const columnName = condition?.attribute?.column_mapping;
+			if (!columnName) continue;
+
+			const valueList = (condition.attribute_values || "")
+				.split(",")
+				.map((v) => v.trim())
+				.filter((v) => v !== "");
+
+			if (!valueList.length) continue;
+
+			const isNumeric = !isNaN(Number(valueList[0]));
+			const parsedValues = isNumeric ? valueList.map(Number) : valueList;
+
+			const conditionObject =
+				condition.condition_type === "INCLUDE"
+					? { [Op.in]: parsedValues }
+					: { [Op.notIn]: parsedValues };
+
+			if (validJobColumns.includes(columnName)) {
+				whereJobDetails[columnName] = conditionObject;
+			} else {
+				whereEmployee[columnName] = conditionObject;
+			}
+		}
+
+		const { rows: employees } = await db.employeeMaster.findAndCountAll({
+			where: {
+				...whereEmployee,
+				isActive: 1, // Only fetch active employees
+			},
+			include: [
+				{
+					model: db.jobDetails,
+					where: whereJobDetails,
+					required: Object.keys(whereJobDetails).length > 0,
+					attributes: [],
+				},
+			],
+			attributes: ["id", "empCode", "name"],
+		});
+		//  console.log("employees", employees);
+		return employees;
+	} catch (error) {
+		console.error("Error in getEmployeesByUserAssignmentId:", error);
+		throw error;
+	}
 }
 
 export default new commonController();

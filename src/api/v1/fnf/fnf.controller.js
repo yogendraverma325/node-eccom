@@ -1919,7 +1919,7 @@ class FnfController {
 					: 0,
 			});
 			Object.assign(dedcutionDetails[0][0], {
-				tdsImpactedCounts: dedcutionDetails[0][0]
+				tdsImpactedCounts: dedcutionDetails[0][0].tdsImpactedEmployees
 					? dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length
 					: 0,
 			});
@@ -2137,7 +2137,9 @@ const mergeObjects = (objA, objB, afterKey) => {
 
 async function processFnf(data) {
 	let { processId, req } = data;
-	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM payprocessdetails pd JOIN  payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
+	let queryForAllExecutableEmployee = `SELECT pm.payMonth, pd.* FROM ${dbName}.payprocessdetails pd JOIN   ${dbName}.payprocessmaster pm ON pd.proceessId = pm.payProcessMasterAutoId Where pm.payProcessMasterAutoId= ${processId} AND pd.payStatus in (1);`;
+
+	console.log(queryForAllExecutableEmployee);
 	const result = await db.sequelize.query(queryForAllExecutableEmployee);
 	if (result[0].length > 0) {
 		const employeeIds = result[0].map((item) => item.EmployeeId);

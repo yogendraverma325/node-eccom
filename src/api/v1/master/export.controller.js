@@ -7459,29 +7459,41 @@ class MasterController {
 								include: [
 									{
 										model: db.salaryComponent,
-										attributes: ["salaryComponentCode", "salaryComponentAlias"],
+										attributes: [
+											"salaryComponentCode",
+											"salaryComponentAlias",
+											"salaryComponentSequenceNo",
+											"includeInPackage",
+											"salaryComponentEarningType",
+										],
 									},
 								],
 							},
 						],
 					},
+					{
+						model: db.jobDetails,
+						attributes: ["dateOfJoining"],
+						required: true,
+					},
 				],
 				distinct: true,
 			});
 
-			// console.log(employeeDataExisting);
-			// return;
-
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
-				const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
+				const resultData = getColumnsForSalary(result);
+				// const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
 				const resultColumns = Object.fromEntries(
-					uniqueKeys.map((key) => [key, 0]),
+					resultData.map((key) => [key, 0]),
 				);
+
 				const columns = Object.keys(resultColumns).map((key) => ({
 					label: key,
 					value: key,
 				}));
+
+				// console.log(columns);
 				const data = [
 					{
 						sheet: "Employee",
@@ -7511,7 +7523,6 @@ class MasterController {
 			return res.status(500).send(fileAccessErrorResponse(500));
 		}
 	}
-
 	async salaryGenerated(req, res) {
 		try {
 			const {
@@ -7950,15 +7961,58 @@ const transformData = (data) => {
 				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
+			"Date Of Joining": employee.employeejobdetail.dateOfJoining,
 		};
 
-		employee.packageDetails.empPayElements.forEach((element) => {
+		// employee.packageDetails.empPayElements.forEach((element) => {
+		// 	const keyName =
+		// 		element.salarycomponent.salaryComponentAlias ||
+		// 		element.salarycomponent.salaryComponentCode;
+		// 	transformedObj[keyName] = element.payElementAmount;
+		// 	transformedObj['salaryComponentSequenceNo']= element.salaryComponent.salaryComponentSequenceNo;
+		// });
+
+		// First, sort the elements based on salaryComponentSequenceNo
+		const sortedElements = employee.packageDetails.empPayElements.sort(
+			(a, b) =>
+				a.salarycomponent.salaryComponentSequenceNo -
+				b.salarycomponent.salaryComponentSequenceNo,
+		);
+
+		// console.log(sortedElements);
+		let totalCTC = 0,
+			grossCTC = 0;
+		// Then, build the transformedObj in that order
+		sortedElements.forEach((element) => {
 			const keyName =
-				element.salarycomponent.salaryComponentAlias ||
-				element.salarycomponent.salaryComponentCode;
+				element.dataValues.salarycomponent.dataValues.salaryComponentAlias ||
+				element.dataValues.salarycomponent.dataValues.salaryComponentCode;
 			transformedObj[keyName] = element.payElementAmount;
+			// console.log(element.payElementAmount);
+
+			if (
+				["Earning", "Balancing", "OTC"].includes(
+					element.dataValues.salarycomponent.dataValues
+						.salaryComponentEarningType,
+				)
+			) {
+				totalCTC = parseFloat(totalCTC) + parseFloat(element.payElementAmount);
+			}
+
+			if (
+				element.dataValues.salarycomponent.dataValues.includeInPackage == 1 &&
+				["Earning", "Balancing"].includes(
+					element.dataValues.salarycomponent.dataValues
+						.salaryComponentEarningType,
+				)
+			) {
+				grossCTC = parseFloat(grossCTC) + parseFloat(element.payElementAmount);
+			}
 		});
 
+		transformedObj["Gross Pay"] = grossCTC;
+		transformedObj["Monthly CTC"] = totalCTC;
+		transformedObj["Annual CTC"] = totalCTC * 12;
 		return transformedObj;
 	});
 };
@@ -8213,6 +8267,27 @@ function getColumnsForSalaryregister(processedData) {
 	}
 	let finalArray = preArray.concat(middleArray, lastArray);
 	return finalArray;
+}
+
+function getColumnsForSalary(processedData) {
+	const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
+	let preArray = [
+			"Employee ID",
+			"Name",
+			"Job Title",
+			"Department",
+			"Business Unit",
+			"Company Name",
+		],
+		middleArray = [],
+		lastArray = ["Gross Pay", "Monthly CTC", "Annual CTC"];
+	for (const element of uniqueKeys) {
+		if (!preArray.includes(element) && !lastArray.includes(element)) {
+			middleArray.push(element);
+		}
+	}
+	let finalarray = preArray.concat(middleArray, lastArray);
+	return finalarray;
 }
 
 export default new MasterController();

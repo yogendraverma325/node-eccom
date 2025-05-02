@@ -1,24 +1,27 @@
 export default (sequelize, Sequelize) => {
-	const UserAssignementConfig = sequelize.define("userassignmentconfig", {
-		userAssignementConfigId: {
+	const loginSessionHistory = sequelize.define("loginSessionHistory", {
+		loginSessionHistoryId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		userAssignmentAttributeId: {
-			type: Sequelize.STRING,
-		},
-		assignmentId: {
+		realUserId: {
 			type: Sequelize.INTEGER,
 		},
-		values: {
+		targetUserId: {
+			type: Sequelize.INTEGER,
+		},
+		loginIP: {
 			type: Sequelize.STRING,
 		},
-		createdBy: {
-			type: Sequelize.INTEGER,
+		userAgent: {
+			type: Sequelize.STRING,
 		},
 		createdAt: {
 			type: Sequelize.DATE,
+		},
+		createdBy: {
+			type: Sequelize.INTEGER,
 		},
 		updatedBy: {
 			type: Sequelize.INTEGER,
@@ -27,5 +30,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATE,
 		},
 	});
-	return UserAssignementConfig;
+	return loginSessionHistory;
 };

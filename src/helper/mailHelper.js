@@ -160,6 +160,13 @@ export default function getAllListeners(eventEmitter) {
 	});
 
 	// appraisal-goal
+	/// Wished Mail
+	eventEmitter.on("sendWorkWishMail", async (input) => {
+		await sendWorkAnniversaryMailToEmp(input);
+	});
+	eventEmitter.on("sendBirthWishMail", async (input) => {
+		await sendBirthWishMailToEmp(input);
+	});
 }
 
 async function regularizationRequestMail(input) {
@@ -655,9 +662,9 @@ async function releasePaySlip(input) {
 async function addressDetailsApprovalRequestMail(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>", userData);
+		console.log("userData>>>>>111", userData.email);
 		await helper.mailService({
-			to: process.env.NEW_EMPLOYEE_JOINING,
+			to: userData.email,
 			subject: `Your profile update request has been submitted for approval of Address Details`,
 			html: await emailTemplate.addressDetailsApprovalRequestMail(userData),
 			senderEmail: userData.senderEmail,
@@ -801,3 +808,41 @@ async function goalDeletedNotification(input) {
 	}
 }
 // goal-appraisal
+//Wished Mail
+async function sendWorkAnniversaryMailToEmp(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData", userData);
+		let response = await helper.mailService({
+			to: userData.userEmail,
+			subject: `Best wishes on your work anniversary!`,
+			html: await emailTemplate.sendWorkAnniversaryMail(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "Error while sending work anniversary mail");
+	}
+}
+
+async function sendBirthWishMailToEmp(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData", userData);
+		let response = await helper.mailService({
+			to: userData.userEmail,
+			subject: `Wishing you a Happy Birthday!`,
+			html: await emailTemplate.sendBirthWishMailToEmp(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "Error while sending birthday wish mail");
+	}
+}
