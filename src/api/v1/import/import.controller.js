@@ -92,7 +92,7 @@ class ImportController {
 			) {
 				await extraDeductionsUpload(req, res, OperationType, importInfoObject);
 			} else if (req.body.uploadType == "Gross-Pay") {
-				await uploadCTC(req, res, OperationType, importInfoObject);
+				await uploadCTC(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
 			}

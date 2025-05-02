@@ -4968,7 +4968,489 @@ const compOffMailAppval = async (data) => {
 </html>
 `;
 };
+
+const sendWorkAnniversaryMail = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Work Anniversary</title>
+    <style>
+        /* Body Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 50px 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        /* Image Styling */
+        .image {
+            height: 45px;  /* Adjust height as needed */
+            object-fit: fill;
+        }
+        
+        /* Card Styling */
+        .card {
+            background-color: rgb(250, 252, 251);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            min-width: 500px;
+            width: 100%;
+            text-align: left;
+            border: 0.5px solid #eee;
+        }
+        
+        /* Content Styling */
+        .content {
+            font-size: 13px;
+            color: #555555;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        /* Styling for Strong Elements */
+        strong {
+            color: #e67e22;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px;
+            }
+            .heading {
+                font-size: 24px;
+            }
+            .content {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <img class="image" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo">
+        <hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 20px 0;">
+        <div class="content">
+            Dear ${data.firstName},<br><br>
+            Happy Work Anniversary! We extend our best wishes to you on completing <strong>${data.duration}</strong> of service with us. We thank you for all your contributions.<br><br>
+            We've always taken great pleasure to see your enthusiasm for the work you do. As we continue to grow, we seek your continuous contribution and support in helping the organisation scale new heights.<br><br>
+            Here's to another year of being extraordinary together!<br><br>
+            Cheers!<br><br>
+            From all of us
+        </div>
+    </div>
+
+</body>
+</html>
+`;
+};
+
+const sendBirthWishMailToEmp = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Work Anniversary</title>
+    <style>
+        /* Body Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 50px 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        /* Image Styling */
+        .image {
+            height: 45px;  /* Adjust height as needed */
+            object-fit: fill;
+        }
+        
+        /* Card Styling */
+        .card {
+            background-color: rgb(250, 252, 251);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            min-width: 500px;
+            width: 100%;
+            text-align: left;
+            border: 0.5px solid #eee;
+        }
+        
+        /* Content Styling */
+        .content {
+            font-size: 13px;
+            color: #555555;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        /* Styling for Strong Elements */
+        strong {
+            color: #e67e22;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px;
+            }
+            .heading {
+                font-size: 24px;
+            }
+            .content {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <img class="image" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo">
+        <hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 20px 0;">
+        <div class="content">
+            Dear ${data.firstName},<br><br>
+            Here's wishing you a very happy birthday! We hope you have a great day today and the year ahead is full of many blessings.<br><br>
+            Cheers!<br><br>
+            From all of us
+        </div>
+    </div>
+</body>
+</html>
+`;
+};
 //ritak address approval end
+
+// goal-appraisal
+
+const goalSubmission = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+            valign="middle">
+          <img height="45" alt="Logo" />
+          <img height="45" alt="Logo" style="float: right" />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.managerName}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            <strong>${data.name}</strong> has submitted the pragati goal plan.
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+                margin-right: 5px;
+              "
+              target="_blank"
+            >Click Here</a> to view and approve..
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const goalRecallSubmission = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+            valign="middle">
+          <img height="45" alt="Logo" />
+          <img height="45" alt="Logo" style="float: right" />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.managerName}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            <strong>${data.name}</strong> has recalled changes submitted on the Goal Plan.<br />
+            Please ignore previous submission email/notification sent.
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+                margin-right: 5px;
+              "
+              target="_blank"
+            >Click Here</a> to view goal plan.
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const goalWeightageChange = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+            valign="middle">
+          <img height="45" alt="Logo" />
+          <img height="45" alt="Logo" style="float: right" />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.managerName}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            <strong>${data.name}</strong> has made changes to your Goal Plan. <strong>Weightage</strong>
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href="${process.env.CLIENT_URL}"
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+              "
+              target="_blank"
+            >Click Here</a> to view your Goal Plan.
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">HR Team,<br />${data.recipientCompanyName}</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const goalPartiallyActionOrApprovedAll = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table width="100%" style="width: 700px; margin: 0 auto; font-family: Lato, Arial, sans-serif; border-collapse: collapse; border-radius: 10px;">
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle">
+          <img height="45" alt="Logo" />
+          <img height="45" alt="Logo" style="float: right" />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+
+          <p style="font-size: 15px; line-height: 1.6; color: #000000;">
+            ${
+							data.subject === 1
+								? `<strong>${data.managerName}</strong> has approved your Goal Plan.`
+								: `<strong>${data.managerName}</strong> has partially taken action on your Goal Plan.`
+						}
+          </p>
+
+          ${
+						data.statusName === "Rejected"
+							? `<p style="font-size: 15px; color: #000000;">Please review and make the necessary changes.</p>`
+							: ""
+					}
+
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a href="${process.env.CLIENT_URL}" style="padding: 5px 10px; background: #0173c5; color: #fff; text-decoration: none; border-radius: 2px; font-size: 14px; display: inline-block;" target="_blank">
+              Click Here
+            </a> to view your Goal Plan.
+          </p>
+
+          <p style="font-size: 15px; color: #000000; margin-top: 2rem;">
+            Regards,<br />HR Team,<br />Team Computers Pvt Ltd
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const goalDeletedNotification = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+            valign="middle">
+          <img height="45" alt="Logo" />
+          <img height="45" alt="Logo" style="float: right" />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            You have deleted a Goal from your Goal Plan.
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href="${process.env.CLIENT_URL}"
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+              "
+              target="_blank"
+            >Click Here</a> to view your Goal Plan.
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">HR Team,<br />${data.companyName}</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+// goal-appraisal
 export default {
 	regularizationRequestMail,
 	resetPasswordMail,
@@ -5006,5 +5488,12 @@ export default {
 	addressDetailsApprovalRequestMail,
 	compOffMail,
 	compOffMailAppval,
+	goalSubmission,
+	goalRecallSubmission,
+	goalWeightageChange,
+	goalPartiallyActionOrApprovedAll,
+	goalDeletedNotification,
 	//ritak address approval end
+	sendWorkAnniversaryMail,
+	sendBirthWishMailToEmp,
 };
