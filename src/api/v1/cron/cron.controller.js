@@ -19,11 +19,10 @@ import { exec } from "child_process";
 var _this = null;
 
 class CronController {
-
 	constructor() {
 		_this = this;
 	}
-	
+
 	async updateAttendance() {
 		const existEmployees = await db.employeeMaster.findAll({
 			attributes: ["id", "empCode", "name", "email", "shiftId"],
@@ -2477,7 +2476,9 @@ class CronController {
 					let shouldTrigger = false;
 
 					if (policy.TriggerOnPolicyCreateEdit) {
-						const updatedAtDate = new Date(policy.updatedAt).toISOString().split('T')[0];
+						const updatedAtDate = new Date(policy.updatedAt)
+							.toISOString()
+							.split("T")[0];
 						const triggerToday = updatedAtDate === today;
 						console.log(`🛠️ TriggerOnPolicyCreateEdit: ${triggerToday}`);
 						if (triggerToday) shouldTrigger = true;
@@ -2570,14 +2571,13 @@ class CronController {
 	}
 
 	async triggerHrPoliciesToUsersRoute(req, res) {
-	    try {
+		try {
 			let response = await _this.triggerHrPoliciesToUsersCron();
 			return res.status(200).json({
 				status: true,
 				msg: "Cron run successfully",
 			});
-		}
-		catch(error) {
+		} catch (error) {
 			console.error("Error fetching in triggerHrPoliciesToUsersCron :", error);
 			return res.status(500).json({
 				status: false,
@@ -2585,7 +2585,6 @@ class CronController {
 			});
 		}
 	}
-
 }
 
 export default new CronController();

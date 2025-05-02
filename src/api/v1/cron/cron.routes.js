@@ -21,5 +21,5 @@ export default Express.Router()
 
 	.get(
 		"/triggerHrPoliciesToUsersRoute",
-		cronController.triggerHrPoliciesToUsersRoute
-		);		
+		cronController.triggerHrPoliciesToUsersRoute,
+	);
