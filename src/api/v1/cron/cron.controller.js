@@ -2363,6 +2363,24 @@ class CronController {
 			console.error("❌ Error in HR Policy Trigger Cron:", error);
 		}
 	}
+	async  getPm2Logs  (req, res)  {
+    const appName = req.params.appName;
+    const lines = req.query.lines || 100;
+  
+    // Basic validation to avoid command injection
+    if (!/^[a-zA-Z0-9-_]+$/.test(appName)) {
+      return res.status(400).json({ error: 'Invalid app name' });
+    }
+  
+    const cmd = `pm2 logs ${appName} --lines ${lines} --nostream`;
+  
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        return res.status(500).json({ error: stderr || 'Failed to fetch logs' });
+      }
+      res.type('text/plain').send(stdout);
+    });
+  };
 }
 
 export default new CronController();
