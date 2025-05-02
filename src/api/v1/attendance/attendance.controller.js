@@ -10095,6 +10095,7 @@ class AttendanceController {
 				start,
 				moment().subtract(1, "day").format("YYYY-MM-DD"),
 			);
+			
 			const activeEmployees = await db.employeeMaster.findAll({
 				include: [
 					{
@@ -10156,6 +10157,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
+					manageAttendance:1
 				},
 			});
 			let nightwala = 0;
@@ -10259,6 +10261,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
+					manageAttendance:1
 				},
 			});
 			let nightwala = 0;
@@ -12263,8 +12266,6 @@ class AttendanceController {
 
 					
 					const result = await validator.revokeApprovedRegularizationsValidation.validateAsync(req.body);
-					
-
 					const regularizeData = await db.regularizationMaster.findOne({
 					where: {
 					regularizeId: result.regularizeId,

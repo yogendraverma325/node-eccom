@@ -5653,24 +5653,77 @@ class LeaveController {
 						[Op.in]:['pending','approved']
 						},
 					},
-			});
+			}); 
 			if(employeeleave_revoke_transactionData){
 			return respHelper(res, {
 				status: 400,
 				msg: 'Revoke Application already raised againt this leave',
 				});
 			}
-					
 
-					await db.employeeleave_revoke_transaction.create({
+						let EMP_DATA_SELF = await helper.getEmpProfile(
+						empLeaveHeader.employeeId,
+						); // SELF Manager 
+
+					const employeeData = await db.employeeMaster.findOne({
+					where: {
+					id: empLeaveHeader.employeeId,
+					},
+					attributes: ["name", "email"],
+					include: [
+					{
+					model: db.companyMaster,
+					attributes: ["senderEmail", "companyLogo"],
+					},
+					{
+					model: db.employeeMaster,
+					as: "managerData",
+					attributes: ["name", "email", "id"],
+					},
+					],
+					});
+
+					const leaveType = await db.leaveMaster.findOne({
+					where: {
+					leaveId: empLeaveHeader.leaveAutoId,
+					},
+					attributes: ["leaveName"],
+					});
+
+					await db.employeeleave_revoke_transaction.create({ 
 						employeeleaveheaderID: result.employeeleaveheaderID,
 						employeeId:empLeaveHeader.employeeId,
-						managerId: empLeaveHeader.pendingAt,
+						managerId: EMP_DATA_SELF?.managerData?.id,
 						status: "pending",
 						createdBy:req.userData.id,
 						createrRemark:result.remark,
 						creatorRole:(req.userData.id==empLeaveHeader.employeeId)?'SELF':req.userData['role.name']
 						});
+
+					pushNotificationEmitter.emit("sendNotification", {
+					title: message.LEAVE.LEAVE_REQ,
+					body: `${employeeData.dataValues.name} has requested for leave revoke.`,
+					employeeId: employeeData.dataValues.managerData.id,
+					});
+
+					eventEmitter.emit(
+				"leaveRequestRevokeMail",
+				JSON.stringify({
+					requesterName: employeeData.dataValues.name,
+					leaveFromDate: empLeaveHeader.fromDate,
+					leaveToDate: empLeaveHeader.toDate,
+					userRemark:result.remark,
+					leaveType: leaveType.dataValues.leaveName,
+					managerName: employeeData.dataValues.managerData.name,
+					managerEmail: employeeData.dataValues.managerData.email,
+					senderEmail: employeeData.dataValues.companymaster.senderEmail,
+					companyLogo: employeeData.dataValues.companymaster.companyLogo,
+					// cc: recipientsEmail.map((user) => user.email).join(","),
+				}),
+			);
+					
+
+					
 
 					return respHelper(res, {
 					status: 200,
@@ -5749,6 +5802,69 @@ class LeaveController {
 
 					for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
 						 let data=await helper.revokeApprovedAppliedLeave(singleSelectedRevokeRequested.employeeleaveheaderID,t,req.userData,result);
+
+						 const leaveTransactionDetails =
+						await db.employeeLeaveTransactions.findOne({
+							raw: true,
+							where: {
+								employeeleaveheaderID: singleSelectedRevokeRequested.employeeleaveheaderID,
+							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["name", "email"],
+									include: [
+										{
+											model: db.employeeMaster,
+											as: "managerData",
+											attributes: ["name"],
+										},
+										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+									],
+								},
+								{
+									model: db.leaveMaster,
+									as: "leaveMasterDetails",
+									attributes: ["leaveName"],
+								},
+							],
+							attributes: ["fromDate", "toDate"],
+						});
+						
+						const obj = {
+									email: leaveTransactionDetails["employee.email"],
+									status:
+										result.status === "approved" ? "Approved" : "Rejected",
+									fromDate: leaveTransactionDetails.fromDate,
+									toDate: leaveTransactionDetails.toDate,
+									leaveType:
+										leaveTransactionDetails["leaveMasterDetails.leaveName"],
+									managerName: req.userData.name,
+									requesterName: leaveTransactionDetails["employee.name"],
+									senderEmail:
+										leaveTransactionDetails[
+											"employee.companymaster.senderEmail"
+										],
+									companyLogo:
+										leaveTransactionDetails[
+											"employee.companymaster.companyLogo"
+										],
+								};
+								eventEmitter.emit("leaveRevokeAckMail", JSON.stringify(obj));
+
+						 pushNotificationEmitter.emit("sendNotification", {
+									title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
+									body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+										"<status>",
+										result.status === "approved" ? "approved" : "rejected",
+									),
+									employeeId: singleSelectedRevokeRequested.employeeId,
+								});
+
+
 						 await db.employeeleave_revoke_transaction.update(
 									{
 										status:'approved',

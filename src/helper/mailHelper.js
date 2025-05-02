@@ -173,6 +173,15 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("goalPlanAssignToEmployee", async (input) => {
 		await goalPlanAssignToEmployee(input);
 	});
+	///LEAVE REVOKE
+	eventEmitter.on("leaveRequestRevokeMail", async (input) => {
+		await leaveRequestRevokeMail(input);
+	});
+
+	eventEmitter.on("leaveRevokeAckMail", async (input) => {
+		await leaveRevokeAckMail(input);
+	});
+	///LEAVE REVOKE
 }
 
 async function regularizationRequestMail(input) {
@@ -882,3 +891,34 @@ async function goalPlanAssignToEmployee(input) {
 		error.log(error, "Error while sending birthday wish mail");
 	}
 }
+///LEAVE REVOKE
+async function leaveRequestRevokeMail(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.managerEmail,
+			subject: `${userData.requesterName} requested for revoke of leave`,
+			html: await emailTemplate.leaveRequestMail(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+async function leaveRevokeAckMail(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Your leave Revoke request has been ${userData.status}.`,
+			html: await emailTemplate.leaveAcknowledgementRevoke(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+///LEAVE REVOKE
