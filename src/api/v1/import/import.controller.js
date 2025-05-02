@@ -93,7 +93,7 @@ class ImportController {
 			) {
 				await extraDeductionsUpload(req, res, OperationType, importInfoObject);
 			} else if (req.body.uploadType == "Gross-Pay") {
-				await uploadCTC(req, res, OperationType, importInfoObject);
+				await uploadCTC(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
 			}
@@ -1661,9 +1661,6 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 
 					continue;
 				}
-
-			// console.log(employeeDetais);
-			// 	continue;	
 				let earningArears = {
 					EmployeeId: employeeDetais.id,
 					arrearMonth: employeeArrears["Arrear Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Month (YYYY-MM)'])),
