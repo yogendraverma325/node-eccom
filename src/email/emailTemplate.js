@@ -5170,7 +5170,14 @@ const goalSubmission = async (data) => {
             src="${process.env.PROXY_URL}/api${data.companyLogo}"
             alt="Logo"
           />
-          <img height="45" alt="Logo" style="float: right" />
+          <img
+            height="45"
+            src="${
+              process.env.PROXY_URL
+            }/api/uploads/assets/tara_small.png"
+            alt="Logo"
+              style="float:right"
+          />
         </td>
       </tr>
 
@@ -5235,8 +5242,19 @@ const goalRecallSubmission = async (data) => {
       <tr>
         <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
             valign="middle">
-          <img height="45" alt="Logo" />
-          <img height="45" alt="Logo" style="float: right" />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
+          <img
+            height="45"
+            src="${
+              process.env.PROXY_URL
+            }/api/uploads/assets/tara_small.png"
+            alt="Logo"
+              style="float:right"
+          />
         </td>
       </tr>
 
@@ -5299,8 +5317,19 @@ const goalWeightageChange = async (data) => {
       <tr>
         <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
             valign="middle">
-          <img height="45" alt="Logo" />
-          <img height="45" alt="Logo" style="float: right" />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
+          <img
+            height="45"
+            src="${
+              process.env.PROXY_URL
+            }/api/uploads/assets/tara_small.png"
+            alt="Logo"
+              style="float:right"
+          />
         </td>
       </tr>
 
@@ -5350,9 +5379,21 @@ const goalPartiallyActionOrApprovedAll = async (data) => {
   <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
     <table width="100%" style="width: 700px; margin: 0 auto; font-family: Lato, Arial, sans-serif; border-collapse: collapse; border-radius: 10px;">
       <tr>
-        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle">
-          <img height="45" alt="Logo" />
-          <img height="45" alt="Logo" style="float: right" />
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+            valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
+          <img
+            height="45"
+            src="${
+              process.env.PROXY_URL
+            }/api/uploads/assets/tara_small.png"
+            alt="Logo"
+              style="float:right"
+          />
         </td>
       </tr>
 
@@ -5415,8 +5456,19 @@ const goalDeletedNotification = async (data) => {
       <tr>
         <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
             valign="middle">
-          <img height="45" alt="Logo" />
-          <img height="45" alt="Logo" style="float: right" />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
+          <img
+            height="45"
+            src="${
+              process.env.PROXY_URL
+            }/api/uploads/assets/tara_small.png"
+            alt="Logo"
+              style="float:right"
+          />
         </td>
       </tr>
 
