@@ -7459,6 +7459,7 @@ class MasterController {
 								include: [
 									{
 										model: db.salaryComponent,
+<<<<<<< HEAD
 										attributes: [
 											"salaryComponentCode",
 											"salaryComponentAlias",
@@ -7466,20 +7467,27 @@ class MasterController {
 											"includeInPackage",
 											"salaryComponentEarningType",
 										],
+=======
+										attributes: ["salaryComponentCode", "salaryComponentAlias"],
+>>>>>>> notification_module
 									},
 								],
 							},
 						],
 					},
+<<<<<<< HEAD
 					{
 						model: db.jobDetails,
 						attributes: ["dateOfJoining"],
 						required: true,
 					},
+=======
+>>>>>>> notification_module
 				],
 				distinct: true,
 			});
 
+<<<<<<< HEAD
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
 				const resultData = getColumnsForSalary(result);
@@ -7488,12 +7496,26 @@ class MasterController {
 					resultData.map((key) => [key, 0]),
 				);
 
+=======
+			// console.log(employeeDataExisting);
+			// return;
+
+			if (employeeDataExisting.length > 0) {
+				const result = await transformData(employeeDataExisting);
+				const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
+				const resultColumns = Object.fromEntries(
+					uniqueKeys.map((key) => [key, 0]),
+				);
+>>>>>>> notification_module
 				const columns = Object.keys(resultColumns).map((key) => ({
 					label: key,
 					value: key,
 				}));
+<<<<<<< HEAD
 
 				// console.log(columns);
+=======
+>>>>>>> notification_module
 				const data = [
 					{
 						sheet: "Employee",
@@ -7523,6 +7545,10 @@ class MasterController {
 			return res.status(500).send(fileAccessErrorResponse(500));
 		}
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> notification_module
 	async salaryGenerated(req, res) {
 		try {
 			const {
@@ -7961,6 +7987,7 @@ const transformData = (data) => {
 				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
+<<<<<<< HEAD
 			"Date Of Joining": employee.employeejobdetail.dateOfJoining,
 		};
 
@@ -8013,6 +8040,17 @@ const transformData = (data) => {
 		transformedObj["Gross Pay"] = grossCTC;
 		transformedObj["Monthly CTC"] = totalCTC;
 		transformedObj["Annual CTC"] = totalCTC * 12;
+=======
+		};
+
+		employee.packageDetails.empPayElements.forEach((element) => {
+			const keyName =
+				element.salarycomponent.salaryComponentAlias ||
+				element.salarycomponent.salaryComponentCode;
+			transformedObj[keyName] = element.payElementAmount;
+		});
+
+>>>>>>> notification_module
 		return transformedObj;
 	});
 };
@@ -8269,6 +8307,7 @@ function getColumnsForSalaryregister(processedData) {
 	return finalArray;
 }
 
+<<<<<<< HEAD
 function getColumnsForSalary(processedData) {
 	const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
 	let preArray = [
@@ -8290,4 +8329,6 @@ function getColumnsForSalary(processedData) {
 	return finalarray;
 }
 
+=======
+>>>>>>> notification_module
 export default new MasterController();

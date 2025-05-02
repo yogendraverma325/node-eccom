@@ -4968,6 +4968,173 @@ const compOffMailAppval = async (data) => {
 </html>
 `;
 };
+
+const sendWorkAnniversaryMail = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Work Anniversary</title>
+    <style>
+        /* Body Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 50px 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        /* Image Styling */
+        .image {
+            height: 45px;  /* Adjust height as needed */
+            object-fit: fill;
+        }
+        
+        /* Card Styling */
+        .card {
+            background-color: rgb(250, 252, 251);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            min-width: 500px;
+            width: 100%;
+            text-align: left;
+            border: 0.5px solid #eee;
+        }
+        
+        /* Content Styling */
+        .content {
+            font-size: 13px;
+            color: #555555;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        /* Styling for Strong Elements */
+        strong {
+            color: #e67e22;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px;
+            }
+            .heading {
+                font-size: 24px;
+            }
+            .content {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <img class="image" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo">
+        <hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 20px 0;">
+        <div class="content">
+            Dear ${data.firstName},<br><br>
+            Happy Work Anniversary! We extend our best wishes to you on completing <strong>${data.duration}</strong> of service with us. We thank you for all your contributions.<br><br>
+            We've always taken great pleasure to see your enthusiasm for the work you do. As we continue to grow, we seek your continuous contribution and support in helping the organisation scale new heights.<br><br>
+            Here's to another year of being extraordinary together!<br><br>
+            Cheers!<br><br>
+            From all of us
+        </div>
+    </div>
+
+</body>
+</html>
+`;
+};
+
+const sendBirthWishMailToEmp = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Work Anniversary</title>
+    <style>
+        /* Body Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 50px 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        /* Image Styling */
+        .image {
+            height: 45px;  /* Adjust height as needed */
+            object-fit: fill;
+        }
+        
+        /* Card Styling */
+        .card {
+            background-color: rgb(250, 252, 251);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            min-width: 500px;
+            width: 100%;
+            text-align: left;
+            border: 0.5px solid #eee;
+        }
+        
+        /* Content Styling */
+        .content {
+            font-size: 13px;
+            color: #555555;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        /* Styling for Strong Elements */
+        strong {
+            color: #e67e22;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px;
+            }
+            .heading {
+                font-size: 24px;
+            }
+            .content {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <img class="image" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo">
+        <hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 20px 0;">
+        <div class="content">
+            Dear ${data.firstName},<br><br>
+            Here's wishing you a very happy birthday! We hope you have a great day today and the year ahead is full of many blessings.<br><br>
+            Cheers!<br><br>
+            From all of us
+        </div>
+    </div>
+</body>
+</html>
+`;
+};
 //ritak address approval end
 export default {
 	regularizationRequestMail,
@@ -5007,4 +5174,6 @@ export default {
 	compOffMail,
 	compOffMailAppval,
 	//ritak address approval end
+	sendWorkAnniversaryMail,
+	sendBirthWishMailToEmp,
 };
