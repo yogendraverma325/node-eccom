@@ -14,6 +14,8 @@ import Sequelize from "sequelize";
 import { where, Op, fn, col } from "sequelize";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 import { getEmployeesByUserAssignmentId } from "../../v1/common/common.controller.js";
+import { exec } from 'child_process';
+
 class CronController {
 	async updateAttendance() {
 		const existEmployees = await db.employeeMaster.findAll({
