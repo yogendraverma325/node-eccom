@@ -972,7 +972,10 @@ class AppraisalGoalsController {
 			});
 
 			if (allGoals.length > 0) {
-				const totalWeightage = allGoals.reduce((sum, goal) => sum + (goal.weightage || 0), 0);
+				const totalWeightage = allGoals.reduce(
+					(sum, goal) => sum + (goal.weightage || 0),
+					0,
+				);
 
 				if (allGoals.some((goal) => goal.isActive === 0)) {
 					buttonStatus = 0; // Draft exists
@@ -1151,7 +1154,10 @@ class AppraisalGoalsController {
 				where: { id: result.empId },
 			});
 			await db.goalAreaPragatiTrail.update(
-				{ isApproved: 0, pendingAt: getManagerId ? getManagerId?.manager : null},
+				{
+					isApproved: 0,
+					pendingAt: getManagerId ? getManagerId?.manager : null,
+				},
 				{
 					where: {
 						pendingAt: req.userId,
@@ -1159,6 +1165,39 @@ class AppraisalGoalsController {
 					},
 				},
 			);
+
+			const existUser = await db.employeeMaster.findOne({
+				raw: true,
+				where: {
+					id: result.empId,
+					isActive: 1,
+				},
+				attributes: ["name", "empCode", "email", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "managerData",
+						attributes: ["name", "email"],
+					},
+				],
+			});
+
+			if (result.mode == 0) {
+				eventEmitter.emit(
+					"goalEditSubmission",
+					JSON.stringify({
+						email: existUser["managerData.email"],
+						name: existUser.name,
+						managerName: existUser["managerData.name"],
+						senderEmail: existUser["companymaster.senderEmail"],
+						companyLogo: existUser["companymaster.companyLogo"],
+					}),
+				);
+			}
 			//}
 
 			return respHelper(res, {
@@ -1183,16 +1222,46 @@ class AppraisalGoalsController {
 	async deleteGoalKeyAreaByUser(req, res) {
 		try {
 			const { goalAreaId } = req.body;
+			
 			await Promise.all([
-				db.goalAreaForUser.update(
-					{ isDeleted: 1 },
-					{ where: { goalAreaId } },
-				),
+				db.goalAreaForUser.update({ isDeleted: 1 }, { where: { goalAreaId } }),
 				db.subGoalAreaForUser.update(
 					{ isDeleted: 1 },
 					{ where: { goalAreaId } },
 				),
 			]);
+
+
+			const existUser = await db.employeeMaster.findOne({
+				raw: true,
+				where: {
+					id: req.userId,
+					isActive: 1,
+				},
+				attributes: ["name", "empCode", "email", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["companyName","senderEmail", "companyLogo"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "managerData",
+						attributes: ["name", "email"],
+					},
+				],
+			});
+			eventEmitter.emit(
+				"goalDeletedNotification",
+				JSON.stringify({
+					email: existUser["managerData.email"],
+					name: existUser.name,
+					managerName: existUser["managerData.name"],
+					senderEmail: existUser["companymaster.senderEmail"],
+					companyLogo: existUser["companymaster.companyLogo"],
+					companyName:existUser['companymaster.companyName']
+				}),
+			);
 			return respHelper(res, {
 				status: 200,
 				data: {},
@@ -1478,8 +1547,30 @@ class AppraisalGoalsController {
 			// ✅ Step 3: Perform all DB operations in a transaction
 			const transaction = await db.sequelize.transaction();
 
+			let goalWeightageChangedGlobal = false;
+
 			try {
 				//const userId = req.userId;
+				const existUser = await db.employeeMaster.findOne({
+					raw: true,
+					where: {
+						id: result.empId,
+						isActive: 1,
+					},
+					attributes: ["name", "empCode", "email", "profileImage"],
+					include: [
+						{
+							model: db.companyMaster,
+							attributes: ["senderEmail", "companyLogo"],
+						},
+						{
+							model: db.employeeMaster,
+							as: "managerData",
+							attributes: ["name", "email"],
+						},
+					],
+				});
+
 				const getManagerId = await db.employeeMaster.findOne({
 					where: { id: empId },
 				});
@@ -1542,6 +1633,9 @@ class AppraisalGoalsController {
 						}
 					}
 
+					if (goalWeightageChanged || subGoalWeightageChanged) {
+						goalWeightageChangedGlobal = true;
+					}
 					// Determine final update values
 					const isAnyWeightageChanged =
 						goalWeightageChanged || subGoalWeightageChanged;
@@ -1648,6 +1742,30 @@ class AppraisalGoalsController {
 					// 	forUserId:result.empId,
 					// 	byUserId:req.userId
 					// })
+				}
+				if (mode == 0 && goalWeightageChangedGlobal == false) {
+					eventEmitter.emit(
+						"goalSubmission",
+						JSON.stringify({
+							email: existUser["managerData.email"],
+							name: existUser.name,
+							managerName: existUser["managerData.name"],
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+						}),
+					);
+				}
+				if (mode == 0 && goalWeightageChangedGlobal == true) {
+					eventEmitter.emit(
+						"goalWeightageChange",
+						JSON.stringify({
+							email: existUser["managerData.email"],
+							name: existUser.name,
+							managerName: existUser["managerData.name"],
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+						}),
+					);
 				}
 
 				// Commit transaction
@@ -1953,6 +2071,26 @@ class AppraisalGoalsController {
 				// Calculate button status
 				let buttonStatus = 0;
 
+				const existUser = await db.employeeMaster.findOne({
+					raw: true,
+					where: {
+						id: result.userId,
+						isActive: 1,
+					},
+					attributes: ["name", "empCode", "email", "profileImage"],
+					include: [
+						{
+							model: db.companyMaster,
+							attributes: ["companyName","senderEmail", "companyLogo"],
+						},
+						{
+							model: db.employeeMaster,
+							as: "managerData",
+							attributes: ["name", "email"],
+						}
+					],
+				});
+				console.log(">>>>>>>>>>>>", existUser);
 				const allGoals = await db.goalAreaForUser.findAll({
 					where: {
 						isActive: [0, 1, 2],
@@ -1982,6 +2120,35 @@ class AppraisalGoalsController {
 					}
 				}
 
+				if (buttonStatus == 2) {
+					eventEmitter.emit(
+						"goalPartiallyActionOrApprovedAll",
+						JSON.stringify({
+							email: existUser.email,
+							name: existUser.name,
+							managerName: existUser["managerData.name"],
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+							statusName: "Approved",
+							subject: 1,
+							companyName:existUser['companymaster.companyName']
+						}),
+					);
+				} else {
+					eventEmitter.emit(
+						"goalPartiallyActionOrApprovedAll",
+						JSON.stringify({
+							email: existUser.email,
+							name: existUser.name,
+							managerName: existUser["managerData.name"],
+							senderEmail: existUser["companymaster.senderEmail"],
+							companyLogo: existUser["companymaster.companyLogo"],
+							statusName: isApproved == 1 ? "Approved" : "Rejected",
+							subject: 0,
+							companyName:existUser['companymaster.companyName']
+						}),
+					);
+				}
 				// Update button status in trail
 				await db.goalAreaPragatiTrail.update(
 					{
@@ -2060,6 +2227,37 @@ class AppraisalGoalsController {
 						goalPlanId: goalPlanId,
 					},
 				},
+			);
+
+			const existUser = await db.employeeMaster.findOne({
+				raw: true,
+				where: {
+					id: userId,
+					isActive: 1,
+				},
+				attributes: ["name", "empCode", "email", "profileImage"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "managerData",
+						attributes: ["name", "email"],
+					},
+				],
+			});
+
+			eventEmitter.emit(
+				"goalRecallSubmission",
+				JSON.stringify({
+					email: existUser["managerData.email"],
+					name: existUser.name,
+					managerName: existUser["managerData.name"],
+					senderEmail: existUser["companymaster.senderEmail"],
+					companyLogo: existUser["companymaster.companyLogo"],
+				}),
 			);
 
 			return respHelper(res, {

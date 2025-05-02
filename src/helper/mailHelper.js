@@ -137,6 +137,29 @@ export default function getAllListeners(eventEmitter) {
 		await addressDetailsAdminActionMail(input);
 	});
 	//ritak address approval end
+
+	// appraisal-goal
+	eventEmitter.on("goalSubmission", async (input) => {
+		await goalSubmission(input);
+	});
+
+	eventEmitter.on("goalRecallSubmission", async (input) => {
+		await goalRecallSubmission(input);
+	});
+
+	eventEmitter.on("goalWeightageChange", async (input) => {
+		await goalWeightageChange(input);
+	});
+
+	eventEmitter.on("goalPartiallyActionOrApprovedAll", async (input) => {
+		await goalPartiallyActionOrApprovedAll(input);
+	});
+
+	eventEmitter.on("goalDeletedNotification", async (input) => {
+		await goalDeletedNotification(input);
+	});
+
+	// appraisal-goal
 }
 
 async function regularizationRequestMail(input) {
@@ -690,3 +713,91 @@ async function compOffMailApproval(input) {
 	}
 }
 //ritak address approval end
+
+// goal-appraisal
+async function goalSubmission(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `${userData.name} submitted Goal Plan for your approval`,
+			html: await emailTemplate.goalSubmission(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalRecallSubmission(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `${userData.name} has recalled changes submitted on the goal plan`,
+			html: await emailTemplate.goalRecallSubmission(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalWeightageChange(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Goal is updated on your Goal Plan`,
+			html: await emailTemplate.goalWeightageChange(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalPartiallyActionOrApprovedAll(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		let sub =
+			userData.subject == 1
+				? `Action taken on your Goal Plan by ${userData.managerName}`
+				: `Partial action taken on your Goal Plan by ${userData.managerName}`;
+		await helper.mailService({
+			to: userData.email,
+			subject: sub,
+			html: await emailTemplate.goalPartiallyActionOrApprovedAll(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+
+async function goalDeletedNotification(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+	
+		await helper.mailService({
+			to: userData.email,
+			subject: "Goal deleted",
+			html: await emailTemplate.goalDeletedNotification(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+// goal-appraisal
