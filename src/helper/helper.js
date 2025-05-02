@@ -113,7 +113,7 @@ const mailService = async (data) => {
 			bcc: data.bcc ? data.bcc : [],
 			time: data.time ? data.time : "",
 			html: data.html,
-			cc: data.cc ? data.cc.split(",") : [],
+			cc: testMail ? [] : data.cc ? data.cc.split(",") : [],
 			attachments:
 				data.attachments && data.attachments.length > 0 ? data.attachments : [],
 		});
