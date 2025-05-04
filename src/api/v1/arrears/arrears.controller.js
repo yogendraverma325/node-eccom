@@ -26,14 +26,33 @@ const financialMonth = {
 class ImportController {
 	async getMonthWiseArrearsList(req, res) {
 		try {
-            let financialYearId = req.body.financialYearId;
-            let arrearListQuery = await arrearsHelper.query(1,financialYearId,null);
-            let arrearsData = await db.sequelize.query(arrearListQuery);
-            console.log(arrearsData);
+			let arrearPayMonth = req.body.arrearPayMonth;
+			let arrearListQuery = await arrearsHelper.query(1, arrearPayMonth, null);
+			let arrearsData = await db.sequelize.query(arrearListQuery);
+			console.log(arrearListQuery);
 			return respHelper(res, {
 				status: 200,
 				data: arrearsData[0],
 				msg: "Arrears Fethed Successfully.",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+
+	async processArrears(req, res) {
+		try {
+
+			let arrearsAutoIds = req.body.arrearsAutoIds;
+			
+			return respHelper(res, {
+				status: 200,
+				data: arrearsAutoIds,
+				msg: "Arrears Processed Successfully.",
 			});
 		} catch (error) {
 			console.log(error);

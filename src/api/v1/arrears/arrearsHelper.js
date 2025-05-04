@@ -62,14 +62,13 @@ function formatDate(year, month, day) {
 async function query(caseId, data, data2) {
 	switch (caseId) {
 		case 1:
-			return `SELECT ea.arrearPayMonth AS "Arrear Month", cb.name AS "Created Through", e.name AS "Employee Name", e.empCode AS "EmployeeID", ea.arearType AS "Arrear Type", ea.arearDays AS "Arrear Days", ea.hasPF AS "Has PF Arrear?", ea.computeESIC AS "Compute ESIC Arrear?", ea.status AS "Status", ea.createdAt AS "Created On" FROM tara.earningarrears ea JOIN tara.employee e ON ea.EmployeeId = e.id JOIN tara.employee cb ON ea.createdThrough = cb.id WHERE financialYearId = ${data};`;
+			return `SELECT ea.earningArrearAutoId,e.empCode  AS "EmployeeID", e.name AS "Employee Name",ea.arearType AS "Arrear Type",ea.arrearPayMonth AS "Arrear Month",ea.arearDays AS "Arrear Days", ea.hasPF AS "Has PF Arrear?", ea.computeESIC AS "Compute ESIC Arrear?",ea.status AS "Status",cb.name AS "Created Through",     ea.createdAt AS "Created On",ea.processedOn as "Processed On" FROM tara.earningarrears ea JOIN tara.employee e ON ea.EmployeeId = e.id JOIN tara.employee cb ON ea.createdThrough = cb.id WHERE arrearPayMonth = '${data}';`;
 			//return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId DESC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} AND impInfo.companyId =${data.companyId} AND impInfo.buId =${data.buId} AND impInfo.sbuId =${data.sbuId} AND impInfo.isActive =${data.isActive} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId DESC;`;
 			break;
-
 	}
 }
 
 export default {
 	getFinancialYear,
-    query,
+	query,
 };
