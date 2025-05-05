@@ -230,14 +230,26 @@ class AttendanceController {
 							const finalShiftEndTime = shiftEndTime.format("HH:mm");
 							const finalShiftEndimeFormat = shiftEndTime.format("hh:mm A");
 							// campare shift time and current time include
-							const combinedDateTimeCurrentDay = moment(
+							let combinedDateTimeCurrentDay = moment(
 							`${currentDate.format("YYYY-MM-DD")} ${finalShiftEndTime}`,
 							"YYYY-MM-DD HH:mm:ss",
 							);
-							const combinedDateTimeNextDay = moment(
+							combinedDateTimeCurrentDay.subtract(
+							existEmployee.attendancePolicymaster.allowBufferTime == 1
+							? existEmployee.attendancePolicymaster.bufferTimePre
+							: 0,
+							"minutes",
+							); // Add buffer time  to the selected time if buffer allow
+							let combinedDateTimeNextDay = moment(
 							`${currentDate.format("YYYY-MM-DD")} ${finalShiftEndimeFormat}`,
 							"YYYY-MM-DD HH:mm:ss",
 							);
+							combinedDateTimeNextDay.add(
+							existEmployee.attendancePolicymaster.allowBufferTime == 1
+							? existEmployee.attendancePolicymaster.bufferTimePost
+							: 0,
+							"minutes",
+							); // Add buffer time  to the selected time if buffer allow
 
 
 									return respHelper(res, {
