@@ -229,15 +229,21 @@ class AttendanceController {
 
 							const finalShiftEndTime = shiftEndTime.format("HH:mm");
 							const finalShiftEndimeFormat = shiftEndTime.format("hh:mm A");
-							// campare shift time and current time inclu
-							return respHelper(res, {
-								status: 400,
-								msg: `Your shift time starts from ${currentDate.format(
-									"DD-MM-YYYY",
-								)} at ${finalShiftStartTimeFormat} and end on ${currentDate.format(
-									"DD-MM-YYYY",
-								)} at ${finalShiftEndimeFormat}`,
-							});
+							// campare shift time and current time include
+							const combinedDateTimeCurrentDay = moment(
+							`${currentDate.format("YYYY-MM-DD")} ${finalShiftEndTime}`,
+							"YYYY-MM-DD HH:mm:ss",
+							);
+							const combinedDateTimeNextDay = moment(
+							`${currentDate.format("YYYY-MM-DD")} ${finalShiftEndimeFormat}`,
+							"YYYY-MM-DD HH:mm:ss",
+							);
+
+
+									return respHelper(res, {
+									status: 400,
+									msg: `Your shift time starts from ${combinedDateTimeCurrentDay.format("DD MMMM YYYY [at] hh:mm A")} and end on ${combinedDateTimeNextDay.format("DD MMMM YYYY [at] hh:mm A")}`,
+									});
 						}
 					}
 
