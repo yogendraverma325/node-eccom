@@ -1058,8 +1058,8 @@ class AttendanceController {
 				"regularizeRequestMail",
 				JSON.stringify({
 					requesterName: attendanceData.dataValues.employee.name,
-					attendenceFromDate: result.fromDate,
-					attendenceToDate: result.toDate,
+					attendenceFromDate:attendanceData.dataValues.attendanceDate,
+					attendenceToDate:attendanceData.dataValues.attendanceDate,
 					userRemark: result.remark,
 					managerName: attendanceData.dataValues.employee.managerData.name,
 					managerEmail: attendanceData.dataValues.employee.managerData.email,
