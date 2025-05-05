@@ -27,11 +27,12 @@ class ImportController {
 	async getMonthWiseArrearsList(req, res) {
 		try {
 			let arrearPayMonth = req.body.arrearPayMonth;
-			let arrearListQuery = await arrearsHelper.query(1, arrearPayMonth, null);
+			let status = req.body.status;
+			let arrearListQuery = await arrearsHelper.query(1, arrearPayMonth, {status:status});
 			let arrearsData = await db.sequelize.query(arrearListQuery);
 			console.log(arrearListQuery);
 			return respHelper(res, {
-				status: 200,
+				status: 200,	
 				data: arrearsData[0],
 				msg: "Arrears Fethed Successfully.",
 			});
@@ -43,15 +44,14 @@ class ImportController {
 		}
 	}
 
-
 	async processArrears(req, res) {
 		try {
-
 			let arrearsAutoIds = req.body.arrearsAutoIds;
-			
+			let arrearsTypeId = req.body.arrearsTypeId;
+
 			return respHelper(res, {
 				status: 200,
-				data: arrearsAutoIds,
+				data: { arrearsAutoIds, arrearsTypeId },
 				msg: "Arrears Processed Successfully.",
 			});
 		} catch (error) {
