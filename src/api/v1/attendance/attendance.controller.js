@@ -3517,6 +3517,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
+					manageAttendance:1
 				},
 			});
 			let nightwala = 0;
@@ -3620,6 +3621,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
+					manageAttendance:1
 				},
 			});
 			let nightwala = 0;
