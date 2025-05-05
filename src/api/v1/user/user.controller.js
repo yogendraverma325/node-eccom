@@ -7289,7 +7289,7 @@ class UserController {
 
             const userId = req.userId;
 			const date = new Date();
-            date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS); /// Last Seven Days
+            date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
 			console.log("date",date);
             const notification = await db.pushNotificationHistory.findAll({
                 where: {
