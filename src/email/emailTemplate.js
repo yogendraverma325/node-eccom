@@ -4991,7 +4991,6 @@ const sendWorkAnniversaryMail = async (data) => {
         /* Image Styling */
         .image {
             height: 45px;  /* Adjust height as needed */
-            object-fit: fill;
         }
         
         /* Card Styling */
@@ -5038,6 +5037,7 @@ const sendWorkAnniversaryMail = async (data) => {
 
     <div class="card">
         <img class="image" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo">
+        <img height="45" src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png" alt="Logo" style="float:right"/>
         <hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 20px 0;">
         <div class="content">
             Dear ${data.firstName},<br><br>
@@ -5076,7 +5076,6 @@ const sendBirthWishMailToEmp = async (data) => {
         /* Image Styling */
         .image {
             height: 45px;  /* Adjust height as needed */
-            object-fit: fill;
         }
         
         /* Card Styling */
@@ -5123,6 +5122,7 @@ const sendBirthWishMailToEmp = async (data) => {
 
     <div class="card">
         <img class="image" src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Logo">
+        <img height="45" src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png" alt="Logo" style="float:right"/>
         <hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 20px 0;">
         <div class="content">
             Dear ${data.firstName},<br><br>
