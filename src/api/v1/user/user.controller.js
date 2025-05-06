@@ -7294,6 +7294,60 @@ class UserController {
 		}
 	}
 
+	async notification(req,res){
+        try{
+
+            const userId = req.userId;
+			const date = new Date();
+            date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
+			console.log("date",date);
+            const notification = await db.pushNotificationHistory.findAll({
+                where: {
+                    employeeId: userId,
+					status:'success',
+					createdAt: { [Op.gte]: date },
+                },
+                order: [["createdAt", "DESC"]],
+            });
+
+            return respHelper(res, {
+                status: 200,
+                msg: "Notification fetched successfully",
+                data: notification,
+            });
+        }catch(error){
+            console.log(error);
+            return respHelper(res, {
+                status: 500,
+                msg: "Internal server error",
+            });
+        }
+    }
+
+	async readNotification(req,res){
+		try{
+			const userId = req.userId;
+			const notification = await db.pushNotificationHistory.update({
+				isRead:1,
+			},{
+				where:{
+					id:req.body.ids.split(","),
+				}
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Notification Read successfully",
+			});
+		}catch(error){
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
 	// hr policy for User end
 }
 
