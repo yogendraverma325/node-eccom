@@ -5201,7 +5201,7 @@ const goalSubmission = async (data) => {
                 margin-right: 5px;
               "
               target="_blank"
-            >Click Here</a> to view and approve..
+            >Click Here</a> to view and approve.
           </p>
 
           <p style="font-size: 15px; color: #000000;"><br /></p>
@@ -5487,44 +5487,94 @@ const goalDeletedNotification = async (data) => {
 </html>`;
 };
 
+// const goalSubmissionByManager = async (data) => {
+// 	return `<!DOCTYPE html>
+// <html>
+//   <head>
+//     <meta charset="UTF-8" />
+//     <title>TARA HRMS Notification</title>
+//     <style>
+//       body {
+//         margin: 0;
+//         padding: 40px 0;
+//         background: #ffffff;
+//         color: #000000;
+//         font-family: Lato, Arial, sans-serif;
+//       }
+//       .container {
+//         width: 700px;
+//         margin: 0 auto;
+//         border-collapse: collapse;
+//       }
+//       .button {
+//         padding: 5px 10px;
+//         background: #0173c5;
+//         color: #ffffff;
+//         text-decoration: none;
+//         border-radius: 2px;
+//         font-size: 14px;
+//         display: inline-block;
+//       }
+//     </style>
+//   </head>
+//   <body>
+//     <table class="container">
+//       <tr>
+//         <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
+//           <img
+//             height="45"
+//             src="${process.env.PROXY_URL}/api${data.companyLogo}"
+//             alt="Company Logo"
+//           />
+//           <img
+//             height="45"
+//             src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+//             alt="TARA Logo"
+//             style="float: right;"
+//           />
+//         </td>
+//       </tr>
+
+//       <tr>
+//         <td style="padding: 2rem;">
+//           <p style="font-size: 16px; margin-bottom: 1rem;">
+//             Hi <strong>${data.name}</strong>,
+//           </p>
+
+//           <p style="font-size: 15px; line-height: 1.6;">
+//             <strong>${data.managerName}</strong> has reviewed and acted on your Goal Plan.
+//           </p>
+
+//           <p style="margin-top: 1rem;">
+//             <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a> to view.
+//           </p>
+
+//           <p style="font-size: 15px; margin-top: 2rem;">
+//             Regards,<br />TARA HRMS
+//           </p>
+//         </td>
+//       </tr>
+//     </table>
+//   </body>
+// </html>`;
+// };
+
 const goalSubmissionByManager = async (data) => {
-	return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
     <title>TARA HRMS Notification</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 40px 0;
-        background: #ffffff;
-        color: #000000;
-        font-family: Lato, Arial, sans-serif;
-      }
-      .container {
-        width: 700px;
-        margin: 0 auto;
-        border-collapse: collapse;
-      }
-      .button {
-        padding: 5px 10px;
-        background: #0173c5;
-        color: #ffffff;
-        text-decoration: none;
-        border-radius: 2px;
-        font-size: 14px;
-        display: inline-block;
-      }
-    </style>
   </head>
-  <body>
-    <table class="container">
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000; font-family: Lato, Arial, sans-serif;">
+    <table width="700" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 0 auto;">
       <tr>
         <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
           <img
             height="45"
             src="${process.env.PROXY_URL}/api${data.companyLogo}"
             alt="Company Logo"
+            style="display: inline-block;"
           />
           <img
             height="45"
@@ -5536,20 +5586,24 @@ const goalSubmissionByManager = async (data) => {
       </tr>
 
       <tr>
-        <td style="padding: 2rem;">
-          <p style="font-size: 16px; margin-bottom: 1rem;">
+        <td style="padding: 32px;">
+          <p style="font-size: 16px; margin-bottom: 16px;">
             Hi <strong>${data.name}</strong>,
           </p>
 
-          <p style="font-size: 15px; line-height: 1.6;">
+          <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
             <strong>${data.managerName}</strong> has reviewed and acted on your Goal Plan.
           </p>
 
-          <p style="margin-top: 1rem;">
-            <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a> to view.
+          <p style="margin: 0 0 24px 0;">
+            <a href="${process.env.CLIENT_URL}" 
+               style="padding: 5px 10px; background-color: #0173c5; color: #ffffff; text-decoration: none; border-radius: 2px; font-size: 14px; display: inline-block;" 
+               target="_blank" rel="noopener noreferrer">
+              Click Here
+            </a> to view.
           </p>
 
-          <p style="font-size: 15px; margin-top: 2rem;">
+          <p style="font-size: 15px; margin-top: 32px;">
             Regards,<br />TARA HRMS
           </p>
         </td>
