@@ -1014,6 +1014,13 @@ class UserController {
 				profileApprovalCount = profileApprovalCount + addressCount;
 			}
 
+			const pragatiGoalCount = await db.goalAreaPragatiTrail.count({
+				where: {
+					pendingAt: req.userId,
+					isApproved: [0],
+				}
+			});
+
 			const totalCount =
 				countLeavePending +
 				countLeaveAssgined +
@@ -1024,7 +1031,8 @@ class UserController {
 				pendingSeperationWorkFlowCount +
 				confirmationCount +
 				compOffbalabceForUser +
-				profileApprovalCount;
+				profileApprovalCount +
+				pragatiGoalCount;
 
 			return respHelper(res, {
 				status: 200,
@@ -1063,6 +1071,7 @@ class UserController {
 							assignedToMe: profileApprovalCount,
 						},
 						totalCount: totalCount,
+						pragatiGoalCount: pragatiGoalCount
 					},
 					mobile: {
 						raisedByMe: {
@@ -6445,6 +6454,7 @@ class UserController {
 				data: comp_off_credit_historyData,
 			});
 		} catch (error) {
+			console.log(error);
 			return respHelper(res, {
 				status: 500,
 				msg: "Internal server error",
