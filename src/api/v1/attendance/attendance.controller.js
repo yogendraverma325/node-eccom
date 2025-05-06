@@ -229,15 +229,33 @@ class AttendanceController {
 
 							const finalShiftEndTime = shiftEndTime.format("HH:mm");
 							const finalShiftEndimeFormat = shiftEndTime.format("hh:mm A");
-							// campare shift time and current time inclu
-							return respHelper(res, {
-								status: 400,
-								msg: `Your shift time starts from ${currentDate.format(
-									"DD-MM-YYYY",
-								)} at ${finalShiftStartTimeFormat} and end on ${currentDate.format(
-									"DD-MM-YYYY",
-								)} at ${finalShiftEndimeFormat}`,
-							});
+							// campare shift time and current time include
+							let combinedDateTimeCurrentDay = moment(
+							`${currentDate.format("YYYY-MM-DD")} ${finalShiftEndTime}`,
+							"YYYY-MM-DD HH:mm:ss",
+							);
+							combinedDateTimeCurrentDay.subtract(
+							existEmployee.attendancePolicymaster.allowBufferTime == 1
+							? existEmployee.attendancePolicymaster.bufferTimePre
+							: 0,
+							"minutes",
+							); // Add buffer time  to the selected time if buffer allow
+							let combinedDateTimeNextDay = moment(
+							`${currentDate.format("YYYY-MM-DD")} ${finalShiftEndimeFormat}`,
+							"YYYY-MM-DD HH:mm:ss",
+							);
+							combinedDateTimeNextDay.add(
+							existEmployee.attendancePolicymaster.allowBufferTime == 1
+							? existEmployee.attendancePolicymaster.bufferTimePost
+							: 0,
+							"minutes",
+							); // Add buffer time  to the selected time if buffer allow
+
+
+									return respHelper(res, {
+									status: 400,
+									msg: `Your shift time starts from ${combinedDateTimeCurrentDay.format("DD MMMM YYYY [at] hh:mm A")} and end on ${combinedDateTimeNextDay.format("DD MMMM YYYY [at] hh:mm A")}`,
+									});
 						}
 					}
 
@@ -1058,8 +1076,8 @@ class AttendanceController {
 				"regularizeRequestMail",
 				JSON.stringify({
 					requesterName: attendanceData.dataValues.employee.name,
-					attendenceFromDate: result.fromDate,
-					attendenceToDate: result.toDate,
+					attendenceFromDate:attendanceData.dataValues.attendanceDate,
+					attendenceToDate:attendanceData.dataValues.attendanceDate,
 					userRemark: result.remark,
 					managerName: attendanceData.dataValues.employee.managerData.name,
 					managerEmail: attendanceData.dataValues.employee.managerData.email,
@@ -3517,6 +3535,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
+					manageAttendance:1
 				},
 			});
 			let nightwala = 0;
@@ -3620,6 +3639,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
+					manageAttendance:1
 				},
 			});
 			let nightwala = 0;
