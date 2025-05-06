@@ -173,7 +173,6 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("goalPlanAssignToEmployee", async (input) => {
 		await goalPlanAssignToEmployee(input);
 	});
-	
 }
 
 async function regularizationRequestMail(input) {

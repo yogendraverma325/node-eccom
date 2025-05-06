@@ -5560,7 +5560,7 @@ const goalSubmissionByManager = async (data) => {
 };
 
 const goalPlanAssignToEmployee = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -5645,9 +5645,6 @@ const goalPlanAssignToEmployee = async (data) => {
   </body>
 </html>`;
 };
-
-
-
 
 // goal-appraisal
 export default {

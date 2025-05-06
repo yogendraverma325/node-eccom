@@ -358,22 +358,25 @@ class AppraisalGoalsController {
 				if (userAssignmentWhereUserExist.length > 0) {
 					for (const user of userAssignmentWhereUserExist) {
 						eventEmitter.emit(
-						  "goalPlanAssignToEmployee",
-						  JSON.stringify({
-							email: user.email,
-							name: user.name,
-							startDate: moment(getUserAssigmentIds.startDate).format("DD-MM-YYYY"),
-							endDate: moment(getUserAssigmentIds.endDate).format("DD-MM-YYYY"),
-							goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
-							goalPlanName: getUserAssigmentIds.goalPlanName, // add this if used in the template
-							senderEmail: user.companymaster?.senderEmail || "", // safe access
-							companyLogo: user.companymaster?.companyLogo || "",
-							companyName: user.companymaster?.companyName || ""
-						  })
+							"goalPlanAssignToEmployee",
+							JSON.stringify({
+								email: user.email,
+								name: user.name,
+								startDate: moment(getUserAssigmentIds.startDate).format(
+									"DD-MM-YYYY",
+								),
+								endDate: moment(getUserAssigmentIds.endDate).format(
+									"DD-MM-YYYY",
+								),
+								goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
+								goalPlanName: getUserAssigmentIds.goalPlanName, // add this if used in the template
+								senderEmail: user.companymaster?.senderEmail || "", // safe access
+								companyLogo: user.companymaster?.companyLogo || "",
+								companyName: user.companymaster?.companyName || "",
+							}),
 						);
 						console.log(`Goal plan email triggered for ${user.email}`);
-					  }
-					  
+					}
 				}
 
 				return respHelper(res, {
@@ -538,7 +541,7 @@ class AppraisalGoalsController {
 				getUserAssigmentIds,
 				req.userId,
 			);
-	
+
 			if (
 				getUserAssigmentIds.length > 0 &&
 				userAssignmentWhereUserExist.length > 0
@@ -556,7 +559,7 @@ class AppraisalGoalsController {
 						isDeleted: 0,
 						[Op.or]: likeConditions,
 					},
-					limit:1
+					limit: 1,
 				});
 
 				let goalArchive = await db.appraisalGoalsMaster.findAll({

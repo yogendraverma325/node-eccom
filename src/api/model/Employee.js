@@ -248,10 +248,10 @@ export default (sequelize, Sequelize) => {
 		enableWebAttendance: {
 			type: Sequelize.BOOLEAN,
 		},
-		manageAttendance:{
+		manageAttendance: {
 			type: Sequelize.INTEGER,
 			defaultValue: 1,
-		}
+		},
 		// insuranceCardImg:{
 		//   type: Sequelize.STRING,
 		// }
