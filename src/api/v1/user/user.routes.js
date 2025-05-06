@@ -411,6 +411,16 @@ export default Express.Router()
 		"/hrPolicy/acknowledge",
 		authentication.authenticate,
 		userController.acknowledgeHrPolicy,
+	)
+    .get(
+		"/notification",
+		authentication.authenticate,
+		userController.notification,
+	)
+	.post(
+		"/readNotification",
+		authentication.authenticate,
+		userController.readNotification,
 	);
 
 //hr policy for user end
