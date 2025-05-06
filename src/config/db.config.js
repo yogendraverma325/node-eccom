@@ -2256,6 +2256,11 @@ db.appraisalGoalsMaster.hasOne(db.userassignment, {
 	sourceKey: "userAssignment",
 });
 
+db.appraisalGoalsMaster.hasMany(db.user_assignment, {
+	foreignKey: "id",
+	sourceKey: "userAssignment",
+});
+
 db.goalAttributesMapping.hasOne(db.goalAttributesConfigMaster, {
 	foreignKey: "goalAttributeId",
 	sourceKey: "goalAttributeId",

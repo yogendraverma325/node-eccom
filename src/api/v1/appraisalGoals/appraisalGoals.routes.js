@@ -19,7 +19,7 @@ export default Express.Router()
 	.post("/activeGoalPlan", appraisalGoalsController.activeGoalPlan)
 	.post("/archiveGoalPlan", appraisalGoalsController.archiveGoalPlan)
 	.post("/deleteGoalPlan", appraisalGoalsController.deleteGoalPlan)
-	.get("/goalActiveAndArchive", appraisalGoalsController.goalActiveAndArchive)
+	.get("/goalActiveAndArchive",authentication.authenticate, appraisalGoalsController.goalActiveAndArchive)
 	.get("/getGoalPlanDetails", appraisalGoalsController.getGoalPlanDetails)
 	.post(
 		"/addGoalKeyAreaByUser",

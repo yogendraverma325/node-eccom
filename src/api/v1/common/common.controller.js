@@ -3480,4 +3480,210 @@ export async function getEmployeesByUserAssignmentId(id) {
 	}
 }
 
+export async function getEmployeesAssignment(process_id) {
+	try {
+		const assignments = await db.user_assignment.findAll({
+			attribute: ["id"],
+			where: { process_id },
+			include: [
+				{
+					model: db.user_assignment_condition,
+					as: "conditions",
+					include: [
+						{
+							model: db.user_assignment_attribute_master,
+							as: "attribute",
+							attributes: ["code", "name", "column_mapping"],
+						},
+					],
+				},
+			],
+		});
+
+		if (!assignments || assignments.length === 0) {
+			return null; // or throw an error if preferred
+		}
+		// Return just assignment ids
+		return assignments.map((a) => a.id);
+	} catch (error) {
+		console.error("Error in getEmployeesAssignment:", error);
+		throw error;
+	}
+}
+
+export async function getEmployeesPragatGoalList(getUserAssigmentIds, userId) {
+	try {
+		const assignments = await db.user_assignment.findAll({
+			where: { id: { [Op.in]: getUserAssigmentIds } },
+			include: [
+				{
+					model: db.user_assignment_condition,
+					as: "conditions",
+					include: [
+						{
+							model: db.user_assignment_attribute_master,
+							as: "attribute",
+							attributes: ["code", "name", "column_mapping"],
+						},
+					],
+				},
+			],
+		});
+
+		if (!assignments || assignments.length === 0) {
+			return null;
+		}
+
+		const whereEmployee = {
+			[Op.and]: [{ id: userId }],
+		};
+		const whereJobDetails = {};
+		const validJobColumns = ["jobLevelId", "bandId", "gradeId"];
+
+		for (const assignment of assignments) {
+			for (const condition of assignment.conditions || []) {
+				const columnName = condition?.attribute?.column_mapping;
+				if (!columnName) continue;
+
+				const valueList = (condition.attribute_values || "")
+					.split(",")
+					.map((v) => v.trim())
+					.filter((v) => v !== "");
+
+				if (!valueList.length) continue;
+
+				const isNumeric = !isNaN(Number(valueList[0]));
+				const parsedValues = isNumeric ? valueList.map(Number) : valueList;
+
+				const conditionObject =
+					condition.condition_type === "INCLUDE"
+						? { [Op.in]: parsedValues }
+						: { [Op.notIn]: parsedValues };
+				console.log("conditionObject", conditionObject);
+				//if (columnName === "id") continue; // skip if trying to apply conditions on id
+
+				if (validJobColumns.includes(columnName)) {
+					whereJobDetails[columnName] = conditionObject;
+				} else {
+					whereEmployee[Op.and].push({ [columnName]: conditionObject });
+				}
+			}
+		}
+		console.log(">>>>>>>>>>>>", whereEmployee);
+		const { rows: employees } = await db.employeeMaster.findAndCountAll({
+			where: {
+				...whereEmployee,
+				isActive: 1,
+			},
+			include: [
+				{
+					model: db.jobDetails,
+					where: whereJobDetails,
+					required: Object.keys(whereJobDetails).length > 0,
+					attributes: [],
+				},
+			],
+			attributes: ["id", "empCode", "name"],
+		});
+
+		return employees;
+	} catch (error) {
+		console.error("Error in getEmployeesPragatGoalList:", error);
+		throw error;
+	}
+}
+
+export async function getEmployeesToAssignGoalPlan(getUserAssigmentIds) {
+	try {
+		const idsArray =
+			typeof getUserAssigmentIds === "string"
+				? getUserAssigmentIds.split(",").map((id) => Number(id.trim()))
+				: Array.isArray(getUserAssigmentIds)
+					? getUserAssigmentIds
+					: [getUserAssigmentIds];
+
+		const assignments = await db.user_assignment.findAll({
+			where: {
+				id: {
+					[Op.in]: idsArray,
+				},
+			},
+			include: [
+				{
+					model: db.user_assignment_condition,
+					as: "conditions",
+					include: [
+						{
+							model: db.user_assignment_attribute_master,
+							as: "attribute",
+							attributes: ["code", "name", "column_mapping"],
+						},
+					],
+				},
+			],
+		});
+
+		if (!assignments || assignments.length === 0) {
+			return null;
+		}
+
+		const whereEmployee = { [Op.and]: [] };
+		const whereJobDetails = {};
+		const validJobColumns = ["jobLevelId", "bandId", "gradeId"];
+
+		for (const assignment of assignments) {
+			for (const condition of assignment.conditions || []) {
+				const columnName = condition?.attribute?.column_mapping;
+				if (!columnName) continue;
+
+				const valueList = (condition.attribute_values || "")
+					.split(",")
+					.map((v) => v.trim())
+					.filter((v) => v !== "");
+
+				if (!valueList.length) continue;
+
+				const isNumeric = !isNaN(Number(valueList[0]));
+				const parsedValues = isNumeric ? valueList.map(Number) : valueList;
+
+				const conditionObject =
+					condition.condition_type === "INCLUDE"
+						? { [Op.in]: parsedValues }
+						: { [Op.notIn]: parsedValues };
+
+				if (validJobColumns.includes(columnName)) {
+					whereJobDetails[columnName] = conditionObject;
+				} else {
+					whereEmployee[Op.and].push({ [columnName]: conditionObject });
+				}
+			}
+		}
+
+		const { rows: employees } = await db.employeeMaster.findAndCountAll({
+			where: {
+				...whereEmployee,
+				isActive: 1,
+			},
+			include: [
+				{
+					model: db.jobDetails,
+					where: whereJobDetails,
+					required: Object.keys(whereJobDetails).length > 0,
+					attributes: [],
+				},
+				{
+					model: db.companyMaster,
+					attributes: ["companyName", "senderEmail", "companyLogo"],
+				},
+			],
+			attributes: ["id", "empCode", "name", "email"],
+		});
+
+		return employees;
+	} catch (error) {
+		console.error("Error in getEmployeesPragatGoalList:", error);
+		throw error;
+	}
+}
+
 export default new commonController();

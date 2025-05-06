@@ -5172,9 +5172,7 @@ const goalSubmission = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5249,9 +5247,7 @@ const goalRecallSubmission = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5324,9 +5320,7 @@ const goalWeightageChange = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5339,7 +5333,7 @@ const goalWeightageChange = async (data) => {
             Hi <strong>${data.managerName}</strong>,
           </p>
           <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
-            <strong>${data.name}</strong> has made changes to your Goal Plan. <strong>Weightage</strong>
+            <strong>${data.name}</strong> has made changes in Goal Plan.
           </p>
           <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
             <a
@@ -5359,7 +5353,7 @@ const goalWeightageChange = async (data) => {
 
           <p style="font-size: 15px; color: #000000;"><br /></p>
           <p style="font-size: 15px; color: #000000;">Regards,</p>
-          <p style="font-size: 15px; color: #000000;">HR Team,<br />${data.recipientCompanyName}</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS</p>
         </td>
       </tr>
     </table>
@@ -5388,9 +5382,7 @@ const goalPartiallyActionOrApprovedAll = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5404,18 +5396,9 @@ const goalPartiallyActionOrApprovedAll = async (data) => {
           </p>
 
           <p style="font-size: 15px; line-height: 1.6; color: #000000;">
-            ${
-							data.subject === 1
-								? `<strong>${data.managerName}</strong> has approved your Goal Plan.`
-								: `<strong>${data.managerName}</strong> has partially taken action on your Goal Plan.`
-						}
-          </p>
+  <strong>${data.managerName}</strong> has partially taken action on your Goal Plan.
+</p>
 
-          ${
-						data.statusName === "Rejected"
-							? `<p style="font-size: 15px; color: #000000;">Please review and make the necessary changes.</p>`
-							: ""
-					}
 
           <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
             <a href="${process.env.CLIENT_URL}" style="padding: 5px 10px; background: #0173c5; color: #fff; text-decoration: none; border-radius: 2px; font-size: 14px; display: inline-block;" target="_blank">
@@ -5424,8 +5407,8 @@ const goalPartiallyActionOrApprovedAll = async (data) => {
           </p>
 
           <p style="font-size: 15px; color: #000000; margin-top: 2rem;">
-            Regards,<br />HR Team,<br />Team Computers Pvt Ltd
-          </p>
+  Regards,<br />TARA HRMS
+</p>
         </td>
       </tr>
     </table>
@@ -5463,9 +5446,7 @@ const goalDeletedNotification = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5498,13 +5479,175 @@ const goalDeletedNotification = async (data) => {
 
           <p style="font-size: 15px; color: #000000;"><br /></p>
           <p style="font-size: 15px; color: #000000;">Regards,</p>
-          <p style="font-size: 15px; color: #000000;">HR Team,<br />${data.companyName}</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS</p>
         </td>
       </tr>
     </table>
   </body>
 </html>`;
 };
+
+const goalSubmissionByManager = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TARA HRMS Notification</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px 0;
+        background: #ffffff;
+        color: #000000;
+        font-family: Lato, Arial, sans-serif;
+      }
+      .container {
+        width: 700px;
+        margin: 0 auto;
+        border-collapse: collapse;
+      }
+      .button {
+        padding: 5px 10px;
+        background: #0173c5;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 2px;
+        font-size: 14px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="container">
+      <tr>
+        <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Company Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="TARA Logo"
+            style="float: right;"
+          />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 2rem;">
+          <p style="font-size: 16px; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+
+          <p style="font-size: 15px; line-height: 1.6;">
+            <strong>${data.managerName}</strong> has reviewed and acted on your Goal Plan.
+          </p>
+
+          <p style="margin-top: 1rem;">
+            <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a> to view.
+          </p>
+
+          <p style="font-size: 15px; margin-top: 2rem;">
+            Regards,<br />TARA HRMS
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const goalPlanAssignToEmployee = async (data) => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TARA HRMS Notification</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px 0;
+        background: #ffffff;
+        color: #000000;
+        font-family: Lato, Arial, sans-serif;
+      }
+      .container {
+        width: 700px;
+        margin: 0 auto;
+        border-collapse: collapse;
+      }
+      .button {
+        padding: 5px 10px;
+        background: #0173c5;
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 2px;
+        font-size: 14px;
+        display: inline-block;
+      }
+      .details {
+        margin-top: 2rem;
+        font-size: 14px;
+      }
+      .details span {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="container">
+      <tr>
+        <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Company Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="TARA Logo"
+            style="float: right;"
+          />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 2rem;">
+          <p style="font-size: 16px; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+
+          <p style="font-size: 15px; line-height: 1.6;">
+            The Goal Plan cycle - <strong>${data.goalPlanName}</strong> has been assigned to you.
+          </p>
+
+          <p style="font-size: 15px;">
+            Start creating your Goals Alias –
+            <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a>
+          </p>
+
+          <div class="details">
+            <p><span>Goal Plan Details:</span></p>
+            <p><span>Start Date:</span> ${data.startDate}</p>
+            <p><span>End Date:</span> ${data.endDate}</p>
+            <p><span>Goal Plan Description:</span> ${data.goalPlanDescription}</p>
+          </div>
+
+          <p style="font-size: 15px; margin-top: 2rem;">
+            Thanks,<br />HR Team
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+
+
 
 // goal-appraisal
 export default {
@@ -5552,4 +5695,6 @@ export default {
 	//ritak address approval end
 	sendWorkAnniversaryMail,
 	sendBirthWishMailToEmp,
+	goalSubmissionByManager,
+	goalPlanAssignToEmployee,
 };
