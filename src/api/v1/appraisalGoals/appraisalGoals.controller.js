@@ -537,16 +537,16 @@ class AppraisalGoalsController {
 	async goalActiveAndArchive(req, res) {
 		try {
 			const getUserAssigmentIds = await getEmployeesAssignment(4);
-			if(!getUserAssigmentIds){
-                return respHelper(res, {
-                    status: 200,
-                    data: {
-                        goalActive: [],
-                        goalArchive: [],
-                    },
-                    msg: message.APPRAISAL.GOAL_ACTIVE,
-                });
-            }
+			if (!getUserAssigmentIds) {
+				return respHelper(res, {
+					status: 200,
+					data: {
+						goalActive: [],
+						goalArchive: [],
+					},
+					msg: message.APPRAISAL.GOAL_ACTIVE,
+				});
+			}
 			const userAssignmentWhereUserExist = await getEmployeesPragatGoalList(
 				getUserAssigmentIds,
 				req.userId,

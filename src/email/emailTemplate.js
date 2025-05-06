@@ -5560,7 +5560,7 @@ const goalDeletedNotification = async (data) => {
 // };
 
 const goalSubmissionByManager = async (data) => {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />

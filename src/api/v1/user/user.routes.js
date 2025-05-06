@@ -412,7 +412,7 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.acknowledgeHrPolicy,
 	)
-    .get(
+	.get(
 		"/notification",
 		authentication.authenticate,
 		userController.notification,
