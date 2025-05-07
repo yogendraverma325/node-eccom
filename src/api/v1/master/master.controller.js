@@ -189,6 +189,9 @@ class MasterController {
 					"requiredAttendanceApproval",
 					"sbuId",
 					"isActive",
+					"enableBiometricAttendance",
+					"enableMobileAttendance",
+					"enableWebAttendance"
 				],
 				include: [
 					{

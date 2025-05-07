@@ -7357,7 +7357,7 @@ class UserController {
 	async updateAttendanceSetting(req, res) {
 		try {
             let { enableBiometricAttendance, enableMobileAttendance, enableWebAttendance, employeeId } = req.body;
-			if(!employeeId || !enableBiometricAttendance || !enableMobileAttendance || !enableWebAttendance) {
+			if(!employeeId || enableBiometricAttendance == null || enableMobileAttendance == null || enableWebAttendance == null) {
                 return respHelper(res, {
 					status: 400,
 					msg: "Bad request"
