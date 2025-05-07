@@ -2330,6 +2330,14 @@ class AppraisalGoalsController {
 			});
 		}
 	}
+
+	async reviewFramework(req,res){
+		try {
+			
+		} catch (error) {
+			
+		}
+	}
 }
 
 export default new AppraisalGoalsController();
