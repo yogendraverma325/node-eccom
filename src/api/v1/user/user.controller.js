@@ -7349,6 +7349,43 @@ class UserController {
 	}
 
 	// hr policy for User end
+
+	/**
+	 * Update attendance setting
+	 */
+
+	async updateAttendanceSetting(req, res) {
+		try {
+            let { enableBiometricAttendance, enableMobileAttendance, enableWebAttendance, employeeId } = req.body;
+			if(!employeeId || !enableBiometricAttendance || !enableMobileAttendance || !enableWebAttendance) {
+                return respHelper(res, {
+					status: 400,
+					msg: "Bad request"
+				})
+			}
+			let metaData = {
+				enableBiometricAttendance: enableBiometricAttendance,
+				enableMobileAttendance: enableMobileAttendance,
+				enableWebAttendance: enableWebAttendance,
+				updatedBy: req.userId,
+				updatedAt: moment()
+			}
+
+			let query = { 'id': employeeId };
+			let response = await db.employeeMaster.update(metaData, { where: query });
+			return respHelper(res, { 
+				status: 202,
+				msg: constant.UPDATE_SUCCESS.replace('<module>', 'Data')
+			});
+		}
+		catch(error) {
+			console.log("Error throw while update attendance setting", error);
+			return respHelper(res, {
+				status: 500,
+				msg: ""
+			});
+		}
+	}
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

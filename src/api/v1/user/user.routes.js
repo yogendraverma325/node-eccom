@@ -421,6 +421,11 @@ export default Express.Router()
 		"/readNotification",
 		authentication.authenticate,
 		userController.readNotification,
-	);
+	)
+
+	.patch("/updateAttendanceSetting",
+		authentication.authenticate,
+		userController.updateAttendanceSetting
+	)
 
 //hr policy for user end
