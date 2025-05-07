@@ -2318,8 +2318,7 @@ class ThirdPartyController {
 					Date_Of_Exit: employee.dateOfexit
 						? moment(employee.dateOfexit).format("YYYY-MM-DD")
 						: "",
-					Group_Company:
-						employee?.companymaster?.dataValues?.companyName || "",
+					Group_Company: employee?.companymaster?.dataValues?.companyName || "",
 				};
 			});
 
