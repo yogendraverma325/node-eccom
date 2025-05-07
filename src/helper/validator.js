@@ -1936,11 +1936,14 @@ const createAppraisalGoals = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.number()
-		.integer()
-		.valid(0, 1)
+	userAssignment: Joi.array()
+		.items(Joi.number())
+		.min(1)
 		.required()
-		.label("User Assignment"),
+		.label("User Assignment")
+		.custom((value, helpers) => {
+			return value.join(","); // Convert array [1, 2] → "1,2"
+		}),
 	exclusionSetting: Joi.number().integer().required(),
 	enableSubGoals: Joi.number()
 		.integer()
@@ -2061,11 +2064,14 @@ const editAppraisalGoals = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.number()
-		.integer()
-		.valid(0, 1)
+	userAssignment: Joi.array()
+		.items(Joi.number())
+		.min(1)
 		.required()
-		.label("User Assignment"),
+		.label("User Assignment")
+		.custom((value, helpers) => {
+			return value.join(","); // Convert array [1, 2] → "1,2"
+		}),
 	exclusionSetting: Joi.number().integer().required(),
 	enableSubGoals: Joi.number()
 		.integer()

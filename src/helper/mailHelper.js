@@ -167,6 +167,12 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("sendBirthWishMail", async (input) => {
 		await sendBirthWishMailToEmp(input);
 	});
+	eventEmitter.on("goalSubmissionByManager", async (input) => {
+		await goalSubmissionByManager(input);
+	});
+	eventEmitter.on("goalPlanAssignToEmployee", async (input) => {
+		await goalPlanAssignToEmployee(input);
+	});
 }
 
 async function regularizationRequestMail(input) {
@@ -774,13 +780,9 @@ async function goalPartiallyActionOrApprovedAll(input) {
 	try {
 		const userData = JSON.parse(input);
 		console.log("userData>>>>>>", userData);
-		let sub =
-			userData.subject == 1
-				? `Action taken on your Goal Plan by ${userData.managerName}`
-				: `Partial action taken on your Goal Plan by ${userData.managerName}`;
 		await helper.mailService({
 			to: userData.email,
-			subject: sub,
+			subject: `Partial action taken on your Goal Plan by ${userData.managerName}`,
 			html: await emailTemplate.goalPartiallyActionOrApprovedAll(userData),
 			senderEmail: userData.senderEmail,
 		});
@@ -799,6 +801,22 @@ async function goalDeletedNotification(input) {
 			to: userData.email,
 			subject: "Goal deleted",
 			html: await emailTemplate.goalDeletedNotification(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalSubmissionByManager(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `${userData.managerName} has acted on your Goal Plan`,
+			html: await emailTemplate.goalSubmissionByManager(userData),
 			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {
@@ -835,6 +853,25 @@ async function sendBirthWishMailToEmp(input) {
 			to: userData.userEmail,
 			subject: `Wishing you a Happy Birthday!`,
 			html: await emailTemplate.sendBirthWishMailToEmp(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "Error while sending birthday wish mail");
+	}
+}
+
+async function goalPlanAssignToEmployee(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData", userData);
+		let response = await helper.mailService({
+			to: userData.email,
+			subject: `Goal Plan`,
+			html: await emailTemplate.goalPlanAssignToEmployee(userData),
 			cc: userData.cc,
 			senderEmail: userData.senderEmail,
 		});

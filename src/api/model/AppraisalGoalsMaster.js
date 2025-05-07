@@ -24,7 +24,7 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 		userAssignment: {
-			type: Sequelize.INTEGER,
+			type: Sequelize.STRING,
 		},
 		exclusionSetting: {
 			type: Sequelize.INTEGER,

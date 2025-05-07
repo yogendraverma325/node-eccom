@@ -251,7 +251,6 @@ class AttendanceController {
 								"minutes",
 							); // Add buffer time  to the selected time if buffer allow
 
-
 							return respHelper(res, {
 								status: 400,
 								msg: `Your shift time starts from ${combinedDateTimeCurrentDay.format("DD MMMM YYYY [at] hh:mm A")} and end on ${combinedDateTimeNextDay.format("DD MMMM YYYY [at] hh:mm A")}`,
@@ -3534,7 +3533,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
-					manageAttendance: 1
+					manageAttendance: 1,
 				},
 			});
 			let nightwala = 0;
@@ -3638,7 +3637,7 @@ class AttendanceController {
 				],
 				where: {
 					isActive: 1,
-					manageAttendance: 1
+					manageAttendance: 1,
 				},
 			});
 			let nightwala = 0;
