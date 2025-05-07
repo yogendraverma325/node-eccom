@@ -6186,6 +6186,10 @@ async function processSalary(data) {
 			}
 			let allDeductionQuery = `SELECT SUM(paymentAmount) AS totalExtraPayment, GROUP_CONCAT(category,'(',paymentAmount,')'  ORDER BY category SEPARATOR ' | ') AS paymentCategories FROM ${dbName}.extrapayment WHERE paymentMonth = '${result[0][0].payMonth}' AND EmployeeId = ${employee};`;
 			let extraPaymentAmount = await db.sequelize.query(allDeductionQuery);
+			let arrearQuery = `SELECT arearDays,hasPF,computeESIC  FROM  ${dbName}.earningarrears where EmployeeId= ${employee} and status=3 and arrearPayMonth='${result[0][0].payMonth}';`
+			let arrearsDetails = await db.sequelize.query(arrearQuery);
+			let {arearDays,hasPF,computeESIC} = arrearsDetails[0][0]?arrearsDetails[0][0]:{arearDays:0,hasPF:'No',computeESIC:'No'};
+
 			const ptAmount1 =
 				ptDeducationDetails && ptDeducationDetails.ptApplicability == 1
 					? ptDeducationDetails?.ptlocationmaster?.ptmapping?.ptAmount
@@ -6284,6 +6288,7 @@ async function processSalary(data) {
 					extraDeductonsDetails[0][0].deductionCategories
 						? extraDeductonsDetails[0][0].deductionCategories
 						: "";
+				//let arrearsAmount = 		
 				empCopntWiseDetl["createdAt"] = new Date();
 				empCopntWiseDetl["createdBy"] = req.userData.id;
 				empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
@@ -6320,6 +6325,18 @@ async function processSalary(data) {
 				empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
 				empCopntWiseDetl["salaryComponentSequenceNo"] =
 					empCopntWiseDetl["salaryComponentSequenceNo"];
+				empCopntWiseDetl['arrearsAmount']=(await paymentHelper.getElementValue(
+					"Affects Arrears",
+					componentConfiguration[0],
+				)) == 1
+					? paymentHelper.customRound(
+							await paymentHelper.affectArrears(
+								empCopntWiseDetl["elementMonthlyAmount"],
+								arearDays,
+								actualWorkingDaysBeforeLop,
+							),
+						)
+					: 0.0;
 				//////////////////////////////PF-Applicablity Keys//////////////////////////////////
 				let existDetails = await db.payMonthlyElements.findOne({
 					where: {
@@ -6423,7 +6440,7 @@ async function generatePaySlip(data) {
 				queryForPayMonthlyElementsForSalarySlip,
 			);
 
-			console.log(payElements);
+			//console.log(payElements);
 			for (const payMonthlyElement of payElements[0]) {
 				let isExistPaySlip = await db.paySlips.findOne({
 					where: {
@@ -6642,6 +6659,24 @@ async function generatePaySlip(data) {
 						payMonthlyElement.salaryComponentEarningType,
 					)
 				) {
+
+
+					if (payMonthlyElement.arrearsAmount > 0) {
+						let arrearElement={
+							EmployeeId: payMonthlyElement.empId,
+							paySlipAutoId: paySlipAutoId,
+							salaryComponentAutoId: 0,
+							paySlipComponentName: payMonthlyElement.paySlipComponentName +" Arrears",
+							paySlipComponentAmount: paymentHelper.customRound(
+								payMonthlyElement.arrearsAmount,
+							),
+							paySlipComponentType: "Earning",
+							createdBy: req.userData.id,
+							createdAt: new Date(),
+							salaryComponentSequenceNo: payMonthlyElement.salaryComponentSequenceNo,
+						};
+						await db.paySlipComponent.create(arrearElement);
+					}
 					await db.paySlipComponent.create({
 						EmployeeId: payMonthlyElement.empId,
 						paySlipAutoId: paySlipAutoId,
@@ -6659,6 +6694,8 @@ async function generatePaySlip(data) {
 						salaryComponentSequenceNo:
 							payMonthlyElement.salaryComponentSequenceNo,
 					});
+
+
 				}
 				await db.payProcessDetails.update(
 					{ payStatus: 7 },

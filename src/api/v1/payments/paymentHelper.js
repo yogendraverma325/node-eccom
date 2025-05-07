@@ -358,7 +358,7 @@ async function query(caseId, data, data2) {
 			break;
 
 		case 16:
-			return `SELECT salaryComponentSequenceNo,actualWorkingDays,totalWorkingDays,payElementAmount,pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM ${dbName}.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
+			return `SELECT arrearsAmount,salaryComponentSequenceNo,actualWorkingDays,totalWorkingDays,payElementAmount,pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM ${dbName}.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
 			break;
 
 		case 17:
@@ -543,11 +543,51 @@ async function getCalculatedPF(monthlyElementPay) {
 		calculatedPF = getPercentagePart(applicablePFAmountRestrictionYes, 12);
 		actualApplicableAmount = applicablePFAmountRestrictionYes;
 	}
-	// console.log("Applicable PF Amount Actual:: " + actualApplicableAmount);
-	// console.log("Applicable PF Amount YES :: " + applicablePFAmountRestrictionYes);
-	// console.log("Applicable PF Amount No:: " + applicablePFAmountRestrictionNo);
 	return calculatedPF; // Return elementValue or null if not found
 }
+
+
+async function calculatePfArrears(monthlyElementPay) {
+	let calculatedPF = 0,
+		applicablePFAmountRestrictionYes = 0,
+		applicablePFAmountRestrictionNo = 0,
+		actualApplicableAmount = 0;
+	if (monthlyElementPay[0].isPfApplicable == 0) return calculatedPF;
+
+	applicablePFAmountRestrictionYes = await monthlyElementPay
+		.filter((element) => element.isPfApplicableComponent == 1)
+		.reduce(async (sumPromise, element) => {
+			const sum = await sumPromise; // Resolve the previous sum
+			return sum + parseFloat(element["elementMonthlyAmount"]);
+		}, Promise.resolve(0));
+
+	applicablePFAmountRestrictionNo =
+		monthlyElementPay.find(
+			(item) => item["pfApplicable15000AndNoRestriction"] === 1,
+		)?.["elementMonthlyAmount"] || null; // Start with a resolved promise of 0
+
+	if (monthlyElementPay[0].isPfRestriction == 1) {
+		calculatedPF =
+			applicablePFAmountRestrictionYes < 15000
+				? getPercentagePart(applicablePFAmountRestrictionYes, 12)
+				: 1800;
+		actualApplicableAmount = applicablePFAmountRestrictionYes;
+	} else if (
+		monthlyElementPay[0].isPfRestriction == 0 &&
+		applicablePFAmountRestrictionNo >= 15000
+	) {
+		calculatedPF = getPercentagePart(applicablePFAmountRestrictionNo, 12);
+		actualApplicableAmount = applicablePFAmountRestrictionNo;
+	} else if (
+		monthlyElementPay[0].isPfRestriction == 0 &&
+		applicablePFAmountRestrictionNo < 15000
+	) {
+		calculatedPF = getPercentagePart(applicablePFAmountRestrictionYes, 12);
+		actualApplicableAmount = applicablePFAmountRestrictionYes;
+	}
+	return calculatedPF; // Return elementValue or null if not found
+}
+
 
 async function getCalculatedESIC(monthlyElementPay) {
 	let calculatedEmployeeESIC = 0,
@@ -714,6 +754,13 @@ async function getFinancialYear(selectedYear) {
 	return financialYearDetails;
 }
 
+async function affectArrears(componentAmount, lopDays, totalWorkingdays) {
+	let amountAfterLop = 0;
+	amountAfterLop = (componentAmount / totalWorkingdays) * lopDays;
+	return amountAfterLop;
+}
+
+
 export default {
 	payAfterLOPDeductions,
 	payAfterTDSDeductions,
@@ -738,4 +785,5 @@ export default {
 	getActualMonthlyAmount,
 	getFinancialYear,
 	customHigherRound,
+	affectArrears,
 };
