@@ -77,6 +77,18 @@ export default (sequelize, Sequelize) => {
 		financialYearId:{
 			type: Sequelize.INTEGER,
 			//default: null,		
+		},
+		processingRemark:{
+			type: Sequelize.STRING,
+			default: null,
+		},
+		status:{
+			type:Sequelize.STRING,
+			default:null
+		},
+		processedOn:{
+			type: Sequelize.DATE,
+			default: null,
 		}
 	});
 	return earningArrears;

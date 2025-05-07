@@ -9,4 +9,12 @@ export default Express.Router().post(
 	"/processArrears",
 	authentication.authenticate,
 	arrearsController.processArrears,
+).post(
+	"/deleteArrears",
+	authentication.authenticate,
+	arrearsController.deleteArrears,
 );
+
+
+
+
