@@ -4216,8 +4216,8 @@ class AttendanceController {
 							}
 						} else {
 							if (
-								!singleEmp.attendancemaster.attendancePunchInTime &&
-								singleEmp.attendancemaster.attendancePunchOutTime
+								singleEmp.attendancemaster.attendancePunchInTime &&
+								!singleEmp.attendancemaster.attendancePunchOutTime
 							) {
 								presentStatus = "singlePunchAbsent";
 							} else {
@@ -6549,13 +6549,6 @@ const attedanceRosterCron = async (user, date) => {
 			"minutes",
 		);
 
-		// let shiftEndTimeGraceTimeClockOut = moment(
-		// 	`${shiftDate} ${attendanceData.dataValues.employee.attendanceroster.shiftsmaster.dataValues.shiftEndTime}`,
-		// );
-
-		console.log("shiftStartTimePreBuffer", shiftStartTimePreBuffer);
-		console.log("shiftEndTimePostBuffer", shiftEndTimePostBuffer);
-
 		const punchInAttendanceHistory = await db.attendanceHistory.findOne({
 			where: {
 				employeeId: user,
@@ -6663,9 +6656,7 @@ const attedanceRosterCron = async (user, date) => {
 			limit: 1,
 		});
 
-		console.log("compare punch in and punch out objects -->>", punchOutAttendanceHistory !== punchInAttendanceHistory);
-
-		if (punchOutAttendanceHistory && punchInAttendanceHistory) {
+		if (punchOutAttendanceHistory && punchInAttendanceHistory && (punchOutAttendanceHistory.dataValues.attendanceHistoryId != punchInAttendanceHistory.dataValues.attendanceHistoryId)) {
 			const punchOutObject = {
 				attendancePunchOutTime: punchOutAttendanceHistory.dataValues.time,
 				attendanceShiftEndDate: punchOutAttendanceHistory.dataValues.date,
