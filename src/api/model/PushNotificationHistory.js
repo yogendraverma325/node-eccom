@@ -25,7 +25,7 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.STRING,
 			allowNull: true, // Stores the response or error message
 		},
-		isRead:{
+		isRead: {
 			type: Sequelize.BOOLEAN,
 		},
 		createdAt: {
