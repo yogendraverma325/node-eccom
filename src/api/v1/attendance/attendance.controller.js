@@ -5559,7 +5559,7 @@ class AttendanceController {
 
 	async cronforEMP(req, res) {
 		console.log("req.body", req.body);
-		let attendanceIds = req.body.attendanceIds;
+		let attendanceIds = (req.body.attendanceIds).split(",");
 		for (const attendanceIdSingle of attendanceIds) {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
@@ -5615,13 +5615,18 @@ class AttendanceController {
 					attendanceLateBy,
 				);
 
+				let workingTime = null
+				if ((attendanceData.attandanceShiftStartDate && attendanceData.attendancePunchInTime) && (attendanceData.attendanceShiftEndDate && attendanceData.attendancePunchOutTime)) {
+					workingTime = await helper.timeDifference(
+						`${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
+						`${attendanceData.attendanceShiftEndDate} ${attendanceData.attendancePunchOutTime}`
+					)
+				}
+
 				await db.attendanceMaster.update(
 					{
 						//attendanceDate: regularizeData.regularizePunchInDate,
-						attendanceWorkingTime: await helper.timeDifference(
-							`${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
-							`${attendanceData.attendanceShiftEndDate} ${attendanceData.attendancePunchOutTime}`,
-						),
+						attendanceWorkingTime: workingTime,
 						attendanceLateBy: attendanceLateBy,
 					},
 					{

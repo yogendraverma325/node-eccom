@@ -4667,6 +4667,17 @@ class UserController {
 				},
 			);
 
+			await db.jobDetails.update(
+				{
+					noticePeriodStatus: 0,
+				},
+				{
+					where: {
+						userId: separationData.dataValues.employeeId,
+					},
+				},
+			);
+
 			return respHelper(res, {
 				status: 200,
 				msg: constant.SEPARATION_REVOKED,
