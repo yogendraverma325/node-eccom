@@ -5926,12 +5926,14 @@ const groupByEmployeeId = (data) => {
 		}
 		const employeeId = item["Employee Id"];
 
+		console.log(result);
+
 		let totalEarning = parseFloat(
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
 				) +
-				parseFloat(result["earningArrears"] ? result["earningArrears"] : 0),
+				parseFloat(result? result["earningArrears"] : 0),
 		);
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
@@ -5940,7 +5942,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
 				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
-				parseFloat(result["deductionArrears"] ? result["deductionArrears"] : 0),
+				parseFloat(result ? result["deductionArrears"] : 0),
 		);
 		totalDeduction = paymentHelper.customRound(totalDeduction);
 		let payableAmount = totalEarning - totalDeduction;
@@ -5974,6 +5976,7 @@ const groupByEmployeeId = (data) => {
 				"Standard Deductions Categories": item["Advance Name"], //29
 				"Standard Deductions": item["Advance Amount"], //30
 				"LWF Amount": item["LWF AMOUNT"], //31
+				"PF Arrears":result?result.mergeObject['PF Arrears']:0,
 				"Total Deductions": totalDeduction, //32
 				/////Added ///////////
 				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"], //33
@@ -5992,7 +5995,7 @@ const groupByEmployeeId = (data) => {
 			});
 			Object.assign(groupedData[employeeId], {
 				[item["Element Name"] + " Arrear"]:
-					result.mergeObject[item["Element Name"] + " Arrears"],
+				result?result.mergeObject[item["Element Name"] + " Arrears"]:0,
 			});
 
 			let newObj = {
