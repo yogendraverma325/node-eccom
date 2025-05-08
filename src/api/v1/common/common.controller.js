@@ -2615,7 +2615,7 @@ class commonController {
 			const pageNumber = parseInt(page, 10);
 			const pageLimit = parseInt(limit, 10);
 			const offset = (pageNumber - 1) * pageLimit;
-
+	
 			const whereClause = {
 				category_id: categoryId, // always include category filter
 				...(is_archived !== "" && { is_archived }),
@@ -2625,13 +2625,13 @@ class commonController {
 					},
 				}),
 			};
-
+	
 			const [rows, count] = await Promise.all([
 				db.hrPolicies.findAll({
 					where: whereClause,
 					limit: pageLimit,
 					offset,
-					order: [["createdAt", "DESC"]],
+					order: [["createdAt", "DESC"]], // Ordering policies by createdAt
 					include: [
 						{
 							model: db.hrPolicyCategories,
@@ -2640,20 +2640,33 @@ class commonController {
 						},
 						{
 							model: db.hrPolicySignoffs,
-							required: false, // Optional: false = include even if no policies
+							required: false, // Optional: false = include even if no sign-offs
 							include: [
 								{
 									model: db.employeeMaster,
 									attributes: ["empCode", "name"],
-									required: false, // Optional: false = include even if no policies
+									required: false, // Optional: false = include even if no employees
 								},
 							],
+							order: [["updated_at", "DESC"]], // Ensure signoffs are sorted by updated_at
 						},
 					],
 				}),
 				db.hrPolicies.count({ where: whereClause }),
 			]);
-
+	
+			rows.forEach(policy => {
+				if (policy.hr_policy_signoffs) {
+				  policy.hr_policy_signoffs.sort((a, b) => {
+					if (a.status === 'pending' && b.status !== 'pending') return 1;
+					if (a.status !== 'pending' && b.status === 'pending') return -1;
+			  
+					return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+				  });
+				}
+			  });
+			  
+	
 			return res.status(200).json({
 				status: true,
 				msg: "Data Fetched successfully",
@@ -2670,6 +2683,7 @@ class commonController {
 			});
 		}
 	}
+	
 	async createHrPolicy(req, res) {
 		try {
 			//console.log("req.body",req.body);
@@ -2681,7 +2695,7 @@ class commonController {
 				}
 			});
 
-			result = { ...result, createdBy: req.userId, isActive: 1 };
+			result = { ...result, createdBy: req.userId, isActive: 1 ,isEdited: 1};
 
 			console.log("result", result);
 			// Handle file upload for policy document
@@ -2731,7 +2745,7 @@ class commonController {
 	async updateHrPolicy(req, res) {
 		try {
 			let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
-			result = { ...result, updatedBy: req.userId, updatedAt: moment() };
+			result = { ...result, updatedBy: req.userId, updatedAt: moment(),isEdited: 1 };
 
 			// Handle file upload for policy document
 			if (
@@ -2789,6 +2803,7 @@ class commonController {
 					createdBy: req.userId,
 					updatedBy: req.userId,
 					is_archive: 0,
+					isEdited: 1,
 				};
 
 				// Apply any updates from request
@@ -2859,7 +2874,7 @@ class commonController {
 			const newIsArchived = policy.is_archived ? 0 : 1;
 
 			// Step 3: Update using service
-			const updateMetaData = { is_archived: newIsArchived };
+			const updateMetaData = { is_archived: newIsArchived, isActive: 0 };
 			const query = { id: policyId };
 			const response = await service.update(model, updateMetaData, query);
 
@@ -3223,7 +3238,6 @@ class commonController {
 						{ label: "Employee Code", value: "empCode" },
 						{ label: "Name", value: "name" },
 						{ label: "Email", value: "email" },
-						{ label: "Department", value: "department" },
 					],
 					content: employees.map((emp) => emp.dataValues),
 				},
@@ -3467,10 +3481,10 @@ export async function getEmployeesByUserAssignmentId(id) {
 					model: db.jobDetails,
 					where: whereJobDetails,
 					required: Object.keys(whereJobDetails).length > 0,
-					attributes: [],
+					attributes: ["confirmationDate"],
 				},
 			],
-			attributes: ["id", "empCode", "name"],
+			attributes: ["id", "empCode", "name","email","dateOfJoining"],
 		});
 		//  console.log("employees", employees);
 		return employees;
