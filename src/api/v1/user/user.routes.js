@@ -412,7 +412,7 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.acknowledgeHrPolicy,
 	)
-    .get(
+	.get(
 		"/notification",
 		authentication.authenticate,
 		userController.notification,
@@ -423,9 +423,10 @@ export default Express.Router()
 		userController.readNotification,
 	)
 
-	.patch("/updateAttendanceSetting",
+	.patch(
+		"/updateAttendanceSetting",
 		authentication.authenticate,
-		userController.updateAttendanceSetting
-	)
+		userController.updateAttendanceSetting,
+	);
 
 //hr policy for user end

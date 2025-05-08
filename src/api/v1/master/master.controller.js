@@ -191,7 +191,7 @@ class MasterController {
 					"isActive",
 					"enableBiometricAttendance",
 					"enableMobileAttendance",
-					"enableWebAttendance"
+					"enableWebAttendance",
 				],
 				include: [
 					{
