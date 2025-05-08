@@ -52,7 +52,8 @@ class ImportController {
 					msg: "Service is comming soon : " + req.body.uploadType,
 				});
 			}
-			if (!req.body.operationType) { /// OpreationType 1 OR 2
+			if (!req.body.operationType) {
+				/// OpreationType 1 OR 2
 				return respHelper(res, {
 					status: 400,
 					msg: "Operation not defined : ",
@@ -96,8 +97,7 @@ class ImportController {
 				await uploadCTC(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
-			}
-			else if (req.body.uploadType == "Arrears") {
+			} else if (req.body.uploadType == "Arrears") {
 				await arrearsUpload(req, res, OperationType, importInfoObject);
 			}
 		} catch (error) {
@@ -1618,14 +1618,15 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 		var arrearsDetais = pkg.utils.sheet_to_json(
 			workbookEmployee.Sheets[sheetNameEmployee],
 		);
-		if (!arrearsDetais[0]["Employee ID"] ||
-				!arrearsDetais[0]['Arrear Pay Month (YYYY-MM)'] ||
-				!arrearsDetais[0]['Arrear Type(LOP/Increment)'] ||
-				!arrearsDetais[0]['Arrear Month (YYYY-MM)'] ||
-				!arrearsDetais[0]['Arrear Days'] ||
-				!arrearsDetais[0]['Has PF Arrear? (Yes/No)'] ||
-				!arrearsDetais[0]['Compute ESIC Arrear (Yes/No)'] ||
-				!arrearsDetais[0]['Delete Arrear? (Yes/No)']
+		if (
+			!arrearsDetais[0]["Employee ID"] ||
+			!arrearsDetais[0]["Arrear Pay Month (YYYY-MM)"] ||
+			!arrearsDetais[0]["Arrear Type(LOP/Increment)"] ||
+			!arrearsDetais[0]["Arrear Month (YYYY-MM)"] ||
+			!arrearsDetais[0]["Arrear Days"] ||
+			!arrearsDetais[0]["Has PF Arrear? (Yes/No)"] ||
+			!arrearsDetais[0]["Compute ESIC Arrear (Yes/No)"] ||
+			!arrearsDetais[0]["Delete Arrear? (Yes/No)"]
 		) {
 			return respHelper(res, {
 				status: 400,
@@ -1633,24 +1634,22 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 			});
 		}
 
-		let financialYearDetails = await importHelper.getFinancialYear(new Date().getFullYear());
+		let financialYearDetails = await importHelper.getFinancialYear(
+			new Date().getFullYear(),
+		);
 		var errorArray = [],
 			successArray = [];
-			let importId = await createImportDetails(importParams);
-
+		let importId = await createImportDetails(importParams);
 
 		for (const employeeArrears of arrearsDetais) {
-			
-			if(employeeArrears['Employee ID'])
-			{
+			if (employeeArrears["Employee ID"]) {
 				let employeeDetais = await db.employeeMaster.findOne({
 					where: { empCode: employeeArrears["Employee ID"], isActive: 1 },
 					raw: true,
-					attributes: ["empCode", "id","companyId",'buId','sbuId'],
+					attributes: ["empCode", "id", "companyId", "buId", "sbuId"],
 				});
 
-				if(!employeeDetais)
-				{
+				if (!employeeDetais) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeArrears),
 						importAutoId: importId,
@@ -1669,27 +1668,26 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 					arearType: employeeArrears["Arrear Type(LOP/Increment)"],
 					hasPF: employeeArrears["Has PF Arrear? (Yes/No)"],
 					computeESIC: employeeArrears["Compute ESIC Arrear (Yes/No)"],
-					empCode:employeeArrears["Employee ID"],
-					isActive:1,
-					companyId:employeeDetais.companyId,
-					buId:employeeDetais.buId,
-					sbuId:employeeDetais.sbuId,
-					financialYearId:financialYearDetails.financialYearId,
-		
+					empCode: employeeArrears["Employee ID"],
+					isActive: 1,
+					companyId: employeeDetais.companyId,
+					buId: employeeDetais.buId,
+					sbuId: employeeDetais.sbuId,
+					financialYearId: financialYearDetails.financialYearId,
 				};
-	
+
 				console.log(earningArears);
-	
+
 				const { error } =
 					await validator.earningArrearsSchema.validate(earningArears);
-	
+
 				if (error) {
 					errorArray.push({
 						importedRow: JSON.stringify(employeeArrears),
 						importAutoId: importId,
 						importStatus: 2,
 						createdBy: req.userData.id,
-						importStatusDesc:error.details[0].message,
+						importStatusDesc: error.details[0].message,
 					});
 					continue;
 					// return respHelper(res, {
@@ -1705,7 +1703,7 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 						},
 						raw: true,
 					});
-	
+
 					if (OperationType == 2 && !existArrear) {
 						errorArray.push({
 							importedRow: JSON.stringify(existArrear),
@@ -1714,10 +1712,10 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 							createdBy: req.userData.id,
 							importStatusDesc: "Data is  not available to delete.",
 						});
-	
+
 						continue;
 					}
-	
+
 					if (existArrear) {
 						earningArears["updatedBy"] = req.userData.id;
 						earningArears["updatedAt"] = new Date();
@@ -1731,7 +1729,7 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 						earningArears["ACTION_TYPE"] = "UPDATE";
 					} else {
 						earningArears["createdBy"] = req.userData.id;
-						earningArears['createdAt'] = new Date();
+						earningArears["createdAt"] = new Date();
 						await db.earningsArears.create(earningArears);
 						earningArears["ACTION_TYPE"] = "CREATE";
 					}
@@ -1746,8 +1744,7 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 			}
 		}
 
-		if(importId)
-		{
+		if (importId) {
 			let importFinalResult = successArray.concat(errorArray);
 			await db.ImportData.bulkCreate(importFinalResult);
 			await db.ImportInfo.update(
@@ -1762,7 +1759,7 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 				},
 				{ where: { importAutoId: importId } },
 			);
-	
+
 			return respHelper(res, {
 				status: 200,
 				data: {
@@ -1772,7 +1769,6 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 				msg: "Extra Deductions Uploaded Successfully.",
 			});
 		}
-
 	} catch (error) {
 		console.log(error);
 		return respHelper(res, {
@@ -1840,8 +1836,6 @@ async function sendMailAfterSalarySlipRelease(
 		}
 	}
 }
-
-
 
 async function createImportDetails(params) {
 	let importInfo = await db.ImportInfo.create(params);

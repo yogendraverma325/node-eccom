@@ -304,7 +304,7 @@ async function query(caseId, data, data2) {
 		case 1:
 			//return `SELECT  p.salaryComponentEarningType,p.esicEmployerAmount as "ESIC Employer",p.esicEmployeeAmount as "ESIC Employee",p.pfEmployeeAmount as "PF Employee",p.pfEmployerAmount as "PF Employer",p.salaryComponentCode,p.includeInPackage,p.isPfApplicableComponent,p.isPfApplicable,p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) - SUM(CASE WHEN p.salaryComponentEarningType = 'Deduction' THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
 			//return `SELECT p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
-			return `SELECT p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.employeejobdetails ej ON e.id = ej.userId LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN ${dbName}.bumaster bu ON e.buId = bu.buId LEFT JOIN ${dbName}.employeepaymentdetails epd ON e.id = epd.userId WHERE p.payMonth = '${data}' AND p.empId IN (${data2})  order by salaryComponentSequenceNo desc;`;
+			return `SELECT ea.arrearsDetails ,ea.arearDays, p.empId,p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.employeejobdetails ej ON e.id = ej.userId LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN ${dbName}.bumaster bu ON e.buId = bu.buId LEFT JOIN ${dbName}.employeepaymentdetails epd ON e.id = epd.userId LEFT JOIN tara.earningarrears ea ON e.id = ea.EmployeeId  AND ea.arrearPayMonth = '${data}'  AND ea.status = 3 WHERE p.payMonth = '${data}' AND p.empId IN (${data2})  order by salaryComponentSequenceNo desc;`;
 			break;
 		case 2:
 			return `SELECT p.EmployeeId, p.paySlipNetPay, e.name AS EmployeeName, e.empCode AS EmployeeCode, d.name AS Designation, b.buName AS BU FROM ${dbName}.payslip p JOIN ${dbName}.employee e ON p.EmployeeId = e.id JOIN ${dbName}.designationmaster d ON e.designation_id = d.designationId JOIN ${dbName}.bumaster b ON e.buId = b.buId WHERE p.EmployeeId IN (${data}) AND paySlipStatus = ${data2}`;
@@ -546,7 +546,6 @@ async function getCalculatedPF(monthlyElementPay) {
 	return calculatedPF; // Return elementValue or null if not found
 }
 
-
 async function calculatePfArrears(monthlyElementPay) {
 	let calculatedPF = 0,
 		applicablePFAmountRestrictionYes = 0,
@@ -587,7 +586,6 @@ async function calculatePfArrears(monthlyElementPay) {
 	}
 	return calculatedPF; // Return elementValue or null if not found
 }
-
 
 async function getCalculatedESIC(monthlyElementPay) {
 	let calculatedEmployeeESIC = 0,
@@ -760,6 +758,75 @@ async function affectArrears(componentAmount, lopDays, totalWorkingdays) {
 	return amountAfterLop;
 }
 
+async function getArrearsComponets(
+	payMonth,
+	EmployeeId,
+	paySlipAutoId,
+	userId,
+) {
+	let totalArrearsElement = [],
+		arrearsDedctionAmount = 0,
+		arrrearsEarningAmount = 0;
+
+	let arrearQuery = `SELECT arearDays,arrearsDetails  FROM  ${dbName}.earningarrears where EmployeeId= ${EmployeeId} and status=3 and arrearPayMonth='${payMonth}';`;
+	let arrearsData = await db.sequelize.query(arrearQuery);
+	let arrearObject = arrearsData[0][0] ? arrearsData[0][0] : {};
+
+	let arrearsDays = arrearObject.arearDays ? arrearObject.arearDays : 0;
+	let arrearsDetails = arrearObject.arrearsDetails
+		? JSON.parse(arrearObject.arrearsDetails)
+		: [];
+	if (arrearsDetails.length > 0) {
+		for (const arrearsDetailsObject of arrearsDetails) {
+			totalArrearsElement.push({
+				EmployeeId: EmployeeId,
+				paySlipAutoId: paySlipAutoId,
+				salaryComponentAutoId: 0,
+				paySlipComponentName: arrearsDetailsObject.arrearName,
+				paySlipComponentAmount: arrearsDetailsObject.arrearAmunt,
+				paySlipComponentType: arrearsDetailsObject.type, //"Earning",
+				createdBy: userId,
+				createdAt: new Date(),
+				salaryComponentSequenceNo: 999,
+			});
+
+			if (arrearsDetailsObject.type == "Earning") {
+				arrrearsEarningAmount = parseFloat(arrrearsEarningAmount) + 1;
+			}
+			if (arrearsDetailsObject.type == "Deduction") {
+				arrearsDedctionAmount = parseFloat(arrearsDedctionAmount) + 1;
+			}
+		}
+	}
+
+	return totalArrearsElement;
+}
+
+async function getArrearsEarningDeductionAmount(payMonth, EmployeeId) {
+	let arrearsDedctionAmount = 0,
+		arrrearsEarningAmount = 0;
+	let arrearQuery = `SELECT arearDays,arrearsDetails  FROM  ${dbName}.earningarrears where EmployeeId= ${EmployeeId} and status=3 and arrearPayMonth='${payMonth}';`;
+	let arrearsData = await db.sequelize.query(arrearQuery);
+	let arrearObject = arrearsData[0][0] ? arrearsData[0][0] : {};
+	let arrearsDetails = arrearObject.arrearsDetails
+		? JSON.parse(arrearObject.arrearsDetails)
+		: [];
+
+	if (arrearsDetails.length > 0) {
+		for (const arrearsDetailsObject of arrearsDetails) {
+			if (arrearsDetailsObject.type == "Earning") {
+				arrrearsEarningAmount =
+					parseFloat(arrrearsEarningAmount) + arrearsDetailsObject.arrearAmunt;
+			}
+			if (arrearsDetailsObject.type == "Deduction") {
+				arrearsDedctionAmount =
+					parseFloat(arrearsDedctionAmount) + arrearsDetailsObject.arrearAmunt;
+			}
+		}
+	}
+
+	return { arrrearsEarningAmount, arrearsDedctionAmount };
+}
 
 export default {
 	payAfterLOPDeductions,
@@ -786,4 +853,6 @@ export default {
 	getFinancialYear,
 	customHigherRound,
 	affectArrears,
+	getArrearsComponets,
+	getArrearsEarningDeductionAmount,
 };

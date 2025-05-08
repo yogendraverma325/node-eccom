@@ -1246,13 +1246,12 @@ const earningArrearsSchema = Joi.object({
 	updatedBy: Joi.number().integer().positive().allow(null).optional(),
 	updatedAt: Joi.date().allow(null).optional(),
 	isActive: Joi.number().default(0).optional(), // Defaults to false if not provided
-	empCode:Joi.string().required(),
+	empCode: Joi.string().required(),
 	companyId: Joi.number().required(), // Defaults to false if not provided
 	buId: Joi.number().required(), // Defaults to false if not provided
 	sbuId: Joi.number().required(), // Defaults to false if not provided
 	financialYearId: Joi.number().required(), // Defaults to false if not provided
 });
-
 
 async function createDynamicPayPackageSchema(structureDetails, employee) {
 	let dynamicArray = [];

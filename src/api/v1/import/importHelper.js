@@ -80,7 +80,6 @@ async function query(caseId, data, data2) {
 	}
 }
 
-
 export default {
 	getFinancialYear,
 	getFromattedDate,

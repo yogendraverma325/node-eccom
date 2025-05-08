@@ -30,24 +30,26 @@ class ImportController {
 			let arrearPayMonth = req.body.arrearPayMonth;
 			let status = req.body.status;
 			let arrearType = req.body.arrearsTypeId == "1" ? "LOP" : "Increment";
-			let companyId  =req.body.companyId;
+			let companyId = req.body.companyId;
 			let arrearListQuery = await arrearsHelper.query(1, arrearPayMonth, {
 				status: status,
 				arrearType: arrearType,
-				companyId:companyId
+				companyId: companyId,
 			});
-			let arrearsCountQuery = await arrearsHelper.query(2, arrearPayMonth,{
-				companyId:companyId
+			let arrearsCountQuery = await arrearsHelper.query(2, arrearPayMonth, {
+				companyId: companyId,
 			});
 			let arrearsData = await db.sequelize.query(arrearListQuery);
 			let arrearsCountData = await db.sequelize.query(arrearsCountQuery);
-
 
 			console.log(arrearListQuery);
 
 			return respHelper(res, {
 				status: 200,
-				data: {arrearsList:arrearsData[0],arrearsCount:arrearsCountData[0][0]},
+				data: {
+					arrearsList: arrearsData[0],
+					arrearsCount: arrearsCountData[0][0],
+				},
 				msg: "Arrears Fethed Successfully.",
 			});
 		} catch (error) {
@@ -94,17 +96,15 @@ class ImportController {
 				? req.body.arrearsAutoIds.split(",")
 				: [];
 			let arrearsTypeId = req.body.arrearsTypeId;
-			let deletedRecords=await db.earningsArears.destroy({
+			let deletedRecords = await db.earningsArears.destroy({
 				where: { earningArrearAutoId: { [Op.in]: arrearsAutoIds } },
 				raw: true,
 			});
 			return respHelper(res, {
 				status: 200,
-				data:deletedRecords,
+				data: deletedRecords,
 				msg: "Delete operation successfully.",
 			});
-
-		
 		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
@@ -112,83 +112,119 @@ class ImportController {
 			});
 		}
 	}
-
 }
 
 export default new ImportController();
 
 async function processLopArrears(req, res, arrearsDataForProcessing) {
 	try {
-		let failedCount=0,successCounts=0;
+		let failedCount = 0,
+			successCounts = 0;
 		for (const arrear of arrearsDataForProcessing) {
 			let paidMonthPaySlipDetails = await db.paySlips.findOne({
 				where: { EmployeeId: arrear.EmployeeId, payMonth: arrear.arrearMonth },
 				raw: true,
 			});
-			console.log(paidMonthPaySlipDetails);
-			if (!paidMonthPaySlipDetails) {
-				failedCount=failedCount+1;
+			let arrearsMonthPayDetails = await db.payMonthlyElements.findAll({
+				where: { empId: arrear.EmployeeId, payMonth: arrear.arrearMonth },
+				raw: true,
+			});
+			if (arrearsMonthPayDetails.length == 0) {
+				failedCount = failedCount + 1;
 				await db.earningsArears.update(
 					{
 						status: 2,
 						processingRemark:
 							"PaySlip not generated for the month " + arrear.arrearMonth,
-							processedOn:new Date()
+						processedOn: new Date(),
 					},
 					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
 				);
 				continue;
 			}
 			if (
-				paidMonthPaySlipDetails.paySlipTotalDays ==
-				paidMonthPaySlipDetails.paySlipWorkingDays
+				arrearsMonthPayDetails[0].totalWorkingDays ==
+				arrearsMonthPayDetails[0].actualWorkingDays
 			) {
-				failedCount=failedCount+1;
+				failedCount = failedCount + 1;
 				db.earningsArears.update(
 					{
 						status: 2,
 						processingRemark:
 							"No lop deducions found for the month " + arrear.arrearMonth,
-							processedOn:new Date()
+						processedOn: new Date(),
 					},
 					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
 				);
 				continue;
 			}
-			if (paidMonthPaySlipDetails.paySlipAbsentDays < arrear.arearDays) {
-				failedCount=failedCount+1;
+			if (arrearsMonthPayDetails[0].lopDays < arrear.arearDays) {
+				failedCount = failedCount + 1;
 				db.earningsArears.update(
 					{
 						status: 2,
 						processingRemark:
 							"Arreras days exeeding lops in " + arrear.arrearMonth,
-							processedOn:new Date()
+						processedOn: new Date(),
 					},
 					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
 				);
 				continue;
 			}
 
-			if (paidMonthPaySlipDetails.paySlipAbsentDays >= arrear.arearDays) {
-				successCounts=successCounts+1;
-				db.earningsArears.update(
-					{
-						status: 3,
-						processingRemark: "Arrears Processed Successfully.",
-						updatedBy: req.userData.id,
-						processedOn:new Date()
-					},
-					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-				);
-				continue;
+			if (arrearsMonthPayDetails[0].lopDays >= arrear.arearDays) {
+				//successCounts=successCounts+1;
+				if (arrearsMonthPayDetails.length > 0) {
+					let arrearDetails = await arrearsHelper.calculateArrersAmount(
+						arrearsMonthPayDetails,
+						arrear.arearDays,
+					);
+					db.earningsArears.update(
+						{
+							status: 3,
+							processingRemark: "Arrear Processed Successfully",
+							processedOn: new Date(),
+							arrearsDetails: JSON.stringify(arrearDetails),
+						},
+						{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
+					);
+				} else {
+					failedCount = failedCount + 1;
+					db.earningsArears.update(
+						{
+							status: 2,
+							processingRemark:
+								"Arreras days exeeding lops in " + arrear.arrearMonth,
+							processedOn: new Date(),
+						},
+						{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
+					);
+					continue;
+				}
+
+				// db.earningsArears.update(
+				// 	{
+				// 		status: 3,
+				// 		processingRemark: "Arrears Processed Successfully.",
+				// 		updatedBy: req.userData.id,
+				// 		processedOn:new Date()
+				// 	},
+				// 	{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
+				// );
+
+				// continue;
 			}
 		}
 		return respHelper(res, {
 			status: 200,
-			data:[],
-			msg: "Arrears processing completed successfully with "+successCounts+" completed and"+failedCount+"failed records.",
+			data: [],
+			msg:
+				"Arrears processing completed successfully with " +
+				successCounts +
+				" completed and" +
+				failedCount +
+				"failed records.",
 		});
-
 	} catch (error) {
 		console.log(error);
 		return respHelper(res, {
