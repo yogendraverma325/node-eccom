@@ -2195,6 +2195,10 @@ class ThirdPartyController {
 						],
 						required: false,
 					},
+					{
+						model: db.companyMaster,
+						attributes: ["companyName"],
+					},
 				],
 			});
 
@@ -2311,6 +2315,10 @@ class ThirdPartyController {
 					Employee_Band:
 						employee.employeejobdetail?.dataValues?.grademaster?.dataValues
 							?.gradeName || "",
+					Date_Of_Exit: employee.dateOfexit
+						? moment(employee.dateOfexit).format("YYYY-MM-DD")
+						: "",
+					Group_Company: employee?.companymaster?.dataValues?.companyName || "",
 				};
 			});
 

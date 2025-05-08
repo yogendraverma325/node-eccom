@@ -1018,7 +1018,7 @@ class UserController {
 				where: {
 					pendingAt: req.userId,
 					isApproved: [0],
-				}
+				},
 			});
 
 			const totalCount =
@@ -1071,7 +1071,7 @@ class UserController {
 							assignedToMe: profileApprovalCount,
 						},
 						totalCount: totalCount,
-						pragatiGoalCount: pragatiGoalCount
+						pragatiGoalCount: pragatiGoalCount,
 					},
 					mobile: {
 						raisedByMe: {
@@ -7193,15 +7193,15 @@ class UserController {
 						],
 					},
 				],
-				order: [[db.hrPolicies, "updatedAt", "DESC"]], // 👈 Sort by newest
+				order: [[db.hrPolicies, "updatedAt", "DESC"]],
 			});
 
-			if (!unsignedPolicies.length && !signedPolicies.length) {
-				return respHelper(res, {
-					status: 404,
-					msg: "No HR policies found for this employee",
-				});
-			}
+			//	if (!unsignedPolicies.length && !signedPolicies.length) {
+			//return respHelper(res, {
+			//	status: 404,
+			//	msg: "No HR policies found for this employee",
+			//});
+			//}
 
 			return respHelper(res, {
 				status: 200,
@@ -7297,7 +7297,7 @@ class UserController {
 
 			return respHelper(res, {
 				status: 200,
-				msg: `Policy(ies) ${action} successfully`,
+				msg: `Policy ${action} successfully`,
 			});
 		} catch (error) {
 			console.error(error);
@@ -7305,52 +7305,54 @@ class UserController {
 		}
 	}
 
-	async notification(req,res){
-        try{
-
-            const userId = req.userId;
-			const date = new Date();
-            date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
-			console.log("date",date);
-            const notification = await db.pushNotificationHistory.findAll({
-                where: {
-                    employeeId: userId,
-					status:'success',
-					createdAt: { [Op.gte]: date },
-                },
-                order: [["createdAt", "DESC"]],
-            });
-
-            return respHelper(res, {
-                status: 200,
-                msg: "Notification fetched successfully",
-                data: notification,
-            });
-        }catch(error){
-            console.log(error);
-            return respHelper(res, {
-                status: 500,
-                msg: "Internal server error",
-            });
-        }
-    }
-
-	async readNotification(req,res){
-		try{
+	async notification(req, res) {
+		try {
 			const userId = req.userId;
-			const notification = await db.pushNotificationHistory.update({
-				isRead:1,
-			},{
-				where:{
-					id:req.body.ids.split(","),
-				}
+			const date = new Date();
+			date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
+			console.log("date", date);
+			const notification = await db.pushNotificationHistory.findAll({
+				where: {
+					employeeId: userId,
+					status: "success",
+					createdAt: { [Op.gte]: date },
+				},
+				order: [["createdAt", "DESC"]],
 			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Notification fetched successfully",
+				data: notification,
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async readNotification(req, res) {
+		try {
+			const userId = req.userId;
+			const notification = await db.pushNotificationHistory.update(
+				{
+					isRead: 1,
+				},
+				{
+					where: {
+						id: req.body.ids.split(","),
+					},
+				},
+			);
 
 			return respHelper(res, {
 				status: 200,
 				msg: "Notification Read successfully",
 			});
-		}catch(error){
+		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
 				status: 500,
@@ -7360,6 +7362,52 @@ class UserController {
 	}
 
 	// hr policy for User end
+
+	/**
+	 * Update attendance setting
+	 */
+
+	async updateAttendanceSetting(req, res) {
+		try {
+			let {
+				enableBiometricAttendance,
+				enableMobileAttendance,
+				enableWebAttendance,
+				employeeId,
+			} = req.body;
+			if (
+				!employeeId ||
+				enableBiometricAttendance == null ||
+				enableMobileAttendance == null ||
+				enableWebAttendance == null
+			) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Bad request",
+				});
+			}
+			let metaData = {
+				enableBiometricAttendance: enableBiometricAttendance,
+				enableMobileAttendance: enableMobileAttendance,
+				enableWebAttendance: enableWebAttendance,
+				updatedBy: req.userId,
+				updatedAt: moment(),
+			};
+
+			let query = { id: employeeId };
+			let response = await db.employeeMaster.update(metaData, { where: query });
+			return respHelper(res, {
+				status: 202,
+				msg: constant.UPDATE_SUCCESS.replace("<module>", "Data"),
+			});
+		} catch (error) {
+			console.log("Error throw while update attendance setting", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "",
+			});
+		}
+	}
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {
