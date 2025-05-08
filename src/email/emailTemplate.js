@@ -5172,9 +5172,7 @@ const goalSubmission = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5249,9 +5247,7 @@ const goalRecallSubmission = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5324,9 +5320,7 @@ const goalWeightageChange = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5388,9 +5382,7 @@ const goalPartiallyActionOrApprovedAll = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />
@@ -5463,9 +5455,7 @@ const goalDeletedNotification = async (data) => {
           />
           <img
             height="45"
-            src="${
-              process.env.PROXY_URL
-            }/api/uploads/assets/tara_small.png"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
             alt="Logo"
               style="float:right"
           />

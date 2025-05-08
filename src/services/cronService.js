@@ -5,7 +5,7 @@ import helper from "../helper/helper.js";
 import userController from "../api/v1/user/user.controller.js";
 
 cron.schedule("00 05 * * *", async () => {
-//await cronController.getEmpForWishes();
+	//await cronController.getEmpForWishes();
 });
 
 cron.schedule("30 06 * * *", async () => {
@@ -28,7 +28,7 @@ cron.schedule("0 * * * *", async () => {
 	} catch (error) {
 		console.log(error);
 	} finally {
-		 await attendanceController.attedanceCronEveryNightShift();
+		await attendanceController.attedanceCronEveryNightShift();
 	}
 });
 
@@ -46,7 +46,7 @@ cron.schedule("10 8 * * *", async () => {
 // 	await cronController.triggerHrPoliciesToUsersCron();
 // });
 cron.schedule("* * * * *", async () => {
-	// 
+	//
 	await cronController.triggerHrPoliciesToUsersCron();
 });
 

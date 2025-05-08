@@ -393,11 +393,8 @@ const hrPolicySchema = Joi.object({
 		.allow(null, "")
 		.optional()
 		.label("Effective Date To"),
-		dateOfJoining: Joi.date()
-		.allow(null, "")
-		.optional()
-		.label("Date Of Joining"),
-		dateOfConfirmation: Joi.date()
+	dateOfJoining: Joi.date().allow(null, "").optional().label("Date Of Joining"),
+	dateOfConfirmation: Joi.date()
 		.allow(null, "")
 		.optional()
 		.label("Date Of Confirmation"),
