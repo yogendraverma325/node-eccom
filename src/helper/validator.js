@@ -1634,7 +1634,7 @@ const leaveEncashmentValidateSchama = Joi.object({
 	//payMonth: Joi.string().max(255).required(),
 	leaveEncashmentDays: Joi.number()
 		.precision(2)
-		.positive()
+		// .positive()
 		.required()
 		.label("Leave Encashment Days"), // Leave days must be non-negative.
 	createdBy: Joi.number().integer().positive().optional().allow(null), // Optional, can be null.

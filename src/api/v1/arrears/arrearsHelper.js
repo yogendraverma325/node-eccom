@@ -180,6 +180,7 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
 				arrearName: componentName + " Arrears",
 				arrearAmunt: arrearAmunt,
 				type: "Earning",
+				seq: payElementObject["salaryComponentSequenceNo"],
 			});
 			payElementObject["arrearsAmount"] = arrearAmunt;
 			payElementObject["monthlyAmountAfterArrears"] =
@@ -201,6 +202,7 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
 			arrearName: "PF Arrears",
 			arrearAmunt: pfArrearAmoun,
 			type: "Deduction",
+			seq:999,
 		});
 	}
 

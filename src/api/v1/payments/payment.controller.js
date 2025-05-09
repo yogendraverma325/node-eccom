@@ -5128,7 +5128,20 @@ class PaymentController {
 
 			const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear}`;
 
-			console.log(employee);
+			let years=0,months=0;
+		
+			if(employee?.dataValues.dateOfExit && employee?.employeejobdetail?.dateOfJoining)
+			{
+				 years = moment(employee.dataValues.dateOfExit).diff(moment(employee?.employeejobdetail?.dateOfJoining), "years");
+				 months = moment(employee.dataValues.dateOfExit).diff(
+					moment(employee?.employeejobdetail?.dateOfJoining).clone().add(years, "years"),
+					"months",
+				);
+
+				 months = String(months).padStart(2, '0');
+			}
+
+			//console.log(employee);
 
 			const body = {
 				buName: employee.bumaster.buName,
@@ -5181,17 +5194,22 @@ class PaymentController {
 				duration: duration,
 				noOfDaysInMonth: salaryDetails[0]?.paySlipTotalDays || "N.A", //totalDays,
 				uanNo: employee?.employeejobdetail?.uanNumber || "N.A",
-				totalArrearDays: salaryDetails[0]?.paySlipArrearDays,
+				totalArrearDays: salaryDetails[0]?.arrearsDay,
 				providentFund: employee?.employeejobdetail?.pfNumber || "N.A",
 				esicNo: employee?.employeejobdetail?.esicNumber || "N.A",
 				encashmentDays: salaryDetails[0]?.encashmentDays || "N.A",
 				recoveryDays: salaryDetails[0]?.recoveryDays || "N.A",
+				lastDayOfService: moment(employee?.dateOfExit).isValid()
+					? moment(employee?.dateOfExit).format('Do MMMM YYYY')
+					: "N.A",
+				yearsOfService: years,
+				monthOfService: months,
+				
 			};
-
 			//const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
-			const letter = await emailTemplate.salarySlipPdf(body);
-
-			console.log(letter);
+			//const letter = await emailTemplate.fnfPaySlipPdf(body);
+			const letter = salaryDetails[0].paySlipType=='Regular'?await emailTemplate.fnfPaySlipPdf(body):await emailTemplate.salarySlipPdf(body);
+			//console.log(letter);
 			// Puppeteer for PDF generation
 			const browser = await puppeteer.launch({
 				args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -6578,7 +6596,8 @@ async function generatePaySlip(data) {
 						paySlipStatus: 0,
 						createdAt: new Date(),
 						payMonth: payMonthlyElement.payMonth,
-						//arrearsDays:
+						arrearsDay:getArrearsEarningAndDeductionAmounts.arearDays,
+						paySlipType: "Regular",
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
 						? isExistPaySlip.dataValues.paySlipAutoId

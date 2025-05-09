@@ -188,6 +188,7 @@ const salaryPaySlip = async function (paySlipAutoId) {
 						"uanNo",
 						"pfNo",
 						"employeeType",
+						"dateOfExit"
 					],
 					include: [
 						{
@@ -787,7 +788,7 @@ async function getArrearsComponets(
 				paySlipComponentType: arrearsDetailsObject.type, //"Earning",
 				createdBy: userId,
 				createdAt: new Date(),
-				salaryComponentSequenceNo: 999,
+				salaryComponentSequenceNo: arrearsDetailsObject.seq,
 			});
 
 			if (arrearsDetailsObject.type == "Earning") {
@@ -811,6 +812,9 @@ async function getArrearsEarningDeductionAmount(payMonth, EmployeeId) {
 	let arrearsDetails = arrearObject.arrearsDetails
 		? JSON.parse(arrearObject.arrearsDetails)
 		: [];
+		let arearDays = arrearObject.arearDays
+		? arrearObject.arearDays
+		: 0;
 
 	if (arrearsDetails.length > 0) {
 		for (const arrearsDetailsObject of arrearsDetails) {
@@ -825,7 +829,7 @@ async function getArrearsEarningDeductionAmount(payMonth, EmployeeId) {
 		}
 	}
 
-	return { arrrearsEarningAmount, arrearsDedctionAmount };
+	return { arrrearsEarningAmount, arrearsDedctionAmount ,arearDays};
 }
 
 export default {
