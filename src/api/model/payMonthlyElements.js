@@ -207,6 +207,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DECIMAL(10, 2),
 			default: 0,
 		},
+		arrearsAmount: {
+			type: Sequelize.DECIMAL(10, 2),
+			default: 0,
+		},
 	});
 	return PayMonthlyElement;
 };

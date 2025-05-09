@@ -188,6 +188,7 @@ const salaryPaySlip = async function (paySlipAutoId) {
 						"uanNo",
 						"pfNo",
 						"employeeType",
+						"dateOfExit",
 					],
 					include: [
 						{
@@ -304,7 +305,7 @@ async function query(caseId, data, data2) {
 		case 1:
 			//return `SELECT  p.salaryComponentEarningType,p.esicEmployerAmount as "ESIC Employer",p.esicEmployeeAmount as "ESIC Employee",p.pfEmployeeAmount as "PF Employee",p.pfEmployerAmount as "PF Employer",p.salaryComponentCode,p.includeInPackage,p.isPfApplicableComponent,p.isPfApplicable,p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) - SUM(CASE WHEN p.salaryComponentEarningType = 'Deduction' THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
 			//return `SELECT p.totalExtraDeduction as "EXTRA DEDUCTION",p.extraPaymentCategories as "EXTRA PAYMENT CATEGORIES",p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth WHERE p.payMonth = '${data}' AND p.empId IN (${data2});`;
-			return `SELECT p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.employeejobdetails ej ON e.id = ej.userId LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN ${dbName}.bumaster bu ON e.buId = bu.buId LEFT JOIN ${dbName}.employeepaymentdetails epd ON e.id = epd.userId WHERE p.payMonth = '${data}' AND p.empId IN (${data2})  order by salaryComponentSequenceNo desc;`;
+			return `SELECT ea.arrearsDetails ,ea.arearDays, p.empId,p.actualWorkingDays "Present Days",p.totalWorkingDays AS "Total Days", e.dateOfexit AS "Exit Date", ej.dateOfJoining AS "Date of Joining", p.totalExtraDeduction AS "EXTRA DEDUCTION", p.extraPaymentCategories AS "EXTRA PAYMENT CATEGORIES", p.salaryComponentEarningType, p.esicEmployerAmount AS "ESIC Employer", p.esicEmployeeAmount AS "ESIC Employee", p.pfEmployeeAmount AS "PF Employee", p.pfEmployerAmount AS "PF Employer", p.salaryComponentCode, p.includeInPackage, p.isPfApplicableComponent, p.isPfApplicable, p.isPfRestriction, p.ptAmount AS "PT AMOUNT", p.lwfAmount AS "LWF AMOUNT", p.extrapaymentAmount AS "EXTRA PAYMENT AMOUNT", p.empName AS "Employee Name", COALESCE(p.lopDays, 0) AS "LOP Days", p.arrearMonth AS "Arrears Month", COALESCE(p.arrearDays, 0) AS "Arrears Days", p.tdsMonth AS "TDS Month", COALESCE(p.tdsAmount, 0) AS "TDS Amount", p.payPackageMonthlyCTC AS "Net Pay", p.payElementAmount AS "Element Amount", p.elementMonthlyAmount AS "Monthly Element Amount", p.extraDeductionCategories AS "Advance Name", COALESCE(p.totalExtraDeduction, 0) AS "Advance Amount", e.empCode AS "Employee Id", CASE WHEN TRIM(p.salaryComponentAlias) IS NULL OR TRIM(p.salaryComponentAlias) = '' THEN p.salaryComponentCode ELSE p.salaryComponentAlias END AS "Element Name", SUM(CASE WHEN p.includeInPackage = 1 THEN p.elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY p.empId) AS "Gross Earning", ed.deductionCategory AS "Deduction Category", ed.deductionAmount AS "Deduction Amount", bu.buName AS "Business Unit", epd.paymentAccountNumber AS "Account No", epd.paymentBankName AS "Bank Name", epd.paymentBankIfsc AS "IFSC" FROM ${dbName}.paymonthlyelement p JOIN ${dbName}.employee e ON p.empId = e.id LEFT JOIN ${dbName}.employeejobdetails ej ON e.id = ej.userId LEFT JOIN ${dbName}.extradeductions ed ON p.empId = ed.EmployeeId AND p.payMonth = ed.startMonth LEFT JOIN ${dbName}.bumaster bu ON e.buId = bu.buId LEFT JOIN ${dbName}.employeepaymentdetails epd ON e.id = epd.userId LEFT JOIN tara.earningarrears ea ON e.id = ea.EmployeeId  AND ea.arrearPayMonth = '${data}'  AND ea.status = 3 WHERE p.payMonth = '${data}' AND p.empId IN (${data2})  order by salaryComponentSequenceNo desc;`;
 			break;
 		case 2:
 			return `SELECT p.EmployeeId, p.paySlipNetPay, e.name AS EmployeeName, e.empCode AS EmployeeCode, d.name AS Designation, b.buName AS BU FROM ${dbName}.payslip p JOIN ${dbName}.employee e ON p.EmployeeId = e.id JOIN ${dbName}.designationmaster d ON e.designation_id = d.designationId JOIN ${dbName}.bumaster b ON e.buId = b.buId WHERE p.EmployeeId IN (${data}) AND paySlipStatus = ${data2}`;
@@ -315,7 +316,7 @@ async function query(caseId, data, data2) {
 		case 4:
 			//			return `SELECT pm.name AS process_name, pm.payMonth, pm.payProcessMasterAutoId as processId , pm.createdAt, pm.updatedBy, pm.updatedAt,pm.processType, pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description, e.name AS created_by_name, cm.companyName AS company_name, COUNT(pd.proceessId) AS process_details_count, pm.filterType FROM ${dbName}.payprocessmaster pm INNER JOIN ${dbName}.payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN ${dbName}.paystatusmaster ps ON pf.currentstatus = ps.payProcessStatusAutoId LEFT JOIN ${dbName}.employee e ON pm.createdBy = e.id INNER JOIN ${dbName}.companymaster cm ON pm.companyId = cm.companyId LEFT JOIN ${dbName}.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId WHERE ps.payProcessStatusAutoId IN (${data}) AND pm.payMonth = "${data2.paymonth}" AND pm.companyId = ${data2.companyId} AND pm.processType='${data2.processType}' GROUP BY pm.payProcessMasterAutoId`;
 			//return `SELECT pm.name AS process_name, pm.payMonth, pm.payProcessMasterAutoId AS processId, pm.createdAt, pm.updatedBy, pm.updatedAt, pm.processType, pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description, e.name AS created_by_name, cm.companyName AS company_name, COUNT(pd.proceessId) AS process_details_count, pm.filterType, COUNT(CASE WHEN psli.paySlipStatus = 1 THEN 1 END) AS paySlipRelease, COUNT(CASE WHEN psli.paySlipStatus IN (0,1) THEN 1 END) AS paySlipGenerated, GROUP_CONCAT(CASE WHEN psli.paySlipStatus = 1 THEN psli.EmployeeId END) AS paySlipReleaseIds, GROUP_CONCAT(CASE WHEN psli.paySlipStatus IN (0,1) THEN psli.EmployeeId END) AS paySlipGeneratedIds,GROUP_CONCAT(CASE WHEN psli.paySlipStatus IN (0) THEN psli.EmployeeId END) AS paySlipNeedToGeneratedIds FROM ${dbName}.payprocessmaster pm INNER JOIN ${dbName}.payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN ${dbName}.paystatusmaster ps ON pf.currentstatus = ps.payProcessStatusAutoId LEFT JOIN ${dbName}.employee e ON pm.createdBy = e.id INNER JOIN ${dbName}.companymaster cm ON pm.companyId = cm.companyId LEFT JOIN ${dbName}.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId LEFT JOIN ${dbName}.payslip psli ON pd.EmployeeId = psli.EmployeeId AND pd.payMonth = psli.payMonth WHERE ps.payProcessStatusAutoId IN (${data}) AND pm.payMonth = "${data2.paymonth}" AND pm.companyId = ${data2.companyId} AND pm.processType = '${data2.processType}' GROUP BY pm.payProcessMasterAutoId;`
-			return `SELECT pm.name AS process_name, pm.payMonth, pm.payProcessMasterAutoId AS processId, pm.createdAt, pm.updatedBy, pm.updatedAt, pm.processType, pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description, e.name AS created_by_name, cm.companyName AS company_name, COUNT(pd.proceessId) AS process_details_count, pm.filterType, COUNT(CASE WHEN psli.paySlipStatus = 1 THEN 1 END) AS paySlipRelease, COUNT(CASE WHEN psli.paySlipStatus IN (0, 1) THEN 1 END) AS paySlipGenerated, (SELECT COUNT(CASE WHEN psli_inner.paySlipStatus = 1 THEN 1 END) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipReleaseTotal, (SELECT COUNT(CASE WHEN psli_inner.paySlipStatus IN (0, 1) THEN 1 END) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipGeneratedTotal, GROUP_CONCAT(CASE WHEN psli.paySlipStatus = 1 THEN psli.EmployeeId END) AS paySlipReleaseIds, GROUP_CONCAT(CASE WHEN psli.paySlipStatus IN (0, 1) THEN psli.EmployeeId END) AS paySlipGeneratedIds, (SELECT GROUP_CONCAT(psli_inner.EmployeeId) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE psli_inner.paySlipStatus = 1 AND pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipReleaseIdsTotal, (SELECT GROUP_CONCAT(psli_inner.EmployeeId) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE psli_inner.paySlipStatus IN (0,1) AND pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipGeneratedIdsTotal, GROUP_CONCAT(CASE WHEN psli.paySlipStatus = 0 THEN psli.EmployeeId END) AS paySlipNeedToGeneratedIds, (SELECT GROUP_CONCAT(psli_inner.EmployeeId) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE psli_inner.paySlipStatus = 0 AND pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipNeedToGeneratedIdsTotal FROM ${dbName}.payprocessmaster pm INNER JOIN ${dbName}.payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN ${dbName}.paystatusmaster ps ON pf.currentstatus = ps.payProcessStatusAutoId LEFT JOIN ${dbName}.employee e ON pm.createdBy = e.id INNER JOIN ${dbName}.companymaster cm ON pm.companyId = cm.companyId LEFT JOIN ${dbName}.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId LEFT JOIN ${dbName}.payslip psli ON pd.EmployeeId = psli.EmployeeId AND pd.payMonth = psli.payMonth WHERE ps.payProcessStatusAutoId IN (${data}) AND pm.payMonth = "${data2.paymonth}" AND pm.companyId = ${data2.companyId} AND pm.processType = '${data2.processType}' GROUP BY pm.payProcessMasterAutoId;`;
+			return `SELECT pm.name AS process_name, pm.payMonth, pm.payProcessMasterAutoId AS processId, pm.createdAt, pm.updatedBy, pm.updatedAt, pm.processType, pf.currentstatus, pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, ps.name AS status_name, ps.description AS status_description, e.name AS created_by_name, cm.companyName AS company_name, COUNT(pd.proceessId) AS process_details_count, pm.filterType, COUNT(CASE WHEN psli.paySlipStatus = 1 THEN 1 END) AS paySlipRelease, COUNT(CASE WHEN psli.paySlipStatus IN (0, 1) THEN 1 END) AS paySlipGenerated, (SELECT COUNT(CASE WHEN psli_inner.paySlipStatus = 1 THEN 1 END) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipReleaseTotal, (SELECT COUNT(CASE WHEN psli_inner.paySlipStatus IN (0, 1) THEN 1 END) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId} AND pd_inner.payStatus !=4) AS paySlipGeneratedTotal, GROUP_CONCAT(CASE WHEN psli.paySlipStatus = 1 THEN psli.EmployeeId END) AS paySlipReleaseIds, GROUP_CONCAT(CASE WHEN psli.paySlipStatus IN (0, 1) THEN psli.EmployeeId END) AS paySlipGeneratedIds, (SELECT GROUP_CONCAT(psli_inner.EmployeeId) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE psli_inner.paySlipStatus = 1 AND pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipReleaseIdsTotal, (SELECT GROUP_CONCAT(psli_inner.EmployeeId) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE psli_inner.paySlipStatus IN (0,1) AND pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipGeneratedIdsTotal, GROUP_CONCAT(CASE WHEN psli.paySlipStatus = 0 THEN psli.EmployeeId END) AS paySlipNeedToGeneratedIds, (SELECT GROUP_CONCAT(psli_inner.EmployeeId) FROM ${dbName}.payslip psli_inner INNER JOIN ${dbName}.payprocessdetails pd_inner ON pd_inner.EmployeeId = psli_inner.EmployeeId AND pd_inner.payMonth = psli_inner.payMonth WHERE psli_inner.paySlipStatus = 0 AND pd_inner.payMonth = "${data2.paymonth}" AND pd_inner.companyId = ${data2.companyId}) AS paySlipNeedToGeneratedIdsTotal FROM ${dbName}.payprocessmaster pm INNER JOIN ${dbName}.payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN ${dbName}.paystatusmaster ps ON pf.currentstatus = ps.payProcessStatusAutoId LEFT JOIN ${dbName}.employee e ON pm.createdBy = e.id INNER JOIN ${dbName}.companymaster cm ON pm.companyId = cm.companyId LEFT JOIN ${dbName}.payprocessdetails pd ON pm.payProcessMasterAutoId = pd.proceessId LEFT JOIN ${dbName}.payslip psli ON pd.EmployeeId = psli.EmployeeId AND pd.payMonth = psli.payMonth WHERE ps.payProcessStatusAutoId IN (${data}) AND pm.payMonth = "${data2.paymonth}" AND pm.companyId = ${data2.companyId} AND pm.processType = '${data2.processType}' GROUP BY pm.payProcessMasterAutoId;`;
 			break;
 		case 5:
 			return `SELECT pf.nextstatus, pf.refferenceFlowId, pf.endOfFlow, pf.currentstatus, ps.name AS status_name, ps.description AS status_description FROM ${dbName}.payprocessmaster pm INNER JOIN ${dbName}.payprocessflowmaster pf ON pm.processFlowId = pf.payProcessFlowMasterAutoId INNER JOIN ${dbName}.paystatusmaster ps ON pf.nextstatus = ps.payProcessStatusAutoId WHERE pm.payProcessMasterAutoId = ${data};`;
@@ -358,7 +359,7 @@ async function query(caseId, data, data2) {
 			break;
 
 		case 16:
-			return `SELECT salaryComponentSequenceNo,actualWorkingDays,totalWorkingDays,payElementAmount,pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM ${dbName}.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
+			return `SELECT arrearsAmount,salaryComponentSequenceNo,actualWorkingDays,totalWorkingDays,payElementAmount,pfEmployeeAmount, esicEmployeeAmount, empId, tdsAmount, ptAmount, lwfAmount, extrapaymentAmount, COALESCE(NULLIF(TRIM(lopDays), ''), 0) AS lopDays, COALESCE(NULLIF(TRIM(arrearDays), ''), 0) AS arrearDays, payPackageMonthlyCTC, payElementAmount, salaryComponentAutoId, salaryComponentEarningType, elementMonthlyAmount, totalExtraDeduction, payMonth, SUM(payElementAmount) OVER (PARTITION BY empId) AS paySlipTotalPay, COALESCE(NULLIF(TRIM(salaryComponentAlias), ''), salaryComponentCode) AS paySlipComponentName, SUM(CASE WHEN salaryComponentEarningType in ('Earning','Balancing') THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS paySlipGrossEarning, SUM(CASE WHEN salaryComponentEarningType = 'Deduction' THEN elementMonthlyAmount ELSE 0 END) OVER (PARTITION BY empId) AS totalComponentDeductions FROM ${dbName}.paymonthlyelement WHERE payMonth = '${data}' AND (includeInPackage = 1 OR salaryComponentEarningType = 'Deduction') AND empId IN (${data2});`;
 			break;
 
 		case 17:
@@ -543,9 +544,47 @@ async function getCalculatedPF(monthlyElementPay) {
 		calculatedPF = getPercentagePart(applicablePFAmountRestrictionYes, 12);
 		actualApplicableAmount = applicablePFAmountRestrictionYes;
 	}
-	// console.log("Applicable PF Amount Actual:: " + actualApplicableAmount);
-	// console.log("Applicable PF Amount YES :: " + applicablePFAmountRestrictionYes);
-	// console.log("Applicable PF Amount No:: " + applicablePFAmountRestrictionNo);
+	return calculatedPF; // Return elementValue or null if not found
+}
+
+async function calculatePfArrears(monthlyElementPay) {
+	let calculatedPF = 0,
+		applicablePFAmountRestrictionYes = 0,
+		applicablePFAmountRestrictionNo = 0,
+		actualApplicableAmount = 0;
+	if (monthlyElementPay[0].isPfApplicable == 0) return calculatedPF;
+
+	applicablePFAmountRestrictionYes = await monthlyElementPay
+		.filter((element) => element.isPfApplicableComponent == 1)
+		.reduce(async (sumPromise, element) => {
+			const sum = await sumPromise; // Resolve the previous sum
+			return sum + parseFloat(element["elementMonthlyAmount"]);
+		}, Promise.resolve(0));
+
+	applicablePFAmountRestrictionNo =
+		monthlyElementPay.find(
+			(item) => item["pfApplicable15000AndNoRestriction"] === 1,
+		)?.["elementMonthlyAmount"] || null; // Start with a resolved promise of 0
+
+	if (monthlyElementPay[0].isPfRestriction == 1) {
+		calculatedPF =
+			applicablePFAmountRestrictionYes < 15000
+				? getPercentagePart(applicablePFAmountRestrictionYes, 12)
+				: 1800;
+		actualApplicableAmount = applicablePFAmountRestrictionYes;
+	} else if (
+		monthlyElementPay[0].isPfRestriction == 0 &&
+		applicablePFAmountRestrictionNo >= 15000
+	) {
+		calculatedPF = getPercentagePart(applicablePFAmountRestrictionNo, 12);
+		actualApplicableAmount = applicablePFAmountRestrictionNo;
+	} else if (
+		monthlyElementPay[0].isPfRestriction == 0 &&
+		applicablePFAmountRestrictionNo < 15000
+	) {
+		calculatedPF = getPercentagePart(applicablePFAmountRestrictionYes, 12);
+		actualApplicableAmount = applicablePFAmountRestrictionYes;
+	}
 	return calculatedPF; // Return elementValue or null if not found
 }
 
@@ -714,6 +753,83 @@ async function getFinancialYear(selectedYear) {
 	return financialYearDetails;
 }
 
+async function affectArrears(componentAmount, lopDays, totalWorkingdays) {
+	let amountAfterLop = 0;
+	amountAfterLop = (componentAmount / totalWorkingdays) * lopDays;
+	return amountAfterLop;
+}
+
+async function getArrearsComponets(
+	payMonth,
+	EmployeeId,
+	paySlipAutoId,
+	userId,
+) {
+	let totalArrearsElement = [],
+		arrearsDedctionAmount = 0,
+		arrrearsEarningAmount = 0;
+
+	let arrearQuery = `SELECT arearDays,arrearsDetails  FROM  ${dbName}.earningarrears where EmployeeId= ${EmployeeId} and status=3 and arrearPayMonth='${payMonth}';`;
+	let arrearsData = await db.sequelize.query(arrearQuery);
+	let arrearObject = arrearsData[0][0] ? arrearsData[0][0] : {};
+
+	let arrearsDays = arrearObject.arearDays ? arrearObject.arearDays : 0;
+	let arrearsDetails = arrearObject.arrearsDetails
+		? JSON.parse(arrearObject.arrearsDetails)
+		: [];
+	if (arrearsDetails.length > 0) {
+		for (const arrearsDetailsObject of arrearsDetails) {
+			totalArrearsElement.push({
+				EmployeeId: EmployeeId,
+				paySlipAutoId: paySlipAutoId,
+				salaryComponentAutoId: 0,
+				paySlipComponentName: arrearsDetailsObject.arrearName,
+				paySlipComponentAmount: arrearsDetailsObject.arrearAmunt,
+				paySlipComponentType: arrearsDetailsObject.type, //"Earning",
+				createdBy: userId,
+				createdAt: new Date(),
+				salaryComponentSequenceNo: arrearsDetailsObject.seq,
+			});
+
+			if (arrearsDetailsObject.type == "Earning") {
+				arrrearsEarningAmount = parseFloat(arrrearsEarningAmount) + 1;
+			}
+			if (arrearsDetailsObject.type == "Deduction") {
+				arrearsDedctionAmount = parseFloat(arrearsDedctionAmount) + 1;
+			}
+		}
+	}
+
+	return totalArrearsElement;
+}
+
+async function getArrearsEarningDeductionAmount(payMonth, EmployeeId) {
+	let arrearsDedctionAmount = 0,
+		arrrearsEarningAmount = 0;
+	let arrearQuery = `SELECT arearDays,arrearsDetails  FROM  ${dbName}.earningarrears where EmployeeId= ${EmployeeId} and status=3 and arrearPayMonth='${payMonth}';`;
+	let arrearsData = await db.sequelize.query(arrearQuery);
+	let arrearObject = arrearsData[0][0] ? arrearsData[0][0] : {};
+	let arrearsDetails = arrearObject.arrearsDetails
+		? JSON.parse(arrearObject.arrearsDetails)
+		: [];
+	let arearDays = arrearObject.arearDays ? arrearObject.arearDays : 0;
+
+	if (arrearsDetails.length > 0) {
+		for (const arrearsDetailsObject of arrearsDetails) {
+			if (arrearsDetailsObject.type == "Earning") {
+				arrrearsEarningAmount =
+					parseFloat(arrrearsEarningAmount) + arrearsDetailsObject.arrearAmunt;
+			}
+			if (arrearsDetailsObject.type == "Deduction") {
+				arrearsDedctionAmount =
+					parseFloat(arrearsDedctionAmount) + arrearsDetailsObject.arrearAmunt;
+			}
+		}
+	}
+
+	return { arrrearsEarningAmount, arrearsDedctionAmount, arearDays };
+}
+
 export default {
 	payAfterLOPDeductions,
 	payAfterTDSDeductions,
@@ -738,4 +854,7 @@ export default {
 	getActualMonthlyAmount,
 	getFinancialYear,
 	customHigherRound,
+	affectArrears,
+	getArrearsComponets,
+	getArrearsEarningDeductionAmount,
 };

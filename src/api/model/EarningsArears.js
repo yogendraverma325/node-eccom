@@ -57,6 +57,42 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 			default: 0,
 		},
+		empCode: {
+			type: Sequelize.STRING,
+			default: null,
+		},
+		companyId: {
+			type: Sequelize.INTEGER,
+			//default: null,
+		},
+		buId: {
+			type: Sequelize.INTEGER,
+			//default: null,
+		},
+		sbuId: {
+			type: Sequelize.INTEGER,
+			//default: null,
+		},
+		financialYearId: {
+			type: Sequelize.INTEGER,
+			//default: null,
+		},
+		processingRemark: {
+			type: Sequelize.STRING,
+			default: null,
+		},
+		status: {
+			type: Sequelize.STRING,
+			default: null,
+		},
+		processedOn: {
+			type: Sequelize.DATE,
+			default: null,
+		},
+		arrearsDetails: {
+			type: Sequelize.TEXT,
+			default: null,
+		},
 	});
 	return earningArrears;
 };
