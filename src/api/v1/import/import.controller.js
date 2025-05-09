@@ -1857,8 +1857,12 @@ async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
 	}
 
 	if (
-		!["Yes", "No"].includes(FILEDATA[0]["Enable Biometric Attendance (Yes, No)"]) ||
-		!["Yes", "No"].includes(FILEDATA[0]["Enable Mobile Attendance (Yes, No)"]) ||
+		!["Yes", "No"].includes(
+			FILEDATA[0]["Enable Biometric Attendance (Yes, No)"],
+		) ||
+		!["Yes", "No"].includes(
+			FILEDATA[0]["Enable Mobile Attendance (Yes, No)"],
+		) ||
 		!["Yes", "No"].includes(FILEDATA[0]["Enable Web Attendance (Yes, No)"]) ||
 		!FILEDATA[0]["Employee ID"]
 	) {
@@ -1881,15 +1885,23 @@ async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
 		});
 
 		if (
-			["Yes", "No"].includes(filterData[i]["Enable Biometric Attendance (Yes, No)"]) &&
-			["Yes", "No"].includes(filterData[i]["Enable Mobile Attendance (Yes, No)"]) &&
-			["Yes", "No"].includes(filterData[i]["Enable Web Attendance (Yes, No)"]) &&
+			["Yes", "No"].includes(
+				filterData[i]["Enable Biometric Attendance (Yes, No)"],
+			) &&
+			["Yes", "No"].includes(
+				filterData[i]["Enable Mobile Attendance (Yes, No)"],
+			) &&
+			["Yes", "No"].includes(
+				filterData[i]["Enable Web Attendance (Yes, No)"],
+			) &&
 			filterData[i]["Employee ID"] &&
 			isExist
 		) {
 			let updateObj = {
 				enableBiometricAttendance:
-					filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+					filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes"
+						? 1
+						: 0,
 				enableMobileAttendance:
 					filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0,
 				enableWebAttendance:

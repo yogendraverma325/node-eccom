@@ -4062,9 +4062,9 @@ class PaymentController {
 				return res.end(report);
 			} else if (
 				getColumns.length > 0 &&
-				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19].includes(
-					Number(exportSheetAutoId),
-				)
+				[
+					1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+				].includes(Number(exportSheetAutoId))
 			) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);

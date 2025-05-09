@@ -5559,7 +5559,7 @@ class AttendanceController {
 
 	async cronforEMP(req, res) {
 		console.log("req.body", req.body);
-		let attendanceIds = (req.body.attendanceIds).split(",");
+		let attendanceIds = req.body.attendanceIds.split(",");
 		for (const attendanceIdSingle of attendanceIds) {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
@@ -5615,12 +5615,17 @@ class AttendanceController {
 					attendanceLateBy,
 				);
 
-				let workingTime = null
-				if ((attendanceData.attandanceShiftStartDate && attendanceData.attendancePunchInTime) && (attendanceData.attendanceShiftEndDate && attendanceData.attendancePunchOutTime)) {
+				let workingTime = null;
+				if (
+					attendanceData.attandanceShiftStartDate &&
+					attendanceData.attendancePunchInTime &&
+					attendanceData.attendanceShiftEndDate &&
+					attendanceData.attendancePunchOutTime
+				) {
 					workingTime = await helper.timeDifference(
 						`${attendanceData.attandanceShiftStartDate} ${attendanceData.attendancePunchInTime}`,
-						`${attendanceData.attendanceShiftEndDate} ${attendanceData.attendancePunchOutTime}`
-					)
+						`${attendanceData.attendanceShiftEndDate} ${attendanceData.attendancePunchOutTime}`,
+					);
 				}
 
 				await db.attendanceMaster.update(
@@ -6662,7 +6667,12 @@ const attedanceRosterCron = async (user, date) => {
 			limit: 1,
 		});
 
-		if (punchOutAttendanceHistory && punchInAttendanceHistory && (punchOutAttendanceHistory.dataValues.attendanceHistoryId != punchInAttendanceHistory.dataValues.attendanceHistoryId)) {
+		if (
+			punchOutAttendanceHistory &&
+			punchInAttendanceHistory &&
+			punchOutAttendanceHistory.dataValues.attendanceHistoryId !=
+				punchInAttendanceHistory.dataValues.attendanceHistoryId
+		) {
 			const punchOutObject = {
 				attendancePunchOutTime: punchOutAttendanceHistory.dataValues.time,
 				attendanceShiftEndDate: punchOutAttendanceHistory.dataValues.date,
