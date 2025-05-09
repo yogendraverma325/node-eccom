@@ -137,6 +137,42 @@ export default function getAllListeners(eventEmitter) {
 		await addressDetailsAdminActionMail(input);
 	});
 	//ritak address approval end
+
+	// appraisal-goal
+	eventEmitter.on("goalSubmission", async (input) => {
+		await goalSubmission(input);
+	});
+
+	eventEmitter.on("goalRecallSubmission", async (input) => {
+		await goalRecallSubmission(input);
+	});
+
+	eventEmitter.on("goalWeightageChange", async (input) => {
+		await goalWeightageChange(input);
+	});
+
+	eventEmitter.on("goalPartiallyActionOrApprovedAll", async (input) => {
+		await goalPartiallyActionOrApprovedAll(input);
+	});
+
+	eventEmitter.on("goalDeletedNotification", async (input) => {
+		await goalDeletedNotification(input);
+	});
+
+	// appraisal-goal
+	/// Wished Mail
+	eventEmitter.on("sendWorkWishMail", async (input) => {
+		await sendWorkAnniversaryMailToEmp(input);
+	});
+	eventEmitter.on("sendBirthWishMail", async (input) => {
+		await sendBirthWishMailToEmp(input);
+	});
+	eventEmitter.on("goalSubmissionByManager", async (input) => {
+		await goalSubmissionByManager(input);
+	});
+	eventEmitter.on("goalPlanAssignToEmployee", async (input) => {
+		await goalPlanAssignToEmployee(input);
+	});
 }
 
 async function regularizationRequestMail(input) {
@@ -690,3 +726,159 @@ async function compOffMailApproval(input) {
 	}
 }
 //ritak address approval end
+
+// goal-appraisal
+async function goalSubmission(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `${userData.name} submitted Goal Plan for your approval`,
+			html: await emailTemplate.goalSubmission(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalRecallSubmission(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `${userData.name} has recalled changes submitted on the goal plan`,
+			html: await emailTemplate.goalRecallSubmission(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalWeightageChange(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Goal is updated on your Goal Plan`,
+			html: await emailTemplate.goalWeightageChange(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalPartiallyActionOrApprovedAll(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Partial action taken on your Goal Plan by ${userData.managerName}`,
+			html: await emailTemplate.goalPartiallyActionOrApprovedAll(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalDeletedNotification(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+
+		await helper.mailService({
+			to: userData.email,
+			subject: "Goal deleted",
+			html: await emailTemplate.goalDeletedNotification(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function goalSubmissionByManager(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData>>>>>>", userData);
+		await helper.mailService({
+			to: userData.email,
+			subject: `${userData.managerName} has acted on your Goal Plan`,
+			html: await emailTemplate.goalSubmissionByManager(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+// goal-appraisal
+//Wished Mail
+async function sendWorkAnniversaryMailToEmp(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData", userData);
+		let response = await helper.mailService({
+			to: userData.userEmail,
+			subject: `Best wishes on your work anniversary!`,
+			html: await emailTemplate.sendWorkAnniversaryMail(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "Error while sending work anniversary mail");
+	}
+}
+
+async function sendBirthWishMailToEmp(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData", userData);
+		let response = await helper.mailService({
+			to: userData.userEmail,
+			subject: `Wishing you a Happy Birthday!`,
+			html: await emailTemplate.sendBirthWishMailToEmp(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "Error while sending birthday wish mail");
+	}
+}
+
+async function goalPlanAssignToEmployee(input) {
+	try {
+		const userData = JSON.parse(input);
+		console.log("userData", userData);
+		let response = await helper.mailService({
+			to: userData.email,
+			subject: `Goal Plan`,
+			html: await emailTemplate.goalPlanAssignToEmployee(userData),
+			cc: userData.cc,
+			senderEmail: userData.senderEmail,
+		});
+		// console.log("mail helper", response);
+		return response;
+	} catch (error) {
+		console.log(error);
+		error.log(error, "Error while sending birthday wish mail");
+	}
+}

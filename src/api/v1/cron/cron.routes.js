@@ -16,4 +16,10 @@ export default Express.Router()
 	//CONFIRMATION
 
 	.get("/biometricAttendance", cronController.biometricAttendance)
-	.get("/logs/:appName", cronController.getPm2Logs);
+	.get("/logs/:appName", cronController.getPm2Logs)
+	.get("/error_logs/:appName", cronController.error_logs)
+	.get("/getEmpForWishes", cronController.getEmpForWishes)
+	.get(
+		"/triggerHrPoliciesToUsersRoute",
+		cronController.triggerHrPoliciesToUsersRoute,
+	);

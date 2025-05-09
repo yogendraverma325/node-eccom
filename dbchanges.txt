@@ -1,4 +1,7 @@
-<<<<<<< HEAD
+//- ------------------------------------
+ALTER TABLE `tara`.`appraisalgoalsmaster` 
+CHANGE COLUMN `userAssignment` `userAssignment` VARCHAR(255) NULL DEFAULT NULL ;
+
 // ------------------------------------- 2025-03-21 ---------------------------------------------------//
 ALTER TABLE `tara_hrms_live`.`employee` 
 ADD COLUMN `enableBiometricAttendance` TINYINT NULL DEFAULT 0 AFTER `payrollInclude`,
@@ -1496,7 +1499,6 @@ SELECT * FROM tara.qrsessionshistory;
 
 
 
-=======
 // --------------------------------------2025-04-29--------------------------------------------------//
 
 CREATE TABLE `tara`.`pragatiactivities` (
@@ -3009,4 +3011,3 @@ SELECT * FROM tara.qrsessionshistory;
 
 
 
->>>>>>> harish_payroll_uat_release_appraisal

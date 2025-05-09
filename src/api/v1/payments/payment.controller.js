@@ -3964,7 +3964,8 @@ class PaymentController {
 				"PT Overrides": 15,
 				"LWF Overrides": 16,
 				"Notice Period Recovery": 17,
-				Arrears: 18,
+				Arrears: 19,
+				"Update Attendance Setting Sample": 18,
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -4061,7 +4062,7 @@ class PaymentController {
 				return res.end(report);
 			} else if (
 				getColumns.length > 0 &&
-				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].includes(
+				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19].includes(
 					Number(exportSheetAutoId),
 				)
 			) {

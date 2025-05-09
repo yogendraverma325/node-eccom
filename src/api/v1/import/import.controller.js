@@ -8,6 +8,8 @@ import { Op, where } from "sequelize";
 import moment from "moment";
 import { raw } from "mysql2";
 import eventEmitter from "../../../services/eventService.js";
+import constant from "../../../constant/messages.js";
+
 const financialMonth = {
 	1: "January",
 	2: "February",
@@ -44,6 +46,7 @@ class ImportController {
 				"Delete Extra Payment",
 				"Delete Standard Deduction",
 				"Arrears",
+				"Update Attendance Setting",
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -99,6 +102,8 @@ class ImportController {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Arrears") {
 				await arrearsUpload(req, res, OperationType, importInfoObject);
+			} else if (req.body.uploadType == "Update Attendance Setting") {
+				await updateAttendanceSetting(req, res, FILEDATA, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -1841,4 +1846,86 @@ async function createImportDetails(params) {
 	let importInfo = await db.ImportInfo.create(params);
 	let importInfoRaw = importInfo.get({ plain: true });
 	return importInfoRaw.importAutoId;
+}
+
+async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
+	if (!req.file) {
+		return respHelper(res, {
+			status: 400,
+			msg: "File is required!",
+		});
+	}
+
+	if (
+		!["Yes", "No"].includes(FILEDATA[0]["Enable Biometric Attendance (Yes, No)"]) ||
+		!["Yes", "No"].includes(FILEDATA[0]["Enable Mobile Attendance (Yes, No)"]) ||
+		!["Yes", "No"].includes(FILEDATA[0]["Enable Web Attendance (Yes, No)"]) ||
+		!FILEDATA[0]["Employee ID"]
+	) {
+		return respHelper(res, {
+			status: 400,
+			msg: "Invalid File Format",
+		});
+	}
+
+	let successArray = [];
+	let errorArray = [];
+
+	const filterData = FILEDATA.filter((item) => item["Employee ID"]);
+
+	for (let i = 0; filterData.length > i; i++) {
+		const isExist = await db.employeeMaster.findOne({
+			where: { empCode: String(filterData[i]["Employee ID"]) },
+			attributes: ["id", "empCode"],
+			raw: true,
+		});
+
+		if (
+			["Yes", "No"].includes(filterData[i]["Enable Biometric Attendance (Yes, No)"]) &&
+			["Yes", "No"].includes(filterData[i]["Enable Mobile Attendance (Yes, No)"]) &&
+			["Yes", "No"].includes(filterData[i]["Enable Web Attendance (Yes, No)"]) &&
+			filterData[i]["Employee ID"] &&
+			isExist
+		) {
+			let updateObj = {
+				enableBiometricAttendance:
+					filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+				enableMobileAttendance:
+					filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+				enableWebAttendance:
+					filterData[i]["Enable Web Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+			};
+
+			await db.employeeMaster.update(updateObj, {
+				where: { empCode: String(filterData[i]["Employee ID"]) },
+			});
+			// push object in success array
+			successArray.push({
+				importedRow: filterData[i]["Employee ID"],
+				importAutoId: isExist.id,
+				importStatus: 1,
+				createdBy: req.userId,
+				importStatusDesc: "Attendance setting update successfully.",
+			});
+		} else {
+			// push object in failure array
+			errorArray.push({
+				importedRow: filterData[i]["Employee ID"],
+				importAutoId: 0,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: !isExist ? "Invalid TMC" : "Invalid columny value",
+			});
+			i++;
+		}
+	}
+
+	return respHelper(res, {
+		status: 202,
+		msg: "Attendance setting update successfully.",
+		data: {
+			SuccessRecord: successArray.length,
+			ErrorRecord: errorArray.length,
+		},
+	});
 }
