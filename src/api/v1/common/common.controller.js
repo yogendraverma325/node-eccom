@@ -2617,6 +2617,7 @@ class commonController {
 			const offset = (pageNumber - 1) * pageLimit;
 	
 			const whereClause = {
+				isDeleted: 0,
 				category_id: categoryId, // always include category filter
 				...(is_archived !== "" && { is_archived }),
 				...(search && {
@@ -2897,7 +2898,7 @@ class commonController {
 			let query = { id: req.params.id };
 			console.log("Received id:", req.params.id);
 
-			let updateMetaData = { isDeleted: 1 };
+			let updateMetaData = { isDeleted: 1, isActive: 0,  updatedAt: moment() };
 			let moduleName = "Hr Policy";
 			let response = await service.delete(
 				model,

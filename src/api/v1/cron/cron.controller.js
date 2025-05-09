@@ -2491,17 +2491,29 @@ class CronController {
 					}
 	
 					if (policy.TriggerOnDateOfJoining) {
+						if (policy.isEdited === 1) {
+
+						await db.hrPolicySignoffs.destroy({
+							where: { hr_policy_id: policy.id, user_id: employee.id }
+						});
+					}
 						const empJoiningDate = employee.dateOfJoining;
 						const policyJoiningDate = policy.dateOfJoining;
-						if (empJoiningDate === today && empJoiningDate >= policyJoiningDate) {
+						if (empJoiningDate >= policyJoiningDate && empJoiningDate <= today) {
 							triggerReasons.push("Date of Joining matched");
 						}
 					}
 	
 					if (policy.TriggerOnDateOfConfirmation) {
+						if (policy.isEdited === 1) {
+
+						await db.hrPolicySignoffs.destroy({
+							where: { hr_policy_id: policy.id, user_id: employee.id }
+						});
+					}
 						const empConfirmationDate = employee.employeejobdetail?.confirmationDate;
 						const policyConfirmationDate = policy.dateOfConfirmation;
-						if (empConfirmationDate === today && empConfirmationDate >= policyConfirmationDate) {
+						if (empConfirmationDate >= policyConfirmationDate && empConfirmationDate <= today) {
 							triggerReasons.push("Date of Confirmation matched");
 						}
 					}

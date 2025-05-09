@@ -41,6 +41,10 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TINYINT,
 			defaultValue: 0,
 		},
+		isDeleted: {
+			type: Sequelize.TINYINT,
+			defaultValue: 0,
+		},
 		isActive: {
 			type: Sequelize.TINYINT,
 			defaultValue: 1,
