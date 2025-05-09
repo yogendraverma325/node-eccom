@@ -45,7 +45,7 @@ class ImportController {
 				"Delete LOP",
 				"Delete Extra Payment",
 				"Delete Standard Deduction",
-				"Update Attendance Setting",
+				"Attendance Assignment",
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -98,8 +98,8 @@ class ImportController {
 				await uploadCTC(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
-			} else if (req.body.uploadType == "Update Attendance Setting") {
-				await updateAttendanceSetting(req, res, FILEDATA, importInfoObject);
+			} else if (req.body.uploadType == "Attendance Assignment") {
+				await attendanceAssignment(req, res, FILEDATA, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -1668,7 +1668,7 @@ async function createImportDetails(params) {
 	return importInfoRaw.importAutoId;
 }
 
-async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
+async function attendanceAssignment(req, res, FILEDATA, importParams) {
 	if (!req.file) {
 		return respHelper(res, {
 			status: 400,
@@ -1676,17 +1676,17 @@ async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
 		});
 	}
 
-	if (
-		!["Yes", "No"].includes(FILEDATA[0]["Enable Biometric Attendance (Yes, No)"]) ||
-		!["Yes", "No"].includes(FILEDATA[0]["Enable Mobile Attendance (Yes, No)"]) ||
-		!["Yes", "No"].includes(FILEDATA[0]["Enable Web Attendance (Yes, No)"]) ||
-		!FILEDATA[0]["Employee ID"]
-	) {
-		return respHelper(res, {
-			status: 400,
-			msg: "Invalid File Format",
-		});
-	}
+	// if (
+	// 	!["Yes", "No"].includes(FILEDATA[0]["Enable Biometric Attendance (Yes, No)"]) ||
+	// 	!["Yes", "No"].includes(FILEDATA[0]["Enable Mobile Attendance (Yes, No)"]) ||
+	// 	!["Yes", "No"].includes(FILEDATA[0]["Enable Web Attendance (Yes, No)"]) ||
+	// 	!FILEDATA[0]["Employee ID"]
+	// ) {
+	// 	return respHelper(res, {
+	// 		status: 400,
+	// 		msg: "Invalid File Format",
+	// 	});
+	// }
 
 	let successArray = [];
 	let errorArray = [];
@@ -1696,29 +1696,95 @@ async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
 	for (let i = 0; filterData.length > i; i++) {
 		const isExist = await db.employeeMaster.findOne({
 			where: { empCode: String(filterData[i]["Employee ID"]) },
-			attributes: ["id", "empCode"],
+			attributes: ["id", "empCode", "shiftId", "weekOffId", "attendancePolicyId"],
 			raw: true,
 		});
 
 		if (
-			["Yes", "No"].includes(filterData[i]["Enable Biometric Attendance (Yes, No)"]) &&
-			["Yes", "No"].includes(filterData[i]["Enable Mobile Attendance (Yes, No)"]) &&
-			["Yes", "No"].includes(filterData[i]["Enable Web Attendance (Yes, No)"]) &&
-			filterData[i]["Employee ID"] &&
+			// ["Yes", "No"].includes(filterData[i]["Enable Biometric Attendance (Yes, No)"]) &&
+			// ["Yes", "No"].includes(filterData[i]["Enable Mobile Attendance (Yes, No)"]) &&
+			// ["Yes", "No"].includes(filterData[i]["Enable Web Attendance (Yes, No)"]) &&
+			// filterData[i]["Employee ID"] &&
 			isExist
 		) {
+			
 			let updateObj = {
-				enableBiometricAttendance:
-					filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes" ? 1 : 0,
-				enableMobileAttendance:
-					filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0,
-				enableWebAttendance:
-					filterData[i]["Enable Web Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+				...(filterData[i]["Enable Biometric Attendance (Yes, No)"] && { 
+					enableBiometricAttendance: filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes" ? 1 : 0 }),
+				...(filterData[i]["Enable Mobile Attendance (Yes, No)"] && {
+					enableMobileAttendance:
+					filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0
+				}),
+				...(filterData[i]["Enable Web Attendance (Yes, No)"] && {
+					enableWebAttendance: filterData[i]["Enable Web Attendance (Yes, No)"] == "Yes" ? 1 : 0 
+				})
 			};
 
-			await db.employeeMaster.update(updateObj, {
-				where: { empCode: String(filterData[i]["Employee ID"]) },
-			});
+			if(filterData[i]["Enable Biometric Attendance (Yes, No)"] && filterData[i]["Enable Mobile Attendance (Yes, No)"] &&
+				filterData[i]["Enable Web Attendance (Yes, No)"]
+			) {
+				await db.employeeMaster.update(updateObj, {
+					where: { empCode: String(filterData[i]["Employee ID"]) },
+				});
+			}
+
+			let effectedFromDate = filterData[i]["Attendance Effective From"];
+			console.log("effectedFromDate", effectedFromDate);
+			console.log("requestedDate----------", filterData[i]);
+			effectedFromDate = effectedFromDate ? convertExcelDate(effectedFromDate) : "";
+			console.log("effectedFromDate", effectedFromDate);
+
+			// fetch shift, weekoff and attendance policy
+			
+			if(filterData[i]["Shift Name"] && filterData[i]["Week Off Name"] && filterData[i]["Attendance Policy Name"] && filterData[i]["Attendance Affective From"] && effectedFromDate >= moment("YYYY-MM-DD")) {
+				let shiftDetails = await db.shiftMaster.findOne({ where: { "shiftName": String(filterData[i]["Shift Name"]) }, attributes: 'shiftId', raw: true });
+				let weekOffDetails = await db.weekOffMaster.findOne({ where: { "weekOffName": String(filterData[i]["Week Off Name"]) }, attributes: 'weekOffId', raw: true });
+
+				let attendancePolicyDetails = await db.attendancePolicymaster.findOne({ where: { "attendancePolicyName": String(filterData[i]["Attendance Policy Name"]) }, attributes: 'attendancePolicyId', raw: true });
+				if(shiftDetails && weekOffDetails && attendancePolicyDetails) {
+
+					const recordsExistForDate = await db.PolicyHistory.findOne({
+						raw: true,
+						where: {
+							fromDate: effectedFromDate,
+							needAttendanceCron: 1,
+							employeeId: isExist.id,
+						},
+					});
+
+					if (!recordsExistForDate) {
+						let createHistory = {
+							employeeId: isExist.id,
+							shiftPolicy: shiftDetails
+								? shiftDetails.shiftId
+								: isExist.shiftId,
+							currentshiftPolicy: isExist.shiftId,
+							attendancePolicy: attendancePolicyDetails
+								? attendancePolicyDetails.attendancePolicyId
+								: isExist.attendancePolicyId,
+							currentattendancePolicy: isExist.attendancePolicyId,
+							weekOffPolicy: weekOffDetails
+								? weekOffDetails.weekOffId
+								: isExist.weekOffId,
+							currentweekOffPolicy: isExist.weekOffId,
+							fromDate: effectedFromDate
+								? effectedFromDate
+								: moment().add(1, "day").format("YYYY-MM-DD"),
+							toDate: null,
+							createdBy: req.userId,
+							createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+						};
+						await db.PolicyHistory.create(createHistory);
+					} 
+					else {
+						i++;
+					}
+				}
+				else {
+					i++;
+				}
+			}
+
 			// push object in success array
 			successArray.push({
 				importedRow: filterData[i]["Employee ID"],
@@ -1742,10 +1808,17 @@ async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
 
 	return respHelper(res, {
 		status: 202,
-		msg: "Attendance setting update successfully.",
+		msg: "Attendance assignment update successfully.",
 		data: {
 			SuccessRecord: successArray.length,
 			ErrorRecord: errorArray.length,
 		},
 	});
 }
+
+// Function to convert Excel serial date to JS Date
+
+const convertExcelDate = (serial) => {
+	const date = new Date((serial - 25569) * 86400 * 1000);
+	return moment(date).format("YYYY-MM-DD");
+};
