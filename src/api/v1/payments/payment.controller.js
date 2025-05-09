@@ -5208,7 +5208,7 @@ class PaymentController {
 			};
 			//const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
 			//const letter = await emailTemplate.fnfPaySlipPdf(body);
-			const letter = salaryDetails[0].paySlipType=='Regular'?await emailTemplate.fnfPaySlipPdf(body):await emailTemplate.salarySlipPdf(body);
+			const letter = salaryDetails[0].paySlipType=='FandF'?await emailTemplate.fnfPaySlipPdf(body):await emailTemplate.salarySlipPdf(body);
 			//console.log(letter);
 			// Puppeteer for PDF generation
 			const browser = await puppeteer.launch({
