@@ -7881,7 +7881,7 @@ const groupByEmployeeId = (data) => {
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
-				)+
+				) +
 				parseFloat(result["earningArrears"] ? result["earningArrears"] : 0),
 		);
 		let totalDeduction = parseFloat(
@@ -7890,7 +7890,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
-				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0)+
+				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
 				parseFloat(result["deductionArrears"] ? result["deductionArrears"] : 0),
 		);
 		let payableAmount = totalEarning - totalDeduction;

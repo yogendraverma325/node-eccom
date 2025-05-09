@@ -4190,7 +4190,7 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 const salarySlipPdf = async (data) => {
-  console.log("Pay Slip ,,,")
+	console.log("Pay Slip ,,,");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 
@@ -4401,7 +4401,7 @@ const salarySlipPdf = async (data) => {
 };
 
 const fnfPaySlipPdf = async (data) => {
-  console.log("FNF PAY SLIP.......")
+	console.log("FNF PAY SLIP.......");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 
@@ -4616,7 +4616,7 @@ const fnfPaySlipPdf = async (data) => {
     </div>
 </body>
 </html>`;
-}
+};
 function numberToWords(num) {
 	const ones = [
 		"",
@@ -5225,6 +5225,6 @@ export default {
 	addressDetailsApprovalRequestMail,
 	compOffMail,
 	compOffMailAppval,
-  fnfPaySlipPdf
+	fnfPaySlipPdf,
 	//ritak address approval end
 };

@@ -202,7 +202,7 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
 			arrearName: "PF Arrears",
 			arrearAmunt: pfArrearAmoun,
 			type: "Deduction",
-			seq:999,
+			seq: 999,
 		});
 	}
 

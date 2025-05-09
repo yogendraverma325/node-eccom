@@ -84,9 +84,9 @@ export default (sequelize, Sequelize) => {
 		recoveryDays: {
 			type: Sequelize.DECIMAL(3, 2),
 		},
-		arrearsDay:{
-			type:Sequelize.DECIMAL(3,2)
-		}
+		arrearsDay: {
+			type: Sequelize.DECIMAL(3, 2),
+		},
 	});
 	return paySlips;
 };

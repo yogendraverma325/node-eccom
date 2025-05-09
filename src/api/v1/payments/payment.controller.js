@@ -5128,17 +5128,25 @@ class PaymentController {
 
 			const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear}`;
 
-			let years=0,months=0;
-		
-			if(employee?.dataValues.dateOfExit && employee?.employeejobdetail?.dateOfJoining)
-			{
-				 years = moment(employee.dataValues.dateOfExit).diff(moment(employee?.employeejobdetail?.dateOfJoining), "years");
-				 months = moment(employee.dataValues.dateOfExit).diff(
-					moment(employee?.employeejobdetail?.dateOfJoining).clone().add(years, "years"),
+			let years = 0,
+				months = 0;
+
+			if (
+				employee?.dataValues.dateOfExit &&
+				employee?.employeejobdetail?.dateOfJoining
+			) {
+				years = moment(employee.dataValues.dateOfExit).diff(
+					moment(employee?.employeejobdetail?.dateOfJoining),
+					"years",
+				);
+				months = moment(employee.dataValues.dateOfExit).diff(
+					moment(employee?.employeejobdetail?.dateOfJoining)
+						.clone()
+						.add(years, "years"),
 					"months",
 				);
 
-				 months = String(months).padStart(2, '0');
+				months = String(months).padStart(2, "0");
 			}
 
 			//console.log(employee);
@@ -5200,15 +5208,17 @@ class PaymentController {
 				encashmentDays: salaryDetails[0]?.encashmentDays || "N.A",
 				recoveryDays: salaryDetails[0]?.recoveryDays || "N.A",
 				lastDayOfService: moment(employee?.dateOfExit).isValid()
-					? moment(employee?.dateOfExit).format('Do MMMM YYYY')
+					? moment(employee?.dateOfExit).format("Do MMMM YYYY")
 					: "N.A",
 				yearsOfService: years,
 				monthOfService: months,
-				
 			};
 			//const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
 			//const letter = await emailTemplate.fnfPaySlipPdf(body);
-			const letter = salaryDetails[0].paySlipType=='FandF'?await emailTemplate.fnfPaySlipPdf(body):await emailTemplate.salarySlipPdf(body);
+			const letter =
+				salaryDetails[0].paySlipType == "FandF"
+					? await emailTemplate.fnfPaySlipPdf(body)
+					: await emailTemplate.salarySlipPdf(body);
 			//console.log(letter);
 			// Puppeteer for PDF generation
 			const browser = await puppeteer.launch({
@@ -5951,7 +5961,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
 				) +
-				parseFloat(result? result["earningArrears"] : 0),
+				parseFloat(result ? result["earningArrears"] : 0),
 		);
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
@@ -5994,7 +6004,7 @@ const groupByEmployeeId = (data) => {
 				"Standard Deductions Categories": item["Advance Name"], //29
 				"Standard Deductions": item["Advance Amount"], //30
 				"LWF Amount": item["LWF AMOUNT"], //31
-				"PF Arrears":result?result.mergeObject['PF Arrears']:0,
+				"PF Arrears": result ? result.mergeObject["PF Arrears"] : 0,
 				"Total Deductions": totalDeduction, //32
 				/////Added ///////////
 				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"], //33
@@ -6012,8 +6022,9 @@ const groupByEmployeeId = (data) => {
 				[item["Element Name"] + " Arrear"]: 0,
 			});
 			Object.assign(groupedData[employeeId], {
-				[item["Element Name"] + " Arrear"]:
-				result?result.mergeObject[item["Element Name"] + " Arrears"]:0,
+				[item["Element Name"] + " Arrear"]: result
+					? result.mergeObject[item["Element Name"] + " Arrears"]
+					: 0,
 			});
 
 			let newObj = {
@@ -6596,7 +6607,7 @@ async function generatePaySlip(data) {
 						paySlipStatus: 0,
 						createdAt: new Date(),
 						payMonth: payMonthlyElement.payMonth,
-						arrearsDay:getArrearsEarningAndDeductionAmounts.arearDays,
+						arrearsDay: getArrearsEarningAndDeductionAmounts.arearDays,
 						paySlipType: "Regular",
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
