@@ -7856,8 +7856,6 @@ class MasterController {
 const groupByEmployeeId = (data) => {
 	const groupedData = {};
 	data.forEach((item, index) => {
-<<<<<<< HEAD
-=======
 		let result = null;
 		if (item["arrearsDetails"]) {
 			let arrearDetails = item["arrearsDetails"]
@@ -7878,18 +7876,13 @@ const groupByEmployeeId = (data) => {
 				}
 			});
 		}
->>>>>>> fnf_new
 		const employeeId = item["Employee Id"];
 		let totalEarning = parseFloat(
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
-<<<<<<< HEAD
-				),
-=======
 				) +
 				parseFloat(result["earningArrears"] ? result["earningArrears"] : 0),
->>>>>>> fnf_new
 		);
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
@@ -7897,12 +7890,8 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
-<<<<<<< HEAD
-				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
-=======
 				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
 				parseFloat(result["deductionArrears"] ? result["deductionArrears"] : 0),
->>>>>>> fnf_new
 		);
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = paymentHelper.customRound(payableAmount);

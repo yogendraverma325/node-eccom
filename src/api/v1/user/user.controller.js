@@ -6956,7 +6956,7 @@ class UserController {
 				],
 			});
 
-            var reqUserRole = req.userData["role.name"];
+			var reqUserRole = req.userData["role.name"];
 
 			const isSameDetails = await db.employeeAddress.findOne({
 				where: {
@@ -7099,7 +7099,6 @@ class UserController {
 						companyLogo: existUser["companymaster.companyLogo"],
 					}),
 				);
-
 
 				return respHelper(res, {
 					status: 200,

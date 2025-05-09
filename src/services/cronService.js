@@ -4,9 +4,8 @@ import attendanceController from "../api/v1/attendance/attendance.controller.js"
 import helper from "../helper/helper.js";
 import userController from "../api/v1/user/user.controller.js";
 
-
 cron.schedule("00 05 * * *", async () => {
-await cronController.getEmpForWishes();
+	await cronController.getEmpForWishes();
 });
 
 cron.schedule("30 03 * * *", async () => {
@@ -42,10 +41,10 @@ cron.schedule("10 8 * * *", async () => {
 	await helper.leaveRefil();
 });
 
-cron.schedule("0 1 * * *", async () => {  // 1 AM
-    await cronController.triggerHrPoliciesToUsersCron();
+cron.schedule("0 1 * * *", async () => {
+	// 1 AM
+	await cronController.triggerHrPoliciesToUsersCron();
 });
-
 
 cron.schedule("0 6 * * *", async () => {
 	await cronController.generateConfirmation();
