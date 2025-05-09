@@ -41,14 +41,14 @@ cron.schedule("10 8 * * *", async () => {
 	//await helper.leaveRefil();
 });
 
-// cron.schedule("0 23 * * *", async () => {
-// 	// 11 PM
-// 	await cronController.triggerHrPoliciesToUsersCron();
-// });
-cron.schedule("* * * * *", async () => {
-	//
+cron.schedule("0 23 * * *", async () => {
+	// 11 PM
 	await cronController.triggerHrPoliciesToUsersCron();
 });
+// cron.schedule("* * * * *", async () => {
+// 	//
+// 	await cronController.triggerHrPoliciesToUsersCron();
+// });
 
 cron.schedule("0 6 * * *", async () => {
 	//await cronController.generateConfirmation();
