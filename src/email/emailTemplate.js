@@ -4562,6 +4562,10 @@ const fnfPaySlipPdf = async (data) => {
         <td colspan="2" style="width: 40%;"><strong>Total Arrear Days:</strong> ${data.totalArrearDays}</td>
     </tr>
     <tr>
+        <td colspan="3" style="width: 60%;"><strong>Encashment Days:</strong> ${data.encashmentDays}</td>
+        <td colspan="2" style="width: 40%;"><strong>Recovery Days:</strong> ${data.recoveryDays}</td>
+    </tr>
+    <tr>
         <td colspan="3" style="width: 60%;"><strong>Provident Fund:</strong> ${data.providentFund}</td>
         <td colspan="2" style="width: 40%;"><strong>ESIC Number:</strong> ${data.esicNo}</td>
     </tr>
