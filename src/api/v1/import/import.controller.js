@@ -1711,7 +1711,7 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 
 					if (OperationType == 2 && !existArrear) {
 						errorArray.push({
-							importedRow: JSON.stringify(existArrear),
+							importedRow: JSON.stringify(employeeArrears),
 							importAutoId: importId,
 							importStatus: 2,
 							createdBy: req.userData.id,
@@ -1739,7 +1739,7 @@ async function arrearsUpload(req, res, OperationType, importParams) {
 						earningArears["ACTION_TYPE"] = "CREATE";
 					}
 					successArray.push({
-						importedRow: JSON.stringify(earningArears),
+						importedRow: JSON.stringify(employeeArrears),
 						importAutoId: importId,
 						importStatus: 1,
 						createdBy: req.userData.id,
