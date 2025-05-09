@@ -7172,14 +7172,14 @@ class UserController {
 						],
 					},
 				],
-				order: [[db.hrPolicies, "updatedAt", "DESC"]], 
+				order: [[db.hrPolicies, "updatedAt", "DESC"]],
 			});
 
-		//	if (!unsignedPolicies.length && !signedPolicies.length) {
-				//return respHelper(res, {
-				//	status: 404,
-				//	msg: "No HR policies found for this employee",
-				//});
+			//	if (!unsignedPolicies.length && !signedPolicies.length) {
+			//return respHelper(res, {
+			//	status: 404,
+			//	msg: "No HR policies found for this employee",
+			//});
 			//}
 
 			return respHelper(res, {

@@ -1873,11 +1873,11 @@ class CronController {
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-					}
+							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+						}
 					: {
-						password: process.env.SSH_PASSWORD,
-					},
+							password: process.env.SSH_PASSWORD,
+						},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1931,8 +1931,8 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-									instanceName: process.env.SERVER_DB_INSTANCE,
-								},
+										instanceName: process.env.SERVER_DB_INSTANCE,
+									},
 						),
 					},
 					logging: false,
@@ -2301,27 +2301,30 @@ class CronController {
 		const start = performance.now();
 		const today = new Date().toISOString().split("T")[0];
 		const todayDate = new Date(today);
-	
+
 		const LOG = {
 			start: (msg) => console.log(`🚀 [START] ${msg}`),
 			info: (msg) => console.log(`ℹ️ [INFO] ${msg}`),
-			section: (title) => console.log(`\n================== ${title.toUpperCase()} ==================\n`),
+			section: (title) =>
+				console.log(
+					`\n================== ${title.toUpperCase()} ==================\n`,
+				),
 			step: (msg) => console.log(`➡️ ${msg}`),
 			success: (msg) => console.log(`✅ ${msg}`),
 			warn: (msg) => console.log(`⚠️ ${msg}`),
 			error: (msg) => console.error(`❌ [ERROR] ${msg}`),
 			done: (msg) => console.log(`🎯 ${msg}`),
 		};
-	
+
 		let totalTriggeredSignoffs = 0;
 		let totalRemovedSignoffs = 0;
 		let totalNewlyAddedSignoffs = 0;
-	
+
 		try {
 			LOG.start("Triggering HR Policies to Users");
 			LOG.info(`Start Time: ${new Date().toISOString()}`);
 			LOG.info(`Today's Date: ${today}`);
-	
+
 			// ARCHIVING EXPIRED POLICIES
 			LOG.section("ARCHIVING EXPIRED POLICIES");
 			const expiredPolicies = await db.hrPolicies.findAll({
@@ -2334,23 +2337,27 @@ class CronController {
 					},
 				},
 			});
-	
+
 			for (const policy of expiredPolicies) {
-				LOG.step(`Archiving Policy → ID: ${policy.id}, Name: '${policy.name}', Version: ${policy.version}`);
+				LOG.step(
+					`Archiving Policy → ID: ${policy.id}, Name: '${policy.name}', Version: ${policy.version}`,
+				);
 			}
-	
+
 			if (expiredPolicies.length) {
-				const expiredPolicyIds = expiredPolicies.map(p => p.id);
+				const expiredPolicyIds = expiredPolicies.map((p) => p.id);
 				await db.hrPolicies.update(
 					{ is_archived: 1, isActive: 0 },
-					{ where: { id: expiredPolicyIds } }
+					{ where: { id: expiredPolicyIds } },
 				);
-	
+
 				const affectedSignoffs = await db.hrPolicySignoffs.findAll({
 					where: { hr_policy_id: { [Op.in]: expiredPolicyIds } },
 				});
-	
-				const affectedEmployeeIds = [...new Set(affectedSignoffs.map(s => s.user_id))];
+
+				const affectedEmployeeIds = [
+					...new Set(affectedSignoffs.map((s) => s.user_id)),
+				];
 				for (const userId of affectedEmployeeIds) {
 					const pendingSignoffs = await db.hrPolicySignoffs.count({
 						where: { user_id: userId, status: "pending" },
@@ -2358,16 +2365,18 @@ class CronController {
 					if (pendingSignoffs === 0) {
 						await db.employeeMaster.update(
 							{ showHrPolicyModal: 0 },
-							{ where: { id: userId } }
+							{ where: { id: userId } },
 						);
-						LOG.step(`Modal Disabled → Employee ID: ${userId} (no pending signoffs)`);
+						LOG.step(
+							`Modal Disabled → Employee ID: ${userId} (no pending signoffs)`,
+						);
 					}
 				}
 				LOG.success(`Archived ${expiredPolicies.length} expired policies`);
 			} else {
 				LOG.info("No expired policies to archive");
 			}
-	
+
 			// FETCH ACTIVE POLICIES
 			LOG.section("FETCHING ACTIVE POLICIES");
 			const policies = await db.hrPolicies.findAll({
@@ -2377,28 +2386,34 @@ class CronController {
 				},
 			});
 			LOG.success(`Fetched ${policies.length} active policies`);
-	
+
 			async function upsertSignoff(policyId, userId, status, isPolicyEdited) {
 				const existing = await db.hrPolicySignoffs.findOne({
 					where: { hr_policy_id: policyId, user_id: userId },
 				});
-	
+
 				if (!existing) {
-					await db.hrPolicySignoffs.create({ hr_policy_id: policyId, user_id: userId, status });
+					await db.hrPolicySignoffs.create({
+						hr_policy_id: policyId,
+						user_id: userId,
+						status,
+					});
 					LOG.step(`🆕 Signoff Created → User ${userId}, Status: '${status}'`);
 					totalNewlyAddedSignoffs++;
 					return true;
 				}
-	
+
 				if (!isPolicyEdited && existing.status !== "pending") {
-					LOG.warn(`Signoff Skipped → User ${userId} already '${existing.status}' (Policy not edited)`);
+					LOG.warn(
+						`Signoff Skipped → User ${userId} already '${existing.status}' (Policy not edited)`,
+					);
 					return false;
 				}
-	
+
 				if (existing.status !== status) {
 					await db.hrPolicySignoffs.update(
 						{ status, declineReason: "", deviceIp: "", device: "" },
-						{ where: { hr_policy_id: policyId, user_id: userId } }
+						{ where: { hr_policy_id: policyId, user_id: userId } },
 					);
 					LOG.step(`🔁 Signoff Updated → User ${userId}, Status: '${status}'`);
 					return true;
@@ -2407,20 +2422,26 @@ class CronController {
 					return false;
 				}
 			}
-	
+
 			LOG.section("PROCESSING EACH POLICY");
-	
+
 			for (const policy of policies) {
-				LOG.info(`Policy: '${policy.name}' | ID: ${policy.id} | Version: ${policy.version}`);
-	
+				LOG.info(
+					`Policy: '${policy.name}' | ID: ${policy.id} | Version: ${policy.version}`,
+				);
+
 				const userAssignmentIds = policy.selectedUsers
-					? policy.selectedUsers.toString().split(',').map(id => id.trim()).filter(Boolean)
+					? policy.selectedUsers
+							.toString()
+							.split(",")
+							.map((id) => id.trim())
+							.filter(Boolean)
 					: [];
-	
+
 				const employeeMap = new Map();
 				for (const assignmentId of userAssignmentIds) {
 					const empList = await getEmployeesByUserAssignmentId(assignmentId);
-					empList.forEach(emp => {
+					empList.forEach((emp) => {
 						const empId = emp.dataValues?.id || emp.id;
 						if (!employeeMap.has(empId)) {
 							employeeMap.set(empId, emp);
@@ -2428,60 +2449,80 @@ class CronController {
 					});
 				}
 				const eligibleEmployees = Array.from(employeeMap.values());
-				const eligibleIdsSet = new Set(eligibleEmployees.map(e => e.dataValues?.id || e.id));
-	
+				const eligibleIdsSet = new Set(
+					eligibleEmployees.map((e) => e.dataValues?.id || e.id),
+				);
+
 				const existingSignoffs = await db.hrPolicySignoffs.findAll({
 					where: { hr_policy_id: policy.id },
 				});
-	
+
 				// === REMOVE INELIGIBLE SIGNOFFS ===
 				for (const signoff of existingSignoffs) {
 					if (!eligibleIdsSet.has(signoff.user_id) && policy.isEdited !== 1) {
 						await db.hrPolicySignoffs.destroy({
-							where: { hr_policy_id: policy.id, user_id: signoff.user_id }
+							where: { hr_policy_id: policy.id, user_id: signoff.user_id },
 						});
 						const pending = await db.hrPolicySignoffs.count({
-							where: { user_id: signoff.user_id, status: "pending" }
+							where: { user_id: signoff.user_id, status: "pending" },
 						});
 						if (pending === 0) {
 							await db.employeeMaster.update(
 								{ showHrPolicyModal: 0 },
-								{ where: { id: signoff.user_id } }
+								{ where: { id: signoff.user_id } },
 							);
 						}
-						LOG.step(`🗑️ Removed Ineligible Signoff → User ID: ${signoff.user_id}`);
+						LOG.step(
+							`🗑️ Removed Ineligible Signoff → User ID: ${signoff.user_id}`,
+						);
 						totalRemovedSignoffs++;
 					}
 				}
-	
+
 				// === TRIGGER NEW ELIGIBLE EMPLOYEES ===
 				for (const emp of eligibleEmployees) {
 					const employee = emp.dataValues || emp;
-	
-					const alreadyExists = existingSignoffs.find(s => s.user_id === employee.id);
+
+					const alreadyExists = existingSignoffs.find(
+						(s) => s.user_id === employee.id,
+					);
 					if (alreadyExists && policy.isEdited !== 1) continue;
-	
+
 					if (!policy.sign_off_enabled) {
 						const from = new Date(policy.effective_date_from);
-						const to = policy.effective_date_to ? new Date(policy.effective_date_to) : null;
-						const isInRange = !to ? todayDate >= from : todayDate >= from && todayDate <= to;
-	
+						const to = policy.effective_date_to
+							? new Date(policy.effective_date_to)
+							: null;
+						const isInRange = !to
+							? todayDate >= from
+							: todayDate >= from && todayDate <= to;
+
 						if (isInRange) {
-							await upsertSignoff(policy.id, employee.id, "auto-signedOff", policy.isEdited === 1);
+							await upsertSignoff(
+								policy.id,
+								employee.id,
+								"auto-signedOff",
+								policy.isEdited === 1,
+							);
 							totalTriggeredSignoffs++;
 						}
 						continue;
 					}
-	
+
 					const triggerReasons = [];
-	
-					if (policy.TriggerOnPolicyCreateEdit && policy.updatedAt?.toISOString().split("T")[0] === today) {
+
+					if (
+						policy.TriggerOnPolicyCreateEdit &&
+						policy.updatedAt?.toISOString().split("T")[0] === today
+					) {
 						triggerReasons.push("Policy Created/Edited Today");
 					}
-	
+
 					const effectiveFrom = new Date(policy.effective_date_from);
-					const effectiveTo = policy.effective_date_to ? new Date(policy.effective_date_to) : null;
-	
+					const effectiveTo = policy.effective_date_to
+						? new Date(policy.effective_date_to)
+						: null;
+
 					if (
 						policy.TriggerOnEffectiveFrom &&
 						todayDate >= effectiveFrom &&
@@ -2489,7 +2530,7 @@ class CronController {
 					) {
 						triggerReasons.push("Effective Date is Today or in Effect");
 					}
-	
+
 					if (policy.TriggerOnDateOfJoining) {
 						if (policy.isEdited === 1) {
 
@@ -2503,7 +2544,7 @@ class CronController {
 							triggerReasons.push("Date of Joining matched");
 						}
 					}
-	
+
 					if (policy.TriggerOnDateOfConfirmation) {
 						if (policy.isEdited === 1) {
 
@@ -2517,27 +2558,32 @@ class CronController {
 							triggerReasons.push("Date of Confirmation matched");
 						}
 					}
-	
+
 					if (triggerReasons.length) {
-						const triggered = await upsertSignoff(policy.id, employee.id, "pending", policy.isEdited === 1);
+						const triggered = await upsertSignoff(
+							policy.id,
+							employee.id,
+							"pending",
+							policy.isEdited === 1,
+						);
 						if (triggered) {
 							await db.employeeMaster.update(
 								{ showHrPolicyModal: 1 },
-								{ where: { id: employee.id } }
+								{ where: { id: employee.id } },
 							);
 							totalTriggeredSignoffs++;
 						}
 					}
 				}
-	
+
 				if (policy.isEdited === 1) {
 					await db.hrPolicies.update(
 						{ isEdited: 0 },
-						{ where: { id: policy.id } }
+						{ where: { id: policy.id } },
 					);
 				}
 			}
-	
+
 			const end = performance.now();
 			LOG.section("SUMMARY");
 			LOG.success(`Policies Processed: ${policies.length}`);
@@ -2549,12 +2595,6 @@ class CronController {
 			LOG.error(err.message);
 		}
 	}
-	
-	
-	
-	
-
-
 
 	async getPm2Logs(req, res) {
 		const appName = req.params.appName;
@@ -2598,11 +2638,13 @@ class CronController {
 
 		exec(cmd, (error, stdout, stderr) => {
 			if (error) {
-				return res.status(500).json({ error: stderr || 'Failed to fetch logs' });
+				return res
+					.status(500)
+					.json({ error: stderr || "Failed to fetch logs" });
 			}
-			res.type('text/plain').send(stdout);
+			res.type("text/plain").send(stdout);
 		});
-	};
+	}
 }
 
 export default new CronController();

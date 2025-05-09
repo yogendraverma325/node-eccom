@@ -2615,7 +2615,7 @@ class commonController {
 			const pageNumber = parseInt(page, 10);
 			const pageLimit = parseInt(limit, 10);
 			const offset = (pageNumber - 1) * pageLimit;
-	
+
 			const whereClause = {
 				isDeleted: 0,
 				category_id: categoryId, // always include category filter
@@ -2626,7 +2626,7 @@ class commonController {
 					},
 				}),
 			};
-	
+
 			const [rows, count] = await Promise.all([
 				db.hrPolicies.findAll({
 					where: whereClause,
@@ -2655,19 +2655,21 @@ class commonController {
 				}),
 				db.hrPolicies.count({ where: whereClause }),
 			]);
-	
-			rows.forEach(policy => {
+
+			rows.forEach((policy) => {
 				if (policy.hr_policy_signoffs) {
-				  policy.hr_policy_signoffs.sort((a, b) => {
-					if (a.status === 'pending' && b.status !== 'pending') return 1;
-					if (a.status !== 'pending' && b.status === 'pending') return -1;
-			  
-					return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-				  });
+					policy.hr_policy_signoffs.sort((a, b) => {
+						if (a.status === "pending" && b.status !== "pending") return 1;
+						if (a.status !== "pending" && b.status === "pending") return -1;
+
+						return (
+							new Date(b.updated_at).getTime() -
+							new Date(a.updated_at).getTime()
+						);
+					});
 				}
-			  });
-			  
-	
+			});
+
 			return res.status(200).json({
 				status: true,
 				msg: "Data Fetched successfully",
@@ -2684,7 +2686,7 @@ class commonController {
 			});
 		}
 	}
-	
+
 	async createHrPolicy(req, res) {
 		try {
 			//console.log("req.body",req.body);
@@ -2696,7 +2698,7 @@ class commonController {
 				}
 			});
 
-			result = { ...result, createdBy: req.userId, isActive: 1 ,isEdited: 1};
+			result = { ...result, createdBy: req.userId, isActive: 1, isEdited: 1 };
 
 			console.log("result", result);
 			// Handle file upload for policy document
@@ -2746,7 +2748,12 @@ class commonController {
 	async updateHrPolicy(req, res) {
 		try {
 			let result = await adminValidator.hrPolicySchema.validateAsync(req.body);
-			result = { ...result, updatedBy: req.userId, updatedAt: moment(),isEdited: 1 };
+			result = {
+				...result,
+				updatedBy: req.userId,
+				updatedAt: moment(),
+				isEdited: 1,
+			};
 
 			// Handle file upload for policy document
 			if (
@@ -3485,7 +3492,7 @@ export async function getEmployeesByUserAssignmentId(id) {
 					attributes: ["confirmationDate"],
 				},
 			],
-			attributes: ["id", "empCode", "name","email","dateOfJoining"],
+			attributes: ["id", "empCode", "name", "email", "dateOfJoining"],
 		});
 		//  console.log("employees", employees);
 		return employees;
