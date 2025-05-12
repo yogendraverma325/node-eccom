@@ -46,7 +46,8 @@ class ImportController {
 				"Delete Extra Payment",
 				"Delete Standard Deduction",
 				"Attendance Assignment",
-				"Arrears"
+				"Arrears",
+				"Employment Details"
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -104,6 +105,8 @@ class ImportController {
 				await attendanceAssignment(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Arrears") {
 				await arrearsUpload(req, res, OperationType, importInfoObject);
+			} else if(req.body.uploadType == "Employment Details") {
+				await employmentDetails(req, res, FILEDATA, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -158,6 +161,7 @@ class ImportController {
 				DELETE_LOP: "Delete LOP",
 				ATTENDANCE_ASSIGNMENT: "Attendance Assignment",
 				ARREARS: "Arrears",
+				EMPLOYMENT_DETAILS: "Employment Details"
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -2057,6 +2061,173 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 	return respHelper(res, {
 		status: 202,
 		msg: "Attendance assignment update successfully.",
+		data: {
+			SuccessRecord: successArray.length,
+			ErrorRecord: errorArray.length,
+		},
+	});
+}
+
+async function employmentDetails(req, res, FILEDATA, importParams) {
+	if (!req.file) {
+		return respHelper(res, {
+			status: 400,
+			msg: "File is required!",
+		});
+	}
+
+	let successArray = [];
+	let errorArray = [];
+
+	const filterData = FILEDATA.filter((item) => item["Employee ID"]);
+	let importId = await createImportDetails(importParams);
+	const today = moment().format("DD-MM-YYYY");
+
+	for (let i = 0; filterData.length > i; i++) {
+		const isExist = await db.employeeMaster.findOne({
+			where: { empCode: String(filterData[i]["Employee ID"]) },
+			attributes: [
+				"id",
+				"empCode",
+				"companyId"
+			],
+			raw: true,
+			include: [{ model: db.jobDetails, attributes: ['dateOfJoining'] }]
+		});
+
+		if (isExist) {
+			if (
+				filterData[i]["Designation Code"] && filterData[i]["Designation Effective From Date(YYYY-MM-DD)"] && filterData[i]["Designation Is Promotion(Yes/No)"]
+			) {
+				let fromDate = convertExcelDate(filterData[i]["Designation Effective From Date(DD-MM-YYYY)"]);
+				let designationDetails = await db.designationMaster.findOne({ where: { 'code': String(filterData[i]["Designation Code"]) }, attributes: ['designationId'], raw: true });
+
+				const lastObj = await db.DesignationEmploymentHistory.findOne({
+					raw: true,
+					where: {
+						employeeId: isExist.id,
+					},
+					order: [["createdAt", "DESC"]], // Order by createdAt descending
+				});
+
+				let minDate = (lastObj?.fromDate) ? lastObj?.fromDate : isExist.employeejobdetails;
+
+				if(designationDetails && fromDate <= today && fromDate >= minDate) {
+					let metaData = {
+						employeeId: isExist.id,
+						companyId: isExist.companyId,
+						designation_id: designationDetails.designationId,
+						fromDate: fromDate,
+						toDate: null,
+						isPromotion: filterData[i]["Designation Is Promotion(Yes/No)"] == "Yes" ? 1 : 0,
+						sourceName: "Import"
+					};
+
+					metaData = {
+						...metaData,
+						createdBy: req.userId,
+						createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+					};
+					await db.DesignationEmploymentHistory.create(metaData);
+
+					const recordsExist = await db.DesignationEmploymentHistory.findOne({
+						raw: true,
+						where: {
+							employeeId: isExist.id,
+						},
+						order: [["createdAt", "DESC"]], // Order by createdAt descending
+						limit: 1, // Fetch only one record
+						offset: 1, // Skip the most recent record
+					});
+
+					if (recordsExist) {
+						await db.DesignationEmploymentHistory.update(
+							{
+								toDate: moment(fromDate)
+									.subtract(1, "day")
+									.format("YYYY-MM-DD"),
+							},
+							{ where: { id: recordsExist.id } },
+						);
+					}
+
+					// UPDATE DESIGNATION TO EMP MASTER TABLE
+					let updateDone = await db.employeeMaster.update(
+						{
+							designation_id: designationDetails.designationId,
+						},
+						{
+							where: {
+								id: isExist.id,
+							},
+						},
+					);
+
+					// push object in success array
+					successArray.push({
+						importedRow: filterData[i]["Employee ID"],
+						importAutoId: importId,
+						importStatus: 1,
+						createdBy: req.userId,
+						importStatusDesc: "Designation update successfully.",
+					});
+		        }
+				else {
+					// push object in failure array
+					errorArray.push({
+						importedRow: filterData[i]["Employee ID"],
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userId,
+						importStatusDesc: "Invalid Designation Code or from date.",
+					});
+					i++;
+				}
+			}
+			else {
+				// push object in failure array
+				errorArray.push({
+					importedRow: filterData[i]["Employee ID"],
+					importAutoId: importId,
+					importStatus: 2,
+					createdBy: req.userId,
+					importStatusDesc: "Designation related column are missing.",
+				});
+				i++;
+			}
+		}
+		else {
+			// push object in failure array
+			errorArray.push({
+				importedRow: filterData[i]["Employee ID"],
+				importAutoId: importId,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: "Invalid Employee ID",
+			});
+		}
+	}
+
+	if (successArray.length > 0 || errorArray.length > 0) {
+		let importFinalResult = successArray.concat(errorArray);
+		await db.ImportData.bulkCreate(importFinalResult);
+		await db.ImportInfo.update(
+			{
+				importStatusDesc:
+					"Import Executed with " +
+					successArray.length +
+					" success and " +
+					errorArray.length +
+					" error records",
+				importStatus: 1,
+			},
+			{ where: { importAutoId: importId } },
+		);
+	}
+
+	return respHelper(res, {
+		status: 202,
+		msg: "Employment Details update successfully.",
 		data: {
 			SuccessRecord: successArray.length,
 			ErrorRecord: errorArray.length,
