@@ -151,6 +151,7 @@ class ImportController {
 				DELETE_EXTRA_PAYMENT: "Delete Extra Payment",
 				DELETE_TDS_DEDUCTION: "Delete TDS Deduction",
 				DELETE_LOP: "Delete LOP",
+				ATTENDANCE_ASSIGNMENT: "Attendance Assignment"
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -1676,22 +1677,11 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 		});
 	}
 
-	// if (
-	// 	!["Yes", "No"].includes(FILEDATA[0]["Enable Biometric Attendance (Yes, No)"]) ||
-	// 	!["Yes", "No"].includes(FILEDATA[0]["Enable Mobile Attendance (Yes, No)"]) ||
-	// 	!["Yes", "No"].includes(FILEDATA[0]["Enable Web Attendance (Yes, No)"]) ||
-	// 	!FILEDATA[0]["Employee ID"]
-	// ) {
-	// 	return respHelper(res, {
-	// 		status: 400,
-	// 		msg: "Invalid File Format",
-	// 	});
-	// }
-
 	let successArray = [];
 	let errorArray = [];
 
 	const filterData = FILEDATA.filter((item) => item["Employee ID"]);
+	let importId = await createImportDetails(importParams);
 
 	for (let i = 0; filterData.length > i; i++) {
 		const isExist = await db.employeeMaster.findOne({
@@ -1701,46 +1691,41 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 		});
 
 		if (
-			// ["Yes", "No"].includes(filterData[i]["Enable Biometric Attendance (Yes, No)"]) &&
-			// ["Yes", "No"].includes(filterData[i]["Enable Mobile Attendance (Yes, No)"]) &&
-			// ["Yes", "No"].includes(filterData[i]["Enable Web Attendance (Yes, No)"]) &&
-			// filterData[i]["Employee ID"] &&
 			isExist
 		) {
-			
-			let updateObj = {
-				...(filterData[i]["Enable Biometric Attendance (Yes, No)"] && { 
-					enableBiometricAttendance: filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes" ? 1 : 0 }),
-				...(filterData[i]["Enable Mobile Attendance (Yes, No)"] && {
-					enableMobileAttendance:
-					filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0
-				}),
-				...(filterData[i]["Enable Web Attendance (Yes, No)"] && {
-					enableWebAttendance: filterData[i]["Enable Web Attendance (Yes, No)"] == "Yes" ? 1 : 0 
-				})
-			};
 
 			if(filterData[i]["Enable Biometric Attendance (Yes, No)"] && filterData[i]["Enable Mobile Attendance (Yes, No)"] &&
 				filterData[i]["Enable Web Attendance (Yes, No)"]
 			) {
+				let updateObj = {
+					enableBiometricAttendance: filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+					enableMobileAttendance: filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+					enableWebAttendance: filterData[i]["Enable Web Attendance (Yes, No)"] == "Yes" ? 1 : 0 
+				};
 				await db.employeeMaster.update(updateObj, {
 					where: { empCode: String(filterData[i]["Employee ID"]) },
+				});
+
+				// push object in success array
+				successArray.push({
+					importedRow: filterData[i]["Employee ID"],
+					importAutoId: importId,
+					importStatus: 1,
+					createdBy: req.userId,
+					importStatusDesc: "Attendance assignment update successfully.",
 				});
 			}
 
 			let effectedFromDate = filterData[i]["Attendance Effective From"];
-			console.log("effectedFromDate", effectedFromDate);
-			console.log("requestedDate----------", filterData[i]);
 			effectedFromDate = effectedFromDate ? convertExcelDate(effectedFromDate) : "";
-			console.log("effectedFromDate", effectedFromDate);
 
 			// fetch shift, weekoff and attendance policy
 			
-			if(filterData[i]["Shift Name"] && filterData[i]["Week Off Name"] && filterData[i]["Attendance Policy Name"] && filterData[i]["Attendance Affective From"] && effectedFromDate >= moment("YYYY-MM-DD")) {
-				let shiftDetails = await db.shiftMaster.findOne({ where: { "shiftName": String(filterData[i]["Shift Name"]) }, attributes: 'shiftId', raw: true });
-				let weekOffDetails = await db.weekOffMaster.findOne({ where: { "weekOffName": String(filterData[i]["Week Off Name"]) }, attributes: 'weekOffId', raw: true });
+			if(filterData[i]["Shift Name"] && filterData[i]["Week Off Name"] && filterData[i]["Attendance Policy Name"] && effectedFromDate >= moment().format("YYYY-MM-DD") && effectedFromDate) {
+				let shiftDetails = await db.shiftMaster.findOne({ where: { "shiftName": String(filterData[i]["Shift Name"]) }, attributes: ['shiftId'], raw: true });
+				let weekOffDetails = await db.weekOffMaster.findOne({ where: { "weekOffName": String(filterData[i]["Week Off Name"]) }, attributes: ['weekOffId'], raw: true });
 
-				let attendancePolicyDetails = await db.attendancePolicymaster.findOne({ where: { "attendancePolicyName": String(filterData[i]["Attendance Policy Name"]) }, attributes: 'attendancePolicyId', raw: true });
+				let attendancePolicyDetails = await db.attendancePolicymaster.findOne({ where: { "policyName": String(filterData[i]["Attendance Policy Name"]) }, attributes: ['attendancePolicyId'], raw: true });
 				if(shiftDetails && weekOffDetails && attendancePolicyDetails) {
 
 					const recordsExistForDate = await db.PolicyHistory.findOne({
@@ -1775,35 +1760,81 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 							createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
 						};
 						await db.PolicyHistory.create(createHistory);
+
+						// push object in success array
+						successArray.push({
+							importedRow: filterData[i]["Employee ID"],
+							importAutoId: importId,
+							importStatus: 1,
+							createdBy: req.userId,
+							importStatusDesc: "Attendance assignment update successfully.",
+						});
 					} 
 					else {
+						// push object in failure array
+						errorArray.push({
+							importedRow: filterData[i]["Employee ID"],
+							importAutoId: importId,
+							importStatus: 2,
+							createdBy: req.userId,
+							importStatusDesc: "Record already exist on that date",
+						});
 						i++;
 					}
 				}
 				else {
+					// push object in failure array
+					errorArray.push({
+						importedRow: filterData[i]["Employee ID"],
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userId,
+						importStatusDesc: "Invalid shift, weekoff or attendance policy value",
+					});
 					i++;
 				}
 			}
-
-			// push object in success array
-			successArray.push({
-				importedRow: filterData[i]["Employee ID"],
-				importAutoId: isExist.id,
-				importStatus: 1,
-				createdBy: req.userId,
-				importStatusDesc: "Attendance setting update successfully.",
-			});
+			
+			if(!filterData[i]["Shift Name"] && !filterData[i]["Enable Biometric Attendance (Yes, No)"]){
+				// push object in failure array
+				errorArray.push({
+					importedRow: filterData[i]["Employee ID"],
+					importAutoId: importId,
+					importStatus: 2,
+					createdBy: req.userId,
+					importStatusDesc: effectedFromDate < moment().format("YYYY-MM-DD") ? "Effective date can't less then from current date." : "Invalid shift, weekoff or attendance policy value",
+				});
+				i++;
+			}
 		} else {
 			// push object in failure array
 			errorArray.push({
 				importedRow: filterData[i]["Employee ID"],
-				importAutoId: 0,
+				importAutoId: importId,
 				importStatus: 2,
 				createdBy: req.userId,
-				importStatusDesc: !isExist ? "Invalid TMC" : "Invalid columny value",
+				importStatusDesc: "Invalid TMC",
 			});
 			i++;
 		}
+	}
+
+	if(successArray.length > 0 || errorArray.length > 0) {
+		let importFinalResult = successArray.concat(errorArray);
+		await db.ImportData.bulkCreate(importFinalResult);
+		await db.ImportInfo.update(
+			{
+				importStatusDesc:
+					"Import Executed with " +
+					successArray.length +
+					" success and " +
+					errorArray.length +
+					" error records",
+				importStatus: 1,
+			},
+			{ where: { importAutoId: importId } },
+		);
+
 	}
 
 	return respHelper(res, {
