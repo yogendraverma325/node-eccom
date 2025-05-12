@@ -2889,7 +2889,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
-			//console.log(query);
+			//	console.log(query);
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
 			processedData.sort((a, b) => {
@@ -3965,6 +3965,7 @@ class PaymentController {
 				"LWF Overrides": 16,
 				"Notice Period Recovery": 17,
 				"Attendance Assignment Sample": 18,
+				"Arrears": 19
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -4061,9 +4062,9 @@ class PaymentController {
 				return res.end(report);
 			} else if (
 				getColumns.length > 0 &&
-				[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].includes(
-					Number(exportSheetAutoId),
-				)
+				[
+					1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+				].includes(Number(exportSheetAutoId))
 			) {
 				const mergeColumns = [...getColumns, ...arr];
 				const headers = mergeColumns.map((item) => item.columnName);
@@ -5128,7 +5129,28 @@ class PaymentController {
 
 			const duration = `1st ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear} to ${lastDay} ${currentMonthFullName}, ${salaryDetails[0]?.paySlipYear}`;
 
-			console.log(employee);
+			let years = 0,
+				months = 0;
+
+			if (
+				employee?.dataValues.dateOfExit &&
+				employee?.employeejobdetail?.dateOfJoining
+			) {
+				years = moment(employee.dataValues.dateOfExit).diff(
+					moment(employee?.employeejobdetail?.dateOfJoining),
+					"years",
+				);
+				months = moment(employee.dataValues.dateOfExit).diff(
+					moment(employee?.employeejobdetail?.dateOfJoining)
+						.clone()
+						.add(years, "years"),
+					"months",
+				);
+
+				months = String(months).padStart(2, "0");
+			}
+
+			//console.log(employee);
 
 			const body = {
 				buName: employee.bumaster.buName,
@@ -5181,17 +5203,24 @@ class PaymentController {
 				duration: duration,
 				noOfDaysInMonth: salaryDetails[0]?.paySlipTotalDays || "N.A", //totalDays,
 				uanNo: employee?.employeejobdetail?.uanNumber || "N.A",
-				totalArrearDays: salaryDetails[0]?.paySlipArrearDays,
+				totalArrearDays: salaryDetails[0]?.arrearsDay,
 				providentFund: employee?.employeejobdetail?.pfNumber || "N.A",
 				esicNo: employee?.employeejobdetail?.esicNumber || "N.A",
 				encashmentDays: salaryDetails[0]?.encashmentDays || "N.A",
 				recoveryDays: salaryDetails[0]?.recoveryDays || "N.A",
+				lastDayOfService: moment(employee?.dateOfExit).isValid()
+					? moment(employee?.dateOfExit).format("Do MMMM YYYY")
+					: "N.A",
+				yearsOfService: years,
+				monthOfService: months,
 			};
-
 			//const letter = await generateSalarySlipHtml(body); // Generate the HTML for the salary slip
-			const letter = await emailTemplate.salarySlipPdf(body);
-
-			console.log(letter);
+			//const letter = await emailTemplate.fnfPaySlipPdf(body);
+			const letter =
+				salaryDetails[0].paySlipType == "FandF"
+					? await emailTemplate.fnfPaySlipPdf(body)
+					: await emailTemplate.salarySlipPdf(body);
+			//console.log(letter);
 			// Puppeteer for PDF generation
 			const browser = await puppeteer.launch({
 				args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -5902,16 +5931,38 @@ class PaymentController {
 
 const groupByEmployeeId = (data) => {
 	const groupedData = {};
-
-	//console.log(data);
-	// return;
 	data.forEach((item, index) => {
+		console.log(item);
+		let result = null;
+		if (item["arrearsDetails"]) {
+			let arrearDetails = item["arrearsDetails"]
+				? JSON.parse(item["arrearsDetails"])
+				: [];
+
+			result = {
+				earningArrears: 0,
+				deductionArrears: 0,
+				mergeObject: {},
+			};
+			arrearDetails.forEach((item) => {
+				result.mergeObject[item.arrearName] = item.arrearAmunt;
+				if (item.type === "Earning") {
+					result.earningArrears += item.arrearAmunt;
+				} else if (item.type === "Deduction") {
+					result.deductionArrears += item.arrearAmunt;
+				}
+			});
+		}
 		const employeeId = item["Employee Id"];
+
+		console.log(result);
+
 		let totalEarning = parseFloat(
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
-				),
+				) +
+				parseFloat(result ? result["earningArrears"] : 0),
 		);
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
@@ -5919,12 +5970,12 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
-				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0),
+				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
+				parseFloat(result ? result["deductionArrears"] : 0),
 		);
 		totalDeduction = paymentHelper.customRound(totalDeduction);
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = paymentHelper.customRound(payableAmount);
-
 		if (!groupedData[employeeId]) {
 			groupedData[employeeId] = {
 				"Employee Id": employeeId, //1
@@ -5937,7 +5988,7 @@ const groupByEmployeeId = (data) => {
 					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
-				"Arrears Days": item["Arrears Days"], //7
+				"Arrears Days": item["arearDays"], //7
 				"Present Days": item["Present Days"] ? item["Present Days"] : 0, //8
 				"Business Unit": item["Business Unit"], //9
 				"Account No": item["Account No"], //10
@@ -5948,16 +5999,18 @@ const groupByEmployeeId = (data) => {
 				"Income Tax": item["TDS Amount"], //25
 				"Professional Tax": item["PT AMOUNT"], //26
 				"ESIC Employee": item["ESIC Employee"], //27
-				"Statuary PF": item["PF Employee"], //28
+				"Statuary PF": item["PF Employee"], //2
 				// "Personal Deduction Categories": item["Advance Name"],//29
 				// "Personal Deduction": item["Advance Amount"],//30
 				"Standard Deductions Categories": item["Advance Name"], //29
 				"Standard Deductions": item["Advance Amount"], //30
 				"LWF Amount": item["LWF AMOUNT"], //31
+				"PF Arrears": result ? result.mergeObject["PF Arrears"] : 0,
 				"Total Deductions": totalDeduction, //32
 				/////Added ///////////
 				"Extra Payment Categories": item["EXTRA PAYMENT CATEGORIES"], //33
 				"Extra Payment Amount": item["EXTRA PAYMENT AMOUNT"], //34
+				// ...result.mergeObject,
 				"Net Salary": payableAmount != "N/A" ? payableAmount : "0.0", //35
 			};
 		}
@@ -5970,7 +6023,9 @@ const groupByEmployeeId = (data) => {
 				[item["Element Name"] + " Arrear"]: 0,
 			});
 			Object.assign(groupedData[employeeId], {
-				[item["Element Name"] + " Arrear"]: 0,
+				[item["Element Name"] + " Arrear"]: result
+					? result.mergeObject[item["Element Name"] + " Arrears"]
+					: 0,
 			});
 
 			let newObj = {
@@ -6283,6 +6338,7 @@ async function processSalary(data) {
 					extraDeductonsDetails[0][0].deductionCategories
 						? extraDeductonsDetails[0][0].deductionCategories
 						: "";
+				//let arrearsAmount =
 				empCopntWiseDetl["createdAt"] = new Date();
 				empCopntWiseDetl["createdBy"] = req.userData.id;
 				empCopntWiseDetl["payMonth"] = result[0][0].salaryMonth;
@@ -6319,6 +6375,19 @@ async function processSalary(data) {
 				empCopntWiseDetl["actualWorkingDays"] = actualWorkingDays;
 				empCopntWiseDetl["salaryComponentSequenceNo"] =
 					empCopntWiseDetl["salaryComponentSequenceNo"];
+				// empCopntWiseDetl["arrearsAmount"] =
+				// 	(await paymentHelper.getElementValue(
+				// 		"Affects Arrears",
+				// 		componentConfiguration[0],
+				// 	)) == 1
+				// 		? paymentHelper.customRound(
+				// 				await paymentHelper.affectArrears(
+				// 					empCopntWiseDetl["elementMonthlyAmount"],
+				// 					arearDays,
+				// 					actualWorkingDaysBeforeLop,
+				// 				),
+				// 			)
+				// 		: 0.0;
 				//////////////////////////////PF-Applicablity Keys//////////////////////////////////
 				let existDetails = await db.payMonthlyElements.findOne({
 					where: {
@@ -6422,8 +6491,15 @@ async function generatePaySlip(data) {
 				queryForPayMonthlyElementsForSalarySlip,
 			);
 
-			console.log(payElements);
+			//console.log(payElements);
+
 			for (const payMonthlyElement of payElements[0]) {
+				//return
+				let getArrearsEarningAndDeductionAmounts =
+					await paymentHelper.getArrearsEarningDeductionAmount(
+						payMonthlyElement.payMonth,
+						payMonthlyElement.empId,
+					);
 				let isExistPaySlip = await db.paySlips.findOne({
 					where: {
 						EmployeeId: payMonthlyElement.empId,
@@ -6473,6 +6549,11 @@ async function generatePaySlip(data) {
 						) +
 						parseFloat(
 							payMonthlyElement.lwfAmount ? payMonthlyElement.lwfAmount : 0,
+						) +
+						parseFloat(
+							getArrearsEarningAndDeductionAmounts.arrearsDedctionAmount
+								? getArrearsEarningAndDeductionAmounts.arrearsDedctionAmount
+								: 0,
 						);
 					totalPayslipDeductons = paymentHelper.customRound(
 						totalPayslipDeductons,
@@ -6482,6 +6563,11 @@ async function generatePaySlip(data) {
 						parseFloat(
 							payMonthlyElement.extrapaymentAmount
 								? payMonthlyElement.extrapaymentAmount
+								: 0,
+						) +
+						parseFloat(
+							getArrearsEarningAndDeductionAmounts.arrrearsEarningAmount
+								? getArrearsEarningAndDeductionAmounts.arrrearsEarningAmount
 								: 0,
 						);
 					PaySlipNetPay =
@@ -6522,6 +6608,8 @@ async function generatePaySlip(data) {
 						paySlipStatus: 0,
 						createdAt: new Date(),
 						payMonth: payMonthlyElement.payMonth,
+						arrearsDay: getArrearsEarningAndDeductionAmounts.arearDays,
+						paySlipType: "Regular",
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
 						? isExistPaySlip.dataValues.paySlipAutoId
@@ -6621,8 +6709,19 @@ async function generatePaySlip(data) {
 						paySlipAutoId,
 						req.userData.id,
 					);
+					let getArrearsDetails = await paymentHelper.getArrearsComponets(
+						payMonthlyElement.payMonth,
+						payMonthlyElement.empId,
+						paySlipAutoId,
+						req.userData.id,
+					);
+
+					// console.log(" ************************getArrearsDetails************");
+					// console.log(getArrearsDetails)
+					// console.log(" ************************getArrearsDetails************");
 					customeDeduction = customeDeduction.concat(getExtraDeductions);
 					customeDeduction = customeDeduction.concat(getExtraEarnings);
+					customeDeduction = customeDeduction.concat(getArrearsDetails);
 					await db.paySlipComponent.bulkCreate(customeDeduction);
 				}
 

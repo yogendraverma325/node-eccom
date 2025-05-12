@@ -4190,6 +4190,7 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 const salarySlipPdf = async (data) => {
+	console.log("Pay Slip ,,,");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 
@@ -4353,6 +4354,7 @@ const salarySlipPdf = async (data) => {
         <td colspan="3" style="width: 60%;"><strong>Provident Fund:</strong> ${data.providentFund}</td>
         <td colspan="2" style="width: 40%;"><strong>ESIC Number:</strong> ${data.esicNo}</td>
     </tr>
+    
       <tr>
         <td colspan="5" style="width: 100%;height:14px"></td>
     </tr>
@@ -4398,6 +4400,223 @@ const salarySlipPdf = async (data) => {
 </html>`;
 };
 
+const fnfPaySlipPdf = async (data) => {
+	console.log("FNF PAY SLIP.......");
+	const generateUnifiedTableRows = (earnings, deductions) => {
+		const maxRows = Math.max(earnings.length, deductions.length);
+
+		let rows = "";
+		for (let i = 0; i < maxRows; i++) {
+			const earning = earnings[i] || {};
+			const deduction = deductions[i] || {};
+			rows += `
+        <tr>
+            <td>${earning.paySlipComponentName ? earning.paySlipComponentName : ""}</td>
+            <td>${
+							earning.fixedPayElementAmount && earning.fixedPayElementAmount > 0
+								? earning.fixedPayElementAmount
+								: ""
+						}</td>
+            <td>${earning.paySlipComponentAmount || ""}</td>
+            <td>${deduction.paySlipComponentName || ""}</td>
+            <td>${deduction.paySlipComponentAmount || ""}</td>
+        </tr>`;
+		}
+		return rows;
+	};
+
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Slip</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+    .salary-slip {
+        max-width: 800px;
+        margin: 20px ;
+        padding: 20px;
+        background: #fff;
+        border: 0.25px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        font-size:12px;
+        height: 100%;
+    }
+.header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0;
+        padding: 0;
+        border: 0.25px solid black; /* Border for the entire header */
+    }
+
+    .header .logo-container {
+        width: 20%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-right:0.25px solid black; /* Right border to separate sections */
+        padding: 10px;
+    }
+
+    .header .logo-container img {
+        max-height: 50px;
+        max-width: 100%; /* Ensures the logo scales properly */
+    }
+
+.header .company-details {
+    width: 80%;
+    text-align: center; /* Center align text */
+    word-wrap: break-word;
+    white-space: normal;
+    padding: 10px;
+}
+
+    .header .company-details p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .content {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .content td, .content th {
+        border: 0.25px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+    .content th {
+        background-color: #f2f2f2;
+    }
+    .footer {
+        margin-top: 0px;
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+    }
+</style>
+
+
+
+</head>
+<body>
+    <div class="salary-slip">
+ <div class="header">
+    <div class="logo-container">
+        <img src="${process.env.PROXY_URL}/api${data.companyLogo}" alt="Company Logo">
+    </div>
+    <div class="company-details">
+        <p class="content">
+            <b><font style="font-size: 18px; font-weight: bold;">${data.companyName}</font></b><br>
+            <b><font style="font-size: 14px; font-weight: bold;">Office Address : </font></b>${data.companyAddress}<br>
+            <b><font style="font-size: 14px; font-weight: bold;">Business Unit : </font></b>${data.buName}
+            
+        </p>
+    </div>
+
+        </div>
+
+     <h3 style="font-size: 14px; font-weight: 400; border: 0.25px solid black; text-align: center; padding: 5px; margin: 0;">
+    <b>Salary Slip</b> for ${data.month}-${data.year}
+</h3>
+     <h3 style="font-size: 14px; font-weight: 400; border: 0.25px solid black; text-align: center; padding: 5px; margin: 0;height:14px"></h3>
+
+
+<table class="content" style="width: 100%;">
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Employee Name:</strong> ${data.name}</td>
+        <td colspan="2" style="width: 40%;"><strong>Employee Type:</strong> ${data.employeeType}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Designation:</strong> ${data.designation}</td>
+        <td colspan="2" style="width: 40%;"><strong>Employee Code:</strong> ${data.employeeCode}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Department:</strong> ${data.department}</td>
+        <td colspan="2" style="width: 40%;"><strong>Working Days:</strong> ${data.workingDays}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Date of Joining:</strong> ${data.dateOfJoining}</td>
+        <td colspan="2" style="width: 40%;"><strong>LOP:</strong> ${data.lop}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Current Office Location:</strong> ${data.currentOfficeLocation}</td>
+        <td colspan="2" style="width: 40%;"><strong>PAN No:</strong> ${data.panNo}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Duration:</strong> ${data.duration}</td>
+        <td colspan="2" style="width: 40%;"><strong>No. of Days in Month:</strong> ${data.noOfDaysInMonth}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>UAN No:</strong> ${data.uanNo}</td>
+        <td colspan="2" style="width: 40%;"><strong>Total Arrear Days:</strong> ${data.totalArrearDays}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Encashment Days:</strong> ${data.encashmentDays}</td>
+        <td colspan="2" style="width: 40%;"><strong>Recovery Days:</strong> ${data.recoveryDays}</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="width: 60%;"><strong>Provident Fund:</strong> ${data.providentFund}</td>
+        <td colspan="2" style="width: 40%;"><strong>ESIC Number:</strong> ${data.esicNo}</td>
+    </tr>
+       <tr>
+        <td colspan="3" style="width: 60%;"><strong>Last date of service:</strong> ${data.lastDayOfService}</td>
+        <td colspan="2" style="width: 40%;"><strong>Years of service:</strong> ${data.yearsOfService} Yrs ${data.monthOfService} Months</td>
+    </tr>
+      <tr>
+        <td colspan="5" style="width: 100%;height:14px"></td>
+    </tr>
+        <tr>
+            <td colspan="3" style="width: 60%;"><b>Earnings</b></th>
+            <td colspan="2" style="width: 40%;"><b>Deductions</b></th>
+        </tr>
+        <tr>
+            <td style="width: 20%;"><b>Description</b></th>
+            <td style="width: 20%;"><b>Total</b></th>
+            <td style="width: 20%;"><b>Payable</b></th>
+            <td style="width: 20%;"><b>Description</b></th>
+            <td style="width: 20%;"><b>Amount</b></th>
+        </tr>
+
+    <tbody>
+        ${generateUnifiedTableRows(
+					data.paySlipComponent.earnings || [],
+					data.paySlipComponent.deductions || [],
+				)}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="width: 20%;"><strong>Gross Earnings (A)</strong></td>
+            <td style="width: 20%;"></td>
+            <td style="width: 20%;">${data.grossEarnings || 0}</td>
+            <td style="width: 20%;"><strong>Total Deductions (B)</strong></td>
+            <td style="width: 20%;">${data.totalDeductions || 0}</td>
+        </tr>
+        <tr>
+            <td style="width: 20%;"><strong>Net Pay (A - B)</strong></td>
+            <td style="width: 20%;"></td>
+            <td style="width: 20%;"><b>${data.netPay || 0}</b></td>
+              <td colspan="2" style="width: 40%;">${numberToWords(data.netPay)}</th>
+        </tr>
+    </tfoot>
+</table>
+
+
+        <p class="footer">Note: This is a Computer Generated Slip and does not require a signature.</p>
+    </div>
+</body>
+</html>`;
+};
 function numberToWords(num) {
 	const ones = [
 		"",
@@ -5201,7 +5420,7 @@ const goalSubmission = async (data) => {
                 margin-right: 5px;
               "
               target="_blank"
-            >Click Here</a> to view and approve..
+            >Click Here</a> to view and approve.
           </p>
 
           <p style="font-size: 15px; color: #000000;"><br /></p>
@@ -5487,44 +5706,94 @@ const goalDeletedNotification = async (data) => {
 </html>`;
 };
 
+// const goalSubmissionByManager = async (data) => {
+// 	return `<!DOCTYPE html>
+// <html>
+//   <head>
+//     <meta charset="UTF-8" />
+//     <title>TARA HRMS Notification</title>
+//     <style>
+//       body {
+//         margin: 0;
+//         padding: 40px 0;
+//         background: #ffffff;
+//         color: #000000;
+//         font-family: Lato, Arial, sans-serif;
+//       }
+//       .container {
+//         width: 700px;
+//         margin: 0 auto;
+//         border-collapse: collapse;
+//       }
+//       .button {
+//         padding: 5px 10px;
+//         background: #0173c5;
+//         color: #ffffff;
+//         text-decoration: none;
+//         border-radius: 2px;
+//         font-size: 14px;
+//         display: inline-block;
+//       }
+//     </style>
+//   </head>
+//   <body>
+//     <table class="container">
+//       <tr>
+//         <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
+//           <img
+//             height="45"
+//             src="${process.env.PROXY_URL}/api${data.companyLogo}"
+//             alt="Company Logo"
+//           />
+//           <img
+//             height="45"
+//             src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+//             alt="TARA Logo"
+//             style="float: right;"
+//           />
+//         </td>
+//       </tr>
+
+//       <tr>
+//         <td style="padding: 2rem;">
+//           <p style="font-size: 16px; margin-bottom: 1rem;">
+//             Hi <strong>${data.name}</strong>,
+//           </p>
+
+//           <p style="font-size: 15px; line-height: 1.6;">
+//             <strong>${data.managerName}</strong> has reviewed and acted on your Goal Plan.
+//           </p>
+
+//           <p style="margin-top: 1rem;">
+//             <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a> to view.
+//           </p>
+
+//           <p style="font-size: 15px; margin-top: 2rem;">
+//             Regards,<br />TARA HRMS
+//           </p>
+//         </td>
+//       </tr>
+//     </table>
+//   </body>
+// </html>`;
+// };
+
 const goalSubmissionByManager = async (data) => {
 	return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
     <title>TARA HRMS Notification</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 40px 0;
-        background: #ffffff;
-        color: #000000;
-        font-family: Lato, Arial, sans-serif;
-      }
-      .container {
-        width: 700px;
-        margin: 0 auto;
-        border-collapse: collapse;
-      }
-      .button {
-        padding: 5px 10px;
-        background: #0173c5;
-        color: #ffffff;
-        text-decoration: none;
-        border-radius: 2px;
-        font-size: 14px;
-        display: inline-block;
-      }
-    </style>
   </head>
-  <body>
-    <table class="container">
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000; font-family: Lato, Arial, sans-serif;">
+    <table width="700" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 0 auto;">
       <tr>
         <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
           <img
             height="45"
             src="${process.env.PROXY_URL}/api${data.companyLogo}"
             alt="Company Logo"
+            style="display: inline-block;"
           />
           <img
             height="45"
@@ -5536,20 +5805,24 @@ const goalSubmissionByManager = async (data) => {
       </tr>
 
       <tr>
-        <td style="padding: 2rem;">
-          <p style="font-size: 16px; margin-bottom: 1rem;">
+        <td style="padding: 32px;">
+          <p style="font-size: 16px; margin-bottom: 16px;">
             Hi <strong>${data.name}</strong>,
           </p>
 
-          <p style="font-size: 15px; line-height: 1.6;">
+          <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
             <strong>${data.managerName}</strong> has reviewed and acted on your Goal Plan.
           </p>
 
-          <p style="margin-top: 1rem;">
-            <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a> to view.
+          <p style="margin: 0 0 24px 0;">
+            <a href="${process.env.CLIENT_URL}" 
+               style="padding: 5px 10px; background-color: #0173c5; color: #ffffff; text-decoration: none; border-radius: 2px; font-size: 14px; display: inline-block;" 
+               target="_blank" rel="noopener noreferrer">
+              Click Here
+            </a> to view.
           </p>
 
-          <p style="font-size: 15px; margin-top: 2rem;">
+          <p style="font-size: 15px; margin-top: 32px;">
             Regards,<br />TARA HRMS
           </p>
         </td>
@@ -5684,6 +5957,7 @@ export default {
 	addressDetailsApprovalRequestMail,
 	compOffMail,
 	compOffMailAppval,
+	fnfPaySlipPdf,
 	goalSubmission,
 	goalRecallSubmission,
 	goalWeightageChange,

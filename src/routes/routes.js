@@ -18,6 +18,8 @@ import thirdPartyRoutes from "../api/v1/master/thirdparty.routes.js";
 import fnfRoutes from "../api/v1/fnf/fnf.routes.js";
 import imports from "../api/v1/import/import.routes.js";
 import appraisalGoalsRoutes from "../api/v1/appraisalGoals/appraisalGoals.routes.js";
+import arrearsRoutes from "../api/v1/arrears/arrears.routes.js";
+
 const router = express.Router();
 
 router.use("/export", masterExportRoutes);
@@ -42,5 +44,6 @@ router.use("/thirdparty", thirdPartyRoutes);
 router.use("/fnf", fnfRoutes);
 router.use("/imports", imports);
 router.use("/appraisalgoals", appraisalGoalsRoutes);
+router.use("/arrears", arrearsRoutes);
 
 export default router;
