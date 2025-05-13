@@ -2905,7 +2905,7 @@ class commonController {
 			let query = { id: req.params.id };
 			console.log("Received id:", req.params.id);
 
-			let updateMetaData = { isDeleted: 1, isActive: 0,  updatedAt: moment() };
+			let updateMetaData = { isDeleted: 1, isActive: 0, updatedAt: moment() };
 			let moduleName = "Hr Policy";
 			let response = await service.delete(
 				model,
@@ -3320,7 +3320,7 @@ class commonController {
 	async getUserAssignmentAttributeData(req, res) {
 		try {
 			const attribute = req.params.attribute?.toUpperCase();
-	
+
 			const attributeModelMap = {
 				BU: { model: db.buMaster, idField: "buId", nameField: "buName" },
 				SBU: { model: db.sbuMaster, idField: "sbuId", nameField: "sbuName" },
@@ -3366,27 +3366,27 @@ class commonController {
 					nameField: "jobLevelName",
 				},
 			};
-	
+
 			const modelDetails = attributeModelMap[attribute];
-	
+
 			if (!modelDetails) {
 				return respHelper(res, { status: 400, msg: "Invalid attribute type" });
 			}
-	
+
 			const model = modelDetails.model;
 			const idField = modelDetails.idField;
 			const nameField = modelDetails.nameField;
 			const attributesToFetch = [idField, nameField];
-	
+
 			if (attribute === "EMPID") {
 				attributesToFetch.push("empCode");
 			}
-	
+
 			let queryOptions = {
 				where: { isActive: true },
 				attributes: attributesToFetch,
 			};
-	
+
 			// Include company name for DEPARTMENT
 			if (attribute === "DEPARTMENT") {
 				queryOptions.include = [
@@ -3411,7 +3411,7 @@ class commonController {
 					},
 				];
 			}
-	
+
 			// Include company name for EMP_TYPE
 			if (attribute === "EMP_TYPE") {
 				queryOptions.include = [
@@ -3421,30 +3421,31 @@ class commonController {
 					},
 				];
 			}
-	
+
 			const data = await model.findAll(queryOptions);
-	
+
 			const mappedData = data.map((item) => {
 				const id = item[idField];
 				const name = item[nameField];
-	
+
 				if (attribute === "EMPID") {
 					return {
 						id,
 						name: `${item.empCode} - ${name}`,
 					};
 				}
-	
+
 				if (attribute === "DEPARTMENT") {
 					const companyName =
-						item.departmentmapping?.sbumapping?.bumapping?.companymaster?.companyName || "-";
-	
+						item.departmentmapping?.sbumapping?.bumapping?.companymaster
+							?.companyName || "-";
+
 					return {
 						id,
 						name: `${name} (${companyName})`,
 					};
 				}
-	
+
 				if (attribute === "EMP_TYPE") {
 					const companyName = item.companymaster?.companyName || "-";
 					return {
@@ -3452,10 +3453,10 @@ class commonController {
 						name: `${name} (${companyName})`,
 					};
 				}
-	
+
 				return { id, name };
 			});
-	
+
 			return respHelper(res, {
 				status: 200,
 				msg: "Attribute data fetched",
@@ -3469,8 +3470,6 @@ class commonController {
 			});
 		}
 	}
-	
-	
 
 	//ritak Hr Policy end
 }
