@@ -2323,6 +2323,86 @@ const proxyLoginSchema = Joi.object({
 
 // End proxy validation area
 
+// Start Import employment details
+const importEmploymentDetails = Joi.object({
+	empCode: Joi.string().required(),
+	designationCode: Joi.string(),
+	desFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'desFromDate must be less than or equal to today',
+      'date.base': 'desFromDate must be a valid date',
+    }),
+	desIsPromotion: Joi.string(),
+	jobLevelCode: Joi.string(),
+	jobLevelFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'jobLevelFromDate must be less than or equal to today',
+      'date.base': 'jobLevelFromDate must be a valid date',
+    }),
+    jobLevelIsPromotion: Joi.string(),
+    manager: Joi.string(),
+	managerFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'managerFromDate must be less than or equal to today',
+      'date.base': 'managerFromDate must be a valid date',
+    }),
+    bu: Joi.string(),
+    sbu: Joi.string(),
+    departmentCode: Joi.string(),
+    functionalAreaCode: Joi.string(),
+	departmentFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'departmentFromDate must be less than or equal to today',
+      'date.base': 'departmentFromDate must be a valid date',
+    }),
+    employeeType: Joi.string(),
+	employeeTypeFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'employeeTypeFromDate must be less than or equal to today',
+      'date.base': 'employeeTypeFromDate must be a valid date',
+    }),
+    officeLocationCode: Joi.string(),
+	officeLocationFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'officeLocationFromDate must be less than or equal to today',
+      'date.base': 'officeLocationFromDate must be a valid date',
+    }),
+    costCenterCode: Joi.string(),
+	costCenterFromDate: Joi.date()
+    .max('now')
+    .messages({
+      'date.max': 'costCenterFromDate must be less than or equal to today',
+      'date.base': 'costCenterFromDate must be a valid date',
+    }),
+    noticePeriodCode: Joi.string()
+}).with('designationCode', ['desFromDate', 'desIsPromotion'])
+  .with('desFromDate', ['designationCode', 'desIsPromotion'])
+  .with('desIsPromotion', ['designationCode', 'desFromDate'])
+  .with('jobLevelCode', ['jobLevelFromDate', 'jobLevelIsPromotion'])
+  .with('jobLevelFromDate', ['jobLevelCode', 'jobLevelIsPromotion'])
+  .with('jobLevelIsPromotion', ['jobLevelCode', 'jobLevelFromDate'])
+  .with('manager', ['managerFromDate'])
+  .with('managerFromDate', ['manager'])
+  .with('bu', ['sbu', 'departmentCode', 'functionalAreaCode', 'departmentFromDate'])
+  .with('sbu', ['bu', 'departmentCode', 'functionalAreaCode', 'departmentFromDate'])
+  .with('departmentCode', ['bu', 'sbu', 'functionalAreaCode', 'departmentFromDate'])
+  .with('functionalAreaCode', ['bu', 'sbu', 'departmentCode', 'departmentFromDate'])
+  .with('departmentFromDate', ['bu', 'sbu', 'departmentCode', 'functionalAreaCode'])
+  .with('employeeType', ['employeeTypeFromDate'])
+  .with('employeeTypeFromDate', ['employeeType'])
+  .with('officeLocationCode', ['officeLocationFromDate'])
+  .with('officeLocationFromDate', ['officeLocationCode'])
+  .with('costCenterCode', ['costCenterFromDate'])
+  .with('costCenterFromDate', ['costCenterCode'])
+
+// End Import employment details
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2422,4 +2502,7 @@ export default {
 	goalApprovalSchema,
 	// Proxy Login
 	proxyLoginSchema,
+	// start by jay
+	importEmploymentDetails
+	// end by jay
 };
