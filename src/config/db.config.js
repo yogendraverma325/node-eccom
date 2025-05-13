@@ -2330,6 +2330,8 @@ db.user_assignment_condition.belongsTo(db.user_assignment_attribute_master, {
 	foreignKey: 'user_assignment_id',
 	as: 'conditions',
 });
+db.employeeTypeMaster.belongsTo(db.companyMaster, { foreignKey: "companyId" });
+
 //ritak Hr Policy end
 
 
