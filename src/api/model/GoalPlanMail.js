@@ -1,15 +1,21 @@
 export default (sequelize, Sequelize) => {
-	const UserAssignement = sequelize.define("userassignment", {
-		assignmentId: {
+	const GoalPlanMail = sequelize.define("goalplanmail", {
+		goalPlanMailId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		assignmentName: {
+		userId:{
+			type: Sequelize.INTEGER
+		},
+        tmc:{
+			type: Sequelize.STRING
+        },
+		email: {
 			type: Sequelize.STRING,
 		},
-		description: {
-			type: Sequelize.STRING,
+		goalPlanId: {
+			type: Sequelize.INTEGER,
 		},
 		createdBy: {
 			type: Sequelize.INTEGER,
@@ -27,5 +33,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 	});
-	return UserAssignement;
+	return GoalPlanMail;
 };

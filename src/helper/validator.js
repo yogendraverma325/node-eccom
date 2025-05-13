@@ -2324,6 +2324,277 @@ const proxyLoginSchema = Joi.object({
 
 // End proxy validation area
 
+// appraisal ==========
+// const reviewFrameworkSchema = Joi.object({
+// 	reviewName: Joi.string().trim().required(),
+// 	reviewId: Joi.string().trim().required(),
+// 	reviewDescription: Joi.string().allow('').required(),
+
+// 	alignToReviewCycle: Joi.number().integer().optional(),
+// 	goalRatingScale: Joi.number().integer().optional(),
+// 	goalAutoCalculate: Joi.boolean().optional(),
+// 	goalAutoCompentancy: Joi.number().integer().optional(),
+
+// 	overallPerformanceScale: Joi.number().integer().optional(),
+// 	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
+// 	compentencyWeightage: Joi.number().integer().min(0).max(100).optional(),
+
+// 	promotionFramework: Joi.number().integer().optional(),
+// 	selfReview: Joi.boolean().optional(),
+
+// 	evaluator: Joi.string().optional(),
+// 	reviewer: Joi.string().optional(),
+// 	calibration: Joi.string().allow('').optional(),
+
+// 	sendBackToEmployee: Joi.boolean().optional(),
+
+// 	selfCanViewRatingOf: Joi.string().allow('').optional(),
+// 	selfCanViewCommentOf: Joi.string().allow('').optional(),
+// 	evaluatorCanViewRatingOf: Joi.string().allow('').optional(),
+// 	evaluatorCanViewCommentOf: Joi.string().allow('').optional(),
+
+// 	// Fields that only accept an empty string ""
+// 	reviewerCanViewRatingOf: Joi.string().allow('').optional(),
+// 	reviewerCanViewCommentOf: Joi.string().allow('').optional(),
+//   });
+const reviewFrameworkSchema = Joi.object({
+	reviewName: Joi.string().trim().required(),
+	reviewId: Joi.string().trim().required(),
+	reviewDescription: Joi.string().allow("").required(),
+
+	alignToReviewCycle: Joi.number().integer().optional(),
+	goalRatingScale: Joi.number().integer().optional(),
+	goalAutoCalculate: Joi.boolean().optional(),
+	goalAutoCompentancy: Joi.boolean().optional(), // changed from number to boolean
+
+	overallPerformanceScale: Joi.number().integer().optional(),
+	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
+	compentencyWeightage: Joi.number().integer().min(0).max(100).optional(),
+
+	promotionFramework: Joi.number().integer().optional(),
+	selfReview: Joi.boolean().optional(),
+
+	evaluator: Joi.string().optional(),
+	reviewer: Joi.string().optional(),
+	calibration: Joi.string().allow("").optional(),
+
+	sendBackToEmployee: Joi.boolean().optional(),
+	hideNextStageRatings: Joi.boolean().optional(),
+	startDate: Joi.string()
+		.label("Start Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "Start Date must be in YYYY-MM-DD format",
+		}),
+	endDate: Joi.string()
+		.label("End Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
+		}),
+	userAssignment: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	// userAssignment: Joi.array()
+	// 	.items(Joi.number())
+	// 	.min(1)
+	// 	.required()
+	// 	.label("User Assignment")
+	// 	.custom((value, helpers) => {
+	// 		return value.join(","); // Convert array [1, 2] → "1,2"
+	// 	}),
+	// selfCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
+	// selfCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
+	// evaluatorCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
+	// evaluatorCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
+	// reviewerCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
+	// reviewerCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
+	selfCanViewRatingOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	selfCanViewCommentOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	evaluatorCanViewRatingOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	evaluatorCanViewCommentOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	reviewerCanViewRatingOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	reviewerCanViewCommentOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+});
+
+const editReviewFrameworkSchema = Joi.object({
+	reviewFrameworkId: Joi.number().required(),
+	reviewName: Joi.string().trim().required(),
+	reviewId: Joi.string().trim().required(),
+	reviewDescription: Joi.string().allow("").required(),
+
+	alignToReviewCycle: Joi.number().integer().optional(),
+	goalRatingScale: Joi.number().integer().optional(),
+	goalAutoCalculate: Joi.boolean().optional(),
+	goalAutoCompentancy: Joi.boolean().optional(),
+
+	overallPerformanceScale: Joi.number().integer().optional(),
+	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
+	compentencyWeightage: Joi.number().integer().min(0).max(100).optional(),
+
+	promotionFramework: Joi.number().integer().optional(),
+	selfReview: Joi.boolean().optional(),
+
+	evaluator: Joi.string().optional(),
+	reviewer: Joi.string().optional(),
+	calibration: Joi.string().allow("").optional(),
+
+	sendBackToEmployee: Joi.boolean().optional(),
+	hideNextStageRatings: Joi.boolean().optional(),
+	startDate: Joi.string()
+		.label("Start Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "Start Date must be in YYYY-MM-DD format",
+		}),
+	endDate: Joi.string()
+		.label("End Date")
+		.pattern(dateFormatRegex)
+		.required()
+		.messages({
+			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
+		}),
+	userAssignment: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	selfCanViewRatingOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	selfCanViewCommentOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	evaluatorCanViewRatingOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	evaluatorCanViewCommentOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	reviewerCanViewRatingOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+	reviewerCanViewCommentOf: Joi.alternatives()
+		.try(Joi.array(), Joi.string().allow(""))
+		.optional(),
+});
+
+const createRatingScaleSchema = Joi.object({
+	ratingScaleName: Joi.string().required().messages({
+		"string.base": "Rating scale name must be a string.",
+		"string.empty": "Rating scale name cannot be empty.",
+		"any.required": "Rating scale name is required.",
+	}),
+
+	ratingScaleDescription: Joi.string().optional().messages({
+		"string.base": "Description must be a string."
+		}),
+
+	lengthOfScale: Joi.string()
+		.required()
+		.messages({
+			"string.empty": "Length of scale cannot be empty.",
+			"string.pattern.base": "Length of scale must be a numeric string.",
+			"any.required": "Length of scale is required.",
+		}),
+
+	ratingScaleConfig: Joi.array()
+        .items(
+            Joi.object({
+                scaleMarker: Joi.string().required().messages({
+                    "any.required": "Scale marker is required.",
+                }),
+
+                marks: Joi.string()
+                    .required()
+                    .messages({
+                        "any.required": "Marks are required.",
+                    }),
+
+                ratingScaleConfigDescription: Joi.string()
+                    .required()
+                    .messages({
+                        "any.required": "Description is required.",
+                    }),
+            })
+        )
+        .optional()
+        .messages({
+            "array.base": "Rating scale config must be an array.",
+        }),
+});
+
+const updateRatingScaleSchema = Joi.object({
+    ratingScaleId: Joi.number()
+        .required()
+        .messages({
+            "number.base": "Rating scale ID must be a number.",
+            "any.required": "Rating scale ID is required.",
+        }),
+
+    ratingScaleName: Joi.string()
+        .required()
+        .messages({
+            "string.base": "Rating scale name must be a string.",
+            "string.empty": "Rating scale name cannot be empty.",
+            "any.required": "Rating scale name is required.",
+        }),
+
+    ratingScaleDescription: Joi.string()
+        .optional()
+        .messages({
+            "string.base": "Description must be a string.",
+        }),
+
+    lengthOfScale: Joi.string()
+        .required()
+        .messages({
+            "string.empty": "Length of scale cannot be empty.",
+            "string.pattern.base": "Length of scale must be a numeric string.",
+            "any.required": "Length of scale is required.",
+        }),
+
+    ratingScaleConfig: Joi.array()
+        .items(
+            Joi.object({
+                scaleMarker: Joi.string()
+                    .required()
+                    .messages({
+                        "any.required": "Scale marker is required.",
+                    }),
+
+                marks: Joi.string()
+                    .required()
+                    .messages({
+                        "any.required": "Marks are required.",
+                    }),
+
+                ratingScaleConfigDescription: Joi.string()
+                    .required()
+                    .messages({
+                        "any.required": "Description is required.",
+                    }),
+            })
+        )
+        .optional() // Allow empty array or no array at all
+        .messages({
+            "array.base": "Rating scale config must be an array.",
+        }),
+});
+//
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2423,4 +2694,6 @@ export default {
 	goalApprovalSchema,
 	// Proxy Login
 	proxyLoginSchema,
+	reviewFrameworkSchema,
+	editReviewFrameworkSchema,
 };

@@ -23,32 +23,28 @@ class AppraisalGoalsController {
 				req.body,
 			);
 
-			const existingGoalPlan = await db.appraisalGoalsMaster.findOne({
-				where: { goalPlanName: result.goalPlanName },
-			});
+			const [existingGoalPlan, existingGoalPlanId] = await Promise.all([
+				db.appraisalGoalsMaster.findOne({
+					where: { goalPlanName: result.goalPlanName, isActive: 1 },
+				}),
+				db.appraisalGoalsMaster.findOne({
+					where: { goalPlanId: result.goalPlanId, isActive: 1 },
+				}),
+			]);
 
-			const existingGoalPlanYears = await db.appraisalGoalsMaster.findOne({
-				where: {
-					startDate: result.startDate,
-					endDate: result.endDate,
-					//isActive: 1,
-				},
-			});
+			if (existingGoalPlan) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.GOAL_PLAN_NAME_ALREADY_EXISTS,
+				});
+			}
 
-			// Uncomment these checks if needed
-			// if (existingGoalPlan) {
-			//     return respHelper(res, {
-			//         status: 400,
-			//         msg: message.APPRAISAL.GOAL_PLAN_NAME_ALREADY_EXISTS,
-			//     });
-			// }
-
-			// if (existingGoalPlanYears) {
-			//     return respHelper(res, {
-			//         status: 400,
-			//         msg: message.APPRAISAL.GOAL_PLAN_YEAR_ALREADY_EXISTS,
-			//     });
-			// }
+			if (existingGoalPlanId) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.GOAL_PLAN_ID, // adjust key name if needed
+				});
+			}
 
 			const createGoal = await db.appraisalGoalsMaster.create(result);
 
@@ -212,35 +208,6 @@ class AppraisalGoalsController {
 		}
 	}
 
-	async userAssignmentAttributes(req, res) {
-		try {
-			const userAssingmentAttributes =
-				await db.userAssignmentAttributeMaster.findAll({
-					where: {
-						isActive: 1,
-						//endDate: { [Op.lte]: moment().format("YYYY-MM-DD") }
-					},
-				});
-			return respHelper(res, {
-				status: 200,
-				data: {
-					userAssingmentAttributes: userAssingmentAttributes,
-				},
-			});
-		} catch (error) {
-			console.log(error);
-			if (error.isJoi === true) {
-				return respHelper(res, {
-					status: 422,
-					msg: error.details[0].message,
-				});
-			}
-			return respHelper(res, {
-				status: 500,
-			});
-		}
-	}
-
 	async goalAttributesList(req, res) {
 		try {
 			const goalAttributes = await db.goalAttributesConfigMaster.findAll({
@@ -295,27 +262,145 @@ class AppraisalGoalsController {
 		}
 	}
 
-	async createAssignment(req, res) {
+	async activeGoalPlan(req, res) {
 		try {
-			const createAssignment = await db.userassignment.create(req.body);
-			if (createAssignment) {
-				// Add appraisalGoalId to each object in the goalAttributesForComapany array
-				const goalAttributesWithGoal = req.body.attributeConfiguration.map(
-					(attr) => ({
-						...attr,
-						assignmentId: createAssignment.assignmentId, // Adding the ID to each entry
-					}),
+			const { appraisalGoalId } = req.body;
+
+			const currentPlan = await db.appraisalGoalsMaster.findOne({
+				where: { appraisalGoalId, isDeleted: 0 },
+			});
+
+			if (!currentPlan || !currentPlan.userAssignment) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Goal Plan not found or no userAssignment",
+				});
+			}
+
+			const assignmentIds = currentPlan.userAssignment
+				.split(",")
+				.map((id) => id.trim());
+
+			const likeConditions = assignmentIds.map((id) => ({
+				userAssignment: { [Op.like]: `%${id}%` },
+			}));
+
+			const assignmentExists = await db.appraisalGoalsMaster.findOne({
+				attributes: ["appraisalGoalId", "userAssignment"],
+				where: {
+					type: 1,
+					isDeleted: 0,
+					appraisalGoalId: { [Op.ne]: appraisalGoalId },
+					[Op.or]: likeConditions,
+				},
+			});
+
+			if (assignmentExists) {
+				return respHelper(res, {
+					status: 400,
+					msg: "A conflicting goal plan is already active.",
+				});
+			}
+
+			await db.appraisalGoalsMaster.update(
+				{ type: 1 },
+				{
+					where: { appraisalGoalId },
+				},
+			);
+
+			const activePlans = await db.appraisalGoalsMaster.findAll({
+				attributes: ["appraisalGoalId", "userAssignment"],
+				where: { type: 1, isDeleted: 0 },
+			});
+
+			const allUserKeys = new Set();
+			const insertPayload = [];
+
+			for (const plan of activePlans) {
+				const userList = await getEmployeesToAssignGoalPlan(
+					plan.userAssignment,
 				);
-				await db.userAssignmentConfig.bulkCreate(goalAttributesWithGoal);
+
+				for (const user of userList) {
+					const key = `${user.email}_${user.id}`;
+					if (!allUserKeys.has(key)) {
+						allUserKeys.add(key);
+						insertPayload.push({
+							tmc: user.empCode,
+							email: user.email,
+							userId: user.id,
+							goalPlanId: plan.appraisalGoalId, // ensure correct ID used
+							isActive: 1,
+						});
+					}
+				}
+			}
+
+			// Fetch users who already received mail and are still active
+			const existing = await db.goalPlanMail.findAll({
+				attributes: ["email", "userId"],
+				where: {
+					isActive: 1,
+				},
+			});
+
+			const existingMap = new Set(
+				existing.map((e) => `${e.email}_${e.userId}`),
+			);
+
+			// Filter to only new insertions
+			const newInserts = insertPayload.filter(
+				(entry) => !existingMap.has(`${entry.email}_${entry.userId}`),
+			);
+
+			if (newInserts.length > 0) {
+				await db.goalPlanMail.bulkCreate(newInserts);
+				// Send emails for the new goal plans
+				const getUserAssigmentIds = await db.appraisalGoalsMaster.findOne({
+					where: { appraisalGoalId: appraisalGoalId },
+				});
+
+				for (const entry of newInserts) {
+					const user = await db.employeeMaster.findOne({
+						where: { id: entry.userId },
+						include: [
+							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo", "companyName"],
+							},
+						],
+						attributes: ["name", "email"],
+						raw: true,
+					});
+
+					eventEmitter.emit(
+						"goalPlanAssignToEmployee",
+						JSON.stringify({
+							email: user.email,
+							name: user.name,
+							startDate: moment(getUserAssigmentIds.startDate).format(
+								"DD-MM-YYYY",
+							),
+							endDate: moment(getUserAssigmentIds.endDate).format("DD-MM-YYYY"),
+							goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
+							goalPlanName: getUserAssigmentIds.goalPlanName,
+							senderEmail: user["companymaster.senderEmail"] || "",
+							companyLogo: user["companymaster.companyLogo"] || "",
+							companyName: user["companymaster.companyName"] || "",
+						}),
+					);
+					console.log(`Goal plan email triggered for ${user.email}`);
+				}
 			}
 
 			return respHelper(res, {
 				status: 200,
 				data: {},
-				msg: message.APPRAISAL.GOAL_CREATION,
+				msg: message.APPRAISAL.GOAL_ACTIVE,
 			});
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
 					status: 422,
@@ -324,77 +409,7 @@ class AppraisalGoalsController {
 			}
 			return respHelper(res, {
 				status: 500,
-			});
-		}
-	}
-
-	async activeGoalPlan(req, res) {
-		try {
-			const { appraisalGoalId } = req.body;
-
-			const getAlreadyActivePlan = await db.appraisalGoalsMaster.findOne({
-				where: { type: 1, isDeleted: 0 },
-			});
-			if (getAlreadyActivePlan) {
-				return respHelper(res, {
-					status: 400,
-					msg: message.APPRAISAL.GOAL_ALREADY_ACTIVATED,
-				});
-			} else {
-				const changeDraftToActive = await db.appraisalGoalsMaster.update(
-					{ type: 1 },
-					{
-						where: { appraisalGoalId: appraisalGoalId },
-					},
-				);
-				const getUserAssigmentIds = await db.appraisalGoalsMaster.findOne({
-					where: { appraisalGoalId: appraisalGoalId },
-				});
-				console.log("getUserAssigmentIds", getUserAssigmentIds);
-				const userAssignmentWhereUserExist = await getEmployeesToAssignGoalPlan(
-					getUserAssigmentIds.userAssignment,
-				);
-
-				if (userAssignmentWhereUserExist.length > 0) {
-					for (const user of userAssignmentWhereUserExist) {
-						eventEmitter.emit(
-							"goalPlanAssignToEmployee",
-							JSON.stringify({
-								email: user.email,
-								name: user.name,
-								startDate: moment(getUserAssigmentIds.startDate).format(
-									"DD-MM-YYYY",
-								),
-								endDate: moment(getUserAssigmentIds.endDate).format(
-									"DD-MM-YYYY",
-								),
-								goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
-								goalPlanName: getUserAssigmentIds.goalPlanName, // add this if used in the template
-								senderEmail: user.companymaster?.senderEmail || "", // safe access
-								companyLogo: user.companymaster?.companyLogo || "",
-								companyName: user.companymaster?.companyName || "",
-							}),
-						);
-						console.log(`Goal plan email triggered for ${user.email}`);
-					}
-				}
-
-				return respHelper(res, {
-					status: 200,
-					data: {},
-					msg: message.APPRAISAL.GOAL_ACTIVE,
-				});
-			}
-		} catch (error) {
-			console.log(error);
-			if (error.isJoi === true) {
-				return respHelper(res, {
-					status: 422,
-					msg: error.details[0].message,
-				});
-			}
-			return respHelper(res, {
-				status: 500,
+				msg: "Internal server error",
 			});
 		}
 	}
@@ -406,6 +421,12 @@ class AppraisalGoalsController {
 				{ type: 2 },
 				{
 					where: { appraisalGoalId: appraisalGoalId },
+				},
+			);
+			await db.goalPlanMail.update(
+				{ isActive: 0 },
+				{
+					where: { goalPlanId: appraisalGoalId },
 				},
 			);
 			return respHelper(res, {
@@ -459,22 +480,36 @@ class AppraisalGoalsController {
 		try {
 			const result = await validator.editAppraisalGoals.validateAsync(req.body);
 
-			const existingGoalPlan = await db.appraisalGoalsMaster.findOne({
-				where: {
-					goalPlanName: result.goalPlanName,
-					//isActive: 1,
-					appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
-				},
-			});
+			const [existingGoalPlanName, existingGoalPlanId] = await Promise.all([
+				db.appraisalGoalsMaster.findOne({
+					where: {
+						goalPlanName: result.goalPlanName,
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+						isActive: 1,
+					},
+				}),
+				db.appraisalGoalsMaster.findOne({
+					where: {
+						gaolPlanId: result.gaolPlanId,
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+						isActive: 1,
+					},
+				}),
+			]);
 
-			const existingGoalPlanYears = await db.appraisalGoalsMaster.findOne({
-				where: {
-					startDate: result.startDate ?? "",
-					endDate: result.endDate ?? "",
-					//isActive: 1,
-					appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
-				},
-			});
+			if (existingGoalPlanName) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.GOAL_PLAN_NAME_ALREADY_EXISTS,
+				});
+			}
+
+			if (existingGoalPlanId) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.GOAL_PLAN_ID,
+				});
+			}
 
 			await db.appraisalGoalsMaster.update(result, {
 				where: { appraisalGoalId: result.appraisalGoalId },
@@ -534,49 +569,120 @@ class AppraisalGoalsController {
 		}
 	}
 
+	// async goalActiveAndArchive(req, res) {
+	// 	try {
+	// 		const getUserAssigmentIds = await getEmployeesAssignment(4);
+	// 		if (!getUserAssigmentIds) {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				data: {
+	// 					goalActive: [],
+	// 					goalArchive: [],
+	// 				},
+	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
+	// 			});
+	// 		}
+	// 		const userAssignmentWhereUserExist = await getEmployeesPragatGoalList(
+	// 			getUserAssigmentIds,
+	// 			req.userId,
+	// 		);
+
+	// 		if (
+	// 			getUserAssigmentIds.length > 0 &&
+	// 			userAssignmentWhereUserExist.length > 0
+	// 		) {
+	// 			// Build array of LIKE queries for each ID
+	// 			const likeConditions = getUserAssigmentIds.map((id) => ({
+	// 				userAssignment: {
+	// 					[Op.like]: `%${id}%`,
+	// 				},
+	// 			}));
+
+	// 			let goalActive = await db.appraisalGoalsMaster.findAll({
+	// 				where: {
+	// 					type: 1,
+	// 					isDeleted: 0,
+	// 					[Op.or]: likeConditions,
+	// 				},
+	// 				limit: 1,
+	// 			});
+
+	// 			let goalArchive = await db.appraisalGoalsMaster.findAll({
+	// 				where: {
+	// 					type: 2,
+	// 					isDeleted: 0,
+	// 					[Op.or]: likeConditions,
+	// 				},
+	// 			});
+
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				data: {
+	// 					goalActive,
+	// 					goalArchive,
+	// 				},
+	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
+	// 			});
+	// 		} else {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				data: {
+	// 					goalActive: [],
+	// 					goalArchive: [],
+	// 				},
+	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
+	// 			});
+	// 		}
+	// 	} catch (error) {
+	// 		console.error("Error in goalActiveAndArchive:", error);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 			msg: "Internal server error",
+	// 		});
+	// 	}
+	// }
 	async goalActiveAndArchive(req, res) {
 		try {
-			const getUserAssigmentIds = await getEmployeesAssignment(4);
-			if (!getUserAssigmentIds) {
-				return respHelper(res, {
-					status: 200,
-					data: {
-						goalActive: [],
-						goalArchive: [],
-					},
-					msg: message.APPRAISAL.GOAL_ACTIVE,
-				});
-			}
-			const userAssignmentWhereUserExist = await getEmployeesPragatGoalList(
-				getUserAssigmentIds,
-				req.userId,
-			);
+			console.log("req.userId", req.userId);
+			const getAllMail = await db.goalPlanMail.findAll({
+				attributes: ["email", "goalPlanId", "isActive"],
+				where: {
+					userId: req.userId,
+				},
+				raw: true,
+			});
+			if (getAllMail.length > 0) {
+				// Extract goalPlanIds from getAllMail
+				const goalPlanIds = getAllMail.map((item) => item.goalPlanId);
 
-			if (
-				getUserAssigmentIds.length > 0 &&
-				userAssignmentWhereUserExist.length > 0
-			) {
-				// Build array of LIKE queries for each ID
-				const likeConditions = getUserAssigmentIds.map((id) => ({
-					userAssignment: {
-						[Op.like]: `%${id}%`,
-					},
-				}));
+				// Active goalPlanIds only (isActive: 1)
+				const activeGoalPlanIds = getAllMail
+					.filter((item) => item.isActive === 1)
+					.map((item) => item.goalPlanId);
 
-				let goalActive = await db.appraisalGoalsMaster.findAll({
+				// Archived goalPlanIds only (isActive: 0)
+				const archiveGoalPlanIds = getAllMail
+					.filter((item) => item.isActive === 0)
+					.map((item) => item.goalPlanId);
+
+				const goalActive = await db.appraisalGoalsMaster.findAll({
 					where: {
 						type: 1,
 						isDeleted: 0,
-						[Op.or]: likeConditions,
+						appraisalGoalId: {
+							[Op.in]: activeGoalPlanIds,
+						},
 					},
 					limit: 1,
 				});
 
-				let goalArchive = await db.appraisalGoalsMaster.findAll({
+				const goalArchive = await db.appraisalGoalsMaster.findAll({
 					where: {
 						type: 2,
 						isDeleted: 0,
-						[Op.or]: likeConditions,
+						appraisalGoalId: {
+							[Op.in]: archiveGoalPlanIds,
+						},
 					},
 				});
 
@@ -615,7 +721,11 @@ class AppraisalGoalsController {
 				where: { appraisalGoalId: appraisalGoalId },
 				include: [
 					{
-						model: db.userassignment,
+						model: db.user_assignment,
+						required: false,
+						on: db.sequelize.literal(
+							"FIND_IN_SET(`user_assignments`.`id`, `appraisalgoalsmaster`.`userAssignment`) > 0",
+						),
 					},
 					{
 						model: db.goalAttributesMapping,
@@ -2331,11 +2441,954 @@ class AppraisalGoalsController {
 		}
 	}
 
-	async reviewFramework(req,res){
+	// ================== appraisal rating ======================
+	async createReviewFramework(req, res) {
 		try {
-			
+			// Validate request body against schema
+			const validatedData = await validator.reviewFrameworkSchema.validateAsync(
+				req.body,
+			);
+
+			// Convert empty strings to null (custom helper function)
+			const result = await helper.convertEmptyStringsToNull(validatedData);
+
+			// Uniqueness Check for reviewName
+			const existingReviewName = await db.reviewFramework.findOne({
+				where: {
+					reviewName: result.reviewName,
+				},
+			});
+
+			if (existingReviewName) {
+				return res.status(400).json({
+					success: false,
+					message: message.APPRAISAL.REVIEW_NAME_ALREADY_EXITS,
+					data: {},
+				});
+			}
+
+			// Uniqueness Check for reviewId
+			const existingReviewId = await db.reviewFramework.findOne({
+				where: {
+					reviewId: result.reviewId,
+				},
+			});
+
+			if (existingReviewId) {
+				return res.status(400).json({
+					success: false,
+					message: message.APPRAISAL.REVIEW_ID_ALREADY_EXITS,
+					data: {},
+				});
+			}
+
+			// Create new review framework
+			const newFramework = await db.reviewFramework.create(result);
+
+			// Send response with created data
+			return respHelper(res, {
+				status: 200,
+				msg: message.APPRAISAL.REVIEW_FRAMEWORK_CREATED_SUCCESSFULLY,
+				data: {}, // Include the created data
+			});
 		} catch (error) {
-			
+			console.error("Approval Error:", error);
+
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong",
+				data: {},
+			});
+		}
+	}
+
+	async getReviewFrameworks(req, res) {
+		try {
+			// You can add query parameters like filters or pagination here if needed
+			const frameworks = await db.reviewFramework.findAll({
+				where: {
+					type: req.query.type,
+					isDeleted: 0,
+				},
+				include: [
+					{
+						model: db.user_assignment,
+						required: false,
+						on: db.sequelize.literal(
+							`JSON_CONTAINS(reviewframework.userAssignment, CAST(user_assignments.id AS JSON), '$')`,
+						),
+					},
+				],
+				order: [
+					["createdAt", "DESC"],
+					[db.user_assignment, "id", "ASC"],
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Review frameworks fetched successfully",
+				data: {
+					frameworks,
+				},
+			});
+		} catch (error) {
+			console.error("Fetch Error:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong",
+				data: {},
+			});
+		}
+	}
+
+	async updateReviewFramework(req, res) {
+		try {
+			const validatedData =
+				await validator.editReviewFrameworkSchema.validateAsync(req.body);
+
+			const result = await helper.convertEmptyStringsToNull(validatedData);
+			const existingFramework = await db.reviewFramework.findByPk(
+				result.reviewFrameworkId,
+			);
+			if (!existingFramework) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Review Framework not found",
+					data: {},
+				});
+			}
+
+			if (
+				result.reviewName &&
+				result.reviewName !== existingFramework.reviewName
+			) {
+				const reviewNameExists = await db.reviewFramework.findOne({
+					where: {
+						reviewName: result.reviewName,
+					},
+				});
+				if (reviewNameExists) {
+					return res.status(400).json({
+						success: false,
+						message: message.APPRAISAL.REVIEW_NAME_ALREADY_EXITS,
+						data: {},
+					});
+				}
+			}
+
+			if (result.reviewId && result.reviewId !== existingFramework.reviewId) {
+				const reviewIdExists = await db.reviewFramework.findOne({
+					where: {
+						reviewId: result.reviewId,
+					},
+				});
+				if (reviewIdExists) {
+					return res.status(400).json({
+						success: false,
+						message: message.APPRAISAL.REVIEW_ID_ALREADY_EXITS,
+						data: {},
+					});
+				}
+			}
+			await existingFramework.update(result, {
+				where: { reviewFrameworkId: result.reviewFrameworkId },
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: message.APPRAISAL.REVIEW_FRAMEWORK_UPDATED_SUCCESSFULLY,
+				data: {},
+			});
+		} catch (error) {
+			console.error("Update Error:", error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+
+			return respHelper(res, {
+				status: 500,
+				msg: "Something went wrong",
+				data: {},
+			});
+		}
+	}
+
+	async reviewAppraisal(req, res) {
+		try {
+			const { sortBy, empId } = req.query;
+			const forEmp = empId ? empId : req.userId;
+
+			let orderClause = [];
+			if (sortBy === "1") {
+				orderClause = [["weightage", "DESC"]];
+			} else if (sortBy === "2") {
+				orderClause = [["goalName", "DESC"]];
+			} else {
+				orderClause = [["updatedAt", "DESC"]];
+			}
+
+			// Always sort subGoals by subGoalAreaId ascending
+			orderClause.push([
+				{ model: db.subGoalAreaForUser, as: "subGoals" },
+				"subGoalAreaId",
+				"ASC",
+			]);
+
+			// Get active goal plan
+			const activeGoalPlan = await db.appraisalGoalsMaster.findOne({
+				where: { type: 1, isDeleted: 0 },
+			});
+
+			if (!activeGoalPlan) {
+				return respHelper(res, {
+					status: 200,
+					msg: message.APPRAISAL.GET_LIST,
+					data: {},
+				});
+			}
+
+			// Check if user has a trail with isApproved = 2
+			const userTrail = await db.goalAreaPragatiTrail.findOne({
+				where: {
+					goalPlanId: activeGoalPlan.appraisalGoalId,
+					userId: forEmp,
+					isApproved: 2,
+				},
+			});
+
+			if (!userTrail) {
+				return respHelper(res, {
+					status: 200,
+					msg: message.APPRAISAL.GET_LIST,
+					data: {},
+				});
+			}
+
+			// Fetch goal data for the user
+			const goalData = await db.goalAreaForUser.findAll({
+				where: {
+					userId: forEmp,
+					goalPlanId: activeGoalPlan.appraisalGoalId,
+				},
+				include: [
+					{
+						model: db.appraisalGoalsMaster,
+						as: "goalPlanMaster",
+						include: [
+							{
+								model: db.goalAttributesMapping,
+								attributes: [
+									["goalAttributeId", "goalAttributesId"],
+									["enable", "goalNameEnable"],
+									["mandatory", "goalMandate"],
+									["editable", "goalEditable"],
+									["needsApproval", "goalNeedApproval"],
+									"appraisalGoalId",
+									"companyId",
+									"goalType",
+									"createdBy",
+									"createdAt",
+									"updatedBy",
+									"updatedAt",
+									"isActive",
+								],
+								as: "goalAttributes",
+								where: { goalType: 1, enable: 1 },
+								required: false,
+								separate: true,
+								include: [
+									{
+										model: db.goalAttributesConfigMaster,
+										attributes: [
+											"goalAttributeId",
+											"goalAttributeName",
+											"enable",
+											"mandatory",
+											"editable",
+											"needsApproval",
+											"label",
+											"stateName",
+											"value",
+											"type",
+											"fieldType",
+											"heading",
+											"errorMessage",
+											"isRequired",
+											"md",
+											"sm",
+											"minValueLimit",
+											"maxValueLimit",
+										],
+										include: [
+											{
+												model: db.goalAttributesOptions,
+												attributes: ["label", "value"],
+												required: false,
+												as: "options",
+											},
+										],
+									},
+								],
+								order: [["goalAttributeId", "ASC"]],
+							},
+							{
+								model: db.goalAttributesMapping,
+								attributes: [
+									["goalAttributeId", "goalAttributesId"],
+									["enable", "goalNameEnable"],
+									["mandatory", "goalMandate"],
+									["editable", "goalEditable"],
+									["needsApproval", "goalNeedApproval"],
+									"appraisalGoalId",
+									"companyId",
+									"goalType",
+									"createdBy",
+									"createdAt",
+									"updatedBy",
+									"updatedAt",
+									"isActive",
+								],
+								as: "subGoalAttributes",
+								where: { goalType: 2, enable: 1 },
+								required: false,
+								separate: true,
+								include: [
+									{
+										model: db.goalAttributesConfigMaster,
+										attributes: [
+											"goalAttributeId",
+											"goalAttributeName",
+											"enable",
+											"mandatory",
+											"editable",
+											"needsApproval",
+											"label",
+											"value",
+											"stateName",
+											"type",
+											"fieldType",
+											"heading",
+											"errorMessage",
+											"isRequired",
+											"md",
+											"sm",
+											"minValueLimit",
+											"maxValueLimit",
+										],
+										include: [
+											{
+												model: db.goalAttributesOptions,
+												attributes: ["label", "value"],
+												required: false,
+												as: "options",
+											},
+										],
+									},
+								],
+								order: [["goalAttributeId", "ASC"]],
+							},
+						],
+					},
+					{
+						model: db.subGoalAreaForUser,
+						as: "subGoals",
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "empCode"],
+					},
+				],
+				order: orderClause,
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: message.APPRAISAL.GET_LIST,
+				data: {
+					getGoalForUser: goalData,
+				},
+			});
+		} catch (error) {
+			console.error("Error in reviewAppraisal:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async selfRating(req, res) {
+		try {
+			const { selfRatings } = req.body;
+
+			if (!Array.isArray(selfRatings) || selfRatings.length === 0) {
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.RATING_VALUE_REQUIRED,
+				});
+			}
+
+			for (const rating of selfRatings) {
+				const [goalRating, created] = await db.goalRating.findOrCreate({
+					where: {
+						goalAreaId: rating.goalAreaId,
+						forUser: req.userId,
+					},
+					defaults: {
+						goalAreaId: rating.goalAreaId,
+						forUser: req.userId,
+						byUser: req.userId,
+						rating: rating.rating,
+						comment: rating.comment,
+						createdBy: req.userId,
+						updatedBy: req.userId,
+					},
+				});
+
+				// If the record already exists (not created), update it
+				if (!created) {
+					await goalRating.update({
+						rating: rating.rating,
+						comment: rating.comment,
+						updatedBy: req.userId,
+					});
+				}
+			}
+
+			return respHelper(res, {
+				status: 200,
+				msg: message.APPRAISAL.RATING_SUBMISSION,
+				data: {},
+			});
+		} catch (error) {
+			console.error("Error in selfRating:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async activeGoalReviewFramework(req, res) {
+		try {
+			const { reviewFrameworkId } = req.body;
+
+			await db.reviewFramework.update(
+				{ type: 1 },
+				{
+					where: { reviewFrameworkId: reviewFrameworkId },
+				},
+			);
+			return respHelper(res, {
+				status: 200,
+				data: {},
+				msg: message.APPRAISAL.REVIEW_FRAMEWORK_ACTIVATE,
+			});
+		} catch (error) {
+			console.log(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async archiveGoalReviewFramework(req, res) {
+		try {
+			const { reviewFrameworkId } = req.body;
+			const changeDraftToActive = await db.reviewFramework.update(
+				{ type: 2 },
+				{
+					where: { reviewFrameworkId: reviewFrameworkId },
+				},
+			);
+			return respHelper(res, {
+				status: 200,
+				data: {},
+				msg: message.APPRAISAL.GOAL_ARCIVED,
+			});
+		} catch (error) {
+			console.log(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	// controllers/ratingScaleController.js
+
+	async createRatingScale(req, res) {
+		const {
+			ratingScaleName,
+			ratingScaleDescription,
+			lengthOfScale,
+			ratingScaleConfig,
+		} = req.body;
+
+		try {
+			const existing = await db.ratingScaleMaster.findOne({
+				where: { ratingScaleName },
+			});
+			if (existing) {
+				return respHelper(res, {
+					status: 400,
+					data: {},
+					msg: message.APPRAISAL.RATING_SCALE_NAME_EXISTS,
+				});
+			}
+			// Create Rating Scale Master
+			const ratingScale = await db.ratingScaleMaster.create({
+				ratingScaleName,
+				ratingScaleDescription,
+				lengthOfScale,
+				createdBy: req.userId, // assuming you're using auth
+				updatedBy: req.userId,
+				isActive: true,
+			});
+
+			// Create Related Config Records
+			if (Array.isArray(ratingScaleConfig) && ratingScaleConfig.length > 0) {
+				const configData = ratingScaleConfig.map((config) => ({
+					...config,
+					ratingScaleId: ratingScale.ratingScaleId,
+					createdBy: req.userId,
+					updatedBy: req.userId,
+					isActive: true,
+				}));
+
+				await db.ratingScaleConfig.bulkCreate(configData);
+			}
+
+			return respHelper(res, {
+				status: 200,
+				data: {},
+				msg: message.APPRAISAL.RATING_SCALE_CREATION,
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async updateRatingScale(req, res) {
+		const {
+			ratingScaleId,
+			ratingScaleName,
+			ratingScaleDescription,
+			lengthOfScale,
+			ratingScaleConfig,
+		} = req.body;
+
+		try {
+			// Check if a record with the same ratingScaleName exists (excluding the current one)
+			const existing = await db.ratingScaleMaster.findOne({
+				where: {
+					ratingScaleName,
+					ratingScaleId: { [Op.ne]: ratingScaleId }, // Ensure it's not the same record
+				},
+			});
+
+			if (existing) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Rating scale name already exists.",
+					data: {},
+				});
+			}
+
+			// Update the Rating Scale Master record
+			await db.ratingScaleMaster.update(
+				{
+					ratingScaleName,
+					ratingScaleDescription,
+					lengthOfScale,
+					updatedBy: req.userId,
+				},
+				{
+					where: { ratingScaleId },
+				},
+			);
+
+			// Update Related Config Records
+			if (Array.isArray(ratingScaleConfig) && ratingScaleConfig.length > 0) {
+				// Remove old config records
+				await db.ratingScaleConfig.destroy({
+					where: { ratingScaleId },
+				});
+
+				// Insert new config records
+				const configData = ratingScaleConfig.map((config) => ({
+					...config,
+					ratingScaleId,
+					createdBy: req.userId,
+					updatedBy: req.userId,
+					isActive: true,
+				}));
+
+				await db.ratingScaleConfig.bulkCreate(configData);
+			}
+
+			// Return success response with updated scale name and ID
+			return respHelper(res, {
+				status: 200,
+				msg: "Rating scale updated successfully.",
+				data: {
+					ratingScaleId,
+					ratingScaleName,
+				},
+			});
+		} catch (error) {
+			console.error(error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error.",
+			});
+		}
+	}
+
+	async getAllRatingScales(req, res) {
+		try {
+			const ratingScales = await db.ratingScaleMaster.findAll({
+				where: { isActive: true },
+				include: [
+					{
+						model: db.ratingScaleConfig,
+						required: false,
+					},
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Rating Scale List",
+				data: {
+					ratingScales,
+				},
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async createCompentancy(req, res) {
+		const { compentancyName, compentancyDescription, compentancyID } = req.body;
+
+		try {
+			const existing = await db.compentanyTier.findOne({
+				where: { compentancyName },
+			});
+			if (existing) {
+				return respHelper(res, {
+					status: 400,
+					data: {},
+					msg: message.APPRAISAL.COMPENTANCY_NAME_EXISTS,
+				});
+			}
+
+			// CREATE TIER
+			const tier = await db.compentanyTier.create({
+				compentancyName,
+				compentancyDescription,
+				compentancyID,
+				createdBy: req.userId,
+				updatedBy: req.userId,
+				isActive: true,
+			});
+
+			return respHelper(res, {
+				status: 201,
+				data: {},
+				msg: message.APPRAISAL.COMPENTANCY_CREATE_SUCCESS,
+			});
+		} catch (error) {
+			console.error("Error creating competency:", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async getAllCompetencyTiers(req, res) {
+		try {
+			const tiers = await db.compentanyTier.findAll({
+				where: { isActive: true },
+				order: [["compentancyTierId", "ASC"]],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: tiers,
+				msg: "Fetched competency tiers successfully.",
+			});
+		} catch (error) {
+			console.error("Error fetching competency tiers:", error);
+			return respHelper(res, {
+				status: 500,
+				data: {},
+			});
+		}
+	}
+
+	async updateCompentancy(req, res) {
+		try {
+			const {
+				compentancyTierId,
+				compentancyName,
+				compentancyDescription,
+				compentancyID,
+			} = req.body;
+
+			if (!compentancyTierId) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Competency Tier ID is required for update.",
+				});
+			}
+
+			// Check if the record exists
+			const existingTier = await db.compentanyTier.findByPk(compentancyTierId);
+			if (!existingTier) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Competency tier not found.",
+				});
+			}
+
+			// Check for duplicate compentancyName
+			const duplicateName = await db.compentanyTier.findOne({
+				where: {
+					compentancyName,
+					compentancyTierId: { [db.Sequelize.Op.ne]: compentancyTierId },
+				},
+			});
+			if (duplicateName) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Competency name already exists.",
+				});
+			}
+
+			// Check for duplicate compentancyID
+			const duplicateID = await db.compentanyTier.findOne({
+				where: {
+					compentancyID,
+					compentancyTierId: { [db.Sequelize.Op.ne]: compentancyTierId },
+				},
+			});
+			if (duplicateID) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Competency ID already exists.",
+				});
+			}
+
+			// Perform update
+			await db.compentanyTier.update(
+				{
+					compentancyName,
+					compentancyDescription,
+					compentancyID,
+					updatedBy: req.userId,
+				},
+				{ where: { compentancyTierId } },
+			);
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Competency updated successfully.",
+				data: {},
+			});
+		} catch (error) {
+			console.error("Error updating competency:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error while updating competency.",
+			});
+		}
+	}
+
+	async getAllCompetencyAttributesWithTier(req, res) {
+		try {
+			const attributes = await db.compentancyAttributes.findAll({
+				include: [
+					{
+						model: db.compentanyTier,
+						attributes: [
+							"compentancyTierId",
+							"compentancyName",
+							"compentancyDescription",
+							"compentancyID",
+						],
+					},
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: attributes,
+				msg: "Fetched competency attributes with tiers successfully.",
+			});
+		} catch (error) {
+			console.error("Error fetching attributes with tiers:", error);
+			return respHelper(res, {
+				status: 500,
+				data: {},
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async addCompetencyAttributes(req, res) {
+		try {
+			const {
+				compentancyTierId,
+				compAttrName,
+				compAttrDescription,
+				compAttrID,
+			} = req.body;
+
+			const existing = await db.compentancyAttributes.findOne({
+				where: {
+					compentancyTierId,
+					compAttrName,
+					//isDeleted: 0, // Optional: if you have soft delete
+				},
+			});
+			if (existing) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Competency attribute "${compAttrName}" already exists in this tier.`,
+				});
+			}
+			const insertPayload = {
+				compentancyTierId,
+				compAttrName,
+				compAttrDescription,
+				compAttrID,
+			};
+
+			await db.compentancyAttributes.create(insertPayload);
+			return respHelper(res, {
+				status: 200,
+				msg: "Competency attributes added successfully.",
+				data: {},
+			});
+		} catch (error) {
+			console.log("errorerror", error);
+			console.error(error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async updateCompetencyAttributes(req, res) {
+		try {
+			const {
+				compAttributesId,
+				compentancyTierId,
+				compAttrName,
+				compAttrDescription,
+				compAttrID,
+			} = req.body;
+
+			if (!compAttributesId) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Competency Attribute ID is required for update.",
+				});
+			}
+
+			const attribute =
+				await db.compentancyAttributes.findByPk(compAttributesId);
+			if (!attribute) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Competency attribute not found.",
+				});
+			}
+
+			// 1. Check for duplicate compAttrName within the same tier
+			const duplicateName = await db.compentancyAttributes.findOne({
+				where: {
+					compentancyTierId,
+					compAttrName,
+					compAttributesId: { [db.Sequelize.Op.ne]: compAttributesId },
+				},
+			});
+
+			if (duplicateName) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Competency attribute name "${compAttrName}" already exists in this tier.`,
+				});
+			}
+
+			// 2. Check for duplicate compAttrID (excluding current record)
+			const duplicateAttrID = await db.compentancyAttributes.findOne({
+				where: {
+					compAttrID,
+					compAttributesId: { [db.Sequelize.Op.ne]: compAttributesId },
+				},
+			});
+
+			if (duplicateAttrID) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Competency attribute ID "${compAttrID}" already exists.`,
+				});
+			}
+
+			// Perform the update
+			await db.compentancyAttributes.update(
+				{
+					compAttrName,
+					compAttrDescription,
+					compentancyTierId,
+					compAttrID,
+				},
+				{ where: { compAttributesId } },
+			);
+
+			return respHelper(res, {
+				status: 200,
+				msg: "Competency attribute updated successfully.",
+				data: {},
+			});
+		} catch (error) {
+			console.error("Update error:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
 		}
 	}
 }
