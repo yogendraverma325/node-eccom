@@ -2499,99 +2499,79 @@ const createRatingScaleSchema = Joi.object({
 	}),
 
 	ratingScaleDescription: Joi.string().optional().messages({
-		"string.base": "Description must be a string."
-		}),
+		"string.base": "Description must be a string.",
+	}),
 
-	lengthOfScale: Joi.string()
-		.required()
-		.messages({
-			"string.empty": "Length of scale cannot be empty.",
-			"string.pattern.base": "Length of scale must be a numeric string.",
-			"any.required": "Length of scale is required.",
-		}),
+	lengthOfScale: Joi.string().required().messages({
+		"string.empty": "Length of scale cannot be empty.",
+		"string.pattern.base": "Length of scale must be a numeric string.",
+		"any.required": "Length of scale is required.",
+	}),
 
 	ratingScaleConfig: Joi.array()
-        .items(
-            Joi.object({
-                scaleMarker: Joi.string().required().messages({
-                    "any.required": "Scale marker is required.",
-                }),
+		.items(
+			Joi.object({
+				scaleMarker: Joi.string().required().messages({
+					"any.required": "Scale marker is required.",
+				}),
 
-                marks: Joi.string()
-                    .required()
-                    .messages({
-                        "any.required": "Marks are required.",
-                    }),
+				marks: Joi.string().required().messages({
+					"any.required": "Marks are required.",
+				}),
 
-                ratingScaleConfigDescription: Joi.string()
-                    .required()
-                    .messages({
-                        "any.required": "Description is required.",
-                    }),
-            })
-        )
-        .optional()
-        .messages({
-            "array.base": "Rating scale config must be an array.",
-        }),
+				ratingScaleConfigDescription: Joi.string().required().messages({
+					"any.required": "Description is required.",
+				}),
+			}),
+		)
+		.optional()
+		.messages({
+			"array.base": "Rating scale config must be an array.",
+		}),
 });
 
 const updateRatingScaleSchema = Joi.object({
-    ratingScaleId: Joi.number()
-        .required()
-        .messages({
-            "number.base": "Rating scale ID must be a number.",
-            "any.required": "Rating scale ID is required.",
-        }),
+	ratingScaleId: Joi.number().required().messages({
+		"number.base": "Rating scale ID must be a number.",
+		"any.required": "Rating scale ID is required.",
+	}),
 
-    ratingScaleName: Joi.string()
-        .required()
-        .messages({
-            "string.base": "Rating scale name must be a string.",
-            "string.empty": "Rating scale name cannot be empty.",
-            "any.required": "Rating scale name is required.",
-        }),
+	ratingScaleName: Joi.string().required().messages({
+		"string.base": "Rating scale name must be a string.",
+		"string.empty": "Rating scale name cannot be empty.",
+		"any.required": "Rating scale name is required.",
+	}),
 
-    ratingScaleDescription: Joi.string()
-        .optional()
-        .messages({
-            "string.base": "Description must be a string.",
-        }),
+	ratingScaleDescription: Joi.string().optional().messages({
+		"string.base": "Description must be a string.",
+	}),
 
-    lengthOfScale: Joi.string()
-        .required()
-        .messages({
-            "string.empty": "Length of scale cannot be empty.",
-            "string.pattern.base": "Length of scale must be a numeric string.",
-            "any.required": "Length of scale is required.",
-        }),
+	lengthOfScale: Joi.string().required().messages({
+		"string.empty": "Length of scale cannot be empty.",
+		"string.pattern.base": "Length of scale must be a numeric string.",
+		"any.required": "Length of scale is required.",
+	}),
 
-    ratingScaleConfig: Joi.array()
-        .items(
-            Joi.object({
-                scaleMarker: Joi.string()
-                    .required()
-                    .messages({
-                        "any.required": "Scale marker is required.",
-                    }),
+	ratingScaleConfig: Joi.array()
+		.items(
+			Joi.object({
+				scaleMarker: Joi.string().required().messages({
+					"any.required": "Scale marker is required.",
+				}),
 
-                marks: Joi.string()
-                    .required()
-                    .messages({
-                        "any.required": "Marks are required.",
-                    }),
+				marks: Joi.string().required().messages({
+					"any.required": "Marks are required.",
+				}),
 
-                ratingScaleConfigDescription: Joi.string()
-                    .required()
-                    .messages({
-                        "any.required": "Description is required.",
-                    }),
-            })
-        )
-        .optional() // Allow empty array or no array at all
-        .messages({
-            "array.base": "Rating scale config must be an array.",
-        }),
+				ratingScaleConfigDescription: Joi.string().required().messages({
+					"any.required": "Description is required.",
+				}),
+			}),
+		)
+		.optional() // Allow empty array or no array at all
+		.messages({
+			"array.base": "Rating scale config must be an array.",
+		}),
 });
 //
 export default {

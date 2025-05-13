@@ -80,9 +80,9 @@ export default (sequelize, Sequelize) => {
 		hideNextStageRatings: {
 			type: Sequelize.BOOLEAN,
 		},
-        userAssignment:{
-            type: Sequelize.JSON
-        },
+		userAssignment: {
+			type: Sequelize.JSON,
+		},
 		// selfCanViewRatingOf: {
 		// 	type: Sequelize.STRING,
 		// },

@@ -15,8 +15,8 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TEXT,
 		},
 		compAttrID: {
-           type: Sequelize.STRING, 
-        },
+			type: Sequelize.STRING,
+		},
 		createdBy: {
 			type: Sequelize.INTEGER,
 		},

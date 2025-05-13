@@ -2905,7 +2905,7 @@ class commonController {
 			let query = { id: req.params.id };
 			console.log("Received id:", req.params.id);
 
-			let updateMetaData = { isDeleted: 1, isActive: 0,  updatedAt: moment() };
+			let updateMetaData = { isDeleted: 1, isActive: 0, updatedAt: moment() };
 			let moduleName = "Hr Policy";
 			let response = await service.delete(
 				model,

@@ -8,12 +8,12 @@ export default (sequelize, Sequelize) => {
 		goalAreaId: {
 			type: Sequelize.INTEGER,
 		},
-        forUser:{
-            type: Sequelize.INTEGER,
-        },
-        byUser:{
-            type: Sequelize.INTEGER,
-        },
+		forUser: {
+			type: Sequelize.INTEGER,
+		},
+		byUser: {
+			type: Sequelize.INTEGER,
+		},
 		rating: {
 			type: Sequelize.INTEGER,
 		},
