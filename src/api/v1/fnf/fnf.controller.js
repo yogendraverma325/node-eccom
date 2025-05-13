@@ -2787,6 +2787,7 @@ async function generatePaySlip(data) {
 						payMonth: payMonthlyElement.payMonth,
 						encashmentDays: payMonthlyElement.leaveEncashmentDays,
 						recoveryDays: payMonthlyElement.noticePeriodRecoveryDays,
+						paySlipType: "FandF",
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId
 						? isExistPaySlip.dataValues.paySlipAutoId

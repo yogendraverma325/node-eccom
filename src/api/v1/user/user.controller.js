@@ -4667,6 +4667,17 @@ class UserController {
 				},
 			);
 
+			await db.jobDetails.update(
+				{
+					noticePeriodStatus: 0,
+				},
+				{
+					where: {
+						userId: separationData.dataValues.employeeId,
+					},
+				},
+			);
+
 			return respHelper(res, {
 				status: 200,
 				msg: constant.SEPARATION_REVOKED,
@@ -7182,15 +7193,15 @@ class UserController {
 						],
 					},
 				],
-				order: [[db.hrPolicies, "updatedAt", "DESC"]], // 👈 Sort by newest
+				order: [[db.hrPolicies, "updatedAt", "DESC"]],
 			});
 
-			if (!unsignedPolicies.length && !signedPolicies.length) {
-				return respHelper(res, {
-					status: 404,
-					msg: "No HR policies found for this employee",
-				});
-			}
+			//	if (!unsignedPolicies.length && !signedPolicies.length) {
+			//return respHelper(res, {
+			//	status: 404,
+			//	msg: "No HR policies found for this employee",
+			//});
+			//}
 
 			return respHelper(res, {
 				status: 200,
@@ -7286,7 +7297,7 @@ class UserController {
 
 			return respHelper(res, {
 				status: 200,
-				msg: `Policy(ies) ${action} successfully`,
+				msg: `Policy ${action} successfully`,
 			});
 		} catch (error) {
 			console.error(error);
@@ -7351,6 +7362,52 @@ class UserController {
 	}
 
 	// hr policy for User end
+
+	/**
+	 * Update attendance setting
+	 */
+
+	async updateAttendanceSetting(req, res) {
+		try {
+			let {
+				enableBiometricAttendance,
+				enableMobileAttendance,
+				enableWebAttendance,
+				employeeId,
+			} = req.body;
+			if (
+				!employeeId ||
+				enableBiometricAttendance == null ||
+				enableMobileAttendance == null ||
+				enableWebAttendance == null
+			) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Bad request",
+				});
+			}
+			let metaData = {
+				enableBiometricAttendance: enableBiometricAttendance,
+				enableMobileAttendance: enableMobileAttendance,
+				enableWebAttendance: enableWebAttendance,
+				updatedBy: req.userId,
+				updatedAt: moment(),
+			};
+
+			let query = { id: employeeId };
+			let response = await db.employeeMaster.update(metaData, { where: query });
+			return respHelper(res, {
+				status: 202,
+				msg: constant.UPDATE_SUCCESS.replace("<module>", "Data"),
+			});
+		} catch (error) {
+			console.log("Error throw while update attendance setting", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "",
+			});
+		}
+	}
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

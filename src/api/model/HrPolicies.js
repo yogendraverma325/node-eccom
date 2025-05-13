@@ -41,9 +41,17 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TINYINT,
 			defaultValue: 0,
 		},
+		isDeleted: {
+			type: Sequelize.TINYINT,
+			defaultValue: 0,
+		},
 		isActive: {
 			type: Sequelize.TINYINT,
 			defaultValue: 1,
+		},
+		isEdited: {
+			type: Sequelize.TINYINT,
+			defaultValue: 0,
 		},
 		effective_date_from: {
 			type: Sequelize.DATEONLY,
@@ -70,12 +78,19 @@ export default (sequelize, Sequelize) => {
 			allowNull: true,
 			defaultValue: 0,
 		},
+		dateOfJoining: {
+			type: Sequelize.DATEONLY,
+			allowNull: true,
+		},
 		TriggerOnDateOfConfirmation: {
 			type: Sequelize.TINYINT,
 			allowNull: true,
 			defaultValue: 0,
 		},
-
+		dateOfConfirmation: {
+			type: Sequelize.DATEONLY,
+			allowNull: true,
+		},
 		createdAt: {
 			type: Sequelize.DATE,
 			defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),

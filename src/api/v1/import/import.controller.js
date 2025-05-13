@@ -8,6 +8,8 @@ import { Op, where } from "sequelize";
 import moment from "moment";
 import { raw } from "mysql2";
 import eventEmitter from "../../../services/eventService.js";
+import constant from "../../../constant/messages.js";
+
 const financialMonth = {
 	1: "January",
 	2: "February",
@@ -43,6 +45,8 @@ class ImportController {
 				"Delete LOP",
 				"Delete Extra Payment",
 				"Delete Standard Deduction",
+				"Arrears",
+				"Update Attendance Setting",
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -52,13 +56,14 @@ class ImportController {
 				});
 			}
 			if (!req.body.operationType) {
+				/// OpreationType 1 OR 2
 				return respHelper(res, {
 					status: 400,
 					msg: "Operation not defined : ",
 				});
 			}
 
-			// console.log("Operation Type :: ",req.body.operationType);
+			// console.log("Operation Type :: ",req.body.uploadType);
 			// return;
 			let importInfoObject = {
 				createdBy: req.userData.id,
@@ -95,6 +100,10 @@ class ImportController {
 				await uploadCTC(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Pay Slip Release") {
 				await releasePaySlip(req, res, FILEDATA, importInfoObject);
+			} else if (req.body.uploadType == "Arrears") {
+				await arrearsUpload(req, res, OperationType, importInfoObject);
+			} else if (req.body.uploadType == "Update Attendance Setting") {
+				await updateAttendanceSetting(req, res, FILEDATA, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -116,6 +125,7 @@ class ImportController {
 				sbuId: req.userData.sbuId,
 				isActive: req.userData.isActive,
 			});
+			console.log(queryForImportDetails);
 			let importInfoList = await db.sequelize.query(queryForImportDetails);
 			return respHelper(res, {
 				status: 200,
@@ -146,6 +156,7 @@ class ImportController {
 				DELETE_EXTRA_PAYMENT: "Delete Extra Payment",
 				DELETE_TDS_DEDUCTION: "Delete TDS Deduction",
 				DELETE_LOP: "Delete LOP",
+				ARREARS: "Arrears",
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -1597,6 +1608,179 @@ async function releasePaySlip(req, res, FILEDATA, importParams) {
 		console.log(e);
 	}
 }
+
+async function arrearsUpload(req, res, OperationType, importParams) {
+	try {
+		if (!req.file) {
+			return respHelper(res, {
+				status: 400,
+				msg: "File is required!",
+			});
+		}
+		///////////////If File is provided by the users//////////////////
+		const workbookEmployee = pkg.readFile(req.file.path);
+		const sheetNameEmployee = workbookEmployee.SheetNames[0];
+		var arrearsDetais = pkg.utils.sheet_to_json(
+			workbookEmployee.Sheets[sheetNameEmployee],
+		);
+		if (
+			!arrearsDetais[0]["Employee ID"] ||
+			!arrearsDetais[0]["Arrear Pay Month (YYYY-MM)"] ||
+			!arrearsDetais[0]["Arrear Type(LOP/Increment)"] ||
+			!arrearsDetais[0]["Arrear Month (YYYY-MM)"] ||
+			!arrearsDetais[0]["Arrear Days"] ||
+			!arrearsDetais[0]["Has PF Arrear? (Yes/No)"] ||
+			!arrearsDetais[0]["Compute ESIC Arrear (Yes/No)"] ||
+			!arrearsDetais[0]["Delete Arrear? (Yes/No)"]
+		) {
+			return respHelper(res, {
+				status: 400,
+				msg: "Invalid File Format",
+			});
+		}
+
+		let financialYearDetails = await importHelper.getFinancialYear(
+			new Date().getFullYear(),
+		);
+		var errorArray = [],
+			successArray = [];
+		let importId = await createImportDetails(importParams);
+
+		for (const employeeArrears of arrearsDetais) {
+			if (employeeArrears["Employee ID"]) {
+				let employeeDetais = await db.employeeMaster.findOne({
+					where: { empCode: employeeArrears["Employee ID"], isActive: 1 },
+					raw: true,
+					attributes: ["empCode", "id", "companyId", "buId", "sbuId"],
+				});
+
+				if (!employeeDetais) {
+					errorArray.push({
+						importedRow: JSON.stringify(employeeArrears),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc: "Employee not found or deactivated.",
+					});
+
+					continue;
+				}
+				let earningArears = {
+					EmployeeId: employeeDetais.id,
+					arrearMonth: employeeArrears["Arrear Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Month (YYYY-MM)'])),
+					arrearPayMonth: employeeArrears["Arrear Pay Month (YYYY-MM)"], //helper.formatToYYYYMM(helper.excelDateToJSDate(employeeArrears['Arrear Pay Month (YYYY-MM)'])),//employeeArrears['Arrear Pay Month (YYYY-MM)'],
+					arearDays: employeeArrears["Arrear Days"],
+					arearType: employeeArrears["Arrear Type(LOP/Increment)"],
+					hasPF: employeeArrears["Has PF Arrear? (Yes/No)"],
+					computeESIC: employeeArrears["Compute ESIC Arrear (Yes/No)"],
+					empCode: employeeArrears["Employee ID"],
+					isActive: 1,
+					companyId: employeeDetais.companyId,
+					buId: employeeDetais.buId,
+					sbuId: employeeDetais.sbuId,
+					financialYearId: financialYearDetails.financialYearId,
+				};
+
+				console.log(earningArears);
+
+				const { error } =
+					await validator.earningArrearsSchema.validate(earningArears);
+
+				if (error) {
+					errorArray.push({
+						importedRow: JSON.stringify(employeeArrears),
+						importAutoId: importId,
+						importStatus: 2,
+						createdBy: req.userData.id,
+						importStatusDesc: error.details[0].message,
+					});
+					continue;
+					// return respHelper(res, {
+					// 	status: 400,
+					// 	msg: error.details[0],
+					// });
+				} else {
+					let existArrear = await db.earningsArears.findOne({
+						where: {
+							EmployeeId: earningArears.EmployeeId,
+							arrearMonth: earningArears.arrearMonth,
+							arearType: earningArears.arearType,
+						},
+						raw: true,
+					});
+
+					if (OperationType == 2 && !existArrear) {
+						errorArray.push({
+							importedRow: JSON.stringify(employeeArrears),
+							importAutoId: importId,
+							importStatus: 2,
+							createdBy: req.userData.id,
+							importStatusDesc: "Data is  not available to delete.",
+						});
+
+						continue;
+					}
+
+					if (existArrear) {
+						earningArears["updatedBy"] = req.userData.id;
+						earningArears["updatedAt"] = new Date();
+						await db.earningsArears.update(earningArears, {
+							where: {
+								EmployeeId: earningArears.EmployeeId,
+								arrearMonth: earningArears.arrearMonth,
+								arearType: earningArears.arearType,
+							},
+						});
+						earningArears["ACTION_TYPE"] = "UPDATE";
+					} else {
+						earningArears["createdBy"] = req.userData.id;
+						earningArears["createdAt"] = new Date();
+						await db.earningsArears.create(earningArears);
+						earningArears["ACTION_TYPE"] = "CREATE";
+					}
+					successArray.push({
+						importedRow: JSON.stringify(employeeArrears),
+						importAutoId: importId,
+						importStatus: 1,
+						createdBy: req.userData.id,
+						importStatusDesc: "Arrears Uploaded Successfully.",
+					});
+				}
+			}
+		}
+
+		if (importId) {
+			let importFinalResult = successArray.concat(errorArray);
+			await db.ImportData.bulkCreate(importFinalResult);
+			await db.ImportInfo.update(
+				{
+					importStatusDesc:
+						"Import Executed with " +
+						successArray.length +
+						" success and " +
+						errorArray.length +
+						" error records",
+					importStatus: 1,
+				},
+				{ where: { importAutoId: importId } },
+			);
+
+			return respHelper(res, {
+				status: 200,
+				data: {
+					SuccessRecord: successArray.length,
+					ErrorRecord: errorArray.length,
+				},
+				msg: "Extra Deductions Uploaded Successfully.",
+			});
+		}
+	} catch (error) {
+		console.log(error);
+		return respHelper(res, {
+			status: 500,
+		});
+	}
+}
 async function sendMailAfterSalarySlipRelease(
 	employeeIds,
 	payMonth,
@@ -1657,8 +1841,103 @@ async function sendMailAfterSalarySlipRelease(
 		}
 	}
 }
+
 async function createImportDetails(params) {
 	let importInfo = await db.ImportInfo.create(params);
 	let importInfoRaw = importInfo.get({ plain: true });
 	return importInfoRaw.importAutoId;
+}
+
+async function updateAttendanceSetting(req, res, FILEDATA, importParams) {
+	if (!req.file) {
+		return respHelper(res, {
+			status: 400,
+			msg: "File is required!",
+		});
+	}
+
+	if (
+		!["Yes", "No"].includes(
+			FILEDATA[0]["Enable Biometric Attendance (Yes, No)"],
+		) ||
+		!["Yes", "No"].includes(
+			FILEDATA[0]["Enable Mobile Attendance (Yes, No)"],
+		) ||
+		!["Yes", "No"].includes(FILEDATA[0]["Enable Web Attendance (Yes, No)"]) ||
+		!FILEDATA[0]["Employee ID"]
+	) {
+		return respHelper(res, {
+			status: 400,
+			msg: "Invalid File Format",
+		});
+	}
+
+	let successArray = [];
+	let errorArray = [];
+
+	const filterData = FILEDATA.filter((item) => item["Employee ID"]);
+
+	for (let i = 0; filterData.length > i; i++) {
+		const isExist = await db.employeeMaster.findOne({
+			where: { empCode: String(filterData[i]["Employee ID"]) },
+			attributes: ["id", "empCode"],
+			raw: true,
+		});
+
+		if (
+			["Yes", "No"].includes(
+				filterData[i]["Enable Biometric Attendance (Yes, No)"],
+			) &&
+			["Yes", "No"].includes(
+				filterData[i]["Enable Mobile Attendance (Yes, No)"],
+			) &&
+			["Yes", "No"].includes(
+				filterData[i]["Enable Web Attendance (Yes, No)"],
+			) &&
+			filterData[i]["Employee ID"] &&
+			isExist
+		) {
+			let updateObj = {
+				enableBiometricAttendance:
+					filterData[i]["Enable Biometric Attendance (Yes, No)"] == "Yes"
+						? 1
+						: 0,
+				enableMobileAttendance:
+					filterData[i]["Enable Mobile Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+				enableWebAttendance:
+					filterData[i]["Enable Web Attendance (Yes, No)"] == "Yes" ? 1 : 0,
+			};
+
+			await db.employeeMaster.update(updateObj, {
+				where: { empCode: String(filterData[i]["Employee ID"]) },
+			});
+			// push object in success array
+			successArray.push({
+				importedRow: filterData[i]["Employee ID"],
+				importAutoId: isExist.id,
+				importStatus: 1,
+				createdBy: req.userId,
+				importStatusDesc: "Attendance setting update successfully.",
+			});
+		} else {
+			// push object in failure array
+			errorArray.push({
+				importedRow: filterData[i]["Employee ID"],
+				importAutoId: 0,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: !isExist ? "Invalid TMC" : "Invalid columny value",
+			});
+			i++;
+		}
+	}
+
+	return respHelper(res, {
+		status: 202,
+		msg: "Attendance setting update successfully.",
+		data: {
+			SuccessRecord: successArray.length,
+			ErrorRecord: errorArray.length,
+		},
+	});
 }
