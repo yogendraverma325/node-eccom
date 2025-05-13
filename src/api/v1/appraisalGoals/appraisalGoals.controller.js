@@ -643,7 +643,6 @@ class AppraisalGoalsController {
 	// }
 	async goalActiveAndArchive(req, res) {
 		try {
-			console.log("req.userId", req.userId);
 			const getAllMail = await db.goalPlanMail.findAll({
 				attributes: ["email", "goalPlanId", "isActive"],
 				where: {
