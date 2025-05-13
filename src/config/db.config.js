@@ -2347,6 +2347,8 @@ db.user_assignment.hasMany(db.user_assignment_condition, {
 	foreignKey: "user_assignment_id",
 	as: "conditions",
 });
+db.employeeTypeMaster.belongsTo(db.companyMaster, { foreignKey: "companyId" });
+
 //ritak Hr Policy end
 //======================= appraisal==============
 db.reviewFramework.hasMany(db.user_assignment, {
