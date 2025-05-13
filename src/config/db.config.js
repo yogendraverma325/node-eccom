@@ -197,11 +197,8 @@ import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
 ///////////////////Appraisal/////////////////////////
 
 import AppraisalGoalsMaster from "../api/model/AppraisalGoalsMaster.js";
-//import UserAssignment from "../api/model/UserAssignment.js";
-//import UserAssignmentAttributeMaster from "../api/model/UserAssignmentAttributeMaster.js";
 import GoalAttributesConfigMaster from "../api/model/GoalAttributesConfigMaster.js";
 import GoalAttributesMapping from "../api/model/GoalAttributesMapping.js";
-//import UserAssignementConfig from "../api/model/UserAssignmentConfig.js";
 import GoalAttributesOptions from "../api/model/GoalAttributesOptions.js";
 import GoalAreaForUser from "../api/model/GoalAreaForUser.js";
 import SubGoalAreaForUser from "../api/model/SubGoalAreaForUser.js";
