@@ -112,6 +112,82 @@ class ImportController {
 			});
 		}
 	}
+
+	async employeeListForArrears(req, res) {
+		try {
+			let searchString = req.body.searchString;
+			let employeeListForArrears = await db.employeeMaster.findAll({
+				where: {
+					[Op.or]: [
+						{ name: { [Op.like]: `%${searchString}%` } },
+						{ email: { [Op.like]: `%${searchString}%` } },
+						{ empCode: { [Op.like]: `%${searchString}%` } },
+					],
+					isActive: 1,
+				},
+				attributes: [
+					["name", "empName"],
+					["empCode", "empId"],
+					"buId",
+					"sbuId",
+					"companyId",
+					"id",
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: employeeListForArrears,
+				msg: "Employee List Fetched Successfully.",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async addEditSingleArrear(req, res) {
+		try {
+			const { error, value } = await validator.addEditSingleArrear.validate(
+				req.body,
+			);
+			let operationType;
+
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: error.details[0].message,
+				});
+			}
+			let existingArrear = await db.earningsArears.findOne({
+				where: { arrearMonth: value.arrearMonth, EmployeeId: value.EmployeeId },
+				raw: true,
+			});
+			if (!existingArrear) {
+				db.earningsArears.create(value);
+				operationType = "Created";
+			} else {
+				db.earningsArears.update(value, {
+					where: { earningArrearAutoId: existingArrear.earningArrearAutoId },
+				});
+				operationType = "Updated";
+			}
+
+			return respHelper(res, {
+				status: 200,
+				data: value,
+				msg: "Arrears " + operationType + " Successfully.",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 }
 
 export default new ImportController();
