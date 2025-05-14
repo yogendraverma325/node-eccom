@@ -2524,6 +2524,12 @@ class AppraisalGoalsController {
 							`JSON_CONTAINS(reviewframework.userAssignment, CAST(user_assignments.id AS JSON), '$')`,
 						),
 					},
+					{
+					   model:db.compentanyTier
+					},
+					// {
+						
+					// }
 				],
 				order: [
 					["createdAt", "DESC"],
@@ -2606,6 +2612,7 @@ class AppraisalGoalsController {
 				msg: message.APPRAISAL.REVIEW_FRAMEWORK_UPDATED_SUCCESSFULLY,
 				data: {},
 			});
+			
 		} catch (error) {
 			console.error("Update Error:", error);
 			if (error.isJoi === true) {
@@ -2807,6 +2814,10 @@ class AppraisalGoalsController {
 						model: db.employeeMaster,
 						attributes: ["id", "name", "empCode"],
 					},
+					{
+						model: db.goalRating,
+						//attributes: ["id", "name", "empCode"],
+					}
 				],
 				order: orderClause,
 			});

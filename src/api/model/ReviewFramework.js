@@ -26,6 +26,9 @@ export default (sequelize, Sequelize) => {
 		goalRatingScale: {
 			type: Sequelize.INTEGER,
 		},
+		goalCompentancyScale: {
+			type: Sequelize.INTEGER,
+		},
 		goalAutoCalculate: {
 			type: Sequelize.BOOLEAN,
 		},
@@ -36,6 +39,9 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.INTEGER,
 		},
 		goalWeightage: {
+			type: Sequelize.INTEGER,
+		},
+		compentancyTierId: {
 			type: Sequelize.INTEGER,
 		},
 		compentencyWeightage: {
@@ -80,9 +86,9 @@ export default (sequelize, Sequelize) => {
 		hideNextStageRatings: {
 			type: Sequelize.BOOLEAN,
 		},
-        userAssignment:{
-            type: Sequelize.JSON
-        },
+		userAssignment: {
+			type: Sequelize.JSON,
+		},
 		// selfCanViewRatingOf: {
 		// 	type: Sequelize.STRING,
 		// },

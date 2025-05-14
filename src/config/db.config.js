@@ -2364,4 +2364,23 @@ db.compentancyAttributes.hasOne(db.compentanyTier, {
 	sourceKey: "compentancyTierId",
 });
 
+db.compentancyAttributes.hasOne(db.compentanyTier, {
+	foreignKey: "compentancyTierId",
+	sourceKey: "compentancyTierId",
+});
+
+db.goalAreaForUser.hasOne(db.goalRating, {
+	foreignKey: "goalAreaId",
+	sourceKey: "goalAreaId",
+});
+
+db.reviewFramework.hasOne(db.compentanyTier, {
+	foreignKey: "compentancyTierId",
+	sourceKey: "compentancyTierId",
+});
+
+db.reviewFramework.hasOne(db.ratingScaleMaster, {
+	foreignKey: "ratingScaleId",
+	sourceKey: "goalCompentancyScale",
+});
 export default db;
