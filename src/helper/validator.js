@@ -2349,15 +2349,12 @@ const importEmploymentDetails = Joi.object({
       'date.max': 'managerFromDate must be less than or equal to today',
       'date.base': 'managerFromDate must be a valid date',
     }),
-    bu: Joi.string(),
-    sbu: Joi.string(),
-    departmentCode: Joi.string(),
     functionalAreaCode: Joi.string(),
-	departmentFromDate: Joi.date()
+	functionalFromDate: Joi.date()
     .max('now')
     .messages({
-      'date.max': 'departmentFromDate must be less than or equal to today',
-      'date.base': 'departmentFromDate must be a valid date',
+      'date.max': 'functionalFromDate must be less than or equal to today',
+      'date.base': 'functionalFromDate must be a valid date',
     }),
     employeeType: Joi.string(),
 	employeeTypeFromDate: Joi.date()
@@ -2389,11 +2386,8 @@ const importEmploymentDetails = Joi.object({
   .with('jobLevelIsPromotion', ['jobLevelCode', 'jobLevelFromDate'])
   .with('manager', ['managerFromDate'])
   .with('managerFromDate', ['manager'])
-  .with('bu', ['sbu', 'departmentCode', 'functionalAreaCode', 'departmentFromDate'])
-  .with('sbu', ['bu', 'departmentCode', 'functionalAreaCode', 'departmentFromDate'])
-  .with('departmentCode', ['bu', 'sbu', 'functionalAreaCode', 'departmentFromDate'])
-  .with('functionalAreaCode', ['bu', 'sbu', 'departmentCode', 'departmentFromDate'])
-  .with('departmentFromDate', ['bu', 'sbu', 'departmentCode', 'functionalAreaCode'])
+  .with('functionalAreaCode', ['functionalFromDate'])
+  .with('functionalFromDate', ['functionalAreaCode'])
   .with('employeeType', ['employeeTypeFromDate'])
   .with('employeeTypeFromDate', ['employeeType'])
   .with('officeLocationCode', ['officeLocationFromDate'])
