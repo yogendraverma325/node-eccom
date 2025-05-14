@@ -2323,34 +2323,31 @@ const proxyLoginSchema = Joi.object({
 
 // End proxy validation area
 
-
-
-
 const addEditSingleArrear = Joi.object({
-  earningArrearAutoId: Joi.number().integer().required(),
-  EmployeeId: Joi.number().integer().required(),
-  arrearMonth: Joi.string()
-    .pattern(/^\d{4}-\d{2}$/)
-    .required()
-    .label('arrearMonth')
-    .messages({
-      'string.pattern.base': '"arrearMonth" must be in YYYY-MM format'
-    }),
-  arrearPayMonth: Joi.string()
-    .pattern(/^\d{4}-\d{2}$/)
-    .required()
-    .label('arrearPayMonth')
-    .messages({
-      'string.pattern.base': '"arrearPayMonth" must be in YYYY-MM format'
-    }),
-  arearDays: Joi.number().integer().min(0).required(),
-  arearType: Joi.string().valid('Lop Arrears').required(),
-  hasPF: Joi.string().valid('Yes', 'No').required(),
-  computeESIC: Joi.string().valid('Yes', 'No').required(),
-  companyId: Joi.number().integer().required(),
-  buId: Joi.number().integer().required(),
-  empCode: Joi.string().required(),
-  sbuId: Joi.number().integer().required()
+	earningArrearAutoId: Joi.number().integer().required(),
+	EmployeeId: Joi.number().integer().required(),
+	arrearMonth: Joi.string()
+		.pattern(/^\d{4}-\d{2}$/)
+		.required()
+		.label("arrearMonth")
+		.messages({
+			"string.pattern.base": '"arrearMonth" must be in YYYY-MM format',
+		}),
+	arrearPayMonth: Joi.string()
+		.pattern(/^\d{4}-\d{2}$/)
+		.required()
+		.label("arrearPayMonth")
+		.messages({
+			"string.pattern.base": '"arrearPayMonth" must be in YYYY-MM format',
+		}),
+	arearDays: Joi.number().integer().min(0).required(),
+	arearType: Joi.string().valid("Lop Arrears").required(),
+	hasPF: Joi.string().valid("Yes", "No").required(),
+	computeESIC: Joi.string().valid("Yes", "No").required(),
+	companyId: Joi.number().integer().required(),
+	buId: Joi.number().integer().required(),
+	empCode: Joi.string().required(),
+	sbuId: Joi.number().integer().required(),
 });
 
 // appraisal ==========
