@@ -210,6 +210,13 @@ import RatingScaleMaster from "../api/model/RatingScaleMaster.js";
 import RatingScaleConfig from "../api/model/RatingScaleConfig.js";
 import CompentanyTier from "../api/model/CompentancyTier.js";
 import CompentancyAttributes from "../api/model/CompentancyAttributes.js";
+
+
+//REVOKE
+import RegularizationRevokeTransaction from "../api/model/Regularization_revoke_transaction.js";
+import employeeleave_revoke_transaction from "../api/model/employeeleave_revoke_transaction.js";
+//REVOKE
+
 ///////////////////Appraisal/////////////////////////
 
 // start import model by jay
@@ -560,6 +567,17 @@ db.user_assignment_attribute_master = user_assignment_attribute_master(
 );
 db.user_assignment_condition = user_assignment_condition(sequelize, Sequelize);
 //ritak Hr Policy end
+//REVOKE
+db.RegularizationRevokeTransaction = RegularizationRevokeTransaction(sequelize,Sequelize)
+db.employeeleave_revoke_transaction = employeeleave_revoke_transaction(sequelize,Sequelize)
+//REVOKE
+
+//REVOKE
+db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
+//REVOKE
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",

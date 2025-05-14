@@ -427,6 +427,7 @@ export default Express.Router()
 		"/updateAttendanceSetting",
 		authentication.authenticate,
 		userController.updateAttendanceSetting,
-	);
+	)
+	.post("/assignConfirmationPolicy", userController.assignConfirmationPolicy);
 
 //hr policy for user end

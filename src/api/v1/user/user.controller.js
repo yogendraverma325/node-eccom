@@ -790,6 +790,22 @@ class UserController {
 				],
 				distinct: true,
 			});
+			const RevokecountLeavePending = await db.employeeleave_revoke_transaction.count({
+				where: {
+						employeeId: req.userId,
+						status: 'pending',
+				},
+				attributes: [],
+				
+			});
+			const RevokecountLeaveAssigned = await db.employeeleave_revoke_transaction.count({
+				where: {
+						managerId: req.userId,
+						status: 'pending',
+				},
+				attributes: [],
+				
+			})
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
 				where: {
@@ -1041,6 +1057,8 @@ class UserController {
 						leaveData: {
 							raisedByMe: countLeavePending,
 							assignedToMe: countLeaveAssgined,
+							revokeRaisedByMe: RevokecountLeavePending,
+							revokeAssignedToMe: RevokecountLeaveAssigned,
 						},
 						attedanceData: {
 							raisedByMe: pendingAttCount,
@@ -1080,6 +1098,8 @@ class UserController {
 							seperationCount: 0,
 							pendingAttendanceCount: 0,
 							compOffCount: 0,
+							leaveData: countLeavePending,
+							leaveDataRevoke: RevokecountLeavePending,
 						},
 						assignedToMe: {
 							leaveData: countLeaveAssgined,
@@ -1087,6 +1107,8 @@ class UserController {
 							seperationCount: pendingSeperationCount,
 							pendingAttendanceCount,
 							compOffCount: compOffbalabceForUser,
+							leaveData: countLeaveAssgined,
+							leaveDataRevoke:RevokecountLeaveAssigned,
 						},
 					},
 				},
@@ -7414,6 +7436,10 @@ class UserController {
 				msg: "",
 			});
 		}
+	}
+	async assignConfirmationPolicy(req, res) {
+		let empids = req.body.empCode;
+		await helper.confirmationPolicyAssignment(empids.join(","));
 	}
 }
 
