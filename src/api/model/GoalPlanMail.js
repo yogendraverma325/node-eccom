@@ -5,12 +5,12 @@ export default (sequelize, Sequelize) => {
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		userId:{
-			type: Sequelize.INTEGER
+		userId: {
+			type: Sequelize.INTEGER,
 		},
-        tmc:{
-			type: Sequelize.STRING
-        },
+		tmc: {
+			type: Sequelize.STRING,
+		},
 		email: {
 			type: Sequelize.STRING,
 		},

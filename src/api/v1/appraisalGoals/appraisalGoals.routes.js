@@ -118,7 +118,16 @@ export default Express.Router()
 	.post("/updateRatingScale", appraisalGoalsController.updateRatingScale)
 	.post("/createCompentancy", appraisalGoalsController.createCompentancy)
 	.post("/updateCompentancy", appraisalGoalsController.updateCompentancy)
-	.post("/addCompetencyAttributes", appraisalGoalsController.addCompetencyAttributes)
+	.post(
+		"/addCompetencyAttributes",
+		appraisalGoalsController.addCompetencyAttributes,
+	)
 	.get("/getAllCompetencyTiers", appraisalGoalsController.getAllCompetencyTiers)
-	.get("/getAllCompetencyAttributesWithTier", appraisalGoalsController.getAllCompetencyAttributesWithTier)
-	.post("/updateCompetencyAttributes", appraisalGoalsController.updateCompetencyAttributes);
+	.get(
+		"/getAllCompetencyAttributesWithTier",
+		appraisalGoalsController.getAllCompetencyAttributesWithTier,
+	)
+	.post(
+		"/updateCompetencyAttributes",
+		appraisalGoalsController.updateCompetencyAttributes,
+	);
