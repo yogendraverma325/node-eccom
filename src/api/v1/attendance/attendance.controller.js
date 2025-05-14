@@ -5638,6 +5638,33 @@ class AttendanceController {
 	}
 	//BULK ACTION
 
+   //REVOKE
+	async revokeApprovedRegularizations(req, res){
+				try {
+
+					const result = await validator.revokeApprovedRegularizationsValidation.validateAsync(req.body);
+					return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: message.LEAVE.REVOKED,
+					});
+				}
+				catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	//REVOKE
+	
+
 	async markBioMetricAttendance(incomingAttendanceData) {
 		const currentDate = moment(incomingAttendanceData.punchDateTime);
 		const user = incomingAttendanceData.tmc;

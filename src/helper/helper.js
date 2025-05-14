@@ -10,6 +10,7 @@ import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
 import axios from "axios";
 import https from "https";
+import attendanceController from "../api/v1/attendance/attendance.controller.js";
 // import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
@@ -3376,6 +3377,113 @@ const leaveRefil = async () => {
 		console.log("error", error);
 	}
 };
+/// CONFIRMATION POLICY ASSIGNEMNT
+
+const confirmationPolicyAssignment = async (empIdsInput) => {
+	try {
+		 let empIds = empIdsInput.split(",");
+		const employees = await db.employeeMaster.findAll({
+			where: {
+				isActive: 1,
+				id: empIds,
+				confimationPolicyAutoId: { [Op.eq]: null }, // Ensures companyId is not null
+			},
+			include: [
+				{
+					model: db.jobDetails,
+					attributes: [
+						"dateOfProbationEnd",
+						"confirmationDate",
+						"confirmationGenerated",
+						"dateOfJoining",
+						"probationDays",
+						"jobLevelId",
+						"jobId",
+					],
+					where: {
+						confirmationGenerated: 0,
+						confirmationDate: { [Op.eq]: null }, // Ensures companyId is not null
+					},
+				},
+			],
+		});
+		for (const Singleemployee of employees) {
+			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
+				where: {
+					jobLevelId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleemployee.employeejobdetail.jobLevelId},%` },
+							{
+								[Op.like]: `%,${Singleemployee.employeejobdetail.jobLevelId},%`,
+							},
+							{ [Op.like]: `%,${Singleemployee.employeejobdetail.jobLevelId}` },
+							{ [Op.eq]: `${Singleemployee.employeejobdetail.jobLevelId}` },
+						],
+					},
+				},
+			});
+			if (checkJobLevelAssignmnet) {
+				let confirmationPolicy = await db.Confimationpolicy.findOne({
+					where: {
+						confirmationAssignmentAutoId: {
+							[Op.or]: [
+								{
+									[Op.like]: `${checkJobLevelAssignmnet.confirmationAssignmentAutoId},%`,
+								},
+								{
+									[Op.like]: `%,${checkJobLevelAssignmnet.confirmationAssignmentAutoId},%`,
+								},
+								{
+									[Op.like]: `%,${checkJobLevelAssignmnet.confirmationAssignmentAutoId}`,
+								},
+								{
+									[Op.eq]: `${checkJobLevelAssignmnet.confirmationAssignmentAutoId}`,
+								},
+							],
+						},
+					},
+				});
+				if (confirmationPolicy) {
+					let dateOfProbationEnd = moment(
+						Singleemployee.employeejobdetail.dateOfJoining,
+					)
+						.add(Singleemployee.employeejobdetail.probationDays, "days")
+						.format("YYYY-MM-DD");
+
+					let dateOfProbationTriggerDate = moment(dateOfProbationEnd)
+						.subtract(confirmationPolicy.generateOnBeforeDays, "days")
+						.format("YYYY-MM-DD");
+
+					await db.jobDetails.update(
+						{
+							dateOfProbationEnd: dateOfProbationEnd,
+							dateOfProbationTriggerDate: dateOfProbationTriggerDate,
+						},
+						{
+							where: {
+								userId: Singleemployee.id,
+								jobId: Singleemployee.employeejobdetail.jobId,
+							},
+						},
+					);
+					await db.employeeMaster.update(
+						{
+							confimationPolicyAutoId: confirmationPolicy.confimationPolicyAutoId,
+						},
+						{
+							where: {
+								id: Singleemployee.id,
+							},
+						},
+					);
+				}
+			}
+		}
+	} catch (error) {
+		console.log(error);
+	}
+};
+/// CONFIRMATION POLICY ASSIGNMENT
 
 const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
 	let permissionAssignTousers = [];
@@ -3677,41 +3785,141 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			if (leave.dataValues.leaveAutoId != 6) {
+			await maintainleaveCountOfEmployee(emp,leave.dataValues.leaveAutoId,leave.dataValues.leaveCount,'ADD');
+		}
+	}
+};
+//REVOKE
+const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //TYPE WILL BE ADD, SUB
+	if(TYPE=='ADD'){
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
 				await db.leaveMapping.update(
 					{
-						availableLeave: db.sequelize.literal(
-							`availableLeave + ${leave.dataValues.leaveCount}`,
-						),
 						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+							`utilizedThisYear - ${COUNT}`,
 						),
 					},
 					{
 						where: {
-							EmployeeId: emp,
-							leaveAutoId: leave.dataValues.leaveAutoId,
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
 						},
 					},
 				);
 			} else {
 				await db.leaveMapping.update(
 					{
+						availableLeave: db.sequelize.literal(
+							`availableLeave + ${COUNT}`,
+						),
 						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+							`utilizedThisYear - ${COUNT}`,
 						),
 					},
 					{
 						where: {
-							EmployeeId: emp,
-							leaveAutoId: leave.dataValues.leaveAutoId,
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
 						},
-					},
+					}
 				);
+				
 			}
-		}
+
+	}else{
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
+				await db.leaveMapping.update(
+					{
+						utilizedThisYear: db.sequelize.literal(
+							`utilizedThisYear + ${COUNT}`,
+						),
+					},
+					{
+						where: {
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
+						},
+					}
+				);
+			} else {
+				await db.leaveMapping.update(
+					{
+						availableLeave: db.sequelize.literal(
+							`availableLeave - ${COUNT}`,
+						),
+						utilizedThisYear: db.sequelize.literal(
+							`utilizedThisYear + ${COUNT}`,
+						),
+					},
+					{
+						where: {
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
+						},
+					}
+				);
+				
+			}
+
 	}
+
+}
+const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) => {
+	const leaves = await db.EmployeeLeaveHeader.findOne({
+			where: {
+			employeeleaveheaderID: leaveHeaderAutoId,
+			},
+			include:[
+				{
+				model: db.employeeLeaveTransactions,
+				required: true,
+				}
+				,
+				{
+				model:db.employeeMaster,
+				required: true
+				}
+		],
+	});
+	if(leaves){
+		for (const Singleleaves of leaves.employeeleavetransactions) {
+			console.log("Singleleaves",Singleleaves.appliedFor)
+			//await AttendanceController.attedanceCronManual()
+				// await db.employeeLeaveTransactions.update(
+				// {
+				// status: 'revoked',
+				// updatedBy: userData.id,
+				// message: result.remark != "" ? result.remark : null,
+				// updatedAt: moment(),
+				// },
+				// {
+				// where: {
+				// employeeLeaveTransactionsId: Singleleaves.employeeLeaveTransactionsId,
+				// },
+				// },
+				// { transaction: t }
+				// );
+				// await maintainleaveCountOfEmployee(Singleleaves.employeeId,Singleleaves.leaveAutoId,Singleleaves.leaveCount,'ADD');
+				// await db.EmployeeLeaveHeader.update(
+				// {
+				// status: 'revoked',
+				// updatedBy: userData.id,
+				// message: result.remark != "" ? result.remark : null,
+				// updatedAt: moment(),
+				// },
+				// {
+				// where: {
+				// employeeleaveheaderID: Singleleaves.employeeleaveheaderID,
+				// },
+				// },
+				// { transaction: t }
+				// );
+		}
+	
+	}
+		return leaves;
 };
+//REVOKE
 
 const activeCompOffMoreThanLeave = async (EMP_ID, leaveID) => {
 	const compOffHistory = await db.comp_off_credit_history.findAll({
@@ -3886,6 +4094,9 @@ export default {
 	leaveCreditMonthCron,
 	leaveLapse,
 	leaveRefil,
+	//CONFIRMATION POLICY ASSGIMENT
+	confirmationPolicyAssignment,
+	//CONFIRMAGION POLICY ASSIGNMENT
 	//COMPOFF
 	//LEAVE ASSIGNMENT
 	leaveAssignEmployeeToAll,
@@ -3903,4 +4114,8 @@ export default {
 	convertEmptyStringsToNull,
 	chekcMonthCountInArray,
 	getWorkDuration,
+	//REVOKE
+	revokeApprovedAppliedLeave
+	//REVOKE
+
 };

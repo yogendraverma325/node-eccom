@@ -7408,6 +7408,10 @@ class UserController {
 			});
 		}
 	}
+	async assignConfirmationPolicy(req, res) {
+		let empids = req.body.empCode;
+		await helper.confirmationPolicyAssignment(empids.join(","));
+	}
 }
 
 const inactiveEmpOnLastWorkingDay = async (emp, exitDate) => {

@@ -2574,6 +2574,29 @@ const updateRatingScaleSchema = Joi.object({
 		}),
 });
 //
+
+//REVOKE
+	const revokeApprovedRegularizationsValidation = Joi.object({
+	attendanceAutoId: Joi.number(),
+	regularizeId: Joi.number(),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+	});
+	const revokeApprovedLeaveValidation = Joi.object({
+	employeeleaveheaderID: Joi.number(),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+	});
+	const approvalrevokeApprovedLeaveValidation = Joi.object({
+	leaverevokeAutoId: Joi.string()
+		.trim()
+		.required(),
+	status: Joi.string()
+		.trim()
+		.required()
+		.valid("approved", "rejected")
+		.label("status"),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+	});
+//REVOKE
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2675,4 +2698,9 @@ export default {
 	proxyLoginSchema,
 	reviewFrameworkSchema,
 	editReviewFrameworkSchema,
+	//REVOKE
+	revokeApprovedRegularizationsValidation,
+	revokeApprovedLeaveValidation,
+	approvalrevokeApprovedLeaveValidation
+	//REVOKE
 };

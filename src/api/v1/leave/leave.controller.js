@@ -5608,6 +5608,181 @@ class LeaveController {
 		// 	data: cronLeaveMapped.data, // Number of employees processed
 		// });
 	}
+	///LEAVE REVOKE
+	async revokeApprovedLeaves(req, res){
+				try {
+					const result = await validator.revokeApprovedLeaveValidation.validateAsync(req.body);
+					const empLeaveHeader = await db.EmployeeLeaveHeader.findOne({
+									where: {
+									employeeleaveheaderID:result.employeeleaveheaderID,
+									status: {
+									[Op.in]:['approved']
+									},
+									source: { [Op.ne]: "system_generated" },
+								},
+					});
+					if(!empLeaveHeader){
+					return respHelper(res, {
+					status: 400,
+					msg: `Revoke Application can't be place before approval`,
+					});
+					}
+
+
+			
+			const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.findOne({
+						where: {
+						employeeleaveheaderID:result.employeeleaveheaderID,
+						status: {
+						[Op.in]:['pending','approved']
+						},
+					},
+			});
+			if(employeeleave_revoke_transactionData){
+			return respHelper(res, {
+				status: 400,
+				msg: 'Revoke Application already raised againt this leave',
+				});
+			}
+					
+
+					await db.employeeleave_revoke_transaction.create({
+						employeeleaveheaderID: result.employeeleaveheaderID,
+						employeeId:empLeaveHeader.employeeId,
+						managerId: empLeaveHeader.pendingAt,
+						status: "pending",
+						createdBy:req.userData.id,
+						createrRemark:result.remark,
+						creatorRole:(req.userData.id==empLeaveHeader.employeeId)?'SELF':req.userData['role.name']
+						});
+
+					return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: 'Revoke Application submitted raised againt this leave',
+					});
+					
+				}
+				catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async approvedLeaverevoke(req, res){
+			const t = await db.sequelize.transaction();
+				try {
+					const result = await validator.approvalrevokeApprovedLeaveValidation.validateAsync(req.body);
+					let leaveRevokeRequestIDS=result.leaverevokeAutoId.split(',');
+
+					const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.count({
+					where: {
+						leaverevokeAutoId: {
+						[Op.in]:leaveRevokeRequestIDS
+						},
+						status: 'pending'
+					},
+					});
+
+				if(leaveRevokeRequestIDS.length!=employeeleave_revoke_transactionData || employeeleave_revoke_transactionData==0){
+					return respHelper(res, {
+					status: 400,
+					msg: `Can't ${result.status=='approved'?'approve':'reject'} Leave`,
+					});
+				}
+				
+				if(result.status=='approved'){
+					const allSelectedRevokeRequests = await db.employeeleave_revoke_transaction.findAll({
+						attributes:['leaverevokeAutoId','employeeleaveheaderID','employeeId','status'],
+					where: {
+						leaverevokeAutoId: {
+						[Op.in]:leaveRevokeRequestIDS
+						},
+						status: 'pending'
+					},
+					});
+
+					for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
+						 let data=await helper.revokeApprovedAppliedLeave(singleSelectedRevokeRequested.employeeleaveheaderID,t,req.userData,result);
+						 await db.employeeleave_revoke_transaction.update(
+									{
+										status:'approved',
+										updatorRemark:result.remark,
+										updatedBy:req.userData.id,
+										updatorRole:req.userData['role.name']
+									},
+									{
+									where: {
+									leaverevokeAutoId: {
+									[Op.in]:leaveRevokeRequestIDS
+									},
+									},
+									},
+									{ transaction: t }
+								);
+					}
+					await t.commit();
+					return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: 'Leave Revoke request has been approved',
+					});
+				}else{
+
+	              await db.employeeleave_revoke_transaction.update(
+									{
+										status:'rejected',
+										updatorRemark:result.remark,
+										updatedBy:req.userData.id,
+										updatorRole:req.userData['role.name']
+									},
+									{
+									where: {
+									leaverevokeAutoId: {
+									[Op.in]:leaveRevokeRequestIDS
+									},
+									},
+									},
+									{ transaction: t }
+								);
+								await t.commit();
+
+					return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: 'Leave Revoke request has been rejected',
+					});
+
+				}
+
+					
+
+					
+					
+				}
+				catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			await t.rollback();
+
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	///LEAVE REVOKE
 }
 
 export default new LeaveController();

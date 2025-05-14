@@ -7882,7 +7882,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(
 					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
 				) +
-				parseFloat(result["earningArrears"] ? result["earningArrears"] : 0),
+				parseFloat(result ? result["earningArrears"] : 0),
 		);
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
@@ -7891,7 +7891,7 @@ const groupByEmployeeId = (data) => {
 				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
 				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
 				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
-				parseFloat(result["deductionArrears"] ? result["deductionArrears"] : 0),
+				parseFloat(result ? result["deductionArrears"] : 0),
 		);
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = paymentHelper.customRound(payableAmount);

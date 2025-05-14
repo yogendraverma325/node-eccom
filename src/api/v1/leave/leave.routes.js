@@ -56,5 +56,10 @@ export default Express.Router()
 		LeaveController.leaveCreditMonthCron,
 	)
 	.post("/leaveLapse", authentication.authenticate, LeaveController.leaveLapse)
-	.post("/leaveRefil", authentication.authenticate, LeaveController.leaveRefil);
+	.post("/leaveRefil", authentication.authenticate, LeaveController.leaveRefil)
 //BULK ACTION
+
+//REVOKE
+	.post("/revokeApprovedLeaves", authentication.authenticate,LeaveController.revokeApprovedLeaves)
+	.post("/approvedLeaverevoke", authentication.authenticate,LeaveController.approvedLeaverevoke);
+	//REVOKE
