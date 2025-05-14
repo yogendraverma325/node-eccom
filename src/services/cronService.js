@@ -5,13 +5,13 @@ import helper from "../helper/helper.js";
 import userController from "../api/v1/user/user.controller.js";
 
 cron.schedule("00 05 * * *", async () => {
-	//await cronController.getEmpForWishes();
+	// await cronController.getEmpForWishes();
 });
 
-cron.schedule("30 06 * * *", async () => {
+cron.schedule("30 03 * * *", async () => {
 	try {
 		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-			//await cronController.biometricAttendance();
+			// await cronController.biometricAttendance();
 		}
 	} catch (error) {
 		console.log(error);
@@ -20,10 +20,10 @@ cron.schedule("30 06 * * *", async () => {
 	}
 });
 
-cron.schedule("0 * * * *", async () => {
+cron.schedule("0 */2 * * *", async () => {
 	try {
 		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-			//await cronController.biometricAttendance();
+			//  await cronController.biometricAttendance();
 		}
 	} catch (error) {
 		console.log(error);
@@ -32,13 +32,13 @@ cron.schedule("0 * * * *", async () => {
 	}
 });
 
-cron.schedule("30 3 * * *", async () => {
-	//await cronController.leaveActivation();
+cron.schedule("30 6 * * *", async () => {
+	// await cronController.leaveActivation();
 	//await helper.leaveLapse();
 });
 cron.schedule("10 8 * * *", async () => {
-	//await helper.leaveCreditMonthCron();
-	//await helper.leaveRefil();
+	//   await helper.leaveCreditMonthCron();
+	//  await helper.leaveRefil();
 });
 
 cron.schedule("0 23 * * *", async () => {
@@ -51,40 +51,40 @@ cron.schedule("0 23 * * *", async () => {
 // });
 
 cron.schedule("0 6 * * *", async () => {
-	//await cronController.generateConfirmation();
-	//await cronController.checkSLAOfConfirmation();
-	//await cronController.checkConfirmatonHold();
-	//await cronController.checkExtentionEnd();
-	//await cronController.generatConfiramtionletter();
-	//await cronController.check_comp_off_expiry();
+	// await cronController.generateConfirmation();
+	// await cronController.checkSLAOfConfirmation();
+	// await cronController.checkConfirmatonHold();
+	// await cronController.checkExtentionEnd();
+	// await cronController.generatConfiramtionletter();
+	// await cronController.check_comp_off_expiry();
 });
 
 cron.schedule("* * * * *", async () => {
-	//await cronController.updateManager();
-	//await cronController.updatePolicy();
-	//await cronController.updateDesignation();
-	//await cronController.updateDepartment();
-	//await cronController.updateCostCenter();
-	//await cronController.updateCompanyLocation();
-	//await cronController.updateJobLevel();
-	//await cronController.updateEmployeeType();
+	// await cronController.updateManager();
+	// await cronController.updatePolicy();
+	// await cronController.updateDesignation();
+	// await cronController.updateDepartment();
+	// await cronController.updateCostCenter();
+	// await cronController.updateCompanyLocation();
+	// await cronController.updateJobLevel();
+	// await cronController.updateEmployeeType();
 });
 
 cron.schedule("* * * * *", async () => {
-	//cronController.updateActiveStatus();
+	// cronController.updateActiveStatus();
 });
 
 cron.schedule("0 0 * * *", async () => {
-	//await cronController.blockAccess();
+	// await cronController.blockAccess();
 });
 
 cron.schedule("0 11,12,13,14 * * *", async () => {
-	//cronController.newJoinEmployee();
+	// cronController.newJoinEmployee();
 });
 
 cron.schedule("0 7 * * *", async () => {
-	//await cronController.prePasswordExpiryNotification();
-	//await cronController.postPasswordExpiryNotification();
+	// await cronController.prePasswordExpiryNotification();
+	// await cronController.postPasswordExpiryNotification();
 });
 
 export default cron;
