@@ -3030,12 +3030,11 @@ class AttendanceController {
 	}
 
 	async manageDayShiftForEmp(empId) {
-		let lastDayDate = moment().subtract(1, "day").format("YYYY-MM-DD");
-		let lastDayDateAnotherFormat = moment()
-			.subtract(1, "day")
-			.format("DD-MM-YYYY");
+		const curDate = moment().subtract(1, "day");
+		let lastDayDate = curDate.format("YYYY-MM-DD");
+		let lastDayDateAnotherFormat = curDate.format("DD-MM-YYYY");
 		let parsedDate = moment(lastDayDateAnotherFormat, "DD-MM-YYYY");
-		let dayCode = parseInt(moment().subtract(1, "day").format("d")) + 1;
+		let dayCode = parseInt(curDate.format("d")) + 1;
 
 		let dayOfMonth = parsedDate.date();
 		let occurrence = Math.ceil(dayOfMonth / 7);
@@ -3365,7 +3364,7 @@ class AttendanceController {
 											? singleEmp.weekOffMaster.weekOffId
 											: 0,
 								},
-								"id_" + moment().format("YYYYMMDDHHmmss") + singleEmp.id,
+								"id_" + curDate.format("YYYYMMDDHHmmss") + singleEmp.id,
 								isHalfDay_late_by,
 								isHalfDay_total_work,
 								EMP_DATA,
@@ -3424,12 +3423,8 @@ class AttendanceController {
 				}
 				await db.attendanceMaster.update(
 					{
-						attendanceShiftEndDate: moment()
-							.subtract(1, "day")
-							.format("YYYY-MM-DD"),
-						attendanceShiftEndDate2: moment()
-							.subtract(1, "day")
-							.format("YYYY-MM-DD"),
+						attendanceShiftEndDate: curDate.format("YYYY-MM-DD"),
+						attendanceShiftEndDate2: curDate.format("YYYY-MM-DD"),
 						attendancePresentStatus: presentStatus,
 						needAttendanceCron: 0,
 					},
@@ -3441,18 +3436,11 @@ class AttendanceController {
 				);
 			}
 		} else {
-			// console.log("attendance create");
 			await db.attendanceMaster.create({
-				attendanceDate: moment().subtract(1, "day").format("YYYY-MM-DD"),
-				attandanceShiftStartDate: moment()
-					.subtract(1, "day")
-					.format("YYYY-MM-DD"),
-				attendanceShiftEndDate: moment()
-					.subtract(1, "day")
-					.format("YYYY-MM-DD"),
-				attendanceShiftEndDate2: moment()
-					.subtract(1, "day")
-					.format("YYYY-MM-DD"),
+				attendanceDate: curDate.format("YYYY-MM-DD"),
+				attandanceShiftStartDate: curDate.format("YYYY-MM-DD"),
+				attendanceShiftEndDate: curDate.format("YYYY-MM-DD"),
+				attendanceShiftEndDate2: curDate.format("YYYY-MM-DD"),
 				employeeId: singleEmp.id,
 				attendancePolicyId: singleEmp.attendancePolicyId,
 				attendanceShiftId: singleEmp.shiftId,
@@ -5856,7 +5844,6 @@ class AttendanceController {
 					createdBy: existEmployee.id,
 					attendancePunchInLocation: incomingAttendanceData.deviceName,
 					attendancePolicyId: existEmployee.attendancePolicyId,
-					createdAt: currentDate,
 					punchInSource: attendanceDevice,
 					holidayCompanyLocationConfigurationID:
 						existEmployee.companyLocationId,
@@ -6180,7 +6167,6 @@ class AttendanceController {
 						attendancePunchInLocation: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						attendancePolicyId: existEmployee.attendancePolicyId,
-						createdAt: currentDate,
 						punchInSource: attendanceDevice,
 						holidayCompanyLocationConfigurationID:
 							existEmployee.companyLocationId,
@@ -6394,7 +6380,6 @@ class AttendanceController {
 						attendancePunchInLocation: incomingAttendanceData.deviceName,
 						createdBy: existEmployee.id,
 						attendancePolicyId: existEmployee.attendancePolicyId,
-						createdAt: currentDate,
 						holidayCompanyLocationConfigurationID:
 							existEmployee.companyLocationId,
 						punchInSource: attendanceDevice,

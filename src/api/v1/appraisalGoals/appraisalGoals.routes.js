@@ -8,13 +8,8 @@ const upload = multer({ dest: "uploads/excel/" });
 export default Express.Router()
 	.post("/createGoalPlan", appraisalGoalsController.createGoalPlan)
 	.get("/goalPlanList", appraisalGoalsController.goalPlanList)
-	.get(
-		"/userAssignmentAttributes",
-		appraisalGoalsController.userAssignmentAttributes,
-	)
 	.get("/goalAttributesList", appraisalGoalsController.goalAttributesList)
 	.get("/subGoalAttributesList", appraisalGoalsController.subGoalAttributesList)
-	.post("/createAssignment", appraisalGoalsController.createAssignment)
 	.post("/editGoalPlan", appraisalGoalsController.editGoalPlan)
 	.post("/activeGoalPlan", appraisalGoalsController.activeGoalPlan)
 	.post("/archiveGoalPlan", appraisalGoalsController.archiveGoalPlan)
@@ -84,4 +79,55 @@ export default Express.Router()
 		"/recallGoals",
 		authentication.authenticate,
 		appraisalGoalsController.recallGoals,
+	)
+	.post(
+		"/createReviewFramework",
+		authentication.authenticate,
+		appraisalGoalsController.createReviewFramework,
+	)
+	.get(
+		"/reviewAppraisal",
+		authentication.authenticate,
+		appraisalGoalsController.reviewAppraisal,
+	)
+	.get(
+		"/getReviewFrameworks",
+		authentication.authenticate,
+		appraisalGoalsController.getReviewFrameworks,
+	)
+	.post(
+		"/updateReviewFramework",
+		authentication.authenticate,
+		appraisalGoalsController.updateReviewFramework,
+	)
+	.post(
+		"/selfRating",
+		authentication.authenticate,
+		appraisalGoalsController.selfRating,
+	)
+	.post(
+		"/activeGoalReviewFramework",
+		appraisalGoalsController.activeGoalReviewFramework,
+	)
+	.post(
+		"/archiveGoalReviewFramework",
+		appraisalGoalsController.archiveGoalReviewFramework,
+	)
+	.post("/createRatingScale", appraisalGoalsController.createRatingScale)
+	.get("/getAllRatingScales", appraisalGoalsController.getAllRatingScales)
+	.post("/updateRatingScale", appraisalGoalsController.updateRatingScale)
+	.post("/createCompentancy", appraisalGoalsController.createCompentancy)
+	.post("/updateCompentancy", appraisalGoalsController.updateCompentancy)
+	.post(
+		"/addCompetencyAttributes",
+		appraisalGoalsController.addCompetencyAttributes,
+	)
+	.get("/getAllCompetencyTiers", appraisalGoalsController.getAllCompetencyTiers)
+	.get(
+		"/getAllCompetencyAttributesWithTier",
+		appraisalGoalsController.getAllCompetencyAttributesWithTier,
+	)
+	.post(
+		"/updateCompetencyAttributes",
+		appraisalGoalsController.updateCompetencyAttributes,
 	);

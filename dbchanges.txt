@@ -1,3 +1,9 @@
+//-----------------------------------------22-05-2024------------------------------------------------//
+ALTER TABLE `tara`.`goalplanmail` 
+CHANGE COLUMN `createdAt` `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,
+CHANGE COLUMN `updatedAt` `updatedAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ;
+
+
 //- ------------------------------------
 ALTER TABLE `tara`.`appraisalgoalsmaster` 
 CHANGE COLUMN `userAssignment` `userAssignment` VARCHAR(255) NULL DEFAULT NULL ;
