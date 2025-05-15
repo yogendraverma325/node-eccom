@@ -2356,19 +2356,19 @@ const importEmploymentDetails = Joi.object({
       'date.max': 'functionalFromDate must be less than or equal to today',
       'date.base': 'functionalFromDate must be a valid date',
     }),
-    employeeType: Joi.string(),
+    employeeTypeCode: Joi.string(),
 	employeeTypeFromDate: Joi.date()
     .max('now')
     .messages({
       'date.max': 'employeeTypeFromDate must be less than or equal to today',
       'date.base': 'employeeTypeFromDate must be a valid date',
     }),
-    officeLocationCode: Joi.string(),
-	officeLocationFromDate: Joi.date()
+    companyLocationCode: Joi.string(),
+	companyLocationFromDate: Joi.date()
     .max('now')
     .messages({
-      'date.max': 'officeLocationFromDate must be less than or equal to today',
-      'date.base': 'officeLocationFromDate must be a valid date',
+      'date.max': 'companyLocationFromDate must be less than or equal to today',
+      'date.base': 'companyLocationFromDate must be a valid date',
     }),
     costCenterCode: Joi.string(),
 	costCenterFromDate: Joi.date()
@@ -2388,10 +2388,10 @@ const importEmploymentDetails = Joi.object({
   .with('managerFromDate', ['manager'])
   .with('functionalAreaCode', ['functionalFromDate'])
   .with('functionalFromDate', ['functionalAreaCode'])
-  .with('employeeType', ['employeeTypeFromDate'])
-  .with('employeeTypeFromDate', ['employeeType'])
-  .with('officeLocationCode', ['officeLocationFromDate'])
-  .with('officeLocationFromDate', ['officeLocationCode'])
+  .with('employeeTypeCode', ['employeeTypeFromDate'])
+  .with('employeeTypeFromDate', ['employeeTypeCode'])
+  .with('companyLocationCode', ['companyLocationFromDate'])
+  .with('companyLocationFromDate', ['companyLocationCode'])
   .with('costCenterCode', ['costCenterFromDate'])
   .with('costCenterFromDate', ['costCenterCode'])
 

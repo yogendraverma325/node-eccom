@@ -5879,16 +5879,22 @@ class UserController {
 						attributes: ["jobId", "userId", "dateOfJoining"],
 					},
 					{
-						model: db.noticePeriodMaster,
-						attributes: [
-							"noticePeriodAutoId",
-							"noticePeriodName",
-							"noticePeriodCode",
-							"nPDaysAfterConfirmation",
-							"nPDaysInProbation",
+						model: db.NoticePeriodEmploymentHistory,
+						as: "noticePeriodHistories",
+						attributes: { exclude: ["createdBy", "updatedAt", "updatedBy"] },
+						include: [
+							{
+								model: db.noticePeriodMaster,
+								attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"]
+							},
+							{
+								model: db.employeeMaster,
+								as: "noticePeriodHistoryCreatedBy",
+								attributes: ["id", "name", "empCode"],
+							}
 						],
-						required: false,
-					},
+						required: false
+					}
 				],
 				order: [
 					["designationHistories", "id", "ASC"], // Sorting for designationHistory
@@ -5898,6 +5904,7 @@ class UserController {
 					["employeeTypeHistories", "id", "ASC"], // Sorting for employeeTypeHistory
 					["officeLocationHistories", "id", "ASC"], // Sorting for officeLocationHistory
 					["managerHistories", "id", "ASC"], // Sorting for managerHistory
+					["noticePeriodHistories", "id", "ASC"], // Sorting for noticePeriodHistories
 				],
 			});
 

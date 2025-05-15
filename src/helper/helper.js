@@ -3633,6 +3633,19 @@ async function generateEmployementHistory(
 
 		await db.CostCenterEmploymentHistory.create(costCenterMetaData);
 	}
+
+	// create notice period history
+
+	let noticePeriodMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		noticePeriodAutoId: employeeDetails.noticePeriodAutoId,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt,
+	};
+	await db.NoticePeriodEmploymentHistory.create(noticePeriodMetaData);
 }
 
 const revokeAppliedLeave = async (date, emp) => {

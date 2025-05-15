@@ -15,5 +15,4 @@ export default Express.Router()
 		authentication.authenticate,
 		importController.getImportInfoList,
 	)
-	.get("/exportImportedSheets", importController.exportImportedSheets)
-	.get("/getEmploymentDetails", importController.getEmploymentDetails)
+	.get("/exportImportedSheets", importController.exportImportedSheets);
