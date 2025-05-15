@@ -15,7 +15,7 @@ import { where, Op, fn, col } from "sequelize";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 import { getEmployeesByUserAssignmentId } from "../../v1/common/common.controller.js";
 import { exec } from "child_process";
-
+import emailTemplate from "../../../email/emailTemplate.js";
 var _this = null;
 
 class CronController {
@@ -659,7 +659,7 @@ class CronController {
 					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
 				},
 				confirmationGenerated: 0,
-				userId:5047
+				//userId:5047
 			},
 			attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
 			include: {
@@ -1259,6 +1259,13 @@ class CronController {
 					}
 				}
 
+				let letter = await emailTemplate.confirmationEmailLetter(
+						      EMP_DATA_SELF,
+							confirmationData,
+							signatureAuthority,
+						);
+						//return res.send(letter);
+
 				eventEmitter.emit(
 					"confirmationLetter",
 					JSON.stringify({
@@ -1268,6 +1275,7 @@ class CronController {
 						cc: cc_arrays.join(","),
 						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
 						companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+						companyName:EMP_DATA_SELF.companymaster.companyName
 					}),
 				);
 			}

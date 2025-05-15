@@ -3753,7 +3753,7 @@ const confirmationEmailLetter = async (
       display: flex;
       flex-direction: row;
       justify-content: space-evenly;
-      padding: 20;
+      padding: 0;
     }
     .siteUrl {
       align-self: flex-end;
@@ -3764,7 +3764,7 @@ const confirmationEmailLetter = async (
     .letterBody {
       display: flex;
       flex-direction: column;
-      padding: 20px !important;
+      padding: 4px !important;
     }
     .dateSerial {
       display: flex;
@@ -3786,6 +3786,12 @@ const confirmationEmailLetter = async (
     .footerSections{
        
     }
+    .candidateDetailsSectoin p {
+    margin: 4px 1px; /* Reduce vertical spacing */
+    }
+    .contentSection p {
+    margin: 4px 4px; /* Reduce vertical spacing */
+    }
   </style>
   <body class="bodySection">
     <div class="letterHeader">
@@ -3802,14 +3808,10 @@ const confirmationEmailLetter = async (
       </div>
 
       <div class="candidateDetailsSectoin">
-        <p>To,</p>
         <p>Name: <strong>${data?.name}</strong></p>
         <p>TMC: <strong>${data?.empCode}</strong></p>
         <p>Designation: <strong>${data?.designationmaster?.name}</strong></p>
         <p>SBU: <strong>${data?.sbumaster?.sbuname}</strong></p>
-        <p>Location: <strong>${
-					data?.companylocationmaster?.address1
-				}</strong></p>
       </div>
       <div class="subject">
         <h4 class="subjectText">Subject: Confirmation Letter</h4>
@@ -3841,7 +3843,7 @@ const confirmationEmailLetter = async (
           We look forward to your valuable contribution and wish you all the
           very best for a rewarding career with the organization.
         </p>
-        <p>For Team Computers Private Limited</p>
+        <p>For ${data.companymaster.companyName}</p>
       </div>
       <div class="signatureSection">
               <img
