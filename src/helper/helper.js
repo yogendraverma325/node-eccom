@@ -3420,6 +3420,14 @@ const confirmationPolicyAssignment = async (empIdsInput) => {
 							{ [Op.eq]: `${Singleemployee.employeejobdetail.jobLevelId}` },
 						],
 					},
+					companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleemployee.companyId},%` },
+							{ [Op.like]: `%,${Singleemployee.companyId},%` },
+							{ [Op.like]: `%,${Singleemployee.companyId}` },
+							{ [Op.eq]: `${Singleemployee.companyId}` },
+						],
+					},
 				},
 			});
 			if (checkJobLevelAssignmnet) {

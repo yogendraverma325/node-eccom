@@ -659,7 +659,7 @@ class CronController {
 					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
 				},
 				confirmationGenerated: 0,
-				//userId:5047
+				userId:5047
 			},
 			attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
 			include: {
@@ -717,6 +717,14 @@ class CronController {
 							{ [Op.like]: `%,${Singleconfimation.jobLevelId},%` },
 							{ [Op.like]: `%,${Singleconfimation.jobLevelId}` },
 							{ [Op.eq]: `${Singleconfimation.jobLevelId}` },
+						],
+					},
+					companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleconfimation.employee.companyId},%` },
+							{ [Op.like]: `%,${Singleconfimation.employee.companyId},%` },
+							{ [Op.like]: `%,${Singleconfimation.employee.companyId}` },
+							{ [Op.eq]: `${Singleconfimation.employee.companyId}` },
 						],
 					},
 				},
