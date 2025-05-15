@@ -111,7 +111,7 @@ const mailService = async (data) => {
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc: data.bcc ? data.bcc : [],
+			bcc:testMail ? [] : data.bcc ? data.bcc : [],
 			time: data.time ? data.time : "",
 			html: data.html,
 			cc: testMail ? [] : data.cc ? data.cc.split(",") : [],
