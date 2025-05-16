@@ -16,7 +16,7 @@ export default (sequelize, Sequelize) => {
 			noticePeriodAutoId: {
 				type: Sequelize.INTEGER,
 			},
-            oldNoticePeriodAutoId: {
+			oldNoticePeriodAutoId: {
 				type: Sequelize.INTEGER,
 			},
 			needAttendanceCron: {

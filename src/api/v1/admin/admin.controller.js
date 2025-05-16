@@ -1617,7 +1617,7 @@ class AdminController {
 					{
 						designation_id: metaData.designation_id,
 						updatedBy: req.userId,
-						updatedAt: moment()
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -1734,7 +1734,7 @@ class AdminController {
 						departmentId: result.departmentId,
 						functionalAreaId: result.functionalAreaId,
 						updatedBy: req.userId,
-						updatedAt: moment()
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -1841,7 +1841,7 @@ class AdminController {
 					{
 						costId: metaData.costId,
 						updatedBy: req.userId,
-						updatedAt: moment()
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -1951,7 +1951,7 @@ class AdminController {
 					{
 						companyLocationId: metaData.companyLocationId,
 						updatedBy: req.userId,
-						updatedAt: moment()
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -2071,7 +2071,7 @@ class AdminController {
 						gradeId: metaData.gradeId,
 						jobLevelId: metaData.jobLevelId,
 						updatedBy: req.userId,
-						updatedAt: moment()
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -2180,7 +2180,7 @@ class AdminController {
 					{
 						employeeType: metaData.employeeType,
 						updatedBy: req.userId,
-						updatedAt: moment()
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -2272,18 +2272,22 @@ class AdminController {
 			let error = false;
 			let { userId, noticePeriodAutoId, id } = req.body;
 			let fromDate = moment().format("YYYY-MM-DD");
-			let details = await db.employeeMaster.findOne({ where: { id: userId }, attributes: ['id', 'companyId'], raw: true });
+			let details = await db.employeeMaster.findOne({
+				where: { id: userId },
+				attributes: ["id", "companyId"],
+				raw: true,
+			});
 
 			let metaData = {
 				employeeId: userId,
 				companyId: details?.companyId,
 				noticePeriodAutoId: noticePeriodAutoId,
 				fromDate: fromDate,
-				toDate: null
+				toDate: null,
 			};
 
-			const recordsExistForDate = await db.NoticePeriodEmploymentHistory.findOne(
-				{
+			const recordsExistForDate =
+				await db.NoticePeriodEmploymentHistory.findOne({
 					raw: true,
 					where: {
 						fromDate: fromDate,
@@ -2291,8 +2295,7 @@ class AdminController {
 						employeeId: userId,
 						...(id && { [Op.not]: { id: id } }),
 					},
-				},
-			);
+				});
 
 			if (recordsExistForDate) {
 				error = true;
@@ -2335,9 +2338,7 @@ class AdminController {
 				if (recordsExist) {
 					await db.NoticePeriodEmploymentHistory.update(
 						{
-							toDate: moment(fromDate)
-								.subtract(1, "day")
-								.format("YYYY-MM-DD"),
+							toDate: moment(fromDate).subtract(1, "day").format("YYYY-MM-DD"),
 						},
 						{ where: { id: recordsExist.id } },
 					);
@@ -2348,7 +2349,7 @@ class AdminController {
 					{
 						noticePeriodAutoId: noticePeriodAutoId,
 						updatedBy: req.userId,
-				        updatedAt: moment(),
+						updatedAt: moment(),
 					},
 					{
 						where: {

@@ -5885,16 +5885,22 @@ class UserController {
 						include: [
 							{
 								model: db.noticePeriodMaster,
-								attributes: ["noticePeriodAutoId", "noticePeriodName", "noticePeriodCode", "nPDaysAfterConfirmation", "nPDaysInProbation"]
+								attributes: [
+									"noticePeriodAutoId",
+									"noticePeriodName",
+									"noticePeriodCode",
+									"nPDaysAfterConfirmation",
+									"nPDaysInProbation",
+								],
 							},
 							{
 								model: db.employeeMaster,
 								as: "noticePeriodHistoryCreatedBy",
 								attributes: ["id", "name", "empCode"],
-							}
+							},
 						],
-						required: false
-					}
+						required: false,
+					},
 				],
 				order: [
 					["designationHistories", "id", "ASC"], // Sorting for designationHistory
