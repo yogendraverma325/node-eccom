@@ -1616,6 +1616,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						designation_id: metaData.designation_id,
+						updatedBy: req.userId,
+						updatedAt: moment()
 					},
 					{
 						where: {
@@ -1731,6 +1733,8 @@ class AdminController {
 						buHeadId: result.buHeadId,
 						departmentId: result.departmentId,
 						functionalAreaId: result.functionalAreaId,
+						updatedBy: req.userId,
+						updatedAt: moment()
 					},
 					{
 						where: {
@@ -1836,6 +1840,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						costId: metaData.costId,
+						updatedBy: req.userId,
+						updatedAt: moment()
 					},
 					{
 						where: {
@@ -1944,6 +1950,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						companyLocationId: metaData.companyLocationId,
+						updatedBy: req.userId,
+						updatedAt: moment()
 					},
 					{
 						where: {
@@ -2062,6 +2070,8 @@ class AdminController {
 						bandId: metaData.bandId,
 						gradeId: metaData.gradeId,
 						jobLevelId: metaData.jobLevelId,
+						updatedBy: req.userId,
+						updatedAt: moment()
 					},
 					{
 						where: {
@@ -2169,6 +2179,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						employeeType: metaData.employeeType,
+						updatedBy: req.userId,
+						updatedAt: moment()
 					},
 					{
 						where: {

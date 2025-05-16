@@ -974,8 +974,7 @@ class AttendanceController {
 				let isOverNight = parseInt(shiftDetails.isOverNight);
 
 				if (
-					(startRegularizeDateTime < preAttendanceDateTime ||
-						startRegularizeDateTime > graceAttendanceDateTime) &&
+					(startRegularizeDateTime < preAttendanceDateTime) &&
 					isOverNight === 0
 				) {
 					// console.log("you are not able to regularize");
@@ -1006,17 +1005,17 @@ class AttendanceController {
 					});
 				}
 
-				if (
-					attendanceData?.dataValues?.attendanceDate === result.fromDate &&
-					result.punchInTime > shiftStartWithGrace &&
-					isOverNight === 1
-				) {
-					// console.log("you are not able to regularize with isOverNight");
-					return respHelper(res, {
-						status: 400,
-						msg: "Invalid punchIn/punchOut night time grace",
-					});
-				}
+				// if (
+				// 	attendanceData?.dataValues?.attendanceDate === result.fromDate &&
+				// 	result.punchInTime > shiftStartWithGrace &&
+				// 	isOverNight === 1
+				// ) {
+				// 	// console.log("you are not able to regularize with isOverNight");
+				// 	return respHelper(res, {
+				// 		status: 400,
+				// 		msg: "Invalid punchIn/punchOut night time grace",
+				// 	});
+				// }
 			}
 
 			if (
