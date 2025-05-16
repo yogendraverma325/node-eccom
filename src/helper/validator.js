@@ -2602,6 +2602,67 @@ const updateRatingScaleSchema = Joi.object({
 		.required(),
 	});
 //REVOKE
+// Start Import employment details
+const importEmploymentDetails = Joi.object({
+	empCode: Joi.string().required(),
+	designationCode: Joi.string(),
+	desFromDate: Joi.date().max("now").messages({
+		"date.max": "desFromDate must be less than or equal to today",
+		"date.base": "desFromDate must be a valid date",
+	}),
+	desIsPromotion: Joi.string(),
+	jobLevelCode: Joi.string(),
+	jobLevelFromDate: Joi.date().max("now").messages({
+		"date.max": "jobLevelFromDate must be less than or equal to today",
+		"date.base": "jobLevelFromDate must be a valid date",
+	}),
+	jobLevelIsPromotion: Joi.string(),
+	manager: Joi.string(),
+	managerFromDate: Joi.date().max("now").messages({
+		"date.max": "managerFromDate must be less than or equal to today",
+		"date.base": "managerFromDate must be a valid date",
+	}),
+	functionalAreaCode: Joi.string(),
+	functionalFromDate: Joi.date().max("now").messages({
+		"date.max": "functionalFromDate must be less than or equal to today",
+		"date.base": "functionalFromDate must be a valid date",
+	}),
+	employeeTypeCode: Joi.string(),
+	employeeTypeFromDate: Joi.date().max("now").messages({
+		"date.max": "employeeTypeFromDate must be less than or equal to today",
+		"date.base": "employeeTypeFromDate must be a valid date",
+	}),
+	companyLocationCode: Joi.string(),
+	companyLocationFromDate: Joi.date().max("now").messages({
+		"date.max": "companyLocationFromDate must be less than or equal to today",
+		"date.base": "companyLocationFromDate must be a valid date",
+	}),
+	costCenterCode: Joi.string(),
+	costCenterFromDate: Joi.date().max("now").messages({
+		"date.max": "costCenterFromDate must be less than or equal to today",
+		"date.base": "costCenterFromDate must be a valid date",
+	}),
+	noticePeriodCode: Joi.string(),
+})
+	.with("designationCode", ["desFromDate", "desIsPromotion"])
+	.with("desFromDate", ["designationCode", "desIsPromotion"])
+	.with("desIsPromotion", ["designationCode", "desFromDate"])
+	.with("jobLevelCode", ["jobLevelFromDate", "jobLevelIsPromotion"])
+	.with("jobLevelFromDate", ["jobLevelCode", "jobLevelIsPromotion"])
+	.with("jobLevelIsPromotion", ["jobLevelCode", "jobLevelFromDate"])
+	.with("manager", ["managerFromDate"])
+	.with("managerFromDate", ["manager"])
+	.with("functionalAreaCode", ["functionalFromDate"])
+	.with("functionalFromDate", ["functionalAreaCode"])
+	.with("employeeTypeCode", ["employeeTypeFromDate"])
+	.with("employeeTypeFromDate", ["employeeTypeCode"])
+	.with("companyLocationCode", ["companyLocationFromDate"])
+	.with("companyLocationFromDate", ["companyLocationCode"])
+	.with("costCenterCode", ["costCenterFromDate"])
+	.with("costCenterFromDate", ["costCenterCode"]);
+
+// End Import employment details
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2707,6 +2768,9 @@ export default {
 	revokeApprovedRegularizationsValidation,
 	revokeApprovedLeaveValidation,
 	approvalrevokeApprovedLeaveValidation,
-	revokeLeaverevokeRequestValidation
+	revokeLeaverevokeRequestValidation,
 	//REVOKE
+	// start by jay
+	importEmploymentDetails,
+	// end by jay
 };

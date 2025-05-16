@@ -237,6 +237,10 @@ import user_assignment_attribute_master from "../api/model/user_assignment_attri
 
 //ritak Hr Policy end
 
+// start jay notice period employment history
+import NoticePeriodEmploymentHistory from "../api/model/NoticePeriodEmploymentHistory.js";
+// end jay end notice period employment history
+
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 const sequelize = new Sequelize(
@@ -578,6 +582,10 @@ db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
 	sourceKey: "employeeleaveheaderID",
 });
 //REVOKE
+
+// start jay notice period employment history
+db.NoticePeriodEmploymentHistory = NoticePeriodEmploymentHistory(sequelize, Sequelize);
+// end jay end notice period employment history
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -2383,5 +2391,23 @@ db.compentancyAttributes.hasOne(db.compentanyTier, {
 	foreignKey: "compentancyTierId",
 	sourceKey: "compentancyTierId",
 });
+// start jay notice period employment
+db.employeeMaster.hasMany(db.NoticePeriodEmploymentHistory, {
+	foreignKey: "employeeId",
+	sourceKey: "id",
+	as: "noticePeriodHistories",
+});
+db.NoticePeriodEmploymentHistory.hasOne(db.noticePeriodMaster, {
+	foreignKey: "noticePeriodAutoId",
+	sourceKey: "noticePeriodAutoId",
+});
+db.NoticePeriodEmploymentHistory.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "noticePeriodHistoryCreatedBy",
+});
+// end jay notice period employment
+
+
 
 export default db;

@@ -1556,7 +1556,7 @@ class AdminController {
 					raw: true,
 					where: {
 						fromDate: result.fromDate,
-						needAttendanceCron: 1,
+						needAttendanceCron: 0,
 						employeeId: result.userId,
 						...(result.id && { [Op.not]: { id: result.id } }),
 					},
@@ -1567,19 +1567,6 @@ class AdminController {
 				error = true;
 			} else {
 				if (result.id) {
-					// const verifyData = await db.DesignationEmploymentHistory.findOne({
-					//   raw: true,
-					//   where: {
-					//     id: result.id,
-					//   }
-					// });
-
-					// if(verifyData) {
-					//   if(verifyData.designation_id != result.designation_id) {
-					//     metaData["oldDesignationId"] = verifyData.designation_id;
-					//   }
-					// }
-
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
@@ -1629,6 +1616,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						designation_id: metaData.designation_id,
+						updatedBy: req.userId,
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -1680,7 +1669,7 @@ class AdminController {
 				raw: true,
 				where: {
 					fromDate: result.fromDate,
-					needAttendanceCron: 1,
+					needAttendanceCron: 0,
 					employeeId: result.userId,
 					...(result.id && { [Op.not]: { id: result.id } }),
 				},
@@ -1690,19 +1679,6 @@ class AdminController {
 				error = true;
 			} else {
 				if (result.id) {
-					// const verifyData = await db.DepartmentEmploymentHistory.findOne({
-					//   raw: true,
-					//   where: {
-					//     id: result.id,
-					//   }
-					// });
-
-					// if(verifyData) {
-					//   if(verifyData.departmentId != result.departmentId) {
-					//     metaData["oldDepartmentId"] = verifyData.departmentId;
-					//   }
-					// }
-
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
@@ -1757,6 +1733,8 @@ class AdminController {
 						buHeadId: result.buHeadId,
 						departmentId: result.departmentId,
 						functionalAreaId: result.functionalAreaId,
+						updatedBy: req.userId,
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -1803,7 +1781,7 @@ class AdminController {
 				raw: true,
 				where: {
 					fromDate: result.fromDate,
-					needAttendanceCron: 1,
+					needAttendanceCron: 0,
 					employeeId: result.userId,
 					...(result.id && { [Op.not]: { id: result.id } }),
 				},
@@ -1813,19 +1791,6 @@ class AdminController {
 				error = true;
 			} else {
 				if (result.id) {
-					// const verifyData = await db.CostCenterEmploymentHistory.findOne({
-					//   raw: true,
-					//   where: {
-					//     id: result.id,
-					//   }
-					// });
-
-					// if(verifyData) {
-					//   if(verifyData.costId != result.costId) {
-					//     metaData["oldCostId"] = verifyData.costId;
-					//   }
-					// }
-
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
@@ -1875,6 +1840,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						costId: metaData.costId,
+						updatedBy: req.userId,
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -1924,7 +1891,7 @@ class AdminController {
 					raw: true,
 					where: {
 						fromDate: result.fromDate,
-						needAttendanceCron: 1,
+						needAttendanceCron: 0,
 						employeeId: result.userId,
 						...(result.id && { [Op.not]: { id: result.id } }),
 					},
@@ -1934,19 +1901,6 @@ class AdminController {
 				error = true;
 			} else {
 				if (result.id) {
-					// const verifyData = await db.OfficeLocationEmploymentHistory.findOne({
-					//   raw: true,
-					//   where: {
-					//     id: result.id,
-					//   }
-					// });
-
-					// if(verifyData) {
-					//   if(verifyData.companyLocationId != result.companyLocationId) {
-					//     metaData["oldCompanyLocationId"] = verifyData.companyLocationId;
-					//   }
-					// }
-
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
@@ -1996,6 +1950,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						companyLocationId: metaData.companyLocationId,
+						updatedBy: req.userId,
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -2052,7 +2008,7 @@ class AdminController {
 				raw: true,
 				where: {
 					fromDate: result.fromDate,
-					needAttendanceCron: 1,
+					needAttendanceCron: 0,
 					employeeId: result.userId,
 					...(result.id && { [Op.not]: { id: result.id } }),
 				},
@@ -2062,19 +2018,6 @@ class AdminController {
 				error = true;
 			} else {
 				if (result.id) {
-					// const verifyData = await db.JobLevelEmploymentHistory.findOne({
-					//   raw: true,
-					//   where: {
-					//     id: result.id,
-					//   }
-					// });
-
-					// if(verifyData) {
-					//   if(verifyData.jobLevelId != result.jobLevelId) {
-					//     metaData["oldJobLevelId"] = verifyData.jobLevelId;
-					//   }
-					// }
-
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
@@ -2127,6 +2070,8 @@ class AdminController {
 						bandId: metaData.bandId,
 						gradeId: metaData.gradeId,
 						jobLevelId: metaData.jobLevelId,
+						updatedBy: req.userId,
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -2175,7 +2120,7 @@ class AdminController {
 					raw: true,
 					where: {
 						fromDate: result.fromDate,
-						needAttendanceCron: 1,
+						needAttendanceCron: 0,
 						employeeId: result.userId,
 						...(result.id && { [Op.not]: { id: result.id } }),
 					},
@@ -2185,19 +2130,6 @@ class AdminController {
 				error = true;
 			} else {
 				if (result.id) {
-					// const verifyData = await db.EmployeeTypeEmploymentHistory.findOne({
-					//   raw: true,
-					//   where: {
-					//     id: result.id,
-					//   }
-					// });
-
-					// if(verifyData) {
-					//   if(verifyData.employeeType != result.employeeType) {
-					//     metaData["oldEmployeeType"] = verifyData.employeeType;
-					//   }
-					// }
-
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
@@ -2247,6 +2179,8 @@ class AdminController {
 				let updateDone = await db.employeeMaster.update(
 					{
 						employeeType: metaData.employeeType,
+						updatedBy: req.userId,
+						updatedAt: moment(),
 					},
 					{
 						where: {
@@ -2335,21 +2269,110 @@ class AdminController {
 
 	async updateNoticePeriod(req, res) {
 		try {
-			let updatedBy = req.userId;
-			let { userId, noticePeriodAutoId } = req.body;
-			let metaData = {
-				noticePeriodAutoId: noticePeriodAutoId,
-				updatedBy: updatedBy,
-				updatedAt: moment(),
-			};
-			await db.employeeMaster.update(metaData, { where: { id: userId } });
-			return respHelper(res, {
-				status: 200,
-				msg: constant.UPDATE_SUCCESS.replace("<module>", "Notice Period"),
+			let error = false;
+			let { userId, noticePeriodAutoId, id } = req.body;
+			let fromDate = moment().format("YYYY-MM-DD");
+			let details = await db.employeeMaster.findOne({
+				where: { id: userId },
+				attributes: ["id", "companyId"],
+				raw: true,
 			});
+
+			let metaData = {
+				employeeId: userId,
+				companyId: details?.companyId,
+				noticePeriodAutoId: noticePeriodAutoId,
+				fromDate: fromDate,
+				toDate: null,
+			};
+
+			const recordsExistForDate =
+				await db.NoticePeriodEmploymentHistory.findOne({
+					raw: true,
+					where: {
+						fromDate: fromDate,
+						needAttendanceCron: 0,
+						employeeId: userId,
+						...(id && { [Op.not]: { id: id } }),
+					},
+				});
+
+			if (recordsExistForDate) {
+				error = true;
+			} else {
+				if (id) {
+					metaData = {
+						...metaData,
+						updatedBy: req.userId,
+						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+					};
+					await db.NoticePeriodEmploymentHistory.update(metaData, {
+						where: { id: id },
+					});
+				} else {
+					metaData = {
+						...metaData,
+						createdBy: req.userId,
+						createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+					};
+					await db.NoticePeriodEmploymentHistory.create(metaData);
+				}
+			}
+
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Record Already Exist for the selected date",
+				});
+			} else {
+				const recordsExist = await db.NoticePeriodEmploymentHistory.findOne({
+					raw: true,
+					where: {
+						employeeId: userId,
+					},
+					order: [["createdAt", "DESC"]], // Order by createdAt descending
+					limit: 1, // Fetch only one record
+					offset: 1, // Skip the most recent record
+				});
+
+				if (recordsExist) {
+					await db.NoticePeriodEmploymentHistory.update(
+						{
+							toDate: moment(fromDate).subtract(1, "day").format("YYYY-MM-DD"),
+						},
+						{ where: { id: recordsExist.id } },
+					);
+				}
+
+				// UPDATE NOTICE PERIOD TO EMP MASTER TABLE
+				let updateDone = await db.employeeMaster.update(
+					{
+						noticePeriodAutoId: noticePeriodAutoId,
+						updatedBy: req.userId,
+						updatedAt: moment(),
+					},
+					{
+						where: {
+							id: userId,
+						},
+					},
+				);
+				return respHelper(res, {
+					status: 200,
+					msg: id ? "Record Updated" : "Record Added",
+				});
+			}
 		} catch (error) {
-			console.log(error);
-			return respHelper(res, { status: 500 });
+			console.log("error", error);
+			if (error.isJoi) {
+				return respHelper(res, {
+					msg: error.details[0].message,
+					status: 422,
+				});
+			}
+			return respHelper(res, {
+				status: 500,
+			});
 		}
 	}
 
