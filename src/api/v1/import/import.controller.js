@@ -362,7 +362,7 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 					isActive: 1,
 				},
 				raw: true,
-				attributes: ["id", "name", "dateOfJoining"],
+				attributes: ["id", "name", "dateOfJoining",'companyId','buId','sbuId'],
 			});
 
 			employee["Effective Date"] = !isNaN(employee["Effective Date"])
@@ -470,92 +470,128 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 					});
 					continue;
 				} else {
-					let packageInserted = await db.payPackage.create(
+
+						if(existingPackage.payPackageMonthlyCTC<employee['CTC'])
 						{
-							EmployeeId: employeeDetails.id,
-							payPackageFinancialYear: financialYearDetails?.financialYearName,
-							financialYearId: financialYearDetails?.financialYearId,
-							payPackageEffectiveDate: importHelper.formatDate(
-								year,
-								month,
-								day,
-							), //new Date(year, month - 1, day),
-							payPackageMonthlyCTC: employee["CTC"],
-							payPackageSalaryStructure:
-								structureDetails[0].salaryStructureName, // employee["Salary Structure"],
-							payPackageTotalCTC: employee["CTC"],
-							payPackageType: "Monthly",
-							salaryStructureAutoId: structureDetails[0].salaryStructureAutoId,
-							createdBy: req.userData.id,
-							createdAt: new Date(),
-							isActive: 1,
-						},
-						{ raw: true },
-					);
+						
+						let payMonth =employee['Effective Date'].split('-')[2]+"-"+employee['Effective Date'].split('-')[1];
+						let paySlipsDuringArrearsPeriod = await db.paySlips.findAll({where:{payMonth:{[Op.gte]:payMonth},EmployeeId:employeeDetails.id},attribute:['payMonth','paySlipGrossEarning','paySlipWorkingDays'],raw:true})
+						for (const lastPackagePayObject of paySlipsDuringArrearsPeriod) {
+							console.log(employee['CTC'],"  "+lastPackagePayObject.paySlipGrossEarning);
 
-					if (existingPackage) {
-						await db.payPackage.update(
-							{ isActive: 0 },
-							{
-								where: { payPackageAutoId: existingPackage.payPackageAutoId },
-							},
-						);
-					}
+							let incrementArrearsObject = {
 
-					for (const salaryComponent of structureDetails) {
-						let componentName = salaryComponent[
-							"structureMappingDetails.componentDetails.salaryComponentAlias"
-						]
-							? salaryComponent[
-									"structureMappingDetails.componentDetails.salaryComponentAlias"
-								]
-							: salaryComponent[
-									"structureMappingDetails.componentDetails.salaryComponentCode"
-								];
+								EmployeeId:employeeDetails.id,
+								arrearMonth:lastPackagePayObject.payMonth,
+								arearDays:lastPackagePayObject.paySlipWorkingDays,
+								arearType:'Increment',
+								hasPF:'No',
+								computeESIC:'No',
+								financialYearId:4,
+								createdAt:new Date(),
+								status:1,
+								createdThrough:0,
+								companyId:employeeDetails.companyId,
+								buId:employeeDetails.buId,
+								empCode:employee['EmployeeId'],
+								sbuId:employeeDetails.sbuId,
+							}
 
-						let exisingPayElement = await db.payElements.findAll({
-							where: {
-								EmployeeId: employee["Employee ID"],
-								payPackageAutoId: packageInserted.dataValues.payPackageAutoId,
-								salaryComponentAutoId:
-									salaryComponent[
-										"structureMappingDetails.componentDetails.salaryComponentAutoId"
-									],
-							},
-						});
-						if (exisingPayElement.length == 0 && employee[componentName] > 0) {
-							await db.payElements.create({
-								EmployeeId: employeeDetails.id,
-								salaryComponentAutoId:
-									salaryComponent[
-										"structureMappingDetails.componentDetails.salaryComponentAutoId"
-									],
-								payPackageAutoId: packageInserted.dataValues.payPackageAutoId,
-								payElementAmount: employee[componentName],
-								payElementEffectiveFrom: importHelper.formatDate(
-									year,
-									month,
-									day,
-								),
-								payElementEffectiveTo: importHelper.formatDate(
-									year,
-									month,
-									day,
-								),
-								createdBy: req.userData.id,
-								createdAt: new Date(),
-								isActive: 1,
-							});
-							//console.log(insertedNewElement);
+							await db.earningsArears.create(incrementArrearsObject);
+							
 						}
-					}
-					successArray.push({
-						importedRow: JSON.stringify(employee),
-						importAutoId: importId,
-						importStatus: 1,
-						createdBy: req.userData.id,
-						importStatusDesc: "CTC Uploaded Successfully",
-					});
+						}
+						
+
+
+					
+						// let packageInserted = await db.payPackage.create(
+					// 	{
+					// 		EmployeeId: employeeDetails.id,
+					// 		payPackageFinancialYear: financialYearDetails?.financialYearName,
+					// 		financialYearId: financialYearDetails?.financialYearId,
+					// 		payPackageEffectiveDate: importHelper.formatDate(
+					// 			year,
+					// 			month,
+					// 			day,
+					// 		), //new Date(year, month - 1, day),
+					// 		payPackageMonthlyCTC: employee["CTC"],
+					// 		payPackageSalaryStructure:
+					// 			structureDetails[0].salaryStructureName, // employee["Salary Structure"],
+					// 		payPackageTotalCTC: employee["CTC"],
+					// 		payPackageType: "Monthly",
+					// 		salaryStructureAutoId: structureDetails[0].salaryStructureAutoId,
+					// 		createdBy: req.userData.id,
+					// 		createdAt: new Date(),
+					// 		isActive: 1,
+					// 	},
+					// 	{ raw: true },
+					// );
+
+					// if (existingPackage) {
+					// 	await db.payPackage.update(
+					// 		{ isActive: 0 },
+					// 		{
+					// 			where: { payPackageAutoId: existingPackage.payPackageAutoId },
+					// 		},
+					// 	);
+					// }
+
+					// for (const salaryComponent of structureDetails) {
+					// 	let componentName = salaryComponent[
+					// 		"structureMappingDetails.componentDetails.salaryComponentAlias"
+					// 	]
+					// 		? salaryComponent[
+					// 				"structureMappingDetails.componentDetails.salaryComponentAlias"
+					// 			]
+					// 		: salaryComponent[
+					// 				"structureMappingDetails.componentDetails.salaryComponentCode"
+					// 			];
+
+					// 	let exisingPayElement = await db.payElements.findAll({
+					// 		where: {
+					// 			EmployeeId: employee["Employee ID"],
+					// 			payPackageAutoId: packageInserted.dataValues.payPackageAutoId,
+					// 			salaryComponentAutoId:
+					// 				salaryComponent[
+					// 					"structureMappingDetails.componentDetails.salaryComponentAutoId"
+					// 				],
+					// 		},
+					// 	});
+					// 	if (exisingPayElement.length == 0 && employee[componentName] > 0) {
+					// 		await db.payElements.create({
+					// 			EmployeeId: employeeDetails.id,
+					// 			salaryComponentAutoId:
+					// 				salaryComponent[
+					// 					"structureMappingDetails.componentDetails.salaryComponentAutoId"
+					// 				],
+					// 			payPackageAutoId: packageInserted.dataValues.payPackageAutoId,
+					// 			payElementAmount: employee[componentName],
+					// 			payElementEffectiveFrom: importHelper.formatDate(
+					// 				year,
+					// 				month,
+					// 				day,
+					// 			),
+					// 			payElementEffectiveTo: importHelper.formatDate(
+					// 				year,
+					// 				month,
+					// 				day,
+					// 			),
+					// 			createdBy: req.userData.id,
+					// 			createdAt: new Date(),
+					// 			isActive: 1,
+					// 		});
+					// 		//console.log(insertedNewElement);
+					// 	}
+					// }
+					// successArray.push({
+					// 	importedRow: JSON.stringify(employee),
+					// 	importAutoId: importId,
+					// 	importStatus: 1,
+					// 	createdBy: req.userData.id,
+					// 	importStatusDesc: "CTC Uploaded Successfully",
+					// });
+
 				}
 			} else {
 				errorArray.push({

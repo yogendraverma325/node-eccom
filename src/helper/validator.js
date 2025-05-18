@@ -2324,7 +2324,7 @@ const proxyLoginSchema = Joi.object({
 // End proxy validation area
 
 const addEditSingleArrear = Joi.object({
-	earningArrearAutoId: Joi.number().integer().required(),
+	// earningArrearAutoId: Joi.number().integer().required(),
 	EmployeeId: Joi.number().integer().required(),
 	arrearMonth: Joi.string()
 		.pattern(/^\d{4}-\d{2}$/)
@@ -2341,7 +2341,7 @@ const addEditSingleArrear = Joi.object({
 			"string.pattern.base": '"arrearPayMonth" must be in YYYY-MM format',
 		}),
 	arearDays: Joi.number().integer().min(0).required(),
-	arearType: Joi.string().valid("Lop Arrears").required(),
+	arearType: Joi.string().valid("Lop","Increment").required(),
 	hasPF: Joi.string().valid("Yes", "No").required(),
 	computeESIC: Joi.string().valid("Yes", "No").required(),
 	companyId: Joi.number().integer().required(),

@@ -29,7 +29,7 @@ class ImportController {
 		try {
 			let arrearPayMonth = req.body.arrearPayMonth;
 			let status = req.body.status;
-			let arrearType = req.body.arrearsTypeId == "1" ? "LOP" : "Increment";
+			let arrearType = req.body.arrearsTypeId == "1" ? "Lop" : "Increment";
 			let companyId = req.body.companyId;
 			let arrearListQuery = await arrearsHelper.query(1, arrearPayMonth, {
 				status: status,
@@ -38,11 +38,12 @@ class ImportController {
 			});
 			let arrearsCountQuery = await arrearsHelper.query(2, arrearPayMonth, {
 				companyId: companyId,
+				arrearType:arrearType
 			});
 			let arrearsData = await db.sequelize.query(arrearListQuery);
 			let arrearsCountData = await db.sequelize.query(arrearsCountQuery);
 
-			console.log(arrearListQuery);
+			console.log(arrearsCountQuery);
 
 			return respHelper(res, {
 				status: 200,
