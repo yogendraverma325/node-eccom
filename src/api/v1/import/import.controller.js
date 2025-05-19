@@ -48,6 +48,7 @@ class ImportController {
 				"Attendance Assignment",
 				"Arrears",
 				"Employment Details",
+				"Employee Data"
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -107,6 +108,8 @@ class ImportController {
 				await arrearsUpload(req, res, OperationType, importInfoObject);
 			} else if (req.body.uploadType == "Employment Details") {
 				await employmentDetails(req, res, FILEDATA, importInfoObject);
+			} else if (req.body.uploadType == "Employee Data") {
+				await employeeData(req, res, FILEDATA, importInfoObject);
 			}
 		} catch (error) {
 			console.log(error);
@@ -2380,6 +2383,89 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 	return respHelper(res, {
 		status: 202,
 		msg: "Employment Details update successfully.",
+		data: {
+			SuccessRecord: successArray.length,
+			ErrorRecord: errorArray.length,
+		},
+	});
+}
+
+async function employeeData(req, res, FILEDATA, importParams) {
+	if (!req.file) {
+		return respHelper(res, {
+			status: 400,
+			msg: "File is required!",
+		});
+	}
+
+	let successArray = [];
+	let errorArray = [];
+
+	const filterData = FILEDATA.filter((item) => item["Employee ID"]);
+	let importId = await createImportDetails(importParams);
+
+	const empCodesFromExcel = filterData.map(row => String(row["Employee ID"]));
+	const existingEmployees = await db.employeeMaster.findAll({ where: { empCode: empCodesFromExcel }, attributes: ["id", "empCode"], raw: true });
+
+	const employeeMap = new Map();
+	existingEmployees.forEach(emp => {
+		employeeMap.set(emp.empCode, emp);
+	});
+
+	for (const row of filterData) {
+		const empCode = String(row["Employee ID"]);
+		const employee = employeeMap.get(empCode);
+
+		if (employee) {
+			let updateObj = {
+				firstName: row["Firstname"]
+			};
+
+			await db.employeeMaster.update(updateObj, {
+				where: { empCode },
+			});
+
+			// push object in success array
+			successArray.push({
+				importedRow: empCode,
+				importAutoId: importId,
+				importStatus: 1,
+				createdBy: req.userId,
+				importStatusDesc: "Employee data update successfully.",
+			});
+		} else {
+			// push object in failure array
+			errorArray.push({
+				importedRow: empCode,
+				importAutoId: importId,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: "Invalid TMC",
+			});
+			i++;
+		}
+	}
+
+	if (successArray.length > 0 || errorArray.length > 0) {
+		let importFinalResult = successArray.concat(errorArray);
+		await db.ImportData.bulkCreate(importFinalResult);
+		await db.ImportInfo.update(
+			{
+				importStatusDesc:
+					"Import Executed with " +
+					successArray.length +
+					" success and " +
+					errorArray.length +
+					" error records",
+				importStatus: 1,
+			},
+			{ where: { importAutoId: importId } },
+		);
+	}
+
+	return respHelper(res, {
+		status: 202,
+		msg: "Employee data update successfully.",
 		data: {
 			SuccessRecord: successArray.length,
 			ErrorRecord: errorArray.length,
