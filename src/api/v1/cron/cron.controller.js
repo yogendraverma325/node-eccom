@@ -2143,7 +2143,7 @@ class CronController {
 					},
 					{
 						model: db.companyMaster,
-						attributes: ["companyLogo", "senderEmail"],
+						attributes: ["companyLogo", "senderEmail","addCCEmailForWishesAndConfirmation"],
 					},
 					{
 						model: db.employeeMaster,
@@ -2196,9 +2196,14 @@ class CronController {
 						const managerEmail = emp["managerData.email"];
 						const buhrEmail = emp.buhrData.email;
 						const buHeadEmail = emp.buHeadData.email;
-						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(
-							(email) => email !== null,
-						);
+						const emailData = [managerEmail, buhrEmail, buHeadEmail];
+						  const additionalCCMail = emp["companymaster.addCCEmailForWishesAndConfirmation"];
+                        console.log("BirthAdditionalEmail:- ",additionalCCMail)
+
+                        if (additionalCCMail) {
+                            emailData.push(...additionalCCMail.split(','));
+                        }
+						const ccEmail = emailData.filter((email) => !!email,);
 						console.log("Birth ccEmail:-", ccEmail);
 
 						eventEmitter.emit(
@@ -2238,7 +2243,7 @@ class CronController {
 				include: [
 					{
 						model: db.companyMaster,
-						attributes: ["companyLogo", "senderEmail"],
+						attributes: ["companyLogo", "senderEmail","addCCEmailForWishesAndConfirmation"],
 					},
 					{
 						model: db.employeeMaster,
@@ -2288,9 +2293,16 @@ class CronController {
 						const managerEmail = emp["managerData.email"];
 						const buhrEmail = emp.buhrData.email;
 						const buHeadEmail = emp.buHeadData.email;
-						const ccEmail = [managerEmail, buhrEmail, buHeadEmail].filter(
-							(email) => email !== null,
-						);
+						const emailData = [managerEmail, buhrEmail, buHeadEmail];
+
+                        const additionalCCMail = emp["companymaster.addCCEmailForWishesAndConfirmation"];
+                        console.log("WorkAdditionalEmail:- ",additionalCCMail)
+
+                        if (additionalCCMail) {
+                            emailData.push(...additionalCCMail.split(','));
+                        }
+                        
+                        const ccEmail = emailData.filter((email) => !!email,);
 						//console.log("ccEmail:-",ccEmail)
 						const workDuration = await helper.getWorkDuration(
 							emp.dateOfJoining,
