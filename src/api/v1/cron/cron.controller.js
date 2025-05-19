@@ -15,7 +15,7 @@ import { where, Op, fn, col } from "sequelize";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New
 import { getEmployeesByUserAssignmentId } from "../../v1/common/common.controller.js";
 import { exec } from "child_process";
-
+import emailTemplate from "../../../email/emailTemplate.js";
 var _this = null;
 
 class CronController {
@@ -652,13 +652,14 @@ class CronController {
 
 	///CONFIRMATION
 	async generateConfirmation() {
-		console.log("generateConfirmation is started");
+		
 		const confimationData = await db.jobDetails.findAll({
 			where: {
 				dateOfProbationTriggerDate: {
-					[Op.eq]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
+					[Op.lte]: moment().format("YYYY-MM-DD"), // Fetch records where slaEndDate is less than today
 				},
 				confirmationGenerated: 0,
+				// userId:5047
 			},
 			attributes: ["userId", "jobLevelId", "dateOfProbationEnd"],
 			include: {
@@ -700,6 +701,7 @@ class CronController {
 				],
 			},
 		});
+		
 
 		for (const Singleconfimation of confimationData) {
 			console.log("ee", Singleconfimation?.employee?.id);
@@ -717,15 +719,24 @@ class CronController {
 							{ [Op.eq]: `${Singleconfimation.jobLevelId}` },
 						],
 					},
+					companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleconfimation.employee.companyId},%` },
+							{ [Op.like]: `%,${Singleconfimation.employee.companyId},%` },
+							{ [Op.like]: `%,${Singleconfimation.employee.companyId}` },
+							{ [Op.eq]: `${Singleconfimation.employee.companyId}` },
+						],
+					},
 				},
 			});
+				
 			if (checkJobLevelAssignmnet) {
 				let respfrom = await helper.generateFieldsForgivenLevel(
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
 					Singleconfimation?.employee?.companyId,
 				);
-				console.log("respfrom", respfrom);
+				
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -794,10 +805,10 @@ class CronController {
 							confirmationAction: 0,
 						});
 
-						// eventEmitter.emit(
-						// 	"selfReviewConfirnation",
-						// 	JSON.stringify(Singleconfimation)
-						// );
+						eventEmitter.emit(
+							"selfReviewConfirnation",
+							JSON.stringify(Singleconfimation)
+						);
 					} else {
 						console.log("ownerId", ownerId);
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
@@ -811,13 +822,13 @@ class CronController {
 							confirmationAction: 0,
 						});
 
-						// eventEmitter.emit(
-						// 	"confirmationWorkflowNextLevel",
-						// 	JSON.stringify({
-						// 		ESCALTERDATA: ESCALTERDATA,
-						// 		EMP_DATA: EMP_DATA_SELF,
-						// 	})
-						// );
+						eventEmitter.emit(
+							"confirmationWorkflowNextLevel",
+							JSON.stringify({
+								ESCALTERDATA: ESCALTERDATA,
+								EMP_DATA: EMP_DATA_SELF,
+							})
+						);
 					}
 
 					///ADMIN VIEW
@@ -938,14 +949,14 @@ class CronController {
 					singleRecords?.confirmationinitiated?.employee?.id,
 				); // EMP DATA
 
-				// eventEmitter.emit(
-				// 	"confirmationSLABreachEmailBody",
-				// 	JSON.stringify({
-				// 		ESCALTERDATA: ESCALTERDATA,
-				// 		EMP_DATA: EMP_DATA,
-				// 		senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
-				// 	}),
-				// );
+				eventEmitter.emit(
+					"confirmationSLABreachEmailBody",
+					JSON.stringify({
+						ESCALTERDATA: ESCALTERDATA,
+						EMP_DATA: EMP_DATA,
+						senderEmail: ESCALTERDATA?.companymaster?.senderEmail,
+					}),
+				);
 
 				await db.Confirmationowners.update(
 					{
@@ -1097,13 +1108,13 @@ class CronController {
 
 				let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
 
-				// eventEmitter.emit(
-				//   "confirmationWorkflowNextLevel",
-				//   JSON.stringify({
-				//     ESCALTERDATA: ESCALTERDATA,
-				//     EMP_DATA: EMP_DATA_SELF,
-				//   })
-				// );
+				eventEmitter.emit(
+				  "confirmationWorkflowNextLevel",
+				  JSON.stringify({
+				    ESCALTERDATA: ESCALTERDATA,
+				    EMP_DATA: EMP_DATA_SELF,
+				  })
+				);
 
 				await db.Confirmationaudittrail.create({
 					confirmationinitiatedAutoId:
@@ -1256,17 +1267,25 @@ class CronController {
 					}
 				}
 
-				// eventEmitter.emit(
-				// 	"confirmationLetter",
-				// 	JSON.stringify({
-				// 		EMP_DATA_SELF: EMP_DATA_SELF,
-				// 		confirmationData: confirmationData,
-				// 		signatureAuthority: signatureAuthority,
-				// 		cc: cc_arrays.join(","),
-				// 		senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
-				// 		companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
-				// 	}),
-				// );
+				let letter = await emailTemplate.confirmationEmailLetter(
+						      EMP_DATA_SELF,
+							confirmationData,
+							signatureAuthority,
+						);
+						//return res.send(letter);
+
+				eventEmitter.emit(
+					"confirmationLetter",
+					JSON.stringify({
+						EMP_DATA_SELF: EMP_DATA_SELF,
+						confirmationData: confirmationData,
+						signatureAuthority: signatureAuthority,
+						cc: cc_arrays.join(","),
+						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
+						companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
+						companyName:EMP_DATA_SELF.companymaster.companyName
+					}),
+				);
 			}
 		}
 	}

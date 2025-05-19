@@ -1,25 +1,21 @@
 export default (sequelize, Sequelize) => {
-	const Confirmationassignment = sequelize.define("confirmationassignment", {
-		confirmationAssignmentAutoId: {
+	const GoalPlanMail = sequelize.define("goalplanmail", {
+		goalPlanMailId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		name: {
-			type: Sequelize.STRING,
-		},
-		code: {
-			type: Sequelize.STRING,
-		},
-		jobLevelId: {
-			type: Sequelize.STRING,
-		},
-		companyId: {
-			type: Sequelize.STRING,
-		},
-		isActive: {
+		userId: {
 			type: Sequelize.INTEGER,
-			defaultValue: 1,
+		},
+		tmc: {
+			type: Sequelize.STRING,
+		},
+		email: {
+			type: Sequelize.STRING,
+		},
+		goalPlanId: {
+			type: Sequelize.INTEGER,
 		},
 		createdBy: {
 			type: Sequelize.INTEGER,
@@ -33,6 +29,9 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		isActive: {
+			type: Sequelize.BOOLEAN,
+		},
 	});
-	return Confirmationassignment;
+	return GoalPlanMail;
 };

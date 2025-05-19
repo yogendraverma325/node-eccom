@@ -197,15 +197,25 @@ import EmployeeAddressHistory from "../api/model/EmployeeAddressHistory.js";
 ///////////////////Appraisal/////////////////////////
 
 import AppraisalGoalsMaster from "../api/model/AppraisalGoalsMaster.js";
-import UserAssignment from "../api/model/UserAssignment.js";
-import UserAssignmentAttributeMaster from "../api/model/UserAssignmentAttributeMaster.js";
 import GoalAttributesConfigMaster from "../api/model/GoalAttributesConfigMaster.js";
 import GoalAttributesMapping from "../api/model/GoalAttributesMapping.js";
-import UserAssignementConfig from "../api/model/UserAssignmentConfig.js";
 import GoalAttributesOptions from "../api/model/GoalAttributesOptions.js";
 import GoalAreaForUser from "../api/model/GoalAreaForUser.js";
 import SubGoalAreaForUser from "../api/model/SubGoalAreaForUser.js";
 import GoalAreaPragatiTrail from "../api/model/GoalAreaPragatiTrail.js";
+import ReviewFramework from "../api/model/ReviewFramework.js";
+import GoalRating from "../api/model/GoalRating.js";
+import GoalPlanMail from "../api/model/GoalPlanMail.js";
+import RatingScaleMaster from "../api/model/RatingScaleMaster.js";
+import RatingScaleConfig from "../api/model/RatingScaleConfig.js";
+import CompentanyTier from "../api/model/CompentancyTier.js";
+import CompentancyAttributes from "../api/model/CompentancyAttributes.js";
+
+
+//REVOKE
+import RegularizationRevokeTransaction from "../api/model/Regularization_revoke_transaction.js";
+import employeeleave_revoke_transaction from "../api/model/employeeleave_revoke_transaction.js";
+//REVOKE
 
 ///////////////////Appraisal/////////////////////////
 
@@ -515,24 +525,31 @@ db.leaveApprovalTrails = LeaveApprovalTrails(sequelize, Sequelize);
 db.pushNotificationHistory = PushNotificationHistory(sequelize, Sequelize);
 /// Leave Approval FLow //////
 
-
 //ritak address approval start
 db.employeeAddressHistory = EmployeeAddressHistory(sequelize, Sequelize);
 db.qrSessionHistory = QRSessionHistory(sequelize, Sequelize);
 //ritak address approval end
 
 // appraisal //
-db.appraisalGoalsMaster = AppraisalGoalsMaster(sequelize,Sequelize)
-db.userassignment = UserAssignment(sequelize,Sequelize)
-db.userAssignmentAttributeMaster = UserAssignmentAttributeMaster(sequelize,Sequelize)
-db.goalAttributesConfigMaster = GoalAttributesConfigMaster(sequelize,Sequelize)
-db.goalAttributesMapping = GoalAttributesMapping(sequelize,Sequelize)
-db.userAssignmentConfig = UserAssignementConfig(sequelize,Sequelize)
-db.goalAttributesOptions = GoalAttributesOptions(sequelize,Sequelize)
-db.goalAreaForUser = GoalAreaForUser(sequelize,Sequelize)
-db.subGoalAreaForUser = SubGoalAreaForUser(sequelize,Sequelize)
-db.goalAreaPragatiTrail = GoalAreaPragatiTrail(sequelize,Sequelize)
-db.pragatiActivity = PragatiActivity(sequelize,Sequelize);
+db.appraisalGoalsMaster = AppraisalGoalsMaster(sequelize, Sequelize);
+db.goalAttributesConfigMaster = GoalAttributesConfigMaster(
+	sequelize,
+	Sequelize,
+);
+db.goalAttributesMapping = GoalAttributesMapping(sequelize, Sequelize);
+db.goalAttributesOptions = GoalAttributesOptions(sequelize, Sequelize);
+db.goalAreaForUser = GoalAreaForUser(sequelize, Sequelize);
+db.subGoalAreaForUser = SubGoalAreaForUser(sequelize, Sequelize);
+db.goalAreaPragatiTrail = GoalAreaPragatiTrail(sequelize, Sequelize);
+db.pragatiActivity = PragatiActivity(sequelize, Sequelize);
+db.reviewFramework = ReviewFramework(sequelize, Sequelize);
+db.goalRating = GoalRating(sequelize, Sequelize);
+db.goalPlanMail = GoalPlanMail(sequelize, Sequelize);
+db.ratingScaleMaster = RatingScaleMaster(sequelize, Sequelize);
+db.ratingScaleConfig = RatingScaleConfig(sequelize, Sequelize);
+db.compentanyTier = CompentanyTier(sequelize, Sequelize);
+db.compentancyAttributes = CompentancyAttributes(sequelize, Sequelize);
+
 // appraisal //
 
 // start by jay
@@ -544,10 +561,27 @@ db.hrPolicyCategories = HrPolicyCategories(sequelize, Sequelize);
 db.hrPolicies = HrPolicies(sequelize, Sequelize);
 db.hrPolicySignoffs = HrPolicySignoffs(sequelize, Sequelize);
 db.user_assignment = user_assignment(sequelize, Sequelize);
-db.user_assignment_process_master = user_assignment_process_master(sequelize, Sequelize);
-db.user_assignment_attribute_master=user_assignment_attribute_master(sequelize, Sequelize);
-db.user_assignment_condition=user_assignment_condition(sequelize, Sequelize);
+db.user_assignment_process_master = user_assignment_process_master(
+	sequelize,
+	Sequelize,
+);
+db.user_assignment_attribute_master = user_assignment_attribute_master(
+	sequelize,
+	Sequelize,
+);
+db.user_assignment_condition = user_assignment_condition(sequelize, Sequelize);
 //ritak Hr Policy end
+//REVOKE
+db.RegularizationRevokeTransaction = RegularizationRevokeTransaction(sequelize,Sequelize)
+db.employeeleave_revoke_transaction = employeeleave_revoke_transaction(sequelize,Sequelize)
+//REVOKE
+
+//REVOKE
+db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
+//REVOKE
 
 // start jay notice period employment history
 db.NoticePeriodEmploymentHistory = NoticePeriodEmploymentHistory(sequelize, Sequelize);
@@ -760,8 +794,6 @@ db.employeeMaster.belongsTo(db.employeeLeaveTransactions, {
 	foreignKey: "id",
 	sourceKey: "employeeId",
 });
-
-
 
 db.attendanceMaster.hasMany(db.holidayCompanyLocationConfiguration, {
 	foreignKey: "holidayCompanyLocationConfigurationID",
@@ -1987,8 +2019,6 @@ db.jobLevelMapping.belongsTo(db.companyMaster, { foreignKey: "companyId" });
 db.jobLevelMapping.belongsTo(db.bandMaster, { foreignKey: "bandId" });
 db.jobLevelMapping.belongsTo(db.gradeMaster, { foreignKey: "gradeId" });
 
-
-
 db.companyMaster.belongsTo(db.employeeMaster, {
 	foreignKey: "createdBy",
 	as: "createdEmployee",
@@ -2000,7 +2030,9 @@ db.companyMaster.belongsTo(db.employeeMaster, {
 db.companyMaster.belongsTo(db.currencyMaster, { foreignKey: "currencyId" });
 db.companyMaster.belongsTo(db.timeZoneMaster, { foreignKey: "timezoneId" });
 db.companyMaster.belongsTo(db.industryMaster, { foreignKey: "industryId" });
-db.companyMaster.belongsTo(db.companyTypeMaster, { foreignKey: "companyTypeId" });
+db.companyMaster.belongsTo(db.companyTypeMaster, {
+	foreignKey: "companyTypeId",
+});
 
 db.companyTypeMaster.belongsTo(db.employeeMaster, {
 	foreignKey: "createdBy",
@@ -2045,8 +2077,8 @@ db.companyLocationMaster.belongsTo(db.employeeMaster, {
 	as: "updatedEmployee",
 });
 db.companyLocationMaster.belongsTo(db.companyMaster, {
-    foreignKey: "companyId",
-    as: "companyMaster",
+	foreignKey: "companyId",
+	as: "companyMaster",
 });
 db.degreeMaster.belongsTo(db.employeeMaster, {
 	foreignKey: "createdBy",
@@ -2065,8 +2097,8 @@ db.holidayMaster.belongsTo(db.employeeMaster, {
 	as: "updatedEmployee",
 });
 db.holidayCompanyLocationConfiguration.belongsTo(db.companyLocationMaster, {
-    foreignKey: "companyLocationId",
-    as: "companyLocationMaster",
+	foreignKey: "companyLocationId",
+	as: "companyLocationMaster",
 });
 
 db.newCustomerNameMaster.belongsTo(db.employeeMaster, {
@@ -2159,7 +2191,6 @@ db.employeeMaster.hasOne(db.employeeLeaveTransactions, {
 });
 ///YOGI ADDED THIS JOIN
 
-
 //ritak address approval start
 
 db.employeeAddress.hasOne(db.employeeMaster, {
@@ -2169,68 +2200,68 @@ db.employeeAddress.hasOne(db.employeeMaster, {
 
 // Associations for newCurrent fields
 db.employeeAddress.hasOne(db.cityMaster, {
-    foreignKey: "cityId",
-    sourceKey: "newCurrentCityId",
-    as: "newCurrentCityDetails",
+	foreignKey: "cityId",
+	sourceKey: "newCurrentCityId",
+	as: "newCurrentCityDetails",
 });
 db.employeeAddress.hasOne(db.stateMaster, {
-    foreignKey: "stateId",
-    sourceKey: "newCurrentStateId",
-    as: "newCurrentStateDetails",
+	foreignKey: "stateId",
+	sourceKey: "newCurrentStateId",
+	as: "newCurrentStateDetails",
 });
 db.employeeAddress.hasOne(db.countryMaster, {
-    foreignKey: "countryId",
-    sourceKey: "newCurrentCountryId",
-    as: "newCurrentCountryDetails",
+	foreignKey: "countryId",
+	sourceKey: "newCurrentCountryId",
+	as: "newCurrentCountryDetails",
 });
 db.employeeAddress.hasOne(db.pinCodeMaster, {
-    foreignKey: "pincodeId",
-    sourceKey: "newCurrentPincodeId",
-    as: "newCurrentPincodeDetails",
+	foreignKey: "pincodeId",
+	sourceKey: "newCurrentPincodeId",
+	as: "newCurrentPincodeDetails",
 });
 
 // Associations for newPermanent fields
 db.employeeAddress.hasOne(db.cityMaster, {
-    foreignKey: "cityId",
-    sourceKey: "newPermanentCityId",
-    as: "newPermanentCityDetails",
+	foreignKey: "cityId",
+	sourceKey: "newPermanentCityId",
+	as: "newPermanentCityDetails",
 });
 db.employeeAddress.hasOne(db.stateMaster, {
-    foreignKey: "stateId",
-    sourceKey: "newPermanentStateId",
-    as: "newPermanentStateDetails",
+	foreignKey: "stateId",
+	sourceKey: "newPermanentStateId",
+	as: "newPermanentStateDetails",
 });
 db.employeeAddress.hasOne(db.countryMaster, {
-    foreignKey: "countryId",
-    sourceKey: "newPermanentCountryId",
-    as: "newPermanentCountryDetails",
+	foreignKey: "countryId",
+	sourceKey: "newPermanentCountryId",
+	as: "newPermanentCountryDetails",
 });
 db.employeeAddress.hasOne(db.pinCodeMaster, {
-    foreignKey: "pincodeId",
-    sourceKey: "newPermanentPincodeId",
-    as: "newPermanentPincodeDetails",
+	foreignKey: "pincodeId",
+	sourceKey: "newPermanentPincodeId",
+	as: "newPermanentPincodeDetails",
 });
 
 // Associations for newEmergency fields
 db.employeeAddress.hasOne(db.cityMaster, {
-    foreignKey: "cityId",
-    sourceKey: "newEmergencyCityId",
-    as: "newEmergencyCityDetails",
+	foreignKey: "cityId",
+	sourceKey: "newEmergencyCityId",
+	as: "newEmergencyCityDetails",
 });
 db.employeeAddress.hasOne(db.stateMaster, {
-    foreignKey: "stateId",
-    sourceKey: "newEmergencyStateId",
-    as: "newEmergencyStateDetails",
+	foreignKey: "stateId",
+	sourceKey: "newEmergencyStateId",
+	as: "newEmergencyStateDetails",
 });
 db.employeeAddress.hasOne(db.countryMaster, {
-    foreignKey: "countryId",
-    sourceKey: "newEmergencyCountryId",
-    as: "newEmergencyCountryDetails",
+	foreignKey: "countryId",
+	sourceKey: "newEmergencyCountryId",
+	as: "newEmergencyCountryDetails",
 });
 db.employeeAddress.hasOne(db.pinCodeMaster, {
-    foreignKey: "pincodeId",
-    sourceKey: "newEmergencyPincodeId",
-    as: "newEmergencyPincodeDetails",
+	foreignKey: "pincodeId",
+	sourceKey: "newEmergencyPincodeId",
+	as: "newEmergencyPincodeDetails",
 });
 // ritak address approval end
 
@@ -2250,18 +2281,13 @@ db.EmployeeLeaveHeader.hasOne(db.employeeMaster, {
 db.appraisalGoalsMaster.hasMany(db.goalAttributesMapping, {
 	foreignKey: "appraisalGoalId",
 	sourceKey: "appraisalGoalId",
-	as:"goalAttributes"
+	as: "goalAttributes",
 });
 
 db.appraisalGoalsMaster.hasMany(db.goalAttributesMapping, {
 	foreignKey: "appraisalGoalId",
 	sourceKey: "appraisalGoalId",
-	as:"subGoalAttributes"
-});
-
-db.appraisalGoalsMaster.hasOne(db.userassignment, {
-	foreignKey: "assignmentId",
-	sourceKey: "userAssignment",
+	as: "subGoalAttributes",
 });
 
 db.appraisalGoalsMaster.hasMany(db.user_assignment, {
@@ -2274,77 +2300,97 @@ db.goalAttributesMapping.hasOne(db.goalAttributesConfigMaster, {
 	sourceKey: "goalAttributeId",
 });
 
-db.goalAttributesConfigMaster.hasMany(db.goalAttributesOptions, 
-	{ foreignKey: "goalAttributeId",
-		sourceKey: "goalAttributeId",
-		as:"options"
-	 });
-	
-	 db.goalAreaForUser.hasMany(db.subGoalAreaForUser, 
-		{ foreignKey: "goalAreaId",
-			sourceKey: "goalAreaId",
-			as:"subGoals"
-		 });
-	
-	db.goalAreaForUser.hasOne(db.appraisalGoalsMaster, 
-		{ foreignKey: "appraisalGoalId",
-		 sourceKey: "goalPlanId",
-		 as:"goalPlanMaster"
-	}); 
+db.goalAttributesConfigMaster.hasMany(db.goalAttributesOptions, {
+	foreignKey: "goalAttributeId",
+	sourceKey: "goalAttributeId",
+	as: "options",
+});
 
-	db.goalAreaPragatiTrail.hasOne(db.employeeMaster, 
-		{ foreignKey: "id",
-		 sourceKey: "userId"
-	}); 
+db.goalAreaForUser.hasMany(db.subGoalAreaForUser, {
+	foreignKey: "goalAreaId",
+	sourceKey: "goalAreaId",
+	as: "subGoals",
+});
 
-	db.goalAreaPragatiTrail.hasOne(db.appraisalGoalsMaster, 
-		{ foreignKey: "appraisalGoalId",
-		 sourceKey: "goalPlanId"
-	}); 
-	
-	db.goalAreaForUser.hasOne(db.employeeMaster, 
-		{ foreignKey: "id",
-		 sourceKey: "userId"
-	}); 
+db.goalAreaForUser.hasOne(db.appraisalGoalsMaster, {
+	foreignKey: "appraisalGoalId",
+	sourceKey: "goalPlanId",
+	as: "goalPlanMaster",
+});
 
-	//ritak Hr Policy start
+db.goalAreaPragatiTrail.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "userId",
+});
+
+db.goalAreaPragatiTrail.hasOne(db.appraisalGoalsMaster, {
+	foreignKey: "appraisalGoalId",
+	sourceKey: "goalPlanId",
+});
+
+db.goalAreaForUser.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "userId",
+});
+
+//ritak Hr Policy start
 
 db.hrPolicyCategories.hasMany(db.hrPolicies, {
-	foreignKey: 'category_id',
-	as: 'policies',
-  });
-  
-  db.hrPolicies.belongsTo(db.hrPolicyCategories, {
-	foreignKey: 'category_id',
-	as: 'category',
-  });
-
-  db.hrPolicies.hasMany(db.hrPolicySignoffs, {
-	foreignKey: 'hr_policy_id',
-	sourceKey: 'id',
-  });
-  
-  db.hrPolicySignoffs.belongsTo(db.hrPolicies, {
-	foreignKey: 'hr_policy_id',
-	targetKey: 'id',
-  });
-  db.hrPolicySignoffs.belongsTo(db.employeeMaster, {
-	foreignKey: 'user_id',
-	targetKey: 'id',
-  });
-  db.user_assignment.belongsTo(db.user_assignment_process_master, {
-	foreignKey: 'process_id',
-	as: 'process',
-});db.user_assignment_condition.belongsTo(db.user_assignment, { foreignKey: 'user_assignment_id' });
-db.user_assignment_condition.belongsTo(db.user_assignment_attribute_master, {
-	foreignKey: 'attribute_id',
-	as: 'attribute',
-});db.user_assignment.hasMany(db.user_assignment_condition, {
-	foreignKey: 'user_assignment_id',
-	as: 'conditions',
+	foreignKey: "category_id",
+	as: "policies",
 });
-//ritak Hr Policy end
 
+db.hrPolicies.belongsTo(db.hrPolicyCategories, {
+	foreignKey: "category_id",
+	as: "category",
+});
+
+db.hrPolicies.hasMany(db.hrPolicySignoffs, {
+	foreignKey: "hr_policy_id",
+	sourceKey: "id",
+});
+
+db.hrPolicySignoffs.belongsTo(db.hrPolicies, {
+	foreignKey: "hr_policy_id",
+	targetKey: "id",
+});
+db.hrPolicySignoffs.belongsTo(db.employeeMaster, {
+	foreignKey: "user_id",
+	targetKey: "id",
+});
+db.user_assignment.belongsTo(db.user_assignment_process_master, {
+	foreignKey: "process_id",
+	as: "process",
+});
+db.user_assignment_condition.belongsTo(db.user_assignment, {
+	foreignKey: "user_assignment_id",
+});
+db.user_assignment_condition.belongsTo(db.user_assignment_attribute_master, {
+	foreignKey: "attribute_id",
+	as: "attribute",
+});
+db.user_assignment.hasMany(db.user_assignment_condition, {
+	foreignKey: "user_assignment_id",
+	as: "conditions",
+});
+db.employeeTypeMaster.belongsTo(db.companyMaster, { foreignKey: "companyId" });
+
+//ritak Hr Policy end
+//======================= appraisal==============
+db.reviewFramework.hasMany(db.user_assignment, {
+	foreignKey: "id",
+	sourceKey: "userAssignment",
+});
+
+db.ratingScaleMaster.hasMany(db.ratingScaleConfig, {
+	foreignKey: "ratingScaleId",
+	sourceKey: "ratingScaleId",
+});
+
+db.compentancyAttributes.hasOne(db.compentanyTier, {
+	foreignKey: "compentancyTierId",
+	sourceKey: "compentancyTierId",
+});
 // start jay notice period employment
 db.employeeMaster.hasMany(db.NoticePeriodEmploymentHistory, {
 	foreignKey: "employeeId",

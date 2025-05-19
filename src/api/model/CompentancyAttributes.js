@@ -1,14 +1,20 @@
 export default (sequelize, Sequelize) => {
-	const UserAssignement = sequelize.define("userassignment", {
-		assignmentId: {
+	const CompentancyAttributes = sequelize.define("compentancyattributes", {
+		compAttributesId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		assignmentName: {
+		compentancyTierId: {
+			type: Sequelize.INTEGER,
+		},
+		compAttrName: {
 			type: Sequelize.STRING,
 		},
-		description: {
+		compAttrDescription: {
+			type: Sequelize.TEXT,
+		},
+		compAttrID: {
 			type: Sequelize.STRING,
 		},
 		createdBy: {
@@ -27,5 +33,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 	});
-	return UserAssignement;
+	return CompentancyAttributes;
 };

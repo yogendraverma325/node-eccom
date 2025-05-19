@@ -790,6 +790,22 @@ class UserController {
 				],
 				distinct: true,
 			});
+			const RevokecountLeavePending = await db.employeeleave_revoke_transaction.count({
+				where: {
+						employeeId: req.userId,
+						status: 'pending',
+				},
+				attributes: [],
+				
+			});
+			const RevokecountLeaveAssigned = await db.employeeleave_revoke_transaction.count({
+				where: {
+						managerId: req.userId,
+						status: 'pending',
+				},
+				attributes: [],
+				
+			})
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
 				where: {
@@ -803,8 +819,8 @@ class UserController {
 						where: Object.assign(
 							!["ADMIN", "HR_OPS"].includes(req.userRole)
 								? {
-										manager: req.userId,
-									}
+									manager: req.userId,
+								}
 								: {},
 							{
 								isActive: 1,
@@ -1041,6 +1057,8 @@ class UserController {
 						leaveData: {
 							raisedByMe: countLeavePending,
 							assignedToMe: countLeaveAssgined,
+							revokeRaisedByMe: RevokecountLeavePending,
+							revokeAssignedToMe: RevokecountLeaveAssigned,
 						},
 						attedanceData: {
 							raisedByMe: pendingAttCount,
@@ -1080,6 +1098,8 @@ class UserController {
 							seperationCount: 0,
 							pendingAttendanceCount: 0,
 							compOffCount: 0,
+							leaveData: countLeavePending,
+							leaveDataRevoke: RevokecountLeavePending,
 						},
 						assignedToMe: {
 							leaveData: countLeaveAssgined,
@@ -1087,6 +1107,8 @@ class UserController {
 							seperationCount: pendingSeperationCount,
 							pendingAttendanceCount,
 							compOffCount: compOffbalabceForUser,
+							leaveData: countLeaveAssgined,
+							leaveDataRevoke:RevokecountLeaveAssigned,
 						},
 					},
 				},
@@ -1423,10 +1445,10 @@ class UserController {
 				finalStatus: 2,
 				empAttachment: result.attachment
 					? await helper.fileUpload(
-							result.attachment,
-							`separation_attachment_${d}`,
-							`uploads/${existUser.dataValues.empCode}`,
-						)
+						result.attachment,
+						`separation_attachment_${d}`,
+						`uploads/${existUser.dataValues.empCode}`,
+					)
 					: null,
 				empSubmissionDate: moment(),
 				createdDt: moment(),
@@ -1539,11 +1561,11 @@ class UserController {
 			const search = req.query.search;
 			let searchQuery = search
 				? {
-						[Op.or]: [
-							{ empCode: { [Op.like]: `%${search}%` } },
-							{ name: { [Op.like]: `%${search}%` } },
-						],
-					}
+					[Op.or]: [
+						{ empCode: { [Op.like]: `%${search}%` } },
+						{ name: { [Op.like]: `%${search}%` } },
+					],
+				}
 				: undefined;
 
 			const separationData = await db.separationMaster.findAndCountAll({
@@ -1670,10 +1692,10 @@ class UserController {
 					l1Remark: result.l1Remark,
 					l1Attachment: result.attachment
 						? await helper.fileUpload(
-								result.attachment,
-								`separation_attachment_${d}`,
-								`uploads/${separationData.dataValues.employee.empCode}`,
-							)
+							result.attachment,
+							`separation_attachment_${d}`,
+							`uploads/${separationData.dataValues.employee.empCode}`,
+						)
 						: null,
 					l1SubmissionDate: moment(),
 					pendingAt: separationData.dataValues.employee.buHRId,
@@ -2826,10 +2848,10 @@ class UserController {
 					l2Remark: result.l2Remark,
 					l2Attachment: result.attachment
 						? await helper.fileUpload(
-								result.attachment,
-								`separation_attachment_${d}`,
-								`uploads/${separationData.dataValues.employee.empCode}`,
-							)
+							result.attachment,
+							`separation_attachment_${d}`,
+							`uploads/${separationData.dataValues.employee.empCode}`,
+						)
 						: null,
 					l2SubmissionDate: moment(),
 					l2RequestStatus: "Approved",
@@ -3318,10 +3340,10 @@ class UserController {
 						regularizeStatus: { [Op.ne]: "Pending" },
 						...(fromDate &&
 							extendedToDate && {
-								createdAt: {
-									[db.Sequelize.Op.between]: [fromDate, extendedToDate],
-								},
-							}),
+							createdAt: {
+								[db.Sequelize.Op.between]: [fromDate, extendedToDate],
+							},
+						}),
 					},
 					include: [
 						{
@@ -3341,11 +3363,11 @@ class UserController {
 										...(search && { name: { [Op.like]: `%${search}%` } }),
 										...(type === "all"
 											? {
-													[Op.or]: [
-														//{ id: req.userId },
-														{ manager: req.userId },
-													],
-												}
+												[Op.or]: [
+													//{ id: req.userId },
+													{ manager: req.userId },
+												],
+											}
 											: { id: req.userId }),
 									},
 									include: [
@@ -3418,15 +3440,15 @@ class UserController {
 			const leaveApprovalCondition =
 				type === "self"
 					? {
-							//createdBy: req.userId,
-							isPending: [0, 1],
-							isApproved: [1, 2, 0],
-							// isPending: 1,
-						}
+						//createdBy: req.userId,
+						isPending: [0, 1],
+						isApproved: [1, 2, 0],
+						// isPending: 1,
+					}
 					: {
-							isPending: 0,
-							//  isApproved:[1,2]
-						};
+						isPending: 0,
+						//  isApproved:[1,2]
+					};
 
 			const { count, rows: leaveRequests } =
 				await db.EmployeeLeaveHeader.findAndCountAll({
@@ -3437,26 +3459,26 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(fromDate &&
 							toDate && {
-								appliedFor: {
-									[db.Sequelize.Op.between]: [fromDate, toDate],
-								},
-							}),
+							appliedFor: {
+								[db.Sequelize.Op.between]: [fromDate, toDate],
+							},
+						}),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-									[Op.or]: [
-										{
-											//pendingAt: req.userId,
-											source: { [Op.ne]: "system_generated" },
-										},
-									],
-								}
+								[Op.or]: [
+									{
+										//pendingAt: req.userId,
+										source: { [Op.ne]: "system_generated" },
+									},
+								],
+							}
 							: type === "all" && isSystemGenerated == 1
 								? {
-										[Op.or]: [
-											{ employeeId: req.userId },
-											{ pendingAt: req.userId, source: "system_generated" },
-										],
-									}
+									[Op.or]: [
+										{ employeeId: req.userId },
+										{ pendingAt: req.userId, source: "system_generated" },
+									],
+								}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -4114,11 +4136,11 @@ class UserController {
 			const search = req.query.search;
 			let searchQuery = search
 				? {
-						[Op.or]: [
-							{ empCode: { [Op.like]: `%${search}%` } },
-							{ name: { [Op.like]: `%${search}%` } },
-						],
-					}
+					[Op.or]: [
+						{ empCode: { [Op.like]: `%${search}%` } },
+						{ name: { [Op.like]: `%${search}%` } },
+					],
+				}
 				: undefined;
 
 			const separationTasks = await db.separationInitiatedTask.findAndCountAll({
@@ -4609,12 +4631,19 @@ class UserController {
 					resignationAutoId: result.resignationAutoId,
 					finalStatus: 9,
 				},
+				include: [{
+					model: db.employeeMaster,
+					where: {
+						isActive: 1,
+						dateOfexit: null
+					}
+				}]
 			});
 
 			if (!separationData) {
 				return respHelper(res, {
 					status: 404,
-					msg: constant.DETAILS_NOT_FOUND.replace("<module>", "Separation"),
+					msg: constant.SEPARATION_STATUS.replace("<status>", "can't be revoked"),
 				});
 			}
 
@@ -4972,11 +5001,11 @@ class UserController {
 			const search = req.query.search;
 			let searchQuery = search
 				? {
-						[Op.or]: [
-							{ empCode: { [Op.like]: `%${search}%` } },
-							{ name: { [Op.like]: `%${search}%` } },
-						],
-					}
+					[Op.or]: [
+						{ empCode: { [Op.like]: `%${search}%` } },
+						{ name: { [Op.like]: `%${search}%` } },
+					],
+				}
 				: undefined;
 
 			const confirmationData = await db.Confirmationinitiated.findAndCountAll({
@@ -6044,20 +6073,20 @@ class UserController {
 							: { source: { [Op.ne]: "system_generated" } }),
 						...(type === "all" && isSystemGenerated == 0
 							? {
-									[Op.or]: [
-										{
-											//updatedBy: req.userId,
-											source: { [Op.ne]: "system_generated" },
-										},
-									],
-								}
+								[Op.or]: [
+									{
+										//updatedBy: req.userId,
+										source: { [Op.ne]: "system_generated" },
+									},
+								],
+							}
 							: type === "all" && isSystemGenerated == 1
 								? {
-										[Op.or]: [
-											{ employeeId: req.userId },
-											{ updatedBy: req.userId, source: "system_generated" },
-										],
-									}
+									[Op.or]: [
+										{ employeeId: req.userId },
+										{ updatedBy: req.userId, source: "system_generated" },
+									],
+								}
 								: { employeeId: req.userId }), // Default case for non-"all" types
 					},
 					include: [
@@ -6387,11 +6416,11 @@ class UserController {
 
 			let searchQuery = search
 				? {
-						[Op.or]: [
-							{ empCode: { [Op.like]: `%${search}%` } },
-							{ name: { [Op.like]: `%${search}%` } },
-						],
-					}
+					[Op.or]: [
+						{ empCode: { [Op.like]: `%${search}%` } },
+						{ name: { [Op.like]: `%${search}%` } },
+					],
+				}
 				: undefined;
 
 			const userId = req.userId;
@@ -6589,39 +6618,39 @@ class UserController {
 				where: Object.assign(
 					!["ADMIN", "HR_OPS"].includes(req.userRole)
 						? {
-								manager: req.userId,
-							}
+							manager: req.userId,
+						}
 						: {},
 					{
 						isActive: 1,
 					},
 					search || search != ""
 						? {
-								[Op.or]: [
-									{
-										empCode: {
-											[Op.like]: `%${search}%`,
-										},
+							[Op.or]: [
+								{
+									empCode: {
+										[Op.like]: `%${search}%`,
 									},
-									{
-										name: {
-											[Op.like]: `%${search}%`,
-										},
+								},
+								{
+									name: {
+										[Op.like]: `%${search}%`,
 									},
-									{
-										email: {
-											[Op.like]: `%${search}%`,
-										},
+								},
+								{
+									email: {
+										[Op.like]: `%${search}%`,
 									},
-								],
-							}
+								},
+							],
+						}
 						: {},
 					selectedUser.length > 0
 						? {
-								id: {
-									[Op.notIn]: selectedUser,
-								},
-							}
+							id: {
+								[Op.notIn]: selectedUser,
+							},
+						}
 						: {},
 				),
 				attributes: ["id", "empCode", "name", "profileImage"],
@@ -6791,7 +6820,7 @@ class UserController {
 					name: user.dataValues.name,
 					rosterLimit: user.dataValues.attendancePolicymaster
 						? user.dataValues.attendancePolicymaster
-								.attendaceRosterLimitForPreviousDays
+							.attendaceRosterLimitForPreviousDays
 						: 0,
 					attendanceRosterData: await rosterData(),
 				});
@@ -7420,6 +7449,10 @@ class UserController {
 				msg: "",
 			});
 		}
+	}
+	async assignConfirmationPolicy(req, res) {
+		let empids = req.body.empCode;
+		await helper.confirmationPolicyAssignment(empids.join(","));
 	}
 }
 

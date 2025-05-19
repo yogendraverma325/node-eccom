@@ -1,31 +1,24 @@
 export default (sequelize, Sequelize) => {
-	const Confirmationassignment = sequelize.define("confirmationassignment", {
-		confirmationAssignmentAutoId: {
+	const RatingScaleMaster = sequelize.define("ratingscalemaster", {
+		ratingScaleId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		name: {
+		ratingScaleName: {
 			type: Sequelize.STRING,
 		},
-		code: {
+		ratingScaleDescription: {
 			type: Sequelize.STRING,
 		},
-		jobLevelId: {
-			type: Sequelize.STRING,
-		},
-		companyId: {
-			type: Sequelize.STRING,
-		},
-		isActive: {
-			type: Sequelize.INTEGER,
-			defaultValue: 1,
-		},
-		createdBy: {
+		lengthOfScale: {
 			type: Sequelize.INTEGER,
 		},
 		createdAt: {
 			type: Sequelize.DATE,
+		},
+		createdBy: {
+			type: Sequelize.INTEGER,
 		},
 		updatedBy: {
 			type: Sequelize.INTEGER,
@@ -33,6 +26,9 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		isActive: {
+			type: Sequelize.BOOLEAN,
+		},
 	});
-	return Confirmationassignment;
+	return RatingScaleMaster;
 };

@@ -1,17 +1,17 @@
 export default (sequelize, Sequelize) => {
-	const UserAssignementConfig = sequelize.define("userassignmentconfig", {
-		userAssignementConfigId: {
+	const CompentancyTier = sequelize.define("compentancytier", {
+		compentancyTierId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		userAssignmentAttributeId: {
+		compentancyName: {
 			type: Sequelize.STRING,
 		},
-		assignmentId: {
-			type: Sequelize.INTEGER,
+		compentancyDescription: {
+			type: Sequelize.STRING,
 		},
-		values: {
+		compentancyID: {
 			type: Sequelize.STRING,
 		},
 		createdBy: {
@@ -26,6 +26,9 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		isActive: {
+			type: Sequelize.BOOLEAN,
+		},
 	});
-	return UserAssignementConfig;
+	return CompentancyTier;
 };

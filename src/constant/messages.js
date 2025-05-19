@@ -139,6 +139,7 @@ const message = {
 		GOAL_CREATION: "Goal Created Successfully",
 		GOAL_PLAN_NAME_ALREADY_EXISTS: "Goal Plan Name Already Exists",
 		GOAL_PLAN_YEAR_ALREADY_EXISTS: "Goal Plan Year Already Exists",
+		GOAL_PLAN_ID: "Goal Plan ID Already Exists",
 		GOAL_DELETED: "Goal Plan Deleted Successfully",
 		GOAL_UPDATED: "Goal Plan Updated Successfully",
 		GOAL_ACTIVE: "Goal Plan Active Successfully",
@@ -158,6 +159,19 @@ const message = {
 		GOAL_RECALLED: "Goal Recalled Successfully",
 		GOAL_ALREADY_ACTIVATED: "You Already Have an Active Goal Plan.",
 		ARCHIVED_GOAL: "You Can't Submit Archived Goals.",
+		REVIEW_NAME_ALREADY_EXITS: "Review Name Already Exists.",
+		REVIEW_ID_ALREADY_EXITS: "Review ID Already Exists.",
+		REVIEW_FRAMEWORK_CREATED_SUCCESSFULLY:
+			"Review Framework Created Successfully",
+		RATING_SUBMISSION: "Ratings Submitted Successfully",
+		RATING_VALUE_REQUIRED: "Rating value is required.",
+		REVIEW_FRAMEWORK_UPDATED_SUCCESSFULLY:
+			"Review framework updated successfully",
+		REVIEW_FRAMEWORK_ACTIVATE: "Review Framework Active Successfully",
+		RATING_SCALE_CREATION: "Rating Scale Created Successfully",
+		RATING_SCALE_NAME_EXISTS: "Rating Scale Name Is Alreay Exists",
+		COMPENTANCY_NAME_EXISTS: "A Competency Tier with That Name Already Exists.",
+		COMPENTANCY_CREATE_SUCCESS: "Competency Created Successfully.",
 	},
 };
 
