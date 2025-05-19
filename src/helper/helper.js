@@ -104,7 +104,7 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-		console.log("data.to", data.to);
+		console.log("data.to", data.to,data.attachments.length);
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
 			to: testMail ? testMailIDs : data.to.split(","),
@@ -395,6 +395,7 @@ const getEmpProfile = async (EMP_ID) => {
 					"companyLogo",
 					"letterFooter",
 					"letterHeader",
+					"addCCEmailForWishesAndConfirmation"
 				],
 				include: [
 					{
@@ -4104,6 +4105,59 @@ const getWorkDuration = async (dateOfJoining) => {
 	return `${String(years).padStart(2, "0")}y ${String(months).padStart(2, "0")}m ${String(days).padStart(2, "0")}d`;
 };
 
+///CONFIRMATION AND BIRTHDAY WISH CC
+const roleEmailIds= async (EMP_DATA_SELF,ROLES) => {
+	let mails=[];
+		for (const emailids of ROLES) {
+             let ownerId=null;
+				if (emailids== "MANAGER") {
+				ownerId = EMP_DATA_SELF?.managerData?.id;
+				} else if (emailids == "L2_MANAGER") {
+				let EMP_DATA = await getEmpProfile(
+				EMP_DATA_SELF?.managerData?.id,
+				); // L2 Manager
+				ownerId = EMP_DATA?.id;
+				} else if (emailids == "ADMIN") {
+				let admin = await db.employeeMaster.findOne({
+				where: {
+				role_id: 2,
+				isActive: 1,
+				},
+				});
+				ownerId = admin?.id;
+				} else if (emailids == "BUHR") {
+				ownerId = EMP_DATA_SELF?.buHRId;
+				}
+
+				if(ownerId){
+                  mails.push(ownerId);
+				}
+			
+		}//TMC OR ID
+			const EMP_DATA_LIST = await db.employeeMaster.findAll({
+			where: {
+			id: mails,
+			isActive: 1,
+			},
+			attributes:["email", "id", "empCode"]
+			});
+		let finalEmails=[]
+		for (const EMP_DATA_ROW of EMP_DATA_LIST) {
+			finalEmails.push(EMP_DATA_ROW.email);
+		}
+
+		const additionalCCMail = EMP_DATA_SELF?.companymaster?.addCCEmailForWishesAndConfirmation;
+
+		if (additionalCCMail) {
+		finalEmails.push(...additionalCCMail.split(','));
+		}
+                        
+		const ccEmail = finalEmails.filter((email) => !!email,);
+		return ccEmail;
+
+}
+///CONFIRMATION AND BIRTHDAY WISH CC
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -4172,7 +4226,8 @@ export default {
 	getWorkDuration,
 	//REVOKE
 	revokeApprovedAppliedLeave,
-	releaseCompOffTheEmployeeForDate
+	releaseCompOffTheEmployeeForDate,
+	roleEmailIds
 	//REVOKE
 
 };

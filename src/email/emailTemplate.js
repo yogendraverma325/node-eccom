@@ -3735,93 +3735,58 @@ const confirmationEmailLetter = async (
 ) => {
 	// console.log("data", data)
 
-	// console.log("header path ", data.companymaster)
+	console.log("header path ", data?.companymaster?.companyId)
+  let html=null;
+  if(data?.companymaster?.companyId==1){
+html=`<!-- FOR Team Computers -->
 
-	return `
-<html lang="en">
-<head>
+<!DOCTYPE html>
+<html>
+  <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-</head>
-  <style>
-    .bodySection {
-      display: flex;
-      flex-direction: column;
-    }
-    .letterHeader {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-evenly;
-      padding: 0;
-    }
-    .siteUrl {
-      align-self: flex-end;
-    }
-    .logoIMage {
-      align-self: center;
-    }
-    .letterBody {
-      display: flex;
-      flex-direction: column;
-      padding: 4px !important;
-    }
-    .dateSerial {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-    }
-    .subject {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .subjectText {
-      border-bottom: 2px solid black; /* Adjust thickness and color as needed */
-      padding-bottom: 5px; /* Optional: To create space between text and underline */
-    }
-     .address, .numberCin, .siteUrl {
-    font-size: 15px;
-}
-    .footerSections{
-       
-    }
-    .candidateDetailsSectoin p {
-    margin: 4px 1px; /* Reduce vertical spacing */
-    }
-    .contentSection p {
-    margin: 4px 4px; /* Reduce vertical spacing */
-    }
-  </style>
-  <body class="bodySection">
-    <div class="letterHeader">
-          <img
-          src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}"
-          alt="Logo"
-          />
-    </div>
+    <title>Confirmation Letter</title>
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #000;
+      padding: 40px;
+      line-height: 1.6;
+    "
+  >
+   
 
-    <div class="letterBody">
-      <div class="dateSerial">
-        <p><strong>NO:HRM/${moment().format("YYYY")}</strong></p>
-        <p>Date:${moment().format("DD-MM-YYYY")}</p>
+    <div style="max-width: 800px; margin: auto; border: 1px solid #ddd">
+    
+
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}" alt="Team Logo" width="800px" />
       </div>
 
-      <div class="candidateDetailsSectoin">
-        <p>Name: <strong>${data?.name}</strong></p>
-        <p>TMC: <strong>${data?.empCode}</strong></p>
-        <p>Designation: <strong>${data?.designationmaster?.name}</strong></p>
-        <p>SBU: <strong>${data?.sbumaster?.sbuname}</strong></p>
-      </div>
-      <div class="subject">
-        <h4 class="subjectText">Subject: Confirmation Letter</h4>
-      </div>
+     
+      <div style="padding: 30px 30px 18rem 30px">
+        <p>
+          To,<br />
+          Name: <strong>Dear ${data?.name}</strong><br />
+          Designation: <strong>${data?.designationmaster?.name}</strong> <br />
+          SBU: <strong>${data?.sbumaster?.sbuname}</strong>
+        </p>
 
-      <div class="title">
-        <p><strong>Dear ${data?.name}</strong>,</p>
-      </div>
+        <p
+          style="
+            font-weight: bold;
+            text-decoration: underline;
+            text-align: center;
+            margin-top: 35px;
+          "
+        >
+          Subject: Confirmation Letter
+        </p>
 
-      <div class="contentSection">
+        
+        <p style="font-weight: bold">Dear ${data?.name},</p>
+
         <p>
           Consequent to the review of your performance during your probation, we
           are happy to inform you that your services are being confirmed as
@@ -3833,7 +3798,7 @@ const confirmationEmailLetter = async (
 
         <p>
           All the other terms and conditions as per your appointment letter will
-          remain the same as communicated in writing by the HR and/or as
+          remain the same as communicated in written by the HR and/or as
           detailed in your appointment letter. Except for policy-related
           changes, in which case the terms as per the latest policy announcement
           on the company portal shall be valid.
@@ -3843,30 +3808,125 @@ const confirmationEmailLetter = async (
           We look forward to your valuable contribution and wish you all the
           very best for a rewarding career with the organization.
         </p>
-        <p>For ${data.companymaster.companyName}</p>
-      </div>
-      <div class="signatureSection">
-              <img
-             class="signature"
-              src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}"
-              alt="signature"
-              height="90"
-              />
-       <h4>${signatureAuthority?.employee?.name}</h4>
-        <h4>${signatureAuthority?.employee?.designationmaster?.name}</h4>
-      </div>
-    </div>
-    <div class="footerSections">
-    <img
-          src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}"
-          alt="Logo"
-          style="float:right"
-          />
 
+        <p>For ${data.companymaster.companyName}.</p>
+
+        
+        <div style="margin-top: 40px; margin-bottom: 20px">
+          <img src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}" alt="Signature" style="height: 50px" /><br />
+        
+          <strong>${signatureAuthority?.employee?.name}</strong><br />
+          <strong>${signatureAuthority?.employee?.designationmaster?.name}</strong>
+        </div>
+      </div>
+
+    
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}" alt="Footer" style="width: 100%; max-width: 495px; display: block; margin: auto;"/>
+      </div>
+
+      
     </div>
   </body>
 </html>
-`;
+`
+  }else{
+html=`<!-- FOR THR -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Confirmation Letter</title>
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #000;
+      padding: 40px;
+      line-height: 1.6;
+    "
+  >
+   
+
+    <div style="max-width: 800px; margin: auto; border: 1px solid #ddd">
+      
+
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}" alt="Team Logo" width="800px" />
+      </div>
+
+     
+      <div style="padding: 30px 30px 18rem 30px">
+        <p>
+          To,<br />
+          Name: <strong>${data?.name}</strong><br />
+          Designation: <strong>${data?.designationmaster?.name}</strong> <br />
+          SBU: <strong>${data?.sbumaster?.sbuname}</strong>
+        </p>
+
+        <p
+          style="
+            font-weight: bold;
+            text-decoration: underline;
+            text-align: center;
+            margin-top: 35px;
+          "
+        >
+          Subject: Confirmation Letter
+        </p>
+
+        
+        <p style="font-weight: bold">Dear ${data?.name},</p>
+
+        <p>
+          Consequent to the review of your performance during your probation, we
+          are happy to inform you that your services are being confirmed as
+          <strong>${data?.designationmaster?.name}</strong> with effect from
+          <strong>${moment(confiramtionData?.updatedAt).format(
+						"MM-DD-YYYY",
+					)}</strong>.
+        </p>
+
+        <p>
+          All the other terms and conditions as per your appointment letter will
+          remain the same as communicated in written by the HR and/or as
+          detailed in your appointment letter. Except for policy-related
+          changes, in which case the terms as per the latest policy announcement
+          on the company portal shall be valid.
+        </p>
+
+        <p>
+          We look forward to your valuable contribution and wish you all the
+          very best for a rewarding career with the organization.
+        </p>
+
+        <p>For ${data.companymaster.companyName}.</p>
+
+        
+        <div style="margin-top: 40px; margin-bottom: 20px">
+          <img src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}" alt="Signature" style="height: 50px" /><br />
+       
+          <strong>${signatureAuthority?.employee?.name}</strong><br />
+          <strong>${signatureAuthority?.employee?.designationmaster?.name}</strong>
+        </div>
+      </div>
+
+   
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}" alt="Footer" style="width: 100%; max-width: 495px; display: block; margin: auto;" />
+      </div>
+
+      
+    </div>
+  </body>
+</html>
+`
+  }
+
+return html;
+	
 };
 const confirmationEmailBody = async (
 	data,

@@ -97,8 +97,8 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("selfReviewConfirnation", async (input) => {
 		await selfReviewConfirnation(input);
 	});
-	eventEmitter.on("confirmationLetter", async (input) => {
-		await confirmationLetter(input);
+	eventEmitter.on("confirmationLetter", async (input,doneCallback) => {
+		await confirmationLetter(input,doneCallback); 
 	});
 	eventEmitter.on("confirmatonExtend", async (input) => {
 		await confirmatonExtend(input);
@@ -541,9 +541,10 @@ async function newJoinEmployeeMail(input) {
 async function selfReviewConfirnation(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData in mail template --->>", userData);
+		console.log("userData in mail template --->>", userData.cc); 
 		await helper.mailService({
-			to: userData.email,
+			to: userData.employee.email,
+			cc:userData.cc,
 			subject: `Confirmation`,
 			html: await emailTemplate.selfReviewConfirnation(userData),
 			senderEmail: userData.employee.companymaster.senderEmail,
@@ -553,7 +554,7 @@ async function selfReviewConfirnation(input) {
 		logger.error(error);
 	}
 }
-async function confirmationLetter(input) {
+async function confirmationLetter(input,doneCallback) {
 	try {
 		const inpputData = JSON.parse(input);
 
@@ -571,9 +572,9 @@ async function confirmationLetter(input) {
 		);
 		let options = { format: "A4" };
 		let file = { content: letter };
-
-		let pdfBuffer = await html_to_pdf.generatePdf(file, options);
-		await helper.mailService({
+			let pdfBuffer=null;
+			pdfBuffer = await html_to_pdf.generatePdf(file, options);
+		 await helper.mailService({
 			to: inpputData?.EMP_DATA_SELF?.email,
 			subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
 			html: body,
@@ -586,6 +587,8 @@ async function confirmationLetter(input) {
 				},
 			],
 		});
+		doneCallback();
+		
 	} catch (error) {
 		console.log(error);
 		logger.error(error);
@@ -643,6 +646,7 @@ async function confirmationWorkflowNextLevelManager(input) {
 		await helper.mailService({
 			to: inpputData?.ESCALTERDATA?.email,
 			subject: `Confirmation Workflow Approval Required`,
+			cc:inpputData.cc,
 			html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
 			senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail,
 		});
