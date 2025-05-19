@@ -253,6 +253,52 @@ class ImportController {
 			});
 		}
 	}
+
+	// create api for generate notice period history (for existing users)
+	async generateNoticePeriodHistory(req, res) {
+		try {
+		    // fetch notice period id from employee master table
+			const users = await db.employeeMaster.findAll(
+				{ where: { 
+					"noticePeriodAutoId": { [Op.not]: null },
+				    "companyId": { [Op.not]: null },
+					"id": { [Op.ne]: 1 } 
+				},
+				attributes: ["id", "companyId", "noticePeriodAutoId", "dateOfJoining"],
+				include: [ 
+					{ 
+						model: db.NoticePeriodEmploymentHistory,
+						as: "noticePeriodHistories",
+						required: false,
+						where: { employeeId: { [Op.not]: null } }
+					}
+				],
+				having: db.Sequelize.literal('`noticePeriodHistories`.`employeeId` IS NULL') 
+			});
+			
+			if(users.length > 0) {
+				await db.NoticePeriodEmploymentHistory.bulkCreate(users);
+				return respHelper(res, {
+					status: 200,
+					msg: "History generated successfully.",
+					data: users.length
+				});
+			}
+			else {
+				return respHelper(res, {
+					status: 404,
+					msg: "No data found"
+				})
+			}
+			
+		}
+		catch(error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500
+			});
+		}
+	}
 }
 
 export default new ImportController();
