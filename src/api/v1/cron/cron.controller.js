@@ -2129,6 +2129,9 @@ class CronController {
 
 			const employeesBirth = await db.employeeMaster.findAll({
 				raw: true,
+				where: {
+					isActive: 1
+				},
 				attributes: ["id", "name", "email", "firstName", "buId", "companyId"],
 				include: [
 					{
