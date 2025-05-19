@@ -109,6 +109,10 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("confirmationWorkflowNextLevel", async (input) => {
 		await confirmationWorkflowNextLevel(input);
 	});
+	//
+	eventEmitter.on("confirmationWorkflowNextLevelManager", async (input) => {
+		await confirmationWorkflowNextLevelManager(input);
+	});//
 	eventEmitter.on("compOffMail", async (input) => {
 		await compOffMail(input);
 	});
@@ -631,6 +635,23 @@ async function confirmationWorkflowNextLevel(input) {
 		logger.error(error);
 	}
 }
+///MANAGER
+async function confirmationWorkflowNextLevelManager(input) {
+	try {
+		const inpputData = JSON.parse(input);
+		console.log("confirmationWorkflowNextLevel --->>", inpputData);
+		await helper.mailService({
+			to: inpputData?.ESCALTERDATA?.email,
+			subject: `Confirmation Workflow Approval Required`,
+			html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
+			senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+///MANAGER
 
 async function salarySlipPdf(input) {
 	try {

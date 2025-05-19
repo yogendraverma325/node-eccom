@@ -823,7 +823,7 @@ class CronController {
 						});
 
 						eventEmitter.emit(
-							"confirmationWorkflowNextLevel",
+							"confirmationWorkflowNextLevelManager", 
 							JSON.stringify({
 								ESCALTERDATA: ESCALTERDATA,
 								EMP_DATA: EMP_DATA_SELF,
