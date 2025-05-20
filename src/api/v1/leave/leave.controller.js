@@ -2052,7 +2052,7 @@ class LeaveController {
 				EMP_DATA,
 			);
 
-			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
+			//console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
 			const fromDate = remainingLeaveCountRESP[0];
 			const toDate =
 				remainingLeaveCountRESP.length == 1

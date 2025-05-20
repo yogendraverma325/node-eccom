@@ -104,7 +104,7 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-		console.log("data.to", data.to,data.attachments.length);
+		// console.log("data.to", data.to,data.attachments.length);
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
 			to: testMail ? testMailIDs : data.to.split(","),
@@ -651,10 +651,10 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
-			console.log("item ", item);
+			//console.log("item ", item);
 
 			if (item.leaveCompanyDetails.display_all == 0) {
-				console.log("displa ");
+			//	console.log("displa ");
 				item.dataValues.is_active_for_display =
 					item.leaveCompanyDetails.display_all;
 			}
@@ -1198,7 +1198,7 @@ const remainingLeaveCount = async function (
 
 	//console.log("total_working_dates",total_working_dates)
 
-	console.log("========= daysDifferenceReq", daysDifferenceReq);
+	//console.log("========= daysDifferenceReq", daysDifferenceReq);
 	for (let i = 0; i <= daysDifferenceReq; i++) {
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
@@ -1270,8 +1270,8 @@ const remainingLeaveCount = async function (
 		);
 		let isNationalHoliday =
 			employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
-		console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
-		console.log("appliedFor", appliedFor, "day", i);
+		//console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
+		//console.log("appliedFor", appliedFor, "day", i);
 		if (daysDifferenceReq == 0) {
 			if (
 				existEmployees.weekOffDayMappingMasters.length == 0 &&
@@ -1332,14 +1332,7 @@ const remainingLeaveCount = async function (
 						workingCount += 1;
 					}
 				}
-				console.log(
-					" middle week off",
-					existEmployees.weekOffDayMappingMasters.length,
-					"shouldCountWeekOffs",
-					shouldCountWeekOffs,
-					"occurrence",
-					occurrence,
-				);
+				
 			}
 		}
 		console.log("============");
