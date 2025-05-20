@@ -24,6 +24,15 @@ const financialMonth = {
 	11: "November",
 	12: "December",
 };
+
+const maritalStatusOptions = {
+	1: 'Married',
+    2: 'Single',
+    3: 'Divorced',
+    4: 'Separated',
+    5: 'Widowed',
+    6: 'Others'
+}
 class ImportController {
 	async uploadExcelFile(req, res) {
 		try {
@@ -2417,13 +2426,252 @@ async function employeeData(req, res, FILEDATA, importParams) {
 		const employee = employeeMap.get(empCode);
 
 		if (employee) {
-			let updateObj = {
-				firstName: row["Firstname"]
+
+			// update data in employee master table
+			let lastIncrementDate = (row["Last increment date"]) ? convertExcelDate(row["Last increment date"]) : "";
+			const updateEmployeeObj = {
+				...( row["First Name"] && { firstName: row["First Name"] }),
+				...( row["Middle Name"] && { middleName: row["Middle Name"] }),
+				...( row["Last Name"] && { lastName: row["Last Name"] }),
+				...( row["First Name"] && row["Last Name"] && { name: `${row["First Name"]} ${row["Last Name"]}` }), 
+				...( row["Date Of Joining"] && { lastName: row["Date Of Joining"] }),
+				...(row["Workstation (Admin)"] && { workstationAdmin: replaceYesOrNoWithNumber(row["Workstation (Admin)"]) }),
+				...(row["Mobile (Admin)"] && { mobileAdmin: replaceYesOrNoWithNumber(row["Mobile (Admin)"]) }),
+				...(row["Data Card (Admin)"] && { dataCardAdmin: replaceYesOrNoWithNumber(row["Data Card (Admin)"]) }),
+				...(row["Visiting Card (Admin)"] && { visitingCardAdmin: replaceYesOrNoWithNumber(row["Visiting Card (Admin)"]) }),
+				...(row["New Customer Name"] && { "newCustomerName": row["New Customer Name"] }),
+				...(row["Father Name"] && { "fatherName": row["Father Name"] }),
+				...(row["Recruiter Name"] && { "recruiterName": row["Recruiter Name"] }),
+				...(row["Offrole CTC"] && { "offRoleCTC": row["Offrole CTC"] }),
+				...(row["ESIC/PF Deduction"] && { "ESICPFDeduction": row["ESIC/PF Deduction"] }),
+				...(row["IQ Test Applicable"] && { "iqTestApplicable": replaceYesOrNoWithNumber(row["IQ Test Applicable"]) }),
+				...(row["Position Type"] && { "positionType": row["Position Type"] }),
+				...(lastIncrementDate && { "lastIncrementDate": lastIncrementDate }),
+				...(row["Office Mobile Number"] && { "officeMobileNumber": row["Office Mobile Number"] }),
+				...(row["Personal Mobile Number"] && { "personalMobileNumber": row["Personal Mobile Number"] }),
+				...(row["Aadhaar"] && { "adhrNo": row["Aadhaar"] }),
+				...(row["PAN"] && { "panNo": row["PAN"] }),
+				...(row["Driving License"] && { "drivingLicence": row["Driving License"] }),
+				...(row["Passport Number"] && { "passportNumber": row["Passport Number"] }),
 			};
 
-			await db.employeeMaster.update(updateObj, {
-				where: { empCode },
-			});
+			if(row["First Name"] && row["Last Name"]) {
+				updateEmployeeObj.name = `${row["First Name"]} ${row["Last Name"]}`;
+			}
+
+			if(row["Salutation"]) {
+				// fetch salutation from master table
+				const salution = await db.salutationMaster.findOne({ where: { "salutation": row["Salutation"] }, attributes: ["salutationId"], raw: true });
+				if(salution) {
+				   updateEmployeeObj.salutationId = salution?.salutationId;
+				}
+			}
+
+			if(row["Highest Qualification"]) {
+				// fetch salutation from master table
+				const degree = await db.degreeMaster.findOne({ where: { "degreeName": row["Highest Qualification"] }, attributes: ["degreeId"], raw: true });
+				if(degree) {
+				   updateEmployeeObj.highestQualification = degree?.degreeId;
+				}
+			}
+
+			if(Object.keys(updateEmployeeObj).length > 0) {
+				await db.employeeMaster.update(updateEmployeeObj, {
+					where: { "id": employee.id },
+				});
+			}
+
+			// update data in employee job details table with history
+			const updateJobDetails = row["Date Of Joining"] || row["RE(Residence Engineer)"];
+
+			if(updateJobDetails) {
+				const existJobDetails = await db.jobDetails.findOne({ where: { userId: employee.id }, raw: true });
+				if(existJobDetails) {					
+					const updateJobMetaData = {
+						...(row["Date Of Joining"] && { "dateOfJoining": row["Date Of Joining"] }),
+						...(row["RE(Residence Engineer)"] && { "residentEng": row["RE(Residence Engineer)"] }),
+						...(row["Project Code"] && { "projectCode": row["Project Code"] }),
+						...(row["Next Appraisal Due"] && { "nextAppraisalDue": row["Next Appraisal Due"] })
+					}
+
+					// get probation period
+					if(row["Probation Period"]) {
+						// verify probation id and calculate probation days
+						const getProbationDetails = await db.probationMaster.findOne({
+							where: { probationName: row["Probation Period"] },
+							attributes: ["probationId", "durationOfProbation"]
+						});
+						if (getProbationDetails) {
+							let durationOfProbation = getProbationDetails.durationOfProbation;
+							updateJobMetaData.probationDays = durationOfProbation;
+							updateJobMetaData.probationId = getProbationDetails.probationId;
+						}
+					}
+
+					if(row["Union Code (Increment Cycle)"]) {
+						// verify union code
+						const getUnionDetails = await db.unionCodIncrementMaster.findOne({
+							where: { unionCode: row["Union Code (Increment Cycle)"] },
+							attributes: ["unionCodeId"]
+						});
+						if (getUnionDetails) {
+							updateJobMetaData.unionId = getUnionDetails.unionCodeId;
+						}
+					}
+
+					// generate job details history
+					await db.employeeJobDetailsHistory.create(existJobDetails);
+					await db.jobDetails.update(updateJobMetaData, { userId: employee.id });
+				}
+			}
+
+			// update data in employee biographical table
+			const biographyDetails = row["Date Of Birth"] || row["Gender"];
+
+			if(biographyDetails) {
+				let maritalStatusSince = (row["Marital Status Since"]) ? convertExcelDate(row["Marital Status Since"]) : "";
+				const biographyMetaData = {
+					...(row["Date Of Birth"] && { "dateOfBirth": row["Date Of Birth"] }),
+					...(row["Gender"] && { "gender": row["Gender"] }),
+					...(row["Nationality"] && { nationality: row["Nationality"] }),
+					...(row["Marital Status"] && { maritalStatus: maritalStatusOptions(row["Marital Status"]) }),
+					...(maritalStatusSince && { maritalStatusSince: maritalStatusSince }),
+					...(row["Mobile Access"] && { mobileAccess: replaceYesOrNoWithNumber(row["Mobile Access"]) }),
+					...(row["Laptop/System (IT)"] && { laptopSystem: row["Laptop/System (IT)"] }),
+					...(row["Background Verification (HR)"] && { backgroundVerification: replaceYesOrNoWithNumber(row["Background Verification (HR)"]) }),
+				    ...(row["Nominee Name"] && { "nomineeName": row["Nominee Name"] }),
+				    ...(row["Nominee Relation"] && { "nomineeRelation": row["Nominee Relation"] })
+				}
+				await db.biographicalDetails.update(biographyMetaData, { userId: employee.id });
+			}
+
+			// add/update data in employee address table with history table
+
+			const currentAddressDetails = row["Current Flat/House/Wing Number"] || row["Current Street/Locality/Area"] ||
+			row["Current Landmark"] || row["Current Pincode"] || row["Current Country"] || row["Current State"] || row["Current City"];
+
+			const permanentAddressDetails = row["Permanent Flat/House/Wing Number"] || row["Permanent Street/Locality/Area"] ||
+			row["Permanent Landmark"] || row["Permanent Pincode"] || row["Permanent Country"] || row["Permanent State"] || row["Permanent City"];
+
+			const emergencyAddressDetails = row["Emergency Flat/House/Wing Number"] || row["Emergency Street/Locality/Area"] ||
+			row["Emergency Landmark"] || row["Emergency Pincode"] || row["Emergency Country"] || row["Emergency State"] ||
+			row["Emergency City"];
+
+			if(currentAddressDetails || permanentAddressDetails || emergencyAddressDetails) {
+				const updateAddressMetaData = {
+					...(row["Current Flat/House/Wing Number"] && { "currentHouse": row["Current Flat/House/Wing Number"] }),
+					...(row["Current Street/Locality/Area"] && { "currentStreet": row["Current Street/Locality/Area"] }),
+					...(row["Current Landmark"] && { "currentLandmark": row["Current Landmark"] }),
+					...(row["Current Pincode"] && { "currentPincodeId": row["Current Pincode"] }),
+
+					...(row["Permanent Flat/House/Wing Number"] && { "permanentHouse": row["Permanent Flat/House/Wing Number"] }),
+					...(row["Permanent Street/Locality/Area"] && { "permanentStreet": row["Permanent Street/Locality/Area"] }),
+					...(row["Permanent Landmark"] && { "permanentLandmark": row["Permanent Landmark"] }),
+					...(row["Permanent Pincode"] && { "permanentPincodeId": row["Permanent Pincode"] }),
+
+					...(row["Emergency Flat/House/Wing Number"] && { "emergencyHouse": row["Emergency Flat/House/Wing Number"] }),
+					...(row["Emergency Street/Locality/Area"] && { "emergencyStreet": row["Emergency Street/Locality/Area"] }),
+					...(row["Emergency Landmark"] && { "emergencyLandmark": row["Emergency Landmark"] }),
+					...(row["Emergency Pincode"] && { "emergencyPincodeId": row["Emergency Pincode"] }),
+				}
+
+				if(row["Current Country"] && row["Current State"] && row["Current City"]) {
+					let country = await db.countryMaster.findOne({ where: { "countryName": row["Current Country"] }, attributes: ["countryId"], raw: true });
+					if(country) {
+						let state = await db.stateMaster.findOne({ where: { "stateName": row["Current State"], "countryId": country?.countryId }, attributes: ["stateId"], raw: true });
+						if(state) {
+							let city = await db.cityMaster.findOne({ where: { "cityName": row["Current City"], "stateId": state?.stateId }, attributes: ["cityId"], raw: true });
+							if(city) {
+								updateAddressMetaData.currentCountryId = country.countryId;
+								updateAddressMetaData.currentStateId = state.stateId;
+								updateAddressMetaData.currentCityId = city.cityId;
+							}
+						}
+					}
+				}
+
+				if(row["Permanent Country"] && row["Permanent State"] && row["Permanent City"]) {
+					let country = await db.countryMaster.findOne({ where: { "countryName": row["Permanent Country"] }, attributes: ["countryId"], raw: true });
+					if(country) {
+						let state = await db.stateMaster.findOne({ where: { "stateName": row["Permanent State"], "countryId": country?.countryId }, attributes: ["stateId"], raw: true });
+						if(state) {
+							let city = await db.cityMaster.findOne({ where: { "cityName": row["Permanent City"], "stateId": state?.stateId }, attributes: ["cityId"], raw: true });
+							if(city) {
+								updateAddressMetaData.permanentCountryId = country.countryId;
+								updateAddressMetaData.permanentStateId = state.stateId;
+								updateAddressMetaData.permanentCityId = city.cityId;
+							}
+						}
+					}
+				}
+
+				if(row["Emergency Country"] && row["Emergency State"] && row["Emergency City"]) {
+					let country = await db.countryMaster.findOne({ where: { "countryName": row["Emergency Country"] }, attributes: ["countryId"], raw: true });
+					if(country) {
+						let state = await db.stateMaster.findOne({ where: { "stateName": row["Emergency State"], "countryId": country?.countryId }, attributes: ["stateId"], raw: true });
+						if(state) {
+							let city = await db.cityMaster.findOne({ where: { "cityName": row["Emergency City"], "stateId": state?.stateId }, attributes: ["cityId"], raw: true });
+							if(city) {
+								updateAddressMetaData.emergencyCountryId = country.countryId;
+								updateAddressMetaData.emergencyStateId = state.stateId;
+								updateAddressMetaData.emergencyCityId = city.cityId;
+							}
+						}
+					}
+				}
+
+				const existAddressDetails = await db.employeeAddress.findOne({ where: { employeeId: employee.id }, raw: true });
+
+				if(existAddressDetails) {
+					await db.employeeAddress.update(updateAddressMetaData, { employeeId: employee.id });
+				}
+				else {
+					updateAddressMetaData.employeeId = employee.id;
+					await db.employeeAddress.create(updateAddressMetaData);
+				}
+			}
+
+			// update data in employee emergency contact table
+			let emergencyDetails = row["Blood Group"] || row["Emergency Contact Relation"] || 
+			row["Emergency Contact Name"] || row["Emergency Contact Number"];
+			if(emergencyDetails) {
+				const existEmergencyDetails = await db.emergencyDetails.findOne({ where: { 'userId': employee.id }, attributes: ['emergencyContactId'] });
+				let emergencyMetaData = {
+					...(row["Blood Group"] && { "emergencyBloodGroup": row["Blood Group"] }),
+					...(row["Emergency Contact Relation"] && { "emergencyContactRelation": row["Emergency Contact Relation"] }),
+					...(row["Emergency Contact Name"] && { "emergencyContactName": row["Emergency Contact Name"] }),
+					...(row["Emergency Contact Number"] && { "emergencyContactNumber": row["Emergency Contact Number"] })
+				}
+				if(existEmergencyDetails) {
+					await db.employeeAddress.update(emergencyMetaData, { userId: employee.id });
+				}
+				else {
+					updateAddressMetaData.userId = employee.id;
+					await db.employeeAddress.create(emergencyMetaData);
+				}
+			}
+
+			// update data in employee payment table
+			
+			if(row["Account Number"] && row["Bank Name"] && row["Swift/IFSC Code"]) {
+				const existPaymentDetails = await db.paymentDetails.findOne({ where: { 'userId': employee.id }, attributes: ['paymentId'] });
+				const bankDetails = await db.bankMaster.findOne({ where: { 'bankName': row["Bank Name"] }, attributes: ['bankId'], raw: true });
+				if(bankDetails) {
+					let paymentMetaData = {
+						"paymentAccountNumber": row["Account Number"],
+						"bankId": bankDetails?.bankId,
+						"paymentBankIfsc": row["Swift/IFSC Code"]
+					}
+
+					if(existPaymentDetails) {
+						await db.paymentDetails.update(paymentMetaData, { userId: employee.id });
+					}
+					else {
+						updateAddressMetaData.userId = employee.id;
+						await db.paymentDetails.create(paymentMetaData);
+					}
+				}
+			}
 
 			// push object in success array
 			successArray.push({
@@ -2969,6 +3217,14 @@ const employmentFunctionalAreaDetails = async (payload, today) => {
 const convertExcelDate = (serial) => {
 	const date = new Date((serial - 25569) * 86400 * 1000);
 	return moment(date).format("YYYY-MM-DD");
+};
+
+const replaceYesOrNoWithNumber = (value) => {
+	if (value === "Yes") {
+		return 1;
+	} else {
+		return 0;
+	}
 };
 
 /**
