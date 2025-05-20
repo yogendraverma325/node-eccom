@@ -2646,30 +2646,38 @@ async function employeeData(req, res, FILEDATA, importParams) {
 					await db.employeeAddress.update(emergencyMetaData, { userId: employee.id });
 				}
 				else {
-					updateAddressMetaData.userId = employee.id;
+					emergencyMetaData.userId = employee.id;
 					await db.employeeAddress.create(emergencyMetaData);
 				}
 			}
 
 			// update data in employee payment table
+			const bankDetails = row["Account Number"] || row["Bank Name"] || row["Swift/IFSC Code"]
+			row["PT Applicability"] || row["PT State"] || row["PT Location"] || row["TDS Applicability"];
 			
-			if(row["Account Number"] && row["Bank Name"] && row["Swift/IFSC Code"]) {
+			if(bankDetails) {
 				const existPaymentDetails = await db.paymentDetails.findOne({ where: { 'userId': employee.id }, attributes: ['paymentId'] });
-				const bankDetails = await db.bankMaster.findOne({ where: { 'bankName': row["Bank Name"] }, attributes: ['bankId'], raw: true });
-				if(bankDetails) {
-					let paymentMetaData = {
-						"paymentAccountNumber": row["Account Number"],
-						"bankId": bankDetails?.bankId,
-						"paymentBankIfsc": row["Swift/IFSC Code"]
-					}
+				const getBankDetails = await db.bankMaster.findOne({ where: { 'bankName': row["Bank Name"] }, attributes: ['bankId'], raw: true });
+				let ptApplicability = (row["PT Applicability"]) ? replaceYesOrNoWithNumber(row["PT Applicability"]) : "";
 
-					if(existPaymentDetails) {
-						await db.paymentDetails.update(paymentMetaData, { userId: employee.id });
-					}
-					else {
-						updateAddressMetaData.userId = employee.id;
-						await db.paymentDetails.create(paymentMetaData);
-					}
+				let paymentMetaData = {
+					...(row["Account Number"] && { "paymentAccountNumber": row["Account Number"] }),
+					...(getBankDetails && { "bankId": getBankDetails?.bankId }),
+					...(row["Swift/IFSC Code"] && { "paymentBankIfsc": row["Swift/IFSC Code"] }),
+					...(ptApplicability && { ptApplicability: ptApplicability }),
+				}
+
+				if(ptApplicability === 'Yes' && row["PT State"] && row["PT Location"]) {
+					// fetch pt state and pt location
+                    // let ptState = 
+				}
+
+				if(existPaymentDetails) {
+					await db.paymentDetails.update(paymentMetaData, { userId: employee.id });
+				}
+				else {
+					paymentMetaData.userId = employee.id;
+					await db.paymentDetails.create(paymentMetaData);
 				}
 			}
 
