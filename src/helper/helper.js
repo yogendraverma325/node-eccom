@@ -3880,14 +3880,21 @@ const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //T
 
 }
 const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE) => { //TYPE WILL BE ADD, SUB
+	console.log("EMP_ID",EMP_ID,"DATE",DATE,moment().format("YYYY-MM-DD"))
 	     await db.comp_off_credit_history.update(
 					{
-						taken_on:null
+						taken_on:null,
+						status:1
 					},
 					{
 						where: {
 							employee_Id: EMP_ID,
-							taken_on: DATE
+							taken_on: DATE,
+							expiry_date: {
+							[Op.and]: [
+							{ [Op.gte]: moment().format("YYYY-MM-DD") }, // Code correction , earlier leave comp off was not revoke.
+							],
+							},
 						},
 					},
 				);
@@ -3933,7 +3940,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 				console.log("Singleleaves.leaveCount",Singleleaves.leaveCount)
 				console.log("Singleleaves.leaveAutoId",Singleleaves.leaveAutoId)
 				await maintainleaveCountOfEmployee(Singleleaves.employeeId,Singleleaves.leaveAutoId,Singleleaves.leaveCount,'ADD');
-				if(Singleleaves.leaveAutoId==9){
+				if(Singleleaves.leaveAutoId=='9'){
 					console.log("Singleleaves.employeeId",Singleleaves.employeeId)
 					console.log("Singleleaves.appliedFor",Singleleaves.appliedFor)
 				await releaseCompOffTheEmployeeForDate(Singleleaves.employeeId,Singleleaves.appliedFor);
