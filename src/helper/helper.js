@@ -3953,7 +3953,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 								},
 							});
 					if(checkAttendance){
-						//await attendanceController.attedanceCronManual(checkAttendance.attendanceAutoId,Singleleaves.appliedFor);
+						await attendanceController.attedanceCronManual(checkAttendance.attendanceAutoId,Singleleaves.appliedFor);
 					}
 				
 
