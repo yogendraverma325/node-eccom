@@ -5674,8 +5674,65 @@ class AttendanceController {
 				let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 				attendanceAutoId:result.attendanceAutoId,
-				}
+				},
+				include: [ // adding association shift and policy to calcualte late by and its policy
+					{
+						model: db.shiftMaster,
+						required: false,
+						attributes: [
+							"shiftId",
+							"shiftName",
+							"shiftStartTime",
+							"shiftEndTime",
+							"isOverNight",
+						],
+						where: {
+							isActive: 1,
+						},
+					},
+					{
+						model: db.attendancePolicymaster,
+						required: false,
+						where: {
+							isActive: 1,
+						},
+					},
+				],
 				});
+
+				let lateby=null;
+				if(regularizeData.actualPunchIn){
+					const assignedShiftStartTime =
+					attendanceData?.shiftsmaster?.shiftStartTime;
+				let graceTime = moment(assignedShiftStartTime, "HH:mm"); // set shift start time
+				graceTime.add(
+					attendanceData.attendancePolicymaster.allowBufferTime == 1
+						? attendanceData.attendancePolicymaster.graceTimeClockIn
+						: 0,
+					"minutes",
+				); // Add buffer time  to the selected time if buffer allow
+				const withGraceTime = graceTime.format("HH:mm:ss");
+
+					    lateby = await helper.calculateLateBy(
+						regularizeData.actualPunchIn,
+						withGraceTime,
+						attendanceData.attendanceDate,
+						attendanceData.attandanceShiftStartDate,
+					);
+
+				}
+				let workingTime=null;
+				if (
+					regularizeData.attendanceShiftStartDate &&
+					regularizeData.actualPunchIn &&
+					regularizeData.attendanceShiftEndDate &&
+					regularizeData.actualPunchOut
+				) {
+					workingTime = await helper.timeDifference(
+						`${regularizeData.attendanceShiftStartDate} ${regularizeData.actualPunchIn}`,
+						`${regularizeData.attendanceShiftEndDate} ${regularizeData.actualPunchOut}`,
+					);
+				}
 
 				await db.attendanceMaster.update(
 					{
@@ -5683,7 +5740,9 @@ class AttendanceController {
 					attendanceShiftEndDate: regularizeData.attendanceShiftEndDate,
 					attendancePunchInTime: regularizeData.actualPunchIn,
 					attendancePunchOutTime: regularizeData.actualPunchOut,
-					attendanceRegularizeStatus:"Revoked"
+					attendanceRegularizeStatus:"Revoked",
+					attendanceLateBy:lateby,
+					attendanceWorkingTime:workingTime
 						
 					},
 					{
