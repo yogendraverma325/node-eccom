@@ -484,7 +484,8 @@ class AppraisalGoalsController {
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanName: result.goalPlanName,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }					},
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+					},
 				}),
 				db.appraisalGoalsMaster.findOne({
 					where: {

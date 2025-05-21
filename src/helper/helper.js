@@ -111,7 +111,7 @@ const mailService = async (data) => {
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc:testMail ? [] : data.bcc ? data.bcc : [],
+			bcc: testMail ? [] : data.bcc ? data.bcc : [],
 			time: data.time ? data.time : "",
 			html: data.html,
 			cc: testMail ? [] : data.cc ? data.cc.split(",") : [],
@@ -3381,7 +3381,7 @@ const leaveRefil = async () => {
 
 const confirmationPolicyAssignment = async (empIdsInput) => {
 	try {
-		 let empIds = empIdsInput.split(",");
+		let empIds = empIdsInput.split(",");
 		const employees = await db.employeeMaster.findAll({
 			where: {
 				isActive: 1,
@@ -3476,7 +3476,8 @@ const confirmationPolicyAssignment = async (empIdsInput) => {
 					);
 					await db.employeeMaster.update(
 						{
-							confimationPolicyAutoId: confirmationPolicy.confimationPolicyAutoId,
+							confimationPolicyAutoId:
+								confirmationPolicy.confimationPolicyAutoId,
 						},
 						{
 							where: {
@@ -3493,7 +3494,7 @@ const confirmationPolicyAssignment = async (empIdsInput) => {
 };
 /// CONFIRMATION POLICY ASSIGNMENT
 
-const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => { 
+const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
 	let permissionAssignTousers = [];
 	if (PERMISSION) {
 		permissionAssignTousers = PERMISSION.split(",").map((el) => parseInt(el));
@@ -3806,174 +3807,170 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			await maintainleaveCountOfEmployee(emp,leave.dataValues.leaveAutoId,leave.dataValues.leaveCount,'ADD');
+			await maintainleaveCountOfEmployee(
+				emp,
+				leave.dataValues.leaveAutoId,
+				leave.dataValues.leaveCount,
+				"ADD",
+			);
 		}
 	}
 };
 //REVOKE
-const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //TYPE WILL BE ADD, SUB
-	if(TYPE=='ADD'){
+const maintainleaveCountOfEmployee = async (EMP_ID, LEAVE_ID, COUNT, TYPE) => {
+	//TYPE WILL BE ADD, SUB
+	if (TYPE == "ADD") {
 		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
-				await db.leaveMapping.update(
-					{
-						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${COUNT}`,
-						),
-					},
-					{
-						where: {
-							EmployeeId: EMP_ID,
-							leaveAutoId: LEAVE_ID
-						},
-					},
-				);
-			} else {
-				await db.leaveMapping.update(
-					{
-						availableLeave: db.sequelize.literal(
-							`availableLeave + ${COUNT}`,
-						),
-						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${COUNT}`,
-						),
-					},
-					{
-						where: {
-							EmployeeId: EMP_ID,
-							leaveAutoId: LEAVE_ID
-						},
-					}
-				);
-				
-			}
-
-	}else{
-		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
-				await db.leaveMapping.update(
-					{
-						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear + ${COUNT}`,
-						),
-					},
-					{
-						where: {
-							EmployeeId: EMP_ID,
-							leaveAutoId: LEAVE_ID
-						},
-					}
-				);
-			} else {
-				await db.leaveMapping.update(
-					{
-						availableLeave: db.sequelize.literal(
-							`availableLeave - ${COUNT}`,
-						),
-						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear + ${COUNT}`,
-						),
-					},
-					{
-						where: {
-							EmployeeId: EMP_ID,
-							leaveAutoId: LEAVE_ID
-						},
-					}
-				);
-				
-			}
-
-	}
-
-}
-const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE) => { //TYPE WILL BE ADD, SUB
-	     await db.comp_off_credit_history.update(
-					{
-						taken_on:null
-					},
-					{
-						where: {
-							employee_Id: EMP_ID,
-							taken_on: DATE
-						},
-					},
-				);
-			
-
-}
-const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) => {
-	const leaves = await db.EmployeeLeaveHeader.findOne({
-			where: {
-			employeeleaveheaderID: leaveHeaderAutoId,
-			},
-			include:[
+			await db.leaveMapping.update(
 				{
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear - ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		} else {
+			await db.leaveMapping.update(
+				{
+					availableLeave: db.sequelize.literal(`availableLeave + ${COUNT}`),
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear - ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		}
+	} else {
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
+			await db.leaveMapping.update(
+				{
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear + ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		} else {
+			await db.leaveMapping.update(
+				{
+					availableLeave: db.sequelize.literal(`availableLeave - ${COUNT}`),
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear + ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		}
+	}
+};
+const releaseCompOffTheEmployeeForDate = async (EMP_ID, DATE) => {
+	//TYPE WILL BE ADD, SUB
+	await db.comp_off_credit_history.update(
+		{
+			taken_on: null,
+		},
+		{
+			where: {
+				employee_Id: EMP_ID,
+				taken_on: DATE,
+			},
+		},
+	);
+};
+const revokeApprovedAppliedLeave = async (
+	leaveHeaderAutoId,
+	t,
+	userData,
+	result,
+) => {
+	const leaves = await db.EmployeeLeaveHeader.findOne({
+		where: {
+			employeeleaveheaderID: leaveHeaderAutoId,
+		},
+		include: [
+			{
 				model: db.employeeLeaveTransactions,
 				required: true,
-				}
-				,
-				{
-				model:db.employeeMaster,
-				required: true
-				}
+			},
+			{
+				model: db.employeeMaster,
+				required: true,
+			},
 		],
 	});
-	if(leaves){
+	if (leaves) {
 		for (const Singleleaves of leaves.employeeleavetransactions) {
-			
-			 
-				await db.employeeLeaveTransactions.update(
+			await db.employeeLeaveTransactions.update(
 				{
-				status: 'revoked',
-				updatedBy: userData.id,
-				message: result.remark != "" ? result.remark : null,
-				updatedAt: moment(),
+					status: "revoked",
+					updatedBy: userData.id,
+					message: result.remark != "" ? result.remark : null,
+					updatedAt: moment(),
 				},
 				{
-				where: {
-				employeeLeaveTransactionsId: Singleleaves.employeeLeaveTransactionsId,
+					where: {
+						employeeLeaveTransactionsId:
+							Singleleaves.employeeLeaveTransactionsId,
+					},
 				},
-				},
-				{ transaction: t }
+				{ transaction: t },
+			);
+			console.log("Singleleaves.employeeId", Singleleaves.employeeId);
+			console.log("Singleleaves.leaveCount", Singleleaves.leaveCount);
+			console.log("Singleleaves.leaveAutoId", Singleleaves.leaveAutoId);
+			await maintainleaveCountOfEmployee(
+				Singleleaves.employeeId,
+				Singleleaves.leaveAutoId,
+				Singleleaves.leaveCount,
+				"ADD",
+			);
+			if (Singleleaves.leaveAutoId == 9) {
+				console.log("Singleleaves.employeeId", Singleleaves.employeeId);
+				console.log("Singleleaves.appliedFor", Singleleaves.appliedFor);
+				await releaseCompOffTheEmployeeForDate(
+					Singleleaves.employeeId,
+					Singleleaves.appliedFor,
 				);
-				console.log("Singleleaves.employeeId",Singleleaves.employeeId)
-				console.log("Singleleaves.leaveCount",Singleleaves.leaveCount)
-				console.log("Singleleaves.leaveAutoId",Singleleaves.leaveAutoId)
-				await maintainleaveCountOfEmployee(Singleleaves.employeeId,Singleleaves.leaveAutoId,Singleleaves.leaveCount,'ADD');
-				if(Singleleaves.leaveAutoId==9){
-					console.log("Singleleaves.employeeId",Singleleaves.employeeId)
-					console.log("Singleleaves.appliedFor",Singleleaves.appliedFor)
-				await releaseCompOffTheEmployeeForDate(Singleleaves.employeeId,Singleleaves.appliedFor);
-				}
-				
-				const checkAttendance = await db.attendanceMaster.findOne({
-								where: {
-									employeeId: Singleleaves.employeeId,
-									attendanceDate: Singleleaves.appliedFor,
-								},
-							});
-					if(checkAttendance){
-						//await attendanceController.attedanceCronManual(checkAttendance.attendanceAutoId,Singleleaves.appliedFor);
-					}
-				
+			}
 
+			const checkAttendance = await db.attendanceMaster.findOne({
+				where: {
+					employeeId: Singleleaves.employeeId,
+					attendanceDate: Singleleaves.appliedFor,
+				},
+			});
+			if (checkAttendance) {
+				//await attendanceController.attedanceCronManual(checkAttendance.attendanceAutoId,Singleleaves.appliedFor);
+			}
 		}
 		await db.EmployeeLeaveHeader.update(
-				{
-				status: 'revoked',
+			{
+				status: "revoked",
 				updatedBy: userData.id,
 				message: result.remark != "" ? result.remark : null,
 				updatedAt: moment(),
-				},
-				{
+			},
+			{
 				where: {
-				employeeleaveheaderID: leaveHeaderAutoId
+					employeeleaveheaderID: leaveHeaderAutoId,
 				},
-				},
-				{ transaction: t }
-				);
-	
+			},
+			{ transaction: t },
+		);
 	}
-		return leaves;
+	return leaves;
 };
 //REVOKE
 
@@ -4172,7 +4169,6 @@ export default {
 	getWorkDuration,
 	//REVOKE
 	revokeApprovedAppliedLeave,
-	releaseCompOffTheEmployeeForDate
+	releaseCompOffTheEmployeeForDate,
 	//REVOKE
-
 };

@@ -5637,95 +5637,93 @@ class AttendanceController {
 	}
 	//BULK ACTION
 
-   //REVOKE
-	async revokeApprovedRegularizations(req, res){
-				try {
-
-					
-					const result = await validator.revokeApprovedRegularizationsValidation.validateAsync(req.body);
-					const regularizeData = await db.regularizationMaster.findOne({
-					where: {
-					regularizeId: result.regularizeId,
-					attendanceAutoId:result.attendanceAutoId,
-					regularizeStatus:'Approved'
-					}
-					});
-					if(!regularizeData){
-						return respHelper(res, {
-						status: 400,
-						msg: `Revoke Application can't be placed`,
-						});
-					}
-
-					const revokeRegularization = await db.RegularizationRevokeTransaction.findOne({
-					where: {
-					attendanceAutoId:result.attendanceAutoId,
-						regularizeId:result.regularizeId,
-					}
-					});
-					if(revokeRegularization){
-						return respHelper(res, {
-						status: 400,
-						msg: `Revoke Application already placed`,
-						});
-					}
-
-
-				let attendanceData = await db.attendanceMaster.findOne({
+	//REVOKE
+	async revokeApprovedRegularizations(req, res) {
+		try {
+			const result =
+				await validator.revokeApprovedRegularizationsValidation.validateAsync(
+					req.body,
+				);
+			const regularizeData = await db.regularizationMaster.findOne({
 				where: {
-				attendanceAutoId:result.attendanceAutoId,
-				}
+					regularizeId: result.regularizeId,
+					attendanceAutoId: result.attendanceAutoId,
+					regularizeStatus: "Approved",
+				},
+			});
+			if (!regularizeData) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Revoke Application can't be placed`,
 				});
+			}
 
-				await db.attendanceMaster.update(
-					{
+			const revokeRegularization =
+				await db.RegularizationRevokeTransaction.findOne({
+					where: {
+						attendanceAutoId: result.attendanceAutoId,
+						regularizeId: result.regularizeId,
+					},
+				});
+			if (revokeRegularization) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Revoke Application already placed`,
+				});
+			}
+
+			let attendanceData = await db.attendanceMaster.findOne({
+				where: {
+					attendanceAutoId: result.attendanceAutoId,
+				},
+			});
+
+			await db.attendanceMaster.update(
+				{
 					attandanceShiftStartDate: regularizeData.attendanceShiftStartDate,
 					attendanceShiftEndDate: regularizeData.attendanceShiftEndDate,
 					attendancePunchInTime: regularizeData.actualPunchIn,
 					attendancePunchOutTime: regularizeData.actualPunchOut,
-					attendanceRegularizeStatus:"Revoked"
-						
+					attendanceRegularizeStatus: "Revoked",
+				},
+				{
+					where: {
+						attendanceAutoId: result.attendanceAutoId,
 					},
-					{
-						where: {
-							attendanceAutoId: result.attendanceAutoId,
-						},
+				},
+			);
+			await db.regularizationMaster.update(
+				{
+					regularizeStatus: "Revoked",
+				},
+				{
+					where: {
+						regularizeId: result.regularizeId,
+						attendanceAutoId: result.attendanceAutoId,
 					},
-				);
-				await db.regularizationMaster.update(
-					{
-					 regularizeStatus:'Revoked'
-					},
-					{
-						where: {
-							regularizeId: result.regularizeId,
-							attendanceAutoId:result.attendanceAutoId,
-						},
-					},
-				);
-					
-						await db.RegularizationRevokeTransaction.create({
-						attendanceAutoId:result.attendanceAutoId,
-						regularizeId:result.regularizeId,
-						employeeId:attendanceData.employeeId,
-						status: "Approved",
-						createdBy:req.userData.id,
-						createrRemark:result.remark,
-						creatorRole:req.userData['role.name']
-						});
-						await _this.attedanceCronManual(
-						result.attendanceAutoId,
-						attendanceData.attendanceDate,
-						);
+				},
+			);
 
+			await db.RegularizationRevokeTransaction.create({
+				attendanceAutoId: result.attendanceAutoId,
+				regularizeId: result.regularizeId,
+				employeeId: attendanceData.employeeId,
+				status: "Approved",
+				createdBy: req.userData.id,
+				createrRemark: result.remark,
+				creatorRole: req.userData["role.name"],
+			});
+			await _this.attedanceCronManual(
+				result.attendanceAutoId,
+				attendanceData.attendanceDate,
+			);
 
-					return respHelper(res, {
-					status: 200,
-					data: result,
-					msg: 'Request Revoked',
-					});
-				}
-				catch (error) {
+			return respHelper(res, {
+				status: 200,
+				data: result,
+				msg: "Request Revoked",
+			});
+		} catch (error) {
 			if (error.isJoi === true) {
 				return respHelper(res, {
 					status: 422,
@@ -5739,7 +5737,6 @@ class AttendanceController {
 		}
 	}
 	//REVOKE
-	
 
 	async markBioMetricAttendance(incomingAttendanceData) {
 		const currentDate = moment(incomingAttendanceData.punchDateTime);

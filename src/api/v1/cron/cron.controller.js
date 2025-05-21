@@ -652,7 +652,6 @@ class CronController {
 
 	///CONFIRMATION
 	async generateConfirmation() {
-		
 		const confimationData = await db.jobDetails.findAll({
 			where: {
 				dateOfProbationTriggerDate: {
@@ -701,7 +700,6 @@ class CronController {
 				],
 			},
 		});
-		
 
 		for (const Singleconfimation of confimationData) {
 			console.log("ee", Singleconfimation?.employee?.id);
@@ -729,14 +727,14 @@ class CronController {
 					},
 				},
 			});
-				
+
 			if (checkJobLevelAssignmnet) {
 				let respfrom = await helper.generateFieldsForgivenLevel(
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
 					Singleconfimation?.employee?.companyId,
 				);
-				
+
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -807,7 +805,7 @@ class CronController {
 
 						eventEmitter.emit(
 							"selfReviewConfirnation",
-							JSON.stringify(Singleconfimation)
+							JSON.stringify(Singleconfimation),
 						);
 					} else {
 						console.log("ownerId", ownerId);
@@ -827,7 +825,7 @@ class CronController {
 							JSON.stringify({
 								ESCALTERDATA: ESCALTERDATA,
 								EMP_DATA: EMP_DATA_SELF,
-							})
+							}),
 						);
 					}
 
@@ -1109,11 +1107,11 @@ class CronController {
 				let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
 
 				eventEmitter.emit(
-				  "confirmationWorkflowNextLevel",
-				  JSON.stringify({
-				    ESCALTERDATA: ESCALTERDATA,
-				    EMP_DATA: EMP_DATA_SELF,
-				  })
+					"confirmationWorkflowNextLevel",
+					JSON.stringify({
+						ESCALTERDATA: ESCALTERDATA,
+						EMP_DATA: EMP_DATA_SELF,
+					}),
 				);
 
 				await db.Confirmationaudittrail.create({
@@ -1268,11 +1266,11 @@ class CronController {
 				}
 
 				let letter = await emailTemplate.confirmationEmailLetter(
-						      EMP_DATA_SELF,
-							confirmationData,
-							signatureAuthority,
-						);
-						//return res.send(letter);
+					EMP_DATA_SELF,
+					confirmationData,
+					signatureAuthority,
+				);
+				//return res.send(letter);
 
 				eventEmitter.emit(
 					"confirmationLetter",
@@ -1283,7 +1281,7 @@ class CronController {
 						cc: cc_arrays.join(","),
 						senderEmail: EMP_DATA_SELF.companymaster.senderEmail,
 						companyLogo: EMP_DATA_SELF.companymaster.companyLogo,
-						companyName:EMP_DATA_SELF.companymaster.companyName
+						companyName: EMP_DATA_SELF.companymaster.companyName,
 					}),
 				);
 			}

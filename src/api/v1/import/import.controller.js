@@ -26,13 +26,13 @@ const financialMonth = {
 };
 
 const maritalStatusOptions = {
-	'Married': 1,
-    'Single': 2,
-    'Divorced': 3,
-    'Separated': 4,
-    'Widowed': 5,
-    'Others': 6
-}
+	Married: 1,
+	Single: 2,
+	Divorced: 3,
+	Separated: 4,
+	Widowed: 5,
+	Others: 6,
+};
 class ImportController {
 	async uploadExcelFile(req, res) {
 		try {
@@ -57,7 +57,7 @@ class ImportController {
 				"Attendance Assignment",
 				"Arrears",
 				"Employment Details",
-				"Employee Data"
+				"Employee Data",
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -269,45 +269,44 @@ class ImportController {
 	// create api for generate notice period history (for existing users)
 	async generateNoticePeriodHistory(req, res) {
 		try {
-		    // fetch notice period id from employee master table
-			const users = await db.employeeMaster.findAll(
-				{ where: { 
-					"noticePeriodAutoId": { [Op.not]: null },
-				    "companyId": { [Op.not]: null },
-					"id": { [Op.ne]: 1 } 
+			// fetch notice period id from employee master table
+			const users = await db.employeeMaster.findAll({
+				where: {
+					noticePeriodAutoId: { [Op.not]: null },
+					companyId: { [Op.not]: null },
+					id: { [Op.ne]: 1 },
 				},
 				attributes: ["id", "companyId", "noticePeriodAutoId", "dateOfJoining"],
-				include: [ 
-					{ 
+				include: [
+					{
 						model: db.NoticePeriodEmploymentHistory,
 						as: "noticePeriodHistories",
 						required: false,
-						where: { employeeId: { [Op.not]: null } }
-					}
+						where: { employeeId: { [Op.not]: null } },
+					},
 				],
-				having: db.Sequelize.literal('`noticePeriodHistories`.`employeeId` IS NULL') 
+				having: db.Sequelize.literal(
+					"`noticePeriodHistories`.`employeeId` IS NULL",
+				),
 			});
-			
-			if(users.length > 0) {
+
+			if (users.length > 0) {
 				await db.NoticePeriodEmploymentHistory.bulkCreate(users);
 				return respHelper(res, {
 					status: 200,
 					msg: "History generated successfully.",
-					data: users.length
+					data: users.length,
 				});
-			}
-			else {
+			} else {
 				return respHelper(res, {
 					status: 404,
-					msg: "No data found"
-				})
+					msg: "No data found",
+				});
 			}
-			
-		}
-		catch(error) {
+		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
-				status: 500
+				status: 500,
 			});
 		}
 	}
@@ -1958,10 +1957,11 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 					importAutoId: importId,
 					importStatus: 2,
 					createdBy: req.userId,
-					importStatusDesc:
-						!filterData[i]["Enable Biometric Attendance (Yes, No)"]
-							? "Invalid biometric, mobile, web attendance value."
-							: "Invalid shift, weekoff or attendance policy value",
+					importStatusDesc: !filterData[i][
+						"Enable Biometric Attendance (Yes, No)"
+					]
+						? "Invalid biometric, mobile, web attendance value."
+						: "Invalid shift, weekoff or attendance policy value",
 				});
 				i++;
 			}
@@ -2113,42 +2113,42 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 		let importFinalResult = successArray.concat(errorArray);
 
 		// customise final result response
-		
+
 		const rowMap = new Map();
 
 		for (const record of importFinalResult) {
-		const key = record.importedRow;
+			const key = record.importedRow;
 
-		if (!rowMap.has(key)) {
-			rowMap.set(key, {
-			failures: [],
-			firstSuccess: null,
-			importAutoId: record.importAutoId,
-			createdBy: record.createdBy
-			});
-		}
+			if (!rowMap.has(key)) {
+				rowMap.set(key, {
+					failures: [],
+					firstSuccess: null,
+					importAutoId: record.importAutoId,
+					createdBy: record.createdBy,
+				});
+			}
 
-		const entry = rowMap.get(key);
+			const entry = rowMap.get(key);
 
-		if (record.importStatus === 2) {
-			entry.failures.push(record.importStatusDesc);
-		} else if (record.importStatus === 1 && !entry.firstSuccess) {
-			entry.firstSuccess = record;
-		}
+			if (record.importStatus === 2) {
+				entry.failures.push(record.importStatusDesc);
+			} else if (record.importStatus === 1 && !entry.firstSuccess) {
+				entry.firstSuccess = record;
+			}
 		}
 
 		const finalResults = [];
 		let successCount = 0;
-        let failureCount = 0;
+		let failureCount = 0;
 
 		for (const [row, entry] of rowMap.entries()) {
 			if (entry.failures.length > 0) {
 				finalResults.push({
-				importedRow: row,
-				importAutoId: entry.importAutoId,
-				createdBy: entry.createdBy,
-				importStatus: 2,
-				importStatusDesc: entry.failures.join('; ')
+					importedRow: row,
+					importAutoId: entry.importAutoId,
+					createdBy: entry.createdBy,
+					importStatus: 2,
+					importStatusDesc: entry.failures.join("; "),
 				});
 				failureCount++;
 			} else if (entry.firstSuccess) {
@@ -2260,7 +2260,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					query,
 					attributes,
 					msgDataExist,
-					msgInvalidModule
+					msgInvalidModule,
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2291,7 +2291,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					query,
 					attributes,
 					msgDataExist,
-					msgInvalidModule
+					msgInvalidModule,
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2322,7 +2322,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					query,
 					attributes,
 					msgDataExist,
-					msgInvalidModule
+					msgInvalidModule,
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2353,7 +2353,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					query,
 					attributes,
 					msgDataExist,
-					msgInvalidModule
+					msgInvalidModule,
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2414,7 +2414,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					query,
 					attributes,
 					msgDataExist,
-					msgInvalidModule
+					msgInvalidModule,
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2422,7 +2422,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				} else {
 					errorArray.push(responseObj);
 				}
-			} 
+			}
 		} else {
 			// push object in failure array
 			errorArray.push({
@@ -2441,28 +2441,28 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 	if (successArray.length > 0 || errorArray.length > 0) {
 		let importFinalResult = successArray.concat(errorArray);
 
-        // customise final result response
+		// customise final result response
 		const rowMap = new Map();
 
 		for (const record of importFinalResult) {
-		const key = record.importedRow;
+			const key = record.importedRow;
 
-		if (!rowMap.has(key)) {
-			rowMap.set(key, {
-			failures: [],
-			firstSuccess: null,
-			importAutoId: record.importAutoId,
-			createdBy: record.createdBy
-			});
-		}
+			if (!rowMap.has(key)) {
+				rowMap.set(key, {
+					failures: [],
+					firstSuccess: null,
+					importAutoId: record.importAutoId,
+					createdBy: record.createdBy,
+				});
+			}
 
-		const entry = rowMap.get(key);
+			const entry = rowMap.get(key);
 
-		if (record.importStatus === 2) {
-			entry.failures.push(record.importStatusDesc);
-		} else if (record.importStatus === 1 && !entry.firstSuccess) {
-			entry.firstSuccess = record;
-		}
+			if (record.importStatus === 2) {
+				entry.failures.push(record.importStatusDesc);
+			} else if (record.importStatus === 1 && !entry.firstSuccess) {
+				entry.firstSuccess = record;
+			}
 		}
 
 		const finalResults = [];
@@ -2472,11 +2472,11 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 		for (const [row, entry] of rowMap.entries()) {
 			if (entry.failures.length > 0) {
 				finalResults.push({
-				importedRow: row,
-				importAutoId: entry.importAutoId,
-				createdBy: entry.createdBy,
-				importStatus: 2,
-				importStatusDesc: entry.failures.join('; ')
+					importedRow: row,
+					importAutoId: entry.importAutoId,
+					createdBy: entry.createdBy,
+					importStatus: 2,
+					importStatusDesc: entry.failures.join("; "),
 				});
 				failureCount++;
 			} else if (entry.firstSuccess) {
@@ -2524,11 +2524,15 @@ async function employeeData(req, res, FILEDATA, importParams) {
 	const filterData = FILEDATA.filter((item) => item["Employee ID"]);
 	let importId = await createImportDetails(importParams);
 
-	const empCodesFromExcel = filterData.map(row => String(row["Employee ID"]));
-	const existingEmployees = await db.employeeMaster.findAll({ where: { empCode: empCodesFromExcel }, attributes: ["id", "empCode"], raw: true });
+	const empCodesFromExcel = filterData.map((row) => String(row["Employee ID"]));
+	const existingEmployees = await db.employeeMaster.findAll({
+		where: { empCode: empCodesFromExcel },
+		attributes: ["id", "empCode"],
+		raw: true,
+	});
 
 	const employeeMap = new Map();
-	existingEmployees.forEach(emp => {
+	existingEmployees.forEach((emp) => {
 		employeeMap.set(emp.empCode, emp);
 	});
 
@@ -2537,98 +2541,177 @@ async function employeeData(req, res, FILEDATA, importParams) {
 		const employee = employeeMap.get(empCode);
 
 		if (employee) {
-
 			// update data in employee master table
-			
-			let lastIncrementDate = (row["Last increment date"]) ? convertExcelDate(row["Last increment date"]) : "";
-			let dateOfJoining = (row["Date Of Joining"]) ? convertExcelDate(row["Date Of Joining"]) : "";
+
+			let lastIncrementDate = row["Last increment date"]
+				? convertExcelDate(row["Last increment date"])
+				: "";
+			let dateOfJoining = row["Date Of Joining"]
+				? convertExcelDate(row["Date Of Joining"])
+				: "";
 
 			const updateEmployeeObj = {
 				...(row["First Name"] && { firstName: row["First Name"] }),
 				...(row["Middle Name"] && { middleName: row["Middle Name"] }),
 				...(row["Last Name"] && { lastName: row["Last Name"] }),
 				...(dateOfJoining && { dateOfJoining: dateOfJoining }),
-				...(row["Workstation (Admin)"] && { workstationAdmin: replaceYesOrNoWithNumber(row["Workstation (Admin)"]) }),
-				...(row["Mobile (Admin)"] && { mobileAdmin: replaceYesOrNoWithNumber(row["Mobile (Admin)"]) }),
-				...(row["Data Card (Admin)"] && { dataCardAdmin: replaceYesOrNoWithNumber(row["Data Card (Admin)"]) }),
-				...(row["Visiting Card (Admin)"] && { visitingCardAdmin: replaceYesOrNoWithNumber(row["Visiting Card (Admin)"]) }),
-				...(row["Father Name"] && { "fatherName": row["Father Name"] }),
-				...(row["Recruiter Name"] && { "recruiterName": row["Recruiter Name"] }),
-				...(row["Offrole CTC"] && { "offRoleCTC": row["Offrole CTC"] }),
-				...(row["ESIC/PF Deduction"] && { "ESICPFDeduction": row["ESIC/PF Deduction"] }),
-				...(row["IQ Test Applicable"] && { "iqTestApplicable": replaceYesOrNoWithNumber(row["IQ Test Applicable"]) }),
-				...(row["Position Type"] && { "positionType": row["Position Type"] }),
-				...(lastIncrementDate && { "lastIncrementDate": lastIncrementDate }),
-				...(row["Office Mobile Number"] && { "officeMobileNumber": row["Office Mobile Number"] }),
-				...(row["Personal Mobile Number"] && { "personalMobileNumber": row["Personal Mobile Number"] }),
-				...(row["Aadhaar"] && { "adhrNo": row["Aadhaar"] }),
-				...(row["PAN"] && { "panNo": row["PAN"] }),
-				...(row["Driving License"] && { "drivingLicence": row["Driving License"] }),
-				...(row["Passport Number"] && { "passportNumber": row["Passport Number"] }),
+				...(row["Workstation (Admin)"] && {
+					workstationAdmin: replaceYesOrNoWithNumber(
+						row["Workstation (Admin)"],
+					),
+				}),
+				...(row["Mobile (Admin)"] && {
+					mobileAdmin: replaceYesOrNoWithNumber(row["Mobile (Admin)"]),
+				}),
+				...(row["Data Card (Admin)"] && {
+					dataCardAdmin: replaceYesOrNoWithNumber(row["Data Card (Admin)"]),
+				}),
+				...(row["Visiting Card (Admin)"] && {
+					visitingCardAdmin: replaceYesOrNoWithNumber(
+						row["Visiting Card (Admin)"],
+					),
+				}),
+				...(row["Father Name"] && { fatherName: row["Father Name"] }),
+				...(row["Recruiter Name"] && { recruiterName: row["Recruiter Name"] }),
+				...(row["Offrole CTC"] && { offRoleCTC: row["Offrole CTC"] }),
+				...(row["ESIC/PF Deduction"] && {
+					ESICPFDeduction: row["ESIC/PF Deduction"],
+				}),
+				...(row["IQ Test Applicable"] && {
+					iqTestApplicable: replaceYesOrNoWithNumber(row["IQ Test Applicable"]),
+				}),
+				...(row["Position Type"] && { positionType: row["Position Type"] }),
+				...(lastIncrementDate && { lastIncrementDate: lastIncrementDate }),
+				...(row["Office Mobile Number"] && {
+					officeMobileNumber: row["Office Mobile Number"],
+				}),
+				...(row["Personal Mobile Number"] && {
+					personalMobileNumber: row["Personal Mobile Number"],
+				}),
+				...(row["Aadhaar"] && { adhrNo: row["Aadhaar"] }),
+				...(row["PAN"] && { panNo: row["PAN"] }),
+				...(row["Driving License"] && {
+					drivingLicence: row["Driving License"],
+				}),
+				...(row["Passport Number"] && {
+					passportNumber: row["Passport Number"],
+				}),
 			};
 
-			if(row["First Name"] && row["Last Name"]) {
+			if (row["First Name"] && row["Last Name"]) {
 				updateEmployeeObj.name = `${row["First Name"]} ${row["Last Name"]}`;
 			}
 
-			if(row["Salutation"]) {
+			if (row["Salutation"]) {
 				// fetch salutation from master table
-				const salution = await db.salutationMaster.findOne({ where: { "salutation": row["Salutation"] }, attributes: ["salutationId"], raw: true });
-				if(salution) {
-				   updateEmployeeObj.salutationId = salution?.salutationId;
+				const salution = await db.salutationMaster.findOne({
+					where: { salutation: row["Salutation"] },
+					attributes: ["salutationId"],
+					raw: true,
+				});
+				if (salution) {
+					updateEmployeeObj.salutationId = salution?.salutationId;
 				}
 			}
 
-			if(row["Highest Qualification"]) {
+			if (row["Highest Qualification"]) {
 				// fetch salutation from master table
-				const degree = await db.degreeMaster.findOne({ where: { "degreeName": row["Highest Qualification"] }, attributes: ["degreeId"], raw: true });
-				if(degree) {
-				   updateEmployeeObj.highestQualification = degree?.degreeId;
+				const degree = await db.degreeMaster.findOne({
+					where: { degreeName: row["Highest Qualification"] },
+					attributes: ["degreeId"],
+					raw: true,
+				});
+				if (degree) {
+					updateEmployeeObj.highestQualification = degree?.degreeId;
 				}
 			}
 
-			if(Object.keys(updateEmployeeObj).length > 0) {
+			if (Object.keys(updateEmployeeObj).length > 0) {
 				console.log("employee obj", updateEmployeeObj);
 				await db.employeeMaster.update(updateEmployeeObj, {
-					where: { "id": employee.id },
+					where: { id: employee.id },
 				});
 			}
 
 			// update data in employee job details table with history
-			const updateJobDetails = row["Date Of Joining"] || row["RE(Residence Engineer)"] || row["Project Code"] ||
-			row["Next Appraisal Due"] || row["EPS Applicability"] || row["ESIC Applicable"] || row["ESIC Number"] ||
-			row["LWF Applicable"] || row["PF Number"] || row["PF Restriction"] || row["Restrict Company PF"] ||
-			row["UAN Number"] || row["PF Applicability"] || row["PRAN Number"] || row["EPF Applicable"] ||
-			row["Probation Period"] || row["Union Code (Increment Cycle)"] || row["LWF Designation"] || row["LWF State"] ||
-			row["Customer Name"];
+			const updateJobDetails =
+				row["Date Of Joining"] ||
+				row["RE(Residence Engineer)"] ||
+				row["Project Code"] ||
+				row["Next Appraisal Due"] ||
+				row["EPS Applicability"] ||
+				row["ESIC Applicable"] ||
+				row["ESIC Number"] ||
+				row["LWF Applicable"] ||
+				row["PF Number"] ||
+				row["PF Restriction"] ||
+				row["Restrict Company PF"] ||
+				row["UAN Number"] ||
+				row["PF Applicability"] ||
+				row["PRAN Number"] ||
+				row["EPF Applicable"] ||
+				row["Probation Period"] ||
+				row["Union Code (Increment Cycle)"] ||
+				row["LWF Designation"] ||
+				row["LWF State"] ||
+				row["Customer Name"];
 
-			if(updateJobDetails) {
-				const existJobDetails = await db.jobDetails.findOne({ where: { userId: employee.id }, raw: true });
-				if(existJobDetails) {					
+			if (updateJobDetails) {
+				const existJobDetails = await db.jobDetails.findOne({
+					where: { userId: employee.id },
+					raw: true,
+				});
+				if (existJobDetails) {
 					const updateJobMetaData = {
-						...(dateOfJoining && { "dateOfJoining": dateOfJoining }),
-						...(row["RE(Residence Engineer)"] && { "residentEng": replaceYesOrNoWithNumber(row["RE(Residence Engineer)"]) }),
-						...(row["Project Code"] && { "projectCode": row["Project Code"] }),
-						...(row["Next Appraisal Due"] && { "nextAppraisalDue": row["Next Appraisal Due"] }),
-				        ...(row["EPS Applicability"] && { "epsApplicability": replaceYesOrNoWithNumber(row["EPS Applicability"]) }),
-				        ...(row["ESIC Applicable"] && { "esicApplicable": replaceYesOrNoWithNumber(row["ESIC Applicable"]) }),
-						...(row["ESIC Number"] && { "esicNumber": row["ESIC Number"] }),
-				        ...(row["LWF Applicable"] && { "epfApplicable": replaceYesOrNoWithNumber(row["LWF Applicable"]) }),
-						...(row["PF Number"] && { "pfNumber": row["PF Number"] }),
-				        ...(row["PF Restriction"] && { "pfRestricted": replaceYesOrNoWithNumber(row["PF Restriction"]) }),
-				        ...(row["Restrict Company PF"] && { "restrictCompanyPf": replaceYesOrNoWithNumber(row["Restrict Company PF"]) }),
-						...(row["UAN Number"] && { "uanNumber": row["UAN Number"] }),
-				        ...(row["PF Applicability"] && { "pfApplicability": replaceYesOrNoWithNumber(row["PF Applicability"]) }),
-						...(row["PRAN Number"] && { "pranNumber": row["PRAN Number"] }),
-				        ...(row["EPF Applicable"] && { "epfApplicable": replaceYesOrNoWithNumber(row["EPF Applicable"]) })
-					}
+						...(dateOfJoining && { dateOfJoining: dateOfJoining }),
+						...(row["RE(Residence Engineer)"] && {
+							residentEng: replaceYesOrNoWithNumber(
+								row["RE(Residence Engineer)"],
+							),
+						}),
+						...(row["Project Code"] && { projectCode: row["Project Code"] }),
+						...(row["Next Appraisal Due"] && {
+							nextAppraisalDue: row["Next Appraisal Due"],
+						}),
+						...(row["EPS Applicability"] && {
+							epsApplicability: replaceYesOrNoWithNumber(
+								row["EPS Applicability"],
+							),
+						}),
+						...(row["ESIC Applicable"] && {
+							esicApplicable: replaceYesOrNoWithNumber(row["ESIC Applicable"]),
+						}),
+						...(row["ESIC Number"] && { esicNumber: row["ESIC Number"] }),
+						...(row["LWF Applicable"] && {
+							epfApplicable: replaceYesOrNoWithNumber(row["LWF Applicable"]),
+						}),
+						...(row["PF Number"] && { pfNumber: row["PF Number"] }),
+						...(row["PF Restriction"] && {
+							pfRestricted: replaceYesOrNoWithNumber(row["PF Restriction"]),
+						}),
+						...(row["Restrict Company PF"] && {
+							restrictCompanyPf: replaceYesOrNoWithNumber(
+								row["Restrict Company PF"],
+							),
+						}),
+						...(row["UAN Number"] && { uanNumber: row["UAN Number"] }),
+						...(row["PF Applicability"] && {
+							pfApplicability: replaceYesOrNoWithNumber(
+								row["PF Applicability"],
+							),
+						}),
+						...(row["PRAN Number"] && { pranNumber: row["PRAN Number"] }),
+						...(row["EPF Applicable"] && {
+							epfApplicable: replaceYesOrNoWithNumber(row["EPF Applicable"]),
+						}),
+					};
 
 					// get probation period
-					if(row["Probation Period"]) {
+					if (row["Probation Period"]) {
 						// verify probation id and calculate probation days
 						const getProbationDetails = await db.probationMaster.findOne({
 							where: { probationName: row["Probation Period"] },
-							attributes: ["probationId", "durationOfProbation"]
+							attributes: ["probationId", "durationOfProbation"],
 						});
 						if (getProbationDetails) {
 							let durationOfProbation = getProbationDetails.durationOfProbation;
@@ -2637,102 +2720,211 @@ async function employeeData(req, res, FILEDATA, importParams) {
 						}
 					}
 
-					if(row["Union Code (Increment Cycle)"]) {
+					if (row["Union Code (Increment Cycle)"]) {
 						// verify union code
 						const getUnionDetails = await db.unionCodIncrementMaster.findOne({
 							where: { unionCode: row["Union Code (Increment Cycle)"] },
-							attributes: ["unionCodeId"]
+							attributes: ["unionCodeId"],
 						});
 						if (getUnionDetails) {
 							updateJobMetaData.unionId = getUnionDetails.unionCodeId;
 						}
 					}
 
-					if(row["LWF Designation"] && row["LWF State"]) {
-						const lwfState = await db.stateMaster.findOne({ where: { "stateName": row["LWF State"] }, attributes: ["stateId"], row: true });
-						if(lwfState) {
+					if (row["LWF Designation"] && row["LWF State"]) {
+						const lwfState = await db.stateMaster.findOne({
+							where: { stateName: row["LWF State"] },
+							attributes: ["stateId"],
+							row: true,
+						});
+						if (lwfState) {
 							updateJobMetaData.lwfState = lwfState?.stateId;
 						}
-						const lwfLocation = await db.lwfDesignationMaster.findOne({ where: { "lwfDesignationName": row["LWF Designation"], attributes: ["lwfDesignationId"], raw: true }});
-						if(lwfLocation) {
+						const lwfLocation = await db.lwfDesignationMaster.findOne({
+							where: {
+								lwfDesignationName: row["LWF Designation"],
+								attributes: ["lwfDesignationId"],
+								raw: true,
+							},
+						});
+						if (lwfLocation) {
 							updateJobMetaData.lwfDesignation = lwfLocation?.lwfDesignationId;
 						}
 					}
 
-					if(row["Customer Name"]) {
-						const customerName = await db.newCustomerNameMaster.findOne({ where: { "newCustomerName": row["Customer Name"] }, attributes: ["newCustomerName"], raw: true });
-						if(customerName) {
+					if (row["Customer Name"]) {
+						const customerName = await db.newCustomerNameMaster.findOne({
+							where: { newCustomerName: row["Customer Name"] },
+							attributes: ["newCustomerName"],
+							raw: true,
+						});
+						if (customerName) {
 							updateJobMetaData.customerName = customerName?.newCustomerName;
 						}
 					}
 
 					// generate job details history
 					await db.employeeJobDetailsHistory.create(existJobDetails);
-					await db.jobDetails.update(updateJobMetaData, { where: { userId: employee.id } });
+					await db.jobDetails.update(updateJobMetaData, {
+						where: { userId: employee.id },
+					});
 				}
 			}
 
 			// update data in employee biographical table
-			const biographyDetails = row["Date Of Birth"] || row["Gender"] || row["Nationality"] || row["Marital Status"] ||
-			row["Marital Status Since"] || row["Mobile Access"] || row["Laptop/System (IT)"] || row["Background Verification (HR)"] ||
-			row["Nominee Name"] || row["Nominee Relation"];
+			const biographyDetails =
+				row["Date Of Birth"] ||
+				row["Gender"] ||
+				row["Nationality"] ||
+				row["Marital Status"] ||
+				row["Marital Status Since"] ||
+				row["Mobile Access"] ||
+				row["Laptop/System (IT)"] ||
+				row["Background Verification (HR)"] ||
+				row["Nominee Name"] ||
+				row["Nominee Relation"];
 
-			if(biographyDetails) {
-				let maritalStatusSince = (row["Marital Status Since"]) ? convertExcelDate(row["Marital Status Since"]) : "";
-				let dateOfBirth = (row["Date Of Birth"]) ? convertExcelDate(row["Date Of Birth"]) : "";
+			if (biographyDetails) {
+				let maritalStatusSince = row["Marital Status Since"]
+					? convertExcelDate(row["Marital Status Since"])
+					: "";
+				let dateOfBirth = row["Date Of Birth"]
+					? convertExcelDate(row["Date Of Birth"])
+					: "";
 
 				const biographyMetaData = {
-					...(dateOfBirth && { "dateOfBirth": dateOfBirth }),
-					...(row["Gender"] && { "gender": row["Gender"] }),
+					...(dateOfBirth && { dateOfBirth: dateOfBirth }),
+					...(row["Gender"] && { gender: row["Gender"] }),
 					...(row["Nationality"] && { nationality: row["Nationality"] }),
-					...(row["Marital Status"] && { maritalStatus: maritalStatusOptions[row["Marital Status"]] }),
+					...(row["Marital Status"] && {
+						maritalStatus: maritalStatusOptions[row["Marital Status"]],
+					}),
 					...(maritalStatusSince && { maritalStatusSince: maritalStatusSince }),
-					...(row["Mobile Access"] && { mobileAccess: replaceYesOrNoWithNumber(row["Mobile Access"]) }),
-					...(row["Laptop/System (IT)"] && { laptopSystem: row["Laptop/System (IT)"] }),
-					...(row["Background Verification (HR)"] && { backgroundVerification: replaceYesOrNoWithNumber(row["Background Verification (HR)"]) }),
-				    ...(row["Nominee Name"] && { "nomineeName": row["Nominee Name"] }),
-				    ...(row["Nominee Relation"] && { "nomineeRelation": row["Nominee Relation"] })
-				}
-				await db.biographicalDetails.update(biographyMetaData, { where: { userId: employee.id } });
+					...(row["Mobile Access"] && {
+						mobileAccess: replaceYesOrNoWithNumber(row["Mobile Access"]),
+					}),
+					...(row["Laptop/System (IT)"] && {
+						laptopSystem: row["Laptop/System (IT)"],
+					}),
+					...(row["Background Verification (HR)"] && {
+						backgroundVerification: replaceYesOrNoWithNumber(
+							row["Background Verification (HR)"],
+						),
+					}),
+					...(row["Nominee Name"] && { nomineeName: row["Nominee Name"] }),
+					...(row["Nominee Relation"] && {
+						nomineeRelation: row["Nominee Relation"],
+					}),
+				};
+				await db.biographicalDetails.update(biographyMetaData, {
+					where: { userId: employee.id },
+				});
 			}
 
 			// add/update data in employee address table with history table
 
-			const currentAddressDetails = row["Current Flat/House/Wing Number"] || row["Current Street/Locality/Area"] ||
-			row["Current Landmark"] || row["Current Pincode"] || row["Current Country"] || row["Current State"] || row["Current City"];
+			const currentAddressDetails =
+				row["Current Flat/House/Wing Number"] ||
+				row["Current Street/Locality/Area"] ||
+				row["Current Landmark"] ||
+				row["Current Pincode"] ||
+				row["Current Country"] ||
+				row["Current State"] ||
+				row["Current City"];
 
-			const permanentAddressDetails = row["Permanent Flat/House/Wing Number"] || row["Permanent Street/Locality/Area"] ||
-			row["Permanent Landmark"] || row["Permanent Pincode"] || row["Permanent Country"] || row["Permanent State"] || row["Permanent City"];
+			const permanentAddressDetails =
+				row["Permanent Flat/House/Wing Number"] ||
+				row["Permanent Street/Locality/Area"] ||
+				row["Permanent Landmark"] ||
+				row["Permanent Pincode"] ||
+				row["Permanent Country"] ||
+				row["Permanent State"] ||
+				row["Permanent City"];
 
-			const emergencyAddressDetails = row["Emergency Flat/House/Wing Number"] || row["Emergency Street/Locality/Area"] ||
-			row["Emergency Landmark"] || row["Emergency Pincode"] || row["Emergency Country"] || row["Emergency State"] ||
-			row["Emergency City"];
+			const emergencyAddressDetails =
+				row["Emergency Flat/House/Wing Number"] ||
+				row["Emergency Street/Locality/Area"] ||
+				row["Emergency Landmark"] ||
+				row["Emergency Pincode"] ||
+				row["Emergency Country"] ||
+				row["Emergency State"] ||
+				row["Emergency City"];
 
-			if(currentAddressDetails || permanentAddressDetails || emergencyAddressDetails) {
+			if (
+				currentAddressDetails ||
+				permanentAddressDetails ||
+				emergencyAddressDetails
+			) {
 				const updateAddressMetaData = {
-					...(row["Current Flat/House/Wing Number"] && { "currentHouse": row["Current Flat/House/Wing Number"] }),
-					...(row["Current Street/Locality/Area"] && { "currentStreet": row["Current Street/Locality/Area"] }),
-					...(row["Current Landmark"] && { "currentLandmark": row["Current Landmark"] }),
-					...(row["Current Pincode"] && { "currentPincodeId": row["Current Pincode"] }),
+					...(row["Current Flat/House/Wing Number"] && {
+						currentHouse: row["Current Flat/House/Wing Number"],
+					}),
+					...(row["Current Street/Locality/Area"] && {
+						currentStreet: row["Current Street/Locality/Area"],
+					}),
+					...(row["Current Landmark"] && {
+						currentLandmark: row["Current Landmark"],
+					}),
+					...(row["Current Pincode"] && {
+						currentPincodeId: row["Current Pincode"],
+					}),
 
-					...(row["Permanent Flat/House/Wing Number"] && { "permanentHouse": row["Permanent Flat/House/Wing Number"] }),
-					...(row["Permanent Street/Locality/Area"] && { "permanentStreet": row["Permanent Street/Locality/Area"] }),
-					...(row["Permanent Landmark"] && { "permanentLandmark": row["Permanent Landmark"] }),
-					...(row["Permanent Pincode"] && { "permanentPincodeId": row["Permanent Pincode"] }),
+					...(row["Permanent Flat/House/Wing Number"] && {
+						permanentHouse: row["Permanent Flat/House/Wing Number"],
+					}),
+					...(row["Permanent Street/Locality/Area"] && {
+						permanentStreet: row["Permanent Street/Locality/Area"],
+					}),
+					...(row["Permanent Landmark"] && {
+						permanentLandmark: row["Permanent Landmark"],
+					}),
+					...(row["Permanent Pincode"] && {
+						permanentPincodeId: row["Permanent Pincode"],
+					}),
 
-					...(row["Emergency Flat/House/Wing Number"] && { "emergencyHouse": row["Emergency Flat/House/Wing Number"] }),
-					...(row["Emergency Street/Locality/Area"] && { "emergencyStreet": row["Emergency Street/Locality/Area"] }),
-					...(row["Emergency Landmark"] && { "emergencyLandmark": row["Emergency Landmark"] }),
-					...(row["Emergency Pincode"] && { "emergencyPincodeId": row["Emergency Pincode"] }),
-				}
+					...(row["Emergency Flat/House/Wing Number"] && {
+						emergencyHouse: row["Emergency Flat/House/Wing Number"],
+					}),
+					...(row["Emergency Street/Locality/Area"] && {
+						emergencyStreet: row["Emergency Street/Locality/Area"],
+					}),
+					...(row["Emergency Landmark"] && {
+						emergencyLandmark: row["Emergency Landmark"],
+					}),
+					...(row["Emergency Pincode"] && {
+						emergencyPincodeId: row["Emergency Pincode"],
+					}),
+				};
 
-				if(row["Current Country"] && row["Current State"] && row["Current City"]) {
-					let country = await db.countryMaster.findOne({ where: { "countryName": row["Current Country"] }, attributes: ["countryId"], raw: true });
-					if(country) {
-						let state = await db.stateMaster.findOne({ where: { "stateName": row["Current State"], "countryId": country?.countryId }, attributes: ["stateId"], raw: true });
-						if(state) {
-							let city = await db.cityMaster.findOne({ where: { "cityName": row["Current City"], "stateId": state?.stateId }, attributes: ["cityId"], raw: true });
-							if(city) {
+				if (
+					row["Current Country"] &&
+					row["Current State"] &&
+					row["Current City"]
+				) {
+					let country = await db.countryMaster.findOne({
+						where: { countryName: row["Current Country"] },
+						attributes: ["countryId"],
+						raw: true,
+					});
+					if (country) {
+						let state = await db.stateMaster.findOne({
+							where: {
+								stateName: row["Current State"],
+								countryId: country?.countryId,
+							},
+							attributes: ["stateId"],
+							raw: true,
+						});
+						if (state) {
+							let city = await db.cityMaster.findOne({
+								where: {
+									cityName: row["Current City"],
+									stateId: state?.stateId,
+								},
+								attributes: ["cityId"],
+								raw: true,
+							});
+							if (city) {
 								updateAddressMetaData.currentCountryId = country.countryId;
 								updateAddressMetaData.currentStateId = state.stateId;
 								updateAddressMetaData.currentCityId = city.cityId;
@@ -2741,13 +2933,35 @@ async function employeeData(req, res, FILEDATA, importParams) {
 					}
 				}
 
-				if(row["Permanent Country"] && row["Permanent State"] && row["Permanent City"]) {
-					let country = await db.countryMaster.findOne({ where: { "countryName": row["Permanent Country"] }, attributes: ["countryId"], raw: true });
-					if(country) {
-						let state = await db.stateMaster.findOne({ where: { "stateName": row["Permanent State"], "countryId": country?.countryId }, attributes: ["stateId"], raw: true });
-						if(state) {
-							let city = await db.cityMaster.findOne({ where: { "cityName": row["Permanent City"], "stateId": state?.stateId }, attributes: ["cityId"], raw: true });
-							if(city) {
+				if (
+					row["Permanent Country"] &&
+					row["Permanent State"] &&
+					row["Permanent City"]
+				) {
+					let country = await db.countryMaster.findOne({
+						where: { countryName: row["Permanent Country"] },
+						attributes: ["countryId"],
+						raw: true,
+					});
+					if (country) {
+						let state = await db.stateMaster.findOne({
+							where: {
+								stateName: row["Permanent State"],
+								countryId: country?.countryId,
+							},
+							attributes: ["stateId"],
+							raw: true,
+						});
+						if (state) {
+							let city = await db.cityMaster.findOne({
+								where: {
+									cityName: row["Permanent City"],
+									stateId: state?.stateId,
+								},
+								attributes: ["cityId"],
+								raw: true,
+							});
+							if (city) {
 								updateAddressMetaData.permanentCountryId = country.countryId;
 								updateAddressMetaData.permanentStateId = state.stateId;
 								updateAddressMetaData.permanentCityId = city.cityId;
@@ -2756,13 +2970,35 @@ async function employeeData(req, res, FILEDATA, importParams) {
 					}
 				}
 
-				if(row["Emergency Country"] && row["Emergency State"] && row["Emergency City"]) {
-					let country = await db.countryMaster.findOne({ where: { "countryName": row["Emergency Country"] }, attributes: ["countryId"], raw: true });
-					if(country) {
-						let state = await db.stateMaster.findOne({ where: { "stateName": row["Emergency State"], "countryId": country?.countryId }, attributes: ["stateId"], raw: true });
-						if(state) {
-							let city = await db.cityMaster.findOne({ where: { "cityName": row["Emergency City"], "stateId": state?.stateId }, attributes: ["cityId"], raw: true });
-							if(city) {
+				if (
+					row["Emergency Country"] &&
+					row["Emergency State"] &&
+					row["Emergency City"]
+				) {
+					let country = await db.countryMaster.findOne({
+						where: { countryName: row["Emergency Country"] },
+						attributes: ["countryId"],
+						raw: true,
+					});
+					if (country) {
+						let state = await db.stateMaster.findOne({
+							where: {
+								stateName: row["Emergency State"],
+								countryId: country?.countryId,
+							},
+							attributes: ["stateId"],
+							raw: true,
+						});
+						if (state) {
+							let city = await db.cityMaster.findOne({
+								where: {
+									cityName: row["Emergency City"],
+									stateId: state?.stateId,
+								},
+								attributes: ["cityId"],
+								raw: true,
+							});
+							if (city) {
 								updateAddressMetaData.emergencyCountryId = country.countryId;
 								updateAddressMetaData.emergencyStateId = state.stateId;
 								updateAddressMetaData.emergencyCityId = city.cityId;
@@ -2771,70 +3007,126 @@ async function employeeData(req, res, FILEDATA, importParams) {
 					}
 				}
 
-				const existAddressDetails = await db.employeeAddress.findOne({ where: { employeeId: employee.id }, raw: true });
+				const existAddressDetails = await db.employeeAddress.findOne({
+					where: { employeeId: employee.id },
+					raw: true,
+				});
 
-				if(existAddressDetails) {
-					await db.employeeAddress.update(updateAddressMetaData, { where: { employeeId: employee.id } });
-				}
-				else {
+				if (existAddressDetails) {
+					await db.employeeAddress.update(updateAddressMetaData, {
+						where: { employeeId: employee.id },
+					});
+				} else {
 					updateAddressMetaData.employeeId = employee.id;
 					await db.employeeAddress.create(updateAddressMetaData);
 				}
 			}
 
 			// update data in employee emergency contact table
-			let emergencyDetails = row["Blood Group"] || row["Emergency Contact Relation"] || 
-			row["Emergency Contact Name"] || row["Emergency Contact Number"];
-			if(emergencyDetails) {
-				const existEmergencyDetails = await db.emergencyDetails.findOne({ where: { 'userId': employee.id }, attributes: ['emergencyContactId'] });
+			let emergencyDetails =
+				row["Blood Group"] ||
+				row["Emergency Contact Relation"] ||
+				row["Emergency Contact Name"] ||
+				row["Emergency Contact Number"];
+			if (emergencyDetails) {
+				const existEmergencyDetails = await db.emergencyDetails.findOne({
+					where: { userId: employee.id },
+					attributes: ["emergencyContactId"],
+				});
 				let emergencyMetaData = {
-					...(row["Blood Group"] && { "emergencyBloodGroup": row["Blood Group"] }),
-					...(row["Emergency Contact Relation"] && { "emergencyContactRelation": row["Emergency Contact Relation"] }),
-					...(row["Emergency Contact Name"] && { "emergencyContactName": row["Emergency Contact Name"] }),
-					...(row["Emergency Contact Number"] && { "emergencyContactNumber": row["Emergency Contact Number"] })
-				}
-				if(existEmergencyDetails) {
-					await db.emergencyDetails.update(emergencyMetaData, { where: { userId: employee.id } });
-				}
-				else {
+					...(row["Blood Group"] && {
+						emergencyBloodGroup: row["Blood Group"],
+					}),
+					...(row["Emergency Contact Relation"] && {
+						emergencyContactRelation: row["Emergency Contact Relation"],
+					}),
+					...(row["Emergency Contact Name"] && {
+						emergencyContactName: row["Emergency Contact Name"],
+					}),
+					...(row["Emergency Contact Number"] && {
+						emergencyContactNumber: row["Emergency Contact Number"],
+					}),
+				};
+				if (existEmergencyDetails) {
+					await db.emergencyDetails.update(emergencyMetaData, {
+						where: { userId: employee.id },
+					});
+				} else {
 					emergencyMetaData.userId = employee.id;
 					await db.emergencyDetails.create(emergencyMetaData);
 				}
 			}
 
 			// update data in employee payment table
-			const bankDetails = row["Account Number"] || row["Bank Name"] || row["Swift/IFSC Code"]
-			row["PT Applicability"] || row["PT State"] || row["PT Location"] || row["TDS Applicability"];
-			
-			if(bankDetails) {
-				const existPaymentDetails = await db.paymentDetails.findOne({ where: { 'userId': employee.id }, attributes: ['paymentId'] });
-				const getBankDetails = await db.bankMaster.findOne({ where: { 'bankName': row["Bank Name"] }, attributes: ['bankId'], raw: true });
-				let ptApplicability = (row["PT Applicability"]) ? replaceYesOrNoWithNumber(row["PT Applicability"]) : "";
+			const bankDetails =
+				row["Account Number"] || row["Bank Name"] || row["Swift/IFSC Code"];
+			row["PT Applicability"] ||
+				row["PT State"] ||
+				row["PT Location"] ||
+				row["TDS Applicability"];
+
+			if (bankDetails) {
+				const existPaymentDetails = await db.paymentDetails.findOne({
+					where: { userId: employee.id },
+					attributes: ["paymentId"],
+				});
+				const getBankDetails = await db.bankMaster.findOne({
+					where: { bankName: row["Bank Name"] },
+					attributes: ["bankId"],
+					raw: true,
+				});
+				let ptApplicability = row["PT Applicability"]
+					? replaceYesOrNoWithNumber(row["PT Applicability"])
+					: "";
 
 				let paymentMetaData = {
-					...(row["Account Number"] && { "paymentAccountNumber": row["Account Number"] }),
-					...(getBankDetails && { "bankId": getBankDetails?.bankId }),
-					...(row["Swift/IFSC Code"] && { "paymentBankIfsc": row["Swift/IFSC Code"] }),
+					...(row["Account Number"] && {
+						paymentAccountNumber: row["Account Number"],
+					}),
+					...(getBankDetails && { bankId: getBankDetails?.bankId }),
+					...(row["Swift/IFSC Code"] && {
+						paymentBankIfsc: row["Swift/IFSC Code"],
+					}),
 					...(ptApplicability && { ptApplicability: ptApplicability }),
-					...(row["TDS Applicability"] && { "tdsApplicability": replaceYesOrNoWithNumber(row["TDS Applicability"]) })
-				}
+					...(row["TDS Applicability"] && {
+						tdsApplicability: replaceYesOrNoWithNumber(
+							row["TDS Applicability"],
+						),
+					}),
+				};
 
-				if(ptApplicability === 'Yes' && row["PT State"] && row["PT Location"]) {
+				if (
+					ptApplicability === "Yes" &&
+					row["PT State"] &&
+					row["PT Location"]
+				) {
 					// fetch pt state and pt location
-                    const ptState = await db.stateMaster.findOne({ where: { "stateName": row["PT State"] }, attributes: ["stateId"], raw: true });
-					if(ptState) {
-                        const ptLocation = await db.ptLocationMaster.findOne({ where: { "ptLocationName": row["PT Location"], "stateId": ptState?.stateId }, attributes: ["ptLocationId"], raw: true });
-						if(ptLocation) {
+					const ptState = await db.stateMaster.findOne({
+						where: { stateName: row["PT State"] },
+						attributes: ["stateId"],
+						raw: true,
+					});
+					if (ptState) {
+						const ptLocation = await db.ptLocationMaster.findOne({
+							where: {
+								ptLocationName: row["PT Location"],
+								stateId: ptState?.stateId,
+							},
+							attributes: ["ptLocationId"],
+							raw: true,
+						});
+						if (ptLocation) {
 							paymentMetaData.ptStateId = ptState?.stateId;
 							paymentMetaData.ptLocationId = ptLocation?.ptLocationId;
 						}
 					}
 				}
 
-				if(existPaymentDetails) {
-					await db.paymentDetails.update(paymentMetaData, { where: { userId: employee.id } });
-				}
-				else {
+				if (existPaymentDetails) {
+					await db.paymentDetails.update(paymentMetaData, {
+						where: { userId: employee.id },
+					});
+				} else {
 					paymentMetaData.userId = employee.id;
 					await db.paymentDetails.create(paymentMetaData);
 				}

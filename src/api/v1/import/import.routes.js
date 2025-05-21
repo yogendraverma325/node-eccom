@@ -17,4 +17,8 @@ export default Express.Router()
 	)
 	.get("/exportImportedSheets", importController.exportImportedSheets)
 
-	.get("/generateNoticePeriodHistory", authentication.authenticate, importController.generateNoticePeriodHistory)
+	.get(
+		"/generateNoticePeriodHistory",
+		authentication.authenticate,
+		importController.generateNoticePeriodHistory,
+	);
