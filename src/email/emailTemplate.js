@@ -3765,7 +3765,7 @@ html=`<!-- FOR Team Computers -->
       </div>
 
      
-      <div style="padding: 30px 30px 18rem 30px">
+      <div style="padding: 30px; min-height: 600px">
         <p>
           To,<br />
           Name: <strong>Dear ${data?.name}</strong><br />
@@ -3858,7 +3858,7 @@ html=`<!-- FOR THR -->
       </div>
 
      
-      <div style="padding: 30px 30px 18rem 30px">
+      <div style="padding: 30px; min-height: 600px"> 
         <p>
           To,<br />
           Name: <strong>${data?.name}</strong><br />
@@ -3923,7 +3923,7 @@ html=`<!-- FOR THR -->
   </body>
 </html>
 `
-  }
+  } 
 
 return html;
 	

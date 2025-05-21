@@ -1157,7 +1157,7 @@ class CronController {
 			await db.Confirmationinitiated.findAll({
 				where: {
 					status: 1,
-					//confirmationinitiatedAutoId:[5]
+					confirmationinitiatedAutoId:[263]
 				},
 				include: {
 					model: db.employeeMaster,
@@ -1208,11 +1208,11 @@ class CronController {
 				);
 
 				await db.leaveMapping.update(
-					{ is_active_for_application: 1 },
+					{ is_active_for_application: 1,is_active_for_display:1 },
 					{
 						where: {
 							EmployeeId: SingleConfirmationDateIsTodayList?.employeeId,
-							is_active_for_application: 0,
+							//is_active_for_application: 0, // commetned , due to leave was not getting activated post confirmation
 							isActive: 1,
 						},
 					},
