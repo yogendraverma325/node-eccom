@@ -2692,7 +2692,7 @@ const employmentManagerDetails = async (payload, today) => {
 };
 
 const employmentFunctionalAreaDetails = async (payload, today) => {
-	let fromDate = convertExcelDate(payload.obj.jobLevelFromDate);
+	let fromDate = convertExcelDate(payload.obj.functionalFromDate);
 	const recordsExistForDate = await db.DepartmentEmploymentHistory.findOne({
 		raw: true,
 		where: {
