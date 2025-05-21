@@ -2407,7 +2407,11 @@ db.NoticePeriodEmploymentHistory.hasOne(db.employeeMaster, {
 	as: "noticePeriodHistoryCreatedBy",
 });
 // end jay notice period employment
-
+db.employeeleave_revoke_transaction.hasOne(db.employeeMaster, {  //adding joins for leave revoke features
+	foreignKey: "id",
+	sourceKey: "updatedBy",
+	as: "leaveUpdatedBy",
+});
 
 
 export default db;

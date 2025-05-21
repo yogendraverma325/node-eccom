@@ -356,6 +356,13 @@ export default Express.Router()
 		authentication.authenticate,
 		userController.compOffCreditHisttory,
 	)
+	// adding new api for leave revoke requst
+	.get(
+		"/getRevokeRequestHistory",
+		authentication.authenticate,
+		userController.getRevokeRequestHistory,
+	)
+	// adding new api for leave revoke requst
 	.get(
 		"/compOffPendingForApproval",
 		authentication.authenticate,
