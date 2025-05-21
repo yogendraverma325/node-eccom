@@ -6405,6 +6405,78 @@ class UserController {
 			});
 		}
 	}
+		// adding new api for leave revoke requst
+	async getRevokeRequestHistory(req, res) {
+		try {
+			const limit = parseInt(req.query.limit, 10) || 10;
+			const pageNo = parseInt(req.query.page, 10) || 1;
+			const selectMode = req.query.type || "self";
+			const search = req.query.user || "";
+			const offset = (pageNo - 1) * limit;
+
+			const userId = req.userData.id;
+			let whereCondition =
+				selectMode === "self"
+				? {
+				employeeId: userId,
+				status: { [Op.not]: 'pending' }
+				}
+				:
+				{
+				updatedBy: userId,
+				status: { [Op.not]: 'pending' }
+				};
+
+			const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.findAndCountAll({
+								where:whereCondition,
+								include:
+									{
+									model: db.EmployeeLeaveHeader,
+									required: true,
+											include:
+											[
+											{
+											model: db.leaveMaster,
+											attributes:["leaveId","leaveName","leaveCode"],
+											required: true,
+											as:'leaveMasterDetails'
+											},
+											{
+											model: db.employeeMaster,
+											attributes:["id","empCode","name"],
+											required: true,
+											where: {
+												...(search && {
+													[Op.or]: [
+														{ name: { [Op.like]: `%${search}%` } }, // Search in 'name'
+														{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
+													],
+												})
+											},
+											}
+										],
+			
+									},
+									limit,
+									offset,
+								});
+
+			return respHelper(res, {
+				status: 200,
+				data: {
+					count: employeeleave_revoke_transactionData.count,
+					rows: employeeleave_revoke_transactionData.rows,
+				},
+			});
+		} catch (error) {
+			console.log("err",error)
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+		// adding new api for leave revoke requst
 	async compOffPendingForApproval(req, res) {
 		try {
 			const limit = parseInt(req.query.limit, 10) || 10;
