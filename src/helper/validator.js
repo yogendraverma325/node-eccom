@@ -2576,31 +2576,27 @@ const updateRatingScaleSchema = Joi.object({
 //
 
 //REVOKE
-	const revokeApprovedRegularizationsValidation = Joi.object({
+const revokeApprovedRegularizationsValidation = Joi.object({
 	attendanceAutoId: Joi.number(),
 	regularizeId: Joi.number(),
 	//remark: Joi.string().trim().required().max(100).label("Remark"),
-	});
-	const revokeApprovedLeaveValidation = Joi.object({
+});
+const revokeApprovedLeaveValidation = Joi.object({
 	employeeleaveheaderID: Joi.number(),
 	remark: Joi.string().trim().required().max(100).label("Remark"),
-	});
-	const approvalrevokeApprovedLeaveValidation = Joi.object({
-	employeeLeaveTransactionsIds: Joi.string()
-		.trim()
-		.required(),
+});
+const approvalrevokeApprovedLeaveValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string().trim().required(),
 	status: Joi.string()
 		.trim()
 		.required()
 		.valid("approved", "rejected")
 		.label("status"),
 	remark: Joi.string().trim().required().max(100).label("Remark"),
-	});
-	const revokeLeaverevokeRequestValidation = Joi.object({
-	employeeLeaveTransactionsIds: Joi.string()
-		.trim()
-		.required(),
-	});
+});
+const revokeLeaverevokeRequestValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string().trim().required(),
+});
 //REVOKE
 // Start Import employment details
 const importEmploymentDetails = Joi.object({

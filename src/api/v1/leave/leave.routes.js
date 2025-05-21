@@ -57,11 +57,27 @@ export default Express.Router()
 	)
 	.post("/leaveLapse", authentication.authenticate, LeaveController.leaveLapse)
 	.post("/leaveRefil", authentication.authenticate, LeaveController.leaveRefil)
-//BULK ACTION
+	//BULK ACTION
 
-//REVOKE
-	.post("/revokeApprovedLeaves", authentication.authenticate,LeaveController.revokeApprovedLeaves)
-	.post("/approvedLeaverevoke", authentication.authenticate,LeaveController.approvedLeaverevoke)
-	.post("/revokeLeaverevokeRequest", authentication.authenticate,LeaveController.revokeLeaverevokeRequest)
-	.get("/revokeLeaveRequestPendingForApproval", authentication.authenticate,LeaveController.revokeLeaveRequestPendingForApproval);
 	//REVOKE
+	.post(
+		"/revokeApprovedLeaves",
+		authentication.authenticate,
+		LeaveController.revokeApprovedLeaves,
+	)
+	.post(
+		"/approvedLeaverevoke",
+		authentication.authenticate,
+		LeaveController.approvedLeaverevoke,
+	)
+	.post(
+		"/revokeLeaverevokeRequest",
+		authentication.authenticate,
+		LeaveController.revokeLeaverevokeRequest,
+	)
+	.get(
+		"/revokeLeaveRequestPendingForApproval",
+		authentication.authenticate,
+		LeaveController.revokeLeaveRequestPendingForApproval,
+	);
+//REVOKE

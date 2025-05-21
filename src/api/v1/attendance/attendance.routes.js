@@ -45,6 +45,9 @@ export default Express.Router()
 	)
 	.post("/cronforEMP", attendanceController.cronforEMP)
 	//REVOKE
-	.post("/revokeApprovedRegularizations", attendanceController.revokeApprovedRegularizations);
-	//REVOKE
+	.post(
+		"/revokeApprovedRegularizations",
+		attendanceController.revokeApprovedRegularizations,
+	);
+//REVOKE
 //Attendance Roster

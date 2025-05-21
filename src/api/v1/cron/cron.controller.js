@@ -652,7 +652,6 @@ class CronController {
 
 	///CONFIRMATION
 	async generateConfirmation() {
-		
 		const confimationData = await db.jobDetails.findAll({
 			where: {
 				dateOfProbationTriggerDate: {
@@ -730,14 +729,14 @@ class CronController {
 					},
 				},
 			});
-				
+
 			if (checkJobLevelAssignmnet) {
 				let respfrom = await helper.generateFieldsForgivenLevel(
 					Singleconfimation?.employee?.confimationPolicyAutoId,
 					1,
 					Singleconfimation?.employee?.companyId,
 				);
-				
+
 				if (respfrom.levelFound) {
 					const createdData = await db.Confirmationinitiated.create({
 						employeeId: Singleconfimation?.userId,
@@ -1118,11 +1117,11 @@ class CronController {
 				let ESCALTERDATA = await helper.getEmpProfile(lastOwner.employeeId); // NEXT Status DATA
 
 				eventEmitter.emit(
-				  "confirmationWorkflowNextLevel",
-				  JSON.stringify({
-				    ESCALTERDATA: ESCALTERDATA,
-				    EMP_DATA: EMP_DATA_SELF,
-				  })
+					"confirmationWorkflowNextLevel",
+					JSON.stringify({
+						ESCALTERDATA: ESCALTERDATA,
+						EMP_DATA: EMP_DATA_SELF,
+					}),
 				);
 
 				await db.Confirmationaudittrail.create({

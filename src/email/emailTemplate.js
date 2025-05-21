@@ -6328,8 +6328,8 @@ export default {
 	sendBirthWishMailToEmp,
 	goalSubmissionByManager,
 	goalPlanAssignToEmployee,
-  ///LEAVE REVOKE
-  leaveAcknowledgementRevoke,
-  leaveRequestRevokeMail,
-    ///LEAVE REVOKE
+	///LEAVE REVOKE
+	leaveAcknowledgementRevoke,
+	leaveRequestRevokeMail,
+	///LEAVE REVOKE
 };

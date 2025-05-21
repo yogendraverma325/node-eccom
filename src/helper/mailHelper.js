@@ -582,7 +582,7 @@ async function confirmationLetter(input,doneCallback) {
 			senderEmail: inpputData.senderEmail,
 			attachments: [
 				{
-					content: pdfBuffer.toString('base64'),
+					content: pdfBuffer.toString("base64"),
 					filename: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
 				},
 			],
@@ -598,11 +598,11 @@ async function confirmatonExtend(input) {
 	try {
 		const inpputData = JSON.parse(input);
 		await helper.mailService({
-		  to: inpputData?.EMP_DATA_SELF?.email,
-		  subject: `Confirmation Extension`,
-		  cc: inpputData?.cc,
-		  html: await emailTemplate.confirmationExtendEmailBody(inpputData),
-		  senderEmail: inpputData.senderEmail
+			to: inpputData?.EMP_DATA_SELF?.email,
+			subject: `Confirmation Extension`,
+			cc: inpputData?.cc,
+			html: await emailTemplate.confirmationExtendEmailBody(inpputData),
+			senderEmail: inpputData.senderEmail,
 		});
 	} catch (error) {
 		console.log(error);
