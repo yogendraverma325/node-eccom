@@ -2,6 +2,7 @@ import helper from "./helper.js";
 import logger from "./logger.js";
 import emailTemplate from "../email/emailTemplate.js";
 import html_to_pdf from "html-pdf-node";
+import db from "../config/db.config.js"; // IMPORTING DB instance to save confirmation letter to
 export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("regularizeRequestMail", async (input) => {
 		await regularizationRequestMail(input);
@@ -574,6 +575,37 @@ async function confirmationLetter(input,doneCallback) {
 		let file = { content: letter };
 			let pdfBuffer=null;
 			pdfBuffer = await html_to_pdf.generatePdf(file, options);
+			const savedPath = helper.savePdfFile(pdfBuffer, `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`, `./uploads/${inpputData?.EMP_DATA_SELF?.empCode}/`);
+			console.log("savedPath",savedPath)
+
+			// adding fucnction to save confirmation PDF file to local folder
+		const existing = await db.hrLetters.findOne({
+		where: {
+		userId: inpputData?.EMP_DATA_SELF?.id,
+		documentType: 2
+		}
+		});
+
+		if (existing) {
+		await existing.update({
+		documentImage: `/uploads/${inpputData?.EMP_DATA_SELF?.empCode}/${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+		},
+	{
+	where: {
+		userId: inpputData?.EMP_DATA_SELF?.id,
+		documentType: 2
+		}	
+	});
+		} else {
+		await db.hrLetters.create({
+		userId: inpputData?.EMP_DATA_SELF?.id,
+		documentType: 2,
+		documentImage: `/uploads/${inpputData?.EMP_DATA_SELF?.empCode}/${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+		createdBy: 1
+		});
+		}
+// adding fucnction to save confirmation PDF file to local folder
+
 		 await helper.mailService({
 			to: inpputData?.EMP_DATA_SELF?.email,
 			subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,

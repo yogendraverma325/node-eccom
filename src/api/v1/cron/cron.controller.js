@@ -1156,7 +1156,7 @@ class CronController {
 			await db.Confirmationinitiated.findAll({
 				where: {
 					status: 1,
-					confirmationinitiatedAutoId:[263]
+					//confirmationinitiatedAutoId:[263]
 				},
 				include: {
 					model: db.employeeMaster,

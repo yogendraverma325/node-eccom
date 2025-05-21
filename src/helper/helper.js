@@ -60,6 +60,19 @@ const fileUpload = async (base64String, fileName, filepath) => {
 	// }
 	return finalFilePath;
 };
+const savePdfFile = (buffer, fileName, folderPath) => {
+  // Ensure directory exists
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+
+  const filePath = path.join(folderPath, fileName);
+
+  // Write the PDF buffer to file
+  fs.writeFileSync(filePath, buffer);
+
+  return filePath;
+};
 
 const checkFolder = async () => {
 	const folder = ["uploads", "uploads/temp", "config"];
@@ -4234,7 +4247,8 @@ export default {
 	//REVOKE
 	revokeApprovedAppliedLeave,
 	releaseCompOffTheEmployeeForDate,
-	roleEmailIds
+	roleEmailIds,
+	savePdfFile  // adding fucnction to save confirmation PDF file to local folder
 	//REVOKE
 
 };
