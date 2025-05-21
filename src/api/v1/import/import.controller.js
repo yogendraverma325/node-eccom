@@ -26,12 +26,12 @@ const financialMonth = {
 };
 
 const maritalStatusOptions = {
-	1: 'Married',
-    2: 'Single',
-    3: 'Divorced',
-    4: 'Separated',
-    5: 'Widowed',
-    6: 'Others'
+	'Married': 1,
+    'Single': 2,
+    'Divorced': 3,
+    'Separated': 4,
+    'Widowed': 5,
+    'Others': 6
 }
 class ImportController {
 	async uploadExcelFile(req, res) {
@@ -1917,6 +1917,7 @@ async function createImportDetails(params) {
  * Change Attendance Assignment
  * Change Shift, Attendance Policy and WeekOff
  * Change Designation, Department, Employee Type, Job Level, Manager, Cost Center, Company Location, Notice Period
+ * Employee Data
  */
 
 async function attendanceAssignment(req, res, FILEDATA, importParams) {
@@ -1947,6 +1948,24 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 		});
 
 		if (isExist) {
+			if (
+				!filterData[i]["Shift Name"] &&
+				!filterData[i]["Enable Biometric Attendance (Yes, No)"]
+			) {
+				// push object in failure array
+				errorArray.push({
+					importedRow: filterData[i]["Employee ID"],
+					importAutoId: importId,
+					importStatus: 2,
+					createdBy: req.userId,
+					importStatusDesc:
+						!filterData[i]["Enable Biometric Attendance (Yes, No)"]
+							? "Invalid biometric, mobile, web attendance value."
+							: "Invalid shift, weekoff or attendance policy value",
+				});
+				i++;
+			}
+
 			if (
 				filterData[i]["Enable Biometric Attendance (Yes, No)"] &&
 				filterData[i]["Enable Mobile Attendance (Yes, No)"] &&
@@ -2077,24 +2096,6 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 					i++;
 				}
 			}
-
-			if (
-				!filterData[i]["Shift Name"] &&
-				!filterData[i]["Enable Biometric Attendance (Yes, No)"]
-			) {
-				// push object in failure array
-				errorArray.push({
-					importedRow: filterData[i]["Employee ID"],
-					importAutoId: importId,
-					importStatus: 2,
-					createdBy: req.userId,
-					importStatusDesc:
-						effectedFromDate < moment().format("YYYY-MM-DD")
-							? "Effective date can't less then from current date."
-							: "Invalid shift, weekoff or attendance policy value",
-				});
-				i++;
-			}
 		} else {
 			// push object in failure array
 			errorArray.push({
@@ -2110,14 +2111,60 @@ async function attendanceAssignment(req, res, FILEDATA, importParams) {
 
 	if (successArray.length > 0 || errorArray.length > 0) {
 		let importFinalResult = successArray.concat(errorArray);
-		await db.ImportData.bulkCreate(importFinalResult);
+
+		// customise final result response
+		
+		const rowMap = new Map();
+
+		for (const record of importFinalResult) {
+		const key = record.importedRow;
+
+		if (!rowMap.has(key)) {
+			rowMap.set(key, {
+			failures: [],
+			firstSuccess: null,
+			importAutoId: record.importAutoId,
+			createdBy: record.createdBy
+			});
+		}
+
+		const entry = rowMap.get(key);
+
+		if (record.importStatus === 2) {
+			entry.failures.push(record.importStatusDesc);
+		} else if (record.importStatus === 1 && !entry.firstSuccess) {
+			entry.firstSuccess = record;
+		}
+		}
+
+		const finalResults = [];
+		let successCount = 0;
+        let failureCount = 0;
+
+		for (const [row, entry] of rowMap.entries()) {
+			if (entry.failures.length > 0) {
+				finalResults.push({
+				importedRow: row,
+				importAutoId: entry.importAutoId,
+				createdBy: entry.createdBy,
+				importStatus: 2,
+				importStatusDesc: entry.failures.join('; ')
+				});
+				failureCount++;
+			} else if (entry.firstSuccess) {
+				finalResults.push(entry.firstSuccess);
+				successCount++;
+			}
+		}
+
+		await db.ImportData.bulkCreate(finalResults);
 		await db.ImportInfo.update(
 			{
 				importStatusDesc:
 					"Import Executed with " +
-					successArray.length +
+					successCount +
 					" success and " +
-					errorArray.length +
+					failureCount +
 					" error records",
 				importStatus: 1,
 			},
@@ -2199,6 +2246,9 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				let query = { code: String(obj.designationCode) };
 				let attributes = ["designationId"];
 				obj["isPromotion"] = obj.desIsPromotion;
+				let msgDataExist = "Designation already exist for this date.";
+				let msgInvalidModule = "Invalid designation code or from date.";
+
 				let payload = {
 					obj,
 					isExist,
@@ -2209,6 +2259,8 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					childModel,
 					query,
 					attributes,
+					msgDataExist,
+					msgInvalidModule
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2224,6 +2276,10 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				let childModel = db.EmployeeTypeEmploymentHistory;
 				let query = { empTypeCode: String(obj.employeeTypeCode) };
 				let attributes = ["empTypeId"];
+
+				let msgDataExist = "Employee type already exist for this date.";
+				let msgInvalidModule = "Invalid employee type code or from date.";
+
 				let payload = {
 					obj,
 					isExist,
@@ -2234,6 +2290,8 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					childModel,
 					query,
 					attributes,
+					msgDataExist,
+					msgInvalidModule
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2249,6 +2307,10 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				let childModel = db.OfficeLocationEmploymentHistory;
 				let query = { companyLocationCode: String(obj.companyLocationCode) };
 				let attributes = ["companyLocationId"];
+
+				let msgDataExist = "Company location already exist for this date.";
+				let msgInvalidModule = "Invalid company location code or from date.";
+
 				let payload = {
 					obj,
 					isExist,
@@ -2259,6 +2321,8 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					childModel,
 					query,
 					attributes,
+					msgDataExist,
+					msgInvalidModule
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2274,6 +2338,10 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				let childModel = db.CostCenterEmploymentHistory;
 				let query = { costCenterCode: String(obj.costCenterCode) };
 				let attributes = ["costCenterId"];
+
+				let msgDataExist = "Cost center already exist for this date.";
+				let msgInvalidModule = "Invalid cost center code or from date.";
+
 				let payload = {
 					obj,
 					isExist,
@@ -2284,6 +2352,8 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					childModel,
 					query,
 					attributes,
+					msgDataExist,
+					msgInvalidModule
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2329,6 +2399,10 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				let childModel = db.NoticePeriodEmploymentHistory;
 				let query = { noticePeriodCode: String(obj.noticePeriodCode) };
 				let attributes = ["noticePeriodAutoId"];
+
+				let msgDataExist = "Notice period already exist for this date.";
+				let msgInvalidModule = "Invalid notice period code or from date.";
+
 				let payload = {
 					obj,
 					isExist,
@@ -2339,6 +2413,8 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 					childModel,
 					query,
 					attributes,
+					msgDataExist,
+					msgInvalidModule
 				};
 				let responseObj = await commonEmploymentDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2346,17 +2422,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				} else {
 					errorArray.push(responseObj);
 				}
-			} else {
-				// push object in failure array
-				errorArray.push({
-					importedRow: obj.empCode,
-					importAutoId: importId,
-					importStatus: 2,
-					createdBy: req.userId,
-					importStatusDesc: "Module related column are missing.",
-				});
-				i++;
-			}
+			} 
 		} else {
 			// push object in failure array
 			errorArray.push({
@@ -2374,14 +2440,59 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 
 	if (successArray.length > 0 || errorArray.length > 0) {
 		let importFinalResult = successArray.concat(errorArray);
-		await db.ImportData.bulkCreate(importFinalResult);
+
+        // customise final result response
+		const rowMap = new Map();
+
+		for (const record of importFinalResult) {
+		const key = record.importedRow;
+
+		if (!rowMap.has(key)) {
+			rowMap.set(key, {
+			failures: [],
+			firstSuccess: null,
+			importAutoId: record.importAutoId,
+			createdBy: record.createdBy
+			});
+		}
+
+		const entry = rowMap.get(key);
+
+		if (record.importStatus === 2) {
+			entry.failures.push(record.importStatusDesc);
+		} else if (record.importStatus === 1 && !entry.firstSuccess) {
+			entry.firstSuccess = record;
+		}
+		}
+
+		const finalResults = [];
+		let successCount = 0;
+		let failureCount = 0;
+
+		for (const [row, entry] of rowMap.entries()) {
+			if (entry.failures.length > 0) {
+				finalResults.push({
+				importedRow: row,
+				importAutoId: entry.importAutoId,
+				createdBy: entry.createdBy,
+				importStatus: 2,
+				importStatusDesc: entry.failures.join('; ')
+				});
+				failureCount++;
+			} else if (entry.firstSuccess) {
+				finalResults.push(entry.firstSuccess);
+				successCount++;
+			}
+		}
+
+		await db.ImportData.bulkCreate(finalResults);
 		await db.ImportInfo.update(
 			{
 				importStatusDesc:
 					"Import Executed with " +
-					successArray.length +
+					successCount +
 					" success and " +
-					errorArray.length +
+					failureCount +
 					" error records",
 				importStatus: 1,
 			},
@@ -2428,18 +2539,19 @@ async function employeeData(req, res, FILEDATA, importParams) {
 		if (employee) {
 
 			// update data in employee master table
+			
 			let lastIncrementDate = (row["Last increment date"]) ? convertExcelDate(row["Last increment date"]) : "";
+			let dateOfJoining = (row["Date Of Joining"]) ? convertExcelDate(row["Date Of Joining"]) : "";
+
 			const updateEmployeeObj = {
-				...( row["First Name"] && { firstName: row["First Name"] }),
-				...( row["Middle Name"] && { middleName: row["Middle Name"] }),
-				...( row["Last Name"] && { lastName: row["Last Name"] }),
-				...( row["First Name"] && row["Last Name"] && { name: `${row["First Name"]} ${row["Last Name"]}` }), 
-				...( row["Date Of Joining"] && { lastName: row["Date Of Joining"] }),
+				...(row["First Name"] && { firstName: row["First Name"] }),
+				...(row["Middle Name"] && { middleName: row["Middle Name"] }),
+				...(row["Last Name"] && { lastName: row["Last Name"] }),
+				...(dateOfJoining && { dateOfJoining: dateOfJoining }),
 				...(row["Workstation (Admin)"] && { workstationAdmin: replaceYesOrNoWithNumber(row["Workstation (Admin)"]) }),
 				...(row["Mobile (Admin)"] && { mobileAdmin: replaceYesOrNoWithNumber(row["Mobile (Admin)"]) }),
 				...(row["Data Card (Admin)"] && { dataCardAdmin: replaceYesOrNoWithNumber(row["Data Card (Admin)"]) }),
 				...(row["Visiting Card (Admin)"] && { visitingCardAdmin: replaceYesOrNoWithNumber(row["Visiting Card (Admin)"]) }),
-				...(row["New Customer Name"] && { "newCustomerName": row["New Customer Name"] }),
 				...(row["Father Name"] && { "fatherName": row["Father Name"] }),
 				...(row["Recruiter Name"] && { "recruiterName": row["Recruiter Name"] }),
 				...(row["Offrole CTC"] && { "offRoleCTC": row["Offrole CTC"] }),
@@ -2476,22 +2588,39 @@ async function employeeData(req, res, FILEDATA, importParams) {
 			}
 
 			if(Object.keys(updateEmployeeObj).length > 0) {
+				console.log("employee obj", updateEmployeeObj);
 				await db.employeeMaster.update(updateEmployeeObj, {
 					where: { "id": employee.id },
 				});
 			}
 
 			// update data in employee job details table with history
-			const updateJobDetails = row["Date Of Joining"] || row["RE(Residence Engineer)"];
+			const updateJobDetails = row["Date Of Joining"] || row["RE(Residence Engineer)"] || row["Project Code"] ||
+			row["Next Appraisal Due"] || row["EPS Applicability"] || row["ESIC Applicable"] || row["ESIC Number"] ||
+			row["LWF Applicable"] || row["PF Number"] || row["PF Restriction"] || row["Restrict Company PF"] ||
+			row["UAN Number"] || row["PF Applicability"] || row["PRAN Number"] || row["EPF Applicable"] ||
+			row["Probation Period"] || row["Union Code (Increment Cycle)"] || row["LWF Designation"] || row["LWF State"] ||
+			row["Customer Name"];
 
 			if(updateJobDetails) {
 				const existJobDetails = await db.jobDetails.findOne({ where: { userId: employee.id }, raw: true });
 				if(existJobDetails) {					
 					const updateJobMetaData = {
-						...(row["Date Of Joining"] && { "dateOfJoining": row["Date Of Joining"] }),
-						...(row["RE(Residence Engineer)"] && { "residentEng": row["RE(Residence Engineer)"] }),
+						...(dateOfJoining && { "dateOfJoining": dateOfJoining }),
+						...(row["RE(Residence Engineer)"] && { "residentEng": replaceYesOrNoWithNumber(row["RE(Residence Engineer)"]) }),
 						...(row["Project Code"] && { "projectCode": row["Project Code"] }),
-						...(row["Next Appraisal Due"] && { "nextAppraisalDue": row["Next Appraisal Due"] })
+						...(row["Next Appraisal Due"] && { "nextAppraisalDue": row["Next Appraisal Due"] }),
+				        ...(row["EPS Applicability"] && { "epsApplicability": replaceYesOrNoWithNumber(row["EPS Applicability"]) }),
+				        ...(row["ESIC Applicable"] && { "esicApplicable": replaceYesOrNoWithNumber(row["ESIC Applicable"]) }),
+						...(row["ESIC Number"] && { "esicNumber": row["ESIC Number"] }),
+				        ...(row["LWF Applicable"] && { "epfApplicable": replaceYesOrNoWithNumber(row["LWF Applicable"]) }),
+						...(row["PF Number"] && { "pfNumber": row["PF Number"] }),
+				        ...(row["PF Restriction"] && { "pfRestricted": replaceYesOrNoWithNumber(row["PF Restriction"]) }),
+				        ...(row["Restrict Company PF"] && { "restrictCompanyPf": replaceYesOrNoWithNumber(row["Restrict Company PF"]) }),
+						...(row["UAN Number"] && { "uanNumber": row["UAN Number"] }),
+				        ...(row["PF Applicability"] && { "pfApplicability": replaceYesOrNoWithNumber(row["PF Applicability"]) }),
+						...(row["PRAN Number"] && { "pranNumber": row["PRAN Number"] }),
+				        ...(row["EPF Applicable"] && { "epfApplicable": replaceYesOrNoWithNumber(row["EPF Applicable"]) })
 					}
 
 					// get probation period
@@ -2519,22 +2648,44 @@ async function employeeData(req, res, FILEDATA, importParams) {
 						}
 					}
 
+					if(row["LWF Designation"] && row["LWF State"]) {
+						const lwfState = await db.stateMaster.findOne({ where: { "stateName": row["LWF State"] }, attributes: ["stateId"], row: true });
+						if(lwfState) {
+							updateJobMetaData.lwfState = lwfState?.stateId;
+						}
+						const lwfLocation = await db.lwfDesignationMaster.findOne({ where: { "lwfDesignationName": row["LWF Designation"], attributes: ["lwfDesignationId"], raw: true }});
+						if(lwfLocation) {
+							updateJobMetaData.lwfDesignation = lwfLocation?.lwfDesignationId;
+						}
+					}
+
+					if(row["Customer Name"]) {
+						const customerName = await db.newCustomerNameMaster.findOne({ where: { "newCustomerName": row["Customer Name"] }, attributes: ["newCustomerName"], raw: true });
+						if(customerName) {
+							updateJobMetaData.customerName = customerName?.newCustomerName;
+						}
+					}
+
 					// generate job details history
 					await db.employeeJobDetailsHistory.create(existJobDetails);
-					await db.jobDetails.update(updateJobMetaData, { userId: employee.id });
+					await db.jobDetails.update(updateJobMetaData, { where: { userId: employee.id } });
 				}
 			}
 
 			// update data in employee biographical table
-			const biographyDetails = row["Date Of Birth"] || row["Gender"];
+			const biographyDetails = row["Date Of Birth"] || row["Gender"] || row["Nationality"] || row["Marital Status"] ||
+			row["Marital Status Since"] || row["Mobile Access"] || row["Laptop/System (IT)"] || row["Background Verification (HR)"] ||
+			row["Nominee Name"] || row["Nominee Relation"];
 
 			if(biographyDetails) {
 				let maritalStatusSince = (row["Marital Status Since"]) ? convertExcelDate(row["Marital Status Since"]) : "";
+				let dateOfBirth = (row["Date Of Birth"]) ? convertExcelDate(row["Date Of Birth"]) : "";
+
 				const biographyMetaData = {
-					...(row["Date Of Birth"] && { "dateOfBirth": row["Date Of Birth"] }),
+					...(dateOfBirth && { "dateOfBirth": dateOfBirth }),
 					...(row["Gender"] && { "gender": row["Gender"] }),
 					...(row["Nationality"] && { nationality: row["Nationality"] }),
-					...(row["Marital Status"] && { maritalStatus: maritalStatusOptions(row["Marital Status"]) }),
+					...(row["Marital Status"] && { maritalStatus: maritalStatusOptions[row["Marital Status"]] }),
 					...(maritalStatusSince && { maritalStatusSince: maritalStatusSince }),
 					...(row["Mobile Access"] && { mobileAccess: replaceYesOrNoWithNumber(row["Mobile Access"]) }),
 					...(row["Laptop/System (IT)"] && { laptopSystem: row["Laptop/System (IT)"] }),
@@ -2542,7 +2693,7 @@ async function employeeData(req, res, FILEDATA, importParams) {
 				    ...(row["Nominee Name"] && { "nomineeName": row["Nominee Name"] }),
 				    ...(row["Nominee Relation"] && { "nomineeRelation": row["Nominee Relation"] })
 				}
-				await db.biographicalDetails.update(biographyMetaData, { userId: employee.id });
+				await db.biographicalDetails.update(biographyMetaData, { where: { userId: employee.id } });
 			}
 
 			// add/update data in employee address table with history table
@@ -2623,7 +2774,7 @@ async function employeeData(req, res, FILEDATA, importParams) {
 				const existAddressDetails = await db.employeeAddress.findOne({ where: { employeeId: employee.id }, raw: true });
 
 				if(existAddressDetails) {
-					await db.employeeAddress.update(updateAddressMetaData, { employeeId: employee.id });
+					await db.employeeAddress.update(updateAddressMetaData, { where: { employeeId: employee.id } });
 				}
 				else {
 					updateAddressMetaData.employeeId = employee.id;
@@ -2643,11 +2794,11 @@ async function employeeData(req, res, FILEDATA, importParams) {
 					...(row["Emergency Contact Number"] && { "emergencyContactNumber": row["Emergency Contact Number"] })
 				}
 				if(existEmergencyDetails) {
-					await db.employeeAddress.update(emergencyMetaData, { userId: employee.id });
+					await db.emergencyDetails.update(emergencyMetaData, { where: { userId: employee.id } });
 				}
 				else {
 					emergencyMetaData.userId = employee.id;
-					await db.employeeAddress.create(emergencyMetaData);
+					await db.emergencyDetails.create(emergencyMetaData);
 				}
 			}
 
@@ -2665,15 +2816,23 @@ async function employeeData(req, res, FILEDATA, importParams) {
 					...(getBankDetails && { "bankId": getBankDetails?.bankId }),
 					...(row["Swift/IFSC Code"] && { "paymentBankIfsc": row["Swift/IFSC Code"] }),
 					...(ptApplicability && { ptApplicability: ptApplicability }),
+					...(row["TDS Applicability"] && { "tdsApplicability": replaceYesOrNoWithNumber(row["TDS Applicability"]) })
 				}
 
 				if(ptApplicability === 'Yes' && row["PT State"] && row["PT Location"]) {
 					// fetch pt state and pt location
-                    // let ptState = 
+                    const ptState = await db.stateMaster.findOne({ where: { "stateName": row["PT State"] }, attributes: ["stateId"], raw: true });
+					if(ptState) {
+                        const ptLocation = await db.ptLocationMaster.findOne({ where: { "ptLocationName": row["PT Location"], "stateId": ptState?.stateId }, attributes: ["ptLocationId"], raw: true });
+						if(ptLocation) {
+							paymentMetaData.ptStateId = ptState?.stateId;
+							paymentMetaData.ptLocationId = ptLocation?.ptLocationId;
+						}
+					}
 				}
 
 				if(existPaymentDetails) {
-					await db.paymentDetails.update(paymentMetaData, { userId: employee.id });
+					await db.paymentDetails.update(paymentMetaData, { where: { userId: employee.id } });
 				}
 				else {
 					paymentMetaData.userId = employee.id;
@@ -2698,7 +2857,6 @@ async function employeeData(req, res, FILEDATA, importParams) {
 				createdBy: req.userId,
 				importStatusDesc: "Invalid TMC",
 			});
-			i++;
 		}
 	}
 
@@ -2746,7 +2904,7 @@ const commonEmploymentDetails = async (payload, today) => {
 			importAutoId: payload.importId,
 			importStatus: 2,
 			createdBy: payload.req.userId,
-			importStatusDesc: "Record already exist for this date.",
+			importStatusDesc: payload.msgDataExist,
 		};
 	} else {
 		let details = await payload.parentModel.findOne({
@@ -2865,7 +3023,7 @@ const commonEmploymentDetails = async (payload, today) => {
 				importAutoId: payload.importId,
 				importStatus: 2,
 				createdBy: payload.req.userId,
-				importStatusDesc: "Invalid module Code or from date.",
+				importStatusDesc: payload.msgInvalidModule,
 			};
 		}
 	}
@@ -2889,7 +3047,7 @@ const employmentJobLevelDetails = async (payload, today) => {
 			importAutoId: payload.importId,
 			importStatus: 2,
 			createdBy: payload.req.userId,
-			importStatusDesc: "Record already exist for this date.",
+			importStatusDesc: "Job level record already exist for this date.",
 		};
 	} else {
 		let details = await db.jobLevelMapping.findOne({
@@ -2987,7 +3145,7 @@ const employmentJobLevelDetails = async (payload, today) => {
 				importAutoId: payload.importId,
 				importStatus: 2,
 				createdBy: payload.req.userId,
-				importStatusDesc: "Invalid module Code or from date.",
+				importStatusDesc: "Invalid job level code or from date.",
 			};
 		}
 	}
@@ -2995,76 +3153,46 @@ const employmentJobLevelDetails = async (payload, today) => {
 
 const employmentManagerDetails = async (payload, today) => {
 	let fromDate = convertExcelDate(payload.obj.managerFromDate);
-
-	const recordsExistForDate = await db.managerHistory.findOne({
-		raw: true,
+	const manager = await db.employeeMaster.findOne({
 		where: {
-			fromDate: fromDate,
-			needAttendanceCron: 1,
-			employeeId: payload.isExist.id,
+			empCode: payload.obj.manager,
 		},
+		attributes: ["id"],
+		raw: true,
 	});
 
-	if (recordsExistForDate) {
-		// push object in failure array
-		return {
-			importedRow: payload.obj.empCode,
-			importAutoId: payload.importId,
-			importStatus: 2,
-			createdBy: payload.req.userId,
-			importStatusDesc: "Record already exist for this date.",
+	if (manager && fromDate >= today) {
+		let metaData = {
+			employeeId: payload.isExist.id,
+			managerId: manager.id,
+			fromDate: fromDate,
+			toDate: null,
+			sourceName: "Import",
 		};
-	} else {
-		const manager = await db.employeeMaster.findOne({
-			where: {
-				empCode: payload.obj.manager,
-			},
-			attributes: ["id"],
+		metaData = {
+			...metaData,
+			createdBy: payload.req.userId,
+			createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+		};
+
+		const recordsExistForDate = await db.managerHistory.findOne({
 			raw: true,
-		});
-
-		if (manager && fromDate >= today) {
-			let metaData = {
-				employeeId: payload.isExist.id,
-				managerId: manager.id,
+			where: {
 				fromDate: fromDate,
-				toDate: null,
-				sourceName: "Import",
-			};
-			metaData = {
-				...metaData,
+				needAttendanceCron: 1,
+				employeeId: payload.isExist.id,
+			},
+		});
+		if (!recordsExistForDate) {
+			await db.managerHistory.create(metaData);
+			// push object in success array
+			return {
+				importedRow: payload.obj.empCode,
+				importAutoId: payload.importId,
+				importStatus: 1,
 				createdBy: payload.req.userId,
-				createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+				importStatusDesc: "Employment details update successfully.",
 			};
-
-			const recordsExistForDate = await db.managerHistory.findOne({
-				raw: true,
-				where: {
-					fromDate: fromDate,
-					needAttendanceCron: 1,
-					employeeId: payload.isExist.id,
-				},
-			});
-			if (!recordsExistForDate) {
-				await db.managerHistory.create(metaData);
-				// push object in success array
-				return {
-					importedRow: payload.obj.empCode,
-					importAutoId: payload.importId,
-					importStatus: 1,
-					createdBy: payload.req.userId,
-					importStatusDesc: "Employment details update successfully.",
-				};
-			} else {
-				// push object in failure array
-				return {
-					importedRow: payload.obj.empCode,
-					importAutoId: payload.importId,
-					importStatus: 2,
-					createdBy: payload.req.userId,
-					importStatusDesc: "Data already exist on this date.",
-				};
-			}
 		} else {
 			// push object in failure array
 			return {
@@ -3072,10 +3200,19 @@ const employmentManagerDetails = async (payload, today) => {
 				importAutoId: payload.importId,
 				importStatus: 2,
 				createdBy: payload.req.userId,
-				importStatusDesc:
-					"Invalid Employee ID or from date should be greater then or equal to current date.",
+				importStatusDesc: "Manager data already exist on this date.",
 			};
 		}
+	} else {
+		// push object in failure array
+		return {
+			importedRow: payload.obj.empCode,
+			importAutoId: payload.importId,
+			importStatus: 2,
+			createdBy: payload.req.userId,
+			importStatusDesc:
+				"Invalid manager employee ID or from date should be greater then or equal to current date.",
+		};
 	}
 };
 
@@ -3085,7 +3222,7 @@ const employmentFunctionalAreaDetails = async (payload, today) => {
 		raw: true,
 		where: {
 			fromDate: fromDate,
-			needAttendanceCron: 1,
+			needAttendanceCron: 0,
 			employeeId: payload.isExist.id,
 		},
 	});
@@ -3097,7 +3234,7 @@ const employmentFunctionalAreaDetails = async (payload, today) => {
 			importAutoId: payload.importId,
 			importStatus: 2,
 			createdBy: payload.req.userId,
-			importStatusDesc: "Record already exist for this date.",
+			importStatusDesc: "Functional area record already exist for this date.",
 		};
 	} else {
 		const details = await db.functionalAreaMapping.findOne({
@@ -3214,7 +3351,7 @@ const employmentFunctionalAreaDetails = async (payload, today) => {
 				importAutoId: payload.importId,
 				importStatus: 2,
 				createdBy: payload.req.userId,
-				importStatusDesc: "Invalid module Code or from date.",
+				importStatusDesc: "Invalid functional area Code or from date.",
 			};
 		}
 	}
