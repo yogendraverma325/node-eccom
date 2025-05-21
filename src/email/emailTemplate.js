@@ -213,7 +213,7 @@ const leaveRequestMail = async (data) => {
                             >
                               <p>Hi <b>${data.managerName}</b>,</p>
                               <p>
-                                <b>${data.requesterName}</b> has requested for
+                                <b>${data.requesterName}</b> has requested for revoke of
                                 ${data.leaveType} from ${moment(
 																	data.leaveFromDate,
 																).format("MMMM D, YYYY")} to ${moment(

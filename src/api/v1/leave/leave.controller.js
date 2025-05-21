@@ -5701,7 +5701,7 @@ class LeaveController {
 						});
 
 					pushNotificationEmitter.emit("sendNotification", {
-					title: message.LEAVE.LEAVE_REQ,
+					title: message.LEAVE.LEAVE_REVOEK_REQ,
 					body: `${employeeData.dataValues.name} has requested for leave revoke.`,
 					employeeId: employeeData.dataValues.managerData.id,
 					});
@@ -5788,8 +5788,6 @@ class LeaveController {
 					msg: `Can't ${result.status=='approved'?'approve':'reject'} selected Leave(s)`,
 					});
 				}
-				
-				if(result.status=='approved'){
 					const allSelectedRevokeRequests = await db.employeeleave_revoke_transaction.findAll({
 						attributes:['leaverevokeAutoId','employeeleaveheaderID','employeeId','status'],
 					where: {
@@ -5799,6 +5797,8 @@ class LeaveController {
 						status: 'pending'
 					},
 					});
+				if(result.status=='approved'){
+				
 
 					for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
 						 let data=await helper.revokeApprovedAppliedLeave(singleSelectedRevokeRequested.employeeleaveheaderID,t,req.userData,result);
@@ -5856,8 +5856,8 @@ class LeaveController {
 								eventEmitter.emit("leaveRevokeAckMail", JSON.stringify(obj));
 
 						 pushNotificationEmitter.emit("sendNotification", {
-									title: message.LEAVE.LEAVE_REQUEST_AQUKNOWLEDGED,
-									body: message.LEAVE.LEAVE_REQ_STATUS.replace(
+									title: message.LEAVE.LEAVE_REVOKE_REQUEST_AQUKNOWLEDGED,  // messgae changed as it was copied from leave req
+									body: message.LEAVE.LEAVE_REVOKE_REQ_STATUS.replace(  // messgae changed as it was copied from leave req
 										"<status>",
 										result.status === "approved" ? "approved" : "rejected",
 									),
@@ -5889,6 +5889,86 @@ class LeaveController {
 					msg: 'Leave Revoke request has been approved',
 					});
 				}else{
+						for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
+						  const leaveTransactionDetails =
+						await db.employeeLeaveTransactions.findOne({
+							raw: true,
+							where: {
+								employeeleaveheaderID: singleSelectedRevokeRequested.employeeleaveheaderID,
+							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["name", "email"],
+									include: [
+										{
+											model: db.employeeMaster,
+											as: "managerData",
+											attributes: ["name"],
+										},
+										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+									],
+								},
+								{
+									model: db.leaveMaster,
+									as: "leaveMasterDetails",
+									attributes: ["leaveName"],
+								},
+							],
+							attributes: ["fromDate", "toDate"],
+						});
+						
+						const obj = {
+									email: leaveTransactionDetails["employee.email"],
+									status:
+										result.status === "approved" ? "Approved" : "Rejected",
+									fromDate: leaveTransactionDetails.fromDate,
+									toDate: leaveTransactionDetails.toDate,
+									leaveType:
+										leaveTransactionDetails["leaveMasterDetails.leaveName"],
+									managerName: req.userData.name,
+									requesterName: leaveTransactionDetails["employee.name"],
+									senderEmail:
+										leaveTransactionDetails[
+											"employee.companymaster.senderEmail"
+										],
+									companyLogo:
+										leaveTransactionDetails[
+											"employee.companymaster.companyLogo"
+										],
+								};
+								eventEmitter.emit("leaveRevokeAckMail", JSON.stringify(obj));
+
+						 pushNotificationEmitter.emit("sendNotification", {
+									title: message.LEAVE.LEAVE_REVOKE_REQUEST_AQUKNOWLEDGED, // messgae changed as it was copied from leave req
+									body: message.LEAVE.LEAVE_REVOKE_REQ_STATUS.replace(  // messgae changed as it was copied from leave req
+										"<status>",
+										result.status === "approved" ? "approved" : "rejected",
+									),
+									employeeId: singleSelectedRevokeRequested.employeeId,
+								});
+
+
+						 await db.employeeleave_revoke_transaction.update(
+									{
+										status:'approved',
+										updatorRemark:result.remark,
+										updatedBy:req.userData.id,
+										updatorRole:req.userData['role.name']
+									},
+									{
+									where: {
+									leaverevokeAutoId: {
+									[Op.in]:leaveRevokeRequestIDS
+									},
+									},
+									},
+									{ transaction: t }
+								);
+					}
 
 	              await db.employeeleave_revoke_transaction.update(
 									{
