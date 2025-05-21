@@ -6555,6 +6555,12 @@ class UserController {
 					status: req.body.status == 1 ? 1 : 5,
 					compOffDate: singlecomp_off_credit_history_auto_ids.date,
 				};
+				//Added push notification on comp off approval , earlier only mail was working as notification
+				pushNotificationEmitter.emit("sendNotification", {
+                    title: "Comp Off Request Acknowledge",
+                    body: `Your comp off request is ${req.body.status == 1 ? 'Approved' : 'Rejected'}`,
+                    employeeId: EMP_DATA_SELF.id,
+                });
 				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
 			}
 

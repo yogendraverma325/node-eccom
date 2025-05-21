@@ -11,6 +11,7 @@ import crypto from "crypto";
 import axios from "axios";
 import https from "https";
 import attendanceController from "../api/v1/attendance/attendance.controller.js";
+import pushNotificationEmitter from "../services/pushNotificationEventService.js"; // New
 // import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
@@ -2465,7 +2466,13 @@ const creditCompoff = async (inputObject) => {
 									requesterName: EMP_DATA_SELF.name,
 									managerName: EMP_DATA_SELF.managerData.name,
 									compOffDate: comp_off_data.credit_for_date,
-								};
+								}; 
+								//Added push notification on comp off approval , earlier only mail was working as notification
+								pushNotificationEmitter.emit("sendNotification", {
+								title: "Comp Off Request",
+								body: `Comp Off request raised for ${EMP_DATA_SELF.name}`,
+								employeeId: EMP_DATA_SELF.managerData.id,
+								});
 								eventEmitter.emit("compOffMail", JSON.stringify(obj));
 							}
 
@@ -3926,7 +3933,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 				{
 				status: 'revoked',
 				updatedBy: userData.id,
-				//message: result.remark != "" ? result.remark : null,
+				//message: result.remark != "" ? result.remark : null, ///message uncommented , was getting updated with revoke request approval
 				updatedAt: moment(),
 				},
 				{
@@ -3962,7 +3969,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 				{
 				status: 'revoked',
 				updatedBy: userData.id,
-				//message: result.remark != "" ? result.remark : null,
+				//message: result.remark != "" ? result.remark : null, message uncommented , was getting updated with revoke request approval
 				updatedAt: moment(),
 				},
 				{
