@@ -3926,7 +3926,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 				{
 				status: 'revoked',
 				updatedBy: userData.id,
-				message: result.remark != "" ? result.remark : null,
+				//message: result.remark != "" ? result.remark : null,
 				updatedAt: moment(),
 				},
 				{
@@ -3962,7 +3962,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 				{
 				status: 'revoked',
 				updatedBy: userData.id,
-				message: result.remark != "" ? result.remark : null,
+				//message: result.remark != "" ? result.remark : null,
 				updatedAt: moment(),
 				},
 				{
