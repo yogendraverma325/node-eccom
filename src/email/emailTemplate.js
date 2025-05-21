@@ -3885,7 +3885,7 @@ html=`<!-- FOR THR -->
           are happy to inform you that your services are being confirmed as
           <strong>${data?.designationmaster?.name}</strong> with effect from
           <strong>${moment(confiramtionData?.updatedAt).format(
-						"MM-DD-YYYY",
+						"DD-MM-YYYY",
 					)}</strong>.
         </p>
 
