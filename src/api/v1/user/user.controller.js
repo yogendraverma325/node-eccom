@@ -6430,7 +6430,7 @@ class UserController {
 			const employeeleave_revoke_transactionData = await db.employeeleave_revoke_transaction.findAndCountAll({
 								where:whereCondition,
 								include:
-									{
+									[{
 									model: db.EmployeeLeaveHeader,
 									required: true,
 											include:
@@ -6441,6 +6441,7 @@ class UserController {
 											required: true,
 											as:'leaveMasterDetails'
 											},
+											
 											{
 											model: db.employeeMaster,
 											attributes:["id","empCode","name"],
@@ -6457,6 +6458,12 @@ class UserController {
 										],
 			
 									},
+									{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									as: "leaveUpdatedBy"
+									}
+										],
 									limit,
 									offset,
 								});
