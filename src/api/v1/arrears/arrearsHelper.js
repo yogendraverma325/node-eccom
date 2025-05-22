@@ -65,11 +65,11 @@ async function query(caseId, data, data2) {
 		case 1:
 			//return `SELECT ea.earningArrearAutoId,e.empCode  AS "EmployeeID", e.name AS "Employee Name",ea.arearType AS "Arrear Type",ea.arrearPayMonth AS "Arrear Month",ea.arearDays AS "Arrear Days", ea.hasPF AS "Has PF Arrear?", ea.computeESIC AS "Compute ESIC Arrear?",ea.status AS "Status",cb.name AS "Created Through",     ea.createdAt AS "Created On",ea.processedOn as "Processed On" FROM tara.earningarrears ea JOIN tara.employee e ON ea.EmployeeId = e.id JOIN tara.employee cb ON ea.createdThrough = cb.id WHERE arrearPayMonth = '${data}' and status=${data2.status};`;
 			//return `SELECT ROW_NUMBER() OVER (ORDER BY impInfo.importAutoId DESC) AS serialNo, impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name, COUNT(impData.importedRow) AS totalImportedRows, SUM(CASE WHEN impData.importStatus = 1 THEN 1 ELSE 0 END) AS successCounts, SUM(CASE WHEN impData.importStatus = 2 THEN 1 ELSE 0 END) AS failureCounts FROM importinfo impInfo JOIN employee e ON impInfo.createdBy = e.id JOIN importdata impData ON impInfo.importAutoId = impData.importAutoId WHERE YEAR(impInfo.createdAt) = ${data.year} AND MONTH(impInfo.createdAt) = ${data.month} AND impInfo.companyId =${data.companyId} AND impInfo.buId =${data.buId} AND impInfo.sbuId =${data.sbuId} AND impInfo.isActive =${data.isActive} GROUP BY impInfo.importAutoId, impInfo.importType, impInfo.importStatusDesc, impInfo.importStatus, impInfo.createdAt, e.name ORDER BY impInfo.importAutoId DESC;`;
-			return `SELECT ea.earningArrearAutoId, e.empCode AS 'EmployeeID', e.name AS 'Employee Name', ea.arearType AS 'Arrear Type', ea.arrearMonth AS 'Arrear Month',ea.arrearPayMonth as "Arrear Pay Month", ea.arearDays AS 'Arrear Days', ea.hasPF AS 'Has PF Arrear?', ea.computeESIC AS 'Compute ESIC Arrear?', ea.status AS 'Status', cb.name AS 'Created Through', DATE_FORMAT(ea.createdAt, '%d-%m-%Y %r') AS 'Created On', DATE_FORMAT(ea.processedOn, '%d-%m-%Y %r') AS 'Processed On',ea.processingRemark "Process Remark" FROM tara.earningarrears ea JOIN tara.employee e ON ea.EmployeeId = e.id JOIN tara.employee cb ON ea.createdThrough = cb.id  WHERE ea.arrearMonth = '${data}' AND ea.status = ${data2.status} AND ea.arearType = '${data2.arrearType}' AND ea.companyId=${data2.companyId};`;
+			return `SELECT ea.earningArrearAutoId, e.empCode AS 'EmployeeID', e.name AS 'Employee Name', ea.arearType AS 'Arrear Type', ea.arrearMonth AS 'Arrear Month',ea.arrearPayMonth as "Arrear Pay Month", ea.arearDays AS 'Arrear Days', ea.hasPF AS 'Has PF Arrear?', ea.computeESIC AS 'Compute ESIC Arrear?', ea.status AS 'Status', cb.name AS 'Created Through', DATE_FORMAT(ea.createdAt, '%d-%m-%Y %r') AS 'Created On', DATE_FORMAT(ea.processedOn, '%d-%m-%Y %r') AS 'Processed On',ea.processingRemark "Process Remark" FROM tara.earningarrears ea JOIN tara.employee e ON ea.EmployeeId = e.id JOIN tara.employee cb ON ea.createdThrough = cb.id  WHERE (ea.arrearPayMonth = '${data}' OR ea.arrearPayMonth IS NULL)  AND ea.status = ${data2.status} AND ea.arearType = '${data2.arrearType}' AND ea.companyId=${data2.companyId};`;
 			break;
 
 		case 2:
-			return `SELECT COALESCE(SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END), 0) AS createdCounts, COALESCE(SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END), 0) AS failedCounts, COALESCE(SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END), 0) AS completedCount FROM tara.earningarrears WHERE arrearMonth = '${data}' and companyId=${data2.companyId}  and arearType='${data2.arrearType}'`;
+			return `SELECT COALESCE(SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END), 0) AS createdCounts, COALESCE(SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END), 0) AS failedCounts, COALESCE(SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END), 0) AS completedCount FROM tara.earningarrears WHERE (arrearPayMonth = '${data}' OR arrearPayMonth IS NULL) and companyId=${data2.companyId}  and arearType='${data2.arrearType}'`;
 		case 3:
 			//return `SELECT sc.salaryComponentAutoId, scm.elementValue, sce.salaryComponentElementAutoId, sce.salaryComponentElementName FROM salarycomponent sc JOIN salarycomponentmapping scm ON sc.salaryComponentAutoId = scm.salaryComponentAutoId JOIN salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sc.salaryComponentAutoId = ${data}`;
 			return `SELECT sscm.salaryComponentAutoId, sscm.salaryStructureAutoId, scm.salaryComponentElementAutoId, scm.elementValue, sce.salaryComponentElementName, sce.salaryComponentElementCode FROM ${dbName}.salarystructurecomponentmapping sscm JOIN ${dbName}.salarycomponentmapping scm ON sscm.salaryStructurecomponentmappingAutoId = scm.salaryStructurecomponentmappingAutoId JOIN ${dbName}.salarycomponentelement sce ON scm.salaryComponentElementAutoId = sce.salaryComponentElementAutoId WHERE sscm.salaryComponentAutoId = ${data} AND sscm.salaryStructureAutoId = ${data2};`;
@@ -139,7 +139,11 @@ async function getCalculatedPF(monthlyElementPay) {
 	}
 	return calculatedPF; // Return elementValue or null if not found
 }
-async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
+function getPercentagePart(total, percentage) {
+	return (total * (percentage / 100)).toFixed(2);
+}
+
+async function calculateArrersAmount(lastPayMonthDetails, arrearDays,earningArrearsAutoId) {
 	let arrearReturnObject = {},
 		payElementsAfterArrears = [],
 		arrearReturnArray = [];
@@ -171,6 +175,8 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
 					)
 				: 0.0;
 
+				console.log("arrearAmunt ::: ",arrearAmunt);
+
 		if (arrearAmunt > 0) {
 			let componentName = payElementObject["salaryComponentAlias"]
 				? payElementObject["salaryComponentAlias"]
@@ -178,9 +184,11 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
 			arrearReturnObject[componentName + " Arrears"] = arrearAmunt;
 			arrearReturnArray.push({
 				arrearName: componentName + " Arrears",
-				arrearAmunt: arrearAmunt,
+				arrearAmunt: parseFloat(arrearAmunt).toFixed(2),
 				type: "Earning",
 				seq: payElementObject["salaryComponentSequenceNo"],
+				earningArrearAutoId:earningArrearsAutoId,
+				componentAutoId:payElementObject['salaryComponentAutoId'],
 			});
 			payElementObject["arrearsAmount"] = arrearAmunt;
 			payElementObject["monthlyAmountAfterArrears"] =
@@ -200,9 +208,11 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays) {
 		arrearReturnObject["PF Arrears"] = pfArrearAmoun;
 		arrearReturnArray.push({
 			arrearName: "PF Arrears",
-			arrearAmunt: pfArrearAmoun,
+			arrearAmunt: pfArrearAmoun.toFixed(2),
 			type: "Deduction",
 			seq: 999,
+			earningArrearAutoId:earningArrearsAutoId,
+			componentAutoId:0,
 		});
 	}
 

@@ -2341,7 +2341,7 @@ const addEditSingleArrear = Joi.object({
 			"string.pattern.base": '"arrearPayMonth" must be in YYYY-MM format',
 		}),
 	arearDays: Joi.number().integer().min(0).required(),
-	arearType: Joi.string().valid("Lop","Increment").required(),
+	arearType: Joi.string().valid("LOP","Increment").required(),
 	hasPF: Joi.string().valid("Yes", "No").required(),
 	computeESIC: Joi.string().valid("Yes", "No").required(),
 	companyId: Joi.number().integer().required(),

@@ -2889,7 +2889,7 @@ class PaymentController {
 				processedEmployee[0][0]["payMonth"],
 				employeeIds,
 			);
-			//	console.log(query);
+				// console.log(query);
 			const result = await db.sequelize.query(query);
 			const processedData = groupByEmployeeId(result[0]);
 			processedData.sort((a, b) => {
@@ -3318,6 +3318,11 @@ class PaymentController {
 	async updateNextStatus(req, res) {
 		try {
 			let { processId, currentStatusId, nextStatusId, selectedYear } = req.body;
+
+
+			console.log("req.body:::::::::");
+			console.log(req.body);
+			console.log("req.body:::::::::");
 
 			const queryForMappedEmployeeList = await paymentHelper.query(
 				6,
@@ -5932,7 +5937,7 @@ class PaymentController {
 const groupByEmployeeId = (data) => {
 	const groupedData = {};
 	data.forEach((item, index) => {
-		console.log(item);
+		//console.log(item);
 		let result = null;
 		if (item["arrearsDetails"]) {
 			let arrearDetails = item["arrearsDetails"]
@@ -5940,23 +5945,20 @@ const groupByEmployeeId = (data) => {
 				: [];
 
 			result = {
-				earningArrears: 0,
-				deductionArrears: 0,
+				earningArrears: 0.0,
+				deductionArrears: 0.0,
 				mergeObject: {},
 			};
 			arrearDetails.forEach((item) => {
-				result.mergeObject[item.arrearName] = item.arrearAmunt;
+				result.mergeObject[item.arrearName] = parseFloat(item.arrearAmunt);
 				if (item.type === "Earning") {
-					result.earningArrears += item.arrearAmunt;
+				     result.earningArrears = parseFloat(result.earningArrears) + parseFloat(item.arrearAmunt);
 				} else if (item.type === "Deduction") {
-					result.deductionArrears += item.arrearAmunt;
+					result.deductionArrears = parseFloat(result.deductionArrears) + parseFloat(item.arrearAmunt);
 				}
 			});
 		}
 		const employeeId = item["Employee Id"];
-
-		console.log(result);
-
 		let totalEarning = parseFloat(
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
 				parseFloat(
