@@ -2394,17 +2394,10 @@ const reviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.alternatives()
-		.try(Joi.array(), Joi.string().allow(""))
-		.optional(),
-	// userAssignment: Joi.array()
-	// 	.items(Joi.number())
-	// 	.min(1)
-	// 	.required()
-	// 	.label("User Assignment")
-	// 	.custom((value, helpers) => {
-	// 		return value.join(","); // Convert array [1, 2] → "1,2"
-	// 	}),
+	userAssignment: Joi.array()
+		.items(Joi.number().required())
+		.min(1) // Ensures at least one item
+		.required(),
 	// selfCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// selfCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// evaluatorCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
@@ -2470,9 +2463,13 @@ const editReviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.alternatives()
-		.try(Joi.array(), Joi.string().allow(""))
-		.optional(),
+	// userAssignment: Joi.alternatives()
+	// 	.try(Joi.array(), Joi.string().allow(""))
+	// 	.optional(),
+	userAssignment: Joi.array()
+		.items(Joi.number().required())
+		.min(1) // Ensures at least one item
+		.required(),
 	selfCanViewRatingOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),

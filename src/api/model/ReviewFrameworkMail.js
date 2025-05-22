@@ -1,17 +1,20 @@
 export default (sequelize, Sequelize) => {
-	const departmentMapping = sequelize.define("departmentmapping", {
-		departmentMappingId: {
+	const ReviewFrameworkMail = sequelize.define("reviewframeworkmail", {
+		reviewkMailId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		departmentId: {
+		userId: {
 			type: Sequelize.INTEGER,
 		},
-		sbuMappingId: {
-			type: Sequelize.INTEGER,
+		tmc: {
+			type: Sequelize.STRING,
 		},
-		departmentHead:{
+		email: {
+			type: Sequelize.STRING,
+		},
+		reviewFrameworkId: {
 			type: Sequelize.INTEGER,
 		},
 		createdBy: {
@@ -30,5 +33,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 	});
-	return departmentMapping;
+	return ReviewFrameworkMail;
 };

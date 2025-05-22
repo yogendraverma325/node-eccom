@@ -87,7 +87,7 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 		userAssignment: {
-			type: Sequelize.JSON,
+			type: Sequelize.INTEGER,
 		},
 		// selfCanViewRatingOf: {
 		// 	type: Sequelize.STRING,

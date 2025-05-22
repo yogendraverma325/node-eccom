@@ -3085,6 +3085,12 @@ class commonController {
 			// Fetch updated assignment (if needed)
 			const updatedAssignment = await db.user_assignment.findByPk(assignmentId);
 
+			//===================below code is for appraisal ==============================
+
+			// ================= Appraisal Section =================================
+			await helper.handleAppraisalGoalPlanUpdate(assignmentId);
+			await helper.handleReviewFrameworkAssignmentNew(assignmentId);
+
 			return respHelper(res, {
 				status: 200,
 				msg: "User Assignment updated successfully.",
@@ -3486,13 +3492,18 @@ export async function getEmployeesByUserAssignmentId(id) {
 			},
 			include: [
 				{
+					model: db.employeeMaster,
+					attributes: ["id"],
+				    as: "managerData",
+				},
+				{
 					model: db.jobDetails,
 					where: whereJobDetails,
 					required: Object.keys(whereJobDetails).length > 0,
 					attributes: ["confirmationDate"],
 				},
 			],
-			attributes: ["id", "empCode", "name", "email", "dateOfJoining"],
+			attributes: ["id", "empCode", "name", "email", "dateOfJoining","departmentId"],
 		});
 		//  console.log("employees", employees);
 		return employees;
@@ -3680,7 +3691,6 @@ export async function getEmployeesToAssignGoalPlan(getUserAssigmentIds) {
 				}
 			}
 		}
-
 		const { rows: employees } = await db.employeeMaster.findAndCountAll({
 			where: {
 				...whereEmployee,

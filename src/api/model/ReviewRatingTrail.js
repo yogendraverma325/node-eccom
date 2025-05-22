@@ -1,23 +1,35 @@
 export default (sequelize, Sequelize) => {
-	const departmentMapping = sequelize.define("departmentmapping", {
-		departmentMappingId: {
+	const ReviewRatingTrail = sequelize.define("reviewratingtrail", {
+		reviewratingtrailId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		departmentId: {
+		level: {
 			type: Sequelize.INTEGER,
 		},
-		sbuMappingId: {
+		reviewFrameworkId: {
 			type: Sequelize.INTEGER,
 		},
-		departmentHead:{
+		userId: {
 			type: Sequelize.INTEGER,
 		},
-		createdBy: {
+		isVisible: {
 			type: Sequelize.INTEGER,
+		},
+		isActionTaken: {
+			type: Sequelize.INTEGER,
+		},
+		pendingAt: {
+			type: Sequelize.INTEGER,
+		},
+		pendingStage: {
+			type: Sequelize.STRING,
 		},
 		createdAt: {
+			type: Sequelize.DATE,
+		},
+		createdBy: {
 			type: Sequelize.DATE,
 		},
 		updatedBy: {
@@ -26,9 +38,6 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		isActive: {
-			type: Sequelize.BOOLEAN,
-		},
 	});
-	return departmentMapping;
+	return ReviewRatingTrail;
 };

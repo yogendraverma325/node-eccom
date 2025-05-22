@@ -12,6 +12,7 @@ import pkg from "xlsx";
 import logger from "../../../helper/logger.js";
 import {
 	getEmployeesAssignment,
+	getEmployeesByUserAssignmentId,
 	getEmployeesPragatGoalList,
 	getEmployeesToAssignGoalPlan,
 } from "../common/common.controller.js";
@@ -484,13 +485,13 @@ class AppraisalGoalsController {
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanName: result.goalPlanName,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
 					},
 				}),
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanId: result.goalPlanId,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
 					},
 				}),
 			]);
@@ -2439,54 +2440,70 @@ class AppraisalGoalsController {
 	}
 
 	// ================== appraisal rating ======================
+
 	async createReviewFramework(req, res) {
 		try {
-			// Validate request body against schema
 			const validatedData = await validator.reviewFrameworkSchema.validateAsync(
 				req.body,
 			);
 
-			// Convert empty strings to null (custom helper function)
 			const result = await helper.convertEmptyStringsToNull(validatedData);
 
-			// Uniqueness Check for reviewName
+			if (
+				Array.isArray(result.userAssignment) &&
+				result.userAssignment.length === 1
+			) {
+				result.userAssignment = result.userAssignment[0];
+			}
+
 			const existingReviewName = await db.reviewFramework.findOne({
 				where: {
+					//type: 1,
 					reviewName: result.reviewName,
 				},
 			});
 
 			if (existingReviewName) {
-				return res.status(400).json({
-					success: false,
-					message: message.APPRAISAL.REVIEW_NAME_ALREADY_EXITS,
-					data: {},
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.REVIEW_NAME_ALREADY_EXITS,
 				});
 			}
 
-			// Uniqueness Check for reviewId
 			const existingReviewId = await db.reviewFramework.findOne({
 				where: {
+					//type: 1,
 					reviewId: result.reviewId,
 				},
 			});
 
 			if (existingReviewId) {
-				return res.status(400).json({
-					success: false,
-					message: message.APPRAISAL.REVIEW_ID_ALREADY_EXITS,
-					data: {},
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.REVIEW_ID_ALREADY_EXITS,
 				});
 			}
 
-			// Create new review framework
+			const existingUserAssignment = await db.reviewFramework.findOne({
+				where: {
+					type: 1,
+					userAssignment: result.userAssignment,
+				},
+			});
+
+			if (existingUserAssignment) {
+				return respHelper(res, {
+					status: 400,
+					msg: "User Assginment Already Exists",
+				});
+			}
+
 			const newFramework = await db.reviewFramework.create(result);
 
-			// Send response with created data
 			return respHelper(res, {
 				status: 200,
 				msg: message.APPRAISAL.REVIEW_FRAMEWORK_CREATED_SUCCESSFULLY,
-				data: {}, // Include the created data
+				data: newFramework,
 			});
 		} catch (error) {
 			console.error("Approval Error:", error);
@@ -2519,14 +2536,14 @@ class AppraisalGoalsController {
 						model: db.user_assignment,
 						required: false,
 						on: db.sequelize.literal(
-							`JSON_CONTAINS(reviewframework.userAssignment, CAST(user_assignments.id AS JSON), '$')`,
+							"FIND_IN_SET(`user_assignments`.`id`, `reviewframework`.`userAssignment`) > 0",
 						),
 					},
 					{
-					   model:db.compentanyTier
+						model: db.compentanyTier,
 					},
 					// {
-						
+
 					// }
 				],
 				order: [
@@ -2558,14 +2575,22 @@ class AppraisalGoalsController {
 				await validator.editReviewFrameworkSchema.validateAsync(req.body);
 
 			const result = await helper.convertEmptyStringsToNull(validatedData);
+
+			if (
+				Array.isArray(result.userAssignment) &&
+				result.userAssignment.length === 1
+			) {
+				result.userAssignment = result.userAssignment[0];
+			}
+
 			const existingFramework = await db.reviewFramework.findByPk(
 				result.reviewFrameworkId,
 			);
+
 			if (!existingFramework) {
 				return respHelper(res, {
-					status: 404,
+					status: 400,
 					msg: "Review Framework not found",
-					data: {},
 				});
 			}
 
@@ -2575,14 +2600,18 @@ class AppraisalGoalsController {
 			) {
 				const reviewNameExists = await db.reviewFramework.findOne({
 					where: {
+						//type:1,
 						reviewName: result.reviewName,
+						reviewFrameworkId: {
+							[db.Sequelize.Op.ne]: result.reviewFrameworkId,
+						},
 					},
 				});
+
 				if (reviewNameExists) {
-					return res.status(400).json({
-						success: false,
-						message: message.APPRAISAL.REVIEW_NAME_ALREADY_EXITS,
-						data: {},
+					return respHelper(res, {
+						status: 400,
+						msg: message.APPRAISAL.REVIEW_NAME_ALREADY_EXITS,
 					});
 				}
 			}
@@ -2590,29 +2619,56 @@ class AppraisalGoalsController {
 			if (result.reviewId && result.reviewId !== existingFramework.reviewId) {
 				const reviewIdExists = await db.reviewFramework.findOne({
 					where: {
+						//type:1,
 						reviewId: result.reviewId,
+						reviewFrameworkId: {
+							[db.Sequelize.Op.ne]: result.reviewFrameworkId,
+						},
 					},
 				});
+
 				if (reviewIdExists) {
-					return res.status(400).json({
-						success: false,
-						message: message.APPRAISAL.REVIEW_ID_ALREADY_EXITS,
-						data: {},
+					return respHelper(res, {
+						status: 400,
+						msg: message.APPRAISAL.REVIEW_ID_ALREADY_EXITS,
 					});
 				}
 			}
-			await existingFramework.update(result, {
-				where: { reviewFrameworkId: result.reviewFrameworkId },
-			});
 
+			if (
+				result.userAssignment &&
+				result.userAssignment !== existingFramework.userAssignment
+			) {
+				const userAssignmentExists = await db.reviewFramework.findOne({
+					where: {
+						type: 1,
+						userAssignment: result.userAssignment,
+						reviewFrameworkId: {
+							[db.Sequelize.Op.ne]: result.reviewFrameworkId,
+						},
+					},
+				});
+
+				if (userAssignmentExists) {
+					return respHelper(res, {
+						status: 400,
+						msg: "User Assignment is Already Exist",
+					});
+				}
+			}
+
+			// Update the framework
+			await existingFramework.update(result);
+
+			// Respond with success
 			return respHelper(res, {
 				status: 200,
 				msg: message.APPRAISAL.REVIEW_FRAMEWORK_UPDATED_SUCCESSFULLY,
 				data: {},
 			});
-			
 		} catch (error) {
 			console.error("Update Error:", error);
+
 			if (error.isJoi === true) {
 				return respHelper(res, {
 					status: 422,
@@ -2642,30 +2698,45 @@ class AppraisalGoalsController {
 				orderClause = [["updatedAt", "DESC"]];
 			}
 
-			// Always sort subGoals by subGoalAreaId ascending
 			orderClause.push([
 				{ model: db.subGoalAreaForUser, as: "subGoals" },
 				"subGoalAreaId",
 				"ASC",
 			]);
 
+			let getActiveReviewFrameworkId = await db.reviewFrameworkMail.findOne({
+				//attributes: ["email"],
+				where: {
+					userId: forEmp,
+					isActive: 1,
+				},
+			});
+			let flowLevel = await db.reviewRatingTrail.findOne({
+				where: {
+					userId: forEmp,
+					isActionTaken: 0,
+					reviewFrameworkId: getActiveReviewFrameworkId.reviewFrameworkId,
+					//pendingAt: req.userId,
+				},
+				raw: true,
+			});
+
 			// Get active goal plan
-			const activeGoalPlan = await db.appraisalGoalsMaster.findOne({
-				where: { type: 1, isDeleted: 0 },
+			const activeGoalPlan = await db.goalPlanMail.findOne({
+				where: { userId: forEmp, isActive: 1 },
 			});
 
 			if (!activeGoalPlan) {
 				return respHelper(res, {
-					status: 200,
-					msg: message.APPRAISAL.GET_LIST,
+					status: 400,
+					msg: "Active Goal Plan Not Found",
 					data: {},
 				});
 			}
 
-			// Check if user has a trail with isApproved = 2
 			const userTrail = await db.goalAreaPragatiTrail.findOne({
 				where: {
-					goalPlanId: activeGoalPlan.appraisalGoalId,
+					goalPlanId: activeGoalPlan.goalPlanId,
 					userId: forEmp,
 					isApproved: 2,
 				},
@@ -2673,17 +2744,111 @@ class AppraisalGoalsController {
 
 			if (!userTrail) {
 				return respHelper(res, {
-					status: 200,
-					msg: message.APPRAISAL.GET_LIST,
+					status: 400,
+					msg: "Trail Not Found",
 					data: {},
 				});
 			}
 
-			// Fetch goal data for the user
+			const getReviewFrameworkAndCompentancy =
+				await db.reviewFrameworkMail.findOne({
+					attributes: ["email"],
+					where: {
+						userId: forEmp,
+						isActive: 1,
+					},
+					include: [
+						{
+							model: db.reviewFramework,
+							include: [
+								{
+									model: db.compentanyTier,
+									attributes: [
+										"compentancyTierId",
+										"compentancyName",
+										"compentancyDescription",
+									],
+									include: [
+										{
+											model: db.compentancyAttributes,
+											as: "compentancyAttr",
+											include: [
+												{
+													model: db.compentancyRating,
+													as: "compentancyRating",
+													where: {
+														ratingBy: "employee",
+														forUser: forEmp,
+														reviewFrameworkId:
+															getActiveReviewFrameworkId.reviewFrameworkId,
+													},
+													required: false,
+												},
+												{
+													model: db.compentancyRating,
+													as: "managerCompentancyRating",
+													where: {
+														ratingBy: "manager",
+														forUser: forEmp,
+														reviewFrameworkId:
+															getActiveReviewFrameworkId.reviewFrameworkId,
+													},
+													required: false,
+												},
+												{
+													model: db.compentancyRating,
+													as: "hodCompentancyRating",
+													where: {
+														ratingBy: "hod",
+														forUser: forEmp,
+														reviewFrameworkId:
+															getActiveReviewFrameworkId.reviewFrameworkId,
+													},
+													required: false,
+												},
+											],
+										},
+									],
+								},
+								{
+									model: db.ratingScaleMaster,
+									as: "goalratingscale",
+								},
+								{
+									model: db.ratingScaleMaster,
+									as: "overallperformancescale",
+								},
+								{
+									model: db.ratingScaleMaster,
+									as: "goalcompentancyscale",
+								},
+								// {
+								// 	model: db.compentancyRating,
+								// 	as: "compentancyRating",
+								// 	where: { ratingBy: "self", forUser: forEmp },
+								// 	required: false,
+								// },
+								// {
+								// 	model: db.compentancyRating,
+								// 	as: "managerCompentancyRating",
+								// 	where: { ratingBy: "manager", forUser: forEmp },
+								// 	required: false,
+								// },
+								// {
+								// 	model: db.compentancyRating,
+								// 	as: "hodCompentancyRating",
+								// 	where: { ratingBy: "hod", forUser: forEmp },
+								// 	required: false,
+								// },
+							],
+						},
+					],
+				});
+
 			const goalData = await db.goalAreaForUser.findAll({
 				where: {
 					userId: forEmp,
-					goalPlanId: activeGoalPlan.appraisalGoalId,
+					goalPlanId: activeGoalPlan.goalPlanId,
 				},
 				include: [
 					{
@@ -2814,17 +2979,83 @@ class AppraisalGoalsController {
 					},
 					{
 						model: db.goalRating,
-						//attributes: ["id", "name", "empCode"],
-					}
+						as: "goalrating",
+						where: { ratingBy: "employee" },
+						required: false,
+					},
+					{
+						model: db.goalRating,
+						as: "goalmanagaerrating",
+						where: { ratingBy: "manager" },
+						required: false,
+					},
+					{
+						model: db.goalRating,
+						as: "goalhodrating",
+						where: { ratingBy: "hod" },
+						required: false,
+					},
 				],
 				order: orderClause,
 			});
+			const review = getReviewFrameworkAndCompentancy?.reviewframework || {};
 
+			const steps = [];
+
+			if (review.selfReview) steps.push("Employee");
+			if (review.evaluator) steps.push(review.evaluator);
+			if (review.reviewer) steps.push(review.reviewer);
+			steps.push("Calibration");
+
+			console.log("reviewAppraisal", flowLevel);
+			let stageAt = flowLevel ? flowLevel.pendingStage : "Calibration";
+			// Always include Calibration at the end
 			return respHelper(res, {
 				status: 200,
 				msg: message.APPRAISAL.GET_LIST,
 				data: {
+					pendingLevel: stageAt,
+					steps: steps,
+					stage: flowLevel ? flowLevel.level : steps.length,
 					getGoalForUser: goalData,
+					reviewFramework:getReviewFrameworkAndCompentancy?.reviewframework || {},
+					compentancy:
+						getReviewFrameworkAndCompentancy?.reviewframework
+							?.compentancytier || {},
+					goalRatingScale:
+						getReviewFrameworkAndCompentancy?.reviewframework
+							?.goalratingscale || {},
+					overallPerformanceScale:
+						getReviewFrameworkAndCompentancy?.reviewframework
+							?.overallperformancescale || {},
+					goalcompentancyscale:
+						getReviewFrameworkAndCompentancy?.reviewframework
+							?.goalcompentancyscale || {},
+					goalWeightage:
+						getReviewFrameworkAndCompentancy?.reviewframework?.goalWeightage ||
+						"",
+					overallPerformance:
+						getReviewFrameworkAndCompentancy?.reviewframework
+							?.overallPerformanceScale || "",
+					compentencyWeightage:
+						getReviewFrameworkAndCompentancy?.reviewframework
+							?.compentencyWeightage || "",
+					// selfReview:
+					// 	getReviewFrameworkAndCompentancy?.reviewframework?.selfReview,
+					// evaluator:
+					// 	getReviewFrameworkAndCompentancy?.reviewframework?.evaluator,
+					// reviewer: getReviewFrameworkAndCompentancy?.reviewframework?.reviewer,
+					// calibration:
+					// 	getReviewFrameworkAndCompentancy?.reviewframework?.calibration,
+					// compentanyRating:
+					// 	getReviewFrameworkAndCompentancy?.reviewframework
+					// 		?.compentancyRating || [],
+					// managerCompentanyRating:
+					// 	getReviewFrameworkAndCompentancy?.reviewframework
+					// 		?.managerCompentancyRating || [],
+					// hodCompentanyRating:
+					// 	getReviewFrameworkAndCompentancy?.reviewframework
+					// 		?.hodCompentancyRating || [],
 				},
 			});
 		} catch (error) {
@@ -2836,68 +3067,645 @@ class AppraisalGoalsController {
 		}
 	}
 
-	async selfRating(req, res) {
-		try {
-			const { selfRatings } = req.body;
+	// async selfRating(req, res) {
+	// 	try {
+	// 		logger.info("[START] selfRating API called");
+	// 		const { selfRatings, compentancyRating } = req.body;
+	// 		const userId = req.userId;
 
-			if (!Array.isArray(selfRatings) || selfRatings.length === 0) {
+	// 		if (!Array.isArray(selfRatings) || selfRatings.length === 0) {
+	// 			logger.warn("selfRatings array is invalid or empty");
+	// 			return respHelper(res, {
+	// 				status: 400,
+	// 				msg: message.APPRAISAL.RATING_VALUE_REQUIRED,
+	// 			});
+	// 		}
+
+	// 		logger.info(`Fetching flowLevel for user: ${userId}`);
+	// 		const flowLevel = await db.reviewRatingTrail.findOne({
+	// 			where: { isActionTaken: 0, pendingAt: userId },
+	// 			include: [
+	// 				{
+	// 					model: db.employeeMaster,
+	// 					attributes: ["id", "name", "manager", "departmentId"],
+	// 				},
+	// 			],
+	// 		});
+
+	// 		if (!flowLevel) {
+	// 			logger.info(`Flow already completed for user: ${userId}`);
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				msg: "Flow Completed",
+	// 				data: {},
+	// 			});
+	// 		}
+
+	// 		logger.info(`Found flowLevel: ${flowLevel.level}`);
+	// 		const getReviewFrameworkId = await db.reviewFramework.findOne({
+	// 			where: { reviewFrameworkId: flowLevel.reviewFrameworkId },
+	// 			raw: true,
+	// 		});
+
+	// 		if (!getReviewFrameworkId) {
+	// 			logger.error(
+	// 				`No review framework found for: ${flowLevel.reviewFrameworkId}`,
+	// 			);
+	// 			return respHelper(res, {
+	// 				status: 404,
+	// 				msg: "Review Framework not found",
+	// 			});
+	// 		}
+
+	// 		// === Level 0: Self Review ===
+	// 		if (getReviewFrameworkId.selfReview == 1 && flowLevel.level == 0) {
+	// 			logger.info("Processing Self Review...");
+	// 			for (const rating of selfRatings) {
+	// 				const [goalRating, created] = await db.goalRating.findOrCreate({
+	// 					where: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: userId,
+	// 						ratingBy: "self",
+	// 					},
+	// 					defaults: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: userId,
+	// 						byUser: req.userId,
+	// 						rating: rating.rating,
+	// 						comment: rating.comment === "" ? null : rating.comment,
+	// 						createdBy: req.userId,
+	// 						updatedBy: req.userId,
+	// 						ratingBy: "self",
+	// 					},
+	// 				});
+
+	// 				if (!created) {
+	// 					logger.info(
+	// 						`Updating existing self rating for goalAreaId: ${rating.goalAreaId}`,
+	// 					);
+	// 					await goalRating.update({
+	// 						rating: rating.rating,
+	// 						comment: rating.comment === "" ? null : rating.comment,
+	// 						updatedBy: req.userId,
+	// 					});
+	// 				}
+	// 			}
+
+	// 			await db.reviewRatingTrail.update(
+	// 				{ isActionTaken: 1 },
+	// 				{
+	// 					where: { userId: userId, isActionTaken: 0, pendingAt: req.userId },
+	// 				},
+	// 			);
+
+	// 			logger.info("Self Review submitted. Creating next level for Manager");
+	// 			await db.reviewRatingTrail.create({
+	// 				userId: userId,
+	// 				isActionTaken: 0,
+	// 				level: 1,
+	// 				isVisible: 1,
+	// 				reviewFrameworkId: flowLevel.reviewFrameworkId,
+	// 				pendingAt: flowLevel.employee.manager,
+	// 			});
+
+	// 			let compentancyInsert = [];
+	// 			for (const compRating of compentancyRating) {
+	// 				//compentancyAttrId,compentancyTierId
+
+	// 				compentancyInsert.push({
+	// 					goalAreaId: compRating.goalAreaId,
+	// 					rating: compRating.rating,
+	// 					comment:
+	// 						compRating.rating.comment === "" ? null : compRating.comment,
+	// 					compentancyAttrId: compRating.compentancyAttrId,
+	// 					compentancyTierId: compRating.compentancyTierId,
+	// 					forUser: userId,
+	// 					byUser: req.userId,
+	// 					createdBy: req.userId,
+	// 					updatedBy: req.userId,
+	// 					ratingBy: "self",
+	// 				});
+
+	// 				await db.compentancyRating.destroy({
+	// 					where: {
+	// 						forUser: userId,
+	// 						ratingBy: "self",
+	// 						compentancyAttrId: compRating.compentancyAttrId,
+	// 						compentancyTierId: compRating.compentancyTierId,
+	// 					},
+	// 				});
+	// 			}
+
+	// 			await db.compentancyRating.bulkCreate(compentancyInsert);
+	// 		}
+
+	// 		// === Level 1: Manager Review ===
+	// 		if (
+	// 			getReviewFrameworkId.evaluator === "Manager" &&
+	// 			flowLevel.level == 1
+	// 		) {
+	// 			logger.info("Processing Manager Review...");
+
+	// 			const departmentHead = await db.departmentMapping.findOne({
+	// 				where: { departmentId: flowLevel.employee.departmentId },
+	// 				include: [
+	// 					{
+	// 						model: db.employeeMaster,
+	// 						attributes: ["id", "name"],
+	// 						as: "departmentOfHead",
+	// 					},
+	// 				],
+	// 			});
+
+	// 			if (!departmentHead?.departmentOfHead?.id) {
+	// 				logger.warn(
+	// 					`Department head not found for departmentId: ${flowLevel.employee.departmentId}`,
+	// 				);
+	// 			}
+
+	// 			for (const rating of selfRatings) {
+	// 				const [goalRating, created] = await db.goalRating.findOrCreate({
+	// 					where: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						ratingBy: "manager",
+	// 					},
+	// 					defaults: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						byUser: req.userId,
+	// 						rating: rating.rating,
+	// 						comment: rating.comment === "" ? null : rating.comment,
+	// 						createdBy: req.userId,
+	// 						updatedBy: req.userId,
+	// 						ratingBy: "manager",
+	// 					},
+	// 				});
+
+	// 				if (!created) {
+	// 					logger.info(
+	// 						`Updating existing manager rating for goalAreaId: ${rating.goalAreaId}`,
+	// 					);
+	// 					await goalRating.update({
+	// 						rating: rating.rating,
+	// 						comment: rating.comment === "" ? null : rating.comment,
+	// 						updatedBy: req.userId,
+	// 					});
+	// 				}
+	// 			}
+
+	// 			await db.reviewRatingTrail.update(
+	// 				{ isActionTaken: 1 },
+	// 				{
+	// 					where: {
+	// 						userId: flowLevel.userId,
+	// 						isActionTaken: 0,
+	// 						pendingAt: req.userId,
+	// 					},
+	// 				},
+	// 			);
+
+	// 			const managerId = flowLevel.employee.manager;
+	// 			const hodId = departmentHead?.departmentOfHead?.id;
+
+	// 			logger.info("Manager Review submitted. Evaluating next level for HOD");
+
+	// 			if (managerId === hodId) {
+	// 				logger.info(
+	// 					"Manager is also the HOD. Skipping creation of HOD level.",
+	// 				);
+	// 			} else {
+	// 				await db.reviewRatingTrail.create({
+	// 					userId: flowLevel.userId,
+	// 					isActionTaken: 0,
+	// 					level: 2,
+	// 					isVisible: 1,
+	// 					reviewFrameworkId: flowLevel.reviewFrameworkId,
+	// 					pendingAt: hodId,
+	// 				});
+	// 				logger.info("Created review level for HOD.");
+	// 			}
+
+	// 			let compentancyInsert = [];
+	// 			for (const compRating of compentancyRating) {
+	// 				compentancyInsert.push({
+	// 					goalAreaId: compRating.goalAreaId,
+	// 					rating: compRating.rating,
+	// 					comment: compRating.comment === "" ? null : compRating.comment,
+	// 					compentancyAttrId: compRating.compentancyAttrId,
+	// 					compentancyTierId: compRating.compentancyTierId,
+	// 					forUser: flowLevel.userId,
+	// 					byUser: req.userId,
+	// 					createdBy: req.userId,
+	// 					updatedBy: req.userId,
+	// 					ratingBy: "manager",
+	// 				});
+	// 				await db.compentancyRating.destroy({
+	// 					where: {
+	// 						forUser: flowLevel.userId,
+	// 						ratingBy: "manager",
+	// 						compentancyAttrId: compRating.compentancyAttrId,
+	// 						compentancyTierId: compRating.compentancyTierId,
+	// 					},
+	// 				});
+	// 			}
+
+	// 			await db.compentancyRating.bulkCreate(compentancyInsert);
+	// 		}
+
+	// 		// === Level 2: HOD Review ===
+	// 		if (getReviewFrameworkId.reviewer === "HOD" && flowLevel.level == 2) {
+	// 			logger.info("Processing HOD Review...");
+	// 			for (const rating of selfRatings) {
+	// 				const [goalRating, created] = await db.goalRating.findOrCreate({
+	// 					where: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						ratingBy: "hod",
+	// 					},
+	// 					defaults: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						byUser: req.userId,
+	// 						rating: rating.rating,
+	// 						comment: rating.comment === "" ? null : rating.comment,
+	// 						createdBy: req.userId,
+	// 						updatedBy: req.userId,
+	// 						ratingBy: "hod",
+	// 					},
+	// 				});
+
+	// 				if (!created) {
+	// 					logger.info(
+	// 						`Updating existing HOD rating for goalAreaId: ${rating.goalAreaId}`,
+	// 					);
+	// 					await goalRating.update({
+	// 						rating: rating.rating,
+	// 						comment: rating.comment === "" ? null : rating.comment,
+	// 						updatedBy: req.userId,
+	// 					});
+	// 				}
+	// 			}
+
+	// 			await db.reviewRatingTrail.update(
+	// 				{ isActionTaken: 1 },
+	// 				{
+	// 					where: {
+	// 						userId: flowLevel.userId,
+	// 						isActionTaken: 0,
+	// 						pendingAt: req.userId,
+	// 					},
+	// 				},
+	// 			);
+
+	// 			logger.info("HOD Review submitted. No further level created.");
+	// 			let compentancyInsert = [];
+	// 			for (const compRating of compentancyRating) {
+	// 				compentancyInsert.push({
+	// 					goalAreaId: compRating.goalAreaId,
+	// 					rating: compRating.rating,
+	// 					comment: compRating.comment === "" ? null : compRating.comment,
+	// 					compentancyAttrId: compRating.compentancyAttrId,
+	// 					compentancyTierId: compRating.compentancyTierId,
+	// 					forUser: flowLevel.userId,
+	// 					byUser: req.userId,
+	// 					createdBy: req.userId,
+	// 					updatedBy: req.userId,
+	// 					ratingBy: "hod",
+	// 				});
+	// 				await db.compentancyRating.destroy({
+	// 					where: {
+	// 						forUser: flowLevel.userId,
+	// 						ratingBy: "hod",
+	// 						compentancyAttrId: compRating.compentancyAttrId,
+	// 						compentancyTierId: compRating.compentancyTierId,
+	// 					},
+	// 				});
+	// 			}
+
+	// 			await db.compentancyRating.bulkCreate(compentancyInsert);
+	// 		}
+
+	// 		logger.info("All applicable reviews processed successfully");
+	// 		return respHelper(res, {
+	// 			status: 200,
+	// 			msg: message.APPRAISAL.RATING_SUBMISSION,
+	// 			data: {},
+	// 		});
+	// 	} catch (error) {
+	// 		console.log(">>>>>>>>>>>e", error);
+	// 		logger.error(`Error in selfRating: ${error.stack || error.message}`);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 			msg: "Internal server error",
+	// 		});
+	// 	}
+	// }
+
+	//==============trying in active goal Review Framework===========================//
+	async activeGoalReviewFramework(req, res) {
+		try {
+			const { reviewFrameworkId } = req.body;
+
+			// Fetch the current review plan
+			const currentReviewPlan = await db.reviewFramework.findOne({
+				where: { reviewFrameworkId, isDeleted: 0 },
+				raw: true,
+			});
+
+			if (!currentReviewPlan || !currentReviewPlan.userAssignment) {
 				return respHelper(res, {
-					status: 400,
-					msg: message.APPRAISAL.RATING_VALUE_REQUIRED,
+					status: 404,
+					msg: "Goal Plan not found or no userAssignment",
 				});
 			}
 
-			for (const rating of selfRatings) {
-				const [goalRating, created] = await db.goalRating.findOrCreate({
-					where: {
-						goalAreaId: rating.goalAreaId,
-						forUser: req.userId,
-					},
-					defaults: {
-						goalAreaId: rating.goalAreaId,
-						forUser: req.userId,
-						byUser: req.userId,
-						rating: rating.rating,
-						comment: rating.comment,
-						createdBy: req.userId,
-						updatedBy: req.userId,
-					},
+			// Build dynamic review steps
+			const steps = [];
+			if (currentReviewPlan.selfReview) steps.push("Employee");
+			if (currentReviewPlan.evaluator) steps.push("Manager");
+			if (currentReviewPlan.reviewer) steps.push("HOD");
+			steps.push("Calibration");
+
+			// Check for conflicting active assignments
+			const assignmentExists = await db.reviewFramework.findOne({
+				attributes: ["reviewFrameworkId", "userAssignment"],
+				where: {
+					type: 1,
+					reviewFrameworkId: { [Op.ne]: reviewFrameworkId },
+					userAssignment: currentReviewPlan.userAssignment,
+				},
+			});
+
+			if (assignmentExists) {
+				return respHelper(res, {
+					status: 400,
+					msg: "A conflicting User Assignment is already active.",
+				});
+			}
+
+			// Activate the current review plan
+			await db.reviewFramework.update(
+				{ type: 1 },
+				{ where: { reviewFrameworkId } },
+			);
+
+			// Get all users assigned to this review
+			const userList = await getEmployeesByUserAssignmentId(
+				currentReviewPlan.userAssignment,
+			);
+
+			if (userList.length > 0) {
+				const allUserKeys = new Set();
+				const insertPayload = [];
+				const insertForReviewTrail = [];
+
+				for (const user of userList) {
+					const key = `${user.email}_${user.id}`;
+					if (!allUserKeys.has(key)) {
+						allUserKeys.add(key);
+
+						insertPayload.push({
+							tmc: user.empCode,
+							email: user.email,
+							userId: user.id,
+							reviewFrameworkId,
+							isActive: 1,
+						});
+
+						let hodId = null;
+
+						// Only check department head if departmentId is present
+						if (user.departmentId) {
+							const departmentHead = await db.departmentMapping.findOne({
+								where: { departmentId: user.departmentId },
+								include: [
+									{
+										model: db.employeeMaster,
+										attributes: ["id", "name"],
+										as: "departmentOfHead",
+									},
+								],
+							});
+
+							if (!departmentHead?.departmentOfHead?.id) {
+								logger.warn(
+									`Department head not found for departmentId: ${user.departmentId}`,
+								);
+							} else {
+								hodId = departmentHead.departmentOfHead.id;
+							}
+						} else {
+							logger.warn(
+								`Skipping department head check for user ${user.id} as departmentId is missing.`,
+							);
+						}
+
+						// Determine first pending stage and pendingAt
+						const pendingStage = steps[0];
+						const level = 0;
+
+						let pendingValue = null;
+						if (pendingStage === "Employee") {
+							pendingValue = user.id;
+						} else if (pendingStage === "Manager") {
+							pendingValue = user.managerData?.id;
+						} else if (pendingStage === "HOD") {
+							pendingValue = hodId;
+						}
+
+						if (!pendingValue) {
+							logger.warn(
+								`Skipping user ${user.id} due to missing pendingAt value for stage ${pendingStage}`,
+							);
+							continue;
+						}
+
+						insertForReviewTrail.push({
+							userId: user.id,
+							reviewFrameworkId,
+							isVisible: 1,
+							isActionTaken: 0,
+							pendingAt: pendingValue,
+							level,
+							pendingStage,
+						});
+					}
+				}
+
+				// Fetch existing entries
+				const existing = await db.reviewFrameworkMail.findAll({
+					attributes: ["email", "userId"],
+					where: { isActive: 1 },
+				});
+				const existingTrail = await db.reviewRatingTrail.findAll({
+					attributes: ["userId", "level"],
+					where: { level: 0 },
 				});
 
-				// If the record already exists (not created), update it
-				if (!created) {
-					await goalRating.update({
-						rating: rating.rating,
-						comment: rating.comment,
-						updatedBy: req.userId,
-					});
+				const existingMap = new Set(
+					existing.map((e) => `${e.email}_${e.userId}`),
+				);
+				const existingTrailMap = new Set(
+					existingTrail.map((e) => `${e.level}_${e.userId}`),
+				);
+
+				// Filter only new entries
+				const newInserts = insertPayload.filter(
+					(entry) => !existingMap.has(`${entry.email}_${entry.userId}`),
+				);
+				const newInsertsInTrail = insertForReviewTrail.filter(
+					(entry) => !existingTrailMap.has(`${entry.level}_${entry.userId}`),
+				);
+
+				// Insert into DB
+				if (newInserts.length > 0) {
+					await db.reviewFrameworkMail.bulkCreate(newInserts);
+				}
+				if (newInsertsInTrail.length > 0) {
+					await db.reviewRatingTrail.bulkCreate(newInsertsInTrail);
 				}
 			}
 
 			return respHelper(res, {
 				status: 200,
-				msg: message.APPRAISAL.RATING_SUBMISSION,
 				data: {},
+				msg: message.APPRAISAL.REVIEW_FRAMEWORK_ACTIVATE,
 			});
 		} catch (error) {
-			console.error("Error in selfRating:", error);
+			console.error(error);
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
 			return respHelper(res, {
 				status: 500,
-				msg: "Internal server error",
+				msg: "Internal Server Error",
 			});
 		}
 	}
 
-	async activeGoalReviewFramework(req, res) {
+	//================================================================================//
+	async activeGoalReviewFrameworkCompleted(req, res) {
 		try {
 			const { reviewFrameworkId } = req.body;
+
+			const currentReviewPlan = await db.reviewFramework.findOne({
+				where: { reviewFrameworkId, isDeleted: 0 },
+				raw: true,
+			});
+			if (!currentReviewPlan || !currentReviewPlan.userAssignment) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Goal Plan not found or no userAssignment",
+				});
+			}
+
+			const steps = [];
+
+			if (currentReviewPlan.selfReview) steps.push("Employee");
+			if (currentReviewPlan.evaluator) steps.push(currentReviewPlan.evaluator);
+			if (currentReviewPlan.reviewer) steps.push(currentReviewPlan.reviewer);
+
+			// Always include Calibration at the end
+			steps.push("Calibration");
+			console.log(">>>>>>>>>statup", steps);
+			// my step output is like [ 'Employee', 'Manager', 'HOD', 'Calibration' ]
+			// // i have to manager level in reviewRatingTrail it could be ['Manager,,'HOD']
+			const assignmentExists = await db.reviewFramework.findOne({
+				attributes: ["reviewFrameworkId", "userAssignment"],
+				where: {
+					type: 1,
+					reviewFrameworkId: { [Op.ne]: reviewFrameworkId },
+					userAssignment: currentReviewPlan.userAssignment,
+				},
+			});
+
+			if (assignmentExists) {
+				return respHelper(res, {
+					status: 400,
+					msg: "A conflicting In User Assignment is already active.",
+				});
+			}
 
 			await db.reviewFramework.update(
 				{ type: 1 },
 				{
-					where: { reviewFrameworkId: reviewFrameworkId },
+					where: { reviewFrameworkId },
 				},
 			);
+
+			const userList = await getEmployeesByUserAssignmentId(
+				currentReviewPlan.userAssignment,
+			);
+			if (userList.length > 0) {
+				const allUserKeys = new Set();
+				const insertPayload = [];
+				const insertForReviewTrail = [];
+
+				for (const user of userList) {
+					const key = `${user.email}_${user.id}`;
+					if (!allUserKeys.has(key)) {
+						allUserKeys.add(key);
+						insertPayload.push({
+							tmc: user.empCode,
+							email: user.email,
+							userId: user.id,
+							reviewFrameworkId,
+							isActive: 1,
+						});
+
+						insertForReviewTrail.push({
+							userId: user.id,
+							reviewFrameworkId,
+							isVisible: 1,
+							isActionTaken: 0,
+							pendingAt: user.id,
+							level: 0,
+						});
+					}
+				}
+
+				// Fetch users who already received mail and are still active
+				const existing = await db.reviewFrameworkMail.findAll({
+					attributes: ["email", "userId"],
+					where: {
+						isActive: 1,
+					},
+				});
+
+				const existingTrail = await db.reviewRatingTrail.findAll({
+					attributes: ["userId", "level"],
+					where: {
+						level: 0,
+					},
+				});
+				const existingMap = new Set(
+					existing.map((e) => `${e.email}_${e.userId}`),
+				);
+
+				const existingTrailMap = new Set(
+					existingTrail.map((e) => `${e.level}_${e.userId}`),
+				);
+
+				const newInserts = insertPayload.filter(
+					(entry) => !existingMap.has(`${entry.email}_${entry.userId}`),
+				);
+
+				const newInsertsInTrail = insertForReviewTrail.filter(
+					(entry) => !existingTrailMap.has(`${entry.level}_${entry.userId}`),
+				);
+
+				if (newInserts.length > 0) {
+					await db.reviewFrameworkMail.bulkCreate(newInserts);
+				}
+				if (newInsertsInTrail.length > 0) {
+					await db.reviewRatingTrail.bulkCreate(newInsertsInTrail);
+				}
+			}
+
 			return respHelper(res, {
 				status: 200,
 				data: {},
@@ -3394,6 +4202,651 @@ class AppraisalGoalsController {
 			});
 		} catch (error) {
 			console.error("Update error:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	// async getReportieReviewAppraisal(req, res) {
+	// 	try {
+	// 		const { sortBy } = req.query;
+	// 		const forEmp = req.userId;
+	// 		console.log("authentication.authenticate,", req.userId);
+	// 		const flowLevel = await db.reviewRatingTrail.findAll({
+	// 			where: {
+	// 				pendingAt: forEmp,
+	// 				isActionTaken: 0,
+	// 			},
+	// 			raw: true,
+	// 		});
+
+	// 		if (flowLevel.length === 0) {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				msg: "Review found",
+	// 				data: [],
+	// 			});
+	// 		}
+
+	// 		const flowUserIds = flowLevel.map((item) => item.userId);
+
+	// 		const activeGoalPlan = await db.goalPlanMail.findAll({
+	// 			where: { userId: { [Op.in]: flowUserIds }, isActive: 1 },
+	// 			raw: true,
+	// 		});
+
+	// 		if (activeGoalPlan.length === 0) {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				msg: message.APPRAISAL.GET_LIST,
+	// 				data: [],
+	// 			});
+	// 		}
+
+	// 		const goalPlanIds = activeGoalPlan.map((item) => item.goalPlanId);
+	// 		const userTrail = await db.goalAreaPragatiTrail.findAll({
+	// 			where: {
+	// 				goalPlanId: { [Op.in]: goalPlanIds },
+	// 				userId: { [Op.in]: flowUserIds },
+	// 				isApproved: 2,
+	// 			},
+	// 			include: [
+	// 				{
+	// 					model: db.appraisalGoalsMaster,
+	// 					attributes: ["appraisalGoalId", "goalPlanName", "goalPlanId"],
+	// 				},
+	// 			],
+	// 		});
+
+	// 		if (!userTrail) {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				msg: message.APPRAISAL.GET_LIST,
+	// 				data: [],
+	// 			});
+	// 		}
+
+	// 		return respHelper(res, {
+	// 			status: 200,
+	// 			msg: message.APPRAISAL.GET_LIST,
+	// 			data: { userTrail },
+	// 		});
+	// 	} catch (error) {
+	// 		console.error("Error in reportieReviewAppraisalList:", error);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 			msg: "Internal server error",
+	// 		});
+	// 	}
+	// }
+	async getReportieReviewAppraisal(req, res) {
+		try {
+			const { sortBy } = req.query;
+			const forEmp = req.userId;
+			const limit = parseInt(req.query.limit, 10) || 10;
+			const pageNo = parseInt(req.query.page, 10) || 1;
+			const offset = (pageNo - 1) * limit;
+
+			const flowLevel = await db.reviewRatingTrail.findAndCountAll({
+				where: {
+					pendingAt: forEmp,
+					userId: {
+						[Op.ne]: forEmp,
+					},
+					isActionTaken: 0,
+				},
+				include: [
+					{
+						model: db.reviewFramework,
+						attributes: [
+							"reviewFrameworkId",
+							"reviewName",
+							"reviewId",
+							"reviewDescription",
+						],
+					},
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "empCode", "name"],
+					},
+				],
+				offset,
+				limit,
+				order: [["createdAt", "DESC"]],
+				//raw: true,
+			});
+
+			if (flowLevel.length === 0) {
+				return respHelper(res, {
+					status: 200,
+					msg: "Review found",
+					data: [],
+				});
+			}
+
+			return respHelper(res, {
+				status: 200,
+				msg: message.APPRAISAL.GET_LIST,
+				data: { flowLevel },
+			});
+		} catch (error) {
+			console.error("Error in reportieReviewAppraisalList:", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	// async selfRating(req, res) {
+	// 	try {
+	// 		logger.info("[START] selfRating API called");
+	// 		const { selfRatings, compentancyRating, empId, mode } = req.body;
+	// 		const userId = empId ? empId : req.userId;
+	// 		let compentancyRatingBy;
+
+	// 		if (!Array.isArray(selfRatings) || selfRatings.length === 0) {
+	// 			logger.warn("selfRatings array is invalid or empty");
+	// 			return respHelper(res, {
+	// 				status: 400,
+	// 				msg: message.APPRAISAL.RATING_VALUE_REQUIRED,
+	// 			});
+	// 		}
+
+	// 		logger.info(`Fetching flowLevel for user: ${userId}`);
+	// 		const flowLevel = await db.reviewRatingTrail.findOne({
+	// 			where: { isActionTaken: 0, pendingAt: req.userId, userId: userId },
+	// 			include: [
+	// 				{
+	// 					model: db.employeeMaster,
+	// 					attributes: ["id", "name", "manager", "departmentId"],
+	// 				},
+	// 			],
+	// 		});
+
+	// 		if (!flowLevel) {
+	// 			logger.info(`Flow already completed for user: ${userId}`);
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				msg: "Flow Completed",
+	// 				data: {},
+	// 			});
+	// 		}
+
+	// 		logger.info(`Found flowLevel: ${flowLevel.level}`);
+	// 		const getReviewFrameworkId = await db.reviewFramework.findOne({
+	// 			where: { reviewFrameworkId: flowLevel.reviewFrameworkId },
+	// 			raw: true,
+	// 		});
+
+	// 		if (!getReviewFrameworkId) {
+	// 			logger.error(
+	// 				`No review framework found for: ${flowLevel.reviewFrameworkId}`,
+	// 			);
+	// 			return respHelper(res, {
+	// 				status: 404,
+	// 				msg: "Review Framework not found",
+	// 			});
+	// 		}
+
+	// 		const steps = [];
+	// 		if (getReviewFrameworkId.selfReview) steps.push("Employee");
+	// 		if (getReviewFrameworkId.evaluator) steps.push("Manager");
+	// 		if (getReviewFrameworkId.reviewer) steps.push("HOD");
+	// 		steps.push("Calibration");
+
+	// 		// Check for conflicting active assignments
+	// 		console.log("steps", steps);
+	// 		// === Level 0: Self Review ===
+	// 		if (getReviewFrameworkId.selfReview == 1 && flowLevel.level == 0) {
+	// 			logger.info("Processing Self Review...");
+	// 			compentancyRatingBy = "self";
+	// 			for (const rating of selfRatings) {
+	// 				const [goalRating, created] = await db.goalRating.findOrCreate({
+	// 					where: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: userId,
+	// 						ratingBy: "self",
+	// 					},
+	// 					defaults: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: userId,
+	// 						byUser: req.userId,
+	// 						rating: rating.rating,
+	// 						comment: rating.comment,
+	// 						createdBy: req.userId,
+	// 						updatedBy: req.userId,
+	// 						ratingBy: "self",
+	// 					},
+	// 				});
+
+	// 				if (!created) {
+	// 					logger.info(
+	// 						`Updating existing self rating for goalAreaId: ${rating.goalAreaId}`,
+	// 					);
+	// 					await goalRating.update({
+	// 						rating: rating.rating,
+	// 						comment: rating.comment,
+	// 						updatedBy: req.userId,
+	// 					});
+	// 				}
+	// 			}
+
+	// 			await db.reviewRatingTrail.update(
+	// 				{ isActionTaken: 1 },
+	// 				{
+	// 					where: { userId: userId, isActionTaken: 0, pendingAt: req.userId },
+	// 				},
+	// 			);
+
+	// 			logger.info("Self Review submitted. Creating next level for Manager");
+	// 			await db.reviewRatingTrail.create({
+	// 				userId: userId,
+	// 				isActionTaken: 0,
+	// 				level: 1,
+	// 				isVisible: 1,
+	// 				reviewFrameworkId: flowLevel.reviewFrameworkId,
+	// 				pendingAt: flowLevel.employee.manager,
+	// 			});
+	// 		}
+
+	// 		// === Level 1: Manager Review ===
+	// 		if (
+	// 			getReviewFrameworkId.evaluator === "Manager" &&
+	// 			flowLevel.level == 1
+	// 		) {
+	// 			logger.info("Processing Manager Review...");
+	// 			compentancyRatingBy = "manager";
+
+	// 			const departmentHead = await db.departmentMapping.findOne({
+	// 				where: { departmentId: flowLevel.employee.departmentId },
+	// 				include: [
+	// 					{
+	// 						model: db.employeeMaster,
+	// 						attributes: ["id", "name"],
+	// 						as: "departmentOfHead",
+	// 					},
+	// 				],
+	// 			});
+
+	// 			if (!departmentHead?.departmentOfHead?.id) {
+	// 				logger.warn(
+	// 					`Department head not found for departmentId: ${flowLevel.employee.departmentId}`,
+	// 				);
+	// 			}
+
+	// 			for (const rating of selfRatings) {
+	// 				const [goalRating, created] = await db.goalRating.findOrCreate({
+	// 					where: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						ratingBy: "manager",
+	// 					},
+	// 					defaults: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						byUser: req.userId,
+	// 						rating: rating.rating,
+	// 						comment: rating.comment,
+	// 						createdBy: req.userId,
+	// 						updatedBy: req.userId,
+	// 						ratingBy: "manager",
+	// 					},
+	// 				});
+
+	// 				if (!created) {
+	// 					logger.info(
+	// 						`Updating existing manager rating for goalAreaId: ${rating.goalAreaId}`,
+	// 					);
+	// 					await goalRating.update({
+	// 						rating: rating.rating,
+	// 						comment: rating.comment,
+	// 						updatedBy: req.userId,
+	// 					});
+	// 				}
+	// 			}
+
+	// 			await db.reviewRatingTrail.update(
+	// 				{ isActionTaken: 1 },
+	// 				{
+	// 					where: {
+	// 						userId: flowLevel.userId,
+	// 						isActionTaken: 0,
+	// 						pendingAt: req.userId,
+	// 					},
+	// 				},
+	// 			);
+
+	// 			const managerId = flowLevel.employee.manager;
+	// 			const hodId = departmentHead?.departmentOfHead?.id;
+
+	// 			logger.info("Manager Review submitted. Evaluating next level for HOD");
+
+	// 			if (managerId === hodId) {
+	// 				logger.info(
+	// 					"Manager is also the HOD. Skipping creation of HOD level.",
+	// 				);
+	// 			} else {
+	// 				await db.reviewRatingTrail.create({
+	// 					userId: flowLevel.userId,
+	// 					isActionTaken: 0,
+	// 					level: 2,
+	// 					isVisible: 1,
+	// 					reviewFrameworkId: flowLevel.reviewFrameworkId,
+	// 					pendingAt: hodId,
+	// 				});
+	// 				logger.info("Created review level for HOD.");
+	// 			}
+	// 		}
+
+	// 		// === Level 2: HOD Review ===
+	// 		if (getReviewFrameworkId.reviewer === "HOD" && flowLevel.level == 2) {
+	// 			logger.info("Processing HOD Review...");
+	// 			compentancyRatingBy = "hod";
+
+	// 			for (const rating of selfRatings) {
+	// 				const [goalRating, created] = await db.goalRating.findOrCreate({
+	// 					where: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						ratingBy: "hod",
+	// 					},
+	// 					defaults: {
+	// 						goalAreaId: rating.goalAreaId,
+	// 						forUser: flowLevel.userId,
+	// 						byUser: req.userId,
+	// 						rating: rating.rating,
+	// 						comment: rating.comment,
+	// 						createdBy: req.userId,
+	// 						updatedBy: req.userId,
+	// 						ratingBy: "hod",
+	// 					},
+	// 				});
+
+	// 				if (!created) {
+	// 					logger.info(
+	// 						`Updating existing HOD rating for goalAreaId: ${rating.goalAreaId}`,
+	// 					);
+	// 					await goalRating.update({
+	// 						rating: rating.rating,
+	// 						comment: rating.comment,
+	// 						updatedBy: req.userId,
+	// 					});
+	// 				}
+	// 			}
+
+	// 			await db.reviewRatingTrail.update(
+	// 				{ isActionTaken: 1 },
+	// 				{
+	// 					where: {
+	// 						userId: flowLevel.userId,
+	// 						isActionTaken: 0,
+	// 						pendingAt: req.userId,
+	// 					},
+	// 				},
+	// 			);
+
+	// 			logger.info("HOD Review submitted. No further level created.");
+	// 		}
+
+	// 		logger.info("All applicable reviews processed successfully");
+
+	// 		// -- inserting compentancy ------------------------//
+	// 		let compentancyInsert = [];
+	// 		for (const compRating of compentancyRating) {
+	// 			//compentancyAttrId,compentancyTierId
+
+	// 			compentancyInsert.push({
+	// 				rating: compRating.rating,
+	// 				comment: compRating.comment,
+	// 				compentancyAttrId: compRating.compentancyAttrId,
+	// 				compentancyTierId: compRating.compentancyTierId,
+	// 				reviewFrameworkId: flowLevel.reviewFrameworkId,
+	// 				forUser: userId,
+	// 				byUser: req.userId,
+	// 				createdBy: req.userId,
+	// 				updatedBy: req.userId,
+	// 				ratingBy: compentancyRatingBy,
+	// 			});
+
+	// 			await db.compentancyRating.destroy({
+	// 				where: {
+	// 					forUser: userId,
+	// 					ratingBy: compentancyRatingBy,
+	// 					compentancyAttrId: compRating.compentancyAttrId,
+	// 					compentancyTierId: compRating.compentancyTierId,
+	// 					reviewFrameworkId: flowLevel.reviewFrameworkId,
+	// 				},
+	// 			});
+	// 		}
+
+	// 		await db.compentancyRating.bulkCreate(compentancyInsert);
+	// 		return respHelper(res, {
+	// 			status: 200,
+	// 			msg: message.APPRAISAL.RATING_SUBMISSION,
+	// 			data: {},
+	// 		});
+	// 	} catch (error) {
+	// 		console.log(">>>>>>>>>>>e", error);
+	// 		logger.error(`Error in selfRating: ${error.stack || error.message}`);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 			msg: "Internal server error",
+	// 		});
+	// 	}
+	// }
+
+	async selfRating(req, res) {
+		try {
+			logger.info("[START] selfRatingCopy API called");
+
+			const { selfRatings, compentancyRating, empId } = req.body;
+			const userId = empId || req.userId;
+			let compentancyRatingBy;
+
+			if (!Array.isArray(selfRatings) || selfRatings.length === 0) {
+				logger.warn("Invalid or empty selfRatings array");
+				return respHelper(res, {
+					status: 400,
+					msg: message.APPRAISAL.RATING_VALUE_REQUIRED,
+				});
+			}
+
+			const flowLevel = await db.reviewRatingTrail.findOne({
+				where: { isActionTaken: 0, pendingAt: req.userId, userId },
+				include: [
+					{
+						model: db.employeeMaster,
+						attributes: ["id", "name", "manager", "departmentId"],
+						as: "employee",
+					},
+				],
+			});
+
+			if (!flowLevel) {
+				logger.info(
+					`No active review level found or already completed for user: ${userId}`,
+				);
+				return respHelper(res, {
+					status: 200,
+					msg: "Flow Completed",
+					data: {},
+				});
+			}
+
+			const reviewFramework = await db.reviewFramework.findOne({
+				where: { reviewFrameworkId: flowLevel.reviewFrameworkId },
+				raw: true,
+			});
+
+			if (!reviewFramework) {
+				logger.error(
+					`Review framework not found for ID: ${flowLevel.reviewFrameworkId}`,
+				);
+				return respHelper(res, {
+					status: 404,
+					msg: "Review Framework not found",
+				});
+			}
+
+			// Steps as array of strings (roles)
+			const steps = [];
+			if (reviewFramework.selfReview) steps.push("employee");
+			if (reviewFramework.evaluator) steps.push("manager");
+			if (reviewFramework.reviewer) steps.push("hod");
+			steps.push("calibration");
+
+			compentancyRatingBy = steps[flowLevel.level] || "employee";
+
+			// Save/update goal ratings
+			for (const rating of selfRatings) {
+				const [goalRating, created] = await db.goalRating.findOrCreate({
+					where: {
+						goalAreaId: rating.goalAreaId,
+						forUser: userId,
+						ratingBy: compentancyRatingBy,
+					},
+					defaults: {
+						goalAreaId: rating.goalAreaId,
+						forUser: userId,
+						byUser: req.userId,
+						rating: rating.rating,
+						comment: rating.comment,
+						createdBy: req.userId,
+						updatedBy: req.userId,
+						ratingBy: compentancyRatingBy,
+					},
+				});
+
+				if (!created) {
+					await goalRating.update({
+						rating: rating.rating,
+						comment: rating.comment,
+						updatedBy: req.userId,
+					});
+				}
+			}
+
+			// Mark current flow level as action taken
+			await db.reviewRatingTrail.update(
+				{ isActionTaken: 1 },
+				{
+					where: {
+						userId,
+						isActionTaken: 0,
+						pendingAt: req.userId,
+						level: flowLevel.level,
+					},
+				},
+			);
+
+			// Save competency ratings if present
+			if (Array.isArray(compentancyRating) && compentancyRating.length > 0) {
+				const compentancyInsert = [];
+
+				for (const compRating of compentancyRating) {
+					await db.compentancyRating.destroy({
+						where: {
+							forUser: userId,
+							ratingBy: compentancyRatingBy,
+							compentancyAttrId: compRating.compentancyAttrId,
+							compentancyTierId: compRating.compentancyTierId,
+							reviewFrameworkId: flowLevel.reviewFrameworkId,
+						},
+					});
+
+					compentancyInsert.push({
+						rating: compRating.rating,
+						comment: compRating.comment,
+						compentancyAttrId: compRating.compentancyAttrId,
+						compentancyTierId: compRating.compentancyTierId,
+						reviewFrameworkId: flowLevel.reviewFrameworkId,
+						forUser: userId,
+						byUser: req.userId,
+						createdBy: req.userId,
+						updatedBy: req.userId,
+						ratingBy: compentancyRatingBy,
+					});
+				}
+
+				await db.compentancyRating.bulkCreate(compentancyInsert);
+			}
+
+			// Determine next level role
+			let indexVal = flowLevel.level + 1;
+			const nextLevelRole = steps[indexVal]; // string, e.g. "manager", "hod"
+
+			if (nextLevelRole) {
+				let nextPendingAt = null;
+				const displayRoles = {
+					manager: "Manager",
+					hod: "HOD",
+					calibration: "Calibration",
+				};
+				switch (nextLevelRole.toLowerCase()) {
+					case "manager":
+						nextPendingAt = flowLevel.employee.manager;
+						break;
+
+					case "hod":
+						const departmentHead = await db.departmentMapping.findOne({
+							where: { departmentId: flowLevel.employee.departmentId },
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id"],
+									as: "departmentOfHead",
+								},
+							],
+						});
+						nextPendingAt = departmentHead?.departmentOfHead?.id || null;
+						break;
+
+					case "calibration":
+						// Set static calibration user if applicable
+						nextPendingAt = null;
+						break;
+
+					default:
+						logger.warn(`No logic defined for role: ${nextLevelRole}`);
+				}
+
+				if (!nextPendingAt) {
+					logger.warn(
+						"Next pending user not found or is null. Skipping trail creation.",
+					);
+				} else if (nextPendingAt === req.userId) {
+					logger.warn(
+						"Next pending user is same as current user. Skipping trail creation.",
+					);
+				} else {
+					await db.reviewRatingTrail.create({
+						userId,
+						isActionTaken: 0,
+						level: indexVal,
+						isVisible: 1,
+						reviewFrameworkId: flowLevel.reviewFrameworkId,
+						pendingAt: nextPendingAt,
+						pendingStage:displayRoles[nextLevelRole.toLowerCase()] || nextLevelRole
+					});
+
+					logger.info(
+						`Next review level trail created for user: ${userId}, pendingAt: ${nextPendingAt}`,
+					);
+				}
+			} else {
+				logger.info("No next level found. Rating flow is complete.");
+			}
+
+			return respHelper(res, {
+				status: 200,
+				msg: message.APPRAISAL.RATING_SUBMISSION,
+				data: {},
+			});
+		} catch (error) {
+			logger.error("Error in selfRatingCopy:", error.stack || error.message);
 			return respHelper(res, {
 				status: 500,
 				msg: "Internal server error",

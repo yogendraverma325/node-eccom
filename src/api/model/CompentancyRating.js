@@ -1,11 +1,20 @@
 export default (sequelize, Sequelize) => {
-	const Goalrating = sequelize.define("goalrating", {
-		goalRatingId: {
+	const CompentancyRating = sequelize.define("compentancyrating", {
+		compentancyRatingId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		goalAreaId: {
+		// goalAreaId: {
+		// 	type: Sequelize.INTEGER,
+		// },
+		compentancyTierId: {
+			type: Sequelize.INTEGER,
+		},
+		compentancyAttrId: {
+			type: Sequelize.INTEGER,
+		},
+		reviewFrameworkId: {
 			type: Sequelize.INTEGER,
 		},
 		forUser: {
@@ -20,7 +29,7 @@ export default (sequelize, Sequelize) => {
 		comment: {
 			type: Sequelize.TEXT,
 		},
-		ratingBy:{
+		ratingBy: {
 			type: Sequelize.STRING,
 		},
 		createdBy: {
@@ -39,5 +48,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 		},
 	});
-	return Goalrating;
+	return CompentancyRating;
 };

@@ -10,6 +10,11 @@ import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
 import axios from "axios";
 import https from "https";
+import logger from "./logger.js";
+import {
+	getEmployeesByUserAssignmentId,
+	getEmployeesToAssignGoalPlan,
+} from "../api/v1/common/common.controller.js";
 // import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
@@ -3840,6 +3845,306 @@ const getWorkDuration = async (dateOfJoining) => {
 	return `${String(years).padStart(2, "0")}y ${String(months).padStart(2, "0")}m ${String(days).padStart(2, "0")}d`;
 };
 
+async function handleAppraisalGoalPlanUpdate(assignmentId) {
+	const activePlans = await db.appraisalGoalsMaster.findAll({
+		attributes: ["appraisalGoalId", "userAssignment"],
+		where: {
+			type: 1,
+			isDeleted: 0,
+			userAssignment: assignmentId,
+		},
+	});
+
+	const allUserKeys = new Set();
+	const insertPayload = [];
+
+	for (const plan of activePlans) {
+		const userList = await getEmployeesToAssignGoalPlan(plan.userAssignment);
+		for (const user of userList) {
+			const key = `${user.email}_${user.id}`;
+			if (!allUserKeys.has(key)) {
+				allUserKeys.add(key);
+				insertPayload.push({
+					tmc: user.empCode,
+					email: user.email,
+					userId: user.id,
+					goalPlanId: plan.appraisalGoalId,
+					isActive: 1,
+				});
+			}
+		}
+	}
+
+	const existing = await db.goalPlanMail.findAll({
+		attributes: ["email", "userId"],
+		where: { isActive: 1 },
+	});
+	const existingMapNew = new Set(existing.map((e) => `${e.email}_${e.userId}`));
+
+	const newInserts = insertPayload.filter(
+		(entry) => !existingMapNew.has(`${entry.email}_${entry.userId}`),
+	);
+
+	if (newInserts.length > 0) {
+		await db.goalPlanMail.bulkCreate(newInserts);
+
+		for (const entry of newInserts) {
+			const [user, goalPlan] = await Promise.all([
+				db.employeeMaster.findOne({
+					where: { id: entry.userId },
+					include: [
+						{
+							model: db.companyMaster,
+							attributes: ["senderEmail", "companyLogo", "companyName"],
+						},
+					],
+					attributes: ["name", "email"],
+					raw: true,
+				}),
+				db.appraisalGoalsMaster.findOne({
+					where: { appraisalGoalId: entry.goalPlanId },
+					attributes: [
+						"startDate",
+						"endDate",
+						"goalPlanDescription",
+						"goalPlanName",
+					],
+					raw: true,
+				}),
+			]);
+
+			if (!goalPlan) {
+				console.warn(`Goal plan not found for ID ${entry.goalPlanId}`);
+				continue;
+			}
+
+			// eventEmitter.emit(
+			// 	"goalPlanAssignToEmployee",
+			// 	JSON.stringify({
+			// 		email: user.email,
+			// 		name: user.name,
+			// 		startDate: moment(goalPlan.startDate).format("DD-MM-YYYY"),
+			// 		endDate: moment(goalPlan.endDate).format("DD-MM-YYYY"),
+			// 		goalPlanDescription: goalPlan.goalPlanDescription,
+			// 		goalPlanName: goalPlan.goalPlanName,
+			// 		senderEmail: user["companymaster.senderEmail"] || "",
+			// 		companyLogo: user["companymaster.companyLogo"] || "",
+			// 		companyName: user["companymaster.companyName"] || "",
+			// 	}),
+			// );
+
+			console.log(`Goal plan email triggered for ${user.email}`);
+		}
+	}
+}
+
+// reviewFrameworkService.js
+
+async function handleReviewFrameworkAssignment(userAssignment) {
+	try {
+		const currentReviewPlan = await db.reviewFramework.findOne({
+			where: { type: 1, userAssignment: userAssignment },
+			raw: true,
+		});
+		const userList = await getEmployeesByUserAssignmentId(userAssignment);
+
+		if (userList.length === 0) return;
+
+		const allUserKeys = new Set();
+		const insertPayload = [];
+		const insertForReviewTrail = [];
+
+		for (const user of userList) {
+			const key = `${user.email}_${user.id}`;
+			if (!allUserKeys.has(key)) {
+				allUserKeys.add(key);
+
+				insertPayload.push({
+					tmc: user.empCode,
+					email: user.email,
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isActive: 1,
+				});
+
+				insertForReviewTrail.push({
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isVisible: 1,
+					isActionTaken: 0,
+					pendingAt: user.id,
+					level: 0,
+				});
+			}
+		}
+
+		// Existing records to prevent duplication
+		const [existingMails, existingTrails] = await Promise.all([
+			db.reviewFrameworkMail.findAll({
+				attributes: ["email", "userId"],
+				where: { isActive: 1 },
+			}),
+			db.reviewRatingTrail.findAll({
+				attributes: ["userId", "level"],
+				where: { level: 0 },
+			}),
+		]);
+
+		const existingMailSet = new Set(
+			existingMails.map((e) => `${e.email}_${e.userId}`),
+		);
+		const existingTrailSet = new Set(
+			existingTrails.map((e) => `${e.level}_${e.userId}`),
+		);
+
+		const newInserts = insertPayload.filter(
+			(entry) => !existingMailSet.has(`${entry.email}_${entry.userId}`),
+		);
+		const newTrailInserts = insertForReviewTrail.filter(
+			(entry) => !existingTrailSet.has(`${entry.level}_${entry.userId}`),
+		);
+
+		if (newInserts.length > 0) {
+			await db.reviewFrameworkMail.bulkCreate(newInserts);
+		}
+
+		if (newTrailInserts.length > 0) {
+			await db.reviewRatingTrail.bulkCreate(newTrailInserts);
+		}
+	} catch (error) {
+		console.error("Error in handleReviewFrameworkAssignment:", error);
+		throw error;
+	}
+}
+
+async function handleReviewFrameworkAssignmentNew(userAssignment) {
+	try {
+		const currentReviewPlan = await db.reviewFramework.findOne({
+			where: { type: 1, userAssignment: userAssignment },
+			raw: true,
+		});
+		const userList = await getEmployeesByUserAssignmentId(userAssignment);
+
+		if (userList.length === 0) return;
+		const allUserKeys = new Set();
+		const insertPayload = [];
+		const insertForReviewTrail = [];
+
+		let steps = [];
+
+		if (currentReviewPlan.selfReview) steps.push("Employee");
+		if (currentReviewPlan.evaluator) steps.push("Manager");
+		if (currentReviewPlan.reviewer) steps.push("HOD");
+		steps.push("Calibration");
+		for (const user of userList) {
+			const key = `${user.email}_${user.id}`;
+			if (!allUserKeys.has(key)) {
+				allUserKeys.add(key);
+
+				insertPayload.push({
+					tmc: user.empCode,
+					email: user.email,
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isActive: 1,
+				});
+
+				let hodId = null;
+
+				// Only check department head if departmentId is present
+				if (user.departmentId) {
+					const departmentHead = await db.departmentMapping.findOne({
+						where: { departmentId: user.departmentId },
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "name"],
+								as: "departmentOfHead",
+							},
+						],
+					});
+
+					if (!departmentHead?.departmentOfHead?.id) {
+						logger.warn(
+							`Department head not found for departmentId: ${user.departmentId}`,
+						);
+					} else {
+						hodId = departmentHead.departmentOfHead.id;
+					}
+				} else {
+					logger.warn(
+						`Skipping department head check for user ${user.id} as departmentId is missing.`,
+					);
+				}
+
+				// Determine first pending stage and pendingAt
+				const pendingStage = steps[0];
+				const level = 0;
+
+				let pendingValue = null;
+				if (pendingStage === "Employee") {
+					pendingValue = user.id;
+				} else if (pendingStage === "Manager") {
+					pendingValue = user.managerData?.id;
+				} else if (pendingStage === "HOD") {
+					pendingValue = hodId;
+				}
+
+				if (!pendingValue) {
+					logger.warn(
+						`Skipping user ${user.id} due to missing pendingAt value for stage ${pendingStage}`,
+					);
+					continue;
+				}
+
+				insertForReviewTrail.push({
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isVisible: 1,
+					isActionTaken: 0,
+					pendingAt: pendingValue,
+					level,
+					pendingStage,
+				});
+			}
+		}
+
+		// Fetch existing entries
+		const existing = await db.reviewFrameworkMail.findAll({
+			attributes: ["email", "userId"],
+			where: { isActive: 1 },
+		});
+		const existingTrail = await db.reviewRatingTrail.findAll({
+			attributes: ["userId", "level"],
+			where: { level: 0 },
+		});
+
+		const existingMap = new Set(existing.map((e) => `${e.email}_${e.userId}`));
+		const existingTrailMap = new Set(
+			existingTrail.map((e) => `${e.level}_${e.userId}`),
+		);
+
+		// Filter only new entries
+		const newInserts = insertPayload.filter(
+			(entry) => !existingMap.has(`${entry.email}_${entry.userId}`),
+		);
+		const newInsertsInTrail = insertForReviewTrail.filter(
+			(entry) => !existingTrailMap.has(`${entry.level}_${entry.userId}`),
+		);
+
+		// Insert into DB
+		if (newInserts.length > 0) {
+			await db.reviewFrameworkMail.bulkCreate(newInserts);
+		}
+		if (newInsertsInTrail.length > 0) {
+			await db.reviewRatingTrail.bulkCreate(newInsertsInTrail);
+		}
+	} catch (error) {
+		console.error("Error in handleReviewFrameworkAssignment:", error);
+		throw error;
+	}
+}
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -3903,4 +4208,7 @@ export default {
 	convertEmptyStringsToNull,
 	chekcMonthCountInArray,
 	getWorkDuration,
+	handleAppraisalGoalPlanUpdate,
+	handleReviewFrameworkAssignment,
+	handleReviewFrameworkAssignmentNew,
 };
