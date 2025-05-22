@@ -132,11 +132,12 @@ export default Express.Router()
 		appraisalGoalsController.updateCompetencyAttributes,
 	)
 	.get(
-		"/getReportieReviewAppraisal",authentication.authenticate,
+		"/getReportieReviewAppraisal",
+		authentication.authenticate,
 		appraisalGoalsController.getReportieReviewAppraisal,
-	)
-	// post(
-	// 	"/selfRatingCopy",
-	// 	authentication.authenticate,
-	// 	appraisalGoalsController.selfRatingCopy,
-	// )
+	);
+// post(
+// 	"/selfRatingCopy",
+// 	authentication.authenticate,
+// 	appraisalGoalsController.selfRatingCopy,
+// )

@@ -11,7 +11,7 @@ export default (sequelize, Sequelize) => {
 		sbuMappingId: {
 			type: Sequelize.INTEGER,
 		},
-		departmentHead:{
+		departmentHead: {
 			type: Sequelize.INTEGER,
 		},
 		createdBy: {

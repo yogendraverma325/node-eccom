@@ -3494,7 +3494,7 @@ export async function getEmployeesByUserAssignmentId(id) {
 				{
 					model: db.employeeMaster,
 					attributes: ["id"],
-				    as: "managerData",
+					as: "managerData",
 				},
 				{
 					model: db.jobDetails,
@@ -3503,7 +3503,14 @@ export async function getEmployeesByUserAssignmentId(id) {
 					attributes: ["confirmationDate"],
 				},
 			],
-			attributes: ["id", "empCode", "name", "email", "dateOfJoining","departmentId"],
+			attributes: [
+				"id",
+				"empCode",
+				"name",
+				"email",
+				"dateOfJoining",
+				"departmentId",
+			],
 		});
 		//  console.log("employees", employees);
 		return employees;

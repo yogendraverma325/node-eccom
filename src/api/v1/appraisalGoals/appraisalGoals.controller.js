@@ -3018,7 +3018,8 @@ class AppraisalGoalsController {
 					steps: steps,
 					stage: flowLevel ? flowLevel.level : steps.length,
 					getGoalForUser: goalData,
-					reviewFramework:getReviewFrameworkAndCompentancy?.reviewframework || {},
+					reviewFramework:
+						getReviewFrameworkAndCompentancy?.reviewframework || {},
 					compentancy:
 						getReviewFrameworkAndCompentancy?.reviewframework
 							?.compentancytier || {},
@@ -4829,7 +4830,8 @@ class AppraisalGoalsController {
 						isVisible: 1,
 						reviewFrameworkId: flowLevel.reviewFrameworkId,
 						pendingAt: nextPendingAt,
-						pendingStage:displayRoles[nextLevelRole.toLowerCase()] || nextLevelRole
+						pendingStage:
+							displayRoles[nextLevelRole.toLowerCase()] || nextLevelRole,
 					});
 
 					logger.info(
