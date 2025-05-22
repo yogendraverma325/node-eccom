@@ -5072,6 +5072,7 @@ class UserController {
 						],
 						where: {
 							employeeId: req.userId,
+							isCompleted:0
 						},
 						include: {
 							model: db.employeeMaster,
@@ -5355,10 +5356,12 @@ class UserController {
 					limit: 1,
 					where: {
 						employeeId: req.userId,
+						isCompleted:0
 					},
 				},
 			});
 			let formsFields = [];
+			console.log("confirsmationData",confirsmationData)
 
 			if (confirsmationData) {
 				formsFields = await db.Confirmationformfilledvalues.findAll({
