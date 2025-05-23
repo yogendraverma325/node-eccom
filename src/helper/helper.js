@@ -3789,8 +3789,7 @@ const revokeAppliedLeave = async (date, emp) => {
 			source: "system_generated",
 		},
 	});
-
-	if (leave) {
+if (leave) {
 		await db.EmployeeLeaveHeader.update(
 			{
 				status: "revoked",

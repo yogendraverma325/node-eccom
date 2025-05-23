@@ -5829,7 +5829,7 @@ class AttendanceController {
 
 			await helper.releaseCompOffTheEmployeeForDate(attendanceData.employeeId, attendanceData.attendanceDate, 'LAPSE');
 
-
+			await helper.revokeAppliedLeave(attendanceData.attendanceDate, attendanceData.employeeId);
 			await _this.attedanceCronManual(
 				result.attendanceAutoId,
 				attendanceData.attendanceDate,
