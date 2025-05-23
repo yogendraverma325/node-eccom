@@ -3899,9 +3899,24 @@ const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //T
 	}
 
 }
-const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE) => { //TYPE WILL BE ADD, SUB
+const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE,MODE='LAPSE') => { //TYPE WILL BE ADD, SUB
 	console.log("EMP_ID",EMP_ID,"DATE",DATE,moment().format("YYYY-MM-DD"))
-	     await db.comp_off_credit_history.update(
+	if(MODE=='LAPSE'){ /// ADDed lapse condition based on regularization approved
+		 await db.comp_off_credit_history.update(
+					{
+						status:4
+					},
+					{
+						where: {
+						employee_Id: EMP_ID,
+						credit_for_date: DATE,
+						taken_on: { [Op.ne]: null }
+						},
+					},
+				);
+
+	}else{
+		 await db.comp_off_credit_history.update(
 					{
 						taken_on:null,
 						status:1
@@ -3918,7 +3933,8 @@ const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE) => { //TYPE WILL BE
 						},
 					},
 				);
-			
+
+	}		
 
 }
 const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) => {
@@ -3963,7 +3979,7 @@ const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) =
 				if(Singleleaves.leaveAutoId=='9'){
 					console.log("Singleleaves.employeeId",Singleleaves.employeeId)
 					console.log("Singleleaves.appliedFor",Singleleaves.appliedFor)
-				await releaseCompOffTheEmployeeForDate(Singleleaves.employeeId,Singleleaves.appliedFor);
+				await releaseCompOffTheEmployeeForDate(Singleleaves.employeeId,Singleleaves.appliedFor,'RETURN');
 				}
 				
 				const checkAttendance = await db.attendanceMaster.findOne({

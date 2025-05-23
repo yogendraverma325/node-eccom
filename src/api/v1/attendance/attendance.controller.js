@@ -878,8 +878,8 @@ class AttendanceController {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 					attendanceAutoId: result.attendanceAutoId,
-					attendanceDate: { [Op.lte]: result.fromDate },
-					attendanceShiftEndDate: { [Op.gte]: result.toDate },
+					///attendanceDate: { [Op.lte]: result.fromDate },
+					///attendanceShiftEndDate: { [Op.gte]: result.toDate },
 				},
 				attributes: [
 					"attendancePunchInTime",
@@ -5717,7 +5717,7 @@ class AttendanceController {
 						regularizeData.actualPunchIn,
 						withGraceTime,
 						attendanceData.attendanceDate,
-						attendanceData.attandanceShiftStartDate,
+						regularizeData.attandanceShiftStartDate, // corrected date , now getting from regularzize .
 					);
 
 				}
@@ -5772,10 +5772,14 @@ class AttendanceController {
 						createrRemark:result.remark,
 						creatorRole:req.userData['role.name']
 						});
+
+					await helper.releaseCompOffTheEmployeeForDate(attendanceData.employeeId,attendanceData.attendanceDate,'LAPSE');
+
+
 						await _this.attedanceCronManual(
 						result.attendanceAutoId,
 						attendanceData.attendanceDate,
-						);
+						); 
 
 
 					return respHelper(res, {
