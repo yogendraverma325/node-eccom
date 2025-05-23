@@ -2817,24 +2817,6 @@ class AppraisalGoalsController {
 									model: db.ratingScaleMaster,
 									as: "goalcompentancyscale",
 								},
-								// {
-								// 	model: db.compentancyRating,
-								// 	as: "compentancyRating",
-								// 	where: { ratingBy: "self", forUser: forEmp },
-								// 	required: false,
-								// },
-								// {
-								// 	model: db.compentancyRating,
-								// 	as: "managerCompentancyRating",
-								// 	where: { ratingBy: "manager", forUser: forEmp },
-								// 	required: false,
-								// },
-								// {
-								// 	model: db.compentancyRating,
-								// 	as: "hodCompentancyRating",
-								// 	where: { ratingBy: "hod", forUser: forEmp },
-								// 	required: false,
-								// },
 							],
 						},
 					],
@@ -3046,23 +3028,7 @@ class AppraisalGoalsController {
 							?.overallPerformanceScale || "",
 					compentencyWeightage:
 						getReviewFrameworkAndCompentancy?.reviewframework
-							?.compentencyWeightage || "",
-					// selfReview:
-					// 	getReviewFrameworkAndCompentancy?.reviewframework?.selfReview,
-					// evaluator:
-					// 	getReviewFrameworkAndCompentancy?.reviewframework?.evaluator,
-					// reviewer: getReviewFrameworkAndCompentancy?.reviewframework?.reviewer,
-					// calibration:
-					// 	getReviewFrameworkAndCompentancy?.reviewframework?.calibration,
-					// compentanyRating:
-					// 	getReviewFrameworkAndCompentancy?.reviewframework
-					// 		?.compentancyRating || [],
-					// managerCompentanyRating:
-					// 	getReviewFrameworkAndCompentancy?.reviewframework
-					// 		?.managerCompentancyRating || [],
-					// hodCompentanyRating:
-					// 	getReviewFrameworkAndCompentancy?.reviewframework
-					// 		?.hodCompentancyRating || [],
+							?.compentencyWeightage || ""
 				},
 			});
 		} catch (error) {
