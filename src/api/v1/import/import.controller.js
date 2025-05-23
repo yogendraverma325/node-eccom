@@ -1848,8 +1848,8 @@ async function sendMailAfterSalarySlipRelease(
 	payMonth,
 	companyLogo,
 ) {
-	console.log(employeeIds);
-	console.log(payMonth);
+	// console.log(employeeIds);
+	// console.log(payMonth);
 	let allPaySlips = await db.paySlips.findAll({
 		where: {
 			payMonth: payMonth,
@@ -2239,7 +2239,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 		if (isExist || !error) {
 			const today = moment().format("YYYY-MM-DD");
 			if (obj.designationCode) {
-				console.log("call designation");
+				// console.log("call designation");
 				let fromDate = convertExcelDate(obj.desFromDate);
 				let parentModel = db.designationMaster;
 				let childModel = db.DesignationEmploymentHistory;
@@ -2270,7 +2270,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.employeeTypeCode) {
-				console.log("call employee type");
+				// console.log("call employee type");
 				let fromDate = convertExcelDate(obj.employeeTypeFromDate);
 				let parentModel = db.employeeTypeMaster;
 				let childModel = db.EmployeeTypeEmploymentHistory;
@@ -2301,7 +2301,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.companyLocationCode) {
-				console.log("call company location");
+				// console.log("call company location");
 				let fromDate = convertExcelDate(obj.companyLocationFromDate);
 				let parentModel = db.companyLocationMaster;
 				let childModel = db.OfficeLocationEmploymentHistory;
@@ -2332,7 +2332,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.costCenterCode) {
-				console.log("call cost center");
+				// console.log("call cost center");
 				let fromDate = convertExcelDate(obj.costCenterFromDate);
 				let parentModel = db.costCenterMaster;
 				let childModel = db.CostCenterEmploymentHistory;
@@ -2363,7 +2363,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.functionalAreaCode) {
-				console.log("calling functional area function");
+				// console.log("calling functional area function");
 				let payload = { obj, isExist, importId, req };
 				let responseObj = await employmentFunctionalAreaDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2373,7 +2373,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.jobLevelCode) {
-				console.log("calling job level function");
+				// console.log("calling job level function");
 				let payload = { obj, isExist, importId, req };
 				let responseObj = await employmentJobLevelDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2383,7 +2383,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.manager) {
-				console.log("calling manager function");
+				// console.log("calling manager function");
 				let payload = { obj, isExist, importId, req };
 				let responseObj = await employmentManagerDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2393,7 +2393,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.noticePeriodCode) {
-				console.log("call notice period");
+				// console.log("call notice period");
 				let fromDate = moment().format("YYYY-MM-DD");
 				let parentModel = db.noticePeriodMaster;
 				let childModel = db.NoticePeriodEmploymentHistory;
@@ -2627,7 +2627,7 @@ async function employeeData(req, res, FILEDATA, importParams) {
 			}
 
 			if (Object.keys(updateEmployeeObj).length > 0) {
-				console.log("employee obj", updateEmployeeObj);
+				// console.log("employee obj", updateEmployeeObj);
 				await db.employeeMaster.update(updateEmployeeObj, {
 					where: { id: employee.id },
 				});

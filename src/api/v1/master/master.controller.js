@@ -2418,7 +2418,7 @@ class MasterController {
 					data: [],
 				});
 			}
-			console.log("getDepartmentIds", getDepartmentIds);
+			// console.log("getDepartmentIds", getDepartmentIds);
 			const departmentData = await db.departmentMapping.findAll({
 				include: [
 					{
@@ -2543,14 +2543,14 @@ class MasterController {
 						},
 					});
 
-					if (pemissionAccessIds.length === 0) {
-						console.log("No permission access found for given IDs:", ids);
-					}
+					// if (pemissionAccessIds.length === 0) {
+					// 	console.log("No permission access found for given IDs:", ids);
+					// }
 
 					const buIds = pemissionAccessIds.map(
 						(e) => e.dataValues.permissionValue,
 					);
-					console.log("buIds:", buIds);
+					// console.log("buIds:", buIds);
 
 					if (buIds.length > 0) {
 						getCompanyMappingId = await db.buMapping.findAll({

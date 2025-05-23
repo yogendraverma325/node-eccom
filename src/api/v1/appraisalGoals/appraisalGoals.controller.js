@@ -391,7 +391,6 @@ class AppraisalGoalsController {
 							companyName: user["companymaster.companyName"] || "",
 						}),
 					);
-					console.log(`Goal plan email triggered for ${user.email}`);
 				}
 			}
 
@@ -1594,7 +1593,6 @@ class AppraisalGoalsController {
 				req.body,
 			);
 			const result = await helper.convertEmptyStringsToNull(validatedData);
-			console.log("result>>>>>>>", result);
 			const { existingGoals, comment, goalPlanId, mode, empId } = result;
 
 			const isGoalPlanArchive = await db.appraisalGoalsMaster.findOne({
@@ -1756,15 +1754,10 @@ class AppraisalGoalsController {
 						where: { goalAreaId, userId: empId, goalPlanId },
 						transaction,
 					});
-
-					console.log(
-						`Updated goalAreaId ${goalAreaId} with mode ${mode}, weightage change: ${goalWeightageChanged}, sub-goal change: ${subGoalWeightageChanged}`,
-					);
 				}
 
 				// 📝 Insert trail entry if required
 				if (mode == 0) {
-					console.log("i am in employee mode");
 					const existingTrail = await db.goalAreaPragatiTrail.findOne({
 						where: {
 							userId: empId,
@@ -2199,7 +2192,6 @@ class AppraisalGoalsController {
 						},
 					],
 				});
-				console.log(">>>>>>>>>>>>", existUser);
 				const allGoals = await db.goalAreaForUser.findAll({
 					where: {
 						isActive: [0, 1, 2],
@@ -2309,7 +2301,6 @@ class AppraisalGoalsController {
 					},
 				},
 			);
-			console.log(">>>>>>>>>>>>>>>>>");
 			await db.goalAreaPragatiTrail.update(
 				{
 					isApproved: 3,

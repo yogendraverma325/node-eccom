@@ -19,7 +19,7 @@ export default function pushNotificationListner(eventEmitter) {
 }
 
 const sendPushNotification = async (title, body, employeeId) => {
-	console.log("Sending notification to employeeId:", employeeId);
+	// console.log("Sending notification to employeeId:", employeeId);
 	try {
 		const results = await db.loginDetails.findAll({
 			where: {

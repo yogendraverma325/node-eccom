@@ -969,8 +969,6 @@ class AttendanceController {
 				const startRegularizeDateTime = `${result.fromDate}T${result.punchInTime}`;
 				const preAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${preShiftStart}`;
 				const graceAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${shiftStartWithGrace}`;
-				console.log("startRegularizeDateTime", startRegularizeDateTime);
-				console.log("preAttendanceDateTime", preAttendanceDateTime);
 				// console.log("graceAttendanceDateTime", graceAttendanceDateTime)
 				let isOverNight = parseInt(shiftDetails.isOverNight);
 
@@ -992,8 +990,8 @@ class AttendanceController {
 				// console.log("punchOutTime", result.punchOutTime);
 				const endRegularizeDateTime = `${result.toDate}T${result.punchOutTime}`;
 				const postAttendanceDateTime = `${attendanceData?.dataValues?.attendanceShiftEndDate}T${postShiftEnd}`;
-				console.log("endRegularizeDateTime", endRegularizeDateTime);
-				console.log("postAttendanceDateTime", postAttendanceDateTime);
+				// console.log("endRegularizeDateTime", endRegularizeDateTime);
+				// console.log("postAttendanceDateTime", postAttendanceDateTime);
 
 				if (
 					preAttendanceDateTime > startRegularizeDateTime ||
@@ -2234,12 +2232,6 @@ class AttendanceController {
 				);
 
 				if (result.status) {
-					console.log(
-						regularizeData.regularizePunchInTime,
-						withGraceTime,
-						regularizeData.regularizePunchInDate,
-						regularizeData.regularizePunchOutDate,
-					);
 					await db.attendanceMaster.update(
 						{
 							//attendanceDate: regularizeData.regularizePunchInDate,
@@ -3989,15 +3981,15 @@ class AttendanceController {
 			await Promise.all(
 				existEmployees.map(async (singleEmp) => {
 					let presentStatus = null;
-					console.log(
-						"singleEmp?.weekOffMaster",
-						singleEmp?.attendancemaster?.weekOffMaster,
-					);
-					console.log(
-						"singleEmp?.attendanceroster",
-						singleEmp?.attendanceroster,
-					);
-					console.log("lastDayDate", lastDayDate, occurrenceDayCondition);
+					// console.log(
+					// 	"singleEmp?.weekOffMaster",
+					// 	singleEmp?.attendancemaster?.weekOffMaster,
+					// );
+					// console.log(
+					// 	"singleEmp?.attendanceroster",
+					// 	singleEmp?.attendanceroster,
+					// );
+					// console.log("lastDayDate", lastDayDate, occurrenceDayCondition);
 
 					if (
 						singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters
@@ -4039,12 +4031,12 @@ class AttendanceController {
 
 								// Calculate the total minutes
 								let totalMinutesLateMinutes = time.asMinutes();
-								console.log(
-									"totalMinutesLateMinutes",
-									totalMinutesLateMinutes,
-									"late",
-									singleEmp.attendancemaster.attendanceLateBy,
-								);
+								// console.log(
+								// 	"totalMinutesLateMinutes",
+								// 	totalMinutesLateMinutes,
+								// 	"late",
+								// 	singleEmp.attendancemaster.attendanceLateBy,
+								// );
 								if (totalMinutesLateMinutes > 0) {
 									totalMinutesLateMinutes =
 										totalMinutesLateMinutes +
@@ -5600,7 +5592,7 @@ class AttendanceController {
 	}
 
 	async cronforEMP(req, res) {
-		console.log("req.body", req.body);
+		// console.log("req.body", req.body);
 		let attendanceIds = req.body.attendanceIds.split(",");
 		for (const attendanceIdSingle of attendanceIds) {
 			let attendanceData = await db.attendanceMaster.findOne({
@@ -5650,12 +5642,12 @@ class AttendanceController {
 					attendanceData.attandanceShiftStartDate,
 				);
 
-				console.log(
-					"withGraceTime",
-					withGraceTime,
-					"attendanceLateBy",
-					attendanceLateBy,
-				);
+				// console.log(
+				// 	"withGraceTime",
+				// 	withGraceTime,
+				// 	"attendanceLateBy",
+				// 	attendanceLateBy,
+				// );
 
 				let workingTime = null;
 				if (
@@ -5956,6 +5948,9 @@ class AttendanceController {
 		}
 
 		console.log(
+			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format("YYYY-MM-DD HH:mm:ss")}`,
+		);
+		logger.info(
 			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format("YYYY-MM-DD HH:mm:ss")}`,
 		);
 		let withGraceTime;

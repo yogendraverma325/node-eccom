@@ -147,11 +147,11 @@ const actualWorkingDays = async function (data) {
 			payMonth: payMonth,
 			payYear: payYear,
 		});
-		console.log("Query ::::  " + queryForCurrentJoiningDate);
+		// console.log("Query ::::  " + queryForCurrentJoiningDate);
 		const employeeDetailsComponentWise = await db.sequelize.query(
 			queryForCurrentJoiningDate,
 		);
-		console.log(employeeDetailsComponentWise);
+		// console.log(employeeDetailsComponentWise);
 		if (employeeDetailsComponentWise[0].length == 0) {
 			return data.totalWorkingDays;
 		} else {
@@ -598,7 +598,7 @@ async function getCalculatedESIC(monthlyElementPay) {
 	esicApplicableAmount = await monthlyElementPay
 		.filter((element) => element.isEsicApplicableComponent == 1)
 		.reduce(async (sumPromise, element) => {
-			console.log("ESIC AMOUNT ::", element["elementMonthlyAmount"]);
+			// console.log("ESIC AMOUNT ::", element["elementMonthlyAmount"]);
 			const sum = await sumPromise; // Resolve the previous sum
 			return sum + parseFloat(element["elementMonthlyAmount"]);
 		}, Promise.resolve(0)); // Start with a resolved promise of 0

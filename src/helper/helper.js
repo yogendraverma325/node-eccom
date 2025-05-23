@@ -200,8 +200,8 @@ const timeDifference = async (start, end) => {
 };
 
 const timeDifferenceNew = async (start, end) => {
-	console.log("start", start);
-	console.log("end", end);
+	// console.log("start", start);
+	// console.log("end", end);
 	// let startTime = moment(start, "YYYY-MM-DD HH:mm:ss");
 	// let endTime = moment(end, "YYYY-MM-DD HH:mm:ss");
 	let startTime = moment(start, "HH:mm:ss");
@@ -229,14 +229,14 @@ const calculateLateBy = async (
 			`${withToDate} ${actualTime}`,
 			"YYYY-MM-DD HH:mm:ss",
 		);
-		console.log(
-			"combinedLastDayTime",
-			combinedLastDayTime.format("YYYY-MM-DD HH:mm:ss"),
-		);
-		console.log(
-			"combinedCurrentTime",
-			combinedCurrentTime.format("YYYY-MM-DD HH:mm:ss"),
-		);
+		// console.log(
+		// 	"combinedLastDayTime",
+		// 	combinedLastDayTime.format("YYYY-MM-DD HH:mm:ss"),
+		// );
+		// console.log(
+		// 	"combinedCurrentTime",
+		// 	combinedCurrentTime.format("YYYY-MM-DD HH:mm:ss"),
+		// );
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
 			let diffMs = combinedCurrentTime.diff(combinedLastDayTime);
@@ -784,10 +784,10 @@ const empLeaveDetails = async function (userId, type) {
 				isActive: 1,
 			},
 		});
-		console.log("leaveData from this");
+		// console.log("leaveData from this");
 		// If leaveData is an object, handle it directly
 		if (leaveData && leaveData.leaveAutoId == 9 && leaveData) {
-			console.log("leaveData from inside");
+			// console.log("leaveData from inside");
 			leaveData.dataValues.availableLeave =
 				await this.compOffbalabceForUser(userId);
 		}
@@ -1296,10 +1296,10 @@ const remainingLeaveCount = async function (
 					workingCount += 1;
 				}
 			}
-			console.log("single daya");
+			// console.log("single daya");
 		} else {
 			if (i == 0 || i == daysDifferenceReq) {
-				console.log("first and last");
+				// console.log("first and last");
 
 				if (
 					existEmployees.weekOffDayMappingMasters.length == 0 &&
@@ -1348,7 +1348,7 @@ const remainingLeaveCount = async function (
 				}
 			}
 		}
-		console.log("============");
+		// console.log("============");
 	}
 
 	if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
@@ -1887,11 +1887,11 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			...whereConditionJobdetails,
 			...{ userId: UserId },
 		};
-		console.log("================= start", single?.comp_off_assignment_auto_id);
-		console.log("whereCondition", whereCondition);
-		console.log("whereConditionJobdetails", whereConditionJobdetails);
+		// console.log("================= start", single?.comp_off_assignment_auto_id);
+		// console.log("whereCondition", whereCondition);
+		// console.log("whereConditionJobdetails", whereConditionJobdetails);
 
-		console.log("================= end", single?.comp_off_assignment_auto_id);
+		// console.log("================= end", single?.comp_off_assignment_auto_id);
 		const employee = await db.employeeMaster.findOne({
 			where: whereCondition,
 			attributes: [
@@ -1910,35 +1910,35 @@ const checkCompOffPolicyForUser = async (UserId) => {
 				where: whereConditionJobdetails,
 			},
 		});
-		console.log(
-			"employee",
-			employee ? "yes" : "NO",
-			" ==== single?.comp_off_assignment_auto_id",
-			single?.comp_off_assignment_auto_id,
-		);
+		// console.log(
+		// 	"employee",
+		// 	employee ? "yes" : "NO",
+		// 	" ==== single?.comp_off_assignment_auto_id",
+		// 	single?.comp_off_assignment_auto_id,
+		// );
 		if (employee) {
 			if (employee.id in compOffPolicyAssignment) {
 				compOffPolicyAssignment[employee.id] =
 					single.comp_off_assignment_auto_id;
 			} else {
-				console.log(
-					"employee?.id 1",
-					employee?.id,
-					"compOffPolicyAssignment",
-					compOffPolicyAssignment,
-				);
+				// console.log(
+				// 	"employee?.id 1",
+				// 	employee?.id,
+				// 	"compOffPolicyAssignment",
+				// 	compOffPolicyAssignment,
+				// );
 				compOffPolicyAssignment[employee.id] =
 					single.comp_off_assignment_auto_id;
-				console.log(
-					"employee?.id 2",
-					employee?.id,
-					"compOffPolicyAssignment",
-					compOffPolicyAssignment,
-				);
+				// console.log(
+				// 	"employee?.id 2",
+				// 	employee?.id,
+				// 	"compOffPolicyAssignment",
+				// 	compOffPolicyAssignment,
+				// );
 			}
 		}
 	}
-	console.log("compOffPolicyAssignment", compOffPolicyAssignment);
+	// console.log("compOffPolicyAssignment", compOffPolicyAssignment);
 	let compOffPolicyData = null;
 	if (Object.keys(compOffPolicyAssignment).length > 0) {
 		compOffPolicyData = await db.comp_off_polices.findOne({
@@ -2143,10 +2143,10 @@ const leaveCountForUserForMonth = async (
 			},
 		});
 	} else {
-		console.log("date", date);
-		console.log("lastDate", lastDate);
-		console.log("UserId", UserId);
-		console.log("leaveId", leaveId);
+		// console.log("date", date);
+		// console.log("lastDate", lastDate);
+		// console.log("UserId", UserId);
+		// console.log("leaveId", leaveId);
 
 		const monthStart = moment(date).format("YYYY-MM-DD");
 		const monthEnd = moment(lastDate).format("YYYY-MM-DD"); // Today's date
@@ -2163,7 +2163,7 @@ const leaveCountForUserForMonth = async (
 				},
 			},
 		});
-		console.log("leaves", leaves);
+		// console.log("leaves", leaves);
 		result = leaves || 0;
 	}
 
@@ -2232,7 +2232,7 @@ const creditCompoff = async (inputObject) => {
 				timeWorkDuration.seconds() / 60;
 			comp_off_hours = totaltimeWorkDuration;
 		}
-		console.log("goAhead", goAhead);
+		// console.log("goAhead", goAhead);
 
 		if (goAhead) {
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
@@ -2703,7 +2703,7 @@ const actionOnLeaveCompOff = async (
 
 const leaveCreditMonthCron = async () => {
 	try {
-		console.log("run leave credit");
+		// console.log("run leave credit");
 		const today = moment();
 		const firstDayOfMonth = today.clone().startOf("month").format("D");
 		const currentDay = today.clone().format("D");
@@ -2720,8 +2720,8 @@ const leaveCreditMonthCron = async () => {
 
 		let leaves = [];
 		let effectedEmpS = [];
-		console.log("currentDay", currentDay);
-		console.log("firstDayOfMonth", firstDayOfMonth);
+		// console.log("currentDay", currentDay);
+		// console.log("firstDayOfMonth", firstDayOfMonth);
 		if (currentDay == firstDayOfMonth) {
 			leaves = await db.leaveCompanyMapping.findAll({
 				where: {
@@ -2730,7 +2730,7 @@ const leaveCreditMonthCron = async () => {
 					isActive: 1,
 				},
 			});
-			console.log("leaves", leaves.length);
+			// console.log("leaves", leaves.length);
 			for (const singleLeaves of leaves) {
 				effectedEmpS = await db.employeeMaster.findAll({
 					attributes: ["id", "empCode"],
@@ -2755,7 +2755,7 @@ const leaveCreditMonthCron = async () => {
 				});
 
 				for (const singleeffectedEmp of effectedEmpS) {
-					console.log("singleLeaves.leaveAutoId", singleLeaves.leaveAutoId);
+					// console.log("singleLeaves.leaveAutoId", singleLeaves.leaveAutoId);
 					let leaveCount = 0;
 					let dateOfJoining = singleeffectedEmp.employeejobdetail.dateOfJoining;
 					if (singleLeaves.creditOn == 0) {
@@ -2902,7 +2902,7 @@ const leaveLapse = async () => {
 const leaveAssignEmployeeToAll = async (empIdsInput) => {
 	try {
 		let empIds = empIdsInput.split(",");
-		console.log("empIds", empIds);
+		// console.log("empIds", empIds);
 		const employees = await db.employeeMaster.findAll({
 			attributes: ["id", "empCode", "employeeType", "companyId"],
 			where: {
@@ -2943,7 +2943,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 			],
 		});
 
-		console.log("employees", employees.length);
+		// console.log("employees", employees.length);
 		for (const employee of employees) {
 			const { gender, maritalStatus } =
 				employee.dataValues.employeebiographicaldetail;
@@ -3040,7 +3040,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					],
 				},
 			});
-			console.log("leaveMaster", leaveMaster.length);
+			// console.log("leaveMaster", leaveMaster.length);
 
 			const firstDate = moment(dateOfJoining)
 				.startOf("month")
@@ -3382,7 +3382,7 @@ const leaveRefil = async () => {
 					}
 				}
 			}
-			console.log("leavesForRefill", leavesForRefill.length);
+			// console.log("leavesForRefill", leavesForRefill.length);
 		}
 
 		return leaveWhichNeedToRefillForAll;
@@ -3893,7 +3893,7 @@ const releaseCompOffTheEmployeeForDate = async (
 	MODE = "LAPSE",
 ) => {
 	//TYPE WILL BE ADD, SUB
-	console.log("EMP_ID", EMP_ID, "DATE", DATE, "MODE", MODE);
+	// console.log("EMP_ID", EMP_ID, "DATE", DATE, "MODE", MODE);
 	if (MODE == "LAPSE") {
 		/// ADDed lapse condition based on regularization approved
 		await db.comp_off_credit_history.update(
@@ -3966,9 +3966,9 @@ const revokeApprovedAppliedLeave = async (
 				},
 				{ transaction: t },
 			);
-			console.log("Singleleaves.employeeId", Singleleaves.employeeId);
-			console.log("Singleleaves.leaveCount", Singleleaves.leaveCount);
-			console.log("Singleleaves.leaveAutoId", Singleleaves.leaveAutoId);
+			// console.log("Singleleaves.employeeId", Singleleaves.employeeId);
+			// console.log("Singleleaves.leaveCount", Singleleaves.leaveCount);
+			// console.log("Singleleaves.leaveAutoId", Singleleaves.leaveAutoId);
 			await maintainleaveCountOfEmployee(
 				Singleleaves.employeeId,
 				Singleleaves.leaveAutoId,
@@ -3976,8 +3976,8 @@ const revokeApprovedAppliedLeave = async (
 				"ADD",
 			);
 			if (Singleleaves.leaveAutoId == "9") {
-				console.log("Singleleaves.employeeId", Singleleaves.employeeId);
-				console.log("Singleleaves.appliedFor", Singleleaves.appliedFor);
+				// console.log("Singleleaves.employeeId", Singleleaves.employeeId);
+				// console.log("Singleleaves.appliedFor", Singleleaves.appliedFor);
 				await releaseCompOffTheEmployeeForDate(
 					Singleleaves.employeeId,
 					Singleleaves.appliedFor,
@@ -4282,7 +4282,7 @@ async function handleAppraisalGoalPlanUpdate(assignmentId) {
 			// 	}),
 			// );
 
-			console.log(`Goal plan email triggered for ${user.email}`);
+			// console.log(`Goal plan email triggered for ${user.email}`);
 		}
 	}
 }

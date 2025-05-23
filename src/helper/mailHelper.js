@@ -495,7 +495,7 @@ async function postPasswordExpiryNotification(input) {
 async function paymentDetailsApprovalRequest(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>", userData);
+		// console.log("userData>>>>>", userData);
 		await helper.mailService({
 			to: process.env.NEW_EMPLOYEE_JOINING,
 			subject: `Your profile update request has been submitted for approval of Salary Payment`,
@@ -542,7 +542,7 @@ async function newJoinEmployeeMail(input) {
 async function selfReviewConfirnation(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData in mail template --->>", userData.cc);
+		// console.log("userData in mail template --->>", userData.cc);
 		await helper.mailService({
 			to: userData.employee.email,
 			cc: userData.cc,
@@ -580,7 +580,7 @@ async function confirmationLetter(input, doneCallback) {
 			`${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
 			`./uploads/${inpputData?.EMP_DATA_SELF?.empCode}/`,
 		);
-		console.log("savedPath", savedPath);
+		// console.log("savedPath", savedPath);
 
 		// adding fucnction to save confirmation PDF file to local folder
 		const existing = await db.hrLetters.findOne({
@@ -663,7 +663,7 @@ async function confirmationSLABreachEmailBody(input) {
 async function confirmationWorkflowNextLevel(input) {
 	try {
 		const inpputData = JSON.parse(input);
-		console.log("confirmationWorkflowNextLevel --->>", inpputData);
+		// console.log("confirmationWorkflowNextLevel --->>", inpputData);
 		await helper.mailService({
 			to: inpputData?.ESCALTERDATA?.email,
 			subject: `Confirmation Workflow Approval Required`,
@@ -679,7 +679,7 @@ async function confirmationWorkflowNextLevel(input) {
 async function confirmationWorkflowNextLevelManager(input) {
 	try {
 		const inpputData = JSON.parse(input);
-		console.log("confirmationWorkflowNextLevel --->>", inpputData);
+		// console.log("confirmationWorkflowNextLevel --->>", inpputData);
 		await helper.mailService({
 			to: inpputData?.ESCALTERDATA?.email,
 			subject: `Confirmation Workflow Approval Required`,
@@ -739,7 +739,7 @@ async function releasePaySlip(input) {
 async function addressDetailsApprovalRequestMail(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>111", userData.email);
+		// console.log("userData>>>>>111", userData.email);
 		await helper.mailService({
 			to: userData.email,
 			subject: `Your profile update request has been submitted for approval of Address Details`,
@@ -802,7 +802,7 @@ async function compOffMailApproval(input) {
 async function goalSubmission(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>>", userData);
+
 		await helper.mailService({
 			to: userData.email,
 			subject: `${userData.name} submitted Goal Plan for your approval`,
@@ -818,7 +818,7 @@ async function goalSubmission(input) {
 async function goalRecallSubmission(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>>", userData);
+
 		await helper.mailService({
 			to: userData.email,
 			subject: `${userData.name} has recalled changes submitted on the goal plan`,
@@ -834,7 +834,7 @@ async function goalRecallSubmission(input) {
 async function goalWeightageChange(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>>", userData);
+
 		await helper.mailService({
 			to: userData.email,
 			subject: `Goal is updated on your Goal Plan`,
@@ -850,7 +850,7 @@ async function goalWeightageChange(input) {
 async function goalPartiallyActionOrApprovedAll(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>>", userData);
+
 		await helper.mailService({
 			to: userData.email,
 			subject: `Partial action taken on your Goal Plan by ${userData.managerName}`,
@@ -866,7 +866,6 @@ async function goalPartiallyActionOrApprovedAll(input) {
 async function goalDeletedNotification(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>>", userData);
 
 		await helper.mailService({
 			to: userData.email,
@@ -883,7 +882,7 @@ async function goalDeletedNotification(input) {
 async function goalSubmissionByManager(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData>>>>>>", userData);
+
 		await helper.mailService({
 			to: userData.email,
 			subject: `${userData.managerName} has acted on your Goal Plan`,
@@ -900,7 +899,7 @@ async function goalSubmissionByManager(input) {
 async function sendWorkAnniversaryMailToEmp(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData", userData);
+
 		let response = await helper.mailService({
 			to: userData.userEmail,
 			subject: `Best wishes on your work anniversary!`,
@@ -919,7 +918,7 @@ async function sendWorkAnniversaryMailToEmp(input) {
 async function sendBirthWishMailToEmp(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData", userData);
+
 		let response = await helper.mailService({
 			to: userData.userEmail,
 			subject: `Wishing you a Happy Birthday!`,
@@ -938,7 +937,7 @@ async function sendBirthWishMailToEmp(input) {
 async function goalPlanAssignToEmployee(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData", userData);
+
 		let response = await helper.mailService({
 			to: userData.email,
 			subject: `Goal Plan`,

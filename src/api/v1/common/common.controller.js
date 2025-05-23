@@ -896,7 +896,7 @@ class commonController {
 						data: employeeData,
 					});
 				} else {
-					console.log("usersData.role_id", usersData.role_id);
+					// console.log("usersData.role_id", usersData.role_id);
 					let myReportyList = await db.employeeMaster.findAll({
 						where: {
 							manager: req.userId,
@@ -909,7 +909,7 @@ class commonController {
 						///appedning SBU to filter
 						[Op.in]: final,
 					};
-					console.log("empFilters", empFilters);
+					// console.log("empFilters", empFilters);
 
 					employeeData = await db.employeeMaster.findAndCountAll({
 						order: [["id", "desc"]],
@@ -2700,7 +2700,7 @@ class commonController {
 
 			result = { ...result, createdBy: req.userId, isActive: 1, isEdited: 1 };
 
-			console.log("result", result);
+			// console.log("result", result);
 			// Handle file upload for policy document
 			if (result.policyDocument) {
 				if (!result.policyDocument.startsWith("uploads")) {
@@ -2796,7 +2796,7 @@ class commonController {
 					{ is_archived: 1 },
 					{ where: { id: parseInt(policyId, 10) } },
 				);
-				console.log(policyId, "policyId");
+				// console.log(policyId, "policyId");
 				// Calculate the new version
 				const currentVersion = parseFloat(existingPolicy.version || 1.0);
 				const newVersion = parseFloat((currentVersion + 1.0).toFixed(2));
@@ -2903,7 +2903,7 @@ class commonController {
 		try {
 			let model = db.hrPolicies;
 			let query = { id: req.params.id };
-			console.log("Received id:", req.params.id);
+			// console.log("Received id:", req.params.id);
 
 			let updateMetaData = { isDeleted: 1, isActive: 0, updatedAt: moment() };
 			let moduleName = "Hr Policy";
@@ -3650,7 +3650,7 @@ export async function getEmployeesPragatGoalList(getUserAssigmentIds, userId) {
 					condition.condition_type === "INCLUDE"
 						? { [Op.in]: parsedValues }
 						: { [Op.notIn]: parsedValues };
-				console.log("conditionObject", conditionObject);
+				// console.log("conditionObject", conditionObject);
 				//if (columnName === "id") continue; // skip if trying to apply conditions on id
 
 				if (validJobColumns.includes(columnName)) {
@@ -3660,7 +3660,7 @@ export async function getEmployeesPragatGoalList(getUserAssigmentIds, userId) {
 				}
 			}
 		}
-		console.log(">>>>>>>>>>>>", whereEmployee);
+		// console.log(">>>>>>>>>>>>", whereEmployee);
 		const { rows: employees } = await db.employeeMaster.findAndCountAll({
 			where: {
 				...whereEmployee,

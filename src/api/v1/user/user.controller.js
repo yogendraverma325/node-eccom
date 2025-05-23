@@ -4045,7 +4045,7 @@ class UserController {
 							for (const element12 of buMappingData.dataValues.ownerId.split(
 								",",
 							)) {
-								console.log(element12);
+								// console.log(element12);
 								db.separationTaskOwner.create({
 									taskMappingAutoId:
 										initiatedTask.dataValues.initiatedTaskAutoId,
@@ -4946,10 +4946,10 @@ class UserController {
 							{ where: { userId: ele.userId } },
 						);
 					} else {
-						console.log(
-							"Bank ID is not available for IFSC:",
-							ele.paymentBankIfsc,
-						);
+						// console.log(
+						// 	"Bank ID is not available for IFSC:",
+						// 	ele.paymentBankIfsc,
+						// );
 					}
 				}
 			}
@@ -5379,7 +5379,7 @@ class UserController {
 				},
 			});
 			let formsFields = [];
-			console.log("confirsmationData", confirsmationData);
+			// console.log("confirsmationData", confirsmationData);
 
 			if (confirsmationData) {
 				formsFields = await db.Confirmationformfilledvalues.findAll({
@@ -6971,7 +6971,7 @@ class UserController {
 				],
 				raw: true,
 			});
-			console.log(">>>>>>", getLeaveRequest);
+			// console.log(">>>>>>", getLeaveRequest);
 			return;
 			if (!getLeaveRequest) {
 				return respHelper(res, {
@@ -7135,7 +7135,7 @@ class UserController {
 					employeeId: result.employeeId ? result.employeeId : req.userId,
 				},
 			});
-			console.log("isSameDetails", isSameDetails);
+			// console.log("isSameDetails", isSameDetails);
 			if (!isSameDetails) {
 				let obj = {
 					...result,
@@ -7260,7 +7260,7 @@ class UserController {
 					where: { employeeId: req.userId },
 				});
 
-				console.log("existUser.email", existUser);
+				// console.log("existUser.email", existUser);
 
 				eventEmitter.emit(
 					"addressDetailsApprovalRequestMail",
@@ -7392,7 +7392,7 @@ class UserController {
 			}
 			// Normalize policyId to an array
 			let policyIds = [];
-			console.log("policyId", typeof policyId);
+			// console.log("policyId", typeof policyId);
 			if (typeof policyId === "string") {
 				// If policyId has commas, split it into an array, else handle as a single ID
 				policyIds = policyId
@@ -7461,7 +7461,7 @@ class UserController {
 			const userId = req.userId;
 			const date = new Date();
 			date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
-			console.log("date", date);
+			// console.log("date", date);
 			const notification = await db.pushNotificationHistory.findAll({
 				where: {
 					employeeId: userId,
