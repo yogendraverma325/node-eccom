@@ -3900,7 +3900,7 @@ const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //T
 
 }
 const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE,MODE='LAPSE') => { //TYPE WILL BE ADD, SUB
-	console.log("EMP_ID",EMP_ID,"DATE",DATE,moment().format("YYYY-MM-DD"))
+	console.log("EMP_ID",EMP_ID,"DATE",DATE,"MODE",MODE)
 	if(MODE=='LAPSE'){ /// ADDed lapse condition based on regularization approved
 		 await db.comp_off_credit_history.update(
 					{
@@ -3910,7 +3910,7 @@ const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE,MODE='LAPSE') => { /
 						where: {
 						employee_Id: EMP_ID,
 						credit_for_date: DATE,
-						taken_on: { [Op.ne]: null }
+						taken_on: { [Op.eq]: null }
 						},
 					},
 				);
