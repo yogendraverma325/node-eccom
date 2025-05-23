@@ -3735,10 +3735,10 @@ const confirmationEmailLetter = async (
 ) => {
 	// console.log("data", data)
 
-	console.log("header path ", data?.companymaster?.companyId)
-  let html=null;
-  if(data?.companymaster?.companyId==1){
-html=`<!-- FOR Team Computers -->
+	console.log("header path ", data?.companymaster?.companyId);
+	let html = null;
+	if (data?.companymaster?.companyId == 1) {
+		html = `<!-- FOR Team Computers -->
 
 <!DOCTYPE html>
 <html>
@@ -3829,9 +3829,9 @@ html=`<!-- FOR Team Computers -->
     </div>
   </body>
 </html>
-`
-  }else{
-html=`<!-- FOR THR -->
+`;
+	} else {
+		html = `<!-- FOR THR -->
 
 <!DOCTYPE html>
 <html>
@@ -3922,11 +3922,10 @@ html=`<!-- FOR THR -->
     </div>
   </body>
 </html>
-`
-  } 
+`;
+	}
 
-return html;
-	
+	return html;
 };
 const confirmationEmailBody = async (
 	data,

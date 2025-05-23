@@ -485,13 +485,13 @@ class AppraisalGoalsController {
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanName: result.goalPlanName,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
 					},
 				}),
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanId: result.goalPlanId,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
 					},
 				}),
 			]);
@@ -3028,7 +3028,7 @@ class AppraisalGoalsController {
 							?.overallPerformanceScale || "",
 					compentencyWeightage:
 						getReviewFrameworkAndCompentancy?.reviewframework
-							?.compentencyWeightage || ""
+							?.compentencyWeightage || "",
 				},
 			});
 		} catch (error) {

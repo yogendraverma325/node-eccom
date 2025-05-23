@@ -18,7 +18,7 @@ import { swaggerOptions } from "./swagger/swaggerDefinition.js";
 import helper from "./helper/helper.js";
 
 app.use(helmet());
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(cors());
 app.use("/api", routes);
