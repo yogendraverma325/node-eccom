@@ -140,8 +140,3 @@ export default Express.Router()
 		authentication.authenticate,
 		appraisalGoalsController.sendBackRating,
 	);
-// post(
-// 	"/selfRatingCopy",
-// 	authentication.authenticate,
-// 	appraisalGoalsController.selfRatingCopy,
-// )

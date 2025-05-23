@@ -2703,7 +2703,7 @@ class AppraisalGoalsController {
 			if (buttonStatus != 2) {
 				return respHelper(res, {
 					status: 400,
-					msg: "Pending For Approval",
+					msg: "Goals / Key Result Areas Pending Approval or Submission",
 					data: {},
 				});
 			}
@@ -4016,7 +4016,7 @@ class AppraisalGoalsController {
 			});
 		}
 	}
-	
+
 	async selfRating(req, res) {
 		try {
 			logger.info("[START] selfRatingCopy API called");
