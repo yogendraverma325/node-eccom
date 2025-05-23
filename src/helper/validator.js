@@ -2360,11 +2360,12 @@ const reviewFrameworkSchema = Joi.object({
 	reviewName: Joi.string().trim().required(),
 	reviewId: Joi.string().trim().required(),
 	reviewDescription: Joi.string().allow("").required(),
-
+	compentancyTierId: Joi.number().integer().required(),
 	alignToReviewCycle: Joi.number().integer().optional(),
 	goalRatingScale: Joi.number().integer().optional(),
 	goalAutoCalculate: Joi.boolean().optional(),
 	goalAutoCompentancy: Joi.boolean().optional(), // changed from number to boolean
+	goalCompentancyScale: Joi.number().integer().optional(),
 
 	overallPerformanceScale: Joi.number().integer().optional(),
 	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
@@ -2374,7 +2375,7 @@ const reviewFrameworkSchema = Joi.object({
 	selfReview: Joi.boolean().optional(),
 
 	evaluator: Joi.string().optional(),
-	reviewer: Joi.string().optional(),
+	reviewer: Joi.string().allow("").optional(),
 	calibration: Joi.string().allow("").optional(),
 
 	sendBackToEmployee: Joi.boolean().optional(),
@@ -2393,17 +2394,10 @@ const reviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.alternatives()
-		.try(Joi.array(), Joi.string().allow(""))
-		.optional(),
-	// userAssignment: Joi.array()
-	// 	.items(Joi.number())
-	// 	.min(1)
-	// 	.required()
-	// 	.label("User Assignment")
-	// 	.custom((value, helpers) => {
-	// 		return value.join(","); // Convert array [1, 2] → "1,2"
-	// 	}),
+	userAssignment: Joi.array()
+		.items(Joi.number().required())
+		.min(1) // Ensures at least one item
+		.required(),
 	// selfCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// selfCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// evaluatorCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
@@ -2440,16 +2434,17 @@ const editReviewFrameworkSchema = Joi.object({
 	goalRatingScale: Joi.number().integer().optional(),
 	goalAutoCalculate: Joi.boolean().optional(),
 	goalAutoCompentancy: Joi.boolean().optional(),
-
+	goalCompentancyScale: Joi.number().integer().optional(),
 	overallPerformanceScale: Joi.number().integer().optional(),
 	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
 	compentencyWeightage: Joi.number().integer().min(0).max(100).optional(),
+	compentancyTierId: Joi.number().integer().required(),
 
 	promotionFramework: Joi.number().integer().optional(),
 	selfReview: Joi.boolean().optional(),
 
 	evaluator: Joi.string().optional(),
-	reviewer: Joi.string().optional(),
+	reviewer: Joi.string().allow("").optional(),
 	calibration: Joi.string().allow("").optional(),
 
 	sendBackToEmployee: Joi.boolean().optional(),
@@ -2468,9 +2463,13 @@ const editReviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.alternatives()
-		.try(Joi.array(), Joi.string().allow(""))
-		.optional(),
+	// userAssignment: Joi.alternatives()
+	// 	.try(Joi.array(), Joi.string().allow(""))
+	// 	.optional(),
+	userAssignment: Joi.array()
+		.items(Joi.number().required())
+		.min(1) // Ensures at least one item
+		.required(),
 	selfCanViewRatingOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),

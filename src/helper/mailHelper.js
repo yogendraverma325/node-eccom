@@ -98,8 +98,8 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("selfReviewConfirnation", async (input) => {
 		await selfReviewConfirnation(input);
 	});
-	eventEmitter.on("confirmationLetter", async (input,doneCallback) => {
-		await confirmationLetter(input,doneCallback); 
+	eventEmitter.on("confirmationLetter", async (input, doneCallback) => {
+		await confirmationLetter(input, doneCallback);
 	});
 	eventEmitter.on("confirmatonExtend", async (input) => {
 		await confirmatonExtend(input);
@@ -113,7 +113,7 @@ export default function getAllListeners(eventEmitter) {
 	//
 	eventEmitter.on("confirmationWorkflowNextLevelManager", async (input) => {
 		await confirmationWorkflowNextLevelManager(input);
-	});//
+	}); //
 	eventEmitter.on("compOffMail", async (input) => {
 		await compOffMail(input);
 	});
@@ -542,10 +542,10 @@ async function newJoinEmployeeMail(input) {
 async function selfReviewConfirnation(input) {
 	try {
 		const userData = JSON.parse(input);
-		console.log("userData in mail template --->>", userData.cc); 
+		console.log("userData in mail template --->>", userData.cc);
 		await helper.mailService({
 			to: userData.employee.email,
-			cc:userData.cc,
+			cc: userData.cc,
 			subject: `Confirmation`,
 			html: await emailTemplate.selfReviewConfirnation(userData),
 			senderEmail: userData.employee.companymaster.senderEmail,
@@ -555,7 +555,7 @@ async function selfReviewConfirnation(input) {
 		logger.error(error);
 	}
 }
-async function confirmationLetter(input,doneCallback) {
+async function confirmationLetter(input, doneCallback) {
 	try {
 		const inpputData = JSON.parse(input);
 
@@ -573,40 +573,46 @@ async function confirmationLetter(input,doneCallback) {
 		);
 		let options = { format: "A4" };
 		let file = { content: letter };
-			let pdfBuffer=null;
-			pdfBuffer = await html_to_pdf.generatePdf(file, options);
-			const savedPath = helper.savePdfFile(pdfBuffer, `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`, `./uploads/${inpputData?.EMP_DATA_SELF?.empCode}/`);
-			console.log("savedPath",savedPath)
+		let pdfBuffer = null;
+		pdfBuffer = await html_to_pdf.generatePdf(file, options);
+		const savedPath = helper.savePdfFile(
+			pdfBuffer,
+			`${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+			`./uploads/${inpputData?.EMP_DATA_SELF?.empCode}/`,
+		);
+		console.log("savedPath", savedPath);
 
-			// adding fucnction to save confirmation PDF file to local folder
+		// adding fucnction to save confirmation PDF file to local folder
 		const existing = await db.hrLetters.findOne({
-		where: {
-		userId: inpputData?.EMP_DATA_SELF?.id,
-		documentType: 2
-		}
+			where: {
+				userId: inpputData?.EMP_DATA_SELF?.id,
+				documentType: 2,
+			},
 		});
 
 		if (existing) {
-		await existing.update({
-		documentImage: `/uploads/${inpputData?.EMP_DATA_SELF?.empCode}/${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
-		},
-	{
-	where: {
-		userId: inpputData?.EMP_DATA_SELF?.id,
-		documentType: 2
-		}	
-	});
+			await existing.update(
+				{
+					documentImage: `/uploads/${inpputData?.EMP_DATA_SELF?.empCode}/${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+				},
+				{
+					where: {
+						userId: inpputData?.EMP_DATA_SELF?.id,
+						documentType: 2,
+					},
+				},
+			);
 		} else {
-		await db.hrLetters.create({
-		userId: inpputData?.EMP_DATA_SELF?.id,
-		documentType: 2,
-		documentImage: `/uploads/${inpputData?.EMP_DATA_SELF?.empCode}/${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
-		createdBy: 1
-		});
+			await db.hrLetters.create({
+				userId: inpputData?.EMP_DATA_SELF?.id,
+				documentType: 2,
+				documentImage: `/uploads/${inpputData?.EMP_DATA_SELF?.empCode}/${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter.pdf`,
+				createdBy: 1,
+			});
 		}
-// adding fucnction to save confirmation PDF file to local folder
+		// adding fucnction to save confirmation PDF file to local folder
 
-		 await helper.mailService({
+		await helper.mailService({
 			to: inpputData?.EMP_DATA_SELF?.email,
 			subject: `${inpputData?.EMP_DATA_SELF?.name}_${inpputData?.EMP_DATA_SELF?.empCode}_Confirmation_Letter`,
 			html: body,
@@ -620,7 +626,6 @@ async function confirmationLetter(input,doneCallback) {
 			],
 		});
 		doneCallback();
-		
 	} catch (error) {
 		console.log(error);
 		logger.error(error);
@@ -678,7 +683,7 @@ async function confirmationWorkflowNextLevelManager(input) {
 		await helper.mailService({
 			to: inpputData?.ESCALTERDATA?.email,
 			subject: `Confirmation Workflow Approval Required`,
-			cc:inpputData.cc,
+			cc: inpputData.cc,
 			html: await emailTemplate.confirmationWorkFlownextLevel(inpputData),
 			senderEmail: inpputData?.ESCALTERDATA?.companymaster?.senderEmail,
 		});
