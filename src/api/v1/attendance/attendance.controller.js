@@ -878,8 +878,8 @@ class AttendanceController {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 					attendanceAutoId: result.attendanceAutoId,
-					///attendanceDate: { [Op.lte]: result.fromDate },
-					///attendanceShiftEndDate: { [Op.gte]: result.toDate },
+					///attendanceDate: { [Op.lte]: result.fromDate }, 
+					///attendanceShiftEndDate: { [Op.gte]: result.toDate }, // this column was not having data need to check
 				},
 				attributes: [
 					"attendancePunchInTime",
