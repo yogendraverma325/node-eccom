@@ -1,6 +1,6 @@
 import "./config/db.config.js";
 import "./config/redisDb.config.js";
-// import "./services/cronService.js";
+import "./services/cronService.js";
 import routes from "./routes/routes.js";
 import Server from "./common/server.js";
 import app from "./common/app.js";
@@ -18,6 +18,7 @@ import { swaggerOptions } from "./swagger/swaggerDefinition.js";
 import helper from "./helper/helper.js";
 
 app.use(helmet());
+app.set('trust proxy', 1);
 app.use(morgan("dev"));
 app.use(cors());
 app.use("/api", routes);

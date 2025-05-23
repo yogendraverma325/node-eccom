@@ -99,7 +99,11 @@ const message = {
 			"You are allowed a maximum of # time(s) leave during one year",
 		LEAVE_REQUEST_AQUKNOWLEDGED: "Leave Request Acknowledged", ///Sandeep
 		LEAVE_REQ_STATUS: "Your leave request has been <status>.", ///Sandeep
-		LEAVE_REQ: "Leave Request", ///Sandeep
+		LEAVE_REQ: "Leave Request", ///Sandeep,
+
+		LEAVE_REVOKE_REQUEST_AQUKNOWLEDGED: "Leave Revoke Request Acknowledged",  // messgae added as it was copied from leave req
+		LEAVE_REVOKE_REQ_STATUS: "Your leave revoke request has been <status>.",  // messgae added as it was copied from leave req
+		LEAVE_REVOEK_REQ: "Leave Revoke Request", // messgae added as it was copied from leave req
 	},
 	PROFILE_PICTURE_UPDATED: "Profile Picture Updated.",
 	INVALID: "Invalid <module>",

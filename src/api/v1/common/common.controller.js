@@ -3326,7 +3326,6 @@ class commonController {
 	async getUserAssignmentAttributeData(req, res) {
 		try {
 			const attribute = req.params.attribute?.toUpperCase();
-			//console.log("attribute", attribute);
 
 			const attributeModelMap = {
 				BU: { model: db.buMaster, idField: "buId", nameField: "buName" },
@@ -3375,7 +3374,6 @@ class commonController {
 			};
 
 			const modelDetails = attributeModelMap[attribute];
-			//	console.log("modelDetails", modelDetails);
 
 			if (!modelDetails) {
 				return respHelper(res, { status: 400, msg: "Invalid attribute type" });
@@ -3384,20 +3382,54 @@ class commonController {
 			const model = modelDetails.model;
 			const idField = modelDetails.idField;
 			const nameField = modelDetails.nameField;
-
-			// Determine fields to fetch
 			const attributesToFetch = [idField, nameField];
+
 			if (attribute === "EMPID") {
 				attributesToFetch.push("empCode");
 			}
 
-			// Fetch data
-			const data = await model.findAll({
+			let queryOptions = {
 				where: { isActive: true },
 				attributes: attributesToFetch,
-			});
+			};
 
-			// Map data
+			// Include company name for DEPARTMENT
+			if (attribute === "DEPARTMENT") {
+				queryOptions.include = [
+					{
+						model: db.departmentMapping,
+						include: [
+							{
+								model: db.sbuMapping,
+								include: [
+									{
+										model: db.buMapping,
+										include: [
+											{
+												model: db.companyMaster,
+												attributes: ["companyName"],
+											},
+										],
+									},
+								],
+							},
+						],
+					},
+				];
+			}
+
+			// Include company name for EMP_TYPE
+			if (attribute === "EMP_TYPE") {
+				queryOptions.include = [
+					{
+						model: db.companyMaster,
+						attributes: ["companyName"],
+					},
+				];
+			}
+
+			const data = await model.findAll(queryOptions);
+
 			const mappedData = data.map((item) => {
 				const id = item[idField];
 				const name = item[nameField];
@@ -3406,6 +3438,25 @@ class commonController {
 					return {
 						id,
 						name: `${item.empCode} - ${name}`,
+					};
+				}
+
+				if (attribute === "DEPARTMENT") {
+					const companyName =
+						item.departmentmapping?.sbumapping?.bumapping?.companymaster
+							?.companyName || "-";
+
+					return {
+						id,
+						name: `${name} (${companyName})`,
+					};
+				}
+
+				if (attribute === "EMP_TYPE") {
+					const companyName = item.companymaster?.companyName || "-";
+					return {
+						id,
+						name: `${name} (${companyName})`,
 					};
 				}
 

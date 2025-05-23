@@ -213,6 +213,13 @@ import CompentancyAttributes from "../api/model/CompentancyAttributes.js";
 import ReviewFrameworkMail from "../api/model/ReviewFrameworkMail.js";
 import ReviewRatingTrail from "../api/model/ReviewRatingTrail.js";
 import CompentancyRating from "../api/model/CompentancyRating.js";
+
+
+//REVOKE
+import RegularizationRevokeTransaction from "../api/model/Regularization_revoke_transaction.js";
+import employeeleave_revoke_transaction from "../api/model/employeeleave_revoke_transaction.js";
+//REVOKE
+
 ///////////////////Appraisal/////////////////////////
 
 // start import model by jay
@@ -232,6 +239,10 @@ import user_assignment_condition from "../api/model/user_assignment_condition.js
 import user_assignment_attribute_master from "../api/model/user_assignment_attribute_master.js";
 
 //ritak Hr Policy end
+
+// start jay notice period employment history
+import NoticePeriodEmploymentHistory from "../api/model/NoticePeriodEmploymentHistory.js";
+// end jay end notice period employment history
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -566,6 +577,21 @@ db.user_assignment_attribute_master = user_assignment_attribute_master(
 );
 db.user_assignment_condition = user_assignment_condition(sequelize, Sequelize);
 //ritak Hr Policy end
+//REVOKE
+db.RegularizationRevokeTransaction = RegularizationRevokeTransaction(sequelize,Sequelize)
+db.employeeleave_revoke_transaction = employeeleave_revoke_transaction(sequelize,Sequelize)
+//REVOKE
+
+//REVOKE
+db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
+//REVOKE
+
+// start jay notice period employment history
+db.NoticePeriodEmploymentHistory = NoticePeriodEmploymentHistory(sequelize, Sequelize);
+// end jay end notice period employment history
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -2353,6 +2379,8 @@ db.user_assignment.hasMany(db.user_assignment_condition, {
 	foreignKey: "user_assignment_id",
 	as: "conditions",
 });
+db.employeeTypeMaster.belongsTo(db.companyMaster, { foreignKey: "companyId" });
+
 //ritak Hr Policy end
 //======================= appraisal==============
 db.reviewFramework.hasMany(db.user_assignment, {
@@ -2369,6 +2397,28 @@ db.compentancyAttributes.hasOne(db.compentanyTier, {
 	foreignKey: "compentancyTierId",
 	sourceKey: "compentancyTierId",
 });
+// start jay notice period employment
+db.employeeMaster.hasMany(db.NoticePeriodEmploymentHistory, {
+	foreignKey: "employeeId",
+	sourceKey: "id",
+	as: "noticePeriodHistories",
+});
+db.NoticePeriodEmploymentHistory.hasOne(db.noticePeriodMaster, {
+	foreignKey: "noticePeriodAutoId",
+	sourceKey: "noticePeriodAutoId",
+});
+db.NoticePeriodEmploymentHistory.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "noticePeriodHistoryCreatedBy",
+});
+// end jay notice period employment
+db.employeeleave_revoke_transaction.hasOne(db.employeeMaster, {  //adding joins for leave revoke features
+	foreignKey: "id",
+	sourceKey: "updatedBy",
+	as: "leaveUpdatedBy",
+});
+
 
 db.compentancyAttributes.hasOne(db.compentanyTier, {
 	foreignKey: "compentancyTierId",
@@ -2439,21 +2489,6 @@ db.departmentMapping.hasOne(db.employeeMaster, {
 	sourceKey: "departmentHead",
 	as: "departmentOfHead",
 });
-// db.goalAreaForUser.hasOne(db.compentancyRating, {
-// 	foreignKey: "goalAreaId",
-// 	sourceKey: "goalAreaId",
-// 	as: "comptancyrating",
-// });
-// db.goalAreaForUser.hasOne(db.compentancyRating, {
-// 	foreignKey: "goalAreaId",
-// 	sourceKey: "goalAreaId",
-// 	as: "comptancymanagerrating",
-// });
-// db.goalAreaForUser.hasOne(db.compentancyRating, {
-// 	foreignKey: "goalAreaId",
-// 	sourceKey: "goalAreaId",
-// 	as: "comptancyhodrating",
-// });
 
 db.reviewRatingTrail.hasOne(db.reviewFramework, {
 	foreignKey: "reviewFrameworkId",

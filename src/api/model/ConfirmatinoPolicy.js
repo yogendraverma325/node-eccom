@@ -39,6 +39,12 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		confiramtionRequestEmailCC: {
+			type: Sequelize.STRING,
+		},
+		confiramtionEmailCC: {
+			type: Sequelize.STRING,
+		},
 	});
 	return Confimationpolicy;
 };

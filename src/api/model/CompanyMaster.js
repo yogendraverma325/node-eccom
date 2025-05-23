@@ -89,6 +89,9 @@ export default (sequelize, Sequelize) => {
 		isActive: {
 			type: Sequelize.BOOLEAN,
 		},
+		addCCEmailForWishesAndConfirmation:{
+            type: Sequelize.STRING,
+        },
 	});
 	return companyMaster;
 };

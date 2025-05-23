@@ -3021,4 +3021,10 @@ SELECT * FROM tara.qrsessionshistory;
 
 
 
+ALTER TABLE `tara_hrms_live`.`importdata` 
+CHANGE COLUMN `importStatusDesc` `importStatusDesc` TEXT NULL DEFAULT NULL ;
+
+
+
+
 

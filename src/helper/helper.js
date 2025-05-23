@@ -10,11 +10,8 @@ import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
 import axios from "axios";
 import https from "https";
-import logger from "./logger.js";
-import {
-	getEmployeesByUserAssignmentId,
-	getEmployeesToAssignGoalPlan,
-} from "../api/v1/common/common.controller.js";
+import attendanceController from "../api/v1/attendance/attendance.controller.js";
+import pushNotificationEmitter from "../services/pushNotificationEventService.js"; // New
 // import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
@@ -63,6 +60,19 @@ const fileUpload = async (base64String, fileName, filepath) => {
 	// }
 	return finalFilePath;
 };
+const savePdfFile = (buffer, fileName, folderPath) => {
+  // Ensure directory exists
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+
+  const filePath = path.join(folderPath, fileName);
+
+  // Write the PDF buffer to file
+  fs.writeFileSync(filePath, buffer);
+
+  return filePath;
+};
 
 const checkFolder = async () => {
 	const folder = ["uploads", "uploads/temp", "config"];
@@ -108,14 +118,14 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-		console.log("data.to", data.to);
+		// console.log("data.to", data.to,data.attachments.length);
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
 			to: testMail ? testMailIDs : data.to.split(","),
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc: data.bcc ? data.bcc : [],
+			bcc:testMail ? [] : data.bcc ? data.bcc : [],
 			time: data.time ? data.time : "",
 			html: data.html,
 			cc: testMail ? [] : data.cc ? data.cc.split(",") : [],
@@ -399,6 +409,7 @@ const getEmpProfile = async (EMP_ID) => {
 					"companyLogo",
 					"letterFooter",
 					"letterHeader",
+					"addCCEmailForWishesAndConfirmation"
 				],
 				include: [
 					{
@@ -654,10 +665,10 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
-			console.log("item ", item);
+			//console.log("item ", item);
 
 			if (item.leaveCompanyDetails.display_all == 0) {
-				console.log("displa ");
+			//	console.log("displa ");
 				item.dataValues.is_active_for_display =
 					item.leaveCompanyDetails.display_all;
 			}
@@ -1201,7 +1212,7 @@ const remainingLeaveCount = async function (
 
 	//console.log("total_working_dates",total_working_dates)
 
-	console.log("========= daysDifferenceReq", daysDifferenceReq);
+	//console.log("========= daysDifferenceReq", daysDifferenceReq);
 	for (let i = 0; i <= daysDifferenceReq; i++) {
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
@@ -1273,8 +1284,8 @@ const remainingLeaveCount = async function (
 		);
 		let isNationalHoliday =
 			employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
-		console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
-		console.log("appliedFor", appliedFor, "day", i);
+		//console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
+		//console.log("appliedFor", appliedFor, "day", i);
 		if (daysDifferenceReq == 0) {
 			if (
 				existEmployees.weekOffDayMappingMasters.length == 0 &&
@@ -1335,14 +1346,7 @@ const remainingLeaveCount = async function (
 						workingCount += 1;
 					}
 				}
-				console.log(
-					" middle week off",
-					existEmployees.weekOffDayMappingMasters.length,
-					"shouldCountWeekOffs",
-					shouldCountWeekOffs,
-					"occurrence",
-					occurrence,
-				);
+				
 			}
 		}
 		console.log("============");
@@ -2475,7 +2479,13 @@ const creditCompoff = async (inputObject) => {
 									requesterName: EMP_DATA_SELF.name,
 									managerName: EMP_DATA_SELF.managerData.name,
 									compOffDate: comp_off_data.credit_for_date,
-								};
+								}; 
+								//Added push notification on comp off approval , earlier only mail was working as notification
+								pushNotificationEmitter.emit("sendNotification", {
+								title: "Comp Off Request",
+								body: `Comp Off request raised for ${EMP_DATA_SELF.name}`,
+								employeeId: EMP_DATA_SELF.managerData.id,
+								});
 								eventEmitter.emit("compOffMail", JSON.stringify(obj));
 							}
 
@@ -3381,8 +3391,123 @@ const leaveRefil = async () => {
 		console.log("error", error);
 	}
 };
+/// CONFIRMATION POLICY ASSIGNEMNT
 
-const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
+const confirmationPolicyAssignment = async (empIdsInput) => {
+	try {
+		 let empIds = empIdsInput.split(",");
+		const employees = await db.employeeMaster.findAll({
+			where: {
+				isActive: 1,
+				id: empIds,
+				confimationPolicyAutoId: { [Op.eq]: null }, // Ensures companyId is not null
+			},
+			include: [
+				{
+					model: db.jobDetails,
+					attributes: [
+						"dateOfProbationEnd",
+						"confirmationDate",
+						"confirmationGenerated",
+						"dateOfJoining",
+						"probationDays",
+						"jobLevelId",
+						"jobId",
+					],
+					where: {
+						confirmationGenerated: 0,
+						confirmationDate: { [Op.eq]: null }, // Ensures companyId is not null
+					},
+				},
+			],
+		});
+		for (const Singleemployee of employees) {
+			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
+				where: {
+					jobLevelId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleemployee.employeejobdetail.jobLevelId},%` },
+							{
+								[Op.like]: `%,${Singleemployee.employeejobdetail.jobLevelId},%`,
+							},
+							{ [Op.like]: `%,${Singleemployee.employeejobdetail.jobLevelId}` },
+							{ [Op.eq]: `${Singleemployee.employeejobdetail.jobLevelId}` },
+						],
+					},
+					companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleemployee.companyId},%` },
+							{ [Op.like]: `%,${Singleemployee.companyId},%` },
+							{ [Op.like]: `%,${Singleemployee.companyId}` },
+							{ [Op.eq]: `${Singleemployee.companyId}` },
+						],
+					},
+				},
+			});
+			if (checkJobLevelAssignmnet) {
+				let confirmationPolicy = await db.Confimationpolicy.findOne({
+					where: {
+						confirmationAssignmentAutoId: {
+							[Op.or]: [
+								{
+									[Op.like]: `${checkJobLevelAssignmnet.confirmationAssignmentAutoId},%`,
+								},
+								{
+									[Op.like]: `%,${checkJobLevelAssignmnet.confirmationAssignmentAutoId},%`,
+								},
+								{
+									[Op.like]: `%,${checkJobLevelAssignmnet.confirmationAssignmentAutoId}`,
+								},
+								{
+									[Op.eq]: `${checkJobLevelAssignmnet.confirmationAssignmentAutoId}`,
+								},
+							],
+						},
+					},
+				});
+				if (confirmationPolicy) {
+					let dateOfProbationEnd = moment(
+						Singleemployee.employeejobdetail.dateOfJoining,
+					)
+						.add(Singleemployee.employeejobdetail.probationDays, "days")
+						.format("YYYY-MM-DD");
+
+					let dateOfProbationTriggerDate = moment(dateOfProbationEnd)
+						.subtract(confirmationPolicy.generateOnBeforeDays, "days")
+						.format("YYYY-MM-DD");
+
+					await db.jobDetails.update(
+						{
+							dateOfProbationEnd: dateOfProbationEnd,
+							dateOfProbationTriggerDate: dateOfProbationTriggerDate,
+						},
+						{
+							where: {
+								userId: Singleemployee.id,
+								jobId: Singleemployee.employeejobdetail.jobId,
+							},
+						},
+					);
+					await db.employeeMaster.update(
+						{
+							confimationPolicyAutoId: confirmationPolicy.confimationPolicyAutoId,
+						},
+						{
+							where: {
+								id: Singleemployee.id,
+							},
+						},
+					);
+				}
+			}
+		}
+	} catch (error) {
+		console.log(error);
+	}
+};
+/// CONFIRMATION POLICY ASSIGNMENT
+
+const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => { 
 	let permissionAssignTousers = [];
 	if (PERMISSION) {
 		permissionAssignTousers = PERMISSION.split(",").map((el) => parseInt(el));
@@ -3638,6 +3763,19 @@ async function generateEmployementHistory(
 
 		await db.CostCenterEmploymentHistory.create(costCenterMetaData);
 	}
+
+	// create notice period history
+
+	let noticePeriodMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		noticePeriodAutoId: employeeDetails.noticePeriodAutoId,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt,
+	};
+	await db.NoticePeriodEmploymentHistory.create(noticePeriodMetaData);
 }
 
 const revokeAppliedLeave = async (date, emp) => {
@@ -3651,8 +3789,7 @@ const revokeAppliedLeave = async (date, emp) => {
 			source: "system_generated",
 		},
 	});
-
-	if (leave) {
+if (leave) {
 		await db.EmployeeLeaveHeader.update(
 			{
 				status: "revoked",
@@ -3682,41 +3819,199 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			if (leave.dataValues.leaveAutoId != 6) {
+			await maintainleaveCountOfEmployee(emp,leave.dataValues.leaveAutoId,leave.dataValues.leaveCount,'ADD');
+		}
+	}
+};
+//REVOKE
+const maintainleaveCountOfEmployee = async (EMP_ID,LEAVE_ID,COUNT,TYPE) => { //TYPE WILL BE ADD, SUB
+	if(TYPE=='ADD'){
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
 				await db.leaveMapping.update(
 					{
-						availableLeave: db.sequelize.literal(
-							`availableLeave + ${leave.dataValues.leaveCount}`,
-						),
 						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+							`utilizedThisYear - ${COUNT}`,
 						),
 					},
 					{
 						where: {
-							EmployeeId: emp,
-							leaveAutoId: leave.dataValues.leaveAutoId,
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
 						},
 					},
 				);
 			} else {
 				await db.leaveMapping.update(
 					{
+						availableLeave: db.sequelize.literal(
+							`availableLeave + ${COUNT}`,
+						),
 						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
+							`utilizedThisYear - ${COUNT}`,
 						),
 					},
 					{
 						where: {
-							EmployeeId: emp,
-							leaveAutoId: leave.dataValues.leaveAutoId,
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
+						},
+					}
+				);
+				
+			}
+
+	}else{
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
+				await db.leaveMapping.update(
+					{
+						utilizedThisYear: db.sequelize.literal(
+							`utilizedThisYear + ${COUNT}`,
+						),
+					},
+					{
+						where: {
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
+						},
+					}
+				);
+			} else {
+				await db.leaveMapping.update(
+					{
+						availableLeave: db.sequelize.literal(
+							`availableLeave - ${COUNT}`,
+						),
+						utilizedThisYear: db.sequelize.literal(
+							`utilizedThisYear + ${COUNT}`,
+						),
+					},
+					{
+						where: {
+							EmployeeId: EMP_ID,
+							leaveAutoId: LEAVE_ID
+						},
+					}
+				);
+				
+			}
+
+	}
+
+}
+const releaseCompOffTheEmployeeForDate = async (EMP_ID,DATE,MODE='LAPSE') => { //TYPE WILL BE ADD, SUB
+	console.log("EMP_ID",EMP_ID,"DATE",DATE,"MODE",MODE)
+	if(MODE=='LAPSE'){ /// ADDed lapse condition based on regularization approved
+		 await db.comp_off_credit_history.update(
+					{
+						status:4
+					},
+					{
+						where: {
+						employee_Id: EMP_ID,
+						credit_for_date: DATE,
+						taken_on: { [Op.eq]: null }
 						},
 					},
 				);
-			}
+
+	}else{
+		 await db.comp_off_credit_history.update(
+					{
+						taken_on:null,
+						status:1
+					},
+					{
+						where: {
+							employee_Id: EMP_ID,
+							taken_on: DATE,
+							expiry_date: {
+							[Op.and]: [
+							{ [Op.gte]: moment().format("YYYY-MM-DD") }, // Code correction , earlier leave comp off was not revoke.
+							],
+							},
+						},
+					},
+				);
+
+	}		
+
+}
+const revokeApprovedAppliedLeave = async (leaveHeaderAutoId,t,userData,result) => {
+	const leaves = await db.EmployeeLeaveHeader.findOne({
+			where: {
+			employeeleaveheaderID: leaveHeaderAutoId,
+			},
+			include:[
+				{
+				model: db.employeeLeaveTransactions,
+				required: true,
+				}
+				,
+				{
+				model:db.employeeMaster,
+				required: true
+				}
+		],
+	});
+	if(leaves){
+		for (const Singleleaves of leaves.employeeleavetransactions) {
+			
+			 
+				await db.employeeLeaveTransactions.update(
+				{
+				status: 'revoked',
+				updatedBy: userData.id,
+				//message: result.remark != "" ? result.remark : null, ///message uncommented , was getting updated with revoke request approval
+				updatedAt: moment(),
+				},
+				{
+				where: {
+				employeeLeaveTransactionsId: Singleleaves.employeeLeaveTransactionsId,
+				},
+				},
+				{ transaction: t }
+				);
+				console.log("Singleleaves.employeeId",Singleleaves.employeeId)
+				console.log("Singleleaves.leaveCount",Singleleaves.leaveCount)
+				console.log("Singleleaves.leaveAutoId",Singleleaves.leaveAutoId)
+				await maintainleaveCountOfEmployee(Singleleaves.employeeId,Singleleaves.leaveAutoId,Singleleaves.leaveCount,'ADD');
+				if(Singleleaves.leaveAutoId=='9'){
+					console.log("Singleleaves.employeeId",Singleleaves.employeeId)
+					console.log("Singleleaves.appliedFor",Singleleaves.appliedFor)
+				await releaseCompOffTheEmployeeForDate(Singleleaves.employeeId,Singleleaves.appliedFor,'RETURN');
+				}
+				
+				const checkAttendance = await db.attendanceMaster.findOne({
+								where: {
+									employeeId: Singleleaves.employeeId,
+									attendanceDate: Singleleaves.appliedFor,
+								},
+							});
+					if(checkAttendance){
+						await attendanceController.attedanceCronManual(checkAttendance.attendanceAutoId,Singleleaves.appliedFor);
+					}
+				
+
 		}
+		await db.EmployeeLeaveHeader.update(
+				{
+				status: 'revoked',
+				updatedBy: userData.id,
+				//message: result.remark != "" ? result.remark : null, message uncommented , was getting updated with revoke request approval
+				updatedAt: moment(),
+				},
+				{
+				where: {
+				employeeleaveheaderID: leaveHeaderAutoId
+				},
+				},
+				{ transaction: t }
+				);
+	
 	}
+		return leaves;
 };
+//REVOKE
 
 const activeCompOffMoreThanLeave = async (EMP_ID, leaveID) => {
 	const compOffHistory = await db.comp_off_credit_history.findAll({
@@ -3844,6 +4139,59 @@ const getWorkDuration = async (dateOfJoining) => {
 
 	return `${String(years).padStart(2, "0")}y ${String(months).padStart(2, "0")}m ${String(days).padStart(2, "0")}d`;
 };
+
+///CONFIRMATION AND BIRTHDAY WISH CC
+const roleEmailIds= async (EMP_DATA_SELF,ROLES) => {
+	let mails=[];
+		for (const emailids of ROLES) {
+             let ownerId=null;
+				if (emailids== "MANAGER") {
+				ownerId = EMP_DATA_SELF?.managerData?.id;
+				} else if (emailids == "L2_MANAGER") {
+				let EMP_DATA = await getEmpProfile(
+				EMP_DATA_SELF?.managerData?.id,
+				); // L2 Manager
+				ownerId = EMP_DATA?.id;
+				} else if (emailids == "ADMIN") {
+				let admin = await db.employeeMaster.findOne({
+				where: {
+				role_id: 2,
+				isActive: 1,
+				},
+				});
+				ownerId = admin?.id;
+				} else if (emailids == "BUHR") {
+				ownerId = EMP_DATA_SELF?.buHRId;
+				}
+
+				if(ownerId){
+                  mails.push(ownerId);
+				}
+			
+		}//TMC OR ID
+			const EMP_DATA_LIST = await db.employeeMaster.findAll({
+			where: {
+			id: mails,
+			isActive: 1,
+			},
+			attributes:["email", "id", "empCode"]
+			});
+		let finalEmails=[]
+		for (const EMP_DATA_ROW of EMP_DATA_LIST) {
+			finalEmails.push(EMP_DATA_ROW.email);
+		}
+
+		const additionalCCMail = EMP_DATA_SELF?.companymaster?.addCCEmailForWishesAndConfirmation;
+
+		if (additionalCCMail) {
+		finalEmails.push(...additionalCCMail.split(','));
+		}
+                        
+		const ccEmail = finalEmails.filter((email) => !!email,);
+		return ccEmail;
+
+}
+///CONFIRMATION AND BIRTHDAY WISH CC
 
 async function handleAppraisalGoalPlanUpdate(assignmentId) {
 	const activePlans = await db.appraisalGoalsMaster.findAll({
@@ -4191,6 +4539,9 @@ export default {
 	leaveCreditMonthCron,
 	leaveLapse,
 	leaveRefil,
+	//CONFIRMATION POLICY ASSGIMENT
+	confirmationPolicyAssignment,
+	//CONFIRMAGION POLICY ASSIGNMENT
 	//COMPOFF
 	//LEAVE ASSIGNMENT
 	leaveAssignEmployeeToAll,
@@ -4208,7 +4559,15 @@ export default {
 	convertEmptyStringsToNull,
 	chekcMonthCountInArray,
 	getWorkDuration,
+	//REVOKE
+	revokeApprovedAppliedLeave,
+	releaseCompOffTheEmployeeForDate,
+	roleEmailIds,
+	savePdfFile,  // adding fucnction to save confirmation PDF file to local folder
+	//REVOKE
+// review appraisal
 	handleAppraisalGoalPlanUpdate,
 	handleReviewFrameworkAssignment,
 	handleReviewFrameworkAssignmentNew,
+
 };

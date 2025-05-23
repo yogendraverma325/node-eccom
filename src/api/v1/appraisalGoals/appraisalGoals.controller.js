@@ -358,41 +358,41 @@ class AppraisalGoalsController {
 			if (newInserts.length > 0) {
 				await db.goalPlanMail.bulkCreate(newInserts);
 				// Send emails for the new goal plans
-				// const getUserAssigmentIds = await db.appraisalGoalsMaster.findOne({
-				// 	where: { appraisalGoalId: appraisalGoalId },
-				// });
+				const getUserAssigmentIds = await db.appraisalGoalsMaster.findOne({
+					where: { appraisalGoalId: appraisalGoalId },
+				});
 
-				// for (const entry of newInserts) {
-				// 	const user = await db.employeeMaster.findOne({
-				// 		where: { id: entry.userId },
-				// 		include: [
-				// 			{
-				// 				model: db.companyMaster,
-				// 				attributes: ["senderEmail", "companyLogo", "companyName"],
-				// 			},
-				// 		],
-				// 		attributes: ["name", "email"],
-				// 		raw: true,
-				// 	});
+				for (const entry of newInserts) {
+					const user = await db.employeeMaster.findOne({
+						where: { id: entry.userId },
+						include: [
+							{
+								model: db.companyMaster,
+								attributes: ["senderEmail", "companyLogo", "companyName"],
+							},
+						],
+						attributes: ["name", "email"],
+						raw: true,
+					});
 
-				// 	eventEmitter.emit(
-				// 		"goalPlanAssignToEmployee",
-				// 		JSON.stringify({
-				// 			email: user.email,
-				// 			name: user.name,
-				// 			startDate: moment(getUserAssigmentIds.startDate).format(
-				// 				"DD-MM-YYYY",
-				// 			),
-				// 			endDate: moment(getUserAssigmentIds.endDate).format("DD-MM-YYYY"),
-				// 			goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
-				// 			goalPlanName: getUserAssigmentIds.goalPlanName,
-				// 			senderEmail: user["companymaster.senderEmail"] || "",
-				// 			companyLogo: user["companymaster.companyLogo"] || "",
-				// 			companyName: user["companymaster.companyName"] || "",
-				// 		}),
-				// 	);
-				// 	console.log(`Goal plan email triggered for ${user.email}`);
-				// }
+					eventEmitter.emit(
+						"goalPlanAssignToEmployee",
+						JSON.stringify({
+							email: user.email,
+							name: user.name,
+							startDate: moment(getUserAssigmentIds.startDate).format(
+								"DD-MM-YYYY",
+							),
+							endDate: moment(getUserAssigmentIds.endDate).format("DD-MM-YYYY"),
+							goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
+							goalPlanName: getUserAssigmentIds.goalPlanName,
+							senderEmail: user["companymaster.senderEmail"] || "",
+							companyLogo: user["companymaster.companyLogo"] || "",
+							companyName: user["companymaster.companyName"] || "",
+						}),
+					);
+					console.log(`Goal plan email triggered for ${user.email}`);
+				}
 			}
 
 			return respHelper(res, {

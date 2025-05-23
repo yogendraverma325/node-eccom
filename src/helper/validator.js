@@ -2573,6 +2573,91 @@ const updateRatingScaleSchema = Joi.object({
 		}),
 });
 //
+
+//REVOKE
+const revokeApprovedRegularizationsValidation = Joi.object({
+	attendanceAutoId: Joi.number(),
+	regularizeId: Joi.number(),
+	//remark: Joi.string().trim().required().max(100).label("Remark"),
+});
+const revokeApprovedLeaveValidation = Joi.object({
+	employeeleaveheaderID: Joi.number(),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+});
+const approvalrevokeApprovedLeaveValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string().trim().required(),
+	status: Joi.string()
+		.trim()
+		.required()
+		.valid("approved", "rejected")
+		.label("status"),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+});
+const revokeLeaverevokeRequestValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string().trim().required(),
+});
+//REVOKE
+// Start Import employment details
+const importEmploymentDetails = Joi.object({
+	empCode: Joi.string().required(),
+	designationCode: Joi.string(),
+	desFromDate: Joi.date().max("now").messages({
+		"date.max": "desFromDate must be less than or equal to today",
+		"date.base": "desFromDate must be a valid date",
+	}),
+	desIsPromotion: Joi.string(),
+	jobLevelCode: Joi.string(),
+	jobLevelFromDate: Joi.date().max("now").messages({
+		"date.max": "jobLevelFromDate must be less than or equal to today",
+		"date.base": "jobLevelFromDate must be a valid date",
+	}),
+	jobLevelIsPromotion: Joi.string(),
+	manager: Joi.string(),
+	managerFromDate: Joi.date().max("now").messages({
+		"date.max": "managerFromDate must be less than or equal to today",
+		"date.base": "managerFromDate must be a valid date",
+	}),
+	functionalAreaCode: Joi.string(),
+	functionalFromDate: Joi.date().max("now").messages({
+		"date.max": "functionalFromDate must be less than or equal to today",
+		"date.base": "functionalFromDate must be a valid date",
+	}),
+	employeeTypeCode: Joi.string(),
+	employeeTypeFromDate: Joi.date().max("now").messages({
+		"date.max": "employeeTypeFromDate must be less than or equal to today",
+		"date.base": "employeeTypeFromDate must be a valid date",
+	}),
+	companyLocationCode: Joi.string(),
+	companyLocationFromDate: Joi.date().max("now").messages({
+		"date.max": "companyLocationFromDate must be less than or equal to today",
+		"date.base": "companyLocationFromDate must be a valid date",
+	}),
+	costCenterCode: Joi.string(),
+	costCenterFromDate: Joi.date().max("now").messages({
+		"date.max": "costCenterFromDate must be less than or equal to today",
+		"date.base": "costCenterFromDate must be a valid date",
+	}),
+	noticePeriodCode: Joi.string(),
+})
+	.with("designationCode", ["desFromDate", "desIsPromotion"])
+	.with("desFromDate", ["designationCode", "desIsPromotion"])
+	.with("desIsPromotion", ["designationCode", "desFromDate"])
+	.with("jobLevelCode", ["jobLevelFromDate", "jobLevelIsPromotion"])
+	.with("jobLevelFromDate", ["jobLevelCode", "jobLevelIsPromotion"])
+	.with("jobLevelIsPromotion", ["jobLevelCode", "jobLevelFromDate"])
+	.with("manager", ["managerFromDate"])
+	.with("managerFromDate", ["manager"])
+	.with("functionalAreaCode", ["functionalFromDate"])
+	.with("functionalFromDate", ["functionalAreaCode"])
+	.with("employeeTypeCode", ["employeeTypeFromDate"])
+	.with("employeeTypeFromDate", ["employeeTypeCode"])
+	.with("companyLocationCode", ["companyLocationFromDate"])
+	.with("companyLocationFromDate", ["companyLocationCode"])
+	.with("costCenterCode", ["costCenterFromDate"])
+	.with("costCenterFromDate", ["costCenterCode"]);
+
+// End Import employment details
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2674,4 +2759,13 @@ export default {
 	proxyLoginSchema,
 	reviewFrameworkSchema,
 	editReviewFrameworkSchema,
+	//REVOKE
+	revokeApprovedRegularizationsValidation,
+	revokeApprovedLeaveValidation,
+	approvalrevokeApprovedLeaveValidation,
+	revokeLeaverevokeRequestValidation,
+	//REVOKE
+	// start by jay
+	importEmploymentDetails,
+	// end by jay
 };
