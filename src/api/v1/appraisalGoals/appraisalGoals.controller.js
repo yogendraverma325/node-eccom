@@ -477,6 +477,170 @@ class AppraisalGoalsController {
 		}
 	}
 
+	// async editGoalPlan(req, res) {
+	// 	try {
+	// 		const result = await validator.editAppraisalGoals.validateAsync(req.body);
+
+	// 		const [existingGoalPlanName, existingGoalPlanId] = await Promise.all([
+	// 			db.appraisalGoalsMaster.findOne({
+	// 				where: {
+	// 					goalPlanName: result.goalPlanName,
+	// 					appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+	// 				},
+	// 			}),
+	// 			db.appraisalGoalsMaster.findOne({
+	// 				where: {
+	// 					goalPlanId: result.goalPlanId,
+	// 					appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+	// 				},
+	// 			}),
+	// 		]);
+
+	// 		if (existingGoalPlanName) {
+	// 			return respHelper(res, {
+	// 				status: 400,
+	// 				msg: message.APPRAISAL.GOAL_PLAN_NAME_ALREADY_EXISTS,
+	// 			});
+	// 		}
+
+	// 		if (existingGoalPlanId) {
+	// 			return respHelper(res, {
+	// 				status: 400,
+	// 				msg: message.APPRAISAL.GOAL_PLAN_ID,
+	// 			});
+	// 		}
+
+	// 		await db.appraisalGoalsMaster.update(result, {
+	// 			where: { appraisalGoalId: result.appraisalGoalId },
+	// 		});
+
+	// 		const goalAttributesWithGoalId = result.goalAttributes.map((attr) => ({
+	// 			goalAttributeId: attr.goalAttributesId,
+	// 			enable: attr.goalNameEnable,
+	// 			mandatory: attr.goalMandate,
+	// 			editable: attr.goalEditable,
+	// 			needsApproval: attr.goalNeedApproval,
+	// 			appraisalGoalId: result.appraisalGoalId,
+	// 			goalType: 1,
+	// 		}));
+
+	// 		const subGoalAttributesWithGoalId =
+	// 			result.subGoalAttributes && Array.isArray(result.subGoalAttributes)
+	// 				? result.subGoalAttributes.map((attr) => ({
+	// 						goalAttributeId: attr.goalAttributesId,
+	// 						enable: attr.goalNameEnable,
+	// 						mandatory: attr.goalMandate,
+	// 						editable: attr.goalEditable,
+	// 						needsApproval: attr.goalNeedApproval,
+	// 						appraisalGoalId: result.appraisalGoalId, // FIXED!
+	// 						goalType: 2,
+	// 					}))
+	// 				: [];
+
+	// 		const mergeGoalAndSubGoals = [
+	// 			...goalAttributesWithGoalId,
+	// 			...subGoalAttributesWithGoalId,
+	// 		];
+
+	// 		// FIXED `destroy` instead of `destory`
+	// 		await db.goalAttributesMapping.destroy({
+	// 			where: { appraisalGoalId: result.appraisalGoalId },
+	// 		});
+
+	// 		await db.goalAttributesMapping.bulkCreate(mergeGoalAndSubGoals);
+
+	// 		return respHelper(res, {
+	// 			status: 200,
+	// 			data: result,
+	// 			msg: message.APPRAISAL.GOAL_UPDATED,
+	// 		});
+	// 	} catch (error) {
+	// 		console.log(error);
+	// 		if (error.isJoi === true) {
+	// 			return respHelper(res, {
+	// 				status: 422,
+	// 				msg: error.details[0].message,
+	// 			});
+	// 		}
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 		});
+	// 	}
+	// }
+
+	// async goalActiveAndArchive(req, res) {
+	// 	try {
+	// 		const getUserAssigmentIds = await getEmployeesAssignment(4);
+	// 		if (!getUserAssigmentIds) {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				data: {
+	// 					goalActive: [],
+	// 					goalArchive: [],
+	// 				},
+	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
+	// 			});
+	// 		}
+	// 		const userAssignmentWhereUserExist = await getEmployeesPragatGoalList(
+	// 			getUserAssigmentIds,
+	// 			req.userId,
+	// 		);
+
+	// 		if (
+	// 			getUserAssigmentIds.length > 0 &&
+	// 			userAssignmentWhereUserExist.length > 0
+	// 		) {
+	// 			// Build array of LIKE queries for each ID
+	// 			const likeConditions = getUserAssigmentIds.map((id) => ({
+	// 				userAssignment: {
+	// 					[Op.like]: `%${id}%`,
+	// 				},
+	// 			}));
+
+	// 			let goalActive = await db.appraisalGoalsMaster.findAll({
+	// 				where: {
+	// 					type: 1,
+	// 					isDeleted: 0,
+	// 					[Op.or]: likeConditions,
+	// 				},
+	// 				limit: 1,
+	// 			});
+
+	// 			let goalArchive = await db.appraisalGoalsMaster.findAll({
+	// 				where: {
+	// 					type: 2,
+	// 					isDeleted: 0,
+	// 					[Op.or]: likeConditions,
+	// 				},
+	// 			});
+
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				data: {
+	// 					goalActive,
+	// 					goalArchive,
+	// 				},
+	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
+	// 			});
+	// 		} else {
+	// 			return respHelper(res, {
+	// 				status: 200,
+	// 				data: {
+	// 					goalActive: [],
+	// 					goalArchive: [],
+	// 				},
+	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
+	// 			});
+	// 		}
+	// 	} catch (error) {
+	// 		console.error("Error in goalActiveAndArchive:", error);
+	// 		return respHelper(res, {
+	// 			status: 500,
+	// 			msg: "Internal server error",
+	// 		});
+	// 	}
+	// }
+
 	async editGoalPlan(req, res) {
 		try {
 			const result = await validator.editAppraisalGoals.validateAsync(req.body);
@@ -485,13 +649,13 @@ class AppraisalGoalsController {
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanName: result.goalPlanName,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }
 					},
 				}),
 				db.appraisalGoalsMaster.findOne({
 					where: {
 						goalPlanId: result.goalPlanId,
-						appraisalGoalId: { [Op.ne]: result.appraisalGoalId },
+						appraisalGoalId: { [Op.ne]: result.appraisalGoalId }
 					},
 				}),
 			]);
@@ -568,78 +732,6 @@ class AppraisalGoalsController {
 		}
 	}
 
-	// async goalActiveAndArchive(req, res) {
-	// 	try {
-	// 		const getUserAssigmentIds = await getEmployeesAssignment(4);
-	// 		if (!getUserAssigmentIds) {
-	// 			return respHelper(res, {
-	// 				status: 200,
-	// 				data: {
-	// 					goalActive: [],
-	// 					goalArchive: [],
-	// 				},
-	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
-	// 			});
-	// 		}
-	// 		const userAssignmentWhereUserExist = await getEmployeesPragatGoalList(
-	// 			getUserAssigmentIds,
-	// 			req.userId,
-	// 		);
-
-	// 		if (
-	// 			getUserAssigmentIds.length > 0 &&
-	// 			userAssignmentWhereUserExist.length > 0
-	// 		) {
-	// 			// Build array of LIKE queries for each ID
-	// 			const likeConditions = getUserAssigmentIds.map((id) => ({
-	// 				userAssignment: {
-	// 					[Op.like]: `%${id}%`,
-	// 				},
-	// 			}));
-
-	// 			let goalActive = await db.appraisalGoalsMaster.findAll({
-	// 				where: {
-	// 					type: 1,
-	// 					isDeleted: 0,
-	// 					[Op.or]: likeConditions,
-	// 				},
-	// 				limit: 1,
-	// 			});
-
-	// 			let goalArchive = await db.appraisalGoalsMaster.findAll({
-	// 				where: {
-	// 					type: 2,
-	// 					isDeleted: 0,
-	// 					[Op.or]: likeConditions,
-	// 				},
-	// 			});
-
-	// 			return respHelper(res, {
-	// 				status: 200,
-	// 				data: {
-	// 					goalActive,
-	// 					goalArchive,
-	// 				},
-	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
-	// 			});
-	// 		} else {
-	// 			return respHelper(res, {
-	// 				status: 200,
-	// 				data: {
-	// 					goalActive: [],
-	// 					goalArchive: [],
-	// 				},
-	// 				msg: message.APPRAISAL.GOAL_ACTIVE,
-	// 			});
-	// 		}
-	// 	} catch (error) {
-	// 		console.error("Error in goalActiveAndArchive:", error);
-	// 		return respHelper(res, {
-	// 			status: 500,
-	// 			msg: "Internal server error",
-	// 		});
-	// 	}
-	// }
 	async goalActiveAndArchive(req, res) {
 		try {
 			const getAllMail = await db.goalPlanMail.findAll({
@@ -2711,6 +2803,13 @@ class AppraisalGoalsController {
 					isActive: 1,
 				},
 			});
+			if (!getActiveReviewFrameworkId) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Review Cycle Not Assigned",
+					data: {},
+				});
+			}
 			let flowLevel = await db.reviewRatingTrail.findOne({
 				where: {
 					userId: forEmp,
@@ -2734,22 +2833,82 @@ class AppraisalGoalsController {
 				});
 			}
 
-			const userTrail = await db.goalAreaPragatiTrail.findOne({
+			let buttonStatus = 0;
+			let recallButton = 0;
+			const allGoals = await db.goalAreaForUser.findAll({
 				where: {
+					isActive: [0, 1, 2],
+					userId: forEmp, //req.userId,
 					goalPlanId: activeGoalPlan.goalPlanId,
-					userId: forEmp,
-					isApproved: 2,
+					isDeleted: 0,
 				},
 			});
 
-			if (!userTrail) {
+			if (allGoals.length > 0) {
+				const totalWeightage = allGoals.reduce(
+					(sum, goal) => sum + (goal.weightage || 0),
+					0,
+				);
+
+				if (allGoals.some((goal) => goal.isActive === 0)) {
+					buttonStatus = 0; // Draft exists
+				} else if (allGoals.some((goal) => goal.isActive === 1)) {
+					buttonStatus = 1; // At least one submitted
+				} else if (allGoals.every((goal) => goal.isActive === 2)) {
+					//buttonStatus = 2; // All action taken
+					buttonStatus = totalWeightage === 100 ? 2 : 0; // All action taken and weightage is 100
+				}
+
+				if (allGoals.every((goal) => goal.isActive === 1)) {
+					recallButton = 1;
+				}
+			}
+
+			if (buttonStatus != 2) {
 				return respHelper(res, {
 					status: 400,
-					msg: "Trail Not Found",
+					msg: "Pending For Approval",
 					data: {},
 				});
 			}
 
+			let reviewerId;
+			const getUserDetails = await db.employeeMaster.findOne({
+				attributes: ["id", "departmentId"],
+				where: { id: forEmp },
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "managerData",
+						attributes: ["id"],
+					},
+				],
+			});
+
+			if (getUserDetails?.departmentId) {
+				const departmentHead = await db.departmentMapping.findOne({
+					where: { departmentId: getUserDetails.departmentId },
+					include: [
+						{
+							model: db.employeeMaster,
+							as: "departmentOfHead",
+							attributes: ["id", "name"],
+						},
+					],
+				});
+
+				if (departmentHead?.departmentOfHead?.id) {
+					reviewerId = departmentHead.departmentOfHead.id;
+				} else {
+					logger.warn(
+						`Department head not found for departmentId: ${getUserDetails.departmentId}`,
+					);
+				}
+			} else {
+				logger.warn(
+					`Employee not found or missing departmentId for empId: ${empId}`,
+				);
+			}
 			const getReviewFrameworkAndCompentancy =
 				await db.reviewFrameworkMail.findOne({
 					attributes: ["email"],
@@ -3007,13 +3166,24 @@ class AppraisalGoalsController {
 			if (review.reviewer) steps.push(review.reviewer);
 			steps.push("Calibration");
 
-			console.log("reviewAppraisal", flowLevel);
 			let stageAt = flowLevel ? flowLevel.pendingStage : "Calibration";
+
+			const actionTaken = await db.reviewRatingTrail.findAll({
+				where: {
+					userId: forEmp,
+					reviewFrameworkId: getActiveReviewFrameworkId.reviewFrameworkId,
+				},
+			});
+
 			// Always include Calibration at the end
 			return respHelper(res, {
 				status: 200,
 				msg: message.APPRAISAL.GET_LIST,
 				data: {
+					actionTaken: actionTaken,
+					employeeId: getUserDetails?.id || null,
+					evaluatorId: getUserDetails?.managerData?.id,
+					reviewerId: reviewerId,
 					pendingLevel: stageAt,
 					steps: steps,
 					stage: flowLevel ? flowLevel.level : steps.length,
@@ -3731,6 +3901,12 @@ class AppraisalGoalsController {
 			const { reviewFrameworkId } = req.body;
 			const changeDraftToActive = await db.reviewFramework.update(
 				{ type: 2 },
+				{
+					where: { reviewFrameworkId: reviewFrameworkId },
+				},
+			);
+			await db.reviewFrameworkMail.update(
+				{ isActive: 0 },
 				{
 					where: { reviewFrameworkId: reviewFrameworkId },
 				},
@@ -4849,6 +5025,142 @@ class AppraisalGoalsController {
 			});
 		} catch (error) {
 			logger.error("Error in selfRatingCopy:", error.stack || error.message);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+
+	async sendBackRating(req, res) {
+		try {
+			const { userId } = req.body; // ID of the employee whose review is being sent back
+			const currentUser = req.userId;
+
+			const flowLevel = await db.reviewRatingTrail.findOne({
+				where: {
+					userId,
+					pendingAt: currentUser,
+					isActionTaken: 0,
+				},
+				include: [
+					{
+						model: db.employeeMaster,
+						as: "employee",
+						attributes: ["id", "manager", "departmentId"],
+					},
+				],
+			});
+
+			if (!flowLevel) {
+				return respHelper(res, {
+					status: 404,
+					msg: "Review trail not found or already actioned.",
+				});
+			}
+
+			const reviewFramework = await db.reviewFramework.findOne({
+				where: { reviewFrameworkId: flowLevel.reviewFrameworkId },
+				raw: true,
+			});
+
+			const steps = [];
+			if (reviewFramework.selfReview) steps.push("employee");
+			if (reviewFramework.evaluator) steps.push("manager");
+			if (reviewFramework.reviewer) steps.push("hod");
+			steps.push("calibration");
+
+			const currentLevel = flowLevel.level;
+			const prevLevel = currentLevel - 1;
+
+			if (prevLevel < 0) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Cannot send back. Already at first level.",
+				});
+			}
+
+			const previousRole = steps[prevLevel];
+			let previousPendingAt = null;
+
+			switch (previousRole) {
+				case "employee":
+					previousPendingAt = userId;
+					break;
+				case "manager":
+					previousPendingAt = flowLevel.employee.manager;
+					break;
+				case "hod":
+					const departmentHead = await db.departmentMapping.findOne({
+						where: { departmentId: flowLevel.employee.departmentId },
+						include: [
+							{
+								model: db.employeeMaster,
+								as: "departmentOfHead",
+								attributes: ["id"],
+							},
+						],
+					});
+					previousPendingAt = departmentHead?.departmentOfHead?.id || null;
+					break;
+				default:
+					logger.warn(`No send-back logic defined for role: ${previousRole}`);
+			}
+
+			if (!previousPendingAt) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Unable to determine previous reviewer for role: ${previousRole}`,
+				});
+			}
+
+			// ✅ Cleanup any existing pending trail at that level
+			await db.reviewRatingTrail.destroy({
+				where: {
+					userId,
+					reviewFrameworkId: flowLevel.reviewFrameworkId,
+					level: prevLevel,
+					isActionTaken: 1,
+				},
+			});
+			await db.reviewRatingTrail.destroy({
+				where: {
+					userId,
+					reviewFrameworkId: flowLevel.reviewFrameworkId,
+					level: currentLevel,
+					isActionTaken: 0,
+				},
+			});
+
+			// ✅ Mark current level as actioned
+			//await flowLevel.update({ isActionTaken: 1 });
+
+			// ✅ Create new pending trail for the previous level
+			const displayRoles = {
+				employee: "Employee",
+				manager: "Manager",
+				hod: "HOD",
+				calibration: "Calibration",
+			};
+
+			await db.reviewRatingTrail.create({
+				userId,
+				level: prevLevel,
+				isActionTaken: 0,
+				isVisible: 1,
+				reviewFrameworkId: flowLevel.reviewFrameworkId,
+				pendingAt: previousPendingAt,
+				pendingStage: displayRoles[previousRole.toLowerCase()] || previousRole,
+			});
+
+			logger.info(`Rating sent back to ${previousRole} for user: ${userId}`);
+
+			return respHelper(res, {
+				status: 200,
+				msg: `Review has been sent back to ${previousRole}`,
+			});
+		} catch (error) {
+			logger.error("Error in sendBackRating:", error.stack || error.message);
 			return respHelper(res, {
 				status: 500,
 				msg: "Internal server error",

@@ -135,6 +135,10 @@ export default Express.Router()
 		"/getReportieReviewAppraisal",
 		authentication.authenticate,
 		appraisalGoalsController.getReportieReviewAppraisal,
+	).post(
+		"/sendBackRating",
+		authentication.authenticate,
+		appraisalGoalsController.sendBackRating,
 	);
 // post(
 // 	"/selfRatingCopy",
