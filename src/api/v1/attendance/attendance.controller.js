@@ -5692,11 +5692,30 @@ class AttendanceController {
 					req.body,
 				);
 			const regularizeData = await db.regularizationMaster.findOne({
+					raw: true,
 				where: {
 					regularizeId: result.regularizeId,
 					attendanceAutoId: result.attendanceAutoId,
 					regularizeStatus: "Approved",
 				},
+					include: [
+						{
+							model: db.attendanceMaster,
+							attributes: ["attendanceAutoId", "employeeId", "attendanceDate"],
+							include: [ ///added association for company logo and name
+								{
+									model: db.employeeMaster,
+									attributes: ["attendancePolicyId", "name", "email"],
+									include: [
+										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										}
+									],
+								},
+							],
+						},
+					],
 			});
 			if (!regularizeData) {
 				return respHelper(res, {
@@ -5835,6 +5854,36 @@ class AttendanceController {
 				result.attendanceAutoId,
 				attendanceData.attendanceDate,
 			);
+
+				const obj = {
+					email: regularizeData["attendancemaster.employee.email"],
+					status:"Revoked",
+					fromDate: regularizeData.regularizePunchInDate,
+					toDate: regularizeData.regularizePunchOutDate,
+					managerName:req.userData.name,
+					requesterName: regularizeData[
+							"attendancemaster.employee.name"
+						],
+					senderEmail:
+						regularizeData[
+							"attendancemaster.employee.companymaster.senderEmail"
+						],
+					companyLogo:
+						regularizeData[
+							"attendancemaster.employee.companymaster.companyLogo"
+						],
+				};
+
+				pushNotificationEmitter.emit("sendNotification", {
+					title: message.ATTENDANCE_REQ_ACK,
+					body: message.ATTENDANCE_REQ_STATUS.replace(
+						"<status>",
+						"Revoked",
+					),
+					employeeId: regularizeData["attendancemaster.employee.id"],
+				});
+				console.log("obj",obj)
+				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
 
 			return respHelper(res, {
 				status: 200,
