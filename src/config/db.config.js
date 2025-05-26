@@ -247,6 +247,10 @@ import NoticePeriodEmploymentHistory from "../api/model/NoticePeriodEmploymentHi
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 import  EarningArearsAmount from "../api/model/EarningArrearsAmounts.js";
+
+//
+import EmployeeBiographicalHistory from "../api/model/EmployeeBiographicalHistory.js";
+//
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
 	process.env.DB_USER,
@@ -582,6 +586,8 @@ db.user_assignment_condition = user_assignment_condition(sequelize, Sequelize);
 db.RegularizationRevokeTransaction = RegularizationRevokeTransaction(sequelize,Sequelize)
 db.employeeleave_revoke_transaction = employeeleave_revoke_transaction(sequelize,Sequelize)
 //REVOKE
+
+db.employeeBiographicalHistory = EmployeeBiographicalHistory(sequelize, Sequelize);
 
 //REVOKE
 db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
