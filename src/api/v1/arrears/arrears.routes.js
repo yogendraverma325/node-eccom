@@ -16,4 +16,14 @@ export default Express.Router()
 		"/deleteArrears",
 		authentication.authenticate,
 		arrearsController.deleteArrears,
+	)
+	.post(
+		"/employeeListForArrears",
+		authentication.authenticate,
+		arrearsController.employeeListForArrears,
+	)
+	.post(
+		"/addEditSingleArrear",
+		authentication.authenticate,
+		arrearsController.addEditSingleArrear,
 	);
