@@ -18,6 +18,7 @@ import path from "path"; // Import the path module
 import moment from "moment";
 import puppeteer from "puppeteer";
 import eventEmitter from "../../../services/eventService.js";
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -3095,6 +3096,8 @@ class PaymentController {
 			const processIds = payProcesses.map(
 				(item) => item.payProcessMasterAutoId,
 			);
+			// console.log(employees);
+			// return
 			const paySlipsToUpdate = await db.paySlips.findAll({
 				where: {
 					paySlipStatus: 0,
@@ -6947,8 +6950,24 @@ async function sendMailAfterSalarySlipRelease(
 				senderEmail: allPaySlips[i]?.employee?.companymaster.senderEmail,
 			}),
 		);
+		// console.log(allPaySlips[i]?.employee?.id);
+		// return;
 		if (mailStatus) {
 			// update mail status in paySlip table
+			pushNotificationEmitter.emit("sendNotification", {
+				title: "Payslip has been released",
+				body: `Payslip for the period of ${`${financialMonth[allPaySlips[i]?.paySlipMonth]} ${
+					allPaySlips[i]?.paySlipYear
+				}`} has been released.`,
+				employeeId: allPaySlips[i]?.employee?.id,
+			});
+			console.log({
+				title: "Payslip has been released",
+				body: `Payslip for the period of ${`${financialMonth[allPaySlips[i]?.paySlipMonth]} ${
+					allPaySlips[i]?.paySlipYear
+				}`} has been released.`,
+				employeeId: allPaySlips[i]?.employee?.id,
+			});
 			await db.paySlips.update(
 				{ sendEmail: 1 },
 				{ where: { paySlipAutoId: allPaySlips[i]?.paySlipAutoId } },

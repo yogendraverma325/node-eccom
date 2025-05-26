@@ -171,7 +171,7 @@ class commonController {
 					data: {},
 				});
 			}
-		} catch (error) { }
+		} catch (error) {}
 	}
 
 	async updatePaymentDetails(req, res) {
@@ -354,7 +354,7 @@ class commonController {
 					data: {},
 				});
 			}
-		} catch (error) { }
+		} catch (error) {}
 	}
 
 	async getFamilyMember(req, res) {
@@ -912,10 +912,13 @@ class commonController {
 			const offset = (pageNo - 1) * limit;
 			const isAll = all === "true"; // Ensure it's treated as a boolean
 
-			const cacheKey = `employeeList:${process.env.TEST}:${req.userId
-				}:${isAll ? "all" : pageNo}:${isAll ? "all" : limit}:${search || ""
-				}:${department || ""}:${designation || ""}:${buSearch || ""}:${sbuSearch || ""
-				}:${areaSearch || ""}`;
+			const cacheKey = `employeeList:${process.env.TEST}:${
+				req.userId
+			}:${isAll ? "all" : pageNo}:${isAll ? "all" : limit}:${
+				search || ""
+			}:${department || ""}:${designation || ""}:${buSearch || ""}:${
+				sbuSearch || ""
+			}:${areaSearch || ""}`;
 
 			let employeeData = [];
 			await client.get(cacheKey).then(async (data) => {
@@ -947,38 +950,38 @@ class commonController {
 						where: Object.assign(
 							search
 								? {
-									[Op.or]: [
-										{
-											empCode: {
-												[Op.like]: `%${search}%`,
+										[Op.or]: [
+											{
+												empCode: {
+													[Op.like]: `%${search}%`,
+												},
 											},
-										},
-										{
-											name: {
-												[Op.like]: `%${search}%`,
+											{
+												name: {
+													[Op.like]: `%${search}%`,
+												},
 											},
-										},
-										{
-											email: {
-												[Op.like]: `%${search}%`,
+											{
+												email: {
+													[Op.like]: `%${search}%`,
+												},
 											},
-										},
-									],
-									[Op.and]: [
-										{
-											isActive: 1,
-											...empFilters,
-										},
-									],
-								}
+										],
+										[Op.and]: [
+											{
+												isActive: 1,
+												...empFilters,
+											},
+										],
+									}
 								: {
-									[Op.and]: [
-										{
-											isActive: 1,
-											...empFilters,
-										},
-									],
-								},
+										[Op.and]: [
+											{
+												isActive: 1,
+												...empFilters,
+											},
+										],
+									},
 						),
 						attributes: [
 							"id",
@@ -2034,11 +2037,11 @@ class commonController {
 
 			let searchQuery = search
 				? {
-					[Op.or]: [
-						{ empCode: { [Op.like]: `%${search}%` } },
-						{ name: { [Op.like]: `%${search}%` } },
-					],
-				}
+						[Op.or]: [
+							{ empCode: { [Op.like]: `%${search}%` } },
+							{ name: { [Op.like]: `%${search}%` } },
+						],
+					}
 				: undefined;
 
 			// Fetch pending payment details
@@ -3149,8 +3152,8 @@ class commonController {
 
 			const whereClause = process_id
 				? {
-					[Op.or]: [{ process_id: process_id }, { process_id: 1 }],
-				}
+						[Op.or]: [{ process_id: process_id }, { process_id: 1 }],
+					}
 				: {};
 
 			const data = await db.user_assignment.findAll({

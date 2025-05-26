@@ -7900,8 +7900,12 @@ const groupByEmployeeId = (data) => {
 			groupedData[employeeId] = {
 				"Employee Id": employeeId, //1
 				"Employee Name": item["Employee Name"], //2
-				"Date of Joining": item["Date of Joining"], //3
-				"Exit Date": item["Exit Date"], //4
+				"Date of Joining": item["Date of Joining"]
+					? moment(item["Date of Joining"]).format("DD-MM-YYYY")
+					: "N/A", //3
+				"Exit Date": item["Exit Date"]
+					? moment(item["Exit Date"]).format("DD-MM-YYYY")
+					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
 				"Arrears Days": item["Arrears Days"], //7
@@ -7984,7 +7988,9 @@ const transformData = (data) => {
 				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
-			"Date Of Joining": employee.employeejobdetail.dateOfJoining,
+			"Date Of Joining": moment(
+				new Date(employee.employeejobdetail.dateOfJoining),
+			).format("DD-MM-YYYY"),
 		};
 
 		// employee.packageDetails.empPayElements.forEach((element) => {
