@@ -426,12 +426,24 @@ class commonController {
 			}
 
 			// new changes for update dateOfProbationEnd and dateOfProbationTriggerDate
-			if((result.dateOfJoining && result.dateOfJoining != existPaymentDetails.dateOfJoining) || (result.probationId &&
-				result.probationId != existPaymentDetails.probationId)) {
-					const probationDays = result["probationDays"] || existPaymentDetails.probationDays;
-					const dateOfJoining = result.dateOfJoining || existPaymentDetails.dateOfJoining;
-					result["dateOfProbationEnd"] = moment(dateOfJoining).add(parseInt(probationDays), "day").format("YYYY-MM-DD");
-					result["dateOfProbationTriggerDate"] = moment(result["dateOfProbationEnd"]).subtract(21, "day").format("YYYY-MM-DD");
+			if (
+				(result.dateOfJoining &&
+					result.dateOfJoining != existPaymentDetails.dateOfJoining) ||
+				(result.probationId &&
+					result.probationId != existPaymentDetails.probationId)
+			) {
+				const probationDays =
+					result["probationDays"] || existPaymentDetails.probationDays;
+				const dateOfJoining =
+					result.dateOfJoining || existPaymentDetails.dateOfJoining;
+				result["dateOfProbationEnd"] = moment(dateOfJoining)
+					.add(parseInt(probationDays), "day")
+					.format("YYYY-MM-DD");
+				result["dateOfProbationTriggerDate"] = moment(
+					result["dateOfProbationEnd"],
+				)
+					.subtract(21, "day")
+					.format("YYYY-MM-DD");
 			}
 
 			if (existPaymentDetails) {

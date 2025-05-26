@@ -88,7 +88,7 @@ export default (sequelize, Sequelize) => {
 			nextAppraisalDue: {
 				type: Sequelize.STRING,
 			},
-		    // add new columns, reference of employee job details table
+			// add new columns, reference of employee job details table
 			dateOfProbationEnd: {
 				type: Sequelize.DATE,
 			},
