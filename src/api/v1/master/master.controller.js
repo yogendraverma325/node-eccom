@@ -269,7 +269,7 @@ class MasterController {
 					},
 					{
 						model: db.employeeMaster,
-						required: usersData.role_id == 2 ? false : true,
+						required: false,
 						as: "managerData",
 						attributes: ["id", "name", "email", "empCode"],
 					},
