@@ -424,7 +424,14 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 					isActive: 1,
 				},
 				raw: true,
-				attributes: ["id", "name", "dateOfJoining"],
+				attributes: [
+					"id",
+					"name",
+					"dateOfJoining",
+					"companyId",
+					"buId",
+					"sbuId",
+				],
 			});
 
 			employee["Effective Date"] = !isNaN(employee["Effective Date"])
@@ -618,6 +625,51 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 						createdBy: req.userData.id,
 						importStatusDesc: "CTC Uploaded Successfully",
 					});
+
+					if (existingPackage.payPackageMonthlyCTC < employee["CTC"]) {
+						let payMonth =
+							employee["Effective Date"].split("-")[2] +
+							"-" +
+							employee["Effective Date"].split("-")[1];
+						let paySlipsDuringArrearsPeriod = await db.paySlips.findAll({
+							where: {
+								payMonth: { [Op.gte]: payMonth },
+								EmployeeId: employeeDetails.id,
+							},
+							attribute: [
+								"payMonth",
+								"paySlipGrossEarning",
+								"paySlipWorkingDays",
+								"financialYearId",
+								"paySlipTotalDays",
+							],
+							raw: true,
+						});
+						console.log(paySlipsDuringArrearsPeriod);
+						for (const lastPackagePayObject of paySlipsDuringArrearsPeriod) {
+							let incrementArrearsObject = {
+								EmployeeId: employeeDetails.id,
+								arrearMonth: lastPackagePayObject.payMonth,
+								arearDays: lastPackagePayObject.paySlipWorkingDays,
+								arearType: "Increment",
+								hasPF: "No",
+								computeESIC: "No",
+								financialYearId: lastPackagePayObject.financialYearId,
+								createdAt: new Date(),
+								status: 1,
+								createdThrough: 0,
+								companyId: employeeDetails.companyId,
+								buId: employeeDetails.buId,
+								empCode: employee["EmployeeId"],
+								sbuId: employeeDetails.sbuId,
+								currentPackageId: packageInserted.dataValues.payPackageAutoId,
+								lastPackageId: existingPackage.payPackageAutoId,
+								paySlipTotalDays: lastPackagePayObject.paySlipTotalDays,
+							};
+							await db.earningsArears.create(incrementArrearsObject);
+							//console.log(incrementArrearCreation);
+						}
+					}
 				}
 			} else {
 				errorArray.push({

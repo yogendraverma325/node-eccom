@@ -246,6 +246,7 @@ import NoticePeriodEmploymentHistory from "../api/model/NoticePeriodEmploymentHi
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
+import  EarningArearsAmount from "../api/model/EarningArrearsAmounts.js";
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
 	process.env.DB_USER,
@@ -592,6 +593,8 @@ db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
 // start jay notice period employment history
 db.NoticePeriodEmploymentHistory = NoticePeriodEmploymentHistory(sequelize, Sequelize);
 // end jay end notice period employment history
+
+db.earningsArearAmounts = EarningArearsAmount(sequelize,Sequelize);
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
