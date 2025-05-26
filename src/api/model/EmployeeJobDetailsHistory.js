@@ -88,6 +88,22 @@ export default (sequelize, Sequelize) => {
 			nextAppraisalDue: {
 				type: Sequelize.STRING,
 			},
+		    // add new columns, reference of employee job details table
+			dateOfProbationEnd: {
+				type: Sequelize.DATE,
+			},
+			dateOfProbationTriggerDate: {
+				type: Sequelize.DATE,
+			},
+			confirmationDate: {
+				type: Sequelize.DATE,
+			},
+			noticePeriodStatus: {
+				type: Sequelize.BOOLEAN,
+			},
+			confirmationGenerated: {
+				type: Sequelize.INTEGER,
+			},
 			createdAt: {
 				type: Sequelize.DATE,
 			},

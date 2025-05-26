@@ -988,6 +988,9 @@ class AdminController {
 										attributes: ["bandId", "gradeId"],
 									});
 
+								const dateOfProbationEnd = moment(employeeOnboardingDetails.dateOfJoining).add(parseInt(getProbationDetails?.durationOfProbation), "day").format("YYYY-MM-DD");
+								const dateOfProbationTriggerDate = moment(dateOfProbationEnd).subtract(21, "day").format("YYYY-MM-DD");
+
 								let newEmployeeJobDetails = {
 									userId: createdUser.id,
 									dateOfJoining: employeeOnboardingDetails.dateOfJoining,
@@ -1001,6 +1004,8 @@ class AdminController {
 									gradeId: getJobLevelMappingDetails?.gradeId,
 									createdBy: req.userId,
 									createdAt: moment(),
+									dateOfProbationEnd,
+									dateOfProbationTriggerDate
 								};
 
 								const createdUserJobDetails = await db.jobDetails.create(
