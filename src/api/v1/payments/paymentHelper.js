@@ -412,7 +412,10 @@ async function query(caseId, data, data2) {
 
 		case 27:
 			return `SELECT  ANY_VALUE(eaa.seq) AS seq,ANY_VALUE(ea.arearDays) AS arearDays, ANY_VALUE(eaa.type) AS type,ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName, SUM(eaa.arrearAmunt) AS arrearFinalAmount FROM ${dbName}.earningarrears ea JOIN ${dbName}.earningarrearsamount eaa ON ea.earningArrearAutoId = eaa.earningArrearAutoId WHERE ea.arrearPayMonth = '${data}' AND ea.EmployeeId in (${data2.join(",")})  GROUP BY ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName;`;
+			//return `SELECT ea.earningArrearAutoId,eaa.seq, ea.arearDays, eaa.type, ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName, eaa.arrearAmunt FROM tara.earningarrears ea JOIN tara.earningarrearsamount eaa ON ea.earningArrearAutoId = eaa.earningArrearAutoId WHERE ea.arrearPayMonth = '${data}' AND ea.EmployeeId IN (${data2.join(",")});`;
 			break;
+		case 28 :
+			return `SELECT SUM(arearDays) AS totalArrearsDays FROM tara.earningarrears WHERE arrearPayMonth = '${data}' AND EmployeeId = ${data2.join(",")};`	
 		default:
 	}
 }
@@ -822,12 +825,16 @@ async function getArrearsEarningDeductionAmount(payMonth, EmployeeId) {
 	if (arrearsDetails.length > 0) {
 		for (const arrearsDetailsObject of arrearsDetails) {
 			if (arrearsDetailsObject.type == "Earning") {
+				console.log(arrrearsEarningAmount);
 				arrrearsEarningAmount =
-					parseFloat(arrrearsEarningAmount) + arrearsDetailsObject.arrearAmunt;
+					parseFloat(arrrearsEarningAmount) +
+					parseFloat(arrearsDetailsObject.arrearAmunt);
 			}
 			if (arrearsDetailsObject.type == "Deduction") {
+				console.log(arrrearsEarningAmount);
 				arrearsDedctionAmount =
-					parseFloat(arrearsDedctionAmount) + arrearsDetailsObject.arrearAmunt;
+					parseFloat(arrearsDedctionAmount) +
+					parseFloat(arrearsDetailsObject.arrearAmunt);
 			}
 		}
 	}
@@ -841,8 +848,13 @@ async function getArrearsDetailsEmployeeWise(month, employees) {
 		totalDeductionArrears = 0,
 		arrearsDays = 0;
 	const queryq = await query(27, month, employees);
+	const queryForArrersDetails = await query(28, month, employees);
+	// console.log(queryq);
+	let earningArrearAutoIdExist = [];
 	const arrearsData = {};
 	const arrearsResult = await db.sequelize.query(queryq);
+	const arrearsDayResult = await db.sequelize.query(queryForArrersDetails);
+
 	await arrearsResult[0].forEach((item) => {
 		if (!arrearsData[item.EmployeeId]) {
 			arrearsData[item.EmployeeId] = [];
@@ -853,9 +865,9 @@ async function getArrearsDetailsEmployeeWise(month, employees) {
 			arrearFinalAmount: item.arrearFinalAmount,
 			componentAutoId: item.componentAutoId,
 			type: item.type,
-			seq:item.seq,
+			seq: item.seq,
 		});
-		arrearsDays = item.arearDays;
+		//arrearsDays = item.arearDays;
 		if (item.type == "Earning") {
 			totalEarningArrears =
 				parseFloat(totalEarningArrears) + parseFloat(item.arrearFinalAmount);
@@ -864,20 +876,33 @@ async function getArrearsDetailsEmployeeWise(month, employees) {
 			totalDeductionArrears =
 				parseFloat(totalDeductionArrears) + parseFloat(item.arrearFinalAmount);
 		}
+		// if (!earningArrearAutoIdExist.includes(item.earningArrearAutoId)) {
+		// 	arrearsDays =parseFloat(arrearsDays)+ parseFloat(item.arearDays);
+		// 	earningArrearAutoIdExist.push(item.earningArrearAutoId);
+		// 	console.log(earningArrearAutoIdExist);
+		// }
+		//console.log(arrearsDayResult[0][0]);
 	});
 	//console.log(queryq);
+	let arrearsDay=arrearsDayResult[0].length>0?arrearsDayResult[0][0]:0 ;
 
 	return Object.keys(arrearsData).length === 0
 		? null
-		: { arrearsData, totalEarningArrears, totalDeductionArrears, arrearsDays };
+		: { arrearsData, totalEarningArrears, totalDeductionArrears, arrearsDay};
 }
 
-async function getArrearsComponets(getArrearsEarningAndDeductionAmounts,EmployeeId,paySlipAutoId,userId) {
+async function getArrearsComponets(
+	getArrearsEarningAndDeductionAmounts,
+	EmployeeId,
+	paySlipAutoId,
+	userId,
+) {
 	let arrearsDetailedArrayInfo = [];
-	let arrearsDetailArray=getArrearsEarningAndDeductionAmounts.arrearsData[EmployeeId];
-	if ( arrearsDetailArray.length> 0) {
+	let arrearsDetailArray =
+		getArrearsEarningAndDeductionAmounts.arrearsData[EmployeeId];
+	if (arrearsDetailArray.length > 0) {
 		for (const arrearDetailObject of arrearsDetailArray) {
-		
+			console.log(arrearDetailObject);
 			arrearsDetailedArrayInfo.push({
 				EmployeeId: EmployeeId,
 				paySlipAutoId: paySlipAutoId,
