@@ -5705,7 +5705,7 @@ class AttendanceController {
 							include: [ ///added association for company logo and name
 								{
 									model: db.employeeMaster,
-									attributes: ["attendancePolicyId", "name", "email"],
+									attributes: ["attendancePolicyId", "name", "email","id"],
 									include: [
 										{
 											model: db.companyMaster,
@@ -5873,8 +5873,8 @@ class AttendanceController {
 							"attendancemaster.employee.companymaster.companyLogo"
 						],
 				};
-
-				pushNotificationEmitter.emit("sendNotification", {
+                eventEmitter.emit("regularizeAckMail", JSON.stringify(obj)); // notification added for attandance regualruization revoked
+				pushNotificationEmitter.emit("sendNotification", { // notification added for attandance regualruization revoked
 					title: message.ATTENDANCE_REQ_ACK,
 					body: message.ATTENDANCE_REQ_STATUS.replace(
 						"<status>",
@@ -5883,7 +5883,7 @@ class AttendanceController {
 					employeeId: regularizeData["attendancemaster.employee.id"],
 				});
 				console.log("obj",obj)
-				eventEmitter.emit("regularizeAckMail", JSON.stringify(obj));
+				
 
 			return respHelper(res, {
 				status: 200,
