@@ -3955,7 +3955,7 @@ const revokeApprovedAppliedLeave = async (
 				{
 					status: "revoked",
 					updatedBy: userData.id,
-					role:userData["role.name"],
+					role: userData["role.name"],
 					//message: result.remark != "" ? result.remark : null, ///message uncommented , was getting updated with revoke request approval
 					updatedAt: moment(),
 				},

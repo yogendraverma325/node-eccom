@@ -764,19 +764,18 @@ class UserController {
 			let role_id = req.userData.role_id;
 			let user = req.query.user;
 
-
 			const usersData = req.userData; //shifted code from bottom to above only
-			const filters = await helper.getFiltersByPermission( //shifted code from bottom to above only
+			const filters = await helper.getFiltersByPermission(
+				//shifted code from bottom to above only
 				usersData.role_id,
 				usersData.permissionAndAccess,
 			);
 
-			const permissoinArray = await helper.fetchpermissoinAndAcessForEMP( //added new code for count matching
-						usersData.permissionAndAccess,
-						usersData.role_id,
-					);
-
-			
+			const permissoinArray = await helper.fetchpermissoinAndAcessForEMP(
+				//added new code for count matching
+				usersData.permissionAndAccess,
+				usersData.role_id,
+			);
 
 			const mainCondition = {
 				employeeId: req.userId,
@@ -804,15 +803,16 @@ class UserController {
 				],
 				distinct: true,
 			});
-				let assignFilter=usersData.role_id === 4 || usersData.role_id === 5
-				? {
-				employeeId: { [Op.not]: req.userId },
-				status: "pending",
-				}
-				: {
-				managerId: req.userId,
-				status: "pending",
-				};
+			let assignFilter =
+				usersData.role_id === 4 || usersData.role_id === 5
+					? {
+							employeeId: { [Op.not]: req.userId },
+							status: "pending",
+						}
+					: {
+							managerId: req.userId,
+							status: "pending",
+						};
 			const RevokecountLeavePending =
 				await db.employeeleave_revoke_transaction.count({
 					where: {
@@ -826,38 +826,38 @@ class UserController {
 					where: assignFilter,
 					attributes: [],
 					include: {
-										model: db.EmployeeLeaveHeader,
-										required: true,
-										include: [
-											{
-												model: db.leaveMaster,
-												attributes: ["leaveId", "leaveName", "leaveCode"],
-												required: true,
-												as: "leaveMasterDetails",
-											},
-											{
-												model: db.employeeMaster,
-												attributes: ["id", "empCode", "name"],
-												required: true,
-												where: {
-													...(usersData.role_id === 4 || usersData.role_id === 5
-														? {
-																...(permissoinArray.COMPANY.length > 0 && {
-																	companyId: { [Op.in]: permissoinArray.COMPANY },
-																}),
-																...(permissoinArray.BU.length > 0 && {
-																	buId: { [Op.in]: permissoinArray.BU },
-																}),
-																...(permissoinArray.SBU.length > 0 && {
-																	sbuId: { [Op.in]: permissoinArray.SBU },
-																}),
-															}
-														: null),
-												},
-											},
-										],
-									}
-				}); 
+						model: db.EmployeeLeaveHeader,
+						required: true,
+						include: [
+							{
+								model: db.leaveMaster,
+								attributes: ["leaveId", "leaveName", "leaveCode"],
+								required: true,
+								as: "leaveMasterDetails",
+							},
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "empCode", "name"],
+								required: true,
+								where: {
+									...(usersData.role_id === 4 || usersData.role_id === 5
+										? {
+												...(permissoinArray.COMPANY.length > 0 && {
+													companyId: { [Op.in]: permissoinArray.COMPANY },
+												}),
+												...(permissoinArray.BU.length > 0 && {
+													buId: { [Op.in]: permissoinArray.BU },
+												}),
+												...(permissoinArray.SBU.length > 0 && {
+													sbuId: { [Op.in]: permissoinArray.SBU },
+												}),
+											}
+										: null),
+								},
+							},
+						],
+					},
+				});
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
 				where: {
@@ -1017,8 +1017,6 @@ class UserController {
 			});
 
 			let profileApprovalCount = 0;
-
-			
 
 			const hasFilters = Object.values(filters).some(
 				(filter) => filter && Object.keys(filter).length > 0,

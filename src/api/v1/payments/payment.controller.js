@@ -20,7 +20,6 @@ import puppeteer from "puppeteer";
 import eventEmitter from "../../../services/eventService.js";
 import pushNotificationEmitter from "../../../services/pushNotificationEventService.js";
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dbName = process.env.DB_NAME;
@@ -6956,19 +6955,19 @@ async function sendMailAfterSalarySlipRelease(
 		if (mailStatus) {
 			// update mail status in paySlip table
 			pushNotificationEmitter.emit("sendNotification", {
-                    title: "Payslip has been released",
-                    body: `Payslip for the period of ${`${financialMonth[allPaySlips[i]?.paySlipMonth]} ${
-					  allPaySlips[i]?.paySlipYear
+				title: "Payslip has been released",
+				body: `Payslip for the period of ${`${financialMonth[allPaySlips[i]?.paySlipMonth]} ${
+					allPaySlips[i]?.paySlipYear
 				}`} has been released.`,
-                    employeeId: allPaySlips[i]?.employee?.id,
-                });
-				console.log({
-                    title: "Payslip has been released",
-                    body: `Payslip for the period of ${`${financialMonth[allPaySlips[i]?.paySlipMonth]} ${
-					  allPaySlips[i]?.paySlipYear
+				employeeId: allPaySlips[i]?.employee?.id,
+			});
+			console.log({
+				title: "Payslip has been released",
+				body: `Payslip for the period of ${`${financialMonth[allPaySlips[i]?.paySlipMonth]} ${
+					allPaySlips[i]?.paySlipYear
 				}`} has been released.`,
-                    employeeId: allPaySlips[i]?.employee?.id,
-                });
+				employeeId: allPaySlips[i]?.employee?.id,
+			});
 			await db.paySlips.update(
 				{ sendEmail: 1 },
 				{ where: { paySlipAutoId: allPaySlips[i]?.paySlipAutoId } },
