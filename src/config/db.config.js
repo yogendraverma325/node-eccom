@@ -232,6 +232,7 @@ import user_assignment_attribute_master from "../api/model/user_assignment_attri
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
+import  EarningArearsAmount from "../api/model/EarningArrearsAmounts.js";
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
 	process.env.DB_USER,
@@ -560,6 +561,8 @@ db.user_assignment_attribute_master = user_assignment_attribute_master(
 );
 db.user_assignment_condition = user_assignment_condition(sequelize, Sequelize);
 //ritak Hr Policy end
+
+db.earningsArearAmounts = EarningArearsAmount(sequelize,Sequelize);
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",

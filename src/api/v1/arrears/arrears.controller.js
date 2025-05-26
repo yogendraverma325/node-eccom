@@ -38,11 +38,12 @@ class ImportController {
 			});
 			let arrearsCountQuery = await arrearsHelper.query(2, arrearPayMonth, {
 				companyId: companyId,
+				arrearType: arrearType,
 			});
 			let arrearsData = await db.sequelize.query(arrearListQuery);
 			let arrearsCountData = await db.sequelize.query(arrearsCountQuery);
 
-			console.log(arrearListQuery);
+			//console.log(arrearsCountQuery);
 
 			return respHelper(res, {
 				status: 200,
@@ -78,10 +79,7 @@ class ImportController {
 					msg: "Arrears Data Not Found Processing or Already Processed.",
 				});
 			}
-
-			if (arrearsTypeId == "1") {
-				await processLopArrears(req, res, processingArreresList);
-			}
+			await processingArrears(req, res, processingArreresList);
 		} catch (error) {
 			console.log(error);
 			return respHelper(res, {
@@ -112,107 +110,101 @@ class ImportController {
 			});
 		}
 	}
+
+	async employeeListForArrears(req, res) {
+		try {
+			let searchString = req.body.searchString;
+			let employeeListForArrears = await db.employeeMaster.findAll({
+				where: {
+					[Op.or]: [
+						{ name: { [Op.like]: `%${searchString}%` } },
+						{ email: { [Op.like]: `%${searchString}%` } },
+						{ empCode: { [Op.like]: `%${searchString}%` } },
+					],
+					isActive: 1,
+				},
+				attributes: [
+					["name", "empName"],
+					["empCode", "empId"],
+					"buId",
+					"sbuId",
+					"companyId",
+					"id",
+				],
+			});
+
+			return respHelper(res, {
+				status: 200,
+				data: employeeListForArrears,
+				msg: "Employee List Fetched Successfully.",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+
+	async addEditSingleArrear(req, res) {
+		try {
+			const { error, value } = await validator.addEditSingleArrear.validate(
+				req.body,
+			);
+			let operationType;
+
+			if (error) {
+				return respHelper(res, {
+					status: 400,
+					data: [],
+					msg: error.details[0].message,
+				});
+			}
+			let existingArrear = await db.earningsArears.findOne({
+				where: { arrearMonth: value.arrearMonth, EmployeeId: value.EmployeeId },
+				raw: true,
+			});
+			if (!existingArrear) {
+				db.earningsArears.create(value);
+				operationType = "Created";
+			} else {
+				db.earningsArears.update(value, {
+					where: { earningArrearAutoId: existingArrear.earningArrearAutoId },
+				});
+				operationType = "Updated";
+			}
+
+			return respHelper(res, {
+				status: 200,
+				data: value,
+				msg: "Arrears " + operationType + " Successfully.",
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 }
 
 export default new ImportController();
 
-async function processLopArrears(req, res, arrearsDataForProcessing) {
+async function processingArrears(req, res, arrearsDataForProcessing) {
 	try {
 		let failedCount = 0,
 			successCounts = 0;
 		for (const arrear of arrearsDataForProcessing) {
-			let paidMonthPaySlipDetails = await db.paySlips.findOne({
-				where: { EmployeeId: arrear.EmployeeId, payMonth: arrear.arrearMonth },
-				raw: true,
-			});
-			let arrearsMonthPayDetails = await db.payMonthlyElements.findAll({
-				where: { empId: arrear.EmployeeId, payMonth: arrear.arrearMonth },
-				raw: true,
-			});
-			if (arrearsMonthPayDetails.length == 0) {
-				failedCount = failedCount + 1;
-				await db.earningsArears.update(
-					{
-						status: 2,
-						processingRemark:
-							"PaySlip not generated for the month " + arrear.arrearMonth,
-						processedOn: new Date(),
-					},
-					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-				);
-				continue;
-			}
-			if (
-				arrearsMonthPayDetails[0].totalWorkingDays ==
-				arrearsMonthPayDetails[0].actualWorkingDays
-			) {
-				failedCount = failedCount + 1;
-				db.earningsArears.update(
-					{
-						status: 2,
-						processingRemark:
-							"No lop deducions found for the month " + arrear.arrearMonth,
-						processedOn: new Date(),
-					},
-					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-				);
-				continue;
-			}
-			if (arrearsMonthPayDetails[0].lopDays < arrear.arearDays) {
-				failedCount = failedCount + 1;
-				db.earningsArears.update(
-					{
-						status: 2,
-						processingRemark:
-							"Arreras days exeeding lops in " + arrear.arrearMonth,
-						processedOn: new Date(),
-					},
-					{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-				);
-				continue;
-			}
+			console.log(arrear.arearType + "Arrears....");
+			if (arrear.arearType == "Increment") {
+				let arrearsUpdateDetails = await incrementArrearsProcessing(arrear);
+				failedCount = arrearsUpdateDetails.failedCount + failedCount;
+				successCounts = arrearsUpdateDetails.successCounts + successCounts;
+			} else if (arrear.arearType == "LOP") {
+				let arrearsUpdateDetails = await lopArrearsProcessing(arrear);
 
-			if (arrearsMonthPayDetails[0].lopDays >= arrear.arearDays) {
-				//successCounts=successCounts+1;
-				if (arrearsMonthPayDetails.length > 0) {
-					let arrearDetails = await arrearsHelper.calculateArrersAmount(
-						arrearsMonthPayDetails,
-						arrear.arearDays,
-					);
-					db.earningsArears.update(
-						{
-							status: 3,
-							processingRemark: "Arrear Processed Successfully",
-							processedOn: new Date(),
-							arrearsDetails: JSON.stringify(arrearDetails),
-						},
-						{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-					);
-				} else {
-					failedCount = failedCount + 1;
-					db.earningsArears.update(
-						{
-							status: 2,
-							processingRemark:
-								"Arreras days exeeding lops in " + arrear.arrearMonth,
-							processedOn: new Date(),
-						},
-						{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-					);
-					continue;
-				}
-
-				// db.earningsArears.update(
-				// 	{
-				// 		status: 3,
-				// 		processingRemark: "Arrears Processed Successfully.",
-				// 		updatedBy: req.userData.id,
-				// 		processedOn:new Date()
-				// 	},
-				// 	{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
-				// );
-
-				// continue;
+				failedCount = arrearsUpdateDetails.failedCount + failedCount;
+				successCounts = arrearsUpdateDetails.successCounts + successCounts;
 			}
 		}
 		return respHelper(res, {
@@ -231,4 +223,192 @@ async function processLopArrears(req, res, arrearsDataForProcessing) {
 			status: 500,
 		});
 	}
+}
+
+async function lopArrearsProcessing(arrear) {
+	let failedCount = 0,
+		successCounts = 0,
+		updateObject = null;
+	let arrearDetails = null;
+	let arrearsMonthPayDetails = await db.payMonthlyElements.findAll({
+		where: { empId: arrear.EmployeeId, payMonth: arrear.arrearMonth },
+		raw: true,
+	});
+
+	// console.log(arrear.arrearMonth,arrear.EmployeeId);
+	//return
+
+	if (arrearsMonthPayDetails.length == 0) {
+		failedCount = failedCount + 1;
+		await db.earningsArears.update(
+			{
+				status: 2,
+				processingRemark:
+					"PaySlip not generated for the month " + arrear.arrearMonth,
+				processedOn: new Date(),
+			},
+			{ where: { earningArrearAutoId: arrear.earningArrearAutoId } },
+		);
+	}
+	if (
+		arrearsMonthPayDetails[0].totalWorkingDays ==
+		arrearsMonthPayDetails[0].actualWorkingDays
+	) {
+		failedCount = failedCount + 1;
+
+		updateObject = {
+			status: 2,
+			processingRemark:
+				"No lop deducions found for the month " + arrear.arrearMonth,
+			processedOn: new Date(),
+		};
+	} else if (arrearsMonthPayDetails[0].lopDays < arrear.arearDays) {
+		failedCount = failedCount + 1;
+		updateObject = {
+			status: 2,
+			processingRemark: "Arreras days exeeding lops in " + arrear.arrearMonth,
+			processedOn: new Date(),
+		};
+	} else if (arrearsMonthPayDetails[0].lopDays >= arrear.arearDays) {
+		successCounts = successCounts + 1;
+		if (arrearsMonthPayDetails.length > 0) {
+			arrearDetails = await arrearsHelper.calculateArrersAmount(
+				arrearsMonthPayDetails,
+				arrear.arearDays,
+				arrear.earningArrearAutoId,
+			);
+			updateObject = {
+				status: 3,
+				processingRemark: "Arrear Processed Successfully",
+				processedOn: new Date(),
+				//arrearsDetails: JSON.stringify(arrearDetails),
+			};
+		} else {
+			failedCount = failedCount + 1;
+			updateObject = {
+				status: 2,
+				processingRemark: "Arreras days exeeding lops in " + arrear.arrearMonth,
+				processedOn: new Date(),
+			};
+		}
+	}
+	await db.earningsArears.update(updateObject, {
+		where: { earningArrearAutoId: arrear.earningArrearAutoId },
+	});
+	if (arrearDetails && updateObject.status == 3) {
+		await db.earningsArearAmounts.bulkCreate(arrearDetails);
+	}
+	return { failedCount, successCounts };
+}
+
+async function incrementArrearsProcessing(arrear) {
+	let failedCount = 0,
+		successCounts = 0,
+		updateObject = null,
+		arrearsDetails = [];
+
+	try {
+		let previousPayPackageDetails = await db.payElements.findAll({
+			where: { payPackageAutoId: arrear.lastPackageId },
+			raw: true,
+			include: [
+				{
+					model: db.salaryComponent,
+					required: true,
+					attributes: [
+						"salaryComponentAutoId",
+						"salaryComponentAlias",
+						"salaryComponentCode",
+						"salaryComponentEarningType",
+					],
+					where: {
+						salaryComponentEarningType: { [Op.in]: ["Earning", "Balancing"] },
+					},
+				},
+			],
+		});
+		let currentPayPackageDetails = await db.payElements.findAll({
+			where: { payPackageAutoId: arrear.currentPackageId },
+			raw: true,
+			include: [
+				{
+					model: db.salaryComponent,
+					required: true,
+					attributes: [
+						"salaryComponentAutoId",
+						"salaryComponentAlias",
+						"salaryComponentCode",
+						"salaryComponentEarningType",
+						"salaryComponentSequenceNo",
+					],
+					where: {
+						salaryComponentEarningType: { [Op.in]: ["Earning", "Balancing"] },
+					},
+				},
+			],
+		});
+
+		await currentPayPackageDetails.map((current) => {
+			const previous = previousPayPackageDetails.find(
+				(item) => item.salaryComponentAutoId === current.salaryComponentAutoId,
+			);
+			const previousAmount = parseFloat(previous?.payElementAmount || 0);
+			const currentAmount = parseFloat(current.payElementAmount);
+			const arrearAmount =
+				currentAmount - previousAmount == 0
+					? 0
+					: ((currentAmount - previousAmount) / arrear.paySlipTotalDays) *
+						arrear.arearDays;
+
+			let arrearObject = {};
+			arrearObject["arrearName"] = current[
+				"salarycomponent.salaryComponentAlias"
+			]
+				? current["salarycomponent.salaryComponentAlias"]
+				: current["salarycomponent.salaryComponentCode"];
+			arrearObject["arrearAmunt"] = arrearAmount.toFixed(2);
+			arrearObject["type"] = "Earning"; // current['salarycomponent.salaryComponentEarningType'];
+			arrearObject["seq"] =
+				current["salarycomponent.salaryComponentSequenceNo"];
+
+				arrearObject["componentAutoId"] =
+				current["salarycomponent.salaryComponentAutoId"];
+					arrearObject["componentAutoId"] =
+				current["salarycomponent.salaryComponentAutoId"];
+				arrearObject["earningArrearAutoId"]=arrear.earningArrearAutoId,
+			arrearsDetails.push(arrearObject);
+		});
+		//return
+		let payMonth = moment().format("YYYY-MM");
+		updateObject = {
+			status: 3,
+			processingRemark: "Arrear Processed Successfully",
+			processedOn: new Date(),
+			//arrearsDetails: JSON.stringify(arrearsDetails),
+			arrearPayMonth: payMonth,
+		};
+
+		await db.earningsArears.update(updateObject, {
+			where: { earningArrearAutoId: arrear.earningArrearAutoId },
+		});
+			if (arrearsDetails && updateObject.status == 3) {
+			    await db.earningsArearAmounts.bulkCreate(arrearsDetails);
+		}
+		successCounts = 1;
+	} catch (e) {
+		failedCount = 1;
+		updateObject = {
+			status: 3,
+			processingRemark: "Something went wrong",
+			processedOn: new Date(),
+		};
+
+		await db.earningsArears.update(updateObject, {
+			where: { earningArrearAutoId: arrear.earningArrearAutoId },
+		});
+
+	
+	}
+
+	return { failedCount, successCounts };
 }
