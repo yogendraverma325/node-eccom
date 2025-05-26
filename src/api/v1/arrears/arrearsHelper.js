@@ -143,7 +143,11 @@ function getPercentagePart(total, percentage) {
 	return (total * (percentage / 100)).toFixed(2);
 }
 
-async function calculateArrersAmount(lastPayMonthDetails, arrearDays,earningArrearsAutoId) {
+async function calculateArrersAmount(
+	lastPayMonthDetails,
+	arrearDays,
+	earningArrearsAutoId,
+) {
 	let arrearReturnObject = {},
 		payElementsAfterArrears = [],
 		arrearReturnArray = [];
@@ -175,7 +179,7 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays,earningArre
 					)
 				: 0.0;
 
-				console.log("arrearAmunt ::: ",arrearAmunt);
+		console.log("arrearAmunt ::: ", arrearAmunt);
 
 		if (arrearAmunt > 0) {
 			let componentName = payElementObject["salaryComponentAlias"]
@@ -187,8 +191,8 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays,earningArre
 				arrearAmunt: parseFloat(arrearAmunt).toFixed(2),
 				type: "Earning",
 				seq: payElementObject["salaryComponentSequenceNo"],
-				earningArrearAutoId:earningArrearsAutoId,
-				componentAutoId:payElementObject['salaryComponentAutoId'],
+				earningArrearAutoId: earningArrearsAutoId,
+				componentAutoId: payElementObject["salaryComponentAutoId"],
 			});
 			payElementObject["arrearsAmount"] = arrearAmunt;
 			payElementObject["monthlyAmountAfterArrears"] =
@@ -211,8 +215,8 @@ async function calculateArrersAmount(lastPayMonthDetails, arrearDays,earningArre
 			arrearAmunt: pfArrearAmoun.toFixed(2),
 			type: "Deduction",
 			seq: 999,
-			earningArrearAutoId:earningArrearsAutoId,
-			componentAutoId:0,
+			earningArrearAutoId: earningArrearsAutoId,
+			componentAutoId: 0,
 		});
 	}
 

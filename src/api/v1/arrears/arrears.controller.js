@@ -371,12 +371,12 @@ async function incrementArrearsProcessing(arrear) {
 			arrearObject["seq"] =
 				current["salarycomponent.salaryComponentSequenceNo"];
 
-				arrearObject["componentAutoId"] =
+			arrearObject["componentAutoId"] =
 				current["salarycomponent.salaryComponentAutoId"];
-					arrearObject["componentAutoId"] =
+			arrearObject["componentAutoId"] =
 				current["salarycomponent.salaryComponentAutoId"];
-				arrearObject["earningArrearAutoId"]=arrear.earningArrearAutoId,
-			arrearsDetails.push(arrearObject);
+			(arrearObject["earningArrearAutoId"] = arrear.earningArrearAutoId),
+				arrearsDetails.push(arrearObject);
 		});
 		//return
 		let payMonth = moment().format("YYYY-MM");
@@ -391,8 +391,8 @@ async function incrementArrearsProcessing(arrear) {
 		await db.earningsArears.update(updateObject, {
 			where: { earningArrearAutoId: arrear.earningArrearAutoId },
 		});
-			if (arrearsDetails && updateObject.status == 3) {
-			    await db.earningsArearAmounts.bulkCreate(arrearsDetails);
+		if (arrearsDetails && updateObject.status == 3) {
+			await db.earningsArearAmounts.bulkCreate(arrearsDetails);
 		}
 		successCounts = 1;
 	} catch (e) {
@@ -406,8 +406,6 @@ async function incrementArrearsProcessing(arrear) {
 		await db.earningsArears.update(updateObject, {
 			where: { earningArrearAutoId: arrear.earningArrearAutoId },
 		});
-
-	
 	}
 
 	return { failedCount, successCounts };

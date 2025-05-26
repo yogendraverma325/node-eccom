@@ -11,18 +11,18 @@ export default (sequelize, Sequelize) => {
 		arrearAmunt: {
 			type: Sequelize.DECIMAL(10, 8),
 		},
-        type:{
-            	type: Sequelize.STRING,
-        },
-          seq:{
-            	type: Sequelize.INTEGER,
-        },
-           componentAutoId:{
-            	type: Sequelize.INTEGER,
-        },
-        earningArrearAutoId:{
-               	type: Sequelize.INTEGER,
-        }
+		type: {
+			type: Sequelize.STRING,
+		},
+		seq: {
+			type: Sequelize.INTEGER,
+		},
+		componentAutoId: {
+			type: Sequelize.INTEGER,
+		},
+		earningArrearAutoId: {
+			type: Sequelize.INTEGER,
+		},
 	});
 
 	return earningarrearsamount;

@@ -5986,7 +5986,9 @@ const groupByEmployeeId = (data, arrearsInfo) => {
 					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
-				"Arrears Days":arrearsInfo?arrearsInfo.arrearsDay.totalArrearsDays:0, //7
+				"Arrears Days": arrearsInfo
+					? arrearsInfo.arrearsDay.totalArrearsDays
+					: 0, //7
 				"Present Days": item["Present Days"] ? item["Present Days"] : 0, //8
 				"Business Unit": item["Business Unit"], //9
 				"Account No": item["Account No"], //10
@@ -6495,11 +6497,10 @@ async function generatePaySlip(data) {
 			//console.log(payElements);
 
 			for (const payMonthlyElement of payElements[0]) {
-				let arrearsInfo =
-					await paymentHelper.getArrearsDetailsEmployeeWise(
-						payMonthlyElement.payMonth,
-						[payMonthlyElement.empId],
-					);
+				let arrearsInfo = await paymentHelper.getArrearsDetailsEmployeeWise(
+					payMonthlyElement.payMonth,
+					[payMonthlyElement.empId],
+				);
 				let isExistPaySlip = await db.paySlips.findOne({
 					where: {
 						EmployeeId: payMonthlyElement.empId,
@@ -6550,11 +6551,7 @@ async function generatePaySlip(data) {
 						parseFloat(
 							payMonthlyElement.lwfAmount ? payMonthlyElement.lwfAmount : 0,
 						) +
-						parseFloat(
-							arrearsInfo
-								? arrearsInfo.totalDeductionArrears
-								: 0,
-						);
+						parseFloat(arrearsInfo ? arrearsInfo.totalDeductionArrears : 0);
 					totalPayslipDeductons = paymentHelper.customRound(
 						totalPayslipDeductons,
 					);
@@ -6565,11 +6562,7 @@ async function generatePaySlip(data) {
 								? payMonthlyElement.extrapaymentAmount
 								: 0,
 						) +
-						parseFloat(
-							arrearsInfo
-								? arrearsInfo.totalEarningArrears
-								: 0,
-						);
+						parseFloat(arrearsInfo ? arrearsInfo.totalEarningArrears : 0);
 					PaySlipNetPay =
 						parseFloat(PaySlipNetPay) - parseFloat(totalPayslipDeductons);
 					PaySlipNetPay = paymentHelper.customRound(PaySlipNetPay);
@@ -6608,7 +6601,9 @@ async function generatePaySlip(data) {
 						paySlipStatus: 0,
 						createdAt: new Date(),
 						payMonth: payMonthlyElement.payMonth,
-						arrearsDay: arrearsInfo?arrearsInfo.arrearsDay.totalArrearsDays:0,
+						arrearsDay: arrearsInfo
+							? arrearsInfo.arrearsDay.totalArrearsDays
+							: 0,
 						paySlipType: "Regular",
 					});
 					paySlipAutoId = isExistPaySlip.dataValues.paySlipAutoId

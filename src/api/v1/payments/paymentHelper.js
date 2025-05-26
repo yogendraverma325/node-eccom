@@ -414,8 +414,8 @@ async function query(caseId, data, data2) {
 			return `SELECT  ANY_VALUE(eaa.seq) AS seq,ANY_VALUE(ea.arearDays) AS arearDays, ANY_VALUE(eaa.type) AS type,ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName, SUM(eaa.arrearAmunt) AS arrearFinalAmount FROM ${dbName}.earningarrears ea JOIN ${dbName}.earningarrearsamount eaa ON ea.earningArrearAutoId = eaa.earningArrearAutoId WHERE ea.arrearPayMonth = '${data}' AND ea.EmployeeId in (${data2.join(",")})  GROUP BY ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName;`;
 			//return `SELECT ea.earningArrearAutoId,eaa.seq, ea.arearDays, eaa.type, ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName, eaa.arrearAmunt FROM tara.earningarrears ea JOIN tara.earningarrearsamount eaa ON ea.earningArrearAutoId = eaa.earningArrearAutoId WHERE ea.arrearPayMonth = '${data}' AND ea.EmployeeId IN (${data2.join(",")});`;
 			break;
-		case 28 :
-			return `SELECT SUM(arearDays) AS totalArrearsDays FROM tara.earningarrears WHERE arrearPayMonth = '${data}' AND EmployeeId = ${data2.join(",")};`	
+		case 28:
+			return `SELECT SUM(arearDays) AS totalArrearsDays FROM tara.earningarrears WHERE arrearPayMonth = '${data}' AND EmployeeId = ${data2.join(",")};`;
 		default:
 	}
 }
@@ -884,11 +884,11 @@ async function getArrearsDetailsEmployeeWise(month, employees) {
 		//console.log(arrearsDayResult[0][0]);
 	});
 	//console.log(queryq);
-	let arrearsDay=arrearsDayResult[0].length>0?arrearsDayResult[0][0]:0 ;
+	let arrearsDay = arrearsDayResult[0].length > 0 ? arrearsDayResult[0][0] : 0;
 
 	return Object.keys(arrearsData).length === 0
 		? null
-		: { arrearsData, totalEarningArrears, totalDeductionArrears, arrearsDay};
+		: { arrearsData, totalEarningArrears, totalDeductionArrears, arrearsDay };
 }
 
 async function getArrearsComponets(
