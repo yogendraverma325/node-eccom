@@ -2052,7 +2052,7 @@ class LeaveController {
 				EMP_DATA,
 			);
 
-			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
+			//console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
 			const fromDate = remainingLeaveCountRESP[0];
 			const toDate =
 				remainingLeaveCountRESP.length == 1
@@ -2471,7 +2471,7 @@ class LeaveController {
 			const daysDifference = moment(toDate).diff(moment(fromDate), "days");
 			let uuid =
 				"id_" + moment().format("YYYYMMDDHHmmss") + req.body.employeeId;
-			console.log("daysDifference", daysDifference);
+			// console.log("daysDifference", daysDifference);
 			for (let i = -1; i < daysDifference; i++) {
 				let appliedFor = moment(fromDate)
 					.add(i + 1, "days")
@@ -2593,14 +2593,14 @@ class LeaveController {
 					req.body.leaveAutoId,
 					EMP_DATA,
 				);
-				console.log(
-					"leaveCount",
-					leaveCount,
-					"prefixDate",
-					prefixDate,
-					"suffixDate",
-					suffixDate,
-				);
+				// console.log(
+				// 	"leaveCount",
+				// 	leaveCount,
+				// 	"prefixDate",
+				// 	prefixDate,
+				// 	"suffixDate",
+				// 	suffixDate,
+				// );
 				if (leaveCount != 0) {
 					return respHelper(res, {
 						status: 400,
@@ -2616,7 +2616,7 @@ class LeaveController {
 				},
 			});
 
-			console.log("leaveApprovalLevel", leaveApprovalLevel);
+			// console.log("leaveApprovalLevel", leaveApprovalLevel);
 
 			let headerInsert = await db.EmployeeLeaveHeader.create({
 				employeeId: req.body.employeeId, // Replace with actual employee ID
@@ -2654,18 +2654,18 @@ class LeaveController {
 					leaveApprovalLevel.length == 0 ? EMP_DATA.managerData.id : null, // Replace with actual pending at value
 			});
 
-			console.log(leaveApprovalLevel);
+			// console.log(leaveApprovalLevel);
 
 			//console.log("leaveApprovalLevel",leaveApprovalLevel)
 			const leaveTrails = [];
 
 			for (const leaveApprover of leaveApprovalLevel) {
-				console.log("jab leave Approval level hoga ", leaveApprover);
+				// console.log("jab leave Approval level hoga ", leaveApprover);
 				for (const leaveApproverGroup of leaveApprover.dataValues.approval_group.split(
 					",",
 				)) {
 					if (leaveApproverGroup === "MANAGER") {
-						console.log("MANAGER");
+						// console.log("MANAGER");
 						leaveTrails.push({
 							employeeId: req.body.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
@@ -2685,7 +2685,7 @@ class LeaveController {
 							),
 						});
 					} else if (leaveApproverGroup === "BUHR") {
-						console.log("BUHR");
+						// console.log("BUHR");
 						const buhr = await db.buMapping.findAll({
 							where: {
 								buId: EMP_DATA.buId,
@@ -2715,7 +2715,7 @@ class LeaveController {
 							});
 						}
 					} else if (leaveApproverGroup === "L2_MANAGER") {
-						console.log("L2_MANAGER");
+						// console.log("L2_MANAGER");
 						leaveTrails.push({
 							employeeId: req.body.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
@@ -3248,7 +3248,7 @@ class LeaveController {
 				leaveAutoId,
 				EMP_DATA,
 			);
-			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
+			// console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,
@@ -3258,7 +3258,7 @@ class LeaveController {
 				employeeWeekOfId.companyLocationId,
 				employeeWeekOfId.weekOffId,
 			);
-			console.log("getCombinedVal", getCombinedVal);
+			// console.log("getCombinedVal", getCombinedVal);
 			// Calculate pending leave count
 			const pendingLeaveCount = pendingLeaveCountList.reduce(
 				(acc, el) => acc + parseFloat(el.leaveCount),
@@ -3297,11 +3297,11 @@ class LeaveController {
 				if (result && result.dataValues.total_balance != null) {
 					count = parseFloat(result.dataValues.total_balance);
 				}
-				console.log("totalWorkingDaysCalculated", count);
+				// console.log("totalWorkingDaysCalculated", count);
 
 				availableLeaveCount.availableLeave = count;
 			}
-			console.log("availableLeaveCount", availableLeaveCount);
+			// console.log("availableLeaveCount", availableLeaveCount);
 			let countDeductingPending =
 				availableLeaveCount.availableLeave - pendingLeaveCount;
 			let a = totalWorkingDaysCalculated;
@@ -3310,14 +3310,14 @@ class LeaveController {
 					? totalWorkingDaysCalculated
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
-			console.log(
-				"totalWorkingDaysCalculated",
-				totalWorkingDaysCalculated,
-				"ava",
-				availableLeaveCount.availableLeave,
-				"countDeductingPending",
-				countDeductingPending,
-			);
+			// console.log(
+			// 	"totalWorkingDaysCalculated",
+			// 	totalWorkingDaysCalculated,
+			// 	"ava",
+			// 	availableLeaveCount.availableLeave,
+			// 	"countDeductingPending",
+			// 	countDeductingPending,
+			// );
 
 			if (leaveAutoId == 6) {
 				b = a;
@@ -4757,7 +4757,7 @@ class LeaveController {
 				attributes: ["name"],
 			});
 
-			console.log("result.status", result.status, "leaveIds", leaveIds);
+			// console.log("result.status", result.status, "leaveIds", leaveIds);
 			if (result.status == "approved") {
 				for (const leaveID of leaveIds) {
 					const existingRecordNew = await db.EmployeeLeaveHeader.findOne({
@@ -4774,10 +4774,10 @@ class LeaveController {
 					}
 
 					if (existingRecordNew.approvalFlowExist == 1) {
-						console.log("i am in new approvalflow>>>>", leaveID);
+						// console.log("i am in new approvalflow>>>>", leaveID);
 
 						if (req.userData.role_id == 2 || req.userData.role_id == 5) {
-							console.log("i am in as admin");
+							// console.log("i am in as admin");
 							const leaveTrails = await db.leaveApprovalTrails.findAll({
 								where: {
 									leaveHeaderAutoId: leaveID,
@@ -5053,7 +5053,7 @@ class LeaveController {
 						}
 
 						if (![2, 5].includes(req.userData.role_id)) {
-							console.log("i am not as admin");
+							// console.log("i am not as admin");
 
 							const leaveTrails = await db.leaveApprovalTrails.findOne({
 								where: {
@@ -5466,7 +5466,7 @@ class LeaveController {
 				msg: message.UPDATE_SUCCESS.replace("<module>", "Leave"),
 			});
 		} catch (error) {
-			console.log(">>>>>>>>>>", error);
+			console.log(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
 					status: 422,
@@ -5607,6 +5607,582 @@ class LeaveController {
 		// 	message: cronLeaveMapped.message,
 		// 	data: cronLeaveMapped.data, // Number of employees processed
 		// });
+	}
+	///LEAVE REVOKE
+	async revokeApprovedLeaves(req, res) {
+		try {
+			const startOfYear = moment().startOf("year").toDate();
+			const endOfYear = moment().endOf("year").toDate();
+			const result =
+				await validator.revokeApprovedLeaveValidation.validateAsync(req.body);
+			const empLeaveHeader = await db.EmployeeLeaveHeader.findOne({
+				where: {
+					[Op.or]: [
+						{
+							fromDate: {
+								[Op.between]: [startOfYear, endOfYear],
+							},
+						},
+						{
+							toDate: {
+								[Op.between]: [startOfYear, endOfYear],
+							},
+						},
+					],
+					employeeleaveheaderID: result.employeeleaveheaderID,
+					status: {
+						[Op.in]: ["approved"],
+					},
+					source: {
+						[Op.ne]: "system_generated",
+					},
+				},
+			});
+			if (!empLeaveHeader) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Revoke Application can't be placed`,
+				});
+			}
+
+			const employeeleave_revoke_transactionData =
+				await db.employeeleave_revoke_transaction.findOne({
+					where: {
+						employeeleaveheaderID: result.employeeleaveheaderID,
+						status: {
+							[Op.in]: ["pending", "approved"],
+						},
+					},
+				});
+			if (employeeleave_revoke_transactionData) {
+				return respHelper(res, {
+					status: 400,
+					msg: "Revoke Application already raised againt this leave",
+				});
+			}
+
+			let EMP_DATA_SELF = await helper.getEmpProfile(empLeaveHeader.employeeId); // SELF Manager
+
+			const employeeData = await db.employeeMaster.findOne({
+				where: {
+					id: empLeaveHeader.employeeId,
+				},
+				attributes: ["name", "email"],
+				include: [
+					{
+						model: db.companyMaster,
+						attributes: ["senderEmail", "companyLogo"],
+					},
+					{
+						model: db.employeeMaster,
+						as: "managerData",
+						attributes: ["name", "email", "id"],
+					},
+				],
+			});
+
+			const leaveType = await db.leaveMaster.findOne({
+				where: {
+					leaveId: empLeaveHeader.leaveAutoId,
+				},
+				attributes: ["leaveName"],
+			});
+
+			await db.employeeleave_revoke_transaction.create({
+				employeeleaveheaderID: result.employeeleaveheaderID,
+				employeeId: empLeaveHeader.employeeId,
+				managerId: EMP_DATA_SELF?.managerData?.id,
+				status: "pending",
+				createdBy: req.userData.id,
+				createrRemark: result.remark,
+				creatorRole:
+					req.userData.id == empLeaveHeader.employeeId
+						? "SELF"
+						: req.userData["role.name"],
+			});
+
+			pushNotificationEmitter.emit("sendNotification", {
+				title: message.LEAVE.LEAVE_REVOEK_REQ,
+				body: `${employeeData.dataValues.name} has requested for leave revoke.`,
+				employeeId: employeeData.dataValues.managerData.id,
+			});
+
+			eventEmitter.emit(
+				"leaveRequestRevokeMail",
+				JSON.stringify({
+					requesterName: employeeData.dataValues.name,
+					leaveFromDate: empLeaveHeader.fromDate,
+					leaveToDate: empLeaveHeader.toDate,
+					userRemark: result.remark,
+					leaveType: leaveType.dataValues.leaveName,
+					managerName: employeeData.dataValues.managerData.name,
+					managerEmail: employeeData.dataValues.managerData.email,
+					senderEmail: employeeData.dataValues.companymaster.senderEmail,
+					companyLogo: employeeData.dataValues.companymaster.companyLogo,
+					// cc: recipientsEmail.map((user) => user.email).join(","),
+				}),
+			);
+
+			return respHelper(res, {
+				status: 200,
+				data: {},
+				msg: "Revoke Application submitted raised againt this leave",
+			});
+		} catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async approvedLeaverevoke(req, res) {
+		const t = await db.sequelize.transaction();
+		try {
+			const startOfYear = moment().startOf("year").toDate();
+			const endOfYear = moment().endOf("year").toDate();
+
+			const result =
+				await validator.approvalrevokeApprovedLeaveValidation.validateAsync(
+					req.body,
+				);
+			let leaveRevokeRequestIDS =
+				result.employeeLeaveTransactionsIds.split(",");
+
+			const employeeleave_revoke_transactionData =
+				await db.employeeleave_revoke_transaction.count({
+					where: {
+						leaverevokeAutoId: {
+							[Op.in]: leaveRevokeRequestIDS,
+						},
+						status: "pending",
+					},
+					include: {
+						model: db.EmployeeLeaveHeader,
+						required: true,
+						where: {
+							[Op.and]: [
+								{
+									fromDate: {
+										[Op.between]: [startOfYear, endOfYear], //current year only
+									},
+								},
+								{
+									toDate: {
+										[Op.between]: [startOfYear, endOfYear], //current year only
+									},
+								},
+							],
+						},
+					},
+				});
+			if (
+				leaveRevokeRequestIDS.length != employeeleave_revoke_transactionData ||
+				employeeleave_revoke_transactionData == 0
+			) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Can't ${result.status == "approved" ? "approve" : "reject"} selected Leave(s)`,
+				});
+			}
+			const allSelectedRevokeRequests =
+				await db.employeeleave_revoke_transaction.findAll({
+					attributes: [
+						"leaverevokeAutoId",
+						"employeeleaveheaderID",
+						"employeeId",
+						"status",
+					],
+					where: {
+						leaverevokeAutoId: {
+							[Op.in]: leaveRevokeRequestIDS,
+						},
+						status: "pending",
+					},
+				});
+			if (result.status == "approved") {
+				for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
+					let data = await helper.revokeApprovedAppliedLeave(
+						singleSelectedRevokeRequested.employeeleaveheaderID,
+						t,
+						req.userData,
+						result,
+					);
+
+					const leaveTransactionDetails =
+						await db.employeeLeaveTransactions.findOne({
+							raw: true,
+							where: {
+								employeeleaveheaderID:
+									singleSelectedRevokeRequested.employeeleaveheaderID,
+							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["name", "email"],
+									include: [
+										{
+											model: db.employeeMaster,
+											as: "managerData",
+											attributes: ["name"],
+										},
+										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+									],
+								},
+								{
+									model: db.leaveMaster,
+									as: "leaveMasterDetails",
+									attributes: ["leaveName"],
+								},
+							],
+							attributes: ["fromDate", "toDate"],
+						});
+
+					const obj = {
+						email: leaveTransactionDetails["employee.email"],
+						status: result.status === "approved" ? "Approved" : "Rejected",
+						fromDate: leaveTransactionDetails.fromDate,
+						toDate: leaveTransactionDetails.toDate,
+						leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
+						managerName: req.userData.name,
+						requesterName: leaveTransactionDetails["employee.name"],
+						senderEmail:
+							leaveTransactionDetails["employee.companymaster.senderEmail"],
+						companyLogo:
+							leaveTransactionDetails["employee.companymaster.companyLogo"],
+					};
+					eventEmitter.emit("leaveRevokeAckMail", JSON.stringify(obj));
+
+					pushNotificationEmitter.emit("sendNotification", {
+						title: message.LEAVE.LEAVE_REVOKE_REQUEST_AQUKNOWLEDGED, // messgae changed as it was copied from leave req
+						body: message.LEAVE.LEAVE_REVOKE_REQ_STATUS.replace(
+							// messgae changed as it was copied from leave req
+							"<status>",
+							result.status === "approved" ? "approved" : "rejected",
+						),
+						employeeId: singleSelectedRevokeRequested.employeeId,
+					});
+
+					await db.employeeleave_revoke_transaction.update(
+						{
+							status: "approved",
+							updatorRemark: result.remark,
+							updatedBy: req.userData.id,
+							updatorRole: req.userData["role.name"],
+						},
+						{
+							where: {
+								leaverevokeAutoId: {
+									[Op.in]: leaveRevokeRequestIDS,
+								},
+							},
+						},
+						{ transaction: t },
+					);
+				}
+				await t.commit();
+				return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: "Leave Revoke request has been approved",
+				});
+			} else {
+				for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
+					const leaveTransactionDetails =
+						await db.employeeLeaveTransactions.findOne({
+							raw: true,
+							where: {
+								employeeleaveheaderID:
+									singleSelectedRevokeRequested.employeeleaveheaderID,
+							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["name", "email"],
+									include: [
+										{
+											model: db.employeeMaster,
+											as: "managerData",
+											attributes: ["name"],
+										},
+										{
+											model: db.companyMaster,
+											attributes: ["senderEmail", "companyLogo"],
+										},
+									],
+								},
+								{
+									model: db.leaveMaster,
+									as: "leaveMasterDetails",
+									attributes: ["leaveName"],
+								},
+							],
+							attributes: ["fromDate", "toDate"],
+						});
+
+					const obj = {
+						email: leaveTransactionDetails["employee.email"],
+						status: result.status === "approved" ? "Approved" : "Rejected",
+						fromDate: leaveTransactionDetails.fromDate,
+						toDate: leaveTransactionDetails.toDate,
+						leaveType: leaveTransactionDetails["leaveMasterDetails.leaveName"],
+						managerName: req.userData.name,
+						requesterName: leaveTransactionDetails["employee.name"],
+						senderEmail:
+							leaveTransactionDetails["employee.companymaster.senderEmail"],
+						companyLogo:
+							leaveTransactionDetails["employee.companymaster.companyLogo"],
+					};
+					eventEmitter.emit("leaveRevokeAckMail", JSON.stringify(obj));
+
+					pushNotificationEmitter.emit("sendNotification", {
+						title: message.LEAVE.LEAVE_REVOKE_REQUEST_AQUKNOWLEDGED, // messgae changed as it was copied from leave req
+						body: message.LEAVE.LEAVE_REVOKE_REQ_STATUS.replace(
+							// messgae changed as it was copied from leave req
+							"<status>",
+							result.status === "approved" ? "approved" : "rejected",
+						),
+						employeeId: singleSelectedRevokeRequested.employeeId,
+					});
+
+					await db.employeeleave_revoke_transaction.update(
+						{
+							status: "approved",
+							updatorRemark: result.remark,
+							updatedBy: req.userData.id,
+							updatorRole: req.userData["role.name"],
+						},
+						{
+							where: {
+								leaverevokeAutoId: {
+									[Op.in]: leaveRevokeRequestIDS,
+								},
+							},
+						},
+						{ transaction: t },
+					);
+				}
+
+				await db.employeeleave_revoke_transaction.update(
+					{
+						status: "rejected",
+						updatorRemark: result.remark,
+						updatedBy: req.userData.id,
+						updatorRole: req.userData["role.name"],
+					},
+					{
+						where: {
+							leaverevokeAutoId: {
+								[Op.in]: leaveRevokeRequestIDS,
+							},
+						},
+					},
+					{ transaction: t },
+				);
+				await t.commit();
+
+				return respHelper(res, {
+					status: 200,
+					data: {},
+					msg: "Leave Revoke request has been rejected",
+				});
+			}
+		} catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			await t.rollback();
+
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async revokeLeaverevokeRequest(req, res) {
+		const t = await db.sequelize.transaction();
+		try {
+			const result =
+				await validator.revokeLeaverevokeRequestValidation.validateAsync(
+					req.body,
+				);
+			let leaveRevokeRequestIDS =
+				result.employeeLeaveTransactionsIds.split(",");
+
+			const employeeleave_revoke_transactionData =
+				await db.employeeleave_revoke_transaction.count({
+					where: {
+						leaverevokeAutoId: {
+							[Op.in]: leaveRevokeRequestIDS,
+						},
+						status: "pending",
+					},
+					include: {
+						model: db.EmployeeLeaveHeader,
+						required: true,
+					},
+				});
+			if (
+				leaveRevokeRequestIDS.length != employeeleave_revoke_transactionData ||
+				employeeleave_revoke_transactionData == 0
+			) {
+				return respHelper(res, {
+					status: 400,
+					msg: `Can't revoke selected Leave(s)`,
+				});
+			}
+
+			const allSelectedRevokeRequests =
+				await db.employeeleave_revoke_transaction.findAll({
+					attributes: [
+						"leaverevokeAutoId",
+						"employeeleaveheaderID",
+						"employeeId",
+						"status",
+					],
+					where: {
+						leaverevokeAutoId: {
+							[Op.in]: leaveRevokeRequestIDS,
+						},
+						status: "pending",
+					},
+				});
+
+			for (const singleSelectedRevokeRequested of allSelectedRevokeRequests) {
+				await db.employeeleave_revoke_transaction.update(
+					{
+						status: "revoked",
+						updatorRemark: result.remark,
+						updatedBy: req.userData.id,
+						updatorRole:
+							req.userData.id == singleSelectedRevokeRequested.employeeId
+								? "SELF"
+								: req.userData["role.name"],
+					},
+					{
+						where: {
+							leaverevokeAutoId:
+								singleSelectedRevokeRequested.leaverevokeAutoId,
+						},
+					},
+					{ transaction: t },
+				);
+			}
+
+			await t.commit();
+			return respHelper(res, {
+				status: 200,
+				data: {},
+				msg: "Leave Revoke request has been revoked",
+			});
+		} catch (error) {
+			if (error.isJoi === true) {
+				return respHelper(res, {
+					status: 422,
+					msg: error.details[0].message,
+				});
+			}
+			await t.rollback();
+
+			console.log("error", error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async revokeLeaveRequestPendingForApproval(req, res) {
+		const query = req.query.listFor;
+		const search = req.query.search;
+
+		const usersData = req.userData;
+
+		const permissoinArray = await helper.fetchpermissoinAndAcessForEMP(
+			usersData.permissionAndAccess,
+			usersData.role_id,
+		);
+		// console.log("permissoinArray", permissoinArray);
+
+		// search and pagination functionality added
+
+		const limit = req.query.limit * 1 || 10;
+		const pageNo = req.query.page * 1 || 1;
+		const offset = (pageNo - 1) * limit;
+
+		const leaveApprovalCondition =
+			query === "raisedByMe"
+				? {
+						employeeId: req.userId,
+						status: "pending",
+					}
+				: usersData.role_id === 4 || usersData.role_id === 5
+					? {
+							employeeId: { [Op.not]: req.userId },
+							status: "pending",
+						}
+					: {
+							managerId: req.userId,
+							status: "pending",
+						};
+		const employeeleave_revoke_transactionData =
+			await db.employeeleave_revoke_transaction.findAndCountAll({
+				where: leaveApprovalCondition,
+				include: {
+					model: db.EmployeeLeaveHeader,
+					required: true,
+					include: [
+						{
+							model: db.leaveMaster,
+							attributes: ["leaveId", "leaveName", "leaveCode"],
+							required: true,
+							as: "leaveMasterDetails",
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							required: true,
+							where: {
+								...(search && {
+									[Op.or]: [
+										{ name: { [Op.like]: `%${search}%` } }, // Search in 'name'
+										{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
+									],
+								}),
+								...(usersData.role_id === 4 || usersData.role_id === 5
+									? {
+											...(permissoinArray.COMPANY.length > 0 && {
+												companyId: { [Op.in]: permissoinArray.COMPANY },
+											}),
+											...(permissoinArray.BU.length > 0 && {
+												buId: { [Op.in]: permissoinArray.BU },
+											}),
+											...(permissoinArray.SBU.length > 0 && {
+												sbuId: { [Op.in]: permissoinArray.SBU },
+											}),
+										}
+									: null),
+							},
+						},
+					],
+				},
+				limit,
+				offset,
+			});
+		return respHelper(res, {
+			status: 200,
+			data: employeeleave_revoke_transactionData,
+			msg: "Leave Revoke request Listed",
+		});
 	}
 }
 

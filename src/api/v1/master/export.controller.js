@@ -509,7 +509,7 @@ class MasterController {
 				usersData.role_id,
 				usersData.permissionAndAccess,
 			);
-			console.log("filters", filters);
+			// console.log("filters", filters);
 			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
 				attributes: ["leaveAutoId"],
 				where: { companyId: companyId },
@@ -751,7 +751,7 @@ class MasterController {
 				usersData.role_id,
 				usersData.permissionAndAccess,
 			);
-			console.log("filersss>>", filters);
+			// console.log("filersss>>", filters);
 			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
 				attributes: ["leaveAutoId"],
 				where: { companyId: companyId },
@@ -1921,7 +1921,7 @@ class MasterController {
 				managerId,
 				reporteIds,
 			} = req.query;
-			console.log("reporteIds", reporteIds);
+			// console.log("reporteIds", reporteIds);
 			let buFIlter = {};
 			let sbbuFIlter = {};
 			let functionAreaFIlter = {};
@@ -2734,7 +2734,7 @@ class MasterController {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
 				}
-				console.log("employeeRecord.empId", employeeRecord.empId);
+				// console.log("employeeRecord.empId", employeeRecord.empId);
 				const orderedEmployeeRecord = {
 					employeeId: employeeRecord.empId,
 					name: employeeRecord.name,
@@ -5700,7 +5700,7 @@ class MasterController {
 				}),
 			);
 			// console.log("arrr",arr.length)
-			console.log("arr", arr.length);
+			// console.log("arr", arr.length);
 
 			if (arr.length > 0) {
 				const timestamp = moment().format("HH:mm"); //Date.now();

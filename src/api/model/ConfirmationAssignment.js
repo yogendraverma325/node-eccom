@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
 		jobLevelId: {
 			type: Sequelize.STRING,
 		},
+		companyId: {
+			type: Sequelize.STRING,
+		},
 		isActive: {
 			type: Sequelize.INTEGER,
 			defaultValue: 1,

@@ -20,6 +20,9 @@ export default (sequelize, Sequelize) => {
 		comment: {
 			type: Sequelize.TEXT,
 		},
+		ratingBy: {
+			type: Sequelize.STRING,
+		},
 		createdBy: {
 			type: Sequelize.INTEGER,
 		},

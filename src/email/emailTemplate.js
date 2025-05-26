@@ -213,7 +213,7 @@ const leaveRequestMail = async (data) => {
                             >
                               <p>Hi <b>${data.managerName}</b>,</p>
                               <p>
-                                <b>${data.requesterName}</b> has requested for
+                                <b>${data.requesterName}</b> has requested for revoke of
                                 ${data.leaveType} from ${moment(
 																	data.leaveFromDate,
 																).format("MMMM D, YYYY")} to ${moment(
@@ -3735,91 +3735,58 @@ const confirmationEmailLetter = async (
 ) => {
 	// console.log("data", data)
 
-	// console.log("header path ", data.companymaster)
+	// console.log("header path ", data?.companymaster?.companyId);
+	let html = null;
+	if (data?.companymaster?.companyId == 1) {
+		html = `<!-- FOR Team Computers -->
 
-	return `
-<html lang="en">
-<head>
+<!DOCTYPE html>
+<html>
+  <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-</head>
-  <style>
-    .bodySection {
-      display: flex;
-      flex-direction: column;
-    }
-    .letterHeader {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-evenly;
-      padding: 20;
-    }
-    .siteUrl {
-      align-self: flex-end;
-    }
-    .logoIMage {
-      align-self: center;
-    }
-    .letterBody {
-      display: flex;
-      flex-direction: column;
-      padding: 20px !important;
-    }
-    .dateSerial {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-    }
-    .subject {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .subjectText {
-      border-bottom: 2px solid black; /* Adjust thickness and color as needed */
-      padding-bottom: 5px; /* Optional: To create space between text and underline */
-    }
-     .address, .numberCin, .siteUrl {
-    font-size: 15px;
-}
-    .footerSections{
-       
-    }
-  </style>
-  <body class="bodySection">
-    <div class="letterHeader">
-          <img
-          src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}"
-          alt="Logo"
-          />
-    </div>
+    <title>Confirmation Letter</title>
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #000;
+      padding: 40px;
+      line-height: 1.6;
+    "
+  >
+   
 
-    <div class="letterBody">
-      <div class="dateSerial">
-        <p><strong>NO:HRM/${moment().format("YYYY")}</strong></p>
-        <p>Date:${moment().format("DD-MM-YYYY")}</p>
+    <div style="max-width: 800px; margin: auto; border: 1px solid #ddd">
+    
+
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}" alt="Team Logo" width="800px" />
       </div>
 
-      <div class="candidateDetailsSectoin">
-        <p>To,</p>
-        <p>Name: <strong>${data?.name}</strong></p>
-        <p>TMC: <strong>${data?.empCode}</strong></p>
-        <p>Designation: <strong>${data?.designationmaster?.name}</strong></p>
-        <p>SBU: <strong>${data?.sbumaster?.sbuname}</strong></p>
-        <p>Location: <strong>${
-					data?.companylocationmaster?.address1
-				}</strong></p>
-      </div>
-      <div class="subject">
-        <h4 class="subjectText">Subject: Confirmation Letter</h4>
-      </div>
+     
+      <div style="padding: 30px; min-height: 600px">
+        <p>
+          To,<br />
+          Name: <strong>Dear ${data?.name}</strong><br />
+          Designation: <strong>${data?.designationmaster?.name}</strong> <br />
+          SBU: <strong>${data?.sbumaster?.sbuname}</strong>
+        </p>
 
-      <div class="title">
-        <p><strong>Dear ${data?.name}</strong>,</p>
-      </div>
+        <p
+          style="
+            font-weight: bold;
+            text-decoration: underline;
+            text-align: center;
+            margin-top: 35px;
+          "
+        >
+          Subject: Confirmation Letter
+        </p>
 
-      <div class="contentSection">
+        
+        <p style="font-weight: bold">Dear ${data?.name},</p>
+
         <p>
           Consequent to the review of your performance during your probation, we
           are happy to inform you that your services are being confirmed as
@@ -3831,7 +3798,7 @@ const confirmationEmailLetter = async (
 
         <p>
           All the other terms and conditions as per your appointment letter will
-          remain the same as communicated in writing by the HR and/or as
+          remain the same as communicated in written by the HR and/or as
           detailed in your appointment letter. Except for policy-related
           changes, in which case the terms as per the latest policy announcement
           on the company portal shall be valid.
@@ -3841,30 +3808,124 @@ const confirmationEmailLetter = async (
           We look forward to your valuable contribution and wish you all the
           very best for a rewarding career with the organization.
         </p>
-        <p>For Team Computers Private Limited</p>
-      </div>
-      <div class="signatureSection">
-              <img
-             class="signature"
-              src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}"
-              alt="signature"
-              height="90"
-              />
-       <h4>${signatureAuthority?.employee?.name}</h4>
-        <h4>${signatureAuthority?.employee?.designationmaster?.name}</h4>
-      </div>
-    </div>
-    <div class="footerSections">
-    <img
-          src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}"
-          alt="Logo"
-          style="float:right"
-          />
 
+        <p>For ${data.companymaster.companyName}.</p>
+
+        
+        <div style="margin-top: 40px; margin-bottom: 20px">
+          <img src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}" alt="Signature" style="height: 50px" /><br />
+        
+          <strong>${signatureAuthority?.employee?.name}</strong><br />
+          <strong>${signatureAuthority?.employee?.designationmaster?.name}</strong>
+        </div>
+      </div>
+
+    
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}" alt="Footer" style="width: 100%; max-width: 495px; display: block; margin: auto;"/>
+      </div>
+
+      
     </div>
   </body>
 </html>
 `;
+	} else {
+		html = `<!-- FOR THR -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Confirmation Letter</title>
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #000;
+      padding: 40px;
+      line-height: 1.6;
+    "
+  >
+   
+
+    <div style="max-width: 800px; margin: auto; border: 1px solid #ddd">
+      
+
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterHeader}" alt="Team Logo" width="800px" />
+      </div>
+
+     
+      <div style="padding: 30px; min-height: 600px"> 
+        <p>
+          To,<br />
+          Name: <strong>${data?.name}</strong><br />
+          Designation: <strong>${data?.designationmaster?.name}</strong> <br />
+          SBU: <strong>${data?.sbumaster?.sbuname}</strong>
+        </p>
+
+        <p
+          style="
+            font-weight: bold;
+            text-decoration: underline;
+            text-align: center;
+            margin-top: 35px;
+          "
+        >
+          Subject: Confirmation Letter
+        </p>
+
+        
+        <p style="font-weight: bold">Dear ${data?.name},</p>
+
+        <p>
+          Consequent to the review of your performance during your probation, we
+          are happy to inform you that your services are being confirmed as
+          <strong>${data?.designationmaster?.name}</strong> with effect from
+          <strong>${moment(confiramtionData?.updatedAt).format(
+						"DD-MM-YYYY",
+					)}</strong>.
+        </p>
+
+        <p>
+          All the other terms and conditions as per your appointment letter will
+          remain the same as communicated in written by the HR and/or as
+          detailed in your appointment letter. Except for policy-related
+          changes, in which case the terms as per the latest policy announcement
+          on the company portal shall be valid.
+        </p>
+
+        <p>
+          We look forward to your valuable contribution and wish you all the
+          very best for a rewarding career with the organization.
+        </p>
+
+        <p>For ${data.companymaster.companyName}.</p>
+
+        
+        <div style="margin-top: 40px; margin-bottom: 20px">
+          <img src="${process.env.PROXY_URL}/api/${signatureAuthority?.signature}" alt="Signature" style="height: 50px" /><br />
+       
+          <strong>${signatureAuthority?.employee?.name}</strong><br />
+          <strong>${signatureAuthority?.employee?.designationmaster?.name}</strong>
+        </div>
+      </div>
+
+   
+      <div style="text-align: center">
+        <img src="${process.env.PROXY_URL}/api${data.companymaster.letterFooter}" alt="Footer" style="width: 100%; max-width: 495px; display: block; margin: auto;" />
+      </div>
+
+      
+    </div>
+  </body>
+</html>
+`;
+	}
+
+	return html;
 };
 const confirmationEmailBody = async (
 	data,
@@ -4190,7 +4251,7 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 const salarySlipPdf = async (data) => {
-	console.log("Pay Slip ,,,");
+	// console.log("Pay Slip ,,,");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 
@@ -4401,7 +4462,7 @@ const salarySlipPdf = async (data) => {
 };
 
 const fnfPaySlipPdf = async (data) => {
-	console.log("FNF PAY SLIP.......");
+	// console.log("FNF PAY SLIP.......");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 
@@ -5919,6 +5980,304 @@ const goalPlanAssignToEmployee = async (data) => {
 </html>`;
 };
 
+const leaveRequestRevokeMail = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leave Request</title>
+  </head>
+  <body>
+    <table
+      style="
+        border-collapse: collapse;
+        line-height: 100% !important;
+        width: 100% !important;
+        font-family: sans-serif;
+      "
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      align="center"
+    >
+      <tbody>
+        <tr>
+          <td style="padding-top: 20px; padding-bottom: 20px">
+            <table
+              style="
+                border-collapse: collapse;
+                max-width: 635px;
+                min-width: 550px;
+                width: auto;
+                margin: 0 auto;
+                border: 0.5px solid #eee;
+              "
+              align="center"
+            >
+              <tbody>
+                <tr>
+                  <td>
+                    <table
+                      style="
+                        border-collapse: collapse;
+                        margin: 0 auto;
+                        width: 100%;
+                      "
+                      align="center"
+                    >
+                      <tbody>
+                        <tr style="background: #fff">
+                          <td
+                            colspan="2"
+                            style="padding: 20px; padding-bottom: 0"
+                            valign="top"
+                          >
+                            <table style="width: 100%">
+                              <tbody>
+                                <tr>
+                                  <td
+                            colspan="2"
+                            style="
+                              padding-bottom: 20px;
+                              text-align: left;
+                              border-bottom: 1px solid #eee;
+                              width: 100%;
+                            "
+                            valign="middle"
+                          >
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                              alt="Logo"
+                            />
+                            <img
+                              height="45"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
+                              alt="Logo"
+                               style="float:right"
+                            />
+                          </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr style="min-height: 300px; background: #fff">
+                          <td colspan="2" style="padding: 20px" valign="top">
+                            <div
+                              style="
+                                line-height: 1;
+                                line-height: 1;
+                                line-height: 1.8;
+                              "
+                            >
+                              <p>Hi <b>${data.managerName}</b>,</p>
+                              <p>
+                                <b>${data.requesterName}</b> has requested for leave revoke  from ${moment(
+																	data.leaveFromDate,
+																).format("MMMM D, YYYY")} to ${moment(
+																	data.leaveToDate,
+																).format("MMMM D, YYYY")}. <br />
+                              </p>
+                                <p>Leave Type : ${data.leaveType}</p><br>
+                                <p>Request message : ${data.userRemark}</p>
+                              <p>
+                                <a
+                                  href=${
+																		process.env.CLIENT_URL
+																	}#/TaskBox?selectedTab=1&selectedMode=assignedToMe
+                                  style="
+                                    padding: 5px 10px;
+                                    background: #0173c5;
+                                    color: #fff;
+                                    text-decoration: none;
+                                    border-radius: 2px;
+                                    font-size: 14px;
+                                    display: inline-block;
+                                  "
+                                  target="_blank"
+                                  >Click Here</a
+                                >
+                                to review the full leave request. <br />
+                              </p>
+                              <p><br /></p>
+                              <p>Regards,</p>
+                              <p>TARA HRMS<br /></p>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>`;
+};
+const leaveAcknowledgementRevoke = async (data) => {
+	return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <table
+      style="
+        border-collapse: collapse;
+        line-height: 100% !important;
+        width: 100% !important;
+        font-family: sans-serif;
+      "
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      align="center"
+    >
+      <tbody>
+        <tr>
+          <td style="padding-top: 20px; padding-bottom: 20px">
+            <table
+              style="
+                border-collapse: collapse;
+                max-width: 635px;
+                min-width: 550px;
+                width: auto;
+                margin: 0 auto;
+                border: 0.5px solid #eee;
+              "
+              align="center"
+            >
+              <tbody>
+                <tr>
+                  <td>
+                    <table
+                      style="
+                        border-collapse: collapse;
+                        margin: 0 auto;
+                        width: 100%;
+                      "
+                      align="center"
+                    >
+                      <tbody>
+                        <tr style="background: #fff">
+                          <td
+                            colspan="2"
+                            style="padding: 20px; padding-bottom: 0"
+                            valign="top"
+                          >
+                            <table style="width: 100%">
+                              <tbody>
+                                <tr>
+                                  <td
+                            colspan="2"
+                            style="
+                              padding-bottom: 20px;
+                              text-align: left;
+                              border-bottom: 1px solid #eee;
+                              width: 100%;
+                            "
+                            valign="middle"
+                          >
+                            <img
+                              height="45"
+                              src="${process.env.PROXY_URL}/api${data.companyLogo}"
+                              alt="Logo"
+                            />
+                            <img
+                              height="45"
+                              src="${
+																process.env.PROXY_URL
+															}/api/uploads/assets/tara_small.png"
+                              alt="Logo"
+                               style="float:right"
+                            />
+                          </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr style="min-height: 300px; background: #fff">
+                          <td colspan="2" style="padding: 20px" valign="top">
+                            <div
+                              style="
+                                line-height: 1;
+                                line-height: 1;
+                                line-height: 1.8;
+                              "
+                            >
+                              <p>Hi <b>${data.requesterName}</b>,</p>
+                             
+                              <p>
+                                <b>${data.managerName}</b> has ${
+																	data.status
+																} your leave revoke
+                                request ${data.leaveType} from ${moment(
+																	data.fromDate,
+																).format("MMMM D, YYYY")} to
+                                ${moment(data.toDate).format(
+																	"MMMM D, YYYY",
+																)} <br />
+                              </p>
+                              <p>
+                                <a
+                                  style="
+                                    padding: 5px 10px;
+                                    background: #0173c5;
+                                    color: #fff;
+                                    text-decoration: none;
+                                    border-radius: 2px;
+                                    font-size: 14px;
+                                    display: inline-block;
+                                  "
+                                  target="_blank"
+                                  href=${process.env.CLIENT_URL}
+                                  >Click Here</a
+                                >
+                                to view the full leave request.<br />
+                              </p>
+                              <p><br /></p>
+                              <p>Regards,</p>
+                              <p>TARA HRMS<br /></p>
+                            </div>
+                            <table
+                              style="
+                                width: 100%;
+                                font-size: 12px;
+                                font-family: Century Gothic, CenturyGothic,
+                                  AppleGothic, sans-serif;
+                              "
+                            >
+                              <tbody></tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+`;
+};
+//LEAVE REVOKE
+
 // goal-appraisal
 export default {
 	regularizationRequestMail,
@@ -5968,4 +6327,8 @@ export default {
 	sendBirthWishMailToEmp,
 	goalSubmissionByManager,
 	goalPlanAssignToEmployee,
+	///LEAVE REVOKE
+	leaveAcknowledgementRevoke,
+	leaveRequestRevokeMail,
+	///LEAVE REVOKE
 };

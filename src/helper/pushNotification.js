@@ -1,11 +1,11 @@
 import admin from "firebase-admin";
 import db from "../config/db.config.js";
 import { Op } from "sequelize";
-import serviceAccount from "../config/firebasePushNotification.json" assert { type: "json" };
+//import serviceAccount from "../config/firebasePushNotification.json" assert { type: "json" };
 import pushNotificationEmitter from "../services/pushNotificationEventService.js";
 
 admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
+	//credential: admin.credential.cert(serviceAccount),
 });
 
 // Listen for the "sendNotification" event
@@ -19,7 +19,7 @@ export default function pushNotificationListner(eventEmitter) {
 }
 
 const sendPushNotification = async (title, body, employeeId) => {
-	console.log("Sending notification to employeeId:", employeeId);
+	// console.log("Sending notification to employeeId:", employeeId);
 	try {
 		const results = await db.loginDetails.findAll({
 			where: {

@@ -1,31 +1,36 @@
 export default (sequelize, Sequelize) => {
-	const Confimationpolicy = sequelize.define("confimationpolicy", {
-		confimationPolicyAutoId: {
+	const CompentancyRating = sequelize.define("compentancyrating", {
+		compentancyRatingId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		name: {
+		// goalAreaId: {
+		// 	type: Sequelize.INTEGER,
+		// },
+		compentancyTierId: {
+			type: Sequelize.INTEGER,
+		},
+		compentancyAttrId: {
+			type: Sequelize.INTEGER,
+		},
+		reviewFrameworkId: {
+			type: Sequelize.INTEGER,
+		},
+		forUser: {
+			type: Sequelize.INTEGER,
+		},
+		byUser: {
+			type: Sequelize.INTEGER,
+		},
+		rating: {
+			type: Sequelize.INTEGER,
+		},
+		comment: {
+			type: Sequelize.TEXT,
+		},
+		ratingBy: {
 			type: Sequelize.STRING,
-		},
-		generateOnBeforeDays: {
-			type: Sequelize.INTEGER,
-		},
-		regenerateOnBeforeExtentioEndDays: {
-			type: Sequelize.INTEGER,
-		},
-		confirmationExtention: {
-			type: Sequelize.INTEGER,
-		},
-		confirmationAssignmentAutoId: {
-			type: Sequelize.STRING,
-		},
-		holdDays: {
-			type: Sequelize.INTEGER,
-		},
-		isActive: {
-			type: Sequelize.INTEGER,
-			defaultValue: 1,
 		},
 		createdBy: {
 			type: Sequelize.INTEGER,
@@ -39,12 +44,9 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
-		confiramtionRequestEmailCC: {
-			type: Sequelize.STRING,
-		},
-		confiramtionEmailCC: {
-			type: Sequelize.STRING,
+		isActive: {
+			type: Sequelize.BOOLEAN,
 		},
 	});
-	return Confimationpolicy;
+	return CompentancyRating;
 };

@@ -210,6 +210,16 @@ import RatingScaleMaster from "../api/model/RatingScaleMaster.js";
 import RatingScaleConfig from "../api/model/RatingScaleConfig.js";
 import CompentanyTier from "../api/model/CompentancyTier.js";
 import CompentancyAttributes from "../api/model/CompentancyAttributes.js";
+import ReviewFrameworkMail from "../api/model/ReviewFrameworkMail.js";
+import ReviewRatingTrail from "../api/model/ReviewRatingTrail.js";
+import CompentancyRating from "../api/model/CompentancyRating.js";
+
+
+//REVOKE
+import RegularizationRevokeTransaction from "../api/model/Regularization_revoke_transaction.js";
+import employeeleave_revoke_transaction from "../api/model/employeeleave_revoke_transaction.js";
+//REVOKE
+
 ///////////////////Appraisal/////////////////////////
 
 // start import model by jay
@@ -229,6 +239,10 @@ import user_assignment_condition from "../api/model/user_assignment_condition.js
 import user_assignment_attribute_master from "../api/model/user_assignment_attribute_master.js";
 
 //ritak Hr Policy end
+
+// start jay notice period employment history
+import NoticePeriodEmploymentHistory from "../api/model/NoticePeriodEmploymentHistory.js";
+// end jay end notice period employment history
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -538,6 +552,9 @@ db.ratingScaleMaster = RatingScaleMaster(sequelize, Sequelize);
 db.ratingScaleConfig = RatingScaleConfig(sequelize, Sequelize);
 db.compentanyTier = CompentanyTier(sequelize, Sequelize);
 db.compentancyAttributes = CompentancyAttributes(sequelize, Sequelize);
+db.reviewFrameworkMail = ReviewFrameworkMail(sequelize, Sequelize);
+db.reviewRatingTrail = ReviewRatingTrail(sequelize, Sequelize);
+db.compentancyRating = CompentancyRating(sequelize, Sequelize);
 
 // appraisal //
 
@@ -560,6 +577,21 @@ db.user_assignment_attribute_master = user_assignment_attribute_master(
 );
 db.user_assignment_condition = user_assignment_condition(sequelize, Sequelize);
 //ritak Hr Policy end
+//REVOKE
+db.RegularizationRevokeTransaction = RegularizationRevokeTransaction(sequelize,Sequelize)
+db.employeeleave_revoke_transaction = employeeleave_revoke_transaction(sequelize,Sequelize)
+//REVOKE
+
+//REVOKE
+db.employeeleave_revoke_transaction.hasOne(db.EmployeeLeaveHeader, {
+	foreignKey: "employeeleaveheaderID",
+	sourceKey: "employeeleaveheaderID",
+});
+//REVOKE
+
+// start jay notice period employment history
+db.NoticePeriodEmploymentHistory = NoticePeriodEmploymentHistory(sequelize, Sequelize);
+// end jay end notice period employment history
 
 db.holidayCompanyLocationConfiguration.hasOne(db.holidayMaster, {
 	foreignKey: "holidayId",
@@ -2364,6 +2396,145 @@ db.ratingScaleMaster.hasMany(db.ratingScaleConfig, {
 db.compentancyAttributes.hasOne(db.compentanyTier, {
 	foreignKey: "compentancyTierId",
 	sourceKey: "compentancyTierId",
+});
+// start jay notice period employment
+db.employeeMaster.hasMany(db.NoticePeriodEmploymentHistory, {
+	foreignKey: "employeeId",
+	sourceKey: "id",
+	as: "noticePeriodHistories",
+});
+db.NoticePeriodEmploymentHistory.hasOne(db.noticePeriodMaster, {
+	foreignKey: "noticePeriodAutoId",
+	sourceKey: "noticePeriodAutoId",
+});
+db.NoticePeriodEmploymentHistory.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "createdBy",
+	as: "noticePeriodHistoryCreatedBy",
+});
+// end jay notice period employment
+db.employeeleave_revoke_transaction.hasOne(db.employeeMaster, {  //adding joins for leave revoke features
+	foreignKey: "id",
+	sourceKey: "updatedBy",
+	as: "leaveUpdatedBy",
+});
+
+
+db.compentancyAttributes.hasOne(db.compentanyTier, {
+	foreignKey: "compentancyTierId",
+	sourceKey: "compentancyTierId",
+});
+
+db.goalAreaForUser.hasOne(db.goalRating, {
+	foreignKey: "goalAreaId",
+	sourceKey: "goalAreaId",
+	as: "goalrating",
+});
+
+db.goalAreaForUser.hasOne(db.goalRating, {
+	foreignKey: "goalAreaId",
+	sourceKey: "goalAreaId",
+	as: "goalmanagaerrating",
+});
+
+db.goalAreaForUser.hasOne(db.goalRating, {
+	foreignKey: "goalAreaId",
+	sourceKey: "goalAreaId",
+	as: "goalhodrating",
+});
+db.reviewFramework.hasOne(db.compentanyTier, {
+	foreignKey: "compentancyTierId",
+	sourceKey: "compentancyTierId",
+});
+
+db.reviewFramework.hasOne(db.ratingScaleMaster, {
+	foreignKey: "ratingScaleId",
+	sourceKey: "goalCompentancyScale",
+});
+
+db.reviewFrameworkMail.hasOne(db.reviewFramework, {
+	foreignKey: "reviewFrameworkId",
+	sourceKey: "reviewFrameworkId",
+});
+
+db.compentanyTier.hasMany(db.compentancyAttributes, {
+	foreignKey: "compentancyTierId",
+	sourceKey: "compentancyTierId",
+	as: "compentancyAttr",
+});
+
+db.reviewFramework.hasOne(db.ratingScaleMaster, {
+	foreignKey: "ratingScaleId",
+	sourceKey: "goalRatingScale",
+	as: "goalratingscale",
+});
+db.reviewFramework.hasOne(db.ratingScaleMaster, {
+	foreignKey: "ratingScaleId",
+	sourceKey: "overallPerformanceScale",
+	as: "overallperformancescale",
+});
+db.reviewFramework.hasOne(db.ratingScaleMaster, {
+	foreignKey: "ratingScaleId",
+	sourceKey: "goalCompentancyScale",
+	as: "goalcompentancyscale",
+});
+
+db.reviewRatingTrail.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "userId",
+});
+
+db.departmentMapping.hasOne(db.employeeMaster, {
+	foreignKey: "id",
+	sourceKey: "departmentHead",
+	as: "departmentOfHead",
+});
+
+db.reviewRatingTrail.hasOne(db.reviewFramework, {
+	foreignKey: "reviewFrameworkId",
+	sourceKey: "reviewFrameworkId",
+});
+
+db.reviewFramework.hasMany(db.compentancyRating, {
+	foreignKey: "reviewFrameworkId",
+	sourceKey: "reviewFrameworkId",
+	as:"compentancyRating"
+});
+
+db.reviewFramework.hasMany(db.compentancyRating, {
+	foreignKey: "reviewFrameworkId",
+	sourceKey: "reviewFrameworkId",
+	as:"managerCompentancyRating"
+});
+
+db.reviewFramework.hasMany(db.compentancyRating, {
+	foreignKey: "reviewFrameworkId",
+	sourceKey: "reviewFrameworkId",
+	as:"hodCompentancyRating"
+});
+
+db.compentancyAttributes.hasOne(db.compentancyRating, {
+  foreignKey: "compentancyAttrId",     // FK in compentancyRating
+  sourceKey: "compAttributesId",       // PK in compentancyAttributes
+  as: "compentancyRating",          // alias to use in include
+});
+
+db.compentancyAttributes.hasOne(db.compentancyRating, {
+  foreignKey: "compentancyAttrId",     // FK in compentancyRating
+  sourceKey: "compAttributesId",       // PK in compentancyAttributes
+  as: "managerCompentancyRating",          // alias to use in include
+});
+db.compentancyAttributes.hasOne(db.compentancyRating, {
+  foreignKey: "compentancyAttrId",     // FK in compentancyRating
+  sourceKey: "compAttributesId",       // PK in compentancyAttributes
+  as: "hodCompentancyRating",          // alias to use in include
+});
+
+// Optional: Reverse association
+db.compentancyRating.belongsTo(db.compentancyAttributes, {
+  foreignKey: "compentancyAttrId",
+  targetKey: "compAttributesId",
+  as: "compentancyAttr"
 });
 
 export default db;

@@ -790,6 +790,22 @@ class UserController {
 				],
 				distinct: true,
 			});
+			const RevokecountLeavePending =
+				await db.employeeleave_revoke_transaction.count({
+					where: {
+						employeeId: req.userId,
+						status: "pending",
+					},
+					attributes: [],
+				});
+			const RevokecountLeaveAssigned =
+				await db.employeeleave_revoke_transaction.count({
+					where: {
+						managerId: req.userId,
+						status: "pending",
+					},
+					attributes: [],
+				});
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
 				where: {
@@ -1041,6 +1057,8 @@ class UserController {
 						leaveData: {
 							raisedByMe: countLeavePending,
 							assignedToMe: countLeaveAssgined,
+							revokeRaisedByMe: RevokecountLeavePending,
+							revokeAssignedToMe: RevokecountLeaveAssigned,
 						},
 						attedanceData: {
 							raisedByMe: pendingAttCount,
@@ -1080,6 +1098,8 @@ class UserController {
 							seperationCount: 0,
 							pendingAttendanceCount: 0,
 							compOffCount: 0,
+							leaveData: countLeavePending,
+							leaveDataRevoke: RevokecountLeavePending,
 						},
 						assignedToMe: {
 							leaveData: countLeaveAssgined,
@@ -1087,6 +1107,8 @@ class UserController {
 							seperationCount: pendingSeperationCount,
 							pendingAttendanceCount,
 							compOffCount: compOffbalabceForUser,
+							leaveData: countLeaveAssgined,
+							leaveDataRevoke: RevokecountLeaveAssigned,
 						},
 					},
 				},
@@ -1540,11 +1562,13 @@ class UserController {
 			let searchQuery = search
 				? {
 						[Op.or]: [
-							{ empCode: { [Op.like]: `%${search}%` } },
-							{ name: { [Op.like]: `%${search}%` } },
+							{ empCode: { [Op.like]: `%${search}%` }, isActive: 1 },
+							{ name: { [Op.like]: `%${search}%` }, isActive: 1 },
 						],
 					}
-				: undefined;
+				: { isActive: 1 };
+
+			// const permission = await helper.getFiltersByPermission(req.userData.role_id, req.userData.permissionAndAccess);
 
 			const separationData = await db.separationMaster.findAndCountAll({
 				where: {
@@ -1567,6 +1591,22 @@ class UserController {
 						attributes: ["empCode", "name"],
 						required: !!searchQuery,
 						where: searchQuery || undefined,
+						// include: [
+						// 	{
+						// 		model: db.buMaster,
+						// 		attributes: ["buName", "buCode"],
+						// 		where: {
+						// 			...permission.buFIlter,
+						// 		},
+						// 	},
+						// 	{
+						// 		model: db.companyMaster,
+						// 		attributes: ["companyName", "companyCode"],
+						// 		where: {
+						// 			...permission.companyFIlter,
+						// 		}
+						// 	}
+						// ]
 					},
 					{
 						model: db.separationStatus,
@@ -4005,7 +4045,7 @@ class UserController {
 							for (const element12 of buMappingData.dataValues.ownerId.split(
 								",",
 							)) {
-								console.log(element12);
+								// console.log(element12);
 								db.separationTaskOwner.create({
 									taskMappingAutoId:
 										initiatedTask.dataValues.initiatedTaskAutoId,
@@ -4906,10 +4946,10 @@ class UserController {
 							{ where: { userId: ele.userId } },
 						);
 					} else {
-						console.log(
-							"Bank ID is not available for IFSC:",
-							ele.paymentBankIfsc,
-						);
+						// console.log(
+						// 	"Bank ID is not available for IFSC:",
+						// 	ele.paymentBankIfsc,
+						// );
 					}
 				}
 			}
@@ -5050,6 +5090,7 @@ class UserController {
 						],
 						where: {
 							employeeId: req.userId,
+							isCompleted: 0,
 						},
 						include: {
 							model: db.employeeMaster,
@@ -5232,13 +5273,13 @@ class UserController {
 						message: `Pending for Confirmation By ${ESCALTERDATA?.name} (${ESCALTERDATA?.empCode})`,
 						confirmationAction: 0,
 					});
-					// eventEmitter.emit(
-					//   "confirmationWorkflowNextLevel",
-					//   JSON.stringify({
-					//     ESCALTERDATA: ESCALTERDATA,
-					//     EMP_DATA: EMP_DATA_SELF,
-					//   })
-					// );
+					eventEmitter.emit(
+						"confirmationWorkflowNextLevel",
+						JSON.stringify({
+							ESCALTERDATA: ESCALTERDATA,
+							EMP_DATA: EMP_DATA_SELF,
+						}),
+					);
 				}
 				///ADMIN VIEW
 				await db.Confirmationowners.create({
@@ -5333,10 +5374,12 @@ class UserController {
 					limit: 1,
 					where: {
 						employeeId: req.userId,
+						isCompleted: 0,
 					},
 				},
 			});
 			let formsFields = [];
+			// console.log("confirsmationData", confirsmationData);
 
 			if (confirsmationData) {
 				formsFields = await db.Confirmationformfilledvalues.findAll({
@@ -5891,13 +5934,25 @@ class UserController {
 						attributes: ["jobId", "userId", "dateOfJoining"],
 					},
 					{
-						model: db.noticePeriodMaster,
-						attributes: [
-							"noticePeriodAutoId",
-							"noticePeriodName",
-							"noticePeriodCode",
-							"nPDaysAfterConfirmation",
-							"nPDaysInProbation",
+						model: db.NoticePeriodEmploymentHistory,
+						as: "noticePeriodHistories",
+						attributes: { exclude: ["createdBy", "updatedAt", "updatedBy"] },
+						include: [
+							{
+								model: db.noticePeriodMaster,
+								attributes: [
+									"noticePeriodAutoId",
+									"noticePeriodName",
+									"noticePeriodCode",
+									"nPDaysAfterConfirmation",
+									"nPDaysInProbation",
+								],
+							},
+							{
+								model: db.employeeMaster,
+								as: "noticePeriodHistoryCreatedBy",
+								attributes: ["id", "name", "empCode"],
+							},
 						],
 						required: false,
 					},
@@ -5910,6 +5965,7 @@ class UserController {
 					["employeeTypeHistories", "id", "ASC"], // Sorting for employeeTypeHistory
 					["officeLocationHistories", "id", "ASC"], // Sorting for officeLocationHistory
 					["managerHistories", "id", "ASC"], // Sorting for managerHistory
+					["noticePeriodHistories", "id", "ASC"], // Sorting for noticePeriodHistories
 				],
 			});
 
@@ -6375,6 +6431,83 @@ class UserController {
 			});
 		}
 	}
+	// adding new api for leave revoke requst
+	async getRevokeRequestHistory(req, res) {
+		try {
+			const limit = parseInt(req.query.limit, 10) || 10;
+			const pageNo = parseInt(req.query.page, 10) || 1;
+			const selectMode = req.query.type || "self";
+			const search = req.query.user || "";
+			const offset = (pageNo - 1) * limit;
+
+			const userId = req.userData.id;
+			let whereCondition =
+				selectMode === "self"
+					? {
+							employeeId: userId,
+							status: { [Op.not]: "pending" },
+						}
+					: {
+							updatedBy: userId,
+							status: { [Op.not]: "pending" },
+						};
+
+			const employeeleave_revoke_transactionData =
+				await db.employeeleave_revoke_transaction.findAndCountAll({
+					where: whereCondition,
+					include: [
+						{
+							model: db.EmployeeLeaveHeader,
+							required: true,
+							include: [
+								{
+									model: db.leaveMaster,
+									attributes: ["leaveId", "leaveName", "leaveCode"],
+									required: true,
+									as: "leaveMasterDetails",
+								},
+
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+									required: true,
+									where: {
+										...(search && {
+											[Op.or]: [
+												{ name: { [Op.like]: `%${search}%` } }, // Search in 'name'
+												{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
+											],
+										}),
+									},
+								},
+							],
+						},
+						{
+							model: db.employeeMaster,
+							attributes: ["id", "empCode", "name"],
+							as: "leaveUpdatedBy",
+						},
+					],
+					limit,
+					offset,
+				});
+
+			return respHelper(res, {
+				status: 200,
+				data: {
+					count: employeeleave_revoke_transactionData.count,
+					rows: employeeleave_revoke_transactionData.rows,
+				},
+			});
+		} catch (error) {
+			console.log("err", error);
+			return respHelper(res, {
+				status: 500,
+				msg: "Internal server error",
+			});
+		}
+	}
+	// adding new api for leave revoke requst
 	async compOffPendingForApproval(req, res) {
 		try {
 			const limit = parseInt(req.query.limit, 10) || 10;
@@ -6525,6 +6658,12 @@ class UserController {
 					status: req.body.status == 1 ? 1 : 5,
 					compOffDate: singlecomp_off_credit_history_auto_ids.date,
 				};
+				//Added push notification on comp off approval , earlier only mail was working as notification
+				pushNotificationEmitter.emit("sendNotification", {
+					title: "Comp Off Request Acknowledge",
+					body: `Your comp off request is ${req.body.status == 1 ? "Approved" : "Rejected"}`,
+					employeeId: EMP_DATA_SELF.id,
+				});
 				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
 			}
 
@@ -6832,7 +6971,7 @@ class UserController {
 				],
 				raw: true,
 			});
-			console.log(">>>>>>", getLeaveRequest);
+			// console.log(">>>>>>", getLeaveRequest);
 			return;
 			if (!getLeaveRequest) {
 				return respHelper(res, {
@@ -6996,7 +7135,7 @@ class UserController {
 					employeeId: result.employeeId ? result.employeeId : req.userId,
 				},
 			});
-			console.log("isSameDetails", isSameDetails);
+			// console.log("isSameDetails", isSameDetails);
 			if (!isSameDetails) {
 				let obj = {
 					...result,
@@ -7121,7 +7260,7 @@ class UserController {
 					where: { employeeId: req.userId },
 				});
 
-				console.log("existUser.email", existUser);
+				// console.log("existUser.email", existUser);
 
 				eventEmitter.emit(
 					"addressDetailsApprovalRequestMail",
@@ -7253,7 +7392,7 @@ class UserController {
 			}
 			// Normalize policyId to an array
 			let policyIds = [];
-			console.log("policyId", typeof policyId);
+			// console.log("policyId", typeof policyId);
 			if (typeof policyId === "string") {
 				// If policyId has commas, split it into an array, else handle as a single ID
 				policyIds = policyId
@@ -7322,7 +7461,7 @@ class UserController {
 			const userId = req.userId;
 			const date = new Date();
 			date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
-			console.log("date", date);
+			// console.log("date", date);
 			const notification = await db.pushNotificationHistory.findAll({
 				where: {
 					employeeId: userId,
@@ -7419,6 +7558,10 @@ class UserController {
 				msg: "",
 			});
 		}
+	}
+	async assignConfirmationPolicy(req, res) {
+		let empids = req.body.empCode;
+		await helper.confirmationPolicyAssignment(empids.join(","));
 	}
 }
 

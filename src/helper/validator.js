@@ -2360,11 +2360,12 @@ const reviewFrameworkSchema = Joi.object({
 	reviewName: Joi.string().trim().required(),
 	reviewId: Joi.string().trim().required(),
 	reviewDescription: Joi.string().allow("").required(),
-
+	compentancyTierId: Joi.number().integer().required(),
 	alignToReviewCycle: Joi.number().integer().optional(),
 	goalRatingScale: Joi.number().integer().optional(),
 	goalAutoCalculate: Joi.boolean().optional(),
 	goalAutoCompentancy: Joi.boolean().optional(), // changed from number to boolean
+	goalCompentancyScale: Joi.number().integer().optional(),
 
 	overallPerformanceScale: Joi.number().integer().optional(),
 	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
@@ -2374,7 +2375,7 @@ const reviewFrameworkSchema = Joi.object({
 	selfReview: Joi.boolean().optional(),
 
 	evaluator: Joi.string().optional(),
-	reviewer: Joi.string().optional(),
+	reviewer: Joi.string().allow("").optional(),
 	calibration: Joi.string().allow("").optional(),
 
 	sendBackToEmployee: Joi.boolean().optional(),
@@ -2393,17 +2394,10 @@ const reviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.alternatives()
-		.try(Joi.array(), Joi.string().allow(""))
-		.optional(),
-	// userAssignment: Joi.array()
-	// 	.items(Joi.number())
-	// 	.min(1)
-	// 	.required()
-	// 	.label("User Assignment")
-	// 	.custom((value, helpers) => {
-	// 		return value.join(","); // Convert array [1, 2] → "1,2"
-	// 	}),
+	userAssignment: Joi.array()
+		.items(Joi.number().required())
+		.min(1) // Ensures at least one item
+		.required(),
 	// selfCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// selfCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// evaluatorCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
@@ -2440,16 +2434,17 @@ const editReviewFrameworkSchema = Joi.object({
 	goalRatingScale: Joi.number().integer().optional(),
 	goalAutoCalculate: Joi.boolean().optional(),
 	goalAutoCompentancy: Joi.boolean().optional(),
-
+	goalCompentancyScale: Joi.number().integer().optional(),
 	overallPerformanceScale: Joi.number().integer().optional(),
 	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
 	compentencyWeightage: Joi.number().integer().min(0).max(100).optional(),
+	compentancyTierId: Joi.number().integer().required(),
 
 	promotionFramework: Joi.number().integer().optional(),
 	selfReview: Joi.boolean().optional(),
 
 	evaluator: Joi.string().optional(),
-	reviewer: Joi.string().optional(),
+	reviewer: Joi.string().allow("").optional(),
 	calibration: Joi.string().allow("").optional(),
 
 	sendBackToEmployee: Joi.boolean().optional(),
@@ -2468,9 +2463,13 @@ const editReviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	userAssignment: Joi.alternatives()
-		.try(Joi.array(), Joi.string().allow(""))
-		.optional(),
+	// userAssignment: Joi.alternatives()
+	// 	.try(Joi.array(), Joi.string().allow(""))
+	// 	.optional(),
+	userAssignment: Joi.array()
+		.items(Joi.number().required())
+		.min(1) // Ensures at least one item
+		.required(),
 	selfCanViewRatingOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),
@@ -2574,6 +2573,91 @@ const updateRatingScaleSchema = Joi.object({
 		}),
 });
 //
+
+//REVOKE
+const revokeApprovedRegularizationsValidation = Joi.object({
+	attendanceAutoId: Joi.number(),
+	regularizeId: Joi.number(),
+	//remark: Joi.string().trim().required().max(100).label("Remark"),
+});
+const revokeApprovedLeaveValidation = Joi.object({
+	employeeleaveheaderID: Joi.number(),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+});
+const approvalrevokeApprovedLeaveValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string().trim().required(),
+	status: Joi.string()
+		.trim()
+		.required()
+		.valid("approved", "rejected")
+		.label("status"),
+	remark: Joi.string().trim().required().max(100).label("Remark"),
+});
+const revokeLeaverevokeRequestValidation = Joi.object({
+	employeeLeaveTransactionsIds: Joi.string().trim().required(),
+});
+//REVOKE
+// Start Import employment details
+const importEmploymentDetails = Joi.object({
+	empCode: Joi.string().required(),
+	designationCode: Joi.string(),
+	desFromDate: Joi.date().max("now").messages({
+		"date.max": "desFromDate must be less than or equal to today",
+		"date.base": "desFromDate must be a valid date",
+	}),
+	desIsPromotion: Joi.string(),
+	jobLevelCode: Joi.string(),
+	jobLevelFromDate: Joi.date().max("now").messages({
+		"date.max": "jobLevelFromDate must be less than or equal to today",
+		"date.base": "jobLevelFromDate must be a valid date",
+	}),
+	jobLevelIsPromotion: Joi.string(),
+	manager: Joi.string(),
+	managerFromDate: Joi.date().max("now").messages({
+		"date.max": "managerFromDate must be less than or equal to today",
+		"date.base": "managerFromDate must be a valid date",
+	}),
+	functionalAreaCode: Joi.string(),
+	functionalFromDate: Joi.date().max("now").messages({
+		"date.max": "functionalFromDate must be less than or equal to today",
+		"date.base": "functionalFromDate must be a valid date",
+	}),
+	employeeTypeCode: Joi.string(),
+	employeeTypeFromDate: Joi.date().max("now").messages({
+		"date.max": "employeeTypeFromDate must be less than or equal to today",
+		"date.base": "employeeTypeFromDate must be a valid date",
+	}),
+	companyLocationCode: Joi.string(),
+	companyLocationFromDate: Joi.date().max("now").messages({
+		"date.max": "companyLocationFromDate must be less than or equal to today",
+		"date.base": "companyLocationFromDate must be a valid date",
+	}),
+	costCenterCode: Joi.string(),
+	costCenterFromDate: Joi.date().max("now").messages({
+		"date.max": "costCenterFromDate must be less than or equal to today",
+		"date.base": "costCenterFromDate must be a valid date",
+	}),
+	noticePeriodCode: Joi.string(),
+})
+	.with("designationCode", ["desFromDate", "desIsPromotion"])
+	.with("desFromDate", ["designationCode", "desIsPromotion"])
+	.with("desIsPromotion", ["designationCode", "desFromDate"])
+	.with("jobLevelCode", ["jobLevelFromDate", "jobLevelIsPromotion"])
+	.with("jobLevelFromDate", ["jobLevelCode", "jobLevelIsPromotion"])
+	.with("jobLevelIsPromotion", ["jobLevelCode", "jobLevelFromDate"])
+	.with("manager", ["managerFromDate"])
+	.with("managerFromDate", ["manager"])
+	.with("functionalAreaCode", ["functionalFromDate"])
+	.with("functionalFromDate", ["functionalAreaCode"])
+	.with("employeeTypeCode", ["employeeTypeFromDate"])
+	.with("employeeTypeFromDate", ["employeeTypeCode"])
+	.with("companyLocationCode", ["companyLocationFromDate"])
+	.with("companyLocationFromDate", ["companyLocationCode"])
+	.with("costCenterCode", ["costCenterFromDate"])
+	.with("costCenterFromDate", ["costCenterCode"]);
+
+// End Import employment details
+
 export default {
 	loginSchema,
 	userCreationSchema,
@@ -2675,4 +2759,13 @@ export default {
 	proxyLoginSchema,
 	reviewFrameworkSchema,
 	editReviewFrameworkSchema,
+	//REVOKE
+	revokeApprovedRegularizationsValidation,
+	revokeApprovedLeaveValidation,
+	approvalrevokeApprovedLeaveValidation,
+	revokeLeaverevokeRequestValidation,
+	//REVOKE
+	// start by jay
+	importEmploymentDetails,
+	// end by jay
 };

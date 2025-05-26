@@ -1,3 +1,8 @@
+//-----------------------------------------16-05-2025-----------------------------------------------//
+
+ALTER TABLE `tara`.`departmentmapping` 
+ADD COLUMN `departmentHead` INT NULL DEFAULT NULL AFTER `sbuMappingId`;
+
 //-----------------------------------------22-05-2024------------------------------------------------//
 ALTER TABLE `tara`.`goalplanmail` 
 CHANGE COLUMN `createdAt` `createdAt` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,
@@ -3012,6 +3017,12 @@ CREATE TABLE `qrsessionshistory` (
   PRIMARY KEY (`qrSessionId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 SELECT * FROM tara.qrsessionshistory;
+
+
+
+
+ALTER TABLE `tara_hrms_live`.`importdata` 
+CHANGE COLUMN `importStatusDesc` `importStatusDesc` TEXT NULL DEFAULT NULL ;
 
 
 

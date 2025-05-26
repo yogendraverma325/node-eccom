@@ -42,8 +42,6 @@ class ImportController {
 			let arrearsData = await db.sequelize.query(arrearListQuery);
 			let arrearsCountData = await db.sequelize.query(arrearsCountQuery);
 
-			console.log(arrearListQuery);
-
 			return respHelper(res, {
 				status: 200,
 				data: {

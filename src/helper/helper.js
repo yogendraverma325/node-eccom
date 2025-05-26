@@ -10,6 +10,8 @@ import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
 import axios from "axios";
 import https from "https";
+import attendanceController from "../api/v1/attendance/attendance.controller.js";
+import pushNotificationEmitter from "../services/pushNotificationEventService.js"; // New
 // import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
@@ -58,6 +60,19 @@ const fileUpload = async (base64String, fileName, filepath) => {
 	// }
 	return finalFilePath;
 };
+const savePdfFile = (buffer, fileName, folderPath) => {
+	// Ensure directory exists
+	if (!fs.existsSync(folderPath)) {
+		fs.mkdirSync(folderPath, { recursive: true });
+	}
+
+	const filePath = path.join(folderPath, fileName);
+
+	// Write the PDF buffer to file
+	fs.writeFileSync(filePath, buffer);
+
+	return filePath;
+};
 
 const checkFolder = async () => {
 	const folder = ["uploads", "uploads/temp", "config"];
@@ -103,14 +118,14 @@ const mailService = async (data) => {
 	try {
 		const testMail = parseInt(process.env.TEST_MAIL);
 		const testMailIDs = process.env.TEST_MAIL_ID.split(",");
-		console.log("data.to", data.to);
+		// console.log("data.to", data.to,data.attachments.length);
 		const payload = Object.assign({
 			appName: process.env.SENDER_NAME,
 			to: testMail ? testMailIDs : data.to.split(","),
 			from: data.senderEmail,
 			subject: data.subject,
 			text: data.text,
-			bcc: data.bcc ? data.bcc : [],
+			bcc: testMail ? [] : data.bcc ? data.bcc : [],
 			time: data.time ? data.time : "",
 			html: data.html,
 			cc: testMail ? [] : data.cc ? data.cc.split(",") : [],
@@ -185,8 +200,8 @@ const timeDifference = async (start, end) => {
 };
 
 const timeDifferenceNew = async (start, end) => {
-	console.log("start", start);
-	console.log("end", end);
+	// console.log("start", start);
+	// console.log("end", end);
 	// let startTime = moment(start, "YYYY-MM-DD HH:mm:ss");
 	// let endTime = moment(end, "YYYY-MM-DD HH:mm:ss");
 	let startTime = moment(start, "HH:mm:ss");
@@ -214,14 +229,14 @@ const calculateLateBy = async (
 			`${withToDate} ${actualTime}`,
 			"YYYY-MM-DD HH:mm:ss",
 		);
-		console.log(
-			"combinedLastDayTime",
-			combinedLastDayTime.format("YYYY-MM-DD HH:mm:ss"),
-		);
-		console.log(
-			"combinedCurrentTime",
-			combinedCurrentTime.format("YYYY-MM-DD HH:mm:ss"),
-		);
+		// console.log(
+		// 	"combinedLastDayTime",
+		// 	combinedLastDayTime.format("YYYY-MM-DD HH:mm:ss"),
+		// );
+		// console.log(
+		// 	"combinedCurrentTime",
+		// 	combinedCurrentTime.format("YYYY-MM-DD HH:mm:ss"),
+		// );
 
 		if (combinedCurrentTime.isAfter(combinedLastDayTime)) {
 			let diffMs = combinedCurrentTime.diff(combinedLastDayTime);
@@ -394,6 +409,7 @@ const getEmpProfile = async (EMP_ID) => {
 					"companyLogo",
 					"letterFooter",
 					"letterHeader",
+					"addCCEmailForWishesAndConfirmation",
 				],
 				include: [
 					{
@@ -649,10 +665,10 @@ const empLeaveDetails = async function (userId, type) {
 					});
 				}
 			}
-			console.log("item ", item);
+			//console.log("item ", item);
 
 			if (item.leaveCompanyDetails.display_all == 0) {
-				console.log("displa ");
+				//	console.log("displa ");
 				item.dataValues.is_active_for_display =
 					item.leaveCompanyDetails.display_all;
 			}
@@ -768,10 +784,10 @@ const empLeaveDetails = async function (userId, type) {
 				isActive: 1,
 			},
 		});
-		console.log("leaveData from this");
+		// console.log("leaveData from this");
 		// If leaveData is an object, handle it directly
 		if (leaveData && leaveData.leaveAutoId == 9 && leaveData) {
-			console.log("leaveData from inside");
+			// console.log("leaveData from inside");
 			leaveData.dataValues.availableLeave =
 				await this.compOffbalabceForUser(userId);
 		}
@@ -1196,7 +1212,7 @@ const remainingLeaveCount = async function (
 
 	//console.log("total_working_dates",total_working_dates)
 
-	console.log("========= daysDifferenceReq", daysDifferenceReq);
+	//console.log("========= daysDifferenceReq", daysDifferenceReq);
 	for (let i = 0; i <= daysDifferenceReq; i++) {
 		let appliedFor = moment(startDate).add(i, "days").format("YYYY-MM-DD");
 		let lastDayDateAnotherFormat = moment(appliedFor).format("DD-MM-YYYY");
@@ -1268,8 +1284,8 @@ const remainingLeaveCount = async function (
 		);
 		let isNationalHoliday =
 			employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
-		console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
-		console.log("appliedFor", appliedFor, "day", i);
+		//console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
+		//console.log("appliedFor", appliedFor, "day", i);
 		if (daysDifferenceReq == 0) {
 			if (
 				existEmployees.weekOffDayMappingMasters.length == 0 &&
@@ -1280,10 +1296,10 @@ const remainingLeaveCount = async function (
 					workingCount += 1;
 				}
 			}
-			console.log("single daya");
+			// console.log("single daya");
 		} else {
 			if (i == 0 || i == daysDifferenceReq) {
-				console.log("first and last");
+				// console.log("first and last");
 
 				if (
 					existEmployees.weekOffDayMappingMasters.length == 0 &&
@@ -1330,17 +1346,9 @@ const remainingLeaveCount = async function (
 						workingCount += 1;
 					}
 				}
-				console.log(
-					" middle week off",
-					existEmployees.weekOffDayMappingMasters.length,
-					"shouldCountWeekOffs",
-					shouldCountWeekOffs,
-					"occurrence",
-					occurrence,
-				);
 			}
 		}
-		console.log("============");
+		// console.log("============");
 	}
 
 	if (leaveMasterData.is_application_on_holiday_weekly_off == 1) {
@@ -1879,11 +1887,11 @@ const checkCompOffPolicyForUser = async (UserId) => {
 			...whereConditionJobdetails,
 			...{ userId: UserId },
 		};
-		console.log("================= start", single?.comp_off_assignment_auto_id);
-		console.log("whereCondition", whereCondition);
-		console.log("whereConditionJobdetails", whereConditionJobdetails);
+		// console.log("================= start", single?.comp_off_assignment_auto_id);
+		// console.log("whereCondition", whereCondition);
+		// console.log("whereConditionJobdetails", whereConditionJobdetails);
 
-		console.log("================= end", single?.comp_off_assignment_auto_id);
+		// console.log("================= end", single?.comp_off_assignment_auto_id);
 		const employee = await db.employeeMaster.findOne({
 			where: whereCondition,
 			attributes: [
@@ -1902,35 +1910,35 @@ const checkCompOffPolicyForUser = async (UserId) => {
 				where: whereConditionJobdetails,
 			},
 		});
-		console.log(
-			"employee",
-			employee ? "yes" : "NO",
-			" ==== single?.comp_off_assignment_auto_id",
-			single?.comp_off_assignment_auto_id,
-		);
+		// console.log(
+		// 	"employee",
+		// 	employee ? "yes" : "NO",
+		// 	" ==== single?.comp_off_assignment_auto_id",
+		// 	single?.comp_off_assignment_auto_id,
+		// );
 		if (employee) {
 			if (employee.id in compOffPolicyAssignment) {
 				compOffPolicyAssignment[employee.id] =
 					single.comp_off_assignment_auto_id;
 			} else {
-				console.log(
-					"employee?.id 1",
-					employee?.id,
-					"compOffPolicyAssignment",
-					compOffPolicyAssignment,
-				);
+				// console.log(
+				// 	"employee?.id 1",
+				// 	employee?.id,
+				// 	"compOffPolicyAssignment",
+				// 	compOffPolicyAssignment,
+				// );
 				compOffPolicyAssignment[employee.id] =
 					single.comp_off_assignment_auto_id;
-				console.log(
-					"employee?.id 2",
-					employee?.id,
-					"compOffPolicyAssignment",
-					compOffPolicyAssignment,
-				);
+				// console.log(
+				// 	"employee?.id 2",
+				// 	employee?.id,
+				// 	"compOffPolicyAssignment",
+				// 	compOffPolicyAssignment,
+				// );
 			}
 		}
 	}
-	console.log("compOffPolicyAssignment", compOffPolicyAssignment);
+	// console.log("compOffPolicyAssignment", compOffPolicyAssignment);
 	let compOffPolicyData = null;
 	if (Object.keys(compOffPolicyAssignment).length > 0) {
 		compOffPolicyData = await db.comp_off_polices.findOne({
@@ -2135,10 +2143,10 @@ const leaveCountForUserForMonth = async (
 			},
 		});
 	} else {
-		console.log("date", date);
-		console.log("lastDate", lastDate);
-		console.log("UserId", UserId);
-		console.log("leaveId", leaveId);
+		// console.log("date", date);
+		// console.log("lastDate", lastDate);
+		// console.log("UserId", UserId);
+		// console.log("leaveId", leaveId);
 
 		const monthStart = moment(date).format("YYYY-MM-DD");
 		const monthEnd = moment(lastDate).format("YYYY-MM-DD"); // Today's date
@@ -2155,7 +2163,7 @@ const leaveCountForUserForMonth = async (
 				},
 			},
 		});
-		console.log("leaves", leaves);
+		// console.log("leaves", leaves);
 		result = leaves || 0;
 	}
 
@@ -2224,7 +2232,7 @@ const creditCompoff = async (inputObject) => {
 				timeWorkDuration.seconds() / 60;
 			comp_off_hours = totaltimeWorkDuration;
 		}
-		console.log("goAhead", goAhead);
+		// console.log("goAhead", goAhead);
 
 		if (goAhead) {
 			let compOffPolicyData = await checkCompOffPolicyForUser(empId);
@@ -2471,6 +2479,12 @@ const creditCompoff = async (inputObject) => {
 									managerName: EMP_DATA_SELF.managerData.name,
 									compOffDate: comp_off_data.credit_for_date,
 								};
+								//Added push notification on comp off approval , earlier only mail was working as notification
+								pushNotificationEmitter.emit("sendNotification", {
+									title: "Comp Off Request",
+									body: `Comp Off request raised for ${EMP_DATA_SELF.name}`,
+									employeeId: EMP_DATA_SELF.managerData.id,
+								});
 								eventEmitter.emit("compOffMail", JSON.stringify(obj));
 							}
 
@@ -2689,7 +2703,7 @@ const actionOnLeaveCompOff = async (
 
 const leaveCreditMonthCron = async () => {
 	try {
-		console.log("run leave credit");
+		// console.log("run leave credit");
 		const today = moment();
 		const firstDayOfMonth = today.clone().startOf("month").format("D");
 		const currentDay = today.clone().format("D");
@@ -2706,8 +2720,8 @@ const leaveCreditMonthCron = async () => {
 
 		let leaves = [];
 		let effectedEmpS = [];
-		console.log("currentDay", currentDay);
-		console.log("firstDayOfMonth", firstDayOfMonth);
+		// console.log("currentDay", currentDay);
+		// console.log("firstDayOfMonth", firstDayOfMonth);
 		if (currentDay == firstDayOfMonth) {
 			leaves = await db.leaveCompanyMapping.findAll({
 				where: {
@@ -2716,7 +2730,7 @@ const leaveCreditMonthCron = async () => {
 					isActive: 1,
 				},
 			});
-			console.log("leaves", leaves.length);
+			// console.log("leaves", leaves.length);
 			for (const singleLeaves of leaves) {
 				effectedEmpS = await db.employeeMaster.findAll({
 					attributes: ["id", "empCode"],
@@ -2741,7 +2755,7 @@ const leaveCreditMonthCron = async () => {
 				});
 
 				for (const singleeffectedEmp of effectedEmpS) {
-					console.log("singleLeaves.leaveAutoId", singleLeaves.leaveAutoId);
+					// console.log("singleLeaves.leaveAutoId", singleLeaves.leaveAutoId);
 					let leaveCount = 0;
 					let dateOfJoining = singleeffectedEmp.employeejobdetail.dateOfJoining;
 					if (singleLeaves.creditOn == 0) {
@@ -2888,7 +2902,7 @@ const leaveLapse = async () => {
 const leaveAssignEmployeeToAll = async (empIdsInput) => {
 	try {
 		let empIds = empIdsInput.split(",");
-		console.log("empIds", empIds);
+		// console.log("empIds", empIds);
 		const employees = await db.employeeMaster.findAll({
 			attributes: ["id", "empCode", "employeeType", "companyId"],
 			where: {
@@ -2929,7 +2943,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 			],
 		});
 
-		console.log("employees", employees.length);
+		// console.log("employees", employees.length);
 		for (const employee of employees) {
 			const { gender, maritalStatus } =
 				employee.dataValues.employeebiographicaldetail;
@@ -3026,7 +3040,7 @@ const leaveAssignEmployeeToAll = async (empIdsInput) => {
 					],
 				},
 			});
-			console.log("leaveMaster", leaveMaster.length);
+			// console.log("leaveMaster", leaveMaster.length);
 
 			const firstDate = moment(dateOfJoining)
 				.startOf("month")
@@ -3368,7 +3382,7 @@ const leaveRefil = async () => {
 					}
 				}
 			}
-			console.log("leavesForRefill", leavesForRefill.length);
+			// console.log("leavesForRefill", leavesForRefill.length);
 		}
 
 		return leaveWhichNeedToRefillForAll;
@@ -3376,6 +3390,122 @@ const leaveRefil = async () => {
 		console.log("error", error);
 	}
 };
+/// CONFIRMATION POLICY ASSIGNEMNT
+
+const confirmationPolicyAssignment = async (empIdsInput) => {
+	try {
+		let empIds = empIdsInput.split(",");
+		const employees = await db.employeeMaster.findAll({
+			where: {
+				isActive: 1,
+				id: empIds,
+				confimationPolicyAutoId: { [Op.eq]: null }, // Ensures companyId is not null
+			},
+			include: [
+				{
+					model: db.jobDetails,
+					attributes: [
+						"dateOfProbationEnd",
+						"confirmationDate",
+						"confirmationGenerated",
+						"dateOfJoining",
+						"probationDays",
+						"jobLevelId",
+						"jobId",
+					],
+					where: {
+						confirmationGenerated: 0,
+						confirmationDate: { [Op.eq]: null }, // Ensures companyId is not null
+					},
+				},
+			],
+		});
+		for (const Singleemployee of employees) {
+			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
+				where: {
+					jobLevelId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleemployee.employeejobdetail.jobLevelId},%` },
+							{
+								[Op.like]: `%,${Singleemployee.employeejobdetail.jobLevelId},%`,
+							},
+							{ [Op.like]: `%,${Singleemployee.employeejobdetail.jobLevelId}` },
+							{ [Op.eq]: `${Singleemployee.employeejobdetail.jobLevelId}` },
+						],
+					},
+					companyId: {
+						[Op.or]: [
+							{ [Op.like]: `${Singleemployee.companyId},%` },
+							{ [Op.like]: `%,${Singleemployee.companyId},%` },
+							{ [Op.like]: `%,${Singleemployee.companyId}` },
+							{ [Op.eq]: `${Singleemployee.companyId}` },
+						],
+					},
+				},
+			});
+			if (checkJobLevelAssignmnet) {
+				let confirmationPolicy = await db.Confimationpolicy.findOne({
+					where: {
+						confirmationAssignmentAutoId: {
+							[Op.or]: [
+								{
+									[Op.like]: `${checkJobLevelAssignmnet.confirmationAssignmentAutoId},%`,
+								},
+								{
+									[Op.like]: `%,${checkJobLevelAssignmnet.confirmationAssignmentAutoId},%`,
+								},
+								{
+									[Op.like]: `%,${checkJobLevelAssignmnet.confirmationAssignmentAutoId}`,
+								},
+								{
+									[Op.eq]: `${checkJobLevelAssignmnet.confirmationAssignmentAutoId}`,
+								},
+							],
+						},
+					},
+				});
+				if (confirmationPolicy) {
+					let dateOfProbationEnd = moment(
+						Singleemployee.employeejobdetail.dateOfJoining,
+					)
+						.add(Singleemployee.employeejobdetail.probationDays, "days")
+						.format("YYYY-MM-DD");
+
+					let dateOfProbationTriggerDate = moment(dateOfProbationEnd)
+						.subtract(confirmationPolicy.generateOnBeforeDays, "days")
+						.format("YYYY-MM-DD");
+
+					await db.jobDetails.update(
+						{
+							dateOfProbationEnd: dateOfProbationEnd,
+							dateOfProbationTriggerDate: dateOfProbationTriggerDate,
+						},
+						{
+							where: {
+								userId: Singleemployee.id,
+								jobId: Singleemployee.employeejobdetail.jobId,
+							},
+						},
+					);
+					await db.employeeMaster.update(
+						{
+							confimationPolicyAutoId:
+								confirmationPolicy.confimationPolicyAutoId,
+						},
+						{
+							where: {
+								id: Singleemployee.id,
+							},
+						},
+					);
+				}
+			}
+		}
+	} catch (error) {
+		console.log(error);
+	}
+};
+/// CONFIRMATION POLICY ASSIGNMENT
 
 const fetchpermissoinAndAcessForEMP = async (PERMISSION, ROLE_ID) => {
 	let permissionAssignTousers = [];
@@ -3633,6 +3763,19 @@ async function generateEmployementHistory(
 
 		await db.CostCenterEmploymentHistory.create(costCenterMetaData);
 	}
+
+	// create notice period history
+
+	let noticePeriodMetaData = {
+		employeeId: employeeDetails.id,
+		companyId: employeeDetails.companyId,
+		noticePeriodAutoId: employeeDetails.noticePeriodAutoId,
+		fromDate: moment(employeeDetails.createdAt).format("YYYY-MM-DD"),
+		toDate: null,
+		createdBy: createdBy,
+		createdAt: employeeDetails.createdAt,
+	};
+	await db.NoticePeriodEmploymentHistory.create(noticePeriodMetaData);
 }
 
 const revokeAppliedLeave = async (date, emp) => {
@@ -3646,7 +3789,6 @@ const revokeAppliedLeave = async (date, emp) => {
 			source: "system_generated",
 		},
 	});
-
 	if (leave) {
 		await db.EmployeeLeaveHeader.update(
 			{
@@ -3677,41 +3819,203 @@ const revokeAppliedLeave = async (date, emp) => {
 		);
 
 		if (leave.dataValues.status === "approved") {
-			if (leave.dataValues.leaveAutoId != 6) {
-				await db.leaveMapping.update(
-					{
-						availableLeave: db.sequelize.literal(
-							`availableLeave + ${leave.dataValues.leaveCount}`,
-						),
-						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
-						),
-					},
-					{
-						where: {
-							EmployeeId: emp,
-							leaveAutoId: leave.dataValues.leaveAutoId,
-						},
-					},
-				);
-			} else {
-				await db.leaveMapping.update(
-					{
-						utilizedThisYear: db.sequelize.literal(
-							`utilizedThisYear - ${leave.dataValues.leaveCount}`,
-						),
-					},
-					{
-						where: {
-							EmployeeId: emp,
-							leaveAutoId: leave.dataValues.leaveAutoId,
-						},
-					},
-				);
-			}
+			await maintainleaveCountOfEmployee(
+				emp,
+				leave.dataValues.leaveAutoId,
+				leave.dataValues.leaveCount,
+				"ADD",
+			);
 		}
 	}
 };
+//REVOKE
+const maintainleaveCountOfEmployee = async (EMP_ID, LEAVE_ID, COUNT, TYPE) => {
+	//TYPE WILL BE ADD, SUB
+	if (TYPE == "ADD") {
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
+			await db.leaveMapping.update(
+				{
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear - ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		} else {
+			await db.leaveMapping.update(
+				{
+					availableLeave: db.sequelize.literal(`availableLeave + ${COUNT}`),
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear - ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		}
+	} else {
+		if (LEAVE_ID == 6 || LEAVE_ID == 9) {
+			await db.leaveMapping.update(
+				{
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear + ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		} else {
+			await db.leaveMapping.update(
+				{
+					availableLeave: db.sequelize.literal(`availableLeave - ${COUNT}`),
+					utilizedThisYear: db.sequelize.literal(`utilizedThisYear + ${COUNT}`),
+				},
+				{
+					where: {
+						EmployeeId: EMP_ID,
+						leaveAutoId: LEAVE_ID,
+					},
+				},
+			);
+		}
+	}
+};
+const releaseCompOffTheEmployeeForDate = async (
+	EMP_ID,
+	DATE,
+	MODE = "LAPSE",
+) => {
+	//TYPE WILL BE ADD, SUB
+	// console.log("EMP_ID", EMP_ID, "DATE", DATE, "MODE", MODE);
+	if (MODE == "LAPSE") {
+		/// ADDed lapse condition based on regularization approved
+		await db.comp_off_credit_history.update(
+			{
+				status: 4,
+			},
+			{
+				where: {
+					employee_Id: EMP_ID,
+					credit_for_date: DATE,
+					taken_on: { [Op.eq]: null },
+				},
+			},
+		);
+	} else {
+		await db.comp_off_credit_history.update(
+			{
+				taken_on: null,
+				status: 1,
+			},
+			{
+				where: {
+					employee_Id: EMP_ID,
+					taken_on: DATE,
+					expiry_date: {
+						[Op.and]: [
+							{ [Op.gte]: moment().format("YYYY-MM-DD") }, // Code correction , earlier leave comp off was not revoke.
+						],
+					},
+				},
+			},
+		);
+	}
+};
+const revokeApprovedAppliedLeave = async (
+	leaveHeaderAutoId,
+	t,
+	userData,
+	result,
+) => {
+	const leaves = await db.EmployeeLeaveHeader.findOne({
+		where: {
+			employeeleaveheaderID: leaveHeaderAutoId,
+		},
+		include: [
+			{
+				model: db.employeeLeaveTransactions,
+				required: true,
+			},
+			{
+				model: db.employeeMaster,
+				required: true,
+			},
+		],
+	});
+	if (leaves) {
+		for (const Singleleaves of leaves.employeeleavetransactions) {
+			await db.employeeLeaveTransactions.update(
+				{
+					status: "revoked",
+					updatedBy: userData.id,
+					//message: result.remark != "" ? result.remark : null, ///message uncommented , was getting updated with revoke request approval
+					updatedAt: moment(),
+				},
+				{
+					where: {
+						employeeLeaveTransactionsId:
+							Singleleaves.employeeLeaveTransactionsId,
+					},
+				},
+				{ transaction: t },
+			);
+			// console.log("Singleleaves.employeeId", Singleleaves.employeeId);
+			// console.log("Singleleaves.leaveCount", Singleleaves.leaveCount);
+			// console.log("Singleleaves.leaveAutoId", Singleleaves.leaveAutoId);
+			await maintainleaveCountOfEmployee(
+				Singleleaves.employeeId,
+				Singleleaves.leaveAutoId,
+				Singleleaves.leaveCount,
+				"ADD",
+			);
+			if (Singleleaves.leaveAutoId == "9") {
+				// console.log("Singleleaves.employeeId", Singleleaves.employeeId);
+				// console.log("Singleleaves.appliedFor", Singleleaves.appliedFor);
+				await releaseCompOffTheEmployeeForDate(
+					Singleleaves.employeeId,
+					Singleleaves.appliedFor,
+					"RETURN",
+				);
+			}
+
+			const checkAttendance = await db.attendanceMaster.findOne({
+				where: {
+					employeeId: Singleleaves.employeeId,
+					attendanceDate: Singleleaves.appliedFor,
+				},
+			});
+			if (checkAttendance) {
+				await attendanceController.attedanceCronManual(
+					checkAttendance.attendanceAutoId,
+					Singleleaves.appliedFor,
+				);
+			}
+		}
+		await db.EmployeeLeaveHeader.update(
+			{
+				status: "revoked",
+				updatedBy: userData.id,
+				//message: result.remark != "" ? result.remark : null, message uncommented , was getting updated with revoke request approval
+				updatedAt: moment(),
+			},
+			{
+				where: {
+					employeeleaveheaderID: leaveHeaderAutoId,
+				},
+			},
+			{ transaction: t },
+		);
+	}
+	return leaves;
+};
+//REVOKE
 
 const activeCompOffMoreThanLeave = async (EMP_ID, leaveID) => {
 	const compOffHistory = await db.comp_off_credit_history.findAll({
@@ -3840,6 +4144,356 @@ const getWorkDuration = async (dateOfJoining) => {
 	return `${String(years).padStart(2, "0")}y ${String(months).padStart(2, "0")}m ${String(days).padStart(2, "0")}d`;
 };
 
+///CONFIRMATION AND BIRTHDAY WISH CC
+const roleEmailIds = async (EMP_DATA_SELF, ROLES) => {
+	let mails = [];
+	for (const emailids of ROLES) {
+		let ownerId = null;
+		if (emailids == "MANAGER") {
+			ownerId = EMP_DATA_SELF?.managerData?.id;
+		} else if (emailids == "L2_MANAGER") {
+			let EMP_DATA = await getEmpProfile(EMP_DATA_SELF?.managerData?.id); // L2 Manager
+			ownerId = EMP_DATA?.id;
+		} else if (emailids == "ADMIN") {
+			let admin = await db.employeeMaster.findOne({
+				where: {
+					role_id: 2,
+					isActive: 1,
+				},
+			});
+			ownerId = admin?.id;
+		} else if (emailids == "BUHR") {
+			ownerId = EMP_DATA_SELF?.buHRId;
+		}
+
+		if (ownerId) {
+			mails.push(ownerId);
+		}
+	} //TMC OR ID
+	const EMP_DATA_LIST = await db.employeeMaster.findAll({
+		where: {
+			id: mails,
+			isActive: 1,
+		},
+		attributes: ["email", "id", "empCode"],
+	});
+	let finalEmails = [];
+	for (const EMP_DATA_ROW of EMP_DATA_LIST) {
+		finalEmails.push(EMP_DATA_ROW.email);
+	}
+
+	const additionalCCMail =
+		EMP_DATA_SELF?.companymaster?.addCCEmailForWishesAndConfirmation;
+
+	if (additionalCCMail) {
+		finalEmails.push(...additionalCCMail.split(","));
+	}
+
+	const ccEmail = finalEmails.filter((email) => !!email);
+	return ccEmail;
+};
+///CONFIRMATION AND BIRTHDAY WISH CC
+
+async function handleAppraisalGoalPlanUpdate(assignmentId) {
+	const activePlans = await db.appraisalGoalsMaster.findAll({
+		attributes: ["appraisalGoalId", "userAssignment"],
+		where: {
+			type: 1,
+			isDeleted: 0,
+			userAssignment: assignmentId,
+		},
+	});
+
+	const allUserKeys = new Set();
+	const insertPayload = [];
+
+	for (const plan of activePlans) {
+		const userList = await getEmployeesToAssignGoalPlan(plan.userAssignment);
+		for (const user of userList) {
+			const key = `${user.email}_${user.id}`;
+			if (!allUserKeys.has(key)) {
+				allUserKeys.add(key);
+				insertPayload.push({
+					tmc: user.empCode,
+					email: user.email,
+					userId: user.id,
+					goalPlanId: plan.appraisalGoalId,
+					isActive: 1,
+				});
+			}
+		}
+	}
+
+	const existing = await db.goalPlanMail.findAll({
+		attributes: ["email", "userId"],
+		where: { isActive: 1 },
+	});
+	const existingMapNew = new Set(existing.map((e) => `${e.email}_${e.userId}`));
+
+	const newInserts = insertPayload.filter(
+		(entry) => !existingMapNew.has(`${entry.email}_${entry.userId}`),
+	);
+
+	if (newInserts.length > 0) {
+		await db.goalPlanMail.bulkCreate(newInserts);
+
+		for (const entry of newInserts) {
+			const [user, goalPlan] = await Promise.all([
+				db.employeeMaster.findOne({
+					where: { id: entry.userId },
+					include: [
+						{
+							model: db.companyMaster,
+							attributes: ["senderEmail", "companyLogo", "companyName"],
+						},
+					],
+					attributes: ["name", "email"],
+					raw: true,
+				}),
+				db.appraisalGoalsMaster.findOne({
+					where: { appraisalGoalId: entry.goalPlanId },
+					attributes: [
+						"startDate",
+						"endDate",
+						"goalPlanDescription",
+						"goalPlanName",
+					],
+					raw: true,
+				}),
+			]);
+
+			if (!goalPlan) {
+				console.warn(`Goal plan not found for ID ${entry.goalPlanId}`);
+				continue;
+			}
+
+			// eventEmitter.emit(
+			// 	"goalPlanAssignToEmployee",
+			// 	JSON.stringify({
+			// 		email: user.email,
+			// 		name: user.name,
+			// 		startDate: moment(goalPlan.startDate).format("DD-MM-YYYY"),
+			// 		endDate: moment(goalPlan.endDate).format("DD-MM-YYYY"),
+			// 		goalPlanDescription: goalPlan.goalPlanDescription,
+			// 		goalPlanName: goalPlan.goalPlanName,
+			// 		senderEmail: user["companymaster.senderEmail"] || "",
+			// 		companyLogo: user["companymaster.companyLogo"] || "",
+			// 		companyName: user["companymaster.companyName"] || "",
+			// 	}),
+			// );
+
+			// console.log(`Goal plan email triggered for ${user.email}`);
+		}
+	}
+}
+
+// reviewFrameworkService.js
+
+async function handleReviewFrameworkAssignment(userAssignment) {
+	try {
+		const currentReviewPlan = await db.reviewFramework.findOne({
+			where: { type: 1, userAssignment: userAssignment },
+			raw: true,
+		});
+		const userList = await getEmployeesByUserAssignmentId(userAssignment);
+
+		if (userList.length === 0) return;
+
+		const allUserKeys = new Set();
+		const insertPayload = [];
+		const insertForReviewTrail = [];
+
+		for (const user of userList) {
+			const key = `${user.email}_${user.id}`;
+			if (!allUserKeys.has(key)) {
+				allUserKeys.add(key);
+
+				insertPayload.push({
+					tmc: user.empCode,
+					email: user.email,
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isActive: 1,
+				});
+
+				insertForReviewTrail.push({
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isVisible: 1,
+					isActionTaken: 0,
+					pendingAt: user.id,
+					level: 0,
+				});
+			}
+		}
+
+		// Existing records to prevent duplication
+		const [existingMails, existingTrails] = await Promise.all([
+			db.reviewFrameworkMail.findAll({
+				attributes: ["email", "userId"],
+				where: { isActive: 1 },
+			}),
+			db.reviewRatingTrail.findAll({
+				attributes: ["userId", "level"],
+				where: { level: 0 },
+			}),
+		]);
+
+		const existingMailSet = new Set(
+			existingMails.map((e) => `${e.email}_${e.userId}`),
+		);
+		const existingTrailSet = new Set(
+			existingTrails.map((e) => `${e.level}_${e.userId}`),
+		);
+
+		const newInserts = insertPayload.filter(
+			(entry) => !existingMailSet.has(`${entry.email}_${entry.userId}`),
+		);
+		const newTrailInserts = insertForReviewTrail.filter(
+			(entry) => !existingTrailSet.has(`${entry.level}_${entry.userId}`),
+		);
+
+		if (newInserts.length > 0) {
+			await db.reviewFrameworkMail.bulkCreate(newInserts);
+		}
+
+		if (newTrailInserts.length > 0) {
+			await db.reviewRatingTrail.bulkCreate(newTrailInserts);
+		}
+	} catch (error) {
+		console.error("Error in handleReviewFrameworkAssignment:", error);
+		throw error;
+	}
+}
+
+async function handleReviewFrameworkAssignmentNew(userAssignment) {
+	try {
+		const currentReviewPlan = await db.reviewFramework.findOne({
+			where: { type: 1, userAssignment: userAssignment },
+			raw: true,
+		});
+		const userList = await getEmployeesByUserAssignmentId(userAssignment);
+
+		if (userList.length === 0) return;
+		const allUserKeys = new Set();
+		const insertPayload = [];
+		const insertForReviewTrail = [];
+
+		let steps = [];
+
+		if (currentReviewPlan.selfReview) steps.push("Employee");
+		if (currentReviewPlan.evaluator) steps.push("Manager");
+		if (currentReviewPlan.reviewer) steps.push("HOD");
+		steps.push("Calibration");
+		for (const user of userList) {
+			const key = `${user.email}_${user.id}`;
+			if (!allUserKeys.has(key)) {
+				allUserKeys.add(key);
+
+				insertPayload.push({
+					tmc: user.empCode,
+					email: user.email,
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isActive: 1,
+				});
+
+				let hodId = null;
+
+				// Only check department head if departmentId is present
+				if (user.departmentId) {
+					const departmentHead = await db.departmentMapping.findOne({
+						where: { departmentId: user.departmentId },
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "name"],
+								as: "departmentOfHead",
+							},
+						],
+					});
+
+					if (!departmentHead?.departmentOfHead?.id) {
+						logger.warn(
+							`Department head not found for departmentId: ${user.departmentId}`,
+						);
+					} else {
+						hodId = departmentHead.departmentOfHead.id;
+					}
+				} else {
+					logger.warn(
+						`Skipping department head check for user ${user.id} as departmentId is missing.`,
+					);
+				}
+
+				// Determine first pending stage and pendingAt
+				const pendingStage = steps[0];
+				const level = 0;
+
+				let pendingValue = null;
+				if (pendingStage === "Employee") {
+					pendingValue = user.id;
+				} else if (pendingStage === "Manager") {
+					pendingValue = user.managerData?.id;
+				} else if (pendingStage === "HOD") {
+					pendingValue = hodId;
+				}
+
+				if (!pendingValue) {
+					logger.warn(
+						`Skipping user ${user.id} due to missing pendingAt value for stage ${pendingStage}`,
+					);
+					continue;
+				}
+
+				insertForReviewTrail.push({
+					userId: user.id,
+					reviewFrameworkId: currentReviewPlan.reviewFrameworkId,
+					isVisible: 1,
+					isActionTaken: 0,
+					pendingAt: pendingValue,
+					level,
+					pendingStage,
+				});
+			}
+		}
+
+		// Fetch existing entries
+		const existing = await db.reviewFrameworkMail.findAll({
+			attributes: ["email", "userId"],
+			where: { isActive: 1 },
+		});
+		const existingTrail = await db.reviewRatingTrail.findAll({
+			attributes: ["userId", "level"],
+			where: { level: 0 },
+		});
+
+		const existingMap = new Set(existing.map((e) => `${e.email}_${e.userId}`));
+		const existingTrailMap = new Set(
+			existingTrail.map((e) => `${e.level}_${e.userId}`),
+		);
+
+		// Filter only new entries
+		const newInserts = insertPayload.filter(
+			(entry) => !existingMap.has(`${entry.email}_${entry.userId}`),
+		);
+		const newInsertsInTrail = insertForReviewTrail.filter(
+			(entry) => !existingTrailMap.has(`${entry.level}_${entry.userId}`),
+		);
+
+		// Insert into DB
+		if (newInserts.length > 0) {
+			await db.reviewFrameworkMail.bulkCreate(newInserts);
+		}
+		if (newInsertsInTrail.length > 0) {
+			await db.reviewRatingTrail.bulkCreate(newInsertsInTrail);
+		}
+	} catch (error) {
+		console.error("Error in handleReviewFrameworkAssignment:", error);
+		throw error;
+	}
+}
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -3886,6 +4540,9 @@ export default {
 	leaveCreditMonthCron,
 	leaveLapse,
 	leaveRefil,
+	//CONFIRMATION POLICY ASSGIMENT
+	confirmationPolicyAssignment,
+	//CONFIRMAGION POLICY ASSIGNMENT
 	//COMPOFF
 	//LEAVE ASSIGNMENT
 	leaveAssignEmployeeToAll,
@@ -3903,4 +4560,14 @@ export default {
 	convertEmptyStringsToNull,
 	chekcMonthCountInArray,
 	getWorkDuration,
+	//REVOKE
+	revokeApprovedAppliedLeave,
+	releaseCompOffTheEmployeeForDate,
+	roleEmailIds,
+	savePdfFile, // adding fucnction to save confirmation PDF file to local folder
+	//REVOKE
+	// review appraisal
+	handleAppraisalGoalPlanUpdate,
+	handleReviewFrameworkAssignment,
+	handleReviewFrameworkAssignmentNew,
 };

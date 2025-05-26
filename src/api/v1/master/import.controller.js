@@ -324,7 +324,7 @@ class MasterController {
 
 				if (employee) {
 					if (employee && req.body.documentType == 1) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>1");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>1");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -351,7 +351,7 @@ class MasterController {
 						);
 					}
 					if (employee && req.body.documentType == 2) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>2");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>2");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -407,7 +407,7 @@ class MasterController {
 						}
 					}
 					if (employee && req.body.documentType == 3) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>3");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>3");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -434,7 +434,7 @@ class MasterController {
 						);
 					}
 					if (employee && req.body.documentType == 4) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>4");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>4");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -490,7 +490,7 @@ class MasterController {
 						}
 					}
 					if (employee && req.body.documentType == 5) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>5");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>5");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -517,7 +517,7 @@ class MasterController {
 						);
 					}
 					if (employee && req.body.documentType == 6) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>6");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>6");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -573,7 +573,7 @@ class MasterController {
 						}
 					}
 					if (employee && req.body.documentType == 7) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>2");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>2");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -784,13 +784,13 @@ class MasterController {
 			const workbookEmployee = pkg.readFile(newPath);
 
 			// Log available sheet names
-			console.log("Available sheets:", workbookEmployee.SheetNames);
+			// console.log("Available sheets:", workbookEmployee.SheetNames);
 
 			// Check if 'Sheet1' exists, else use the first available sheet
 			let sheetNameEmployee = "Sheet1";
 			if (!workbookEmployee.Sheets[sheetNameEmployee]) {
 				sheetNameEmployee = workbookEmployee.SheetNames[0]; // Use first sheet dynamically
-				console.log(`Using sheet: ${sheetNameEmployee}`);
+				// console.log(`Using sheet: ${sheetNameEmployee}`);
 			}
 
 			if (!workbookEmployee.Sheets[sheetNameEmployee]) {

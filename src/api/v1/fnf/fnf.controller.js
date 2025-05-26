@@ -347,7 +347,7 @@ class FnfController {
 						ptMonth: employeeTds["PT Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
-					console.log(obj);
+					// console.log(obj);
 					const { error } = await validator.ptValidateSchama.validate(obj);
 					if (error) {
 						errorArray.push({
@@ -363,7 +363,7 @@ class FnfController {
 							},
 							raw: true,
 						});
-						console.log(existDetails);
+						// console.log(existDetails);
 						if (existDetails) {
 							obj["updatedBy"] = req.userData.id;
 							obj["updatedAt"] = new Date();
@@ -423,7 +423,7 @@ class FnfController {
 					msg: "Invalid File Format",
 				});
 			}
-			console.log(jsonArr);
+			// console.log(jsonArr);
 
 			for (const employeeTds of jsonArr) {
 				if (employeeTds["Employee ID"]) {
@@ -443,7 +443,7 @@ class FnfController {
 						lwfMonth: employeeTds["LWF Month (YYYY-MM)"],
 						empCode: employeeTds["Employee ID"],
 					};
-					console.log(obj);
+					// console.log(obj);
 					const { error } = await validator.lwfValidateSchama.validate(obj);
 					if (error) {
 						errorArray.push({
@@ -968,7 +968,7 @@ class FnfController {
 				},
 				{ raw: true, attributes: ["payProcessAutoId", "payMonth"] },
 			);
-			console.log(newProcess);
+			// console.log(newProcess);
 			const updatedArray = await newArray.map((item) => ({
 				EmployeeId: item.EmployeeId,
 				EmployeeName: item.EmployeeName,
@@ -1220,7 +1220,7 @@ class FnfController {
 			let allExtraPaymenetQuery = `SELECT EmployeeId, empCode, COUNT(DISTINCT EmployeeId) AS uniqueEmployeeImpacted, SUM(paymentAmount) AS paymentAmount FROM ${dbName}.extrapayment WHERE EmployeeId IN (${returnVAlue.avalialbleEmployees}) AND paymentMonth = '${req.body.paymonth}' GROUP BY EmployeeId, empCode;`;
 			let extraPayments = await db.sequelize.query(allExtraPaymenetQuery);
 			for (const singleEmployeePayment of extraPayments[0]) {
-				console.log(singleEmployeePayment);
+				// console.log(singleEmployeePayment);
 				totaPaymentAmount += parseFloat(
 					singleEmployeePayment.paymentAmount || 0,
 				);
@@ -1281,11 +1281,11 @@ class FnfController {
 				",",
 			)}) and startMonth='${value.paymonth}' GROUP BY empCode `;
 
-			console.log("Deduction Query ::" + allDeductionQuery);
+			// console.log("Deduction Query ::" + allDeductionQuery);
 
 			if (employeeIds.length > 0) {
 				let extraDeductions = await db.sequelize.query(allDeductionQuery);
-				console.log(extraDeductions[0]);
+				// console.log(extraDeductions[0]);
 				for (const extraDeductionSingleDetails of extraDeductions[0]) {
 					totalExtraDeductionsAmount += parseFloat(
 						extraDeductionSingleDetails.TotalDeductionAmount || 0,
@@ -1360,9 +1360,9 @@ class FnfController {
 				raw: true,
 			});
 
-			console.log(tdsDeductions);
+			// console.log(tdsDeductions);
 			for (const tdsSingleDetails of tdsDeductions) {
-				console.log(tdsSingleDetails);
+				// console.log(tdsSingleDetails);
 
 				totalTdsAmount += parseFloat(tdsSingleDetails.tdsAmount || 0);
 			}
@@ -1663,7 +1663,7 @@ class FnfController {
 					leaveEncashAndRevoceryObj.l2RecoveryDays &&
 					leaveEncashAndRevoceryObj.l2RecoveryDays > 0
 				) {
-					console.log(leaveEncashAndRevoceryObj.l2RecoveryDays);
+					// console.log(leaveEncashAndRevoceryObj.l2RecoveryDays);
 					let recoveryDaysData = await db.noticeRecoveryOverrides.findOne({
 						where: { employeeId: leaveEncashAndRevoceryObj.id },
 						attributes: ["recoveryDaysAutoId"],
@@ -1923,7 +1923,7 @@ class FnfController {
 					? dedcutionDetails[0][0].tdsImpactedEmployees.split(",").length
 					: 0,
 			});
-			console.log(dedcutionDetails[0][0]);
+			// console.log(dedcutionDetails[0][0]);
 			return respHelper(res, {
 				status: 200,
 				data: dedcutionDetails[0],
