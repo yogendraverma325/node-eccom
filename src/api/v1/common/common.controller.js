@@ -91,9 +91,6 @@ class commonController {
 				individualHooks: true, // ✅ Ensure hooks trigger properly
 			});
 
-
-			delete existBiographicalDetails.dataValues.createdBy
-			delete existBiographicalDetails.dataValues.createdAt
 			await db.employeeBiographicalHistory.create(Object.assign({
 				createdBy: req.userId,
 				createdAt: moment()
