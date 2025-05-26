@@ -477,7 +477,6 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 					});
 					continue;
 				} else {
-					
 					let packageInserted = await db.payPackage.create(
 						{
 							EmployeeId: employeeDetails.id,
@@ -580,7 +579,7 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 								"paySlipGrossEarning",
 								"paySlipWorkingDays",
 								"financialYearId",
-								"paySlipTotalDays"
+								"paySlipTotalDays",
 							],
 							raw: true,
 						});
@@ -601,15 +600,14 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 								buId: employeeDetails.buId,
 								empCode: employee["EmployeeId"],
 								sbuId: employeeDetails.sbuId,
-								currentPackageId:packageInserted.dataValues.payPackageAutoId,
-								lastPackageId:existingPackage.payPackageAutoId,
-								paySlipTotalDays:lastPackagePayObject.paySlipTotalDays,
+								currentPackageId: packageInserted.dataValues.payPackageAutoId,
+								lastPackageId: existingPackage.payPackageAutoId,
+								paySlipTotalDays: lastPackagePayObject.paySlipTotalDays,
 							};
 							await db.earningsArears.create(incrementArrearsObject);
 							//console.log(incrementArrearCreation);
 						}
 					}
-
 				}
 			} else {
 				errorArray.push({
