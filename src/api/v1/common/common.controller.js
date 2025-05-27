@@ -78,7 +78,7 @@ class commonController {
 
 			const existBiographicalDetails = await db.biographicalDetails.findOne({
 				where: { userId: userId },
-			})
+			});
 
 			const updateObj = Object.assign(result, {
 				userId: userId,
@@ -91,13 +91,15 @@ class commonController {
 				individualHooks: true, // ✅ Ensure hooks trigger properly
 			});
 
-			await db.employeeBiographicalHistory.create(Object.assign({
-				createdBy: req.userId,
-				createdAt: moment()
-			},
-				existBiographicalDetails.dataValues
-			)
-			)
+			await db.employeeBiographicalHistory.create(
+				Object.assign(
+					{
+						createdBy: req.userId,
+						createdAt: moment(),
+					},
+					existBiographicalDetails.dataValues,
+				),
+			);
 
 			if (result.salutationId) {
 				await db.employeeMaster.update(

@@ -2692,6 +2692,24 @@ class MasterController {
 	// 		});
 	// 	}
 	// }
+
+	async hrDocuments(req, res) {
+		try {
+			const list = await db.hrDocumentMaster.findAll({
+				where: { isActive: 1 },
+				attributes: ["documentId", "documentName"],
+			});
+			return respHelper(res, {
+				status: 200,
+				data: list,
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 }
 
 async function fetchPermissionAccessRecord(req, permissionType) {
