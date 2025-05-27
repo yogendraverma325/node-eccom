@@ -5687,6 +5687,7 @@ class AttendanceController {
 	//REVOKE
 	async revokeApprovedRegularizations(req, res) {
 		try {
+			console.log("req.body",req.body)
 			const result =
 				await validator.revokeApprovedRegularizationsValidation.validateAsync(
 					req.body,
@@ -5878,6 +5879,7 @@ class AttendanceController {
 				attendanceData.employeeId,
 				attendanceData.attendanceDate,
 				"LAPSE",
+				6 // adding lapse status
 			);
 
 			await helper.revokeAppliedLeave(
