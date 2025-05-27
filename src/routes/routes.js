@@ -39,7 +39,7 @@ router.use("/comman", authentication.authenticate, commanRoutes);
 router.use("/leave", authentication.authenticate, leave);
 router.use("/admin/master", authentication.authenticate, adminMasterRoutes);
 router.use("/cron", cronRoutes);
-router.use("/import", masterImportRoutes);
+router.use("/import", authentication.authenticate, masterImportRoutes);
 router.use("/thirdparty", thirdPartyRoutes);
 router.use("/fnf", fnfRoutes);
 router.use("/imports", imports);

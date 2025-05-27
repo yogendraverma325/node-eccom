@@ -306,15 +306,33 @@ class AdminController {
 					toDate: null,
 				};
 
+				if(iterator.id && iterator.date < moment().format("YYYY-MM-DD")) {
+					return respHelper(res, {
+						status: 400,
+						msg: "From date should be greater then or equal to current date.",
+					});
+				}
+
 				if (iterator.id) {
+					
+                    const recordsExist = await db.managerHistory.findOne({
+						raw: true,
+						where: {
+							id: iterator.id
+						}
+					});
+
 					metaData = {
 						...metaData,
 						updatedBy: req.userId,
 						updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+						...(iterator.manager != recordsExist.manager && recordsExist.fromDate != metaData.fromDate && { "needAttendanceCron": 1 })
 					};
+
 					await db.managerHistory.update(metaData, {
 						where: { id: iterator.id },
 					});
+
 					const recordsExistForDate = await db.managerHistory.findOne({
 						raw: true,
 						where: {
@@ -328,7 +346,7 @@ class AdminController {
 					if (recordsExistForDate) {
 						await db.managerHistory.update(
 							{
-								toDate: moment(result.fromDate)
+								toDate: moment(metaData.fromDate)
 									.subtract(1, "day")
 									.format("YYYY-MM-DD"),
 							},
@@ -349,7 +367,7 @@ class AdminController {
 						raw: true,
 						where: {
 							fromDate: iterator.date,
-							needAttendanceCron: 1,
+							// needAttendanceCron: 1,
 							employeeId: iterator.user,
 						},
 					});

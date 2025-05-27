@@ -141,7 +141,7 @@ class CronController {
 		const managerData = await db.managerHistory.findAll({
 			raw: true,
 			where: {
-				fromDate: moment().format("YYYY-MM-DD"),
+				// fromDate: moment().format("YYYY-MM-DD"),
 				needAttendanceCron: 1,
 			},
 		});
