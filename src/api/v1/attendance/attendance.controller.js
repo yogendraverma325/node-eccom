@@ -5691,6 +5691,9 @@ class AttendanceController {
 				await validator.revokeApprovedRegularizationsValidation.validateAsync(
 					req.body,
 				);
+			const startOfYear = moment().startOf("year").toDate(); // added year end check in attendance revoke function
+			const endOfYear = moment().endOf("year").toDate(); // added year end check in attendance revoke function
+
 			const regularizeData = await db.regularizationMaster.findOne({
 				raw: true,
 				where: {
@@ -5702,6 +5705,12 @@ class AttendanceController {
 					{
 						model: db.attendanceMaster,
 						attributes: ["attendanceAutoId", "employeeId", "attendanceDate"],
+						where:{
+							attendanceDate: {
+								[Op.between]: [startOfYear, endOfYear],  // only current year records should be revoked only
+							},
+									
+						},
 						include: [
 							///added association for company logo and name
 							{
@@ -5725,6 +5734,7 @@ class AttendanceController {
 				});
 			}
 
+
 			const revokeRegularization =
 				await db.RegularizationRevokeTransaction.findOne({
 					where: {
@@ -5738,6 +5748,29 @@ class AttendanceController {
 					msg: `Revoke Application already placed`,
 				});
 			}
+
+
+
+				let leaveCountCompoffApproveds = await db.comp_off_credit_history.findAll({ // added new filter to check comp off used on another day or not
+				where: {
+				employee_Id: regularizeData["attendancemaster.employeeId"],
+				status:2,
+				credit_for_date:regularizeData["attendancemaster.attendanceDate"]
+				},
+				});
+				if(leaveCountCompoffApproveds.length>0){ // added new filter to check comp off used on another day or not
+						let uniqueDates = [];
+						for (let record of leaveCountCompoffApproveds) { //getting the date on which comp off leave got approved
+						const date = record.taken_on;
+						if (!uniqueDates.includes(date)) {
+						uniqueDates.push(date);
+						}
+						}
+						return respHelper(res, {
+						status: 400,
+						msg: `There is a Comp Off leave already applied for ${uniqueDates.join(',')} date(s). You are requested to manage or revoke the Comp Off leave first in order to proceed`,
+						});
+				}
 
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {

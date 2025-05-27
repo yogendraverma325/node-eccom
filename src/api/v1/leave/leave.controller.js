@@ -6125,7 +6125,7 @@ class LeaveController {
 						employeeId: req.userId,
 						status: "pending",
 					}
-				: usersData.role_id === 4 || usersData.role_id === 5
+				: usersData.role_id === 4 || usersData.role_id === 5 || usersData.role_id === 2
 					? {
 							employeeId: { [Op.not]: req.userId },
 							status: "pending",
@@ -6158,7 +6158,7 @@ class LeaveController {
 										{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
 									],
 								}),
-								...(usersData.role_id === 4 || usersData.role_id === 5
+								...(usersData.role_id === 4 || usersData.role_id === 5 || usersData.role_id === 2
 									? {
 											...(permissoinArray.COMPANY.length > 0 && {
 												companyId: { [Op.in]: permissoinArray.COMPANY },
