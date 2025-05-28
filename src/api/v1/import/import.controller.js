@@ -277,7 +277,7 @@ class ImportController {
 					companyId: { [Op.not]: null },
 					id: { [Op.ne]: 1 },
 				},
-				attributes: ["id", "companyId", "noticePeriodAutoId", "dateOfJoining"],
+				attributes: ["id", "companyId", "noticePeriodAutoId", "dateOfJoining", "createdBy", "createdAt"],
 				include: [
 					{
 						model: db.NoticePeriodEmploymentHistory,
@@ -286,13 +286,25 @@ class ImportController {
 						where: { employeeId: { [Op.not]: null } },
 					},
 				],
+				row: true,
 				having: db.Sequelize.literal(
 					"`noticePeriodHistories`.`employeeId` IS NULL",
 				),
 			});
 
 			if (users.length > 0) {
-				await db.NoticePeriodEmploymentHistory.bulkCreate(users);
+				let arr = users.map(el => {
+					return {
+						employeeId: el.id,
+						companyId: el.companyId,
+						noticePeriodAutoId: el.noticePeriodAutoId,
+						fromDate: el.dateOfJoining,
+						toDate: null,
+						createdBy: el.createdBy,
+						createdAt: el.createdAt
+					}
+				})
+				await db.NoticePeriodEmploymentHistory.bulkCreate(arr);
 				return respHelper(res, {
 					status: 200,
 					msg: "History generated successfully.",
