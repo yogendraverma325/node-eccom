@@ -8,7 +8,7 @@ import constant from "../../../constant/messages.js";
 import eventEmitter from "../../../services/eventService.js";
 import fs from "fs";
 import moment from "moment";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New Import Sandeep
 class UserController {
 	async globalSearch(req, res) {
 		try {
@@ -6710,7 +6710,7 @@ class UserController {
 					body: `Your comp off request is ${req.body.status == 1 ? "Approved" : "Rejected"}`,
 					employeeId: EMP_DATA_SELF.id,
 				});
-				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
+				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj)); 
 			}
 
 			return respHelper(res, {

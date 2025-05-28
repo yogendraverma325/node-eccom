@@ -3891,6 +3891,7 @@ const releaseCompOffTheEmployeeForDate = async (
 	EMP_ID,
 	DATE,
 	MODE = "LAPSE",
+	status=4
 ) => {
 	//TYPE WILL BE ADD, SUB
 	// console.log("EMP_ID", EMP_ID, "DATE", DATE, "MODE", MODE);
@@ -3898,7 +3899,7 @@ const releaseCompOffTheEmployeeForDate = async (
 		/// ADDed lapse condition based on regularization approved
 		await db.comp_off_credit_history.update(
 			{
-				status: 4,
+				status: status, // adding lapse status
 			},
 			{
 				where: {
