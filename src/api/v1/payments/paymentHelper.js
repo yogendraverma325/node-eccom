@@ -415,7 +415,7 @@ async function query(caseId, data, data2) {
 			//return `SELECT ea.earningArrearAutoId,eaa.seq, ea.arearDays, eaa.type, ea.EmployeeId, ea.arrearPayMonth, eaa.componentAutoId, eaa.arrearName, eaa.arrearAmunt FROM tara.earningarrears ea JOIN tara.earningarrearsamount eaa ON ea.earningArrearAutoId = eaa.earningArrearAutoId WHERE ea.arrearPayMonth = '${data}' AND ea.EmployeeId IN (${data2.join(",")});`;
 			break;
 		case 28:
-			return `SELECT SUM(arearDays) AS totalArrearsDays FROM tara.earningarrears WHERE arrearPayMonth = '${data}' AND EmployeeId = ${data2.join(",")};`;
+			return `SELECT SUM(arearDays) AS totalArrearsDays FROM tara.earningarrears WHERE arrearPayMonth = '${data}' AND EmployeeId in (${data2.join(",")});`;
 		default:
 	}
 }

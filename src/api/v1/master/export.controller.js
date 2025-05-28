@@ -7677,8 +7677,8 @@ class MasterController {
 				const processedData = groupByEmployeeId(result1[0]);
 
 				processedData.sort((a, b) => {
-					const idA = a["Employee ID"];
-					const idB = b["Employee ID"];
+					const idA = a["Employee Id"];
+					const idB = b["Employee Id"];
 					return idA.localeCompare(idB, undefined, {
 						numeric: true,
 						sensitivity: "base",
