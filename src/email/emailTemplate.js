@@ -6279,6 +6279,311 @@ const leaveAcknowledgementRevoke = async (data) => {
 //LEAVE REVOKE
 
 // goal-appraisal
+
+const reviewCycleAssignToEmployee = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TARA HRMS Notification</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px 0;
+        background: #ffffff;
+        color: #000000;
+        font-family: Lato, Arial, sans-serif;
+      }
+      .container {
+        width: 700px;
+        margin: 0 auto;
+        border-collapse: collapse;
+      }
+      .button {
+        padding: 5px 10px;
+        background: #0173c5;
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 2px;
+        font-size: 14px;
+        display: inline-block;
+      }
+      .details {
+        margin-top: 2rem;
+        font-size: 14px;
+      }
+      .details span {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="container">
+      <tr>
+        <td colspan="2" style="padding-bottom: 20px; text-align: left; border-bottom: 1px solid #eee;" valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Company Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="TARA Logo"
+            style="float: right;"
+          />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 2rem;">
+          <p style="font-size: 16px; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+
+          <p style="font-size: 15px; line-height: 1.6;">
+            A Review for the <strong>${data.reviewCycleName}</strong> performance cycle is now active.
+          </p>
+
+          <p style="font-size: 15px;">
+            to complete self review.
+            <a href="${process.env.CLIENT_URL}" class="button" target="_blank" rel="noopener noreferrer">Click Here</a>
+          </p>
+
+          <p style="font-size: 15px; margin-top: 2rem;">
+            Thanks,<br />HR Team
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const sendBackForReSubmission = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+  </head>
+
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        font-family: Lato, Arial, sans-serif;
+        border-collapse: collapse;
+        border-radius: 10px;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee"
+            valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api${data.companyLogo}"
+            alt="Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="Logo"
+            style="float:right"
+          />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            <strong>${data.senderName}</strong> has sent back the review cycle 
+            <strong>${data.reviewCycleName}</strong> to you for re-submission.
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href=${process.env.CLIENT_URL}
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+                margin-right: 5px;
+              "
+              target="_blank"
+            >Click Here</a> to view.
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS<br /></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const nextLevelSubmissionTemplate = async (data) => {
+	const content =
+		data.role === "Manager"
+			? `The review of <strong>${data.senderName}</strong> (<strong>${data.empCode}</strong>) is now pending for your evaluation.`
+			: `The performance evaluation completed for <strong>${data.senderName}</strong> has been submitted to you for your review. Please complete the same at the earliest.`;
+
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+  </head>
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000; font-family: Lato, Arial, sans-serif;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        border-collapse: collapse;
+        border-radius: 10px;
+        background: #ffffff;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/company_logo.png"
+            alt="Company Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="TARA HRMS Logo"
+            style="float:right"
+          />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            ${content}
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href="${process.env.CLIENT_URL}"
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+                margin-right: 5px;
+              "
+              target="_blank"
+            >Click Here</a> to complete the ${data.role === "Manager" ? "evaluation" : "review"}.
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS<br /></p>
+          <p style="font-size: 15px; color: #000000;">${data.companyName}<br /></p>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+const reviewComplete = async (data) => {
+	return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TARA HRMS Notification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+  </head>
+  <body style="margin: 0; padding: 40px 0; background: #ffffff; color: #000000; font-family: Lato, Arial, sans-serif;">
+    <table
+      width="100%"
+      style="
+        width: 700px;
+        margin: 0 auto;
+        border-collapse: collapse;
+        border-radius: 10px;
+        background: #ffffff;
+      "
+    >
+      <tr>
+        <td colspan="2" style="padding-bottom:20px;text-align:left;border-bottom:1px solid #eee" valign="middle">
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/company_logo.png"
+            alt="Company Logo"
+          />
+          <img
+            height="45"
+            src="${process.env.PROXY_URL}/api/uploads/assets/tara_small.png"
+            alt="TARA HRMS Logo"
+            style="float:right"
+          />
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 1rem 2rem;">
+          <p style="font-size: 16px; margin-top: 4.5rem; margin-bottom: 1rem;">
+            Hi <strong>${data.name}</strong>,
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #000000; margin-top: 0;">
+            This is inform you that your review process ${data.reviewCycleName} is completed.
+          </p>
+          <p style="margin-top: 1rem; font-size: 15px; color: #000000;">
+            <a
+              href="${process.env.CLIENT_URL}"
+              style="
+                padding: 5px 10px;
+                background: #0173c5;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 2px;
+                font-size: 14px;
+                display: inline-block;
+                margin-right: 5px;
+              "
+              target="_blank"
+            >Click Here</a> to view.
+          </p>
+
+          <p style="font-size: 15px; color: #000000;"><br /></p>
+          <p style="font-size: 15px; color: #000000;">Regards,</p>
+          <p style="font-size: 15px; color: #000000;">TARA HRMS<br /></p>
+          <p style="font-size: 15px; color: #000000;">${data.companyName}<br /></p>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
 export default {
 	regularizationRequestMail,
 	resetPasswordMail,
@@ -6330,5 +6635,9 @@ export default {
 	///LEAVE REVOKE
 	leaveAcknowledgementRevoke,
 	leaveRequestRevokeMail,
+  reviewCycleAssignToEmployee,
+	sendBackForReSubmission,
+	nextLevelSubmissionTemplate,
+	reviewComplete,
 	///LEAVE REVOKE
 };

@@ -1935,13 +1935,37 @@ const createAppraisalGoals = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
+	// userAssignment: Joi.array()
+	// 	.items(Joi.number())
+	// 	.min(1)
+	// 	.required()
+	// 	.label("User Assignment")
+	// 	.custom((value, helpers) => {
+	// 		return value.join(","); // Convert array [1, 2] → "1,2"
+	// 	}),
 	userAssignment: Joi.array()
 		.items(Joi.number())
 		.min(1)
 		.required()
 		.label("User Assignment")
 		.custom((value, helpers) => {
+			if (!Array.isArray(value) || value.length === 0) {
+				return helpers.error("array.min");
+			}
+
+			// Optional: validate all are numbers (safety net if needed)
+			for (const val of value) {
+				if (typeof val !== "number") {
+					return helpers.error("array.includes");
+				}
+			}
+
 			return value.join(","); // Convert array [1, 2] → "1,2"
+		})
+		.messages({
+			"array.min": "User Assignment is required",
+			"array.includes": "User Assignment is required",
+			"any.required": "User Assignment is required",
 		}),
 	exclusionSetting: Joi.number().integer().required(),
 	enableSubGoals: Joi.number()
@@ -2069,7 +2093,23 @@ const editAppraisalGoals = Joi.object({
 		.required()
 		.label("User Assignment")
 		.custom((value, helpers) => {
+			if (!Array.isArray(value) || value.length === 0) {
+				return helpers.error("array.min");
+			}
+
+			// Optional: validate all are numbers (safety net if needed)
+			for (const val of value) {
+				if (typeof val !== "number") {
+					return helpers.error("array.includes");
+				}
+			}
+
 			return value.join(","); // Convert array [1, 2] → "1,2"
+		})
+		.messages({
+			"array.min": "User Assignment is required",
+			"array.includes": "User Assignment is required",
+			"any.required": "User Assignment is required",
 		}),
 	exclusionSetting: Joi.number().integer().required(),
 	enableSubGoals: Joi.number()
@@ -2397,7 +2437,13 @@ const reviewFrameworkSchema = Joi.object({
 	userAssignment: Joi.array()
 		.items(Joi.number().required())
 		.min(1) // Ensures at least one item
-		.required(),
+		.required()
+		.messages({
+			"array.base": "User Assignment is required",
+			"array.min": "User Assignment is required",
+			"any.required": "User Assignment is required",
+			"array.includesRequiredUnknowns": "User Assignment is required",
+		}),
 	// selfCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// selfCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	// evaluatorCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
@@ -2422,6 +2468,13 @@ const reviewFrameworkSchema = Joi.object({
 	reviewerCanViewCommentOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),
+}).custom((value, helpers) => {
+	const goal = value.goalWeightage ?? 0;
+	const comp = value.compentencyWeightage ?? 0;
+	if (goal + comp !== 100) {
+		return helpers.message("The sum of goalWeightage and compentencyWeightage must be 100");
+	}
+	return value;
 });
 
 const editReviewFrameworkSchema = Joi.object({
@@ -2469,7 +2522,13 @@ const editReviewFrameworkSchema = Joi.object({
 	userAssignment: Joi.array()
 		.items(Joi.number().required())
 		.min(1) // Ensures at least one item
-		.required(),
+		.required()
+		.messages({
+			"array.base": "User Assignment is required",
+			"array.min": "User Assignment is required",
+			"any.required": "User Assignment is required",
+			"array.includesRequiredUnknowns": "User Assignment is required",
+		}),
 	selfCanViewRatingOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),
@@ -2488,7 +2547,14 @@ const editReviewFrameworkSchema = Joi.object({
 	reviewerCanViewCommentOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),
-});
+}).custom((value, helpers) => {
+	const goal = value.goalWeightage ?? 0;
+	const comp = value.compentencyWeightage ?? 0;
+	if (goal + comp !== 100) {
+		return helpers.message("The sum of goalWeightage and compentencyWeightage must be 100");
+	}
+	return value;
+});;
 
 const createRatingScaleSchema = Joi.object({
 	ratingScaleName: Joi.string().required().messages({

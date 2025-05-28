@@ -1921,7 +1921,7 @@ class MasterController {
 				managerId,
 				reporteIds,
 			} = req.query;
-			console.log("reporteIds", reporteIds);
+			
 			let buFIlter = {};
 			let sbbuFIlter = {};
 			let functionAreaFIlter = {};
@@ -2252,7 +2252,6 @@ class MasterController {
 			];
 			const finalData = [];
 			const today = moment().startOf("day");
-
 			for (const employeeId of employeeIds) {
 				const employeeRecords = attendanceData.filter(
 					(record) => record.employeeId === employeeId,
@@ -2739,8 +2738,8 @@ class MasterController {
 					employeeId: employeeRecord.empId,
 					name: employeeRecord.name,
 					empCode: employeeRecord.empCode,
-					dateOfJoining: employeeRecord.dateOfJoining,
-					dateOfExit: employeeRecord.dateOfexit,
+					dateOfJoining: employeeRecord.dateOfJoining?moment(employeeRecord.dateOfJoining).format("DD-MM-YYYY"):employeeRecord.dateOfJoining,
+					dateOfExit: employeeRecord.dateOfexit ? moment(employeeRecord.dateOfexit).format("DD-MM-YYYY"):employeeRecord.dateOfexit,
 					...dayRecords,
 					P: attendanceCount.P,
 					A: attendanceCount.A,

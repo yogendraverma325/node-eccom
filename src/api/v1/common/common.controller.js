@@ -3553,6 +3553,10 @@ export async function getEmployeesByUserAssignmentId(id) {
 					required: Object.keys(whereJobDetails).length > 0,
 					attributes: ["confirmationDate"],
 				},
+				{
+					model: db.companyMaster,
+					attributes: ["companyName", "senderEmail", "companyLogo"],
+				},
 			],
 			attributes: [
 				"id",
@@ -3692,7 +3696,7 @@ export async function getEmployeesToAssignGoalPlan(getUserAssigmentIds) {
 				: Array.isArray(getUserAssigmentIds)
 					? getUserAssigmentIds
 					: [getUserAssigmentIds];
-
+console.log(">>>>>>>idsArrayidsArray",getUserAssigmentIds)
 		const assignments = await db.user_assignment.findAll({
 			where: {
 				id: {

@@ -101,9 +101,9 @@ export default Express.Router()
 		appraisalGoalsController.updateReviewFramework,
 	)
 	.post(
-		"/selfRating",
+		"/selfRatingCopy",
 		authentication.authenticate,
-		appraisalGoalsController.selfRating,
+		appraisalGoalsController.selfRatingCopy,
 	)
 	.post(
 		"/activeGoalReviewFramework",
@@ -137,7 +137,11 @@ export default Express.Router()
 		appraisalGoalsController.getReportieReviewAppraisal,
 	)
 	.post(
-		"/sendBackRating",
+		"/sendBackForSubmission",
 		authentication.authenticate,
-		appraisalGoalsController.sendBackRating,
-	);
+		appraisalGoalsController.sendBackForSubmission,
+	).post(
+		"/selfRating",
+		authentication.authenticate,
+		appraisalGoalsController.selfRating,
+	);;

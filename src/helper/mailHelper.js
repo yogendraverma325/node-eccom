@@ -187,6 +187,20 @@ export default function getAllListeners(eventEmitter) {
 		await leaveRevokeAckMail(input);
 	});
 	///LEAVE REVOKE
+
+	// review cycle
+	eventEmitter.on("sendBackForReSubmission", async (input) => {
+		await sendBackForReSubmission(input);
+	});
+	eventEmitter.on("nextLevelSubmissionTemplate", async (input) => {
+		await nextLevelSubmissionTemplate(input);
+	});
+	eventEmitter.on("reviewComplete", async (input) => {
+		await reviewComplete(input);
+	});
+	eventEmitter.on("reviewCycleAssignToEmployee", async (input) => {
+		await reviewCycleAssignToEmployee(input);
+	});
 }
 
 async function regularizationRequestMail(input) {
@@ -984,3 +998,69 @@ async function leaveRevokeAckMail(input) {
 	}
 }
 ///LEAVE REVOKE
+
+// review cycle
+
+async function sendBackForReSubmission(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Action Required:Pending Evaluation.`,
+			html: await emailTemplate.sendBackForReSubmission(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function nextLevelSubmissionTemplate(input) {
+	try {
+		const userData = JSON.parse(input);
+		const subject =
+			userData.role == "Manager"
+				? `Your evaluation for ${userData.senderName} is now pending`
+				: `Your Review for ${userData.senderName} is pending`;
+		await helper.mailService({
+			to: userData.email,
+			subject: subject,
+			html: await emailTemplate.nextLevelSubmissionTemplate(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function reviewComplete(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.email,
+			subject: "Review completed",
+			html: await emailTemplate.reviewComplete(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function reviewCycleAssignToEmployee(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.email,
+			subject: "Your Self review is pending",
+			html: await emailTemplate.reviewCycleAssignToEmployee(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}

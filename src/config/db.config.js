@@ -2537,4 +2537,9 @@ db.compentancyRating.belongsTo(db.compentancyAttributes, {
   as: "compentancyAttr"
 });
 
+db.reviewRatingTrail.hasOne(db.employeeMaster, {
+  foreignKey: "id",     // FK in compentancyRating
+  sourceKey: "pendingAt",       // PK in compentancyAttributes
+  as: "trailPendingAt",          // alias to use in include
+});
 export default db;

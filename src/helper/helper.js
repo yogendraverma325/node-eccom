@@ -109,6 +109,10 @@ const checkActiveUser = async (data) => {
 				model: db.roleMaster,
 				attributes: ["name"],
 			},
+			{
+				model: db.companyMaster,
+				attributes: ["companyName", "senderEmail", "companyLogo"],
+			},
 		],
 	});
 	return existUser;
@@ -4494,6 +4498,63 @@ async function handleReviewFrameworkAssignmentNew(userAssignment) {
 	}
 }
 
+function isEmpty(value) {
+  return value === null || value === undefined || value === "";
+}
+
+async function validateSelfAppraisalData(data) {
+  const isSubmit = data.isSubmit === true;
+ 
+
+  if (isSubmit) {
+    if (!Array.isArray(data.selfRatings) || data.selfRatings.length === 0) {
+      return { valid: false, error: "At least one selfRating is required when submitting." };
+    }
+
+    for (let i = 0; i < data.selfRatings.length; i++) {
+      const item = data.selfRatings[i];
+
+      if (isEmpty(item.goalAreaId)) {
+        return { valid: false, error: `goalAreaId is required.` };
+      }
+
+      if (isEmpty(item.rating)) {
+        return { valid: false, error: `Rating is required.` };
+      }
+
+    //   if (isEmpty(item.comment)) {
+    //     return { valid: false, error: `comment is required in selfRatings[${i}].` };
+    //   }
+    }
+
+    if (!Array.isArray(data.compentancyRating) || data.compentancyRating.length === 0) {
+      return { valid: false, error: "At least one compentancyRating is required when submitting." };
+    }
+
+    for (let i = 0; i < data.compentancyRating.length; i++) {
+      const item = data.compentancyRating[i];
+
+      if (isEmpty(item.rating)) {
+        return { valid: false, error: `rating is required.` };
+      }
+
+    //   if (isEmpty(item.comment)) {
+    //     return { valid: false, error: `comment is required in compentancyRating[${i}].` };
+    //   }
+
+      if (isEmpty(item.compentancyAttrId)) {
+        return { valid: false, error: `compentancyAttrId is required in compentancyRating[${i}].` };
+      }
+
+      if (isEmpty(item.compentancyTierId)) {
+        return { valid: false, error: `compentancyTierId is required in compentancyRating[${i}].` };
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
 export default {
 	generateJwtToken,
 	checkFolder,
@@ -4570,4 +4631,5 @@ export default {
 	handleAppraisalGoalPlanUpdate,
 	handleReviewFrameworkAssignment,
 	handleReviewFrameworkAssignmentNew,
+	validateSelfAppraisalData,
 };
