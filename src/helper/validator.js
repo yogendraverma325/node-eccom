@@ -2364,38 +2364,6 @@ const proxyLoginSchema = Joi.object({
 // End proxy validation area
 
 // appraisal ==========
-// const reviewFrameworkSchema = Joi.object({
-// 	reviewName: Joi.string().trim().required(),
-// 	reviewId: Joi.string().trim().required(),
-// 	reviewDescription: Joi.string().allow('').required(),
-
-// 	alignToReviewCycle: Joi.number().integer().optional(),
-// 	goalRatingScale: Joi.number().integer().optional(),
-// 	goalAutoCalculate: Joi.boolean().optional(),
-// 	goalAutoCompentancy: Joi.number().integer().optional(),
-
-// 	overallPerformanceScale: Joi.number().integer().optional(),
-// 	goalWeightage: Joi.number().integer().min(0).max(100).optional(),
-// 	compentencyWeightage: Joi.number().integer().min(0).max(100).optional(),
-
-// 	promotionFramework: Joi.number().integer().optional(),
-// 	selfReview: Joi.boolean().optional(),
-
-// 	evaluator: Joi.string().optional(),
-// 	reviewer: Joi.string().optional(),
-// 	calibration: Joi.string().allow('').optional(),
-
-// 	sendBackToEmployee: Joi.boolean().optional(),
-
-// 	selfCanViewRatingOf: Joi.string().allow('').optional(),
-// 	selfCanViewCommentOf: Joi.string().allow('').optional(),
-// 	evaluatorCanViewRatingOf: Joi.string().allow('').optional(),
-// 	evaluatorCanViewCommentOf: Joi.string().allow('').optional(),
-
-// 	// Fields that only accept an empty string ""
-// 	reviewerCanViewRatingOf: Joi.string().allow('').optional(),
-// 	reviewerCanViewCommentOf: Joi.string().allow('').optional(),
-//   });
 const reviewFrameworkSchema = Joi.object({
 	reviewName: Joi.string().trim().required(),
 	reviewId: Joi.string().trim().required(),
@@ -2444,12 +2412,6 @@ const reviewFrameworkSchema = Joi.object({
 			"any.required": "User Assignment is required",
 			"array.includesRequiredUnknowns": "User Assignment is required",
 		}),
-	// selfCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
-	// selfCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
-	// evaluatorCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
-	// evaluatorCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
-	// reviewerCanViewRatingOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
-	// reviewerCanViewCommentOf: Joi.alternatives().try(Joi.array(), Joi.string().allow('')).optional(),
 	selfCanViewRatingOf: Joi.alternatives()
 		.try(Joi.array(), Joi.string().allow(""))
 		.optional(),
@@ -2472,7 +2434,7 @@ const reviewFrameworkSchema = Joi.object({
 	const goal = value.goalWeightage ?? 0;
 	const comp = value.compentencyWeightage ?? 0;
 	if (goal + comp !== 100) {
-		return helpers.message("The sum of goalWeightage and compentencyWeightage must be 100");
+		return helpers.message("The sum of goal Weightage and compentency Weightage must be 100");
 	}
 	return value;
 });
@@ -2516,9 +2478,6 @@ const editReviewFrameworkSchema = Joi.object({
 		.messages({
 			"string.pattern.base": "End Date must be in YYYY-MM-DD format",
 		}),
-	// userAssignment: Joi.alternatives()
-	// 	.try(Joi.array(), Joi.string().allow(""))
-	// 	.optional(),
 	userAssignment: Joi.array()
 		.items(Joi.number().required())
 		.min(1) // Ensures at least one item
@@ -2551,7 +2510,7 @@ const editReviewFrameworkSchema = Joi.object({
 	const goal = value.goalWeightage ?? 0;
 	const comp = value.compentencyWeightage ?? 0;
 	if (goal + comp !== 100) {
-		return helpers.message("The sum of goalWeightage and compentencyWeightage must be 100");
+		return helpers.message("The sum of goal Weightage and compentency Weightage must be 100");
 	}
 	return value;
 });;
