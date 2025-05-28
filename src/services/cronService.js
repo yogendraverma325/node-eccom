@@ -60,7 +60,7 @@ cron.schedule("0 6 * * *", async () => {
 });
 
 cron.schedule("* * * * *", async () => {
-	await cronController.updateManager();
+	// await cronController.updateManager();
 	// await cronController.updatePolicy();
 	// await cronController.updateDesignation();
 	// await cronController.updateDepartment();
