@@ -7482,7 +7482,7 @@ class MasterController {
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
-							
+
 				result.sort((a, b) => {
 					const idA = a["Employee ID"];
 					const idB = b["Employee ID"];
