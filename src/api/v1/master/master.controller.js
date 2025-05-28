@@ -936,6 +936,7 @@ class MasterController {
 			});
 		} catch (error) {
 			logger.error("Error while getting department list", error);
+			console.log("error", error)
 			return respHelper(res, {
 				status: 500,
 			});
