@@ -3088,8 +3088,8 @@ class commonController {
 			//===================below code is for appraisal ==============================
 
 			// ================= Appraisal Section =================================
-			await helper.handleAppraisalGoalPlanUpdate(assignmentId);
-			await helper.handleReviewFrameworkAssignmentNew(assignmentId);
+			//await helper.handleAppraisalGoalPlanUpdate(assignmentId);
+			//await helper.handleReviewFrameworkAssignmentNew(assignmentId);
 
 			return respHelper(res, {
 				status: 200,
