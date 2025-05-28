@@ -7482,6 +7482,15 @@ class MasterController {
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
+
+				result.sort((a, b) => {
+					const idA = a["Employee ID"];
+					const idB = b["Employee ID"];
+					return idA.localeCompare(idB, undefined, {
+						numeric: true,
+						sensitivity: "base",
+					});
+				});
 				const resultData = getColumnsForSalary(result);
 				// const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
 				const resultColumns = Object.fromEntries(
@@ -7668,9 +7677,12 @@ class MasterController {
 				const processedData = groupByEmployeeId(result1[0]);
 
 				processedData.sort((a, b) => {
-					const idA = a["Employee Id"];
-					const idB = b["Employee Id"];
-					return idA.localeCompare(idB, undefined, { numeric: true });
+					const idA = a["Employee ID"];
+					const idB = b["Employee ID"];
+					return idA.localeCompare(idB, undefined, {
+						numeric: true,
+						sensitivity: "base",
+					});
 				});
 
 				if (result1[0].length > 0) {
