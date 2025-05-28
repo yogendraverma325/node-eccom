@@ -924,7 +924,8 @@ class AdminController {
 										parseInt(process.env.PASSWORD_EXPIRY_LIMIT),
 										"days",
 									),
-									createdBy: req.userId,
+									createdBy: req.userId, 
+									manageAttendance:1
 								};
 
 								const createdUser = await db.employeeMaster.create(newEmployee);

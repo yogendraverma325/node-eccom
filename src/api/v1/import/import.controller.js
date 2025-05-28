@@ -174,6 +174,7 @@ class ImportController {
 				ATTENDANCE_ASSIGNMENT: "Attendance Assignment",
 				ARREARS: "Arrears",
 				EMPLOYMENT_DETAILS: "Employment Details",
+				HR_Letters: "HR Letters"
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
