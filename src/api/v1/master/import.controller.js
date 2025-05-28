@@ -216,6 +216,7 @@ class MasterController {
 										isValidEmployeeType.data.empTypeId === 3
 											? isValidIFSC.data?.bankIfsc
 											: "",
+									createdBy: req.userId
 								};
 
 								newEmployee.role_id = 3;

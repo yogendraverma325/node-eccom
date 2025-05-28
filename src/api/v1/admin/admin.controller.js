@@ -483,7 +483,7 @@ class AdminController {
 					result.role_id = 3;
 					result.offRoleCTC = result.offRoleCTC ? result.offRoleCTC : 0;
 
-					const createdUser = await db.employeeStagingMaster.create(result);
+					const createdUser = await db.employeeStagingMaster.create({ ...result, createdBy: req.userId });
 
 					if (result.image) {
 						const file = await helper.fileUpload(
@@ -1196,7 +1196,7 @@ class AdminController {
 				}
 			}
 
-			let result = await db.employeeStagingMaster.update(updateMetaData, {
+			let result = await db.employeeStagingMaster.update({ ...updateMetaData, updatedBy: req.userId, updatedAt: moment() }, {
 				where: condition,
 			});
 
