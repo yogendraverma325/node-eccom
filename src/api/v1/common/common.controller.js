@@ -3654,7 +3654,6 @@ export async function getEmployeesPragatGoalList(getUserAssigmentIds, userId) {
 					condition.condition_type === "INCLUDE"
 						? { [Op.in]: parsedValues }
 						: { [Op.notIn]: parsedValues };
-				console.log("conditionObject", conditionObject);
 				//if (columnName === "id") continue; // skip if trying to apply conditions on id
 
 				if (validJobColumns.includes(columnName)) {
@@ -3664,7 +3663,6 @@ export async function getEmployeesPragatGoalList(getUserAssigmentIds, userId) {
 				}
 			}
 		}
-		console.log(">>>>>>>>>>>>", whereEmployee);
 		const { rows: employees } = await db.employeeMaster.findAndCountAll({
 			where: {
 				...whereEmployee,
@@ -3696,7 +3694,7 @@ export async function getEmployeesToAssignGoalPlan(getUserAssigmentIds) {
 				: Array.isArray(getUserAssigmentIds)
 					? getUserAssigmentIds
 					: [getUserAssigmentIds];
-console.log(">>>>>>>idsArrayidsArray",getUserAssigmentIds)
+
 		const assignments = await db.user_assignment.findAll({
 			where: {
 				id: {
