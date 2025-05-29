@@ -1130,7 +1130,7 @@ class AppraisalGoalsController {
 				status: 200,
 				msg: message.APPRAISAL.GET_LIST,
 				data: {
-					isReviewCycleAssigned: getActiveReviewFrameworkId ? true : false,
+					isReviewCycleAssigned: getActiveReviewFrameworkId && buttonStatus == 2 ? true : false,
 					getGoalForUser: getGoalForUser,
 					mainGoalCount,
 					subGoalCount: totalSubGoalCount,
