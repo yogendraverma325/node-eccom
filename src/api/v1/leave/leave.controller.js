@@ -2471,7 +2471,7 @@ class LeaveController {
 			const daysDifference = moment(toDate).diff(moment(fromDate), "days");
 			let uuid =
 				"id_" + moment().format("YYYYMMDDHHmmss") + req.body.employeeId;
-			console.log("daysDifference", daysDifference);
+			// console.log("daysDifference", daysDifference);
 			for (let i = -1; i < daysDifference; i++) {
 				let appliedFor = moment(fromDate)
 					.add(i + 1, "days")
@@ -2593,14 +2593,14 @@ class LeaveController {
 					req.body.leaveAutoId,
 					EMP_DATA,
 				);
-				console.log(
-					"leaveCount",
-					leaveCount,
-					"prefixDate",
-					prefixDate,
-					"suffixDate",
-					suffixDate,
-				);
+				// console.log(
+				// 	"leaveCount",
+				// 	leaveCount,
+				// 	"prefixDate",
+				// 	prefixDate,
+				// 	"suffixDate",
+				// 	suffixDate,
+				// );
 				if (leaveCount != 0) {
 					return respHelper(res, {
 						status: 400,
@@ -2616,7 +2616,7 @@ class LeaveController {
 				},
 			});
 
-			console.log("leaveApprovalLevel", leaveApprovalLevel);
+			// console.log("leaveApprovalLevel", leaveApprovalLevel);
 
 			let headerInsert = await db.EmployeeLeaveHeader.create({
 				employeeId: req.body.employeeId, // Replace with actual employee ID
@@ -2654,18 +2654,18 @@ class LeaveController {
 					leaveApprovalLevel.length == 0 ? EMP_DATA.managerData.id : null, // Replace with actual pending at value
 			});
 
-			console.log(leaveApprovalLevel);
+			// console.log(leaveApprovalLevel);
 
 			//console.log("leaveApprovalLevel",leaveApprovalLevel)
 			const leaveTrails = [];
 
 			for (const leaveApprover of leaveApprovalLevel) {
-				console.log("jab leave Approval level hoga ", leaveApprover);
+				// console.log("jab leave Approval level hoga ", leaveApprover);
 				for (const leaveApproverGroup of leaveApprover.dataValues.approval_group.split(
 					",",
 				)) {
 					if (leaveApproverGroup === "MANAGER") {
-						console.log("MANAGER");
+						// console.log("MANAGER");
 						leaveTrails.push({
 							employeeId: req.body.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
@@ -2685,7 +2685,7 @@ class LeaveController {
 							),
 						});
 					} else if (leaveApproverGroup === "BUHR") {
-						console.log("BUHR");
+						// console.log("BUHR");
 						const buhr = await db.buMapping.findAll({
 							where: {
 								buId: EMP_DATA.buId,
@@ -2715,7 +2715,7 @@ class LeaveController {
 							});
 						}
 					} else if (leaveApproverGroup === "L2_MANAGER") {
-						console.log("L2_MANAGER");
+						// console.log("L2_MANAGER");
 						leaveTrails.push({
 							employeeId: req.body.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
@@ -3248,7 +3248,7 @@ class LeaveController {
 				leaveAutoId,
 				EMP_DATA,
 			);
-			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
+			// console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
 			const totalWorkingDays = remainingLeaveCountRESP.length;
 			const getCombinedVal = await helper.getCombineValue(
 				leaveFirstHalf,
@@ -3258,7 +3258,7 @@ class LeaveController {
 				employeeWeekOfId.companyLocationId,
 				employeeWeekOfId.weekOffId,
 			);
-			console.log("getCombinedVal", getCombinedVal);
+			// console.log("getCombinedVal", getCombinedVal);
 			// Calculate pending leave count
 			const pendingLeaveCount = pendingLeaveCountList.reduce(
 				(acc, el) => acc + parseFloat(el.leaveCount),
@@ -3297,11 +3297,11 @@ class LeaveController {
 				if (result && result.dataValues.total_balance != null) {
 					count = parseFloat(result.dataValues.total_balance);
 				}
-				console.log("totalWorkingDaysCalculated", count);
+				// console.log("totalWorkingDaysCalculated", count);
 
 				availableLeaveCount.availableLeave = count;
 			}
-			console.log("availableLeaveCount", availableLeaveCount);
+			// console.log("availableLeaveCount", availableLeaveCount);
 			let countDeductingPending =
 				availableLeaveCount.availableLeave - pendingLeaveCount;
 			let a = totalWorkingDaysCalculated;
@@ -3310,14 +3310,14 @@ class LeaveController {
 					? totalWorkingDaysCalculated
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
-			console.log(
-				"totalWorkingDaysCalculated",
-				totalWorkingDaysCalculated,
-				"ava",
-				availableLeaveCount.availableLeave,
-				"countDeductingPending",
-				countDeductingPending,
-			);
+			// console.log(
+			// 	"totalWorkingDaysCalculated",
+			// 	totalWorkingDaysCalculated,
+			// 	"ava",
+			// 	availableLeaveCount.availableLeave,
+			// 	"countDeductingPending",
+			// 	countDeductingPending,
+			// );
 
 			if (leaveAutoId == 6) {
 				b = a;
@@ -4757,7 +4757,7 @@ class LeaveController {
 				attributes: ["name"],
 			});
 
-			console.log("result.status", result.status, "leaveIds", leaveIds);
+			// console.log("result.status", result.status, "leaveIds", leaveIds);
 			if (result.status == "approved") {
 				for (const leaveID of leaveIds) {
 					const existingRecordNew = await db.EmployeeLeaveHeader.findOne({
@@ -4774,10 +4774,10 @@ class LeaveController {
 					}
 
 					if (existingRecordNew.approvalFlowExist == 1) {
-						console.log("i am in new approvalflow>>>>", leaveID);
+						// console.log("i am in new approvalflow>>>>", leaveID);
 
 						if (req.userData.role_id == 2 || req.userData.role_id == 5) {
-							console.log("i am in as admin");
+							// console.log("i am in as admin");
 							const leaveTrails = await db.leaveApprovalTrails.findAll({
 								where: {
 									leaveHeaderAutoId: leaveID,
@@ -5053,7 +5053,7 @@ class LeaveController {
 						}
 
 						if (![2, 5].includes(req.userData.role_id)) {
-							console.log("i am not as admin");
+							// console.log("i am not as admin");
 
 							const leaveTrails = await db.leaveApprovalTrails.findOne({
 								where: {
@@ -5466,7 +5466,7 @@ class LeaveController {
 				msg: message.UPDATE_SUCCESS.replace("<module>", "Leave"),
 			});
 		} catch (error) {
-			console.log(">>>>>>>>>>", error);
+			console.log(error);
 			if (error.isJoi === true) {
 				return respHelper(res, {
 					status: 422,
@@ -6111,7 +6111,7 @@ class LeaveController {
 			usersData.permissionAndAccess,
 			usersData.role_id,
 		);
-		console.log("permissoinArray", permissoinArray);
+		// console.log("permissoinArray", permissoinArray);
 
 		// search and pagination functionality added
 
@@ -6125,7 +6125,7 @@ class LeaveController {
 						employeeId: req.userId,
 						status: "pending",
 					}
-				: usersData.role_id === 4 || usersData.role_id === 5
+				: usersData.role_id === 4 || usersData.role_id === 5 || usersData.role_id === 2
 					? {
 							employeeId: { [Op.not]: req.userId },
 							status: "pending",
@@ -6158,7 +6158,7 @@ class LeaveController {
 										{ empCode: { [Op.like]: `%${search}%` } }, // Search in 'tmc'
 									],
 								}),
-								...(usersData.role_id === 4 || usersData.role_id === 5
+								...(usersData.role_id === 4 || usersData.role_id === 5 || usersData.role_id === 2
 									? {
 											...(permissoinArray.COMPANY.length > 0 && {
 												companyId: { [Op.in]: permissoinArray.COMPANY },

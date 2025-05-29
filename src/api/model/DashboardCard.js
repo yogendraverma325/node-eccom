@@ -23,6 +23,9 @@ export default (sequelize, Sequelize) => {
 		webPosition: {
 			type: Sequelize.INTEGER,
 		},
+		isVisibleForWeb: {
+			type: Sequelize.BOOLEAN,
+		},
 		mobileUrl: {
 			type: Sequelize.STRING(255),
 		},
@@ -43,6 +46,9 @@ export default (sequelize, Sequelize) => {
 		},
 		mobileDarkBackgroundColor: {
 			type: Sequelize.STRING(255),
+		},
+		isVisibleForMobile: {
+			type: Sequelize.BOOLEAN,
 		},
 		isCardWorking: {
 			type: Sequelize.INTEGER,

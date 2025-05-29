@@ -404,7 +404,7 @@ async function calculateGratuity(payMonthlyElements, gratuityYears) {
 		startDate.add(months, "months"); // Adjust startDate forward by counted months
 		const days = endDate.diff(startDate, "days");
 		years = months > 6 || (months == 6 && days > 0) ? years + 1 : years;
-		console.log(`${years} years, ${months} months, and ${days} days`);
+		// console.log(`${years} years, ${months} months, and ${days} days`);
 		return {
 			years,
 			gratuityAmount:

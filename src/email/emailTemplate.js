@@ -3735,7 +3735,7 @@ const confirmationEmailLetter = async (
 ) => {
 	// console.log("data", data)
 
-	console.log("header path ", data?.companymaster?.companyId);
+	// console.log("header path ", data?.companymaster?.companyId);
 	let html = null;
 	if (data?.companymaster?.companyId == 1) {
 		html = `<!-- FOR Team Computers -->
@@ -4251,7 +4251,7 @@ const confirmationWorkFlownextLevel = async (data) => {
 </html>`;
 };
 const salarySlipPdf = async (data) => {
-	console.log("Pay Slip ,,,");
+	// console.log("Pay Slip ,,,");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 
@@ -4462,7 +4462,7 @@ const salarySlipPdf = async (data) => {
 };
 
 const fnfPaySlipPdf = async (data) => {
-	console.log("FNF PAY SLIP.......");
+	// console.log("FNF PAY SLIP.......");
 	const generateUnifiedTableRows = (earnings, deductions) => {
 		const maxRows = Math.max(earnings.length, deductions.length);
 

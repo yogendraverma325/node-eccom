@@ -483,7 +483,7 @@ class AdminController {
 					result.role_id = 3;
 					result.offRoleCTC = result.offRoleCTC ? result.offRoleCTC : 0;
 
-					const createdUser = await db.employeeStagingMaster.create(result);
+					const createdUser = await db.employeeStagingMaster.create({ ...result, createdBy: req.userId });
 
 					if (result.image) {
 						const file = await helper.fileUpload(
@@ -924,7 +924,8 @@ class AdminController {
 										parseInt(process.env.PASSWORD_EXPIRY_LIMIT),
 										"days",
 									),
-									createdBy: req.userId,
+									createdBy: req.userId, 
+									manageAttendance:1
 								};
 
 								const createdUser = await db.employeeMaster.create(newEmployee);
@@ -988,6 +989,18 @@ class AdminController {
 										attributes: ["bandId", "gradeId"],
 									});
 
+								const dateOfProbationEnd = moment(
+									employeeOnboardingDetails.dateOfJoining,
+								)
+									.add(
+										parseInt(getProbationDetails?.durationOfProbation),
+										"day",
+									)
+									.format("YYYY-MM-DD");
+								const dateOfProbationTriggerDate = moment(dateOfProbationEnd)
+									.subtract(21, "day")
+									.format("YYYY-MM-DD");
+
 								let newEmployeeJobDetails = {
 									userId: createdUser.id,
 									dateOfJoining: employeeOnboardingDetails.dateOfJoining,
@@ -1001,6 +1014,8 @@ class AdminController {
 									gradeId: getJobLevelMappingDetails?.gradeId,
 									createdBy: req.userId,
 									createdAt: moment(),
+									dateOfProbationEnd,
+									dateOfProbationTriggerDate,
 								};
 
 								const createdUserJobDetails = await db.jobDetails.create(
@@ -1181,7 +1196,7 @@ class AdminController {
 				}
 			}
 
-			let result = await db.employeeStagingMaster.update(updateMetaData, {
+			let result = await db.employeeStagingMaster.update({ ...updateMetaData, updatedBy: req.userId, updatedAt: moment() }, {
 				where: condition,
 			});
 

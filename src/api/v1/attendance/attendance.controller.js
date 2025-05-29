@@ -969,8 +969,6 @@ class AttendanceController {
 				const startRegularizeDateTime = `${result.fromDate}T${result.punchInTime}`;
 				const preAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${preShiftStart}`;
 				const graceAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${shiftStartWithGrace}`;
-				console.log("startRegularizeDateTime", startRegularizeDateTime);
-				console.log("preAttendanceDateTime", preAttendanceDateTime);
 				// console.log("graceAttendanceDateTime", graceAttendanceDateTime)
 				let isOverNight = parseInt(shiftDetails.isOverNight);
 
@@ -992,8 +990,8 @@ class AttendanceController {
 				// console.log("punchOutTime", result.punchOutTime);
 				const endRegularizeDateTime = `${result.toDate}T${result.punchOutTime}`;
 				const postAttendanceDateTime = `${attendanceData?.dataValues?.attendanceShiftEndDate}T${postShiftEnd}`;
-				console.log("endRegularizeDateTime", endRegularizeDateTime);
-				console.log("postAttendanceDateTime", postAttendanceDateTime);
+				// console.log("endRegularizeDateTime", endRegularizeDateTime);
+				// console.log("postAttendanceDateTime", postAttendanceDateTime);
 
 				if (
 					preAttendanceDateTime > startRegularizeDateTime ||
@@ -2234,12 +2232,6 @@ class AttendanceController {
 				);
 
 				if (result.status) {
-					console.log(
-						regularizeData.regularizePunchInTime,
-						withGraceTime,
-						regularizeData.regularizePunchInDate,
-						regularizeData.regularizePunchOutDate,
-					);
 					await db.attendanceMaster.update(
 						{
 							//attendanceDate: regularizeData.regularizePunchInDate,
@@ -3989,15 +3981,15 @@ class AttendanceController {
 			await Promise.all(
 				existEmployees.map(async (singleEmp) => {
 					let presentStatus = null;
-					console.log(
-						"singleEmp?.weekOffMaster",
-						singleEmp?.attendancemaster?.weekOffMaster,
-					);
-					console.log(
-						"singleEmp?.attendanceroster",
-						singleEmp?.attendanceroster,
-					);
-					console.log("lastDayDate", lastDayDate, occurrenceDayCondition);
+					// console.log(
+					// 	"singleEmp?.weekOffMaster",
+					// 	singleEmp?.attendancemaster?.weekOffMaster,
+					// );
+					// console.log(
+					// 	"singleEmp?.attendanceroster",
+					// 	singleEmp?.attendanceroster,
+					// );
+					// console.log("lastDayDate", lastDayDate, occurrenceDayCondition);
 
 					if (
 						singleEmp?.attendancemaster?.weekOffMaster.weekOffDayMappingMasters
@@ -4039,12 +4031,12 @@ class AttendanceController {
 
 								// Calculate the total minutes
 								let totalMinutesLateMinutes = time.asMinutes();
-								console.log(
-									"totalMinutesLateMinutes",
-									totalMinutesLateMinutes,
-									"late",
-									singleEmp.attendancemaster.attendanceLateBy,
-								);
+								// console.log(
+								// 	"totalMinutesLateMinutes",
+								// 	totalMinutesLateMinutes,
+								// 	"late",
+								// 	singleEmp.attendancemaster.attendanceLateBy,
+								// );
 								if (totalMinutesLateMinutes > 0) {
 									totalMinutesLateMinutes =
 										totalMinutesLateMinutes +
@@ -5600,7 +5592,7 @@ class AttendanceController {
 	}
 
 	async cronforEMP(req, res) {
-		console.log("req.body", req.body);
+		// console.log("req.body", req.body);
 		let attendanceIds = req.body.attendanceIds.split(",");
 		for (const attendanceIdSingle of attendanceIds) {
 			let attendanceData = await db.attendanceMaster.findOne({
@@ -5650,12 +5642,12 @@ class AttendanceController {
 					attendanceData.attandanceShiftStartDate,
 				);
 
-				console.log(
-					"withGraceTime",
-					withGraceTime,
-					"attendanceLateBy",
-					attendanceLateBy,
-				);
+				// console.log(
+				// 	"withGraceTime",
+				// 	withGraceTime,
+				// 	"attendanceLateBy",
+				// 	attendanceLateBy,
+				// );
 
 				let workingTime = null;
 				if (
@@ -5695,16 +5687,46 @@ class AttendanceController {
 	//REVOKE
 	async revokeApprovedRegularizations(req, res) {
 		try {
+			console.log("req.body",req.body)
 			const result =
 				await validator.revokeApprovedRegularizationsValidation.validateAsync(
 					req.body,
 				);
+			const startOfYear = moment().startOf("year").toDate(); // added year end check in attendance revoke function
+			const endOfYear = moment().endOf("year").toDate(); // added year end check in attendance revoke function
+
 			const regularizeData = await db.regularizationMaster.findOne({
+				raw: true,
 				where: {
 					regularizeId: result.regularizeId,
 					attendanceAutoId: result.attendanceAutoId,
 					regularizeStatus: "Approved",
 				},
+				include: [
+					{
+						model: db.attendanceMaster,
+						attributes: ["attendanceAutoId", "employeeId", "attendanceDate"],
+						where:{
+							attendanceDate: {
+								[Op.between]: [startOfYear, endOfYear],  // only current year records should be revoked only
+							},
+									
+						},
+						include: [
+							///added association for company logo and name
+							{
+								model: db.employeeMaster,
+								attributes: ["attendancePolicyId", "name", "email", "id"],
+								include: [
+									{
+										model: db.companyMaster,
+										attributes: ["senderEmail", "companyLogo"],
+									},
+								],
+							},
+						],
+					},
+				],
 			});
 			if (!regularizeData) {
 				return respHelper(res, {
@@ -5712,6 +5734,7 @@ class AttendanceController {
 					msg: `Revoke Application can't be placed`,
 				});
 			}
+
 
 			const revokeRegularization =
 				await db.RegularizationRevokeTransaction.findOne({
@@ -5726,6 +5749,29 @@ class AttendanceController {
 					msg: `Revoke Application already placed`,
 				});
 			}
+
+
+
+				let leaveCountCompoffApproveds = await db.comp_off_credit_history.findAll({ // added new filter to check comp off used on another day or not
+				where: {
+				employee_Id: regularizeData["attendancemaster.employeeId"],
+				status:2,
+				credit_for_date:regularizeData["attendancemaster.attendanceDate"]
+				},
+				});
+				if(leaveCountCompoffApproveds.length>0){ // added new filter to check comp off used on another day or not
+						let uniqueDates = [];
+						for (let record of leaveCountCompoffApproveds) { //getting the date on which comp off leave got approved
+						const date = record.taken_on;
+						if (!uniqueDates.includes(date)) {
+						uniqueDates.push(date);
+						}
+						}
+						return respHelper(res, {
+						status: 400,
+						msg: `There is a Comp Off leave already applied for ${uniqueDates.join(',')} date(s). You are requested to manage or revoke the Comp Off leave first in order to proceed`,
+						});
+				}
 
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
@@ -5833,6 +5879,7 @@ class AttendanceController {
 				attendanceData.employeeId,
 				attendanceData.attendanceDate,
 				"LAPSE",
+				6 // adding lapse status
 			);
 
 			await helper.revokeAppliedLeave(
@@ -5843,6 +5890,27 @@ class AttendanceController {
 				result.attendanceAutoId,
 				attendanceData.attendanceDate,
 			);
+
+			const obj = {
+				email: regularizeData["attendancemaster.employee.email"],
+				status: "Revoked",
+				fromDate: regularizeData.regularizePunchInDate,
+				toDate: regularizeData.regularizePunchOutDate,
+				managerName: req.userData.name,
+				requesterName: regularizeData["attendancemaster.employee.name"],
+				senderEmail:
+					regularizeData["attendancemaster.employee.companymaster.senderEmail"],
+				companyLogo:
+					regularizeData["attendancemaster.employee.companymaster.companyLogo"],
+			};
+			eventEmitter.emit("regularizeAckMail", JSON.stringify(obj)); // notification added for attandance regualruization revoked
+			pushNotificationEmitter.emit("sendNotification", {
+				// notification added for attandance regualruization revoked
+				title: message.ATTENDANCE_REQ_ACK,
+				body: message.ATTENDANCE_REQ_STATUS.replace("<status>", "Revoked"),
+				employeeId: regularizeData["attendancemaster.employee.id"],
+			});
+			console.log("obj", obj);
 
 			return respHelper(res, {
 				status: 200,
@@ -5956,6 +6024,9 @@ class AttendanceController {
 		}
 
 		console.log(
+			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format("YYYY-MM-DD HH:mm:ss")}`,
+		);
+		logger.info(
 			`Marking Biometric Attendance of --->> ${existEmployee.dataValues.empCode} (${existEmployee.dataValues.id}) on ${currentDate.format("YYYY-MM-DD HH:mm:ss")}`,
 		);
 		let withGraceTime;

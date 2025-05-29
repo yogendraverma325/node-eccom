@@ -102,7 +102,7 @@ class CronController {
 	}
 
 	async EarnedLeaveCreditCron() {
-		console.log(moment("2024-08-01 13:00:00").format("D"));
+		// console.log(moment("2024-08-01 13:00:00").format("D"));
 		const earnedLeaveDetails = await db.leaveMaster.findAll({
 			raw: true,
 			where: {
@@ -252,7 +252,7 @@ class CronController {
 							},
 						},
 					);
-					console.log("sepExist", sepExist);
+					// console.log("sepExist", sepExist);
 
 					let res_sep = await db.separationTrail.update(
 						{
@@ -704,7 +704,7 @@ class CronController {
 		});
 
 		for (const Singleconfimation of confimationData) {
-			console.log("ee", Singleconfimation?.employee?.id);
+			// console.log("ee", Singleconfimation?.employee?.id);
 			let checkJobLevelAssignmnet = await db.Confirmationassignment.findOne({
 				where: {
 					confirmationAssignmentAutoId:
@@ -811,7 +811,7 @@ class CronController {
 								",",
 							),
 						);
-						console.log("emailidsData", emailidsData);
+						// console.log("emailidsData", emailidsData);
 						const plainObj = Singleconfimation.get({ plain: true });
 						plainObj.cc = emailidsData.join(",");
 						eventEmitter.emit(
@@ -819,7 +819,7 @@ class CronController {
 							JSON.stringify(plainObj),
 						);
 					} else {
-						console.log("ownerId", ownerId);
+						// console.log("ownerId", ownerId);
 						let ESCALTERDATA = await helper.getEmpProfile(ownerId); // NEXT Status DATA
 						await db.Confirmationaudittrail.create({
 							confirmationinitiatedAutoId:
@@ -837,7 +837,7 @@ class CronController {
 								",",
 							),
 						);
-						console.log("emailidsData manager level", emailidsData);
+						// console.log("emailidsData manager level", emailidsData);
 						eventEmitter.emit(
 							"confirmationWorkflowNextLevelManager",
 							JSON.stringify({
@@ -1193,10 +1193,10 @@ class CronController {
 					],
 				},
 			});
-		console.log(
-			"whoseConfirmationDateIsTodayList",
-			whoseConfirmationDateIsTodayList.length,
-		);
+		// console.log(
+		// 	"whoseConfirmationDateIsTodayList",
+		// 	whoseConfirmationDateIsTodayList.length,
+		// );
 		for (const SingleConfirmationDateIsTodayList of whoseConfirmationDateIsTodayList) {
 			const confirmationData = await db.Confirmationinitiated.findOne({
 				where: {
@@ -1275,7 +1275,7 @@ class CronController {
 					confirmationPolicyData?.dataValues?.confiramtionEmailCC.split(","),
 				);
 
-				console.log("cc array", cc_arrays.join(","));
+				// console.log("cc array", cc_arrays.join(","));
 				if (!signatureAuthority) {
 					continue;
 				}
@@ -1790,14 +1790,14 @@ class CronController {
 				const { gender, maritalStatus } =
 					element.dataValues.employeebiographicaldetail;
 				if ((gender === "Male" || gender === "Female") && maritalStatus == 2) {
-					console.log("Male single or Female single");
+					// console.log("Male single or Female single");
 					const objLeave = {
 						EmployeeId: element.id,
 						leaveAutoId: 5,
 						availableLeave: leaveMasterLookup[5] || 0,
 						accruedThisYear: leaveMasterLookup[5] || 0,
 					};
-					console.log("objLeave", objLeave);
+					// console.log("objLeave", objLeave);
 					// await db.leaveMapping.create(objLeave);
 				}
 
@@ -2089,8 +2089,6 @@ class CronController {
 										logger.error(`Error ${err}`);
 										console.log(err);
 									}
-
-									console.log(result);
 								},
 							);
 						}
@@ -2215,13 +2213,13 @@ class CronController {
 						const emailData = [managerEmail, buhrEmail, buHeadEmail];
 						const additionalCCMail =
 							emp["companymaster.addCCEmailForWishesAndConfirmation"];
-						console.log("BirthAdditionalEmail:- ", additionalCCMail);
+						// console.log("BirthAdditionalEmail:- ", additionalCCMail);
 
 						if (additionalCCMail) {
 							emailData.push(...additionalCCMail.split(","));
 						}
 						const ccEmail = emailData.filter((email) => !!email);
-						console.log("Birth ccEmail:-", ccEmail);
+						// console.log("Birth ccEmail:-", ccEmail);
 
 						eventEmitter.emit(
 							"sendBirthWishMail",
@@ -2318,7 +2316,7 @@ class CronController {
 
 						const additionalCCMail =
 							emp["companymaster.addCCEmailForWishesAndConfirmation"];
-						console.log("WorkAdditionalEmail:- ", additionalCCMail);
+						// console.log("WorkAdditionalEmail:- ", additionalCCMail);
 
 						if (additionalCCMail) {
 							emailData.push(...additionalCCMail.split(","));

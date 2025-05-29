@@ -174,6 +174,7 @@ class ImportController {
 				ATTENDANCE_ASSIGNMENT: "Attendance Assignment",
 				ARREARS: "Arrears",
 				EMPLOYMENT_DETAILS: "Employment Details",
+				HR_Letters: "HR Letters"
 			};
 			const getKeyByValue = async (value) => {
 				const result = Object.keys(sheetName).find(
@@ -276,7 +277,7 @@ class ImportController {
 					companyId: { [Op.not]: null },
 					id: { [Op.ne]: 1 },
 				},
-				attributes: ["id", "companyId", "noticePeriodAutoId", "dateOfJoining"],
+				attributes: ["id", "companyId", "noticePeriodAutoId", "dateOfJoining", "createdBy", "createdAt"],
 				include: [
 					{
 						model: db.NoticePeriodEmploymentHistory,
@@ -285,13 +286,25 @@ class ImportController {
 						where: { employeeId: { [Op.not]: null } },
 					},
 				],
+				row: true,
 				having: db.Sequelize.literal(
 					"`noticePeriodHistories`.`employeeId` IS NULL",
 				),
 			});
 
 			if (users.length > 0) {
-				await db.NoticePeriodEmploymentHistory.bulkCreate(users);
+				let arr = users.map(el => {
+					return {
+						employeeId: el.id,
+						companyId: el.companyId,
+						noticePeriodAutoId: el.noticePeriodAutoId,
+						fromDate: el.dateOfJoining,
+						toDate: null,
+						createdBy: el.createdBy,
+						createdAt: el.createdAt
+					}
+				})
+				await db.NoticePeriodEmploymentHistory.bulkCreate(arr);
 				return respHelper(res, {
 					status: 200,
 					msg: "History generated successfully.",
@@ -424,7 +437,14 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 					isActive: 1,
 				},
 				raw: true,
-				attributes: ["id", "name", "dateOfJoining"],
+				attributes: [
+					"id",
+					"name",
+					"dateOfJoining",
+					"companyId",
+					"buId",
+					"sbuId",
+				],
 			});
 
 			employee["Effective Date"] = !isNaN(employee["Effective Date"])
@@ -618,6 +638,51 @@ async function uploadCTC(req, res, FILEDATA, importParams) {
 						createdBy: req.userData.id,
 						importStatusDesc: "CTC Uploaded Successfully",
 					});
+
+					if (existingPackage.payPackageMonthlyCTC < employee["CTC"]) {
+						let payMonth =
+							employee["Effective Date"].split("-")[2] +
+							"-" +
+							employee["Effective Date"].split("-")[1];
+						let paySlipsDuringArrearsPeriod = await db.paySlips.findAll({
+							where: {
+								payMonth: { [Op.gte]: payMonth },
+								EmployeeId: employeeDetails.id,
+							},
+							attribute: [
+								"payMonth",
+								"paySlipGrossEarning",
+								"paySlipWorkingDays",
+								"financialYearId",
+								"paySlipTotalDays",
+							],
+							raw: true,
+						});
+						console.log(paySlipsDuringArrearsPeriod);
+						for (const lastPackagePayObject of paySlipsDuringArrearsPeriod) {
+							let incrementArrearsObject = {
+								EmployeeId: employeeDetails.id,
+								arrearMonth: lastPackagePayObject.payMonth,
+								arearDays: lastPackagePayObject.paySlipWorkingDays,
+								arearType: "Increment",
+								hasPF: "No",
+								computeESIC: "No",
+								financialYearId: lastPackagePayObject.financialYearId,
+								createdAt: new Date(),
+								status: 1,
+								createdThrough: 0,
+								companyId: employeeDetails.companyId,
+								buId: employeeDetails.buId,
+								empCode: employee["EmployeeId"],
+								sbuId: employeeDetails.sbuId,
+								currentPackageId: packageInserted.dataValues.payPackageAutoId,
+								lastPackageId: existingPackage.payPackageAutoId,
+								paySlipTotalDays: lastPackagePayObject.paySlipTotalDays,
+							};
+							await db.earningsArears.create(incrementArrearsObject);
+							//console.log(incrementArrearCreation);
+						}
+					}
 				}
 			} else {
 				errorArray.push({
@@ -1848,8 +1913,8 @@ async function sendMailAfterSalarySlipRelease(
 	payMonth,
 	companyLogo,
 ) {
-	console.log(employeeIds);
-	console.log(payMonth);
+	// console.log(employeeIds);
+	// console.log(payMonth);
 	let allPaySlips = await db.paySlips.findAll({
 		where: {
 			payMonth: payMonth,
@@ -2239,7 +2304,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 		if (isExist || !error) {
 			const today = moment().format("YYYY-MM-DD");
 			if (obj.designationCode) {
-				console.log("call designation");
+				// console.log("call designation");
 				let fromDate = convertExcelDate(obj.desFromDate);
 				let parentModel = db.designationMaster;
 				let childModel = db.DesignationEmploymentHistory;
@@ -2270,7 +2335,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.employeeTypeCode) {
-				console.log("call employee type");
+				// console.log("call employee type");
 				let fromDate = convertExcelDate(obj.employeeTypeFromDate);
 				let parentModel = db.employeeTypeMaster;
 				let childModel = db.EmployeeTypeEmploymentHistory;
@@ -2301,7 +2366,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.companyLocationCode) {
-				console.log("call company location");
+				// console.log("call company location");
 				let fromDate = convertExcelDate(obj.companyLocationFromDate);
 				let parentModel = db.companyLocationMaster;
 				let childModel = db.OfficeLocationEmploymentHistory;
@@ -2332,7 +2397,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.costCenterCode) {
-				console.log("call cost center");
+				// console.log("call cost center");
 				let fromDate = convertExcelDate(obj.costCenterFromDate);
 				let parentModel = db.costCenterMaster;
 				let childModel = db.CostCenterEmploymentHistory;
@@ -2363,7 +2428,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.functionalAreaCode) {
-				console.log("calling functional area function");
+				// console.log("calling functional area function");
 				let payload = { obj, isExist, importId, req };
 				let responseObj = await employmentFunctionalAreaDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2373,7 +2438,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.jobLevelCode) {
-				console.log("calling job level function");
+				// console.log("calling job level function");
 				let payload = { obj, isExist, importId, req };
 				let responseObj = await employmentJobLevelDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2383,7 +2448,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.manager) {
-				console.log("calling manager function");
+				// console.log("calling manager function");
 				let payload = { obj, isExist, importId, req };
 				let responseObj = await employmentManagerDetails(payload, today);
 				if (responseObj.importStatus == 1) {
@@ -2393,7 +2458,7 @@ async function employmentDetails(req, res, FILEDATA, importParams) {
 				}
 			}
 			if (obj.noticePeriodCode) {
-				console.log("call notice period");
+				// console.log("call notice period");
 				let fromDate = moment().format("YYYY-MM-DD");
 				let parentModel = db.noticePeriodMaster;
 				let childModel = db.NoticePeriodEmploymentHistory;
@@ -2627,7 +2692,7 @@ async function employeeData(req, res, FILEDATA, importParams) {
 			}
 
 			if (Object.keys(updateEmployeeObj).length > 0) {
-				console.log("employee obj", updateEmployeeObj);
+				// console.log("employee obj", updateEmployeeObj);
 				await db.employeeMaster.update(updateEmployeeObj, {
 					where: { id: employee.id },
 				});

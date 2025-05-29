@@ -216,6 +216,7 @@ class MasterController {
 										isValidEmployeeType.data.empTypeId === 3
 											? isValidIFSC.data?.bankIfsc
 											: "",
+									createdBy: req.userId
 								};
 
 								newEmployee.role_id = 3;
@@ -310,6 +311,21 @@ class MasterController {
 			const zipEntries = zip.getEntries();
 			let empNotFound = [];
 
+			// addition worked for save import info and import data for validate success and failure records
+			let importInfoObject = {
+				createdBy: req.userData.id,
+				importType: req.body.uploadType,
+				importTableName: req.body.uploadType,
+				buId: req.userData.buId,
+				sbuId: req.userData.sbuId,
+				companyId: req.userData.companyId,
+			};
+
+			let importInfo = await db.ImportInfo.create(importInfoObject);
+			const { importAutoId } = importInfo.get({ plain: true });
+			let successArray = [];
+	        let errorArray = [];
+
 			for (const zipEntry of zipEntries) {
 				if (zipEntry.isDirectory) continue;
 
@@ -324,7 +340,7 @@ class MasterController {
 
 				if (employee) {
 					if (employee && req.body.documentType == 1) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>1");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>1");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -349,9 +365,12 @@ class MasterController {
 							},
 							{ transaction },
 						);
+
+						// push object in success array
+						pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 					}
 					if (employee && req.body.documentType == 2) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>2");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>2");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -392,6 +411,10 @@ class MasterController {
 									transaction,
 								},
 							);
+
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
+
 						} else {
 							// Create a new document record
 							await db.hrLetters.create(
@@ -404,10 +427,13 @@ class MasterController {
 								},
 								{ transaction },
 							);
+
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 						}
 					}
 					if (employee && req.body.documentType == 3) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>3");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>3");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -432,9 +458,12 @@ class MasterController {
 							},
 							{ transaction },
 						);
+
+						// push object in success array
+						pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 					}
 					if (employee && req.body.documentType == 4) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>4");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>4");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -475,6 +504,10 @@ class MasterController {
 									transaction,
 								},
 							);
+
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
+
 						} else {
 							// Create a new document record
 							await db.hrLetters.create(
@@ -487,10 +520,12 @@ class MasterController {
 								},
 								{ transaction },
 							);
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 						}
 					}
 					if (employee && req.body.documentType == 5) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>5");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>5");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -515,9 +550,12 @@ class MasterController {
 							},
 							{ transaction },
 						);
+
+						// push object in success array
+						pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 					}
 					if (employee && req.body.documentType == 6) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>6");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>6");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -558,6 +596,8 @@ class MasterController {
 									transaction,
 								},
 							);
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 						} else {
 							// Create a new document record
 							await db.hrLetters.create(
@@ -570,10 +610,12 @@ class MasterController {
 								},
 								{ transaction },
 							);
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 						}
 					}
 					if (employee && req.body.documentType == 7) {
-						console.log(">>>>>>>>>>>>>>>>>>>>>2");
+						// console.log(">>>>>>>>>>>>>>>>>>>>>2");
 						const fileBuffer = zipEntry.getData();
 						const mimeType = `application/${fileExtension.replace(".", "")}`;
 						const base64String = `data:${mimeType};base64,${fileBuffer.toString(
@@ -614,6 +656,8 @@ class MasterController {
 									transaction,
 								},
 							);
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 						} else {
 							// Create a new document record
 							await db.hrLetters.create(
@@ -626,6 +670,8 @@ class MasterController {
 								},
 								{ transaction },
 							);
+							// push object in success array
+							pushToSuccessArray(successArray, empCode, importAutoId, req.userId);
 						}
 					}
 				} else {
@@ -634,6 +680,15 @@ class MasterController {
 						error: `Employee with empCode ${empCode} not found.`,
 					});
 					console.warn(`Employee with empCode ${empCode} not found.`);
+
+					// push object in failure array
+					errorArray.push({
+						importedRow: empCode,
+						importAutoId: importAutoId,
+						importStatus: 2,
+						createdBy: req.userId,
+						importStatusDesc: `${empCode}; Invalid TMC`,
+					});
 				}
 			}
 
@@ -670,6 +725,23 @@ class MasterController {
 				// );
 				// res.end(report);
 			}
+
+			// update info data status
+			let importFinalResult = successArray.concat(errorArray);
+		    await db.ImportData.bulkCreate(importFinalResult);
+
+			await db.ImportInfo.update(
+				{
+					importStatusDesc:
+						"Import Executed with " +
+						successArray.length +
+						" success and " +
+						errorArray.length +
+						" error records",
+					importStatus: 1,
+				},
+				{ where: { importAutoId: importAutoId } },
+			);
 
 			return respHelper(res, {
 				status: 200,
@@ -784,13 +856,13 @@ class MasterController {
 			const workbookEmployee = pkg.readFile(newPath);
 
 			// Log available sheet names
-			console.log("Available sheets:", workbookEmployee.SheetNames);
+			// console.log("Available sheets:", workbookEmployee.SheetNames);
 
 			// Check if 'Sheet1' exists, else use the first available sheet
 			let sheetNameEmployee = "Sheet1";
 			if (!workbookEmployee.Sheets[sheetNameEmployee]) {
 				sheetNameEmployee = workbookEmployee.SheetNames[0]; // Use first sheet dynamically
-				console.log(`Using sheet: ${sheetNameEmployee}`);
+				// console.log(`Using sheet: ${sheetNameEmployee}`);
 			}
 
 			if (!workbookEmployee.Sheets[sheetNameEmployee]) {
@@ -1504,5 +1576,15 @@ const replaceYesOrNoWithNumber = (value) => {
 		return 0;
 	}
 };
+
+const pushToSuccessArray = (successArray, empCode, importAutoId, userId, statusDesc = "Upload successfully.") => {
+	successArray.push({
+		importedRow: empCode,
+		importAutoId: importAutoId,
+		importStatus: 1,
+		createdBy: userId,
+		importStatusDesc: `${empCode}; ${statusDesc}`
+	});
+}
 
 export default new MasterController();

@@ -8,7 +8,7 @@ import constant from "../../../constant/messages.js";
 import eventEmitter from "../../../services/eventService.js";
 import fs from "fs";
 import moment from "moment";
-
+import pushNotificationEmitter from "../../../services/pushNotificationEventService.js"; // New Import Sandeep
 class UserController {
 	async globalSearch(req, res) {
 		try {
@@ -764,6 +764,19 @@ class UserController {
 			let role_id = req.userData.role_id;
 			let user = req.query.user;
 
+			const usersData = req.userData; //shifted code from bottom to above only
+			const filters = await helper.getFiltersByPermission(
+				//shifted code from bottom to above only
+				usersData.role_id,
+				usersData.permissionAndAccess,
+			);
+
+			const permissoinArray = await helper.fetchpermissoinAndAcessForEMP(
+				//added new code for count matching
+				usersData.permissionAndAccess,
+				usersData.role_id,
+			);
+
 			const mainCondition = {
 				employeeId: req.userId,
 				source: { [Op.ne]: "system_generated" },
@@ -790,6 +803,16 @@ class UserController {
 				],
 				distinct: true,
 			});
+			let assignFilter =
+				usersData.role_id === 4 || usersData.role_id === 5
+					? {
+							employeeId: { [Op.not]: req.userId },
+							status: "pending",
+						}
+					: {
+							managerId: req.userId,
+							status: "pending",
+						};
 			const RevokecountLeavePending =
 				await db.employeeleave_revoke_transaction.count({
 					where: {
@@ -800,11 +823,40 @@ class UserController {
 				});
 			const RevokecountLeaveAssigned =
 				await db.employeeleave_revoke_transaction.count({
-					where: {
-						managerId: req.userId,
-						status: "pending",
-					},
+					where: assignFilter,
 					attributes: [],
+					include: {
+						model: db.EmployeeLeaveHeader,
+						required: true,
+						include: [
+							{
+								model: db.leaveMaster,
+								attributes: ["leaveId", "leaveName", "leaveCode"],
+								required: true,
+								as: "leaveMasterDetails",
+							},
+							{
+								model: db.employeeMaster,
+								attributes: ["id", "empCode", "name"],
+								required: true,
+								where: {
+									...(usersData.role_id === 4 || usersData.role_id === 5
+										? {
+												...(permissoinArray.COMPANY.length > 0 && {
+													companyId: { [Op.in]: permissoinArray.COMPANY },
+												}),
+												...(permissoinArray.BU.length > 0 && {
+													buId: { [Op.in]: permissoinArray.BU },
+												}),
+												...(permissoinArray.SBU.length > 0 && {
+													sbuId: { [Op.in]: permissoinArray.SBU },
+												}),
+											}
+										: null),
+								},
+							},
+						],
+					},
 				});
 
 			const pendingAttendanceCount = await db.attendanceHistory.count({
@@ -965,12 +1017,6 @@ class UserController {
 			});
 
 			let profileApprovalCount = 0;
-
-			const usersData = req.userData;
-			const filters = await helper.getFiltersByPermission(
-				usersData.role_id,
-				usersData.permissionAndAccess,
-			);
 
 			const hasFilters = Object.values(filters).some(
 				(filter) => filter && Object.keys(filter).length > 0,
@@ -4045,7 +4091,7 @@ class UserController {
 							for (const element12 of buMappingData.dataValues.ownerId.split(
 								",",
 							)) {
-								console.log(element12);
+								// console.log(element12);
 								db.separationTaskOwner.create({
 									taskMappingAutoId:
 										initiatedTask.dataValues.initiatedTaskAutoId,
@@ -4946,10 +4992,10 @@ class UserController {
 							{ where: { userId: ele.userId } },
 						);
 					} else {
-						console.log(
-							"Bank ID is not available for IFSC:",
-							ele.paymentBankIfsc,
-						);
+						// console.log(
+						// 	"Bank ID is not available for IFSC:",
+						// 	ele.paymentBankIfsc,
+						// );
 					}
 				}
 			}
@@ -5379,7 +5425,7 @@ class UserController {
 				},
 			});
 			let formsFields = [];
-			console.log("confirsmationData", confirsmationData);
+			// console.log("confirsmationData", confirsmationData);
 
 			if (confirsmationData) {
 				formsFields = await db.Confirmationformfilledvalues.findAll({
@@ -6664,7 +6710,7 @@ class UserController {
 					body: `Your comp off request is ${req.body.status == 1 ? "Approved" : "Rejected"}`,
 					employeeId: EMP_DATA_SELF.id,
 				});
-				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj));
+				eventEmitter.emit("compOffMailApproval", JSON.stringify(obj)); 
 			}
 
 			return respHelper(res, {
@@ -6971,7 +7017,7 @@ class UserController {
 				],
 				raw: true,
 			});
-			console.log(">>>>>>", getLeaveRequest);
+			// console.log(">>>>>>", getLeaveRequest);
 			return;
 			if (!getLeaveRequest) {
 				return respHelper(res, {
@@ -7135,7 +7181,7 @@ class UserController {
 					employeeId: result.employeeId ? result.employeeId : req.userId,
 				},
 			});
-			console.log("isSameDetails", isSameDetails);
+			// console.log("isSameDetails", isSameDetails);
 			if (!isSameDetails) {
 				let obj = {
 					...result,
@@ -7260,7 +7306,7 @@ class UserController {
 					where: { employeeId: req.userId },
 				});
 
-				console.log("existUser.email", existUser);
+				// console.log("existUser.email", existUser);
 
 				eventEmitter.emit(
 					"addressDetailsApprovalRequestMail",
@@ -7392,7 +7438,7 @@ class UserController {
 			}
 			// Normalize policyId to an array
 			let policyIds = [];
-			console.log("policyId", typeof policyId);
+			// console.log("policyId", typeof policyId);
 			if (typeof policyId === "string") {
 				// If policyId has commas, split it into an array, else handle as a single ID
 				policyIds = policyId
@@ -7461,7 +7507,7 @@ class UserController {
 			const userId = req.userId;
 			const date = new Date();
 			date.setDate(date.getDate() - process.env.TARA_NOTIFICATION_DAYS);
-			console.log("date", date);
+			// console.log("date", date);
 			const notification = await db.pushNotificationHistory.findAll({
 				where: {
 					employeeId: userId,

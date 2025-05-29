@@ -509,7 +509,7 @@ class MasterController {
 				usersData.role_id,
 				usersData.permissionAndAccess,
 			);
-			console.log("filters", filters);
+			// console.log("filters", filters);
 			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
 				attributes: ["leaveAutoId"],
 				where: { companyId: companyId },
@@ -751,7 +751,7 @@ class MasterController {
 				usersData.role_id,
 				usersData.permissionAndAccess,
 			);
-			console.log("filersss>>", filters);
+			// console.log("filersss>>", filters);
 			const companyMappedLeaves = await db.leaveCompanyMapping.findAll({
 				attributes: ["leaveAutoId"],
 				where: { companyId: companyId },
@@ -1921,7 +1921,6 @@ class MasterController {
 				managerId,
 				reporteIds,
 			} = req.query;
-
 			let buFIlter = {};
 			let sbbuFIlter = {};
 			let functionAreaFIlter = {};
@@ -2733,7 +2732,7 @@ class MasterController {
 						dayRecords[dayKey] = "-"; // For past dates, default to "A" if no data
 					}
 				}
-				console.log("employeeRecord.empId", employeeRecord.empId);
+				// console.log("employeeRecord.empId", employeeRecord.empId);
 				const orderedEmployeeRecord = {
 					employeeId: employeeRecord.empId,
 					name: employeeRecord.name,
@@ -5703,7 +5702,7 @@ class MasterController {
 				}),
 			);
 			// console.log("arrr",arr.length)
-			console.log("arr", arr.length);
+			// console.log("arr", arr.length);
 
 			if (arr.length > 0) {
 				const timestamp = moment().format("HH:mm"); //Date.now();
@@ -7485,6 +7484,15 @@ class MasterController {
 
 			if (employeeDataExisting.length > 0) {
 				const result = await transformData(employeeDataExisting);
+
+				result.sort((a, b) => {
+					const idA = a["Employee ID"];
+					const idB = b["Employee ID"];
+					return idA.localeCompare(idB, undefined, {
+						numeric: true,
+						sensitivity: "base",
+					});
+				});
 				const resultData = getColumnsForSalary(result);
 				// const uniqueKeys = [...new Set(result.flatMap(Object.keys))];
 				const resultColumns = Object.fromEntries(
@@ -7673,7 +7681,10 @@ class MasterController {
 				processedData.sort((a, b) => {
 					const idA = a["Employee Id"];
 					const idB = b["Employee Id"];
-					return idA.localeCompare(idB, undefined, { numeric: true });
+					return idA.localeCompare(idB, undefined, {
+						numeric: true,
+						sensitivity: "base",
+					});
 				});
 
 				if (result1[0].length > 0) {
@@ -7903,8 +7914,12 @@ const groupByEmployeeId = (data) => {
 			groupedData[employeeId] = {
 				"Employee Id": employeeId, //1
 				"Employee Name": item["Employee Name"], //2
-				"Date of Joining": item["Date of Joining"], //3
-				"Exit Date": item["Exit Date"], //4
+				"Date of Joining": item["Date of Joining"]
+					? moment(item["Date of Joining"]).format("DD-MM-YYYY")
+					: "N/A", //3
+				"Exit Date": item["Exit Date"]
+					? moment(item["Exit Date"]).format("DD-MM-YYYY")
+					: "N/A", //4
 				"Total Days": item["Total Days"], //5
 				"LOP Days": item["LOP Days"], //6
 				"Arrears Days": item["Arrears Days"], //7
@@ -7987,7 +8002,9 @@ const transformData = (data) => {
 				")",
 			"Business Unit": employee.bumaster.buName,
 			"Company Name": employee.companymaster.companyName,
-			"Date Of Joining": employee.employeejobdetail.dateOfJoining,
+			"Date Of Joining": moment(
+				new Date(employee.employeejobdetail.dateOfJoining),
+			).format("DD-MM-YYYY"),
 		};
 
 		// employee.packageDetails.empPayElements.forEach((element) => {

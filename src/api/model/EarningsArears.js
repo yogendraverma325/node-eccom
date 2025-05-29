@@ -15,7 +15,7 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.STRING,
 		},
 		arearDays: {
-			type: Sequelize.INTEGER,
+			type: Sequelize.DECIMAL(10, 8),
 		},
 		arearType: {
 			type: Sequelize.STRING,
@@ -93,6 +93,18 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.TEXT,
 			default: null,
 		},
+		currentPackageId: {
+			type: Sequelize.INTEGER,
+			default: null,
+		},
+		lastPackageId: {
+			type: Sequelize.INTEGER,
+			default: null,
+		},
+		paySlipTotalDays: {
+			type: Sequelize.DECIMAL(10, 8),
+		},
 	});
+
 	return earningArrears;
 };

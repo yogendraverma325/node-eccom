@@ -76,6 +76,10 @@ class commonController {
 				where: { id: userId },
 			});
 
+			const existBiographicalDetails = await db.biographicalDetails.findOne({
+				where: { userId: userId },
+			});
+
 			const updateObj = Object.assign(result, {
 				userId: userId,
 				updatedAt: moment(),
@@ -86,6 +90,16 @@ class commonController {
 				silent: false, // 🔹 Ensure silent mode is off,
 				individualHooks: true, // ✅ Ensure hooks trigger properly
 			});
+
+			await db.employeeBiographicalHistory.create(
+				Object.assign(
+					{
+						createdBy: req.userId,
+						createdAt: moment(),
+					},
+					existBiographicalDetails.dataValues,
+				),
+			);
 
 			if (result.salutationId) {
 				await db.employeeMaster.update(
@@ -423,6 +437,27 @@ class commonController {
 					let durationOfProbation = getProbationDetails.durationOfProbation;
 					result["probationDays"] = durationOfProbation;
 				}
+			}
+
+			// new changes for update dateOfProbationEnd and dateOfProbationTriggerDate
+			if (
+				(result.dateOfJoining &&
+					result.dateOfJoining != existPaymentDetails.dateOfJoining) ||
+				(result.probationId &&
+					result.probationId != existPaymentDetails.probationId)
+			) {
+				const probationDays =
+					result["probationDays"] || existPaymentDetails.probationDays;
+				const dateOfJoining =
+					result.dateOfJoining || existPaymentDetails.dateOfJoining;
+				result["dateOfProbationEnd"] = moment(dateOfJoining)
+					.add(parseInt(probationDays), "day")
+					.format("YYYY-MM-DD");
+				result["dateOfProbationTriggerDate"] = moment(
+					result["dateOfProbationEnd"],
+				)
+					.subtract(21, "day")
+					.format("YYYY-MM-DD");
 			}
 
 			if (existPaymentDetails) {
@@ -896,7 +931,7 @@ class commonController {
 						data: employeeData,
 					});
 				} else {
-					console.log("usersData.role_id", usersData.role_id);
+					// console.log("usersData.role_id", usersData.role_id);
 					let myReportyList = await db.employeeMaster.findAll({
 						where: {
 							manager: req.userId,
@@ -909,7 +944,7 @@ class commonController {
 						///appedning SBU to filter
 						[Op.in]: final,
 					};
-					console.log("empFilters", empFilters);
+					// console.log("empFilters", empFilters);
 
 					employeeData = await db.employeeMaster.findAndCountAll({
 						order: [["id", "desc"]],
@@ -2700,7 +2735,7 @@ class commonController {
 
 			result = { ...result, createdBy: req.userId, isActive: 1, isEdited: 1 };
 
-			console.log("result", result);
+			// console.log("result", result);
 			// Handle file upload for policy document
 			if (result.policyDocument) {
 				if (!result.policyDocument.startsWith("uploads")) {
@@ -2796,7 +2831,7 @@ class commonController {
 					{ is_archived: 1 },
 					{ where: { id: parseInt(policyId, 10) } },
 				);
-				console.log(policyId, "policyId");
+				// console.log(policyId, "policyId");
 				// Calculate the new version
 				const currentVersion = parseFloat(existingPolicy.version || 1.0);
 				const newVersion = parseFloat((currentVersion + 1.0).toFixed(2));
@@ -2903,7 +2938,7 @@ class commonController {
 		try {
 			let model = db.hrPolicies;
 			let query = { id: req.params.id };
-			console.log("Received id:", req.params.id);
+			// console.log("Received id:", req.params.id);
 
 			let updateMetaData = { isDeleted: 1, isActive: 0, updatedAt: moment() };
 			let moduleName = "Hr Policy";

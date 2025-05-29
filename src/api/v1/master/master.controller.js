@@ -269,7 +269,7 @@ class MasterController {
 					},
 					{
 						model: db.employeeMaster,
-						required: usersData.role_id == 2 ? false : true,
+						required: false,
 						as: "managerData",
 						attributes: ["id", "name", "email", "empCode"],
 					},
@@ -936,6 +936,7 @@ class MasterController {
 			});
 		} catch (error) {
 			logger.error("Error while getting department list", error);
+			console.log("error", error)
 			return respHelper(res, {
 				status: 500,
 			});
@@ -1106,9 +1107,12 @@ class MasterController {
 					});
 				} else {
 					dashboardData = await db.DashboardCard.findAndCountAll({
-						where: {
-							isActive: 1,
-						},
+						where: Object.assign(
+							{
+								isActive: 1,
+							},
+							mobile ? { isVisibleForMobile: 1 } : { isVisibleForWeb: 1 },
+						),
 						order: mobile
 							? [["mobilePosition", "asc"]]
 							: [["webPosition", "asc"]],
@@ -2418,7 +2422,7 @@ class MasterController {
 					data: [],
 				});
 			}
-			console.log("getDepartmentIds", getDepartmentIds);
+			// console.log("getDepartmentIds", getDepartmentIds);
 			const departmentData = await db.departmentMapping.findAll({
 				include: [
 					{
@@ -2543,14 +2547,14 @@ class MasterController {
 						},
 					});
 
-					if (pemissionAccessIds.length === 0) {
-						console.log("No permission access found for given IDs:", ids);
-					}
+					// if (pemissionAccessIds.length === 0) {
+					// 	console.log("No permission access found for given IDs:", ids);
+					// }
 
 					const buIds = pemissionAccessIds.map(
 						(e) => e.dataValues.permissionValue,
 					);
-					console.log("buIds:", buIds);
+					// console.log("buIds:", buIds);
 
 					if (buIds.length > 0) {
 						getCompanyMappingId = await db.buMapping.findAll({
@@ -2689,6 +2693,24 @@ class MasterController {
 	// 		});
 	// 	}
 	// }
+
+	async hrDocuments(req, res) {
+		try {
+			const list = await db.hrDocumentMaster.findAll({
+				where: { isActive: 1 },
+				attributes: ["documentId", "documentName"],
+			});
+			return respHelper(res, {
+				status: 200,
+				data: list,
+			});
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
 }
 
 async function fetchPermissionAccessRecord(req, permissionType) {
