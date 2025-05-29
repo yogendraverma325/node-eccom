@@ -375,7 +375,9 @@ class AppraisalGoalsController {
 								startDate: moment(getUserAssigmentIds.startDate).format(
 									"DD-MM-YYYY",
 								),
-								endDate: moment(getUserAssigmentIds.endDate).format("DD-MM-YYYY"),
+								endDate: moment(getUserAssigmentIds.endDate).format(
+									"DD-MM-YYYY",
+								),
 								goalPlanDescription: getUserAssigmentIds.goalPlanDescription,
 								goalPlanName: getUserAssigmentIds.goalPlanName,
 								senderEmail: user["companymaster.senderEmail"] || "",
@@ -3225,7 +3227,7 @@ class AppraisalGoalsController {
 				if (newInserts.length > 0) {
 					await db.reviewFrameworkMail.bulkCreate(newInserts);
 				}
-				console.log("newInsertsInTrail",newInsertsInTrail.length)
+				console.log("newInsertsInTrail", newInsertsInTrail.length);
 
 				if (newInsertsInTrail.length > 0) {
 					await db.reviewRatingTrail.bulkCreate(newInsertsInTrail);

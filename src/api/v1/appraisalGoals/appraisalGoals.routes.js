@@ -140,8 +140,9 @@ export default Express.Router()
 		"/sendBackForSubmission",
 		authentication.authenticate,
 		appraisalGoalsController.sendBackForSubmission,
-	).post(
+	)
+	.post(
 		"/selfRating",
 		authentication.authenticate,
 		appraisalGoalsController.selfRating,
-	);;
+	);

@@ -1921,7 +1921,7 @@ class MasterController {
 				managerId,
 				reporteIds,
 			} = req.query;
-			
+
 			let buFIlter = {};
 			let sbbuFIlter = {};
 			let functionAreaFIlter = {};
@@ -2738,8 +2738,12 @@ class MasterController {
 					employeeId: employeeRecord.empId,
 					name: employeeRecord.name,
 					empCode: employeeRecord.empCode,
-					dateOfJoining: employeeRecord.dateOfJoining?moment(employeeRecord.dateOfJoining).format("DD-MM-YYYY"):employeeRecord.dateOfJoining,
-					dateOfExit: employeeRecord.dateOfexit ? moment(employeeRecord.dateOfexit).format("DD-MM-YYYY"):employeeRecord.dateOfexit,
+					dateOfJoining: employeeRecord.dateOfJoining
+						? moment(employeeRecord.dateOfJoining).format("DD-MM-YYYY")
+						: employeeRecord.dateOfJoining,
+					dateOfExit: employeeRecord.dateOfexit
+						? moment(employeeRecord.dateOfexit).format("DD-MM-YYYY")
+						: employeeRecord.dateOfexit,
 					...dayRecords,
 					P: attendanceCount.P,
 					A: attendanceCount.A,

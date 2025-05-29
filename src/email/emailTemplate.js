@@ -6635,7 +6635,7 @@ export default {
 	///LEAVE REVOKE
 	leaveAcknowledgementRevoke,
 	leaveRequestRevokeMail,
-  reviewCycleAssignToEmployee,
+	reviewCycleAssignToEmployee,
 	sendBackForReSubmission,
 	nextLevelSubmissionTemplate,
 	reviewComplete,

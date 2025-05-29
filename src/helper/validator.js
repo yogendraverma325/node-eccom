@@ -2434,7 +2434,9 @@ const reviewFrameworkSchema = Joi.object({
 	const goal = value.goalWeightage ?? 0;
 	const comp = value.compentencyWeightage ?? 0;
 	if (goal + comp !== 100) {
-		return helpers.message("The sum of goal Weightage and compentency Weightage must be 100");
+		return helpers.message(
+			"The sum of goal Weightage and compentency Weightage must be 100",
+		);
 	}
 	return value;
 });
@@ -2510,10 +2512,12 @@ const editReviewFrameworkSchema = Joi.object({
 	const goal = value.goalWeightage ?? 0;
 	const comp = value.compentencyWeightage ?? 0;
 	if (goal + comp !== 100) {
-		return helpers.message("The sum of goal Weightage and compentency Weightage must be 100");
+		return helpers.message(
+			"The sum of goal Weightage and compentency Weightage must be 100",
+		);
 	}
 	return value;
-});;
+});
 
 const createRatingScaleSchema = Joi.object({
 	ratingScaleName: Joi.string().required().messages({
