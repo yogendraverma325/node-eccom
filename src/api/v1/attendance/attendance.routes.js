@@ -48,6 +48,8 @@ export default Express.Router()
 	.post(
 		"/revokeApprovedRegularizations",
 		attendanceController.revokeApprovedRegularizations,
-	);
+	)
+	.post("/runcronforEMPForTheGivenDate", attendanceController.runcronforEMPForTheGivenDate)
+	.post("/runcronforEMPForThejoiningDate", attendanceController.runcronforEMPForThejoiningDate);
 //REVOKE
 //Attendance Roster

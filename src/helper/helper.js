@@ -3998,10 +3998,13 @@ const revokeApprovedAppliedLeave = async (
 				},
 			});
 			if (checkAttendance) {
-				await attendanceController.attedanceCronManual(
+				if(Singleleaves.appliedFor!=moment().format("YYYY-MM-DD")){ // added check , not to run cron , if attendance is being revoke on current date
+					await attendanceController.attedanceCronManual(
 					checkAttendance.attendanceAutoId,
 					Singleleaves.appliedFor,
-				);
+					);
+				}
+				
 			}
 		}
 		await db.EmployeeLeaveHeader.update(
@@ -4570,6 +4573,20 @@ async function validateSelfAppraisalData(data) {
 
 	return { valid: true };
 }
+//Addition function to get date between date range , this is required to generate attendance
+async function getDatesArray(startDate, endDate) {
+const dates = [];
+  let currentDate = moment(startDate);
+  const lastDate = moment(endDate);
+
+  while (currentDate.isBefore(lastDate)) {
+    dates.push(currentDate.format('YYYY-MM-DD'));
+    currentDate = currentDate.add(1, 'days');
+  }
+
+  return dates;
+}
+//Addition function to get date between date range , this is required to generate attendance
 
 export default {
 	generateJwtToken,
@@ -4648,4 +4665,7 @@ export default {
 	handleReviewFrameworkAssignment,
 	handleReviewFrameworkAssignmentNew,
 	validateSelfAppraisalData,
+	//Addition function to get date between date range , this is required to generate attendance
+	getDatesArray
+	//Addition function to get date between date range , this is required to generate attendance
 };
