@@ -878,8 +878,8 @@ class AttendanceController {
 			let attendanceData = await db.attendanceMaster.findOne({
 				where: {
 					attendanceAutoId: result.attendanceAutoId,
-					///attendanceDate: { [Op.lte]: result.fromDate },
-					///attendanceShiftEndDate: { [Op.gte]: result.toDate }, // this column was not having data need to check
+					//attendanceDate: { [Op.lte]: result.fromDate },
+					//attendanceShiftEndDate: { [Op.gte]: result.toDate }, // this column was not having data need to check
 				},
 				attributes: [
 					"attendancePunchInTime",
@@ -954,48 +954,47 @@ class AttendanceController {
 				attendanceData?.dataValues?.shiftsmaster?.dataValues || "";
 
 			if (attendancePolicyDetails && shiftDetails) {
-				const shiftStartWithGrace = moment(
-					shiftDetails.shiftStartTime,
-					"HH:mm:ss",
-				)
-					.add(attendancePolicyDetails.graceTimeClockIn, "minutes")
-					.format("HH:mm:ss");
-				// console.log("shiftStartWithGrace",shiftStartWithGrace);
 
-				const preShiftStart = moment(shiftDetails.shiftStartTime, "HH:mm:ss")
-					.subtract(attendancePolicyDetails.bufferTimePre, "minutes")
-					.format("HH:mm:ss");
-				// console.log("preShiftStart",preShiftStart)
-				const startRegularizeDateTime = `${result.fromDate}T${result.punchInTime}`;
-				const preAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${preShiftStart}`;
-				const graceAttendanceDateTime = `${attendanceData?.dataValues?.attendanceDate}T${shiftStartWithGrace}`;
 				// console.log("graceAttendanceDateTime", graceAttendanceDateTime)
 				let isOverNight = parseInt(shiftDetails.isOverNight);
+				let momentRegularize = moment(`${attendanceData?.dataValues?.attendanceDate} ${shiftDetails.shiftStartTime}`)
+					.subtract(attendancePolicyDetails.bufferTimePre, "minutes")
+					.format("YYYY-MM-DD HH:mm:ss");
+
+				let momentRegularizeActual = moment(`${result?.fromDate} ${result.punchInTime}`)
+					.format("YYYY-MM-DD HH:mm:ss");
+
+				console.log("momentRegularize", momentRegularize, "momentRegularizeActual", momentRegularizeActual);
 
 				if (
-					startRegularizeDateTime < preAttendanceDateTime &&
+					momentRegularize > momentRegularizeActual &&
 					isOverNight === 0
 				) {
 					// console.log("you are not able to regularize");
 					return respHelper(res, {
 						status: 400,
-						msg: "Invalid punchIn/punchOut day time",
+						msg: "Invalid punchIn/punchOut day time vvv",
 					});
 				}
 
-				const postShiftEnd = moment(shiftDetails.shiftEndTime, "HH:mm:ss")
+				let momentRegularizeend = moment(`${attendanceData?.dataValues?.attendanceShiftEndDate} ${shiftDetails.shiftEndTime}`)
 					.add(attendancePolicyDetails.bufferTimePost, "minutes")
-					.format("HH:mm:ss");
-				// console.log("postShiftEnd", postShiftEnd);
-				// console.log("punchOutTime", result.punchOutTime);
-				const endRegularizeDateTime = `${result.toDate}T${result.punchOutTime}`;
-				const postAttendanceDateTime = `${attendanceData?.dataValues?.attendanceShiftEndDate}T${postShiftEnd}`;
-				// console.log("endRegularizeDateTime", endRegularizeDateTime);
-				// console.log("postAttendanceDateTime", postAttendanceDateTime);
+					.format("YYYY-MM-DD HH:mm:ss");
+
+				let momentRegularizeendActual = moment(`${result?.toDate} ${result.punchOutTime}`)
+					.format("YYYY-MM-DD HH:mm:ss");
+
+				console.log("momentRegularizeend", momentRegularizeend, "momentRegularizeendActual", momentRegularizeendActual, "condiiton",
+					momentRegularize > momentRegularizeActual,
+					"conidtion 2",
+					momentRegularizeend < momentRegularizeendActual,
+					"isOverNight",
+					isOverNight
+				);
 
 				if (
-					preAttendanceDateTime > startRegularizeDateTime ||
-					(endRegularizeDateTime > postAttendanceDateTime && isOverNight === 1)
+					momentRegularize > momentRegularizeActual ||
+					(momentRegularizeend < momentRegularizeendActual && isOverNight === 1)
 				) {
 					// console.log("you are not able to regularize with isOverNight");
 					return respHelper(res, {
@@ -1003,6 +1002,8 @@ class AttendanceController {
 						msg: "Invalid punchIn/punchOut night time",
 					});
 				}
+
+
 
 				// if (
 				// 	attendanceData?.dataValues?.attendanceDate === result.fromDate &&
@@ -4124,7 +4125,6 @@ class AttendanceController {
 								markHalfDayType = 2;
 							}
 							await helper.revokeAppliedLeave(date, singleEmp.id);
-
 							if (
 								markHalfDay != null &&
 								singleEmp?.attendancemaster?.weekOffMaster &&
@@ -4134,6 +4134,7 @@ class AttendanceController {
 								singleEmp.holidaycompanylocationconfigurations &&
 								singleEmp.holidaycompanylocationconfigurations.length == 0
 							) {
+								
 								let EMP_DATA = await helper.getEmpProfile(singleEmp.id);
 								if (EMP_DATA) {
 									await helper.empMarkLeaveOfGivenDate(

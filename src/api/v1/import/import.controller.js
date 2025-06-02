@@ -9,7 +9,8 @@ import moment from "moment";
 import { raw } from "mysql2";
 import eventEmitter from "../../../services/eventService.js";
 import constant from "../../../constant/messages.js";
-
+import helper from "../../../helper/helper.js"; // adding helper into import section  for attendance import
+import attendanceController from "../attendance/attendance.controller.js"; // adding controller into import section for attendance import
 const financialMonth = {
 	1: "January",
 	2: "February",
@@ -58,6 +59,7 @@ class ImportController {
 				"Arrears",
 				"Employment Details",
 				"Employee Data",
+				"Attendance" // adding new module to import attendance
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -119,6 +121,16 @@ class ImportController {
 				await employmentDetails(req, res, FILEDATA, importInfoObject);
 			} else if (req.body.uploadType == "Employee Data") {
 				await employeeData(req, res, FILEDATA, importInfoObject);
+			}
+			else if (req.body.uploadType == "Attendance") { // adding new module to import attendance
+				await attendaceData(req, res, FILEDATA, importInfoObject); 
+			}
+			else{
+				// adding default handler to fill the missing operation and upload type
+				return respHelper(res, {
+					status: 400,
+					msg: "Operation not defined : ",
+				});
 			}
 		} catch (error) {
 			console.log(error);
@@ -3243,6 +3255,184 @@ async function employeeData(req, res, FILEDATA, importParams) {
 		},
 	});
 }
+
+// adding new module to import attendance
+async function attendaceData(req, res, FILEDATA, importParams){
+			let successArray = [];
+			let errorArray = [];
+			let importId = await createImportDetails(importParams);
+		for (const row of FILEDATA) {
+			let shiftDate = convertExcelDate(row['Shift Date']);
+			let fromDate = convertExcelDate(row['Intime Date']);
+			let toDate = convertExcelDate(row['Outtime Date']);
+			let empId=694;
+			let empCode=row['Email/Employee ID'];
+
+				let attendanceData = await db.attendanceMaster.findOne({
+					where: {
+						employeeId: empId,
+						attendanceDate:shiftDate
+					},
+					include: [
+						{
+							model: db.shiftMaster,
+							required: false,
+							attributes: [
+								"shiftId",
+								"shiftName",
+								"shiftStartTime",
+								"shiftEndTime",
+								"isOverNight",
+							],
+							where: {
+								isActive: 1,
+							},
+						},
+						{
+							model: db.attendancePolicymaster,
+							required: false,
+							where: {
+								isActive: 1,
+							},
+						},
+					],
+				});
+
+				if(attendanceData){
+
+					let inStartTimingAsPerTheUser = moment(`${fromDate} ${row['In Time']}`)
+					.format("YYYY-MM-DD HH:mm:ss");;
+					let inStartTimingAsPerTheShift = moment(`${shiftDate} ${attendanceData?.shiftsmaster?.shiftStartTime}`)
+					.subtract(
+						attendanceData.attendancePolicymaster.allowBufferTime == 1
+							? attendanceData.attendancePolicymaster.bufferTimePre
+							: 0,
+						"minutes",
+					).format("YYYY-MM-DD HH:mm:ss");
+
+				let endDate=null;
+				if (attendanceData?.shiftsmaster?.isOverNight==1) {
+				endDate = moment(`${shiftDate} ${row['In Time']}`).add(1, 'days').format("YYYY-MM-DD");
+				}else{
+				endDate = moment(`${shiftDate} ${row['In Time']}`).add(0, 'days').format("YYYY-MM-DD");
+				}
+
+
+			let endTimingAsPerTheUser = moment(`${endDate} ${row['Out Time']}`)
+			.format("YYYY-MM-DD HH:mm:ss");;
+			let endTimingAsPerTheShift = moment(`${endDate} ${attendanceData?.shiftsmaster?.shiftEndTime}`)
+			.add(
+			attendanceData.attendancePolicymaster.allowBufferTime == 1
+			? attendanceData.attendancePolicymaster.bufferTimePost
+			: 0,
+			"minutes",
+			).format("YYYY-MM-DD HH:mm:ss");
+			console.log("===============")
+			console.log("inStartTimingAsPerTheShift",inStartTimingAsPerTheShift)
+			console.log("inStartTimingAsPerTheUser",inStartTimingAsPerTheUser)
+			console.log("endTimingAsPerTheShift",endTimingAsPerTheShift)
+			console.log("endTimingAsPerTheShift",endTimingAsPerTheShift)
+			console.log("===============")
+			if(inStartTimingAsPerTheShift <=inStartTimingAsPerTheUser && endTimingAsPerTheShift>=endTimingAsPerTheShift){
+					const assignedShiftStartTime =
+						attendanceData?.shiftsmaster?.shiftStartTime;
+						let graceTime = moment(assignedShiftStartTime, "HH:mm"); // set shift start time
+						graceTime.add(
+						attendanceData.attendancePolicymaster.allowBufferTime == 1
+						? attendanceData.attendancePolicymaster.graceTimeClockIn
+						: 0,
+						"minutes",
+						); // Add buffer time  to the selected time if buffer allow
+					const withGraceTime = graceTime.format("HH:mm:ss");
+	
+					let attendanceLateBy = await helper.calculateLateBy(
+						row['In Time'],
+						withGraceTime,
+						fromDate,
+						shiftDate,
+					);
+	
+					let workingTime = null;
+					if (
+						row['In Time'] &&
+					    toDate &&
+						fromDate &&
+						row['Out Time']
+					) {
+						workingTime = await helper.timeDifference(
+							`${toDate} ${row['In Time']}`,
+							`${fromDate} ${row['Out Time']}`,
+						);
+					}
+	
+						let res=await attendanceData.update({
+							attendancePunchInTime:row['In Time'],
+							attendancePunchOutTime:row['Out Time'],
+							attandanceShiftStartDate:fromDate,
+							attendanceShiftEndDate:toDate,
+							attendanceShiftEndDate2:toDate,
+							attendanceWorkingTime: workingTime,
+							attendanceLateBy: attendanceLateBy,
+							attendancePunchInRemark:row['Comments'],
+							attendancePunchOutRemark:row['Comments']
+						});
+						if(res){
+			successArray.push({
+						importedRow: empCode,
+						importAutoId: importId,
+						importStatus: 1,
+						createdBy: req.userId,
+						importStatusDesc: "Attendance data update successfully.",
+					});
+						await attendanceController.attedanceCronManual(
+							attendanceData.attendanceAutoId,
+							shiftDate,
+						);
+						}
+
+
+			}else{
+				errorArray.push({
+				importedRow: empCode,
+				importAutoId: importId,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: "Invalid Attendace Time",
+			});
+			}
+
+			
+
+							
+					
+				}
+		if (successArray.length > 0 || errorArray.length > 0) {
+		let importFinalResult = successArray.concat(errorArray);
+		await db.ImportData.bulkCreate(importFinalResult);
+		await db.ImportInfo.update(
+		{
+		importStatusDesc:
+		"Import Executed with " +
+		successArray.length +
+		" success and " +
+		errorArray.length +
+		" error records",
+		importStatus: 1,
+		},
+		{ where: { importAutoId: importId } },
+		);
+		}
+		}
+	return respHelper(res, {
+		status: 202,
+		msg: "Employee data update successfully.",
+		data: {
+			SuccessRecord: successArray.length,
+			ErrorRecord: errorArray.length,
+		},
+	});
+}
+// adding new module to import attendance
 
 const commonEmploymentDetails = async (payload, today) => {
 	const recordsExistForDate = await payload.childModel.findOne({
