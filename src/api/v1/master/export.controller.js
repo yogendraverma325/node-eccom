@@ -52,12 +52,12 @@ class MasterController {
 				where: Object.assign(
 					search
 						? {
-								[Op.or]: [
-									{ empCode: { [Op.like]: `%${search}%` } },
-									{ name: { [Op.like]: `%${search}%` } },
-									{ email: { [Op.like]: `%${search}%` } },
-								],
-							}
+							[Op.or]: [
+								{ empCode: { [Op.like]: `%${search}%` } },
+								{ name: { [Op.like]: `%${search}%` } },
+								{ email: { [Op.like]: `%${search}%` } },
+							],
+						}
 						: {},
 				),
 				include: [
@@ -1323,11 +1323,9 @@ class MasterController {
 			const limit = parseInt(req.query.limit) || 10;
 			const pageNo = parseInt(req.query.page) || 1;
 			const offset = (pageNo - 1) * limit;
-			const cacheKey = `employeeList:${pageNo}:${limit}:${search || ""}:${
-				department || ""
-			}:${designation || ""}:${buSearch || ""}:${sbuSearch || ""}:${
-				areaSearch || ""
-			}`;
+			const cacheKey = `employeeList:${pageNo}:${limit}:${search || ""}:${department || ""
+				}:${designation || ""}:${buSearch || ""}:${sbuSearch || ""}:${areaSearch || ""
+				}`;
 
 			let employeeData = [];
 			await client.get(cacheKey).then(async (data) => {
@@ -1745,9 +1743,9 @@ class MasterController {
 							")",
 						manager: record["employee.managerData.name"]
 							? record["employee.managerData.name"] +
-								" (" +
-								record["employee.managerData.empCode"] +
-								")"
+							" (" +
+							record["employee.managerData.empCode"] +
+							")"
 							: "-",
 						attendanceDate: moment(record.attendanceDate).format("DD-MM-YYYY"),
 						attendanceStatus: record.attendanceStatus,
@@ -1777,14 +1775,12 @@ class MasterController {
 						//createdBy: record["punchInCreatedBy.name"] + record["punchInCreatedBy.empCode"] || "N/A",
 						//updatedBy: record["punchOutCreatedBy.name"] + record["punchOutCreatedBy.empCode"]|| "N/A",
 						createdBy: record["punchInCreatedBy.name"]
-							? `${record["punchInCreatedBy.name"]} (${
-									record["punchInCreatedBy.empCode"] ?? "N/A"
-								})`
+							? `${record["punchInCreatedBy.name"]} (${record["punchInCreatedBy.empCode"] ?? "N/A"
+							})`
 							: "N/A",
 						updatedBy: record["punchOutCreatedBy.name"]
-							? `${record["punchOutCreatedBy.name"]} (${
-									record["punchOutCreatedBy.empCode"] ?? "N/A"
-								})`
+							? `${record["punchOutCreatedBy.name"]} (${record["punchOutCreatedBy.empCode"] ?? "N/A"
+							})`
 							: "N/A",
 						createdAt:
 							record.createdAt != null
@@ -3663,7 +3659,14 @@ class MasterController {
 						attributes: ["emptypename"],
 						required: false,
 					},
-					{ model: db.biographicalDetails, required: false },
+					{
+						model: db.biographicalDetails,
+						required: false
+					},
+					{
+						model: db.degreeMaster,
+						required: false
+					},
 					{
 						model: db.emergencyDetails,
 						required: false,
@@ -3786,16 +3789,10 @@ class MasterController {
 							{ model: db.cityMaster, attributes: ["cityName"] },
 							{ model: db.pinCodeMaster, attributes: ["pincodeId", "pincode"] },
 						],
-						// where: {
-						// 	...companyFIlter,
-						// },
 					},
 					{
 						model: db.companyMaster,
 						attributes: ["companyName", "companyCode"],
-						// where: {
-						// 	...companyFIlter,
-						// },
 					},
 					{ model: db.shiftMaster, attributes: ["shiftName"] },
 					{ model: db.attendancePolicymaster, attributes: ["policyName"] },
@@ -3848,21 +3845,6 @@ class MasterController {
 								attributes: ["cityId", "cityName"],
 								as: "emergencycity",
 							},
-							// {
-							// 	model: db.pinCodeMaster,
-							// 	attributes: ["pincodeId", "pincode"],
-							// 	as: "currentpincode",
-							// },
-							// {
-							// 	model: db.pinCodeMaster,
-							// 	attributes: ["pincodeId", "pincode"],
-							// 	as: "permanentpincode",
-							// },
-							// {
-							// 	model: db.pinCodeMaster,
-							// 	attributes: ["pincodeId", "pincode"],
-							// 	as: "emergencypincode",
-							// },
 						],
 					},
 					{
@@ -3921,78 +3903,42 @@ class MasterController {
 				const data = {
 					id: ele.dataValues.id || "",
 					empCode: ele.dataValues.empCode || "",
+					dateOfJoining: ele.employeejobdetail?.dateOfJoining ? moment(ele.employeejobdetail.dateOfJoining).format("DD-MM-YYYY") : "",
 					name: ele.dataValues.name || "",
 					email: ele.dataValues.email || "",
 					personalEmail: ele.dataValues.personalEmail || "",
 					firstName: ele.dataValues.firstName || "",
 					lastName: ele.dataValues.lastName || "",
-					dateOfexit: ele.dataValues.dateOfexit
-						? moment(ele.dataValues.dateOfexit).format("DD-MM-YYYY")
-						: "",
+					dateOfexit: ele.dataValues.dateOfexit ? moment(ele.dataValues.dateOfexit).format("DD-MM-YYYY") : "",
 					officeMobileNumber: ele.dataValues.officeMobileNumber || "",
 					personalMobileNumber: ele.dataValues.personalMobileNumber || "",
 					manager_code: ele.dataValues.managerData?.empCode || "",
 					manager_name: ele.dataValues.managerData?.name || "",
 					manager_email_id: ele.dataValues.managerData?.email || "",
-					designation_name: ele.dataValues.designationmaster
-						? `${ele.dataValues.designationmaster.name || ""} (${
-								ele.dataValues.designationmaster.code || ""
-							})`.trim()
-						: "",
+					designation_name: ele.dataValues.designationmaster ? `${ele.dataValues.designationmaster.name || ""} (${ele.dataValues.designationmaster.code || ""})`.trim() : "",
 					designation_code: ele.dataValues.designationmaster?.code || "",
-					functional_area_name:
-						ele.dataValues.functionalareamaster?.functionalAreaName || "",
-					functional_area_code:
-						ele.dataValues.functionalareamaster?.functionalAreaCode || "",
-					parent_functional_area:
-						ele.dataValues.functionalareamaster?.parentFunctionalArea
-							?.dataValues?.functionalAreaName || "",
-					department_name:
-						ele.dataValues.departmentmaster?.departmentName || "",
-					department_code:
-						ele.dataValues.departmentmaster?.departmentCode || "",
+					functional_area_name: ele.dataValues.functionalareamaster?.functionalAreaName || "",
+					functional_area_code: ele.dataValues.functionalareamaster?.functionalAreaCode || "",
+					parent_functional_area: ele.dataValues.functionalareamaster?.parentFunctionalArea?.dataValues?.functionalAreaName || "",
+					department_name: ele.dataValues.departmentmaster?.departmentName || "",
+					department_code: ele.dataValues.departmentmaster?.departmentCode || "",
 					bu_name: ele.dataValues.bumaster?.buName || "",
 					sbu_name: ele.dataValues.sbumaster?.dataValues.sbuname || "",
 					sbu_code: ele.dataValues.sbumaster?.dataValues.code || "",
-
 					grade: ele.employeejobdetail?.grademaster?.gradeName || "",
 					band: ele.employeejobdetail?.bandmaster?.bandDesc || "",
 					jobLevel: ele.employeejobdetail?.joblevelmaster?.jobLevelName || "",
-					jobLevelCode:
-						ele.employeejobdetail?.joblevelmaster?.jobLevelCode || "",
-					costCenter:
-						ele.costcentermaster?.costCenterName +
-							" " +
-							ele.costcentermaster?.costCenterCode || "",
-					dateOfJoining: ele.employeejobdetail?.dateOfJoining
-						? moment(ele.employeejobdetail.dateOfJoining).format("DD-MM-YYYY")
-						: "",
+					jobLevelCode: ele.employeejobdetail?.joblevelmaster?.jobLevelCode || "",
+					costCenter: ele.costcentermaster?.costCenterName + " " + ele.costcentermaster?.costCenterCode || "",
 					residentEng: ele.employeejobdetail?.residentEng == 1 ? "Yes" : "No",
 					customerName: ele.employeejobdetail?.customerName || "",
-					fathersName:
-						ele.employeefamilydetails.find(
-							(f) => f.relationWithEmp === "Father",
-						)?.name || "",
-					motherName:
-						ele.employeefamilydetails.find(
-							(m) => m.relationWithEmp === "Mother",
-						)?.name || "",
+					fathersName: ele.employeefamilydetails.find((f) => f.relationWithEmp === "Father")?.name || "",
+					motherName: ele.employeefamilydetails.find((m) => m.relationWithEmp === "Mother")?.name || "",
 					nationality: ele.employeebiographicaldetail?.nationality || "",
-					maritalStatus: ele.employeebiographicaldetail?.maritalStatus
-						? Object.keys(maritalStatusOptions).find(
-								(key) =>
-									maritalStatusOptions[key] ===
-									ele.employeebiographicaldetail.maritalStatus,
-							) || ""
-						: "",
-					maritalStatusSince:
-						ele.employeebiographicaldetail.maritalStatusSince || "",
+					maritalStatus: ele.employeebiographicaldetail?.maritalStatus ? Object.keys(maritalStatusOptions).find((key) => maritalStatusOptions[key] === ele.employeebiographicaldetail.maritalStatus) || "" : "",
+					maritalStatusSince: ele.employeebiographicaldetail.maritalStatusSince || "",
 					gender: ele.employeebiographicaldetail?.gender,
-					dateOfBirth: ele.employeebiographicaldetail?.dateOfBirth
-						? moment(ele.employeebiographicaldetail.dateOfBirth).format(
-								"DD-MM-YYYY",
-							)
-						: "",
+					dateOfBirth: ele.employeebiographicaldetail?.dateOfBirth ? moment(ele.employeebiographicaldetail.dateOfBirth).format("DD-MM-YYYY") : "",
 					office_country: ele.companylocationmaster?.countrymaster?.countryName,
 					office_state: ele.companylocationmaster?.statemaster?.stateName,
 					office_city: ele.companylocationmaster?.citymaster?.cityName,
@@ -4002,157 +3948,89 @@ class MasterController {
 					passportNumber: ele.dataValues.passportNumber || "",
 					drivingLicence: ele.dataValues.drivingLicence || "",
 					isActive: ele.dataValues.isActive == 1 ? "Active" : "In Active",
-					lastIncrementDate: ele.dataValues.lastIncrementDate
-						? moment(ele.dataValues.lastIncrementDate).format("DD-MM-YYYY")
-						: "",
+					lastIncrementDate: ele.dataValues.lastIncrementDate ? moment(ele.dataValues.lastIncrementDate).format("DD-MM-YYYY") : "",
 					iqTestApplicable: ele.dataValues.iqTestApplicable == 0 ? "No" : "Yes",
-					highestQualification:
-						ele.employeeeducationdetails.length > 0
-							? ele.employeeeducationdetails[0].degreemaster.degreeName
-							: "",
+					highestQualification: ele?.degreemaster ? ele?.degreemaster?.degreeName : "",
 					positionType: ele.dataValues.positionType,
 					newCustomerName: ele.dataValues.newCustomerName,
 					shiftName: ele.shiftsmaster?.shiftName || "",
 					attendancePolicymaster: ele.attendancePolicymaster?.policyName || "",
 					weekOffMaster: ele.weekOffMaster?.weekOffName || "",
 					buhrData: headAndHrData.buhrData,
-					hrbpCode:
-						ele.dataValues.buId && ele.dataValues.companyId
-							? headAndHrData?.buhrData?.empCode
-							: "", //ele.dataValues?.buhrData?.empCode || "",
-					hrbpName:
-						ele.dataValues.buId && ele.dataValues.companyId
-							? headAndHrData?.buhrData?.name
-							: "", //ele.dataValues.buhrData?.name,
-					// first_exp:
-					//   ele.dataValues.buId && ele.dataValues.companyId
-					//     ? headAndHrData?.buhrData?.name
-					//     : "",
-					hrbpEmail:
-						ele.dataValues.buId && ele.dataValues.companyId
-							? headAndHrData?.buhrData?.email
-							: "", //ele.dataValues.buhrData?.email,
-					// second_exp:
-					//   ele.dataValues.buId && ele.dataValues.companyId
-					//     ? headAndHrData?.buhrData?.email
-					//     : "",
-					buHeadName:
-						ele.dataValues.buId && ele.dataValues.companyId
-							? headAndHrData?.buHeadData?.name
-							: "", //ele.dataValues.buHeadData?.name,
-					// third_exp:
-					//   ele.dataValues.buId && ele.dataValues.companyId
-					//     ? headAndHrData?.buHeadData?.name
-					//     : "",
-					emergencyContactRelation:
-						ele.employeeemergencycontact?.emergencyContactRelation || "",
-					emergencyBloodGroup:
-						ele.employeeemergencycontact?.emergencyBloodGroup || "",
-					emergencyContactNumber:
-						ele.employeeemergencycontact?.emergencyContactNumber || "",
+					hrbpCode: ele.dataValues.buId && ele.dataValues.companyId ? headAndHrData?.buhrData?.empCode : "",
+					hrbpName: ele.dataValues.buId && ele.dataValues.companyId ? headAndHrData?.buhrData?.name : "",
+					hrbpEmail: ele.dataValues.buId && ele.dataValues.companyId ? headAndHrData?.buhrData?.email : "",
+					buHeadName: ele.dataValues.buId && ele.dataValues.companyId ? headAndHrData?.buHeadData?.name : "",
+					emergencyContactRelation: ele.employeeemergencycontact?.emergencyContactRelation || "",
+					emergencyBloodGroup: ele.employeeemergencycontact?.emergencyBloodGroup || "",
+					emergencyContactNumber: ele.employeeemergencycontact?.emergencyContactNumber || "",
 					recruiterName: ele.dataValues.recruiterName || "",
-					mobileAccess:
-						ele.employeebiographicaldetail?.mobileAccess == 0 ? "No" : "Yes",
+					mobileAccess: ele.employeebiographicaldetail?.mobileAccess == 0 ? "No" : "Yes",
 					laptopSystem: ele.employeebiographicaldetail?.laptopSystem || "",
-					backgroundVerification:
-						ele.employeebiographicaldetail?.backgroundVerification == 0
-							? "No"
-							: "Yes",
+					backgroundVerification: ele.employeebiographicaldetail?.backgroundVerification == 0 ? "No" : "Yes",
 					dataCardAdmin: ele.dataValues.dataCardAdmin == 0 ? "No" : "Yes",
-					visitingCardAdmin:
-						ele.dataValues.visitingCardAdmin == 0 ? "No" : "Yes",
+					visitingCardAdmin: ele.dataValues.visitingCardAdmin == 0 ? "No" : "Yes",
 					workstationAdmin: ele.dataValues.workstationAdmin == 0 ? "No" : "Yes",
-					buHeadCode:
-						ele.dataValues.buId && ele.dataValues.companyId
-							? headAndHrData?.buHeadData?.empCode
-							: "", //ele.dataValues.buHeadData?.empCode,
+					buHeadCode: ele.dataValues.buId && ele.dataValues.companyId ? headAndHrData?.buHeadData?.empCode : "", //ele.dataValues.buHeadData?.empCode,
 					nomineeName: ele.employeebiographicaldetail?.nomineeName || "",
-					nomineeRelation:
-						ele.employeebiographicaldetail?.nomineeRelation || "",
+					nomineeRelation: ele.employeebiographicaldetail?.nomineeRelation || "",
 					offRoleCTC: ele.dataValues.offRoleCTC || "",
 					ESICPFDeduction: ele.dataValues.ESICPFDeduction || "",
-
-					anniversary_date: ele.employeebiographicaldetail?.dataValues
-						?.maritalStatusSince
-						? moment(
-								ele.employeebiographicaldetail?.dataValues?.maritalStatusSince,
-							).format("DD-MM-YYYY")
-						: "",
-
-					location_type:
-						ele.companylocationmaster?.isHeadquarter === true
-							? "Head Office"
-							: "Branch",
+					anniversary_date: ele.employeebiographicaldetail?.dataValues?.maritalStatusSince ? moment(ele.employeebiographicaldetail?.dataValues?.maritalStatusSince).format("DD-MM-YYYY") : "",
+					location_type: ele.companylocationmaster?.isHeadquarter === true ? "Head Office" : "Branch",
 					work_area: ele.companylocationmaster?.dataValues
 						? [
-								ele.companylocationmaster?.dataValues?.address1 || "",
-								ele.companylocationmaster?.dataValues?.currentcity?.cityName ||
-									"",
-								ele.companylocationmaster?.dataValues?.currentstate
-									?.stateName || "",
-								ele.companylocationmaster?.dataValues?.currentcountry
-									?.countryName || "",
-								ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
-									?.pincode || "",
-							]
-								.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
-								.join(", ")
+							ele.companylocationmaster?.dataValues?.address1 || "",
+							ele.companylocationmaster?.dataValues?.currentcity?.cityName ||
+							"",
+							ele.companylocationmaster?.dataValues?.currentstate
+								?.stateName || "",
+							ele.companylocationmaster?.dataValues?.currentcountry
+								?.countryName || "",
+							ele.companylocationmaster?.dataValues?.pincodmaster?.pincode
+								?.pincode || "",
+						]
+							.filter((item) => item.trim() !== "") // filter out empty or whitespace-only strings
+							.join(", ")
 						: "",
-					work_area_code:
-						ele.companylocationmaster?.dataValues?.companyLocationCode || "",
-
+					work_area_code: ele.companylocationmaster?.dataValues?.companyLocationCode || "",
 					date_of_confirmation: "",
-					date_of_resignation: ele.separationmaster
-						? moment(ele.separationmaster.resignationDate).format("DD-MM-YYYY")
-						: "",
-					// exit_date: ele.separationmaster
-					// ?ele.separationmaster.l2LastWorkingDay? moment(ele.separationmaster.l2LastWorkingDay).format("DD-MM-YYYY")
-					// : "":"",
-					exit_type:
-						ele.separationmaster?.l2Separationtype?.separationTypeName || "",
-					//  exit_reason: ele.separationmaster?.empReasonofResignation?.separationReason || "",
-					admin_exit_reason:
-						ele.separationmaster?.l2ReasonofSeparation?.separationReason || "",
-					// customer_code:"",
+					date_of_resignation: ele.separationmaster ? moment(ele.separationmaster.resignationDate).format("DD-MM-YYYY") : "",
+					exit_type: ele.separationmaster?.l2Separationtype?.separationTypeName || "",
+					admin_exit_reason: ele.separationmaster?.l2ReasonofSeparation?.separationReason || "",
 					project_code: ele.employeejobdetail?.projectCode || "",
 					customer_code: ele.employeejobdetail?.dataValues?.customerCode,
-					// customer_code: ele.employeejobdetail?.dataValues?.customerName
-					//   ? (ele.employeejobdetail.dataValues.customerName.match(/(C\d+)/) ||
-					//     [])[1] || ""
-					//   : "",
-
 					current_address: ele.employeeaddress?.dataValues
 						? [
-								ele.employeeaddress.dataValues.currentHouse || "",
-								ele.employeeaddress.dataValues.currentStreet || "",
-								ele.employeeaddress.dataValues.currentLandmark || "",
-								ele.employeeaddress.dataValues.currentcity?.cityName || "",
-								ele.employeeaddress.dataValues.currentstate?.stateName || "",
-								ele.employeeaddress.dataValues.currentcountry?.countryName ||
-									"",
-								ele.employeeaddress.dataValues.currentPincodeId?.toString() ||
-									"", // convert to string safely
-							]
-								.map((item) => (item ?? "").toString().trim()) // ensure item is string, trim whitespace
-								.filter((item) => item !== "")
-								.join(", ")
+							ele.employeeaddress.dataValues.currentHouse || "",
+							ele.employeeaddress.dataValues.currentStreet || "",
+							ele.employeeaddress.dataValues.currentLandmark || "",
+							ele.employeeaddress.dataValues.currentcity?.cityName || "",
+							ele.employeeaddress.dataValues.currentstate?.stateName || "",
+							ele.employeeaddress.dataValues.currentcountry?.countryName ||
+							"",
+							ele.employeeaddress.dataValues.currentPincodeId?.toString() ||
+							"",
+						]
+							.map((item) => (item ?? "").toString().trim()) // ensure item is string, trim whitespace
+							.filter((item) => item !== "")
+							.join(", ")
 						: "",
-
 					permanent_address: ele.employeeaddress?.dataValues
 						? [
-								ele.employeeaddress.dataValues.permanentHouse || "",
-								ele.employeeaddress.dataValues.permanentStreet || "",
-								ele.employeeaddress.dataValues.permanentLandmark || "",
-								ele.employeeaddress.dataValues.permanentcity?.cityName || "",
-								ele.employeeaddress.dataValues.permanentstate?.stateName || "",
-								ele.employeeaddress.dataValues.permanentcountry?.countryName ||
-									"",
-								ele.employeeaddress.dataValues.permanentPincodeId?.toString() ||
-									"",
-							]
-								.map((item) => (item ?? "").toString().trim())
-								.filter((item) => item !== "")
-								.join(", ")
+							ele.employeeaddress.dataValues.permanentHouse || "",
+							ele.employeeaddress.dataValues.permanentStreet || "",
+							ele.employeeaddress.dataValues.permanentLandmark || "",
+							ele.employeeaddress.dataValues.permanentcity?.cityName || "",
+							ele.employeeaddress.dataValues.permanentstate?.stateName || "",
+							ele.employeeaddress.dataValues.permanentcountry?.countryName ||
+							"",
+							ele.employeeaddress.dataValues.permanentPincodeId?.toString() ||
+							"",
+						]
+							.map((item) => (item ?? "").toString().trim())
+							.filter((item) => item !== "")
+							.join(", ")
 						: "",
 				};
 
@@ -4168,14 +4046,12 @@ class MasterController {
 						columns: [
 							{ label: "Employee Code", value: "empCode" },
 							{ label: "Employee Status", value: "isActive" },
+							{ label: "Date of Joining", value: "dateOfJoining" },
 							{ label: "Full Name", value: "name" },
 							{ label: "Email", value: "email" },
 							{ label: "Personal Email", value: "personalEmail" },
 							{ label: "Office_Mobile_Number", value: "officeMobileNumber" },
-							{
-								label: "Personal_Mobile_Number",
-								value: "personalMobileNumber",
-							},
+							{ label: "Personal_Mobile_Number", value: "personalMobileNumber" },
 							{ label: "Business Unit", value: "bu_name" },
 							{ label: "Business Unit Head", value: "buHeadName" },
 							{ label: "Business Unit Head Code", value: "buHeadCode" },
@@ -4189,11 +4065,7 @@ class MasterController {
 							{ label: "Designation Code", value: "designation_code" },
 							{ label: "Functional Area Name", value: "functional_area_name" },
 							{ label: "Functional Area Code", value: "functional_area_code" },
-							{
-								label: "Parent Functional Area",
-								value: "parent_functional_area",
-							},
-
+							{ label: "Parent Functional Area", value: "parent_functional_area" },
 							{ label: "Department", value: "department_name" },
 							{ label: "Department Code", value: "department_code" },
 							{ label: "Sbu Name", value: "sbu_name" },
@@ -4203,7 +4075,6 @@ class MasterController {
 							{ label: "Job Level", value: "jobLevel" },
 							{ label: "Job Level Code", value: "jobLevelCode" },
 							{ label: "Cost Center", value: "costCenter" },
-							{ label: "Date of Joining", value: "dateOfJoining" },
 							{ label: "Resident Engineer", value: "residentEng" },
 							{ label: "Father's Name", value: "fathersName" },
 							{ label: "Mother's Name", value: "motherName" },
@@ -4228,18 +4099,12 @@ class MasterController {
 							{ label: "customerName", value: "customerName" },
 							{ label: "Position Type", value: "positionType" },
 							{ label: "New Customer Name", value: "newCustomerName" },
-							{
-								label: "Emergency Relation",
-								value: "emergencyContactRelation",
-							},
+							{ label: "Emergency Relation", value: "emergencyContactRelation" },
 							{ label: "Emergency Blood Group", value: "emergencyBloodGroup" },
 							{ label: "Emergency Contact", value: "emergencyContactNumber" },
 							{ label: "Recruiter Name", value: "recruiterName" },
 							{ label: "Laptop System", value: "laptopSystem" },
-							{
-								label: "Background Verification",
-								value: "backgroundVerification",
-							},
+							{ label: "Background Verification", value: "backgroundVerification" },
 							{ label: "Mobile (Admin)", value: "mobileAccess" },
 							{ label: "Data Card (Admin)", value: "dataCardAdmin" },
 							{ label: "Visiting Card (Admin)", value: "visitingCardAdmin" },
@@ -4254,9 +4119,7 @@ class MasterController {
 							{ label: "Work Area Code", value: "work_area_code" },
 							{ label: "Date Of Confirmation", value: "date_of_confirmation" },
 							{ label: "Date Of Resignation", value: "date_of_resignation" },
-							// { label: "Exit Date", value: "exit_date" },
 							{ label: "Exit Type", value: "exit_type" },
-							// { label: "Exit Reason", value: "exit_reason" },
 							{ label: "Admin Exit Reason", value: "admin_exit_reason" },
 							{ label: "Customer Code", value: "customer_code" },
 							{ label: "Project Code", value: "project_code" },
@@ -4553,27 +4416,25 @@ class MasterController {
 					return {
 						empCode: ele.dataValues.empCode || "",
 						name: ele.dataValues.name || "",
-						jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${
-							ele.dataValues.designationmaster?.code || ""
-						})`,
-						department: `${
-							ele.dataValues.departmentmaster?.departmentName || ""
-						} (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
+						jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${ele.dataValues.designationmaster?.code || ""
+							})`,
+						department: `${ele.dataValues.departmentmaster?.departmentName || ""
+							} (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
 						bu_name: ele.dataValues.bumaster?.buName || "",
 						separationRequestedOn: ele.dataValues.separationmaster?.createdDt
 							? moment(ele.dataValues.separationmaster.createdDt).format(
-									"DD-MM-YYYY",
-								)
+								"DD-MM-YYYY",
+							)
 							: "",
 						requestedLastDay: ele.dataValues.separationmaster
 							?.empProposedLastWorkingDay
 							? moment(
-									ele.dataValues.separationmaster.empProposedLastWorkingDay,
-								).format("DD-MM-YYYY")
+								ele.dataValues.separationmaster.empProposedLastWorkingDay,
+							).format("DD-MM-YYYY")
 							: "",
 						status:
 							ele.dataValues.separationmaster?.finalStatus === 2 ||
-							ele.dataValues.separationmaster?.finalStatus === 5
+								ele.dataValues.separationmaster?.finalStatus === 5
 								? "Pending with Manager"
 								: "Pending with BuHr",
 						agreedLastDay: "N/A",
@@ -4587,16 +4448,16 @@ class MasterController {
 							ele.dataValues.noticeperiodmaster?.noticePeriodName || "N/A",
 						noticePeriodDuration:
 							ele.dataValues.noticeperiodmaster?.nPDaysAfterConfirmation +
-								" " +
-								"Day(s)" || "N/A",
+							" " +
+							"Day(s)" || "N/A",
 						replacementRequired:
 							ele.dataValues.separationmaster?.replacementRequired == null ||
-							false
+								false
 								? "N/A"
 								: "Yes",
 						replacementRequiredBy:
 							ele.dataValues.separationmaster?.replacementRequired == null ||
-							false
+								false
 								? "N/A"
 								: ele.dataValues.separationmaster?.replacementRequired,
 						shortFallPayout:
@@ -4960,12 +4821,10 @@ class MasterController {
 					return {
 						empCode: ele.dataValues.empCode || "",
 						name: ele.dataValues.name || "",
-						jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${
-							ele.dataValues.designationmaster?.code || ""
-						})`,
-						department: `${
-							ele.dataValues.departmentmaster?.departmentName || ""
-						} (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
+						jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${ele.dataValues.designationmaster?.code || ""
+							})`,
+						department: `${ele.dataValues.departmentmaster?.departmentName || ""
+							} (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
 						bu_name: ele.dataValues.bumaster?.buName || "",
 
 						resignationDate: ele.dataValues.separationmaster?.resignationDate,
@@ -4973,8 +4832,8 @@ class MasterController {
 						requestedLastDay: ele.dataValues.separationmaster
 							?.empProposedLastWorkingDay
 							? moment(
-									ele.dataValues.separationmaster.empProposedLastWorkingDay,
-								).format("DD-MM-YYYY")
+								ele.dataValues.separationmaster.empProposedLastWorkingDay,
+							).format("DD-MM-YYYY")
 							: "",
 						noticePeriodRecoveryDays:
 							ele.dataValues.separationmaster?.noticePeriodDay || "N/A",
@@ -5053,17 +4912,17 @@ class MasterController {
 							ele.dataValues.noticeperiodmaster?.noticePeriodName || "N/A",
 						noticePeriodDuration:
 							ele.dataValues.noticeperiodmaster?.nPDaysAfterConfirmation +
-								" " +
-								"Day(s)" || "N/A",
+							" " +
+							"Day(s)" || "N/A",
 
 						replacementRequired:
 							ele.dataValues.separationmaster?.replacementRequired == null ||
-							false
+								false
 								? "N/A"
 								: "Yes",
 						replacementRequiredBy:
 							ele.dataValues.separationmaster?.replacementRequired == null ||
-							false
+								false
 								? "N/A"
 								: ele.dataValues.separationmaster?.replacementRequired,
 
@@ -5083,8 +4942,8 @@ class MasterController {
 						//need to add
 						l2LastWorkingDay: ele.dataValues.separationmaster?.l2LastWorkingDay
 							? moment(ele.dataValues.separationmaster.l2LastWorkingDay).format(
-									"DD-MM-YYYY",
-								)
+								"DD-MM-YYYY",
+							)
 							: "",
 						// newCompanyName:
 						//ele.dataValues.separationmaster?.empNewOrganizationName || "N/A",
@@ -5455,10 +5314,10 @@ class MasterController {
 						where: {
 							...(startDate &&
 								endDate && {
-									resignationDate: {
-										[db.Sequelize.Op.between]: [startDate, endDate],
-									},
-								}),
+								resignationDate: {
+									[db.Sequelize.Op.between]: [startDate, endDate],
+								},
+							}),
 						},
 						required: true,
 						include: [
@@ -5518,13 +5377,11 @@ class MasterController {
 					return {
 						empCode: ele.dataValues.empCode || "",
 						name: ele.dataValues.name || "",
-						jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${
-							ele.dataValues.designationmaster?.code || ""
-						})`,
+						jobTitle: `${ele.dataValues.designationmaster?.name || ""} (${ele.dataValues.designationmaster?.code || ""
+							})`,
 
-						department: `${
-							ele.dataValues.departmentmaster?.departmentName || ""
-						} (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
+						department: `${ele.dataValues.departmentmaster?.departmentName || ""
+							} (${ele.dataValues.departmentmaster?.departmentCode || ""})`,
 
 						bu_name: ele.dataValues.bumaster?.buName || "",
 
@@ -5533,8 +5390,8 @@ class MasterController {
 						requestedLastDay: ele.dataValues.separationmaster
 							?.empProposedLastWorkingDay
 							? moment(
-									ele.dataValues.separationmaster.empProposedLastWorkingDay,
-								).format("DD-MM-YYYY")
+								ele.dataValues.separationmaster.empProposedLastWorkingDay,
+							).format("DD-MM-YYYY")
 							: "",
 
 						noticePeriodRecoveryDays:
@@ -5588,16 +5445,16 @@ class MasterController {
 						updatedByName:
 							ele.dataValues.separationmaster.initiatedBy == "BuHr"
 								? ele.dataValues.separationmaster.separationtrails[0]
-										.createdBySeparationTrail.name
+									.createdBySeparationTrail.name
 								: ele.dataValues.separationmaster.separationtrails[0]
-										.updatedBySeparationTrail.name,
+									.updatedBySeparationTrail.name,
 
 						updatedByEmployeeNumber:
 							ele.dataValues.separationmaster.initiatedBy == "BuHr"
 								? ele.dataValues.separationmaster.separationtrails[0]
-										.createdBySeparationTrail.empCode
+									.createdBySeparationTrail.empCode
 								: ele.dataValues.separationmaster.separationtrails[0]
-										.updatedBySeparationTrail.empCode,
+									.updatedBySeparationTrail.empCode,
 
 						updatedOn:
 							ele.dataValues.separationmaster.initiatedBy == "BuHr"
@@ -5609,8 +5466,8 @@ class MasterController {
 							ele.dataValues.noticeperiodmaster?.noticePeriodName || "N/A",
 						noticePeriodDuration:
 							ele.dataValues.noticeperiodmaster?.nPDaysAfterConfirmation +
-								" " +
-								"Day(s)" || "N/A",
+							" " +
+							"Day(s)" || "N/A",
 
 						l2SalaryHike:
 							ele.dataValues.separationmaster?.l2SalaryHike == null
@@ -5631,12 +5488,12 @@ class MasterController {
 
 						replacementRequired:
 							ele.dataValues.separationmaster?.replacementRequired == null ||
-							false
+								false
 								? "N/A"
 								: "Yes",
 						replacementRequiredBy:
 							ele.dataValues.separationmaster?.replacementRequired == null ||
-							false
+								false
 								? "N/A"
 								: ele.dataValues.separationmaster?.replacementRequired,
 
@@ -5836,7 +5693,7 @@ class MasterController {
 
 			let length =
 				shiftMaster.length > weekOffMaster.length &&
-				shiftMaster.length > attendancePolicyMaster.length
+					shiftMaster.length > attendancePolicyMaster.length
 					? shiftMaster.length
 					: weekOffMaster.length > attendancePolicyMaster.length
 						? weekOffMaster.length
@@ -6101,14 +5958,14 @@ class MasterController {
 						: "",
 					Resignation_Date: task.employee?.separationmaster?.resignationDate
 						? moment(task.employee.separationmaster.resignationDate).format(
-								"DD-MM-YYYY",
-							)
+							"DD-MM-YYYY",
+						)
 						: "",
 					Last_Working_Day: task.employee?.separationmaster
 						?.noticePeriodLastWorkingDay
 						? moment(
-								task.employee.separationmaster.noticePeriodLastWorkingDay,
-							).format("DD-MM-YYYY")
+							task.employee.separationmaster.noticePeriodLastWorkingDay,
+						).format("DD-MM-YYYY")
 						: "",
 					Task_Name: task.separationtaskmaster?.taskName || "",
 					Task_Code: task.separationtaskmaster?.taskCode || "",
@@ -6369,8 +6226,7 @@ class MasterController {
 					lastName: ele.dataValues.lastName || "",
 					officeMobileNumber: ele.dataValues.officeMobileNumber || "",
 					designation_name: ele.dataValues.designationmaster
-						? `${ele.dataValues.designationmaster.name || ""} (${
-								ele.dataValues.designationmaster.code || ""
+						? `${ele.dataValues.designationmaster.name || ""} (${ele.dataValues.designationmaster.code || ""
 							})`.trim()
 						: "",
 					designation_code: ele.dataValues.designationmaster?.code || "",
@@ -6681,18 +6537,18 @@ class MasterController {
 							"latest_Regularization_Request.regularizePunchInDate"
 						]
 							? moment(
-									record["latest_Regularization_Request.regularizePunchInDate"],
-								).format("DD-MM-YYYY")
+								record["latest_Regularization_Request.regularizePunchInDate"],
+							).format("DD-MM-YYYY")
 							: "",
 						// regularizePunchOutDate:record["latest_Regularization_Request.regularizePunchOutDate"],
 						regularizePunchOutDate: record[
 							"latest_Regularization_Request.regularizePunchOutDate"
 						]
 							? moment(
-									record[
-										"latest_Regularization_Request.regularizePunchOutDate"
-									],
-								).format("DD-MM-YYYY")
+								record[
+								"latest_Regularization_Request.regularizePunchOutDate"
+								],
+							).format("DD-MM-YYYY")
 							: "",
 						regularizeUserRemark:
 							record["latest_Regularization_Request.regularizeUserRemark"],
@@ -6705,8 +6561,8 @@ class MasterController {
 						//createdAt:record["latest_Regularization_Request.createdAt"],
 						createdAt: record["latest_Regularization_Request.createdAt"]
 							? moment(
-									record["latest_Regularization_Request.createdAt"],
-								).format("DD-MM-YYYY HH:mm:ss")
+								record["latest_Regularization_Request.createdAt"],
+							).format("DD-MM-YYYY HH:mm:ss")
 							: "",
 						requestType: "Attendance Request",
 						managerName:
@@ -7012,18 +6868,18 @@ class MasterController {
 							"latest_Regularization_Request.regularizePunchInDate"
 						]
 							? moment(
-									record["latest_Regularization_Request.regularizePunchInDate"],
-								).format("DD-MM-YYYY")
+								record["latest_Regularization_Request.regularizePunchInDate"],
+							).format("DD-MM-YYYY")
 							: "",
 						// regularizePunchOutDate:record["latest_Regularization_Request.regularizePunchOutDate"],
 						regularizePunchOutDate: record[
 							"latest_Regularization_Request.regularizePunchOutDate"
 						]
 							? moment(
-									record[
-										"latest_Regularization_Request.regularizePunchOutDate"
-									],
-								).format("DD-MM-YYYY")
+								record[
+								"latest_Regularization_Request.regularizePunchOutDate"
+								],
+							).format("DD-MM-YYYY")
 							: "",
 						regularizeUserRemark:
 							record["latest_Regularization_Request.regularizeUserRemark"] ||
@@ -7037,13 +6893,13 @@ class MasterController {
 						//createdAt:record["latest_Regularization_Request.createdAt"],
 						createdAt: record["latest_Regularization_Request.createdAt"]
 							? moment(
-									record["latest_Regularization_Request.createdAt"],
-								).format("DD-MM-YYYY HH:mm:ss")
+								record["latest_Regularization_Request.createdAt"],
+							).format("DD-MM-YYYY HH:mm:ss")
 							: "",
 						updatedAt: record["latest_Regularization_Request.updatedAt"]
 							? moment(
-									record["latest_Regularization_Request.updatedAt"],
-								).format("DD-MM-YYYY HH:mm:ss")
+								record["latest_Regularization_Request.updatedAt"],
+							).format("DD-MM-YYYY HH:mm:ss")
 							: "",
 						requestType: "Attendance Request",
 						managerName:
@@ -7893,19 +7749,19 @@ const groupByEmployeeId = (data) => {
 		const employeeId = item["Employee Id"];
 		let totalEarning = parseFloat(
 			parseFloat(item["Gross Earning"] ? item["Gross Earning"] : 0) +
-				parseFloat(
-					item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
-				) +
-				parseFloat(result ? result["earningArrears"] : 0),
+			parseFloat(
+				item["EXTRA PAYMENT AMOUNT"] ? item["EXTRA PAYMENT AMOUNT"] : 0,
+			) +
+			parseFloat(result ? result["earningArrears"] : 0),
 		);
 		let totalDeduction = parseFloat(
 			parseFloat(item["TDS Amount"] ? item["TDS Amount"] : 0) +
-				parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
-				parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
-				parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
-				parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
-				parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
-				parseFloat(result ? result["deductionArrears"] : 0),
+			parseFloat(item["PT AMOUNT"] ? item["PT AMOUNT"] : 0) +
+			parseFloat(item["LWF AMOUNT"] ? item["LWF AMOUNT"] : 0) +
+			parseFloat(item["PF Employee"] ? item["PF Employee"] : 0) +
+			parseFloat(item["ESIC Employee"] ? item["ESIC Employee"] : 0) +
+			parseFloat(item["EXTRA DEDUCTION"] ? item["EXTRA DEDUCTION"] : 0) +
+			parseFloat(result ? result["deductionArrears"] : 0),
 		);
 		let payableAmount = totalEarning - totalDeduction;
 		payableAmount = paymentHelper.customRound(payableAmount);
@@ -8273,20 +8129,20 @@ const fileAccessErrorResponse = (data) => {
 function getColumnsForSalaryregister(processedData) {
 	const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
 	let preArray = [
-			"Employee Id",
-			"Employee Name",
-			"Date of Joining",
-			"Exit Date",
-			"Total Days",
-			"LOP Days",
-			"Arrears Days",
-			"Present Days",
-			"Business Unit",
-			"Account No",
-			"Bank Name",
-			"IFSC",
-			"Monthly CTC",
-		],
+		"Employee Id",
+		"Employee Name",
+		"Date of Joining",
+		"Exit Date",
+		"Total Days",
+		"LOP Days",
+		"Arrears Days",
+		"Present Days",
+		"Business Unit",
+		"Account No",
+		"Bank Name",
+		"IFSC",
+		"Monthly CTC",
+	],
 		lastArray = [
 			"Gross Salary",
 			"Income Tax",
@@ -8315,13 +8171,13 @@ function getColumnsForSalaryregister(processedData) {
 function getColumnsForSalary(processedData) {
 	const uniqueKeys = [...new Set(processedData.flatMap(Object.keys))];
 	let preArray = [
-			"Employee ID",
-			"Name",
-			"Job Title",
-			"Department",
-			"Business Unit",
-			"Company Name",
-		],
+		"Employee ID",
+		"Name",
+		"Job Title",
+		"Department",
+		"Business Unit",
+		"Company Name",
+	],
 		middleArray = [],
 		lastArray = ["Gross Pay", "Monthly CTC", "Annual CTC"];
 	for (const element of uniqueKeys) {
