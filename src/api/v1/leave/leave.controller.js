@@ -15,6 +15,8 @@ class LeaveController {
 		this.workingday = 0;
 		this.leaveRemainingCount = this.leaveRemainingCount.bind(this);
 		this.requestForLeave = this.requestForLeave.bind(this);
+		this.leaveFunction = this.leaveFunction.bind(this); //added new binding with other function
+		this.leaveRemainingCountHelper=this.leaveRemainingCountHelper.bind(this);
 	}
 	async history(req, res) {
 		try {
@@ -2008,14 +2010,60 @@ class LeaveController {
 	//     }
 	//   }
 	async requestForLeave(req, res) {
-		try {
+		try{
+			
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
+			console.log("result",result)
+			let EMP_DATA = await helper.getEmpProfile(result.employeeId);
+			let resp=await this.leaveFunction(req,res,EMP_DATA,result);
+			switch (resp.status) {
+					case 404:
+					case 402:
+					case 400:
+				 respHelper(res, {
+					status: resp.status,
+					data: resp.data,
+					msg:resp.msg
+				});
+					
+				break;
+				case 200:
+				 respHelper(res, {
+					status: 200,
+					data: resp.data,
+					msg:resp.msg
+				});
+					
+				break;
+				case 422:
+				case 500:
+					 respHelper(res, {
+					status: resp.status,
+					msg:resp.msg
+				});
+					
+				break;
+				default:
+				 respHelper(res, {
+				status: 500,
+				});
+				break;
+			}
+			return;
+		}
+		 catch (error) {
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+/// creation leave function to be reuseable
+	async leaveFunction(req,res,EMP_DATA,result){
+try {
 
-			let EMP_DATA = await helper.getEmpProfile(req.body.employeeId);
-			console.log("this.workingday", this.workingday);
 
-			const fromDateReq = req.body.fromDate;
-			const toDateReq = req.body.toDate;
+			const fromDateReq = result.fromDate;
+			const toDateReq = result.toDate;
 			const startDate = moment(fromDateReq);
 			const endDate = moment(toDateReq);
 			const daysDifferenceReq = moment(toDateReq).diff(
@@ -2035,11 +2083,11 @@ class LeaveController {
 			);
 
 			if (!leaveMasterData) {
-				return respHelper(res, {
+				return  {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.NO_LEAVE,
-				});
+				};
 			}
 
 			const remainingLeaveCountRESP = await helper.remainingLeaveCount(
@@ -2075,20 +2123,20 @@ class LeaveController {
 			) {
 				const transactionCount = await db.EmployeeLeaveHeader.count({
 					where: {
-						employeeId: req.body.employeeId,
+						employeeId: result.employeeId,
 						leaveAutoId: result.leaveAutoId,
 						status: ["approved", "pending"],
 					},
 				});
 				if (transactionCount >= leaveMasterData.tenureCount) {
-					return respHelper(res, {
+					return  {
 						status: 404,
 						data: {},
 						msg: message.LEAVE.TENURE_LEAVE_COUNT.replace(
 							"#",
 							leaveMasterData.tenureCount,
 						),
-					});
+					};
 				}
 
 				// Start and End of the Year
@@ -2099,9 +2147,9 @@ class LeaveController {
 			if (onProbation == null) {
 				if (leaveMasterData.maximum_leave_allowed_in_probation != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
-						req.body.employeeId,
+						result.employeeId,
 						req.userData["employeejobdetail.dateOfJoining"],
-						req.body.leaveAutoId,
+						result.leaveAutoId,
 						"YES",
 						toDateReq,
 					);
@@ -2110,14 +2158,14 @@ class LeaveController {
 						probationLeaveCount + this.workingday >
 						leaveMasterData.maximum_leave_allowed_in_probation
 					) {
-						return respHelper(res, {
+						return  {
 							status: 404,
 							data: {},
 							msg: message.LEAVE.ON_PRAOBATION_LEAVE_COUNT.replace(
 								"#",
 								leaveMasterData.maximum_leave_allowed_in_probation,
 							),
-						});
+						};
 					}
 				}
 			}
@@ -2129,9 +2177,9 @@ class LeaveController {
 			) {
 				if (leaveMasterData.maximum_leave_allowed_in_notice_period != 0) {
 					let probationLeaveCount = await helper.leaveCountForUserForMonth(
-						req.body.employeeId,
+						result.employeeId,
 						req.userData["employeejobdetail.dateOfJoining"],
-						req.body.leaveAutoId,
+						result.leaveAutoId,
 						"YES",
 						toDateReq,
 					);
@@ -2139,27 +2187,27 @@ class LeaveController {
 						probationLeaveCount + this.workingday >
 						leaveMasterData.maximum_leave_allowed_in_notice_period
 					) {
-						return respHelper(res, {
+						return  {
 							status: 404,
 							data: {},
 							msg: message.LEAVE.ON_NOTICE_LEAVE_COUNT.replace(
 								"#",
 								leaveMasterData.maximum_leave_allowed_in_notice_period,
 							),
-						});
+						};
 					}
 				}
 			}
 
-			if (req.body.firstDayHalf != 0 || req.body.lastDayHalf != 0) {
+			if (result.firstDayHalf != 0 || result.lastDayHalf != 0) {
 				if (leaveMasterData.canTakeHalfDay == 0) {
-					return respHelper(res, {
+					return  {
 						status: 404,
 						data: {},
 						msg:
 							message.LEAVE.HALF_DAY_NOT_ALLOWED +
 							` for ${leaveMasterData?.companyleaveMasterDetails?.leaveName}`,
-					});
+					};
 				}
 			}
 
@@ -2174,21 +2222,21 @@ class LeaveController {
 
 			if (differenceInDaystotal > 0) {
 				if (leaveMasterData.is_back_date_allowed == 0) {
-					return respHelper(res, {
+					return  {
 						status: 404,
 						data: {},
 						msg: message.LEAVE.BACK_DATED_LEAVE_NOT_ALLOWED,
-					});
+					};
 				}
 				if (differenceInDaystotal > leaveMasterData.back_days_max) {
-					return respHelper(res, {
+					return  {
 						status: 404,
 						data: {},
 						msg: message.LEAVE.BACK_DATED_LIMIT.replace(
 							"#",
 							leaveMasterData.back_days_max,
 						),
-					});
+					};
 				}
 			}
 
@@ -2211,14 +2259,14 @@ class LeaveController {
 					);
 
 					if (checkWeekOff > 0) {
-						return respHelper(res, {
+						return  {
 							status: 404,
 							data: {},
 							msg: message.LEAVE.PREPOSTFIX.replace("#", "Weekoff").replace(
 								"@",
 								"Prefix",
 							),
-						});
+						};
 					}
 				}
 
@@ -2229,14 +2277,14 @@ class LeaveController {
 						subfixDate,
 					);
 					if (checkWeekOff > 0) {
-						return respHelper(res, {
+						return  {
 							status: 404,
 							data: {},
 							msg: message.LEAVE.PREPOSTFIX.replace("#", "Weekoff").replace(
 								"@",
 								"Suffix",
 							),
-						});
+						};
 					}
 				}
 
@@ -2250,14 +2298,14 @@ class LeaveController {
 						prefixDate,
 					);
 					if (leaveCheck) {
-						return respHelper(res, {
+						return  {
 							status: 404,
 							data: {},
 							msg: message.LEAVE.PREPOSTFIX.replace("#", "Holiday").replace(
 								"@",
 								"Prefix",
 							),
-						});
+						};
 					}
 				}
 				if (leaveMasterData.holiday_suffix_policy == 2) {
@@ -2268,14 +2316,14 @@ class LeaveController {
 						prefixDate,
 					);
 					if (leaveCheck) {
-						return respHelper(res, {
+						return  {
 							status: 404,
 							data: {},
 							msg: message.LEAVE.PREPOSTFIX.replace("#", "Holiday").replace(
 								"@",
 								"Suffix",
 							),
-						});
+						};
 					}
 				}
 			}
@@ -2285,14 +2333,14 @@ class LeaveController {
 				leaveMasterData?.maxConsecutiveDay != 0 &&
 				this.workingday > leaveMasterData?.maxConsecutiveDay
 			) {
-				return respHelper(res, {
+				return  {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.MAX_CONSECUTIVE.replace(
 						"#",
 						leaveMasterData?.maxConsecutiveDay,
 					),
-				});
+				}
 			}
 
 			let minConsecutiveDay =
@@ -2300,25 +2348,25 @@ class LeaveController {
 			let workingDay = parseFloat(this.workingday) || 0;
 
 			if (minConsecutiveDay > 0 && workingDay < minConsecutiveDay) {
-				return respHelper(res, {
+				return {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.MIN_CONSECUTIVE.replace(
 						"#",
-						leaveMasterData?.minConsecutiveDay,
+						leaveMasterData?.minConsecutiveDay
 					),
-				});
+				};
 			}
 
 			if (
 				leaveMasterData.attachmentRequired == true &&
 				result.attachment == ""
 			) {
-				return respHelper(res, {
+				return {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.ATTACHMENT_REQUIRED,
-				});
+				};
 			}
 
 			if (
@@ -2327,21 +2375,21 @@ class LeaveController {
 				result.attachment == "" &&
 				this.workingday > leaveMasterData.attachmentRequiredafterdays
 			) {
-				return respHelper(res, {
+				return  {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.ATTACHMENT_REQUIRED_DAYS.replace(
 						"#",
 						leaveMasterData.attachmentRequiredafterdays,
 					),
-				});
+				};
 			}
 			if (leaveMasterData.messageRequired == true && result.message == "") {
-				return respHelper(res, {
+				return {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.MESSAGE_REQUIRED,
-				});
+				};
 			}
 			if (
 				leaveMasterData.messageRequired == false &&
@@ -2349,14 +2397,14 @@ class LeaveController {
 				result.message == "" &&
 				this.workingday > leaveMasterData.messageRequiredafterdays
 			) {
-				return respHelper(res, {
+				return  {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.MESSAGE_REQUIRED_DAYS.replace(
 						"#",
 						leaveMasterData.messageRequiredafterdays,
 					),
-				});
+				};
 			}
 
 			let monthleaveCounts = await helper.chekcMonthCountInArray(
@@ -2366,9 +2414,9 @@ class LeaveController {
 			let maxMonthCount = [];
 			for (const singleMonthleaveCounts of monthleaveCounts) {
 				let monthCounts = await helper.leaveCountForUserForMonth(
-					req.body.employeeId,
+					result.employeeId,
 					singleMonthleaveCounts.startDate,
-					req.body.leaveAutoId,
+					result.leaveAutoId,
 					"OTHER",
 					singleMonthleaveCounts.endDate,
 				);
@@ -2385,25 +2433,25 @@ class LeaveController {
 				}
 			}
 			if (maxMonthCount.length > 0) {
-				return respHelper(res, {
+				return  {
 					status: 404,
 					data: {},
 					msg: message.LEAVE.MAX_DAY_MONTH.replace(
 						"#",
 						leaveMasterData?.max_month_count,
 					),
-				});
+				};
 			}
 
 			const leaveCountForDates = await db.employeeLeaveTransactions.findAll({
 				where: {
 					appliedFor: {
-						[Op.between]: [req.body.fromDate, req.body.toDate],
+						[Op.between]: [result.fromDate, result.toDate],
 					},
 					status: {
 						[Op.notIn]: ["revoked", "rejected"],
 					},
-					employeeId: req.body.employeeId,
+					employeeId: result.employeeId,
 				},
 			});
 
@@ -2417,15 +2465,15 @@ class LeaveController {
 				let isHalfDay = 0;
 
 				if (daysDifferenceReq == 0) {
-					isHalfDay = req.body.firstDayHalf != 0 ? 1 : 0;
-					halfDayFor = req.body.firstDayHalf;
+					isHalfDay = result.firstDayHalf != 0 ? 1 : 0;
+					halfDayFor = result.firstDayHalf;
 				} else {
 					if (i + 1 == 0) {
-						isHalfDay = req.body.firstDayHalf != 0 ? 1 : 0;
-						halfDayFor = req.body.firstDayHalf;
+						isHalfDay = result.firstDayHalf != 0 ? 1 : 0;
+						halfDayFor = result.firstDayHalf;
 					} else if (i + 1 == daysDifferenceReq) {
-						isHalfDay = req.body.lastDayHalf != 0 ? 1 : 0;
-						halfDayFor = req.body.lastDayHalf;
+						isHalfDay = result.lastDayHalf != 0 ? 1 : 0;
+						halfDayFor = result.lastDayHalf;
 					}
 				}
 				inputs = leaveCountForDates.filter((el) => {
@@ -2453,15 +2501,15 @@ class LeaveController {
 				});
 			}
 			if (inputs.length > 0) {
-				return respHelper(res, {
+				return  {
 					status: 402,
 					msg: message.LEAVE.DATES_NOT_APPLICABLE,
-				});
+				};
 			}
 
 			let leaveData = await helper.empLeaveDetails(
-				req.body.employeeId,
-				req.body.leaveAutoId,
+				result.employeeId,
+				result.leaveAutoId,
 			);
 
 			let arr = [];
@@ -2470,7 +2518,7 @@ class LeaveController {
 			let leaveId = 6;
 			const daysDifference = moment(toDate).diff(moment(fromDate), "days");
 			let uuid =
-				"id_" + moment().format("YYYYMMDDHHmmss") + req.body.employeeId;
+				"id_" + moment().format("YYYYMMDDHHmmss") + result.employeeId;
 			// console.log("daysDifference", daysDifference);
 			for (let i = -1; i < daysDifference; i++) {
 				let appliedFor = moment(fromDate)
@@ -2486,15 +2534,15 @@ class LeaveController {
 
 				if (remainingLeaveCountRESP.includes(appliedFor)) {
 					if (daysDifference == 0) {
-						isHalfDay = req.body.firstDayHalf != 0 ? 1 : 0;
-						halfDayFor = req.body.firstDayHalf;
+						isHalfDay = result.firstDayHalf != 0 ? 1 : 0;
+						halfDayFor = result.firstDayHalf;
 					} else {
 						if (i + 1 == 0) {
-							isHalfDay = req.body.firstDayHalf != 0 ? 1 : 0;
-							halfDayFor = req.body.firstDayHalf;
+							isHalfDay = result.firstDayHalf != 0 ? 1 : 0;
+							halfDayFor = result.firstDayHalf;
 						} else if (i + 1 == daysDifference) {
-							isHalfDay = req.body.lastDayHalf != 0 ? 1 : 0;
-							halfDayFor = req.body.lastDayHalf;
+							isHalfDay = result.lastDayHalf != 0 ? 1 : 0;
+							halfDayFor = result.lastDayHalf;
 						}
 					}
 
@@ -2505,11 +2553,11 @@ class LeaveController {
 					}
 
 					if (leaveData) {
-						leaveId = req.body.leaveAutoId;
+						leaveId = result.leaveAutoId;
 					}
 
 					const recordData = {
-						employeeId: req.body.employeeId, // Replace with actual employee ID
+						employeeId: result.employeeId, // Replace with actual employee ID
 						attendanceShiftId: EMP_DATA.shiftId, // Replace with actual attendance shift ID
 						attendancePolicyId: EMP_DATA.attendancePolicyId, // Replace with actual attendance policy ID
 						leaveAutoId: leaveId, // Replace with actual leave auto ID
@@ -2518,9 +2566,9 @@ class LeaveController {
 						isHalfDay: isHalfDay, // Replace with actual is half day value (0 or 1)
 						halfDayFor: halfDayFor, // Replace with actual half day for value
 						status: "pending", // Replace with actual status
-						reason: req.body.reason, // Replace with actual reason
+						reason: result.reason, // Replace with actual reason
 						leaveCount: isHalfDay == 1 ? 0.5 : 1,
-						message: req.body.message,
+						message: result.message,
 						leaveAttachment:
 							result.attachment != ""
 								? await helper.fileUpload(
@@ -2534,8 +2582,8 @@ class LeaveController {
 						createdAt: moment(), // Replace with actual creation date
 						batch_id: uuid,
 						weekOffId: EMP_DATA.weekOffId,
-						fromDate: req.body.fromDate,
-						toDate: req.body.toDate,
+						fromDate: result.fromDate,
+						toDate: result.toDate,
 						source: req.device,
 					};
 					arr.push(recordData);
@@ -2548,7 +2596,7 @@ class LeaveController {
 				let pendingLeaveCountList = await db.employeeLeaveTransactions.findAll({
 					where: {
 						status: "pending",
-						employeeId: req.body.employeeId,
+						employeeId: result.employeeId,
 						leaveAutoId: leaveId,
 					},
 				});
@@ -2561,22 +2609,22 @@ class LeaveController {
 						pendingLeaveCount + leaveDays >
 						parseFloat(leaveData.availableLeave)
 					) {
-						return respHelper(res, {
+						return  {
 							status: 400,
 							data: arr,
 							msg: "Insufficient leave balance",
-						});
+						};
 					}
 				}
 			}
 
 			// Perform bulk insert
 			if (arr.length == 0) {
-				return respHelper(res, {
+				return  {
 					status: 400,
 					data: arr,
 					msg: message.LEAVE.LEAVE_NOT_APPLICABLE,
-				});
+				};
 			}
 			if (
 				leaveMasterData &&
@@ -2590,7 +2638,7 @@ class LeaveController {
 
 				let leaveCount = await helper.checkLeaveClupEMPforDate(
 					[prefixDate, suffixDate],
-					req.body.leaveAutoId,
+					result.leaveAutoId,
 					EMP_DATA,
 				);
 				// console.log(
@@ -2602,11 +2650,11 @@ class LeaveController {
 				// 	suffixDate,
 				// );
 				if (leaveCount != 0) {
-					return respHelper(res, {
+					return {
 						status: 400,
 						data: arr,
 						msg: message.LEAVE.CLUB_NOT_ALLOWED,
-					});
+					};
 				}
 			}
 
@@ -2619,19 +2667,19 @@ class LeaveController {
 			// console.log("leaveApprovalLevel", leaveApprovalLevel);
 
 			let headerInsert = await db.EmployeeLeaveHeader.create({
-				employeeId: req.body.employeeId, // Replace with actual employee ID
+				employeeId: result.employeeId, // Replace with actual employee ID
 				attendanceShiftId: EMP_DATA.shiftId, // Replace with actual attendance shift ID
 				attendancePolicyId: EMP_DATA.attendancePolicyId, // Replace with actual attendance policy ID
 				leaveAutoId: leaveId, // Replace with actual leave auto ID
 				appliedOn: moment().format("YYYY-MM-DD"), // Replace with actual applied on date
 				status: "pending", // Replace with actual status
-				reason: req.body.reason, // Replace with actual reason
-				isHalfDay: req.body.firstDayHalf == 0 ? 0 : 1, // Replace with actual is half day value (0 or 1)
-				halfDayFor: req.body.firstDayHalf, // Replace with actual half day for value
-				isHalfDaySecond: req.body.lastDayHalf == 0 ? 0 : 1, // Replace with actual is half day value (0 or 1)
-				halfDayForSecond: req.body.lastDayHalf, // Replace with actual half day for value
+				reason: result.reason, // Replace with actual reason
+				isHalfDay: result.firstDayHalf == 0 ? 0 : 1, // Replace with actual is half day value (0 or 1)
+				halfDayFor: result.firstDayHalf, // Replace with actual half day for value
+				isHalfDaySecond: result.lastDayHalf == 0 ? 0 : 1, // Replace with actual is half day value (0 or 1)
+				halfDayForSecond: result.lastDayHalf, // Replace with actual half day for value
 				leaveCount: leaveDays,
-				message: req.body.message,
+				message: result.message,
 				isMultipleDays: daysDifference == 0 ? 0 : 1,
 				leaveAttachment:
 					result.attachment != ""
@@ -2646,8 +2694,8 @@ class LeaveController {
 				createdAt: moment(), // Replace with actual creation date
 				batch_id: uuid,
 				weekOffId: EMP_DATA.weekOffId,
-				fromDate: req.body.fromDate,
-				toDate: req.body.toDate,
+				fromDate: result.fromDate,
+				toDate: result.toDate,
 				source: req.device,
 				approvalFlowExist: 1,
 				pendingAt:
@@ -2667,7 +2715,7 @@ class LeaveController {
 					if (leaveApproverGroup === "MANAGER") {
 						// console.log("MANAGER");
 						leaveTrails.push({
-							employeeId: req.body.employeeId,
+							employeeId: result.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
 							level: leaveApprover.dataValues.level,
 							approvalFlowAutoId: leaveMasterData.approvalFlow,
@@ -2680,7 +2728,7 @@ class LeaveController {
 							createdBy: req.userId,
 							creatorRole: helper.fetchEmployeeRole(
 								req.userRole,
-								req.body.employeeId,
+								result.employeeId,
 								req.userId,
 							),
 						});
@@ -2696,7 +2744,7 @@ class LeaveController {
 
 						for (const buHrIds of buhr) {
 							leaveTrails.push({
-								employeeId: req.body.employeeId,
+								employeeId: result.employeeId,
 								leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
 								isPending: 1,
 								level: leaveApprover.dataValues.level,
@@ -2709,7 +2757,7 @@ class LeaveController {
 								createdBy: req.userId,
 								creatorRole: helper.fetchEmployeeRole(
 									req.userRole,
-									req.body.employeeId,
+									result.employeeId,
 									req.userId,
 								),
 							});
@@ -2717,7 +2765,7 @@ class LeaveController {
 					} else if (leaveApproverGroup === "L2_MANAGER") {
 						// console.log("L2_MANAGER");
 						leaveTrails.push({
-							employeeId: req.body.employeeId,
+							employeeId: result.employeeId,
 							leaveHeaderAutoId: headerInsert.employeeleaveheaderID,
 							isPending: 1,
 							level: leaveApprover.dataValues.level,
@@ -2730,7 +2778,7 @@ class LeaveController {
 							createdBy: req.userId,
 							creatorRole: helper.fetchEmployeeRole(
 								req.userRole,
-								req.body.employeeId,
+								result.employeeId,
 								req.userId,
 							),
 						});
@@ -2801,24 +2849,24 @@ class LeaveController {
 				employeeId: employeeData.dataValues.managerData.id,
 			});
 
-			return respHelper(res, {
+			return {
 				status: 200,
 				data: arr,
 				msg: message.LEAVE.RECORDED,
-			});
+			};
 		} catch (error) {
 			if (error.isJoi === true) {
-				return respHelper(res, {
+				return  {
 					status: 422,
 					msg: error.details[0].message,
-				});
+				};
 			}
-			console.log("error", error);
-			return respHelper(res, {
+			return  {
 				status: 500,
-			});
+			};
 		}
-	}
+	} 
+	/// creation leave function to be reuseable
 
 	async revokeLeaveRequest(req, res) {
 		try {
@@ -3186,24 +3234,62 @@ class LeaveController {
 				leaveSecondHalf,
 			} = req.body;
 
-			const daysDifferenceReq = moment(endDate).diff(moment(startDate), "days");
+		  let resp=await this.leaveRemainingCountHelper(leaveAutoId,
+				startDate,
+				endDate,
+				employeeFor,
+				leaveFirstHalf,
+				leaveSecondHalf);
+		   switch (resp.status) {
+					case 404:
+					case 402:
+					case 400:
+				 respHelper(res, {
+					status: resp.status,
+					data: resp.data,
+					msg:resp.msg
+				});
+					
+				break;
+				case 200:
+				 respHelper(res, {
+					status: 200,
+					data: resp.data,
+					msg:resp.msg
+				});
+					
+				break;
+				case 422:
+				case 500:
+					 respHelper(res, {
+					status: resp.status,
+					msg:resp.msg
+				});
+					
+				break;
+				default:
+				 respHelper(res, {
+				status: 500,
+				});
+				break;
+			}
+			return;
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({
+				message: "Internal server error",
+			});
+		}
+	}
 
-			// if (daysDifferenceReq > parseInt(process.env.LEAVE_LIMIT)) {
-			// 	return respHelper(res, {
-			// 		status: 404,
-			// 		data: {},
-			// 		msg: message.LEAVE.LEAVE_LIMIT.replace("#", process.env.LEAVE_LIMIT),
-			// 	});
-			// }
-
-			// const getCombinedVal = await helper.getCombineValue(
-			//   leaveFirstHalf,
-			//   leaveSecondHalf,
-			//   startDate,
-			//   endDate,
-			//   companyLocationId
-			// );
-			const employeeId = employeeFor == 0 ? req.userId : employeeFor;
+	async leaveRemainingCountHelper(leaveAutoId,
+				startDate,
+				endDate,
+				employeeFor,
+				leaveFirstHalf,
+				leaveSecondHalf){
+		try {
+			const employeeId = employeeFor;
 			let EMP_DATA = await helper.getEmpProfile(employeeId);
 			const leaveMasterData = await helper.leaveDetailsMaster(
 				leaveAutoId,
@@ -3310,22 +3396,14 @@ class LeaveController {
 					? totalWorkingDaysCalculated
 					: countDeductingPending;
 			let c = b > 0 ? a - b : a;
-			// console.log(
-			// 	"totalWorkingDaysCalculated",
-			// 	totalWorkingDaysCalculated,
-			// 	"ava",
-			// 	availableLeaveCount.availableLeave,
-			// 	"countDeductingPending",
-			// 	countDeductingPending,
-			// );
-
+			
 			if (leaveAutoId == 6) {
 				b = a;
 			}
 
 			this.workingday = a;
 
-			return respHelper(res, {
+			return  {
 				status: 200,
 				data: {
 					totalWorkingDays: a,
@@ -3333,12 +3411,12 @@ class LeaveController {
 					unpaidLeave: c < 0 ? 0 : c,
 				},
 				msg: message.LEAVE.REMAINING_LEAVES,
-			});
+			};
 		} catch (error) {
-			console.error(error);
-			return res.status(500).json({
+			return {
+				status: 500,
 				message: "Internal server error",
-			});
+			};
 		}
 	}
 

@@ -11,6 +11,7 @@ import eventEmitter from "../../../services/eventService.js";
 import constant from "../../../constant/messages.js";
 import helper from "../../../helper/helper.js"; // adding helper into import section  for attendance import
 import attendanceController from "../attendance/attendance.controller.js"; // adding controller into import section for attendance import
+import LeaveController from "../leave/leave.controller.js"; // adding controller into import section for leave import
 const financialMonth = {
 	1: "January",
 	2: "February",
@@ -59,7 +60,8 @@ class ImportController {
 				"Arrears",
 				"Employment Details",
 				"Employee Data",
-				"Attendance" // adding new module to import attendance
+				"Attendance", // adding new module to import attendance
+				"Leave" // adding new module to import leave
 			];
 			//operationType
 			if (!availableServices.includes(req.body.uploadType)) {
@@ -124,6 +126,9 @@ class ImportController {
 			}
 			else if (req.body.uploadType == "Attendance") { // adding new module to import attendance
 				await attendaceData(req, res, FILEDATA, importInfoObject); 
+			}
+			else if (req.body.uploadType == "Leave") { // adding new module to import leave
+				await leaveData(req, res, FILEDATA, importInfoObject); 
 			}
 			else{
 				// adding default handler to fill the missing operation and upload type
@@ -3256,7 +3261,7 @@ async function employeeData(req, res, FILEDATA, importParams) {
 	});
 }
 
-// adding new module to import attendance
+// adding new module to import attendance and leave
 async function attendaceData(req, res, FILEDATA, importParams){
 			let successArray = [];
 			let errorArray = [];
@@ -3432,7 +3437,114 @@ async function attendaceData(req, res, FILEDATA, importParams){
 		},
 	});
 }
-// adding new module to import attendance
+async function leaveData(req, res, FILEDATA, importParams){ 
+			let successArray = [];
+			let errorArray = [];
+			let importId = await createImportDetails(importParams);
+		for (const row of FILEDATA) {
+			const EMP_ID = await db.employeeMaster.findOne({
+					where: {
+						empCode: row['EMP ID'],
+						isActive: 1,
+					},
+					attributes: ['id']
+			});
+			if(!EMP_ID){
+				errorArray.push({
+				importedRow: row['EMP ID'],
+				importAutoId: importId,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: "Employee not found",
+				});
+				continue;
+				}
+
+				const leaveType = await db.leaveMaster.findOne({
+				where: {
+					leaveCode:row['LEAVE CODE'],
+					isActive:1
+				},
+				attributes: ["leaveId"],
+				});
+				if(!leaveType){
+				errorArray.push({
+				importedRow: row['EMP ID'],
+				importAutoId: importId,
+				importStatus: 2,
+				createdBy: req.userId,
+				importStatusDesc: "Leave not found",
+				});
+				continue;
+				}
+			let leaveApplicationObject={
+				attachment: '',
+				employeeId: EMP_ID.id,
+				recipientsIds: 'ok',
+				leaveAutoId: leaveType.leaveId,
+				fromDate: convertExcelDate(row['FROM DATE']),
+				toDate: convertExcelDate(row['TO DATE']),
+				firstDayHalf: row['FIRST DAY HALF'],
+				lastDayHalf: row['LAST DAY HALF'],
+				reason: row['REASON'],
+				message: row['MESSAGE']
+			}
+
+	         let EMP_DATA = await helper.getEmpProfile(EMP_ID.id);
+			let resp=await LeaveController.leaveRemainingCountHelper(leaveType.leaveId,
+				convertExcelDate(row['FROM DATE']),
+				convertExcelDate(row['TO DATE']),
+				EMP_ID.id,
+				row['FIRST DAY HALF'],
+				 row['LAST DAY HALF']);
+		  let resp2=await LeaveController.leaveFunction(req,res,EMP_DATA,leaveApplicationObject);
+		  if(resp2.status==200){
+			successArray.push({
+				importedRow: row['EMP ID'],
+				importAutoId: importId,
+				importStatus: 1,
+				createdBy: req.userId,
+				importStatusDesc:resp2.msg
+			});
+		  }else{
+			errorArray.push({
+			importedRow: row['EMP ID'],
+			importAutoId: importId,
+			importStatus: 2,
+			createdBy: req.userId,
+			importStatusDesc: resp2.msg
+			});
+		  }
+		
+}
+console.log("EMP_DATA",errorArray,successArray)
+
+if (successArray.length > 0 || errorArray.length > 0) {
+		let importFinalResult = successArray.concat(errorArray);
+		await db.ImportData.bulkCreate(importFinalResult);
+		await db.ImportInfo.update(
+		{
+		importStatusDesc:
+		"Import Executed with " +
+		successArray.length +
+		" success and " +
+		errorArray.length +
+		" error records",
+		importStatus: 1,
+		},
+		{ where: { importAutoId: importId } },
+		);
+		}
+return respHelper(res, {
+		status: 202,
+		msg: "Leave data update successfully.",
+		data: {
+			SuccessRecord: successArray.length,
+			ErrorRecord: errorArray.length,
+		},
+	});
+}
+// adding new module to import attendance and leave
 
 const commonEmploymentDetails = async (payload, today) => {
 	const recordsExistForDate = await payload.childModel.findOne({
