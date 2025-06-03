@@ -2013,9 +2013,9 @@ class LeaveController {
 		try{
 			
 			const result = await validator.leaveRequestSchema.validateAsync(req.body);
-			console.log("result",result)
+			
 			let EMP_DATA = await helper.getEmpProfile(result.employeeId);
-			let resp=await this.leaveFunction(req,res,EMP_DATA,result);
+			let resp=await this.leaveFunction(req,res,EMP_DATA,result,0,req.device);
 			switch (resp.status) {
 					case 404:
 					case 402:
@@ -2058,9 +2058,8 @@ class LeaveController {
 		}
 	}
 /// creation leave function to be reuseable
-	async leaveFunction(req,res,EMP_DATA,result){
+	async leaveFunction(req,res,EMP_DATA,result,isforce=0,from){
 try {
-
 
 			const fromDateReq = result.fromDate;
 			const toDateReq = result.toDate;
@@ -2098,9 +2097,15 @@ try {
 				EMP_DATA.companyId,
 				result.leaveAutoId,
 				EMP_DATA,
+				isforce
 			);
 
-			//console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
+			console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
+			// return  {
+			// 			status: 404,
+			// 			data: {},
+			// 			msg:"fuck off"
+			// 		};
 			const fromDate = remainingLeaveCountRESP[0];
 			const toDate =
 				remainingLeaveCountRESP.length == 1
@@ -2584,9 +2589,9 @@ try {
 						weekOffId: EMP_DATA.weekOffId,
 						fromDate: result.fromDate,
 						toDate: result.toDate,
-						source: req.device,
+						source: from
 					};
-					arr.push(recordData);
+					arr.push(recordData); 
 					// const record = await db.employeeLeaveTransactions.create(recordData);
 				}
 				//const record = await db.employeeLeaveTransactions.bulkCreate(arr);
@@ -2696,7 +2701,7 @@ try {
 				weekOffId: EMP_DATA.weekOffId,
 				fromDate: result.fromDate,
 				toDate: result.toDate,
-				source: req.device,
+				source: from,
 				approvalFlowExist: 1,
 				pendingAt:
 					leaveApprovalLevel.length == 0 ? EMP_DATA.managerData.id : null, // Replace with actual pending at value
@@ -3287,8 +3292,11 @@ try {
 				endDate,
 				employeeFor,
 				leaveFirstHalf,
-				leaveSecondHalf){
+				leaveSecondHalf,
+				isForce=0
+			){
 		try {
+			console.log("isForce",isForce)
 			const employeeId = employeeFor;
 			let EMP_DATA = await helper.getEmpProfile(employeeId);
 			const leaveMasterData = await helper.leaveDetailsMaster(
@@ -3333,6 +3341,7 @@ try {
 				employeeWeekOfId.companyId,
 				leaveAutoId,
 				EMP_DATA,
+				isForce
 			);
 			// console.log("remainingLeaveCountRESP", remainingLeaveCountRESP);
 			const totalWorkingDays = remainingLeaveCountRESP.length;

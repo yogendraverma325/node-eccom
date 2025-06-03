@@ -3338,7 +3338,7 @@ async function attendaceData(req, res, FILEDATA, importParams){
 			console.log("endTimingAsPerTheShift",endTimingAsPerTheShift)
 			console.log("endTimingAsPerTheShift",endTimingAsPerTheShift)
 			console.log("===============")
-			if(inStartTimingAsPerTheShift <=inStartTimingAsPerTheUser && endTimingAsPerTheShift>=endTimingAsPerTheShift){
+			if(inStartTimingAsPerTheShift <=inStartTimingAsPerTheUser && endTimingAsPerTheShift>=endTimingAsPerTheUser){
 					const assignedShiftStartTime =
 						attendanceData?.shiftsmaster?.shiftStartTime;
 						let graceTime = moment(assignedShiftStartTime, "HH:mm"); // set shift start time
@@ -3496,8 +3496,14 @@ async function leaveData(req, res, FILEDATA, importParams){
 				convertExcelDate(row['TO DATE']),
 				EMP_ID.id,
 				row['FIRST DAY HALF'],
-				 row['LAST DAY HALF']);
-		  let resp2=await LeaveController.leaveFunction(req,res,EMP_DATA,leaveApplicationObject);
+				 row['LAST DAY HALF'],
+				 row['FORCE APPLY']);
+			//console.log("resp",resp)
+		  let resp2=await LeaveController.leaveFunction(req,res,EMP_DATA,leaveApplicationObject,row['FORCE APPLY'],"IMPORT");
+		//  let resp2={
+		// 	status:200,
+		// 	msg:"Test"
+		//  }
 		  if(resp2.status==200){
 			successArray.push({
 				importedRow: row['EMP ID'],
@@ -3517,7 +3523,7 @@ async function leaveData(req, res, FILEDATA, importParams){
 		  }
 		
 }
-console.log("EMP_DATA",errorArray,successArray)
+//console.log("EMP_DATA",errorArray,successArray)
 
 if (successArray.length > 0 || errorArray.length > 0) {
 		let importFinalResult = successArray.concat(errorArray);
