@@ -4502,6 +4502,20 @@ async function handleReviewFrameworkAssignmentNew(userAssignment) {
 		throw error;
 	}
 }
+//Addition function to get date between date range , this is required to generate attendance
+async function getDatesArray(startDate, endDate) {
+const dates = [];
+  let currentDate = moment(startDate);
+  const lastDate = moment(endDate);
+
+  while (currentDate.isBefore(lastDate)) {
+    dates.push(currentDate.format('YYYY-MM-DD'));
+    currentDate = currentDate.add(1, 'days');
+  }
+
+  return dates;
+}
+//Addition function to get date between date range , this is required to generate attendance
 
 function isEmpty(value) {
 	return value === null || value === undefined || value === "";

@@ -138,6 +138,7 @@ const cronQueue = async.queue(async (task, done) => {
 	cron.schedule("*/10 * * * *", () => cronQueue.push(updateCostCenter)); // updateCostCenter pushed to queue
 	cron.schedule("*/10 * * * *", () => cronQueue.push(updateCompanyLocation)); // updateCompanyLocation pushed to queue
 	cron.schedule("*/10 * * * *", () => cronQueue.push(updateJobLevel)); // updateJobLevel pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateEmployeeType)); // updateEmployeeType pushed to queue
 	cron.schedule("0 7 * * *", () => cronQueue.push(prePasswordExpiryNotification)); // prePasswordExpiryNotification pushed to queue
 	cron.schedule("0 7 * * *", () => cronQueue.push(postPasswordExpiryNotification)); // postPasswordExpiryNotification pushed to queue
 	cron.schedule("30 03 * * *", () => cronQueue.push(attendanceCronDaywise)); // attendanceCronDaywise pushed to queue
