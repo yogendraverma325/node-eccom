@@ -87,4 +87,9 @@ cron.schedule("0 7 * * *", async () => {
 	// await cronController.postPasswordExpiryNotification();
 });
 
+cron.schedule("0 7 * * 5", async () => {
+	cronController.sendWeeklyPendingtask()
+});
+
+
 export default cron;

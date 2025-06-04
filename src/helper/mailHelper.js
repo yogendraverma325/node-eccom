@@ -201,6 +201,10 @@ export default function getAllListeners(eventEmitter) {
 	eventEmitter.on("reviewCycleAssignToEmployee", async (input) => {
 		await reviewCycleAssignToEmployee(input);
 	});
+
+	eventEmitter.on("sendWeeklyTask", async (input) => {
+		await sendWeeklyTask(input);
+	});
 }
 
 async function regularizationRequestMail(input) {
@@ -1005,7 +1009,7 @@ async function sendBackForReSubmission(input) {
 		const userData = JSON.parse(input);
 		await helper.mailService({
 			to: userData.email,
-			subject: `Action Required:Pending Evaluation.`,
+			subject: `Action Required: Pending Evaluation.`,
 			html: await emailTemplate.sendBackForReSubmission(userData),
 			senderEmail: userData.senderEmail,
 		});
@@ -1056,6 +1060,21 @@ async function reviewCycleAssignToEmployee(input) {
 			to: userData.email,
 			subject: "Your Self review is pending",
 			html: await emailTemplate.reviewCycleAssignToEmployee(userData),
+			senderEmail: userData.senderEmail,
+		});
+	} catch (error) {
+		console.log(error);
+		logger.error(error);
+	}
+}
+
+async function sendWeeklyTask(input) {
+	try {
+		const userData = JSON.parse(input);
+		await helper.mailService({
+			to: userData.email,
+			subject: `Pending Tasks`,
+			html: await emailTemplate.sendWeeklyTask(userData),
 			senderEmail: userData.senderEmail,
 		});
 	} catch (error) {

@@ -22,4 +22,5 @@ export default Express.Router()
 	.get(
 		"/triggerHrPoliciesToUsersRoute",
 		cronController.triggerHrPoliciesToUsersRoute,
-	);
+	)
+	.get("/sendWeeklyPendingtask", cronController.sendWeeklyPendingtask)

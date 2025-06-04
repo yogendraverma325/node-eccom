@@ -1901,11 +1901,11 @@ class CronController {
 				},
 				parseInt(process.env.SSH_LOGIN_WITH_KEY)
 					? {
-							privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
-						}
+						privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH),
+					}
 					: {
-							password: process.env.SSH_PASSWORD,
-						},
+						password: process.env.SSH_PASSWORD,
+					},
 			);
 
 			const sshConnection = await ssh.connect(sshConfig);
@@ -1959,8 +1959,8 @@ class CronController {
 							process.env.SERVER_DB_INSTANCE === undefined
 								? {}
 								: {
-										instanceName: process.env.SERVER_DB_INSTANCE,
-									},
+									instanceName: process.env.SERVER_DB_INSTANCE,
+								},
 						),
 					},
 					logging: false,
@@ -2483,10 +2483,10 @@ class CronController {
 
 				const userAssignmentIds = policy.selectedUsers
 					? policy.selectedUsers
-							.toString()
-							.split(",")
-							.map((id) => id.trim())
-							.filter(Boolean)
+						.toString()
+						.split(",")
+						.map((id) => id.trim())
+						.filter(Boolean)
 					: [];
 
 				const employeeMap = new Map();
@@ -2700,6 +2700,334 @@ class CronController {
 			}
 			res.type("text/plain").send(stdout);
 		});
+	}
+
+	async sendWeeklyPendingtask() {
+		try {
+			const employeeData = await db.employeeMaster.findAll({
+				where: {
+					isActive: 1
+				},
+				attributes: ["id", "name", 'empCode', "email"],
+				include: [{
+					model: db.employeeMaster,
+					as: "reportie",
+					required: true,
+					attributes: { exclude: ["password", "role_id", "designation_id"] },
+					where: {
+						isActive: 1,
+					},
+				},
+				{
+					model: db.companyMaster,
+					attributes: ["companyLogo", "senderEmail"],
+				}]
+			})
+			let limit = 5
+
+			for (const manager of employeeData) {
+				let pendingTasks = []
+				let pendingTaskOfmanager = {
+					items: []
+				}
+				let pendingTaskOfmanagerAttendance = {
+					items: []
+				}
+				let pendingSeparationTask = {
+					items: []
+				}
+				let pendingConfirmationTask = {
+					items: []
+				}
+				let pendingSeparationWorkFlowTask = {
+					items: []
+				}
+
+				const pendingLeaves = await db.EmployeeLeaveHeader.findAndCountAll({
+					where: {
+						status: 'pending',
+						source: { [Op.ne]: "system_generated" }
+					},
+					attributes: { exclude: ["createdBy", "updatedBy", "updatedAt"] },
+					include: [
+						{
+							model: db.employeeMaster,
+							attributes: ["empCode", "name"],
+							required: true
+						},
+						{
+							model: db.leaveMaster,
+							required: false,
+							as: "leaveMasterDetails",
+							attributes: ["leaveName", "leaveCode"],
+						},
+						{
+							model: db.leaveApprovalTrails,
+							required: true,
+							where: {
+								isVisible: true,
+								pendingOn: manager.id,
+								isApproved: 0,
+								isPending: 1,
+							},
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+								},
+							],
+						},
+						{
+							model: db.leaveApprovalTrails,
+							required: true,
+							as: "trails",
+							include: [
+								{
+									model: db.employeeMaster,
+									attributes: ["id", "empCode", "name"],
+								},
+							],
+						},
+						{
+							model: db.employeeMaster,
+							required: true,
+							attributes: ["id", "name", 'empCode', "email"],
+						},
+						{
+							model: db.leaveMaster,
+							required: true,
+							as: "leaveMasterDetails",
+						}
+					],
+					limit,
+					distinct: true,
+					order: [[db.leaveApprovalTrails, "leaveTrailAutoId", "ASC"]],
+				});
+
+				if (pendingLeaves.rows.length > 0) {
+					pendingTaskOfmanager.header = 'Leave Requests'
+					pendingTaskOfmanager.subject = `You have ${pendingLeaves.count} pending reportees leave requests`
+					for (const leave of pendingLeaves.rows) {
+						pendingTaskOfmanager.items.push(`${leave.dataValues.employee.name} (${leave.dataValues.employee.empCode}) has requested ${leave.leaveMasterDetails[0].dataValues.leaveName} for the period ${moment(leave.dataValues.fromDate).format('MMMM Do, YYYY')} to ${moment(leave.dataValues.toDate).format('MMMM Do, YYYY')}.`)
+					}
+				} else {
+					pendingTaskOfmanager.header = 'Leave Requests'
+					pendingTaskOfmanager.subject = `You have no pending reportees leave requests`
+				}
+				pendingTasks.push(pendingTaskOfmanager)
+
+				const attendanceRequests = await db.regularizationMaster.findAndCountAll({
+					where: {
+						regularizeStatus: 'Pending',
+						regularizeManagerId: manager.id
+					},
+					include: [{
+						model: db.attendanceMaster,
+						attributes: ['attendanceAutoId'],
+						required: true,
+						include: [
+							{
+								model: db.employeeMaster,
+								attributes: ["empCode", "name"],
+								required: true,
+								where: {
+									isActive: 1,
+									id: {
+										[Op.in]: manager.reportie.map(r => Number(r.id))
+									}
+								}
+							},
+						],
+					}],
+					limit
+				})
+
+				if (attendanceRequests.rows.length > 0) {
+					pendingTaskOfmanagerAttendance.header = 'Attendance Requests'
+					pendingTaskOfmanagerAttendance.subject = `You have ${attendanceRequests.count} pending reportees attendance requests`
+					for (const element of attendanceRequests.rows) {
+						pendingTaskOfmanagerAttendance.items.push(`${element.attendancemaster.employee.dataValues.name} (${element.attendancemaster.employee.dataValues.empCode}) has requested attendance adjustment for the period ${moment(element.attendanceShiftStartDate).format('MMMM Do, YYYY')} to ${moment(element.attendanceShiftEndDate).format('MMMM Do, YYYY')}.`)
+					}
+				} else {
+					pendingTaskOfmanagerAttendance.header = 'Attendance Requests'
+					pendingTaskOfmanagerAttendance.subject = `You have no pending reportees attendance requests.`
+				}
+				pendingTasks.push(pendingTaskOfmanagerAttendance)
+
+
+				const separationList = await db.separationMaster.findAndCountAll({
+					where: {
+						finalStatus: [2, 5],
+						pendingAt: manager.id,
+					},
+					include: [{
+						model: db.employeeMaster,
+						where: {
+							isActive: 1,
+						},
+						attributes: ['empCode', 'name']
+					}],
+					limit
+				})
+
+				if (separationList.rows.length > 0) {
+					pendingSeparationTask.header = 'Separation Requests'
+					pendingSeparationTask.subject = `You have ${separationList.count} pending separation tasks`
+					for (const element of separationList.rows) {
+						pendingSeparationTask.items.push(`${element.employee.name} (${element.employee.empCode})'s separation request is pending for your approval.`)
+					}
+				} else {
+					pendingSeparationTask.header = 'Separation Requests'
+					pendingSeparationTask.subject = "You have no pending separation workflow tasks."
+				}
+				pendingTasks.push(pendingSeparationTask)
+
+				const confirmationData = await db.Confirmationinitiated.findAndCountAll({
+					where: {
+						status: [0, 2],
+					},
+					include: [
+						{
+							model: db.employeeMaster,
+							required: true,
+							where: {
+								isActive: 1,
+							},
+							attributes: [
+								"id",
+								"empCode",
+								"name",
+								"email"
+							],
+							include: [{
+								model: db.jobDetails,
+								required: true,
+								attributes: ['dateOfProbationEnd']
+							}]
+						},
+						{
+							model: db.Confirmationowners,
+							required: true,
+							attributes: [
+								"employeeId",
+							],
+							where: {
+								employeeId: manager.id,
+								isCompleted: 0,
+							},
+						}
+					],
+					limit,
+					distinct: true,
+					required: true,
+				});
+
+				if (confirmationData.rows.length > 0) {
+					pendingConfirmationTask.header = 'Confirmation Requests'
+					pendingConfirmationTask.subject = `You have ${confirmationData.count} pending confirmation requests.`
+					for (const element of confirmationData.rows) {
+						pendingConfirmationTask.items.push(`${element.employee.dataValues.name} (${element.employee.dataValues.empCode}) is going to complete Probation on ${moment(element.employee.dataValues.employeejobdetail.dateOfProbationEnd).format('YYYY-MM-DD')} is pending with you, please take action.`)
+					}
+				} else {
+					pendingConfirmationTask.header = 'Confirmation Requests'
+					pendingConfirmationTask.subject = `You have no pending confirmation requests.`
+				}
+				pendingTasks.push(pendingConfirmationTask)
+
+				const separationTasksList = await db.separationInitiatedTask.findAndCountAll({
+					where: {
+						status: 0,
+						isActive: 1,
+					},
+					attributes: ["initiatedTaskAutoId", "status", "createdDt"],
+					include: [
+						{
+							model: db.employeeMaster,
+							required: true,
+							attributes: [
+								"id",
+								"empCode",
+								"name",
+							],
+							include: [
+								{
+									model: db.separationMaster,
+									required: true,
+									attributes: ["resignationDate", "l2LastWorkingDay"],
+									required: true,
+									where: {
+										finalStatus: 9,
+										resignationAutoId: db.Sequelize.col(
+											"separationinitiatedtask.resignationAutoId",
+										),
+									},
+								},
+								{
+									model: db.companyLocationMaster,
+									required: true,
+									attributes: ["address1"],
+								},
+							],
+						},
+						{
+							model: db.separationTaskMaster,
+							required: true,
+							attributes: ["taskName", "taskCode"],
+						},
+						{
+							model: db.separationTaskOwner,
+							attributes: [
+								"taskOwnerAutoId",
+								"taskMappingAutoId",
+								"taskOwner",
+								"isActive",
+							],
+							required: true,
+							where: {
+								taskOwner: manager.id,
+							},
+						},
+					],
+					limit,
+					required: true,
+					distinct: true,
+					order: [["initiatedTaskAutoId", "DESC"]],
+				});
+
+				if (separationTasksList.rows.length > 0) {
+					pendingSeparationWorkFlowTask.header = 'Clearance Tasks'
+					pendingSeparationWorkFlowTask.subject = `You have ${separationTasksList.count} pending separation tasks.`
+					for (const element of separationTasksList.rows) {
+						pendingSeparationWorkFlowTask.items.push(`${element.employee.dataValues.name} (${element.employee.dataValues.empCode}) ${element.dataValues.separationtaskmaster.taskName} is pending for completion.\n Last working day is ${moment(element.dataValues.employee.separationmaster.l2LastWorkingDay).format('YYYY-MM-DD')}, Office Location - ${element.dataValues.employee.companylocationmaster.address1}`)
+					}
+				} else {
+					pendingSeparationWorkFlowTask.header = 'Clearance Tasks'
+					pendingSeparationWorkFlowTask.subject = `You have no pending separation tasks.`
+				}
+				pendingTasks.push(pendingSeparationWorkFlowTask)
+
+				const emailObject = {
+					name: manager.name,
+					email: manager.email,
+					tasks: pendingTasks,
+					senderEmail: manager.companymaster.senderEmail,
+					companyLogo: manager.companymaster.companyLogo
+				}
+
+				if (
+					pendingTaskOfmanager.items.length > 0 ||
+					pendingTaskOfmanagerAttendance.items.length > 0 ||
+					pendingSeparationTask.items.length > 0 ||
+					pendingConfirmationTask.items.length > 0 ||
+					pendingSeparationWorkFlowTask.items.length > 0
+				) {
+					eventEmitter.emit("sendWeeklyTask", JSON.stringify(emailObject))
+				}
+			}
+		} catch (error) {
+			console.error(error);
+			logger.error(`Error in sendWeeklyPendingtask: ${error.message}`);
+		}
 	}
 }
 
