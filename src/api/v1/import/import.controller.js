@@ -3338,7 +3338,7 @@ async function attendaceData(req, res, FILEDATA, importParams){
 			console.log("endTimingAsPerTheShift",endTimingAsPerTheShift)
 			console.log("endTimingAsPerTheShift",endTimingAsPerTheShift)
 			console.log("===============")
-			if(inStartTimingAsPerTheShift <=inStartTimingAsPerTheUser && endTimingAsPerTheShift>=endTimingAsPerTheShift){
+			if(inStartTimingAsPerTheShift <=inStartTimingAsPerTheUser && endTimingAsPerTheShift>=endTimingAsPerTheUser){
 					const assignedShiftStartTime =
 						attendanceData?.shiftsmaster?.shiftStartTime;
 						let graceTime = moment(assignedShiftStartTime, "HH:mm"); // set shift start time
