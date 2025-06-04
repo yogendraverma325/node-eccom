@@ -60,6 +60,58 @@ const cronQueue = async.queue(async (task, done) => {
 	const newJoinEmployee = async () => { // blockAccess
 	   await cronController.newJoinEmployee();
 	};
+	const updateManager = async () => { // updateManager
+	   await cronController.updateManager();
+	};
+	const updatePolicy = async () => { // updatePolicy
+	   await cronController.updatePolicy();
+	};
+	const updateDesignation = async () => { // updateDesignation
+	   await cronController.updateDesignation();
+	};
+	const updateDepartment = async () => { // updateDepartment
+	   await cronController.updateDepartment();
+	};
+	const updateCostCenter = async () => { // updateCostCenter
+	   await cronController.updateCostCenter();
+	};
+	const updateCompanyLocation = async () => { // updateCompanyLocation
+	   await cronController.updateCompanyLocation();
+	};
+	const updateJobLevel = async () => { // updateJobLevel
+	   await cronController.updateJobLevel();
+	};
+	const updateEmployeeType = async () => { // updateEmployeeType
+	   await cronController.updateEmployeeType();
+	};
+	const prePasswordExpiryNotification = async () => { // prePasswordExpiryNotification
+	   await cronController.prePasswordExpiryNotification();
+	};
+	const postPasswordExpiryNotification = async () => { // postPasswordExpiryNotification
+	   await cronController.postPasswordExpiryNotification();
+	};
+	const attendanceCronDaywise = async () => { // attendanceCronDaywise
+	 try {
+		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
+		    await cronController.biometricAttendance();
+		}
+	} catch (error) {
+		console.log(error);
+	} finally {
+		await attendanceController.attedanceCron();
+	}
+	};
+	const attendanceCronNightwise = async () => { // attendanceCronNightwise
+		try {
+		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
+			await cronController.biometricAttendance();
+		}
+	} catch (error) {
+		console.log(error);
+	} finally {
+		await attendanceController.attedanceCronEveryNightShift();
+	}
+	};
 	cron.schedule("0 6 * * *", () => cronQueue.push(generateConfirmation)); // confirmation generation pushed to queue
 	cron.schedule("0 6 * * *", () => cronQueue.push(checkSLAOfConfirmation)); // checkSLAOfConfirmation pushed to queue
 	cron.schedule("0 6 * * *", () => cronQueue.push(checkConfirmatonHold)); // checkConfirmatonHold pushed to queue
@@ -72,37 +124,48 @@ const cronQueue = async.queue(async (task, done) => {
 	cron.schedule("10 7 * * *", () => cronQueue.push(leaveCreditMonthCron)); // leaveCreditMonthCron pushed to queue
 	cron.schedule("10 7 * * *", () => cronQueue.push(leaveRefil)); // leaveRefil pushed to queue
 	cron.schedule("0 23 * * *", () => cronQueue.push(triggerHrPoliciesToUsersCron)); // triggerHrPoliciesToUsersCron pushed to queue
-	cron.schedule("* * * * *", () => cronQueue.push(updateActiveStatus)); // updateActiveStatus pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateActiveStatus)); // updateActiveStatus pushed to queue
 	cron.schedule("0 0 * * *", () => cronQueue.push(blockAccess)); // blockAccess pushed to queue
 	cron.schedule("0 11,12,13,14 * * *", () => cronQueue.push(newJoinEmployee)); // blockAccess pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateManager)); // updateManager pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updatePolicy)); // updatePolicy pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateDesignation)); // updateDesignation pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateDepartment)); // updateDepartment pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateCostCenter)); // updateCostCenter pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateCompanyLocation)); // updateCompanyLocation pushed to queue
+	cron.schedule("*/10 * * * *", () => cronQueue.push(updateJobLevel)); // updateJobLevel pushed to queue
+	cron.schedule("0 7 * * *", () => cronQueue.push(prePasswordExpiryNotification)); // prePasswordExpiryNotification pushed to queue
+	cron.schedule("0 7 * * *", () => cronQueue.push(postPasswordExpiryNotification)); // postPasswordExpiryNotification pushed to queue
+	cron.schedule("30 03 * * *", () => cronQueue.push(attendanceCronDaywise)); // attendanceCronDaywise pushed to queue
+	cron.schedule("0 */2 * * *", () => cronQueue.push(attendanceCronNightwise)); // attendanceCronNightwise pushed to queue
 
 // cron.schedule("00 05 * * *", async () => { // commented
 	// await cronController.getEmpForWishes();
 // });
 
-cron.schedule("30 03 * * *", async () => {
-	try {
-		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-			// await cronController.biometricAttendance();
-		}
-	} catch (error) {
-		console.log(error);
-	} finally {
-		await attendanceController.attedanceCron();
-	}
-});
+// cron.schedule("30 03 * * *", async () => { // commented
+// 	try {
+// 		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
+// 			// await cronController.biometricAttendance();
+// 		}
+// 	} catch (error) {
+// 		console.log(error);
+// 	} finally {
+// 		await attendanceController.attedanceCron();
+// 	}
+// });
 
-cron.schedule("0 */2 * * *", async () => {
-	try {
-		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
-			//  await cronController.biometricAttendance();
-		}
-	} catch (error) {
-		console.log(error);
-	} finally {
-		await attendanceController.attedanceCronEveryNightShift();
-	}
-});
+// cron.schedule("0 */2 * * *", async () => { // commented
+// 	try {
+// 		if (process.env.ENABLE_BIOMETRIC_ATTENDANCE * 1) {
+// 			//  await cronController.biometricAttendance();
+// 		}
+// 	} catch (error) {
+// 		console.log(error);
+// 	} finally {
+// 		await attendanceController.attedanceCronEveryNightShift();
+// 	}
+// });
 
 // cron.schedule("30 6 * * *", async () => { // commented
 	// await cronController.leaveActivation();
@@ -117,7 +180,7 @@ cron.schedule("0 */2 * * *", async () => {
 	// 11 PM
 	// await cronController.triggerHrPoliciesToUsersCron();
 // });
-// cron.schedule("* * * * *", async () => {
+// cron.schedule("*/10 * * * *", async () => {
 // 	//
 // 	await cronController.triggerHrPoliciesToUsersCron();
 // });
@@ -131,7 +194,7 @@ cron.schedule("0 */2 * * *", async () => {
 	// await cronController.check_comp_off_expiry();
 // });
 
-cron.schedule("* * * * *", async () => {
+// cron.schedule("*/10 * * * *", async () => {  // commented
 	// await cronController.updateManager();
 	// await cronController.updatePolicy();
 	// await cronController.updateDesignation();
@@ -140,9 +203,9 @@ cron.schedule("* * * * *", async () => {
 	// await cronController.updateCompanyLocation();
 	// await cronController.updateJobLevel();
 	// await cronController.updateEmployeeType();
-});
+// });
 
-// cron.schedule("* * * * *", async () => { // commented
+// cron.schedule("*/10 * * * *", async () => { // commented
 	// cronController.updateActiveStatus();
 // });
 
@@ -154,9 +217,9 @@ cron.schedule("* * * * *", async () => {
 	// cronController.newJoinEmployee();
 // });
 
-cron.schedule("0 7 * * *", async () => {
+// cron.schedule("0 7 * * *", async () => { // commented
 	// await cronController.prePasswordExpiryNotification();
 	// await cronController.postPasswordExpiryNotification();
-});
+// });
 
 export default cron;
