@@ -112,6 +112,10 @@ const cronQueue = async.queue(async (task, done) => {
 		await attendanceController.attedanceCronEveryNightShift();
 	}
 	};
+	const sendWeeklyPendingtask = async () => { // sendWeeklyPendingtask
+		await cronController.sendWeeklyPendingtask()
+	};
+	
 	cron.schedule("0 6 * * *", () => cronQueue.push(generateConfirmation)); // confirmation generation pushed to queue
 	cron.schedule("0 6 * * *", () => cronQueue.push(checkSLAOfConfirmation)); // checkSLAOfConfirmation pushed to queue
 	cron.schedule("0 6 * * *", () => cronQueue.push(checkConfirmatonHold)); // checkConfirmatonHold pushed to queue
@@ -138,6 +142,7 @@ const cronQueue = async.queue(async (task, done) => {
 	cron.schedule("0 7 * * *", () => cronQueue.push(postPasswordExpiryNotification)); // postPasswordExpiryNotification pushed to queue
 	cron.schedule("30 03 * * *", () => cronQueue.push(attendanceCronDaywise)); // attendanceCronDaywise pushed to queue
 	cron.schedule("0 */2 * * *", () => cronQueue.push(attendanceCronNightwise)); // attendanceCronNightwise pushed to queue
+	cron.schedule("0 7 * * 5", () => cronQueue.push(sendWeeklyPendingtask)); // sendWeeklyPendingtask pushed to queue
 
 // cron.schedule("00 05 * * *", async () => { // commented
 	// await cronController.getEmpForWishes();
@@ -222,9 +227,9 @@ const cronQueue = async.queue(async (task, done) => {
 	// await cronController.postPasswordExpiryNotification();
 // });
 
-cron.schedule("0 7 * * 5", async () => {
-	cronController.sendWeeklyPendingtask()
-});
+// cron.schedule("0 7 * * 5", async () => {  // commented
+// 	cronController.sendWeeklyPendingtask()
+// });
 
 
 export default cron;
