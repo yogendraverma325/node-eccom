@@ -1158,7 +1158,9 @@ const remainingLeaveCount = async function (
 	companyId,
 	leaveAutoId,
 	EMP_DATA,
+	isForce=0
 ) {
+	console.log("isForce remainingLeaveCount",isForce)
 	const daysDifferenceReq = moment(endDate).diff(moment(startDate), "days");
 	var workingCount = 0;
 	let total_working_dates = [];
@@ -1289,9 +1291,10 @@ const remainingLeaveCount = async function (
 		let isNationalHoliday =
 			employeeHolidays?.holidayDetails?.isNationalHoliday ?? null;
 		//console.log("employeeHolidays", employeeHolidays ? "yes" : "no");
-		//console.log("appliedFor", appliedFor, "day", i);
+		console.log("appliedFor", appliedFor, "day", i,"week offf",existEmployees.weekOffDayMappingMasters.length,"daysDifferenceReq",daysDifferenceReq);
 		if (daysDifferenceReq == 0) {
-			if (
+			if(isForce==0){ // adding force leave application
+if (
 				existEmployees.weekOffDayMappingMasters.length == 0 &&
 				!employeeHolidays
 			) {
@@ -1300,11 +1303,18 @@ const remainingLeaveCount = async function (
 					workingCount += 1;
 				}
 			}
+			}else{ 
+				if (!total_working_dates.includes(appliedFor)) {
+					total_working_dates.push(appliedFor);
+					workingCount += 1;
+				}
+			}
+			
 			// console.log("single daya");
 		} else {
 			if (i == 0 || i == daysDifferenceReq) {
 				// console.log("first and last");
-
+			if(isForce==0){ // adding force leave application
 				if (
 					existEmployees.weekOffDayMappingMasters.length == 0 &&
 					!employeeHolidays
@@ -1314,7 +1324,16 @@ const remainingLeaveCount = async function (
 						workingCount += 1;
 					}
 				}
+			}else{
+				if (!total_working_dates.includes(appliedFor)) {
+				total_working_dates.push(appliedFor);
+				workingCount += 1;
+				}
+			}
 			} else {
+				if(isForce==0){  // adding force leave application
+
+				
 				if (
 					shouldCountWeekOffs &&
 					existEmployees.weekOffDayMappingMasters.length > 0
@@ -1350,6 +1369,13 @@ const remainingLeaveCount = async function (
 						workingCount += 1;
 					}
 				}
+
+			}else{
+			if (!total_working_dates.includes(appliedFor)) {
+			total_working_dates.push(appliedFor);
+			workingCount += 1;
+			}
+			}
 			}
 		}
 		// console.log("============");
@@ -1384,6 +1410,7 @@ const remainingLeaveCount = async function (
 			}
 		}
 	}
+	console.log("total_working_dates",total_working_dates)
 	return total_working_dates;
 };
 
@@ -4502,6 +4529,20 @@ async function handleReviewFrameworkAssignmentNew(userAssignment) {
 		throw error;
 	}
 }
+//Addition function to get date between date range , this is required to generate attendance
+async function getDatesArray(startDate, endDate) {
+const dates = [];
+  let currentDate = moment(startDate);
+  const lastDate = moment(endDate);
+
+  while (currentDate.isBefore(lastDate)) {
+    dates.push(currentDate.format('YYYY-MM-DD'));
+    currentDate = currentDate.add(1, 'days');
+  }
+
+  return dates;
+}
+//Addition function to get date between date range , this is required to generate attendance
 
 function isEmpty(value) {
 	return value === null || value === undefined || value === "";
