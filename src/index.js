@@ -2,6 +2,7 @@ import "./config/db.config.js";
 import "./config/redisDb.config.js";
 import "./services/cronService.js";
 import routes from "./routes/routes.js";
+import ui_routes from './routes/Ui_routes.js';
 import Server from "./common/server.js";
 import app from "./common/app.js";
 import io from "./services/socketService.js";
@@ -16,19 +17,24 @@ import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { swaggerOptions } from "./swagger/swaggerDefinition.js";
 import helper from "./helper/helper.js";
-
+import { fileURLToPath } from 'url';
+import express from 'express';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+console.log(process.cwd()); 
+console.log("__dirname",__dirname)
 app.use(helmet());
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));  // form data ke liye
+app.use(express.json());  // JSON data ke liye
+app.use('/', ui_routes);
 app.use("/api", routes);
-
 helper.checkFolder();
-
 app.get("/api", (req, res) => {
 	res.redirect(process.env.CLIENT_URL);
 });
-
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -40,6 +46,10 @@ app.get("/api/uploads/:user/:fileName", (req, res) => {
 		path.join(rootpath, `../uploads/${req.params.user}/${req.params.fileName}`),
 	);
 });
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(process.cwd(), '/src/public')));
+
 
 app.use((req, res, next) => {
 	next();
@@ -52,6 +62,7 @@ app.use((err, req, res, next) => {
 		status: 500,
 	});
 });
+
 
 io.on("connection", (socket) => {
 	console.log("Client Socket Connected");

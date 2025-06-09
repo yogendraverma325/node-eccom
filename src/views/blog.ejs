@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= title %></title>
+  <meta name="description" content="<%= description %>" />
+
+  <!-- Open Graph for better social sharing -->
+  <meta property="og:title" content="<%= title %>" />
+  <meta property="og:description" content="<%= description %>" />
+  <meta property="og:type" content="article" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="<%= title %>" />
+  <meta name="twitter:description" content="<%= description %>" />
+</head>
+<body>
+  <header>
+    <h1><%= title %></h1>
+    <nav>
+      <a href="/">Home</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <h2>Blog Slug: <%= slug %></h2>
+      <p>This is a placeholder for the blog content about "<%= slug %>".</p>
+      <p>You can replace this with actual content fetched from a database or file.</p>
+    </article>
+  </main>
+
+  <footer>
+    <p>© 2025 Your SEO Portal</p>
+  </footer>
+</body>
+</html>
