@@ -1,7 +1,6 @@
 import "./config/db.config.js";
 import "./config/redisDb.config.js";
-import "./services/cronService.js";
-import routes from "./routes/routes.js";
+
 import ui_routes from './routes/Ui_routes.js';
 import Server from "./common/server.js";
 import app from "./common/app.js";
@@ -52,13 +51,9 @@ app.use((req, res, next) => { //
 	next();
   });
 app.use('/', ui_routes);
-app.use("/api", routes);
+// app.use("/api", routes);
 helper.checkFolder();
-app.get("/api", (req, res) => {
-	res.redirect(process.env.CLIENT_URL);
-});
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // add this
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));

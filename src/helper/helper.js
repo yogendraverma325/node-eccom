@@ -10,7 +10,6 @@ import eventEmitter from "../services/eventService.js";
 import crypto from "crypto";
 import axios from "axios";
 import https from "https";
-import attendanceController from "../api/v1/attendance/attendance.controller.js";
 import pushNotificationEmitter from "../services/pushNotificationEventService.js"; // New
 // import { createCanvas, loadImage } from "canvas";
 
@@ -4615,84 +4614,19 @@ const dates = [];
 }
 //Addition function to get date between date range , this is required to generate attendance
 
+//custom portal
+const getLoggedinUser = (req) => {
+	if (req.session.user) return req.session.user;
+	return null;
+  };
+  const isAuthenticated = (req, res, next) => {
+  if (req.session.user) return next();
+  res.redirect('/login');
+};
+// custom portal
+
 export default {
-	generateJwtToken,
+	getLoggedinUser,
 	checkFolder,
-	checkActiveUser,
-	fileUpload,
-	mailService,
-	timeDifference,
-	calculateLateBy,
-	calculateTime,
-	calculateAverageHours,
-	generateRandomPassword,
-	encryptPassword,
-	getEmpProfile,
-	empLeaveDetails,
-	empMarkLeaveOfGivenDate,
-	remainingLeaveCount,
-	getCombineValue,
-	timeDifferenceNew,
-	isDayWorking,
-	ip,
-	generateOTP,
-	generateJwtOTPEncrypt,
-	generateJwtOTPDecrypt,
-	isDayWorkingForReport,
-	generateSHA512Hash,
-	compareImages,
-	//CONFIRMAITON
-	generateFieldsForgivenLevel,
-	getSigningAuthorityDate,
-	//CONFIRMAITON
-	convertExcelDate,
-	//CONFIRMAITON,
-	//COMPOFF
-	checkCompOffPolicyForUser,
-	compOffbalabceForUser,
-	leaveDetailsMaster,
-	checkWeekOffOfEMPforData,
-	checkHolidayEMPforData,
-	leaveCountForUserForMonth,
-	creditCompoff,
-	checkLeaveClupEMPforDate,
-	reportieesofEmp,
-	actionOnLeaveCompOff,
-	leaveCreditMonthCron,
-	leaveLapse,
-	leaveRefil,
-	//CONFIRMATION POLICY ASSGIMENT
-	confirmationPolicyAssignment,
-	//CONFIRMAGION POLICY ASSIGNMENT
-	//COMPOFF
-	//LEAVE ASSIGNMENT
-	leaveAssignEmployeeToAll,
-	//LEAVE ASSIGNMENT
-	smsService,
-	fetchpermissoinAndAcessForEMP,
-	getFiltersByPermission,
-	// START BY JAY GENERATE EMPLOYMENT HISTORY
-	generateEmployementHistory,
-	// END BY JAY GENERATE EMPLOYMENT HISTORY,
-	revokeAppliedLeave,
-	activeCompOffMoreThanLeave,
-	// Export by jay
-	fetchEmployeeRole,
-	convertEmptyStringsToNull,
-	chekcMonthCountInArray,
-	getWorkDuration,
-	//REVOKE
-	revokeApprovedAppliedLeave,
-	releaseCompOffTheEmployeeForDate,
-	roleEmailIds,
-	savePdfFile, // adding fucnction to save confirmation PDF file to local folder
-	//REVOKE
-	// review appraisal
-	handleAppraisalGoalPlanUpdate,
-	handleReviewFrameworkAssignment,
-	handleReviewFrameworkAssignmentNew,
-	validateSelfAppraisalData,
-	//Addition function to get date between date range , this is required to generate attendance
-	getDatesArray
-	//Addition function to get date between date range , this is required to generate attendance
+	isAuthenticated
 };

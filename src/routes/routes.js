@@ -44,6 +44,6 @@ router.use("/thirdparty", thirdPartyRoutes);
 router.use("/fnf", fnfRoutes);
 router.use("/imports", imports);
 router.use("/appraisalgoals", appraisalGoalsRoutes);
-router.use("/arrears", arrearsRoutes);
+router.use("/arrears", arrearsRoutes); 
 
 export default router;
