@@ -19,11 +19,20 @@ class HomeController {
 							isActive: 1
 						}
 					});
+					const hotProducts = await db.product.findAll({
+						order: [["createdAt", "DESC"]],
+						limit: 10,
+						attributes: ["productAutoId", "name", "image","price","offerprice"],
+						where: {
+							isActive: 1
+						}
+					});
 					res.render('index', {
 					title: 'Home',
 					description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
 					user,
-					categories
+					categories,
+					hotProducts
 					});
 
 			

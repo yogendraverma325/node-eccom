@@ -2,7 +2,7 @@
 import Sequelize from "sequelize";
 import logger from "../helper/logger.js";
 import category from "../api/model/category.js";
-
+import product from "../api/model/product.js";
 
 import literal from "sequelize";
 import QueryTypes from "sequelize";
@@ -56,5 +56,6 @@ db.sequelize = sequelize;
 db.literal = literal;
 db.QueryTypes = QueryTypes;
 db.category = category(sequelize, Sequelize);
+db.product = product(sequelize, Sequelize);
 
 export default db;
