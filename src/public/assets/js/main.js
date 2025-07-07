@@ -4,6 +4,26 @@ Author: GrayGrids
 */
 
 (function () {
+    window.addEventListener('DOMContentLoaded', () => {
+   if ("geolocation" in navigator) {
+     navigator.geolocation.watchPosition(
+       (position) => {
+         const location = {
+           latitude: position.coords.latitude,
+           longitude: position.coords.longitude,
+         };
+
+         // Save location as a cookie
+         document.cookie = `userLocation=${encodeURIComponent(JSON.stringify(location))}; path=/; max-age=${100 * 365 * 24 * 60 * 60 * 1000}`;
+       },
+       (error) => {
+         console.error("❌ Geolocation error:", error.message);
+       }
+     );
+   } else {
+     console.error("❌ Geolocation not supported by this browser.");
+   }
+ });
     //===== Prealoder
 
     window.onload = function () {

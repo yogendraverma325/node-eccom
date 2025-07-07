@@ -47,16 +47,24 @@
                     <div class="top-end">
                         <div class="user">
                             <i class="lni lni-user"></i>
-                            Hello
+                            Hello , <%= user ? user.name : 'User' %>
                         </div>
-                        <ul class="user-login">
-                            <li>
-                                <a href="/login">Sign In</a>
-                            </li>
-                            <li>
-                                <a href="register.html">Register</a>
-                            </li>
-                        </ul>
+                        <% if (user) { %>
+                            <ul class="user-login">
+                                <li>
+                                    <a href="/logout">Logout</a>
+                                </li>
+                               
+                            </ul>
+                          <% } else { %>
+                            <ul class="user-login">
+                                <li>
+                                    <a href="/login">Sign In</a>
+                                </li>
+                              
+                            </ul>
+                          <% } %>
+                       
                     </div>
                 </div>
             </div>

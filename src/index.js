@@ -19,6 +19,10 @@ import { swaggerOptions } from "./swagger/swaggerDefinition.js";
 import helper from "./helper/helper.js";
 import { fileURLToPath } from 'url';
 import express from 'express';
+import session from 'express-session';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import expressLayouts from 'express-ejs-layouts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 console.log(process.cwd()); 
@@ -27,8 +31,26 @@ app.use(helmet());
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(cors());
+
 app.use(express.urlencoded({ extended: true }));  // form data ke liye
 app.use(express.json());  // JSON data ke liye
+// to maintain session
+app.use(expressLayouts);
+app.use(
+	session({
+	  secret: 'babyGammingZoneDev',
+	  resave: true,
+	  saveUninitialized: true,
+	  cookie: { secure: false } // Use true only with HTTPS
+	})
+  );
+// to maintain session
+
+app.use(cookieParser());
+app.use((req, res, next) => { // 
+	res.locals.user = req.session.user || null;
+	next();
+  });
 app.use('/', ui_routes);
 app.use("/api", routes);
 helper.checkFolder();
@@ -48,6 +70,7 @@ app.get("/api/uploads/:user/:fileName", (req, res) => {
 });
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.set('layout',	 path.join(__dirname, 'layouts/main')); // default layout file
 app.use(express.static(path.join(process.cwd(), '/src/public')));
 
 
