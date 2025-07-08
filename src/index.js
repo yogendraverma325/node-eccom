@@ -24,8 +24,6 @@ import cookieParser from 'cookie-parser';
 import expressLayouts from 'express-ejs-layouts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log(process.cwd()); 
-console.log("__dirname",__dirname)
 app.use(helmet());
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
@@ -50,7 +48,7 @@ app.use((req, res, next) => { //
 	res.locals.user = req.session.user || null;
 	next();
   });
-app.use('/', ui_routes);
+
 // app.use("/api", routes);
 helper.checkFolder();
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -68,20 +66,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('layout',	 path.join(__dirname, 'layouts/main')); // default layout file
 app.use(express.static(path.join(process.cwd(), '/src/public')));
 
-
-app.use((req, res, next) => {
-	next();
-});
-
-app.use((err, req, res, next) => {
-	console.log(err);
-	logger.error(err.stack);
-	return respHelper(res, {
-		status: 500,
-	});
-});
-
-
+app.use('/', ui_routes);
 io.on("connection", (socket) => {
 	console.log("Client Socket Connected");
 	// console.log(socket)

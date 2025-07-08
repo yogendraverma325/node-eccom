@@ -27,7 +27,7 @@ class HomeController {
 							{
 								model: db.product,
 								as: "sectionProducts",
-								attributes: ["productAutoId", "name", "image","price","offerprice","rating"],
+								attributes: ["productAutoId", "name", "image","price","offerprice","rating","description","review"],
 								where: {
 									isActive: 1
 								}
@@ -45,7 +45,7 @@ class HomeController {
 							{
 								model: db.product,
 								as: "sectionProducts",
-								attributes: ["productAutoId", "name", "image","price","offerprice","rating","description"],
+								attributes: ["productAutoId", "name", "image","price","offerprice","rating","description","review"],
 								where: {
 									isActive: 1
 								}
@@ -62,7 +62,8 @@ class HomeController {
 					user,
 					categories,
 					hotProducts,
-					newArrivals
+					newArrivals,
+					helper
 					});
 
 			
@@ -163,6 +164,32 @@ class HomeController {
 				if (err) console.error(err);
 			  });
 			  return res.redirect('/');
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async  productDetails(req, res) {
+		try {
+			res.render('productDetails', {
+				title: `Blog: productDetails`,
+				description: `Read about productDetails.`,
+			  });
+		} catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+	}
+	async  productList(req, res) {
+		try {
+			res.render('productList', {
+				title: `Blog:productList`,
+				description: `Read about productList.`,
+			  });
 		} catch (error) {
 			console.log(error);
 			return respHelper(res, {

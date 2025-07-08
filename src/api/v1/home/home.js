@@ -5,4 +5,6 @@ export default Express.Router()
 	.get("/",HomeController.home)
 	.get("/login",HomeController.login)
 	.post("/login",HomeController.logInFunction)
-	.post("/logout",HomeController.logout);
+	.post("/logout",HomeController.logout)
+	.get("/product-details/:id", HomeController.productDetails)
+	.get("/product-list",HomeController.productList);

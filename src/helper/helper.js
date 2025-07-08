@@ -4619,14 +4619,26 @@ const getLoggedinUser = (req) => {
 	if (req.session.user) return req.session.user;
 	return null;
   };
-  const isAuthenticated = (req, res, next) => {
+const isAuthenticated = (req, res, next) => {
   if (req.session.user) return next();
   res.redirect('/login');
 };
+const ratingAndReview = (rating) => {
+	let stars = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < rating) {
+      stars += '<li><i class="lni lni-star-filled"></i></li>';
+    } else {
+      stars += '<li><i class="lni lni-star"></i></li>';
+    }
+  }
+  return stars;
+  };
 // custom portal
 
 export default {
 	getLoggedinUser,
 	checkFolder,
-	isAuthenticated
+	isAuthenticated,
+	ratingAndReview
 };

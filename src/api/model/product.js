@@ -25,6 +25,9 @@ export default (sequelize, Sequelize) => {
         rating: {
             type: Sequelize.INTEGER,
         },
+		review: {
+            type: Sequelize.INTEGER,
+        },
 		isActive: {
 			type: Sequelize.BOOLEAN,
 			defaultValue: true,
