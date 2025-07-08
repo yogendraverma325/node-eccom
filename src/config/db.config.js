@@ -3,7 +3,8 @@ import Sequelize from "sequelize";
 import logger from "../helper/logger.js";
 import category from "../api/model/category.js";
 import product from "../api/model/product.js";
-
+import sections from "../api/model/sections.js";
+import productSectionMapping from "../api/model/productSectionMapping.js";
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 
@@ -57,5 +58,14 @@ db.literal = literal;
 db.QueryTypes = QueryTypes;
 db.category = category(sequelize, Sequelize);
 db.product = product(sequelize, Sequelize);
+db.sections = sections(sequelize, Sequelize);
+db.productSectionMapping = productSectionMapping(sequelize, Sequelize);
+
+db.productSectionMapping.hasOne(db.product, {
+	foreignKey: "productAutoId",
+	sourceKey: "productAutoId",
+	as: "sectionProducts",
+});
+
 
 export default db;

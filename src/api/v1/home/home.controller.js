@@ -12,27 +12,57 @@ class HomeController {
 	async home(req, res) {
 		try {
 					const user = helper.getLoggedinUser(req) || null;
+					
 					const categories = await db.category.findAll({
-						
 						attributes: ["catAutoId", "categoryName", "image"],
 						where: {
 							isActive: 1
 						}
 					});
-					const hotProducts = await db.product.findAll({
+					
+					const hotProducts = await db.productSectionMapping.findAll({
 						order: [["createdAt", "DESC"]],
 						limit: 10,
-						attributes: ["productAutoId", "name", "image","price","offerprice"],
-						where: {
-							isActive: 1
+						include: [
+							{
+								model: db.product,
+								as: "sectionProducts",
+								attributes: ["productAutoId", "name", "image","price","offerprice","rating"],
+								where: {
+									isActive: 1
+								}
+							}
+						],
+						where:{
+							sectionId:1
 						}
 					});
+
+					const newArrivals = await db.productSectionMapping.findAll({
+						order: [["createdAt", "DESC"]],
+						limit: 2,
+						include: [
+							{
+								model: db.product,
+								as: "sectionProducts",
+								attributes: ["productAutoId", "name", "image","price","offerprice","rating","description"],
+								where: {
+									isActive: 1
+								}
+							}
+						],
+						where:{
+							sectionId:2
+						}
+					});
+					
 					res.render('index', {
 					title: 'Home',
 					description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
 					user,
 					categories,
-					hotProducts
+					hotProducts,
+					newArrivals
 					});
 
 			
@@ -40,7 +70,7 @@ class HomeController {
 			
 			
 		} catch (error) {
-			
+			console.log("error",error);
 		}
 	}
 	async login(req, res) {

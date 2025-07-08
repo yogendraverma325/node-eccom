@@ -8,6 +8,9 @@ export default (sequelize, Sequelize) => {
 		name: {
 			type: Sequelize.STRING,
 		},
+        description: {
+			type: Sequelize.STRING,
+		},
         image: {
 			type: Sequelize.STRING,
 		},
@@ -19,6 +22,9 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.DOUBLE(10, 2),
             defaultValue: 0.00,
 		},
+        rating: {
+            type: Sequelize.INTEGER,
+        },
 		isActive: {
 			type: Sequelize.BOOLEAN,
 			defaultValue: true,
