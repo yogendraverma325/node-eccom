@@ -7,7 +7,7 @@
                 <div class="col-lg-3 col-md-3 col-7">
                     <!-- Start Header Logo -->
                     <a class="navbar-brand" href="/">
-                        <img src="assets/images/logo/logo.svg" alt="Logo">
+                        <img src="/assets/images/logo/logo.svg" alt="Logo">
                     </a>
                     <!-- End Header Logo -->
                 </div>
@@ -76,12 +76,12 @@
                                               </form>
                                             
                                             <div class="cart-img-head">
-                                                <a class="cart-img" href="product-details/<%= product.cartProducts.productAutoId %>"><img
-                                                    src="assets/images/products/<%= product.cartProducts.image %>" alt="<%= product.cartProducts.name %>"></a>
+                                                <a class="cart-img" href="/product-details/<%= product.cartProducts.productAutoId %>"><img
+                                                    src="/assets/images/products/<%= product.cartProducts.image %>" alt="<%= product.cartProducts.name %>"></a>
                                             </div>
 
                                             <div class="content">
-                                                <h4><a href="product-details/<%= product.cartProducts.productAutoId %>">
+                                                <h4><a href="/product-details/<%= product.cartProducts.productAutoId %>">
                                                     <%= product.cartProducts.name %></a></h4>
                                                 <p class="quantity"><%= product.qty %> x <span class="amount"><i class="fa fa-rupee"></i> <%= product.cartProducts.price %></span></p>
                                             </div>
@@ -159,14 +159,9 @@
                             <a href="javascript:void(0)"><i class="lni lni-facebook-filled"></i></a>
                         </li>
                         <li>
-                            <a href="javascript:void(0)"><i class="lni lni-twitter-original"></i></a>
-                        </li>
-                        <li>
                             <a href="javascript:void(0)"><i class="lni lni-instagram"></i></a>
                         </li>
-                        <li>
-                            <a href="javascript:void(0)"><i class="lni lni-skype"></i></a>
-                        </li>
+                       
                     </ul>
                 </div>
                 <!-- End Nav Social -->
