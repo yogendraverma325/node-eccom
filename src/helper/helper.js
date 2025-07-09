@@ -4634,11 +4634,59 @@ const ratingAndReview = (rating) => {
   }
   return stars;
   };
+  const discountOnProduct = (product) => {
+		let discount=0;
+		return discount;
+  };
+  const cartSubtotal = (cartList) => {
+	let total=cartList.reduce((acc, item) => {
+		return acc + (item.cartProducts.price * item.qty);
+	}, 0);
+	return total;
+};
+const cartGrandtotal = (cartList) => {
+	let total=0;
+	let subtotal = cartSubtotal(cartList);
+	return total = subtotal + shippingTotal(cartList) - youSaveTotal(cartList);
+};
+const shippingTotal = (cartList) => {
+	let total=0;
+	return total;
+};
+const youSaveTotal = (cartList) => {
+	let total=0;
+	return total;
+}; 
+const returnCartList = async (userCart) => {
+   let cartList = await db.cart.findAll({
+					where: {
+						userCookie: userCart
+					},
+					order: [["createdAt", "DESC"]],
+					include: [
+						{
+							model: db.product,
+							as: "cartProducts",
+							attributes: ["productAutoId", "name", "image","price","offerprice","description"],
+							where: {
+								isActive: 1
+							}
+						}
+					]
+				});
+				return cartList;
+}
 // custom portal
 
 export default {
 	getLoggedinUser,
 	checkFolder,
 	isAuthenticated,
-	ratingAndReview
+	ratingAndReview,
+	discountOnProduct,
+	cartSubtotal,
+	cartGrandtotal,
+	shippingTotal,
+	youSaveTotal,
+	returnCartList
 };

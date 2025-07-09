@@ -7,4 +7,8 @@ export default Express.Router()
 	.post("/login",HomeController.logInFunction)
 	.post("/logout",HomeController.logout)
 	.get("/product-details/:id", HomeController.productDetails)
-	.get("/product-list",HomeController.productList);
+	.get("/product-list",HomeController.productList)
+	.get("/cart",HomeController.cart)
+	.post("/addToCart",HomeController.addToCart)
+	.post("/removeFromCart",HomeController.removeFromCart)
+	.get("/checkout",HomeController.checkout);

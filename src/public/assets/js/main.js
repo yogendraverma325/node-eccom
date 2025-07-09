@@ -4,7 +4,19 @@ Author: GrayGrids
 */
 
 (function () {
+
+  function generateUUID() {
+    // Standard UUID v4 generator
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0,
+        v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
     window.addEventListener('DOMContentLoaded', () => {
+      if (!document.cookie.split('; ').find(row => row.startsWith('userCart='))) {
+        document.cookie = `userCart=${generateUUID()}; path=/; max-age=${100 * 365 * 24 * 60 * 60}`;
+      }
    if ("geolocation" in navigator) {
      navigator.geolocation.watchPosition(
        (position) => {

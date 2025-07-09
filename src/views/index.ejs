@@ -53,8 +53,14 @@
                     <div class="single-product">
                         <div class="product-image">
                             <img src="assets/images/products/<%= product.sectionProducts.image %>" alt="<%= product.sectionProducts.name %>">
+                            
                             <div class="button">
-                                <a href="product-details.html" class="btn"><i class="lni lni-cart"></i> Add to Cart</a>
+                                <form action="/addToCart" method="POST">
+                                    <input type="hidden" name="productAutoId" value="<%= product.sectionProducts.productAutoId %>">
+                                    <button type="submit" class="btn">
+                                      <i class="lni lni-cart"></i> Add to Cart
+                                    </button>
+                                  </form>
                             </div>
                         </div>
                         <div class="product-info">

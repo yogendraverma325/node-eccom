@@ -197,6 +197,91 @@ class HomeController {
 			});
 		}
 	}
+	async  cart(req, res) {
+		try {
+			const userCart = req.cookies.userCart;
+			let cartList=[]
+			if (cartList) {
+			  try {
+				  cartList = await helper.returnCartList(userCart);
+			  } catch (error) {
+			  }
+			}
+			res.render('cart', {
+				title: `Blog:cart`,
+				description: `Read about cart.`,
+				cartList,
+				helper
+			  });
+		} catch (error) {
+	
+		}
+	}
+	async  addToCart(req, res) {
+		try {
+			const  {productAutoId}  = req.body;
+			const userCart = req.cookies.userCart;
+			if (productAutoId!='') {
+					let isAlreadyInCart = await db.cart.findOne({
+					where: {
+						userCookie: userCart,
+						productAutoId: productAutoId
+					}
+					});
+					if(!isAlreadyInCart){
+						await db.cart.create({
+							userCookie: userCart,
+							productAutoId: productAutoId,
+							qty: 1
+						});
+					}
+			 
+			}else{
+			
+			}
+			res.redirect('back'); // back to the previous page
+		} catch (error) {
+	
+		}
+	}
+	async  removeFromCart(req, res) {
+		try {
+			const  {productAutoId}  = req.body;
+			const userCart = req.cookies.userCart;
+		if (productAutoId!='') {
+			await db.cart.destroy({
+				where: {
+					userCookie: userCart,
+					productAutoId: productAutoId
+				}
+				});
+			 
+			}
+			res.redirect('back'); // back to the previous page
+		} catch (error) {
+	
+		}
+	}
+	async  checkout(req, res) {
+		try {
+			const userCart = req.cookies.userCart;
+			let cartList=[]
+			if (cartList) {
+			  try {
+				  cartList = await helper.returnCartList(userCart);
+			  } catch (error) {
+			  }
+			}
+			res.render('checkout', {
+				title: `Blog:cart`,
+				description: `Read about cart.`,
+				cartList,
+				helper
+			  });
+		} catch (error) {
+	
+		}
+	}
 }
 
 export default new HomeController();

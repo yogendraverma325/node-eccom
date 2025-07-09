@@ -28,8 +28,7 @@ app.use(helmet());
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(cors());
-
-app.use(express.urlencoded({ extended: true }));  // form data ke liye
+app.use(express.urlencoded({ extended: true })); // to parse form data
 app.use(express.json());  // JSON data ke liye
 // to maintain session
 app.use(expressLayouts);
@@ -44,10 +43,11 @@ app.use(
 // to maintain session
 
 app.use(cookieParser());
-app.use((req, res, next) => { // 
-	res.locals.user = req.session.user || null;
-	next();
-  });
+app.use(async (req, res, next) => {
+res.locals.user = req.session.user || null;
+res.locals.cartList=await helper.returnCartList(req.cookies.userCart);
+next();
+});
 
 // app.use("/api", routes);
 helper.checkFolder();
