@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-	const productSectionMapping = sequelize.define("productSectionMapping", {
+	const productSectionMapping = sequelize.define("productsectionmapping", {
 		productSectionsAutoId: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,

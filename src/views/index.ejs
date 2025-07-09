@@ -87,7 +87,7 @@
             <div class="row">
                 <% newArrivals.forEach((product) => { %>
                 <div class="col-lg-6 col-md-6 col-12">
-                    <div class="single-banner" style="background-image:url('assets/images/banner/banner-1-bg.jpg')">
+                    <div class="single-banner" style="background-image:url('assets/images/products/<%= product.sectionProducts.image %>')">
                         <div class="content">
                             <h2><%= product.sectionProducts.name %></h2>
                             <p><%= product.sectionProducts.description %> </p>
