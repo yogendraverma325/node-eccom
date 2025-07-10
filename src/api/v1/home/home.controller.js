@@ -173,9 +173,18 @@ class HomeController {
 	}
 	async  productDetails(req, res) {
 		try {
+let productAutoId = req.params.id;
+	let productDetails = await db.product.findOne({
+		attributes: ["productAutoId", "name", "image","price","offerprice","description"],
+		where: {
+			productAutoId: productAutoId,
+			isActive: 1
+		}
+	});
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
+				productDetails
 			  });
 		} catch (error) {
 			console.log(error);

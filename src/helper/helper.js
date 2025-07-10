@@ -4632,7 +4632,7 @@ const ratingAndReview = (rating) => {
       stars += '<li><i class="lni lni-star"></i></li>';
     }
   }
-  return stars;
+  //return stars;
   };
   const discountOnProduct = (product) => {
 		let discount=0;
