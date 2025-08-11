@@ -48,6 +48,24 @@
                             </h3>
                         </div>
                         <div class="navbar-cart">
+                            <% if (user) { %>
+                                <div class="wishlist user-menu">
+                                    <a href="javascript:void(0)" class="user-icon">
+                                        <i class="lni lni-user"></i>
+                                    </a>
+                                    <div class="dropdown-menu">
+                                        <a href="/profile"><i class="lni lni-user"></i> Profile</a>
+                                        <a href="/settings"><i class="lni lni-cog"></i> Settings</a>
+                                        <a href="/user/logout"><i class="lni lni-exit"></i> Logout</a>
+                                    </div>
+                                </div>
+                                <% } else { %>
+                                    <div class="wishlist">
+                                        <a href="/user/login">
+                                            <i class="lni lni-heart"></i>
+                                        </a>
+                                    </div>
+                                    <% }%>
                             <div class="wishlist">
                                 <a href="javascript:void(0)">
                                     <i class="lni lni-heart"></i>

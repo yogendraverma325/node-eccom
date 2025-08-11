@@ -8144,3 +8144,35 @@ blockquote span {
     display: none;
   }
 }
+
+.user-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  min-width: 160px;
+  border-radius: 4px;
+  z-index: 999;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 10px;
+  color: #333;
+  text-decoration: none;
+}
+
+.dropdown-menu a:hover {
+  background: #f5f5f5;
+}
+
+.user-menu:hover .dropdown-menu {
+  display: block;
+}
