@@ -1,14 +1,7 @@
 import db from "../../config/db.config.js";
 import respHelper from "../../helper/respHelper.js";
 import helper from "../../helper/helper.js";
-import validator from "../../helper/validator.js";
-import { Op } from "sequelize";
-import constant from "../../constant/messages.js";
-import eventEmitter from "../../services/eventService.js";
-import fs from "fs";
-import moment from "moment";
-import pushNotificationEmitter from "../../services/pushNotificationEventService.js"; // New Import Sandeep
-import {authenticateUser} from "../services/authService.js";
+import {returnCartList} from "../services/cartService.js";
 class HomeController {
 	async home(req, res) {
 		try {
@@ -116,7 +109,7 @@ let productAutoId = req.params.id;
 			let cartList=[]
 			if (cartList) {
 			  try {
-				  cartList = await helper.returnCartList(userCart);
+				  cartList = await returnCartList(userCart);
 			  } catch (error) {
 			  }
 			}
@@ -181,7 +174,7 @@ let productAutoId = req.params.id;
 			let cartList=[]
 			if (cartList) {
 			  try {
-				  cartList = await helper.returnCartList(userCart);
+				  cartList = await returnCartList(userCart);
 			  } catch (error) {
 			  }
 			}

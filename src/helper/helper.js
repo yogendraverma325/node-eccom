@@ -4657,25 +4657,6 @@ const youSaveTotal = (cartList) => {
 	let total=0;
 	return total;
 }; 
-const returnCartList = async (userCart) => {
-   let cartList = await db.cart.findAll({
-					where: {
-						userCookie: userCart
-					},
-					order: [["createdAt", "DESC"]],
-					include: [
-						{
-							model: db.product,
-							as: "cartProducts",
-							attributes: ["productAutoId", "name", "image","price","offerprice","description"],
-							where: {
-								isActive: 1
-							}
-						}
-					]
-				});
-				return cartList;
-}
 // custom portal
 
 export default {
@@ -4687,6 +4668,5 @@ export default {
 	cartSubtotal,
 	cartGrandtotal,
 	shippingTotal,
-	youSaveTotal,
-	returnCartList
+	youSaveTotal
 };

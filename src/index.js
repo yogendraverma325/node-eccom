@@ -22,6 +22,7 @@ import session from 'express-session';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import expressLayouts from 'express-ejs-layouts';
+import {returnCartList} from "../src/api/services/cartService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(helmet());
@@ -45,7 +46,7 @@ app.use(
 app.use(cookieParser());
 app.use(async (req, res, next) => {
 res.locals.user = req.session.user || null;
-res.locals.cartList=await helper.returnCartList(req.cookies.userCart);
+res.locals.cartList=await returnCartList(req.cookies.userCart);
 next();
 });
 
