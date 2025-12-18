@@ -23,6 +23,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import expressLayouts from 'express-ejs-layouts';
 import {returnCartList} from "../src/api/services/cartService.js";
+import {getCategories} from "../src/api/services/home.service.js"
 import {businessLogic} from "../src/api/services/centralService.js"
 import flash from 'connect-flash';
 const __filename = fileURLToPath(import.meta.url);
@@ -50,6 +51,7 @@ app.use(async (req, res, next) => {
 res.locals.flashMessage = req.flash('message') || null;
 res.locals.user = req.session.user || null;
 res.locals.cartList=await returnCartList(req.cookies.userCart);
+res.locals.hotCategories=await getCategories(0,6)
 res.locals.helper=helper;
 res.locals.businessLogic=await businessLogic('SHIPPING_DETAILS');
 res.locals.storeInfo=await businessLogic('STORE_INFO');

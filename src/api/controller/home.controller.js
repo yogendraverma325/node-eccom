@@ -2,17 +2,13 @@ import db from "../../config/db.config.js";
 import respHelper from "../../helper/respHelper.js";
 import helper from "../../helper/helper.js";
 import {returnCartList} from "../services/cartService.js";
+import { getCategories } from "../services/home.service.js";
+import { Op } from 'sequelize';
 class HomeController {
 	async home(req, res) {
 		try {
-					const user = helper.getLoggedinUser(req) || null;
 					
-					const categories = await db.category.findAll({
-						attributes: ["catAutoId", "categoryName", "image"],
-						where: {
-							isActive: 1
-						}
-					});
+			        const categories = await getCategories(0,6)
 					
 					const hotProducts = await db.productSectionMapping.findAll({
 						order: [["createdAt", "DESC"]],
@@ -32,30 +28,12 @@ class HomeController {
 						}
 					});
 
-					const newArrivals = await db.productSectionMapping.findAll({
-						order: [["createdAt", "DESC"]],
-						limit: 2,
-						include: [
-							{
-								model: db.product,
-								as: "sectionProducts",
-								attributes: ["productAutoId", "name", "image","price","offerprice","rating","description","review"],
-								where: {
-									isActive: 1
-								}
-							}
-						],
-						where:{
-							sectionId:2
-						}
-					});
 					
 					res.render('index', {
 					title: 'Home',
 					description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
 					categories,
-					hotProducts,
-					newArrivals
+					hotProducts
 					});
 
 			
@@ -90,9 +68,58 @@ let productAutoId = req.params.id;
 	}
 	async  productList(req, res) {
 		try {
+				const categorySlug = req.query.category || null;     // "cat-slug"
+				const page = req.query.page || 1;     // "page"
+				const encryptedId = req.query['category-id'] || null; // "MQ=="
+
+	
+				let categoryId = null;
+				let subcategoryId = null;
+				let SubCategoryList=[]
+				if (encryptedId) {
+					categoryId=helper.generateJwtOTPDecrypt(encryptedId);
+					SubCategoryList=await getCategories(categoryId,0);
+				}
+				const isId = !isNaN(categoryId);
+				const limit=20;
+                const offset = (page - 1) * limit;
+			
+const products = await db.product.findAndCountAll({
+    where: { isActive: 1 },
+    include: [{
+        model: db.productcategorymappings,
+        as: 'mappings',
+        required: true, 
+        include: [{
+            model: db.category,
+            // Agar aapne Category model mein alias 'category' nahi diya hai, 
+            // toh niche wali line hata dein ya alias match karein
+            where: {
+                isActive: 1,
+                [Op.or]: [
+                    ...(isId ? [{ catAutoId: categoryId }] : [])
+                ]
+            }
+        }]
+    }],
+    // Pagination Flags
+    limit: limit > 0 ? parseInt(limit) : null,
+    offset: offset > 0 ? parseInt(offset) : 0,
+    subQuery: false, // <--- YE SABSE ZAROORI HAI
+    distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
+    order: [['createdAt', 'DESC']]
+});
+
+				console.log("products",products)
+				
 			res.render('productList', {
-				title: `Blog:productList`,
-				description: `Read about productList.`,
+				title: `productList`,
+				description: `${categorySlug}'s Product List`,
+				categoryId,
+				categorySlug,
+				subcategoryId,
+				SubCategoryList,
+				products
 			  });
 		} catch (error) {
 			console.log(error);

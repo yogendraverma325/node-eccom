@@ -5,7 +5,13 @@ export default (sequelize, Sequelize) => {
 			primaryKey: true,
 			autoIncrement: true,
 		},
+		parent:{
+	       type: Sequelize.INTEGER,
+		},
 		categoryName: {
+			type: Sequelize.STRING,
+		},
+		slug: {
 			type: Sequelize.STRING,
 		},
         image: {

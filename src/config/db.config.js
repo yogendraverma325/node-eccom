@@ -6,6 +6,7 @@ import product from "../api/model/product.js";
 import sections from "../api/model/sections.js";
 import productSectionMapping from "../api/model/productSectionMapping.js";
 import business_logic from "../api/model/businesslogic.js"
+import productcategorymappings from "../api/model/productCategoryMapping.js"
 import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
 import literal from "sequelize";
@@ -65,7 +66,8 @@ db.sections = sections(sequelize, Sequelize);
 db.cart = cart(sequelize, Sequelize);
 db.user = user(sequelize, Sequelize);
 db.productSectionMapping = productSectionMapping(sequelize, Sequelize);
-db.business_logic=business_logic(sequelize, Sequelize)
+db.business_logic=business_logic(sequelize, Sequelize);
+db.productcategorymappings=productcategorymappings(sequelize, Sequelize)
 db.productSectionMapping.hasOne(db.product, {
 	foreignKey: "productAutoId",
 	sourceKey: "productAutoId",
@@ -78,5 +80,26 @@ db.cart.hasOne(db.product, {
 	as: "cartProducts",
 });
 
+
+// Relationships (Associations)
+// Product -> Mapping Relationship
+db.product.hasMany(db.productcategorymappings, { 
+    foreignKey: 'product_auto_id', // Table ka column name yahan aayega
+    as: 'mappings' // Ek alias de dein taaki asani ho
+});
+db.productcategorymappings.belongsTo(db.product, { 
+    foreignKey: 'product_auto_id' 
+});
+
+// Category -> Mapping Relationship
+db.category.hasMany(db.productcategorymappings, { 
+   foreignKey: 'category_id', // Child table ka column
+    sourceKey: 'catAutoId',    // Parent table ka column
+    as: 'productMappings' 
+});
+db.productcategorymappings.belongsTo(db.category, { 
+   foreignKey: 'category_id', // Child table (Mapping) ka column
+    targetKey: 'catAutoId'      // Parent table (Category) ka column
+});
 
 export default db;

@@ -23,14 +23,19 @@ const generateJwtToken = async (data) => {
 	return token;
 };
 
-const generateJwtOTPEncrypt = async (data) => {
-	const token = jwt.sign(data, process.env.JWT_KEY, { expiresIn: "5m" });
-	return token;
+const generateJwtOTPEncrypt =  (data) => {
+	const stringData = typeof data === 'object' ? JSON.stringify(data) : String(data);
+    return Buffer.from(stringData).toString('base64');
 };
 
-const generateJwtOTPDecrypt = async (token) => {
-	const decoded = jwt.verify(token, process.env.JWT_KEY);
-	return decoded;
+const generateJwtOTPDecrypt = (encodedData) => {
+	const decoded = Buffer.from(encodedData, 'base64').toString('utf8');
+    try {
+        // Agar data JSON format mein tha, to wapas object bana dein
+        return JSON.parse(decoded);
+    } catch (e) {
+        return decoded;
+    }
 };
 
 const fileUpload = async (base64String, fileName, filepath) => {
@@ -4533,86 +4538,7 @@ function isEmpty(value) {
 	return value === null || value === undefined || value === "";
 }
 
-async function validateSelfAppraisalData(data) {
-	const isSubmit = data.isSubmit === true;
 
-	if (isSubmit) {
-		if (!Array.isArray(data.selfRatings) || data.selfRatings.length === 0) {
-			return {
-				valid: false,
-				error: "At least one selfRating is required when submitting.",
-			};
-		}
-
-		for (let i = 0; i < data.selfRatings.length; i++) {
-			const item = data.selfRatings[i];
-
-			if (isEmpty(item.goalAreaId)) {
-				return { valid: false, error: `goalAreaId is required.` };
-			}
-
-			if (isEmpty(item.rating)) {
-				return { valid: false, error: `Rating is required.` };
-			}
-
-			//   if (isEmpty(item.comment)) {
-			//     return { valid: false, error: `comment is required in selfRatings[${i}].` };
-			//   }
-		}
-
-		if (
-			!Array.isArray(data.compentancyRating) ||
-			data.compentancyRating.length === 0
-		) {
-			return {
-				valid: false,
-				error: "At least one compentancyRating is required when submitting.",
-			};
-		}
-
-		for (let i = 0; i < data.compentancyRating.length; i++) {
-			const item = data.compentancyRating[i];
-
-			if (isEmpty(item.rating)) {
-				return { valid: false, error: `rating is required.` };
-			}
-
-			//   if (isEmpty(item.comment)) {
-			//     return { valid: false, error: `comment is required in compentancyRating[${i}].` };
-			//   }
-
-			if (isEmpty(item.compentancyAttrId)) {
-				return {
-					valid: false,
-					error: `compentancyAttrId is required in compentancyRating[${i}].`,
-				};
-			}
-
-			if (isEmpty(item.compentancyTierId)) {
-				return {
-					valid: false,
-					error: `compentancyTierId is required in compentancyRating[${i}].`,
-				};
-			}
-		}
-	}
-
-	return { valid: true };
-}
-//Addition function to get date between date range , this is required to generate attendance
-async function getDatesArray(startDate, endDate) {
-const dates = [];
-  let currentDate = moment(startDate);
-  const lastDate = moment(endDate);
-
-  while (currentDate.isBefore(lastDate)) {
-    dates.push(currentDate.format('YYYY-MM-DD'));
-    currentDate = currentDate.add(1, 'days');
-  }
-
-  return dates;
-}
-//Addition function to get date between date range , this is required to generate attendance
 
 //custom portal
 const getLoggedinUser = (req) => {
@@ -4690,5 +4616,7 @@ export default {
 	cartGrandtotal,
 	shippingTotal,
 	youSaveTotal,
-	getValueFromKey
+	getValueFromKey,
+	generateJwtOTPDecrypt,
+	generateJwtOTPEncrypt
 };
