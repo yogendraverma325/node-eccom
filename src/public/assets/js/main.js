@@ -41,7 +41,20 @@ Author: GrayGrids
     window.onload = function () {
         window.setTimeout(fadeout, 500);
     }
-
+    setTimeout(() => {
+      const flashDiv = document.querySelector('.flash-message');
+      if (flashDiv) {
+        flashDiv.style.animation = 'fadeOut 0.5s forwards';
+        setTimeout(() => flashDiv.remove(), 500);  // Remove after animation ends
+      }
+    }, 3000);  // Wait 3 seconds before fading out
+     function closeFlash() {
+    const flashDiv = document.querySelector('.flash-message');
+      if (flashDiv) {
+        flashDiv.style.animation = 'fadeOut 0.5s forwards';
+        setTimeout(() => flashDiv.remove(), 500);  // Remove after animation ends
+      }
+  }
     function fadeout() {
         document.querySelector('.preloader').style.opacity = '0';
         document.querySelector('.preloader').style.display = 'none';

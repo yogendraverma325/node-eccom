@@ -4,7 +4,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
     <meta name="description" content="<%= description %>" />
 
     <!-- Open Graph for better social sharing -->
@@ -21,7 +23,7 @@
     <link rel="stylesheet" href="/assets/css/glightbox.min.css" />
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    
+
 
 </head>
 
@@ -48,22 +50,33 @@
 
     <!-- Start Header Area -->
     <%- include('partials/header') %>
-    <!-- End Header Area -->
 
-    <%- body %>  <!-- Content inject hoga yahan -->
+        <% if (flashMessage.length> 0) {
+            const msg = JSON.parse(flashMessage[0]);
+            %>
+            <div class="flash-message <%= msg.type %>" id="flashMessage">
+                <span class="flash-text">
+                    <%= msg.text %>
+                </span>
+                <button class="flash-close" onclick="closeFlash()">×</button>
+            </div>
+            <% } %>
+                <!-- End Header Area -->
 
-    <!-- Start Footer Area -->
-    <%- include('partials/footer') %>
-    <!--/ End Footer Area -->
+                <%- body %> <!-- Content inject hoga yahan -->
 
-    <!-- ========================= scroll-top ========================= -->
-    <a href="#" class="scroll-top">
-        <i class="lni lni-chevron-up"></i>
-    </a>
+                    <!-- Start Footer Area -->
+                    <%- include('partials/footer') %>
+                        <!--/ End Footer Area -->
 
-    <!-- ========================= JS here ========================= -->
-    <script src="/assets/js/bootstrap.min.js"></script>
-    <script src="/assets/js/main.js"></script>
+                        <!-- ========================= scroll-top ========================= -->
+                        <a href="#" class="scroll-top">
+                            <i class="lni lni-chevron-up"></i>
+                        </a>
+
+                        <!-- ========================= JS here ========================= -->
+                        <script src="/assets/js/bootstrap.min.js"></script>
+                        <script src="/assets/js/main.js"></script>
 </body>
 
 </html>

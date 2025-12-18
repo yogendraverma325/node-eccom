@@ -4657,6 +4657,27 @@ const youSaveTotal = (cartList) => {
 	let total=0;
 	return total;
 }; 
+
+const getValueFromKey=(INPUT_ARRAY,INPUT_KEY)=>{
+	let object=INPUT_ARRAY.find(el=>el.key==INPUT_KEY);
+	let value=''
+	if(object){
+		switch (object.value_type) {
+			case 'NUMBER':
+			value= parseInt(object.value)
+			break;
+
+			case 'STRING':
+				value= object.value;
+			break;
+
+			case 'DOUBLE':
+			value= parseFloat(object.value);
+		}
+
+	}
+	return value;
+}
 // custom portal
 
 export default {
@@ -4668,5 +4689,6 @@ export default {
 	cartSubtotal,
 	cartGrandtotal,
 	shippingTotal,
-	youSaveTotal
+	youSaveTotal,
+	getValueFromKey
 };

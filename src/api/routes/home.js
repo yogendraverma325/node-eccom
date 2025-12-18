@@ -9,4 +9,7 @@ export default Express.Router()
 	.get("/cart",HomeController.cart)
 	.post("/addToCart",HomeController.addToCart)
 	.post("/removeFromCart",HomeController.removeFromCart)
-	.get("/checkout",HomeController.checkout);
+	.get("/checkout",HomeController.checkout)
+	.get("/contact",HomeController.contact)
+	.get("/about-us",HomeController.aboutUs);
+	

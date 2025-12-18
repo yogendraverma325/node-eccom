@@ -23,6 +23,8 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import expressLayouts from 'express-ejs-layouts';
 import {returnCartList} from "../src/api/services/cartService.js";
+import {businessLogic} from "../src/api/services/centralService.js"
+import flash from 'connect-flash';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(helmet());
@@ -42,11 +44,15 @@ app.use(
 	})
   );
 // to maintain session
-
+ app.use(flash());
 app.use(cookieParser());
 app.use(async (req, res, next) => {
+res.locals.flashMessage = req.flash('message') || null;
 res.locals.user = req.session.user || null;
 res.locals.cartList=await returnCartList(req.cookies.userCart);
+res.locals.helper=helper;
+res.locals.businessLogic=await businessLogic('SHIPPING_DETAILS');
+res.locals.storeInfo=await businessLogic('STORE_INFO');
 next();
 });
 

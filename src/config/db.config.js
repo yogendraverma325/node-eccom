@@ -5,7 +5,7 @@ import category from "../api/model/category.js";
 import product from "../api/model/product.js";
 import sections from "../api/model/sections.js";
 import productSectionMapping from "../api/model/productSectionMapping.js";
-
+import business_logic from "../api/model/businesslogic.js"
 import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
 import literal from "sequelize";
@@ -65,7 +65,7 @@ db.sections = sections(sequelize, Sequelize);
 db.cart = cart(sequelize, Sequelize);
 db.user = user(sequelize, Sequelize);
 db.productSectionMapping = productSectionMapping(sequelize, Sequelize);
-
+db.business_logic=business_logic(sequelize, Sequelize)
 db.productSectionMapping.hasOne(db.product, {
 	foreignKey: "productAutoId",
 	sourceKey: "productAutoId",

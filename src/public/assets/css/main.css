@@ -8176,3 +8176,79 @@ blockquote span {
 .user-menu:hover .dropdown-menu {
   display: block;
 }
+.flash-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 260px;
+  max-width: 400px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  z-index: 9999;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  /* Animation */
+  animation: slideFadeIn 0.4s ease-out;
+}
+
+/* Success & Error colors */
+.flash-message.success {
+  background-color: #2ecc71;
+}
+
+.flash-message.error {
+  background-color: #e74c3c;
+}
+
+.flash-text {
+  padding-right: 20px;
+}
+
+/* Close button */
+.flash-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.flash-close:hover {
+  opacity: 0.8;
+}
+
+/* Fade out */
+.flash-message.fade-out {
+  animation: slideFadeOut 0.3s ease-in forwards;
+}
+
+/* Animations */
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}

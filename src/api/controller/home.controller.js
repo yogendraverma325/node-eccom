@@ -53,11 +53,9 @@ class HomeController {
 					res.render('index', {
 					title: 'Home',
 					description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
-					user,
 					categories,
 					hotProducts,
-					newArrivals,
-					helper
+					newArrivals
 					});
 
 			
@@ -141,13 +139,14 @@ let productAutoId = req.params.id;
 							qty: 1
 						});
 					}
+			 req.flash('message', JSON.stringify({ type: 'success', text: 'Item added into the cart' }));	
 			 
 			}else{
-			
+			req.flash('message', JSON.stringify({ type: 'error', text: 'Item is not available' }));	
 			}
 			res.redirect('back'); // back to the previous page
 		} catch (error) {
-	
+	       req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
 		}
 	}
 	async  removeFromCart(req, res) {
@@ -161,11 +160,11 @@ let productAutoId = req.params.id;
 					productAutoId: productAutoId
 				}
 				});
-			 
+			  req.flash('message', JSON.stringify({ type: 'success', text: 'Item Removed from the cart' }));	
 			}
 			res.redirect('back'); // back to the previous page
 		} catch (error) {
-	
+	 req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
 		}
 	}
 	async  checkout(req, res) {
@@ -183,6 +182,27 @@ let productAutoId = req.params.id;
 				description: `Read about cart.`,
 				cartList,
 				helper
+			  });
+		} catch (error) {
+	
+		}
+	}
+
+	async  contact(req, res) {
+		try {
+			res.render('contact', {
+				title: `Contact us`,
+				description: `Contact us.`
+			  });
+		} catch (error) {
+	
+		}
+	}
+	async  aboutUs(req, res) {
+		try {
+			res.render('aboutUs', {
+				title: `About us`,
+				description: `About us.`
 			  });
 		} catch (error) {
 	

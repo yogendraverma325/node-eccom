@@ -1,159 +1,173 @@
-
 <section class="featured-categories section">
     <div class="container">
         <div class="row">
             <div class="col-12">
                 <div class="section-title">
                     <h2>Featured Categories</h2>
-                    <p>There are many variations of passages of Lorem Ipsum available, but the majority have
-                        suffered alteration in some form.</p>
+                    <p>Browse our handpicked categories showcasing customer favorites and trending collections</p>
                 </div>
             </div>
         </div>
         <div class="row">
-            <% categories.forEach((category) => { %>
-            <div class="col-lg-4 col-md-6 col-12">
-                <!-- Start Single Category -->
-                <div class="single-category">
-                    <h3 class="heading"><%= category.categoryName %></h3>
-                    <ul>
-                        <li><a href="product-grids.html"></a></li>
-                        <li><a href="product-grids.html"></a></li>
-                        <li><a href="product-grids.html"></a></li>
-                        <li><a href="product-grids.html"></a></li>
-                        <li><a href="product-grids.html"></a></li>
-                    </ul>
-                    <div class="images">
-                        <img src="assets/images/featured-categories/<%= category.image %>" alt="<%= category.categoryName %>">
+            <% categories.forEach((category)=> { %>
+                <div class="col-lg-4 col-md-6 col-12">
+                    <!-- Start Single Category -->
+                    <div class="single-category">
+                        <h3 class="heading">
+                            <%= category.categoryName %>
+                        </h3>
+                        <ul>
+                            <li><a href="product-grids.html"></a></li>
+                            <li><a href="product-grids.html"></a></li>
+                            <li><a href="product-grids.html"></a></li>
+                            <li><a href="product-grids.html"></a></li>
+                            <li><a href="product-grids.html"></a></li>
+                        </ul>
+                        <div class="images">
+                            <img src="assets/images/featured-categories/<%= category.image %>"
+                                alt="<%= category.categoryName %>">
+                        </div>
                     </div>
+                    <!-- End Single Category -->
                 </div>
-                <!-- End Single Category -->
-            </div>
-            <% }) %>
+                <% }) %>
         </div>
     </div>
 </section>
 
-    <!-- Start Trending Product Area -->
-    <section class="trending-product section" style="margin-top: 12px;">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="section-title">
-                        <h2>Trending Product</h2>
-                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have
-                            suffered alteration in some form.</p>
-                    </div>
+<!-- Start Trending Product Area -->
+<section class="trending-product section" style="margin-top: 12px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-title">
+                    <h2>Trending Product</h2>
+                    <p>Explore top trending products that everyone is talking about right now</p>
                 </div>
             </div>
-            <div class="row">
-                <% hotProducts.forEach((product) => { %>
+        </div>
+        <div class="row">
+            <% hotProducts.forEach((product)=> { %>
                 <div class="col-lg-3 col-md-6 col-12">
                     <!-- Start Single Product -->
                     <div class="single-product">
                         <div class="product-image">
-                            <img src="assets/images/products/<%= product.sectionProducts.image %>" alt="<%= product.sectionProducts.name %>">
-                            
+                            <img src="assets/images/products/<%= product.sectionProducts.image %>"
+                                alt="<%= product.sectionProducts.name %>">
+
                             <div class="button">
                                 <form action="/addToCart" method="POST">
-                                    <input type="hidden" name="productAutoId" value="<%= product.sectionProducts.productAutoId %>">
+                                    <input type="hidden" name="productAutoId"
+                                        value="<%= product.sectionProducts.productAutoId %>">
                                     <button type="submit" class="btn">
-                                      <i class="lni lni-cart"></i> Add to Cart
+                                        <i class="lni lni-cart"></i> Add to Cart
                                     </button>
-                                  </form>
+                                </form>
                             </div>
                         </div>
                         <div class="product-info">
                             <h4 class="title">
-                                <a href="product-details/<%= product.sectionProducts.productAutoId %>"><%= product.sectionProducts.name %></a>
+                                <a href="product-details/<%= product.sectionProducts.productAutoId %>">
+                                    <%= product.sectionProducts.name %>
+                                </a>
                             </h4>
                             <ul class="review">
                                 <%- helper.ratingAndReview(product.sectionProducts.rating) %>
-                                <!-- <li><span><%= product.sectionProducts.review %> Review(s)</span></li> -->
+                                    <!-- <li><span><%= product.sectionProducts.review %> Review(s)</span></li> -->
                             </ul>
                             <div class="price">
-                                <span><i class="fa fa-rupee"></i></i> <%= product.sectionProducts.price %></span>
+                                <span><i class="fa fa-rupee"></i></i>
+                                    <%= product.sectionProducts.price %>
+                                </span>
                             </div>
                         </div>
                     </div>
                     <!-- End Single Product -->
                 </div>
                 <% }) %>
-              
-            </div>
+
         </div>
-    </section>
-    <!-- End Trending Product Area -->
+    </div>
+</section>
+<!-- End Trending Product Area -->
 
-   
 
-    <!-- Start Banner Area -->
-    <section class="banner section">
-        <div class="container">
-            <div class="row">
-                <% newArrivals.forEach((product) => { %>
+
+<!-- Start Banner Area -->
+<!-- <section class="banner section">
+    <div class="container">
+        <div class="row">
+            <% newArrivals.forEach((product)=> { %>
                 <div class="col-lg-6 col-md-6 col-12">
-                    <div class="single-banner" style="background-image:url('assets/images/products/<%= product.sectionProducts.image %>')">
+                    <div class="single-banner"
+                        style="background-image:url('assets/images/products/<%= product.sectionProducts.image %>')">
                         <div class="content">
-                            <h2><%= product.sectionProducts.name %></h2>
-                            <p><%= product.sectionProducts.description %> </p>
+                            <h2>
+                                <%= product.sectionProducts.name %>
+                            </h2>
+                            <p>
+                                <%= product.sectionProducts.description %>
+                            </p>
                             <div class="button">
-                                <a href="product-details/<%= product.sectionProducts.productAutoId %>" class="btn">View Details</a>
+                                <a href="product-details/<%= product.sectionProducts.productAutoId %>" class="btn">View
+                                    Details</a>
                             </div>
                         </div>
                     </div>
                 </div>
                 <% }) %>
-            </div>
         </div>
-    </section>
-    <!-- End Banner Area -->
+    </div>
+</section> -->
+<!-- End Banner Area -->
 
-    <!-- Start Shipping Info -->
-    <section class="shipping-info">
-        <div class="container">
-            <ul>
-                <!-- Free Shipping -->
-                <li>
-                    <div class="media-icon">
-                        <i class="lni lni-delivery"></i>
-                    </div>
-                    <div class="media-body">
-                        <h5>Free Shipping</h5>
-                        <span>On order above <i class="fa fa-rupee"></i> 200</span>
-                    </div>
-                </li>
-                <!-- Money Return -->
-                <li>
-                    <div class="media-icon">
-                        <i class="lni lni-support"></i>
-                    </div>
-                    <div class="media-body">
-                        <h5>24/7 Support.</h5>
-                        <span>Live Chat Or Call.</span>
-                    </div>
-                </li>
-                <!-- Support 24/7 -->
-                <li>
-                    <div class="media-icon">
-                        <i class="lni lni-credit-cards"></i>
-                    </div>
-                    <div class="media-body">
-                        <h5>Online Payment.</h5>
-                        <span>Secure Payment Services.</span>
-                    </div>
-                </li>
-                <!-- Safe Payment -->
-                <li>
-                    <div class="media-icon">
-                        <i class="lni lni-reload"></i>
-                    </div>
-                    <div class="media-body">
-                        <h5>Easy Return.</h5>
-                        <span>Hassle Free Shopping.</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </section>
-    <!-- End Shipping Info -->
+<!-- Start Shipping Info -->
+<section class="shipping-info">
+    <div class="container">
+        <ul>
+            <!-- Free Shipping -->
+            <li>
+                <div class="media-icon">
+                    <i class="lni lni-delivery"></i>
+                </div>
+                <div class="media-body">
+                    <h5>Free Shipping</h5>
+                    <span>On order above <i class="fa fa-rupee"></i>
+                        <%- helper.getValueFromKey(businessLogic,'MIN_CART_VALUE') %>
+                    </span>
+                </div>
+            </li>
+            <!-- Money Return -->
+            <li>
+                <div class="media-icon">
+                    <i class="lni lni-support"></i>
+                </div>
+                <div class="media-body">
+                    <h5>24/7 Support.</h5>
+                    <span>Live Chat Or Call.</span>
+                </div>
+            </li>
+            <!-- Support 24/7 -->
+            <li>
+                <div class="media-icon">
+                    <i class="lni lni-credit-cards"></i>
+                </div>
+                <div class="media-body">
+                    <h5>POD/COD Payment.</h5>
+                    <span>Offline Payment Services.</span>
+                </div>
+            </li>
+            <!-- Safe Payment -->
+            <li>
+                <div class="media-icon">
+                    <i class="lni lni-reload"></i>
+                </div>
+                <div class="media-body">
+                    <h5>Easy Return.</h5>
+                    <span>Hassle Free Shopping.</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+</section>
+<!-- End Shipping Info -->
