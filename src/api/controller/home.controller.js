@@ -17,7 +17,7 @@ class HomeController {
 							{
 								model: db.product,
 								as: "sectionProducts",
-								attributes: ["productAutoId", "name", "image","price","offerprice","rating","description","review"],
+								attributes: ["product_auto_id", "name", "image","price","offerprice","rating","description","review","slug"],
 								where: {
 									isActive: 1
 								}
@@ -46,11 +46,15 @@ class HomeController {
 	}
 	async  productDetails(req, res) {
 		try {
-let productAutoId = req.params.id;
+			let productAutoId = req.params.id;
+			let slug = req.params.slug;
+		if (productAutoId) {
+		productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
+		}
 	let productDetails = await db.product.findOne({
-		attributes: ["productAutoId", "name", "image","price","offerprice","description"],
+		attributes: ["product_auto_id", "name", "image","price","offerprice","description"],
 		where: {
-			productAutoId: productAutoId,
+			product_auto_id: productAutoId,
 			isActive: 1
 		}
 	});
@@ -110,7 +114,7 @@ const products = await db.product.findAndCountAll({
     order: [['createdAt', 'DESC']]
 });
 
-				console.log("products",products)
+				console.log("products",products.count)
 				
 			res.render('productList', {
 				title: `productList`,
@@ -150,19 +154,22 @@ const products = await db.product.findAndCountAll({
 	}
 	async  addToCart(req, res) {
 		try {
-			const  {productAutoId}  = req.body;
+			let  {productAutoId}  = req.body;
+			if (productAutoId) {
+			productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
+			}
 			const userCart = req.cookies.userCart;
 			if (productAutoId!='') {
 					let isAlreadyInCart = await db.cart.findOne({
 					where: {
 						userCookie: userCart,
-						productAutoId: productAutoId
+						product_auto_id: productAutoId
 					}
 					});
 					if(!isAlreadyInCart){
 						await db.cart.create({
 							userCookie: userCart,
-							productAutoId: productAutoId,
+							product_auto_id: productAutoId,
 							qty: 1
 						});
 					}
@@ -171,20 +178,23 @@ const products = await db.product.findAndCountAll({
 			}else{
 			req.flash('message', JSON.stringify({ type: 'error', text: 'Item is not available' }));	
 			}
-			res.redirect('back'); // back to the previous page
+			res.redirect(req.get('Referrer') || '/'); // back to the same page
 		} catch (error) {
 	       req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
 		}
 	}
 	async  removeFromCart(req, res) {
 		try {
-			const  {productAutoId}  = req.body;
+			let  {productAutoId}  = req.body;
+			if (productAutoId) {
+			productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
+			}
 			const userCart = req.cookies.userCart;
 		if (productAutoId!='') {
 			await db.cart.destroy({
 				where: {
 					userCookie: userCart,
-					productAutoId: productAutoId
+					product_auto_id: productAutoId
 				}
 				});
 			  req.flash('message', JSON.stringify({ type: 'success', text: 'Item Removed from the cart' }));	

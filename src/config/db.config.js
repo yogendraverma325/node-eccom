@@ -68,15 +68,22 @@ db.user = user(sequelize, Sequelize);
 db.productSectionMapping = productSectionMapping(sequelize, Sequelize);
 db.business_logic=business_logic(sequelize, Sequelize);
 db.productcategorymappings=productcategorymappings(sequelize, Sequelize)
-db.productSectionMapping.hasOne(db.product, {
-	foreignKey: "productAutoId",
-	sourceKey: "productAutoId",
-	as: "sectionProducts",
+// Mapping belongs to Product
+db.productSectionMapping.belongsTo(db.product, { 
+    foreignKey: 'product_auto_id', // Model mein jo key hai
+    targetKey: 'product_auto_id',  // Product table ki primary key
+    as: 'sectionProducts' 
 });
 
+// Product has many mappings
+db.product.hasMany(db.productSectionMapping, { 
+    foreignKey: 'product_auto_id',
+    sourceKey: 'product_auto_id'
+})
+
 db.cart.hasOne(db.product, {
-	foreignKey: "productAutoId",
-	sourceKey: "productAutoId",
+	foreignKey: "product_auto_id",
+	sourceKey: "product_auto_id",
 	as: "cartProducts",
 });
 
@@ -84,11 +91,16 @@ db.cart.hasOne(db.product, {
 // Relationships (Associations)
 // Product -> Mapping Relationship
 db.product.hasMany(db.productcategorymappings, { 
-    foreignKey: 'product_auto_id', // Table ka column name yahan aayega
-    as: 'mappings' // Ek alias de dein taaki asani ho
+    foreignKey: 'product_auto_id', // Mapping table ka column
+    sourceKey: 'product_auto_id',    // Product table ki Primary Key
+    as: 'mappings' 
 });
+
+// 2. Mapping belongs to Product
 db.productcategorymappings.belongsTo(db.product, { 
-    foreignKey: 'product_auto_id' 
+    foreignKey: 'product_auto_id', // Mapping table ka column
+    targetKey: 'product_auto_id',    // Product table ki Primary Key
+    as: 'productDetails' 
 });
 
 // Category -> Mapping Relationship

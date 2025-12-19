@@ -175,7 +175,8 @@
                                             </div>
                                             <div class="product-info">
                                                 <h4 class="title">
-                                                    <a href="product-details/<%= product.productAutoId %>">
+                                                    <a
+                                                        href="product-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>">
                                                         <%= product.name %>
                                                     </a>
                                                 </h4>
@@ -198,7 +199,10 @@
                                     <!-- Pagination -->
                                     <div class="pagination left">
                                         <ul class="pagination-list">
-                                            <li><a href="javascript:void(0)">1</a></li>
+
+                                            <li><a href="javascript:void(0)">
+                                                    <% products.count %>
+                                                </a></li>
                                             <li class="active"><a href="javascript:void(0)">2</a></li>
                                             <li><a href="javascript:void(0)">3</a></li>
                                             <li><a href="javascript:void(0)">4</a></li>

@@ -58,7 +58,7 @@
                             <div class="button">
                                 <form action="/addToCart" method="POST">
                                     <input type="hidden" name="productAutoId"
-                                        value="<%= product.sectionProducts.productAutoId %>">
+                                        value="<%- helper.generateJwtOTPEncrypt(product.sectionProducts.product_auto_id) %>">
                                     <button type="submit" class="btn">
                                         <i class="lni lni-cart"></i> Add to Cart
                                     </button>
@@ -67,7 +67,8 @@
                         </div>
                         <div class="product-info">
                             <h4 class="title">
-                                <a href="product-details/<%= product.sectionProducts.productAutoId %>">
+                                <a
+                                    href="product-details/<%- helper.generateJwtOTPEncrypt(product.sectionProducts.product_auto_id) %>/<%- product.sectionProducts.slug %>">
                                     <%= product.sectionProducts.name %>
                                 </a>
                             </h4>

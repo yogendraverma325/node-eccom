@@ -9,7 +9,7 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false,
         },
-		productAutoId: {
+		product_auto_id: {
 			type: Sequelize.INTEGER
 		},
 		qty: {

@@ -81,7 +81,7 @@
                                                         <li style="margin-right: 20px;">
                                                             <form action="/removeFromCart" method="POST">
                                                                 <input type="hidden" name="productAutoId"
-                                                                    value="<%= product.cartProducts.productAutoId %>">
+                                                                    value=" <%- helper.generateJwtOTPEncrypt(product.cartProducts.product_auto_id) %>">
                                                                 <button type="submit" class="remove">
                                                                     <i class="lni lni-close"></i>
                                                                 </button>
@@ -89,14 +89,14 @@
 
                                                             <div class="cart-img-head">
                                                                 <a class="cart-img"
-                                                                    href="/product-details/<%= product.cartProducts.productAutoId %>"><img
+                                                                    href="/product-details/<%- helper.generateJwtOTPEncrypt(product.cartProducts.product_auto_id) %>/<%- product.cartProducts.slug %>"><img
                                                                         src="/assets/images/products/<%= product.cartProducts.image %>"
                                                                         alt="<%= product.cartProducts.name %>"></a>
                                                             </div>
 
                                                             <div class="content">
                                                                 <h4><a
-                                                                        href="/product-details/<%= product.cartProducts.productAutoId %>">
+                                                                        href="/product-details/<%- helper.generateJwtOTPEncrypt(product.cartProducts.product_auto_id) %>/<%- product.cartProducts.slug %>">
                                                                         <%= product.cartProducts.name %>
                                                                     </a></h4>
                                                                 <p class="quantity">

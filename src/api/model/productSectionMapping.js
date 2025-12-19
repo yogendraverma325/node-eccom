@@ -5,8 +5,9 @@ export default (sequelize, Sequelize) => {
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		productAutoId: {
+		product_auto_id: {
             type: Sequelize.INTEGER,
+			field: 'product_auto_id'
         },
         sectionId: {
             type: Sequelize.INTEGER,

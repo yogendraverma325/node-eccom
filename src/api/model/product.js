@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
 	const product = sequelize.define("product", {
-		productAutoId: {
+		product_auto_id: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
@@ -12,6 +12,9 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.STRING,
 		},
         image: {
+			type: Sequelize.STRING,
+		},
+		 slug: {
 			type: Sequelize.STRING,
 		},
         price: {

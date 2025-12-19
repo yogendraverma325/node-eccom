@@ -11,7 +11,7 @@ export async function returnCartList(cartCookie) {
                             {
                                 model: db.product,
                                 as: "cartProducts",
-                                attributes: ["productAutoId", "name", "image","price","offerprice","description"],
+                                attributes: ["product_auto_id", "name", "image","price","offerprice","description","slug"],
                                 where: {
                                     isActive: 1
                                 }
