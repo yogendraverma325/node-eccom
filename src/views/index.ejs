@@ -77,9 +77,16 @@
                                     <!-- <li><span><%= product.sectionProducts.review %> Review(s)</span></li> -->
                             </ul>
                             <div class="price">
-                                <span><i class="fa fa-rupee"></i></i>
-                                    <%= product.sectionProducts.price %>
-                                </span>
+                    <span class="<%= product.sectionProducts.offerprice ? 'price-wrapper' : 'normal-price' %>">
+                    <i class="fa fa-rupee"></i>
+
+                    <% if (product.sectionProducts.offerprice) { %>
+                    <span class="normal-price"><%= product.sectionProducts.price %></span>
+                    <span class="cross-price"><%= product.sectionProducts.offerprice %></span>
+                    <% } else { %>
+                    <span><%= product.sectionProducts.price %></span>
+                    <% } %>
+                    </span>
                             </div>
                         </div>
                     </div>

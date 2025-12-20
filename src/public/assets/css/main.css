@@ -8252,3 +8252,21 @@ blockquote span {
     transform: translateY(-10px);
   }
 }
+.price-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cross-price {
+  text-decoration: line-through;
+   color: #e53935 !important; /* red */
+  font-size: 14px;
+}
+
+.normal-price {
+  color: #222;
+  font-weight: 500;
+  font-size: 15px;
+}
+

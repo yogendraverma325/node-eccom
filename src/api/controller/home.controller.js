@@ -79,12 +79,16 @@ class HomeController {
 	
 				let categoryId = null;
 				let subcategoryId = null;
-				let SubCategoryList=[]
+				let SubCategoryList=[];
+				let wholeCategory =[] ;
 				if (encryptedId) {
 					categoryId=helper.generateJwtOTPDecrypt(encryptedId);
 					SubCategoryList=await getCategories(categoryId,0);
+						wholeCategory = [
+						categoryId,
+						...SubCategoryList.map(c => c.catAutoId),
+						];
 				}
-				const isId = !isNaN(categoryId);
 				const limit=20;
                 const offset = (page - 1) * limit;
 			
@@ -96,13 +100,13 @@ const products = await db.product.findAndCountAll({
         required: true, 
         include: [{
             model: db.category,
-            // Agar aapne Category model mein alias 'category' nahi diya hai, 
-            // toh niche wali line hata dein ya alias match karein
             where: {
-                isActive: 1,
-                [Op.or]: [
-                    ...(isId ? [{ catAutoId: categoryId }] : [])
-                ]
+			isActive: 1,
+			...(wholeCategory.length > 0 && {
+			catAutoId: {
+			[Op.in]: wholeCategory
+			}
+			})
             }
         }]
     }],
@@ -114,8 +118,10 @@ const products = await db.product.findAndCountAll({
     order: [['createdAt', 'DESC']]
 });
 
-				console.log("products",products.count)
-				
+			
+				const totalRecords = products.count;
+				const totalPages = Math.ceil(totalRecords / limit);
+					console.log("totalPages",totalPages)
 			res.render('productList', {
 				title: `productList`,
 				description: `${categorySlug}'s Product List`,
@@ -123,7 +129,9 @@ const products = await db.product.findAndCountAll({
 				categorySlug,
 				subcategoryId,
 				SubCategoryList,
-				products
+				products,
+				totalPages,
+				page
 			  });
 		} catch (error) {
 			console.log(error);

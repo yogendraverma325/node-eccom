@@ -11,7 +11,6 @@ import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
 import literal from "sequelize";
 import QueryTypes from "sequelize";
-
 //
 const sequelize = new Sequelize(
 	process.env.DB_NAME,

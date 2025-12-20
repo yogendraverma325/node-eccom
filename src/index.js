@@ -1,5 +1,5 @@
 import "./config/db.config.js";
-import "./config/redisDb.config.js";
+// import "./config/redisDb.config.js";
 
 import ui_routes from './routes/Ui_routes.js';
 import Server from "./common/server.js";
@@ -50,7 +50,11 @@ app.use(cookieParser());
 app.use(async (req, res, next) => {
 res.locals.flashMessage = req.flash('message') || null;
 res.locals.user = req.session.user || null;
-res.locals.cartList=await returnCartList(req.cookies.userCart);
+let cart=[]
+if(req.cookies.userCart){
+cart=await returnCartList(req.cookies.userCart);
+}
+res.locals.cartList=cart;
 res.locals.hotCategories=await getCategories(0,6)
 res.locals.helper=helper;
 res.locals.businessLogic=await businessLogic('SHIPPING_DETAILS');
