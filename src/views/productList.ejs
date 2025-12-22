@@ -6,13 +6,13 @@
                 <!-- Start Product Sidebar -->
                 <div class="product-sidebar">
                     <!-- Start Single Widget -->
-                    <div class="single-widget search">
+                    <!-- <div class="single-widget search">
                         <h3>Search Product</h3>
                         <form action="/">
                             <input type="text" placeholder="Search Here...">
                             <button type="submit"><i class="lni lni-search-alt"></i></button>
                         </form>
-                    </div>
+                    </div> -->
                     <!-- End Single Widget -->
                     <!-- Start Single Widget -->
                     <div class="single-widget">
@@ -41,7 +41,7 @@
                     </div> -->
                     <!-- End Single Widget -->
                     <!-- Start Single Widget -->
-                    <div class="single-widget condition">
+                    <!-- <div class="single-widget condition">
                         <h3>Filter by Price</h3>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault1">
@@ -67,8 +67,8 @@
                                 $1,000 - $5,000 (213)
                             </label>
                         </div>
-                    </div>
-                    
+                    </div> -->
+
                 </div>
                 <!-- End Product Sidebar -->
             </div>
@@ -80,17 +80,17 @@
                                 <div class="product-sorting">
                                     <label for="sorting">Sort by:</label>
                                     <select class="form-control" id="sorting">
-                                        <option>Popularity</option>
-                                        <option>Low - High Price</option>
-                                        <option>High - Low Price</option>
-                                        <option>Average Rating</option>
-                                        <option>A - Z Order</option>
-                                        <option>Z - A Order</option>
+                                        <option value="" <%=sort==='' ? 'selected' : '' %>>Popularity</option>
+                                        <option value="price_asc" <%=sort==='price_asc' ? 'selected' : '' %>>Low - High
+                                            Price</option>
+                                        <option value="price_desc" <%=sort==='price_desc' ? 'selected' : '' %>>High -
+                                            Low Price</option>
+                                        <option value="new_desc" <%=sort==='new_desc' ? 'selected' : '' %>>New Arrival
+                                        </option>
                                     </select>
-                                    <h3 class="total-show-product">Showing: <span>1 - 12 items</span></h3>
                                 </div>
                             </div>
-                          
+
                         </div>
                     </div>
                     <div class="tab-content" id="nav-tabContent">
@@ -102,16 +102,17 @@
                                         <!-- Start Single Product -->
                                         <div class="single-product">
                                             <div class="product-image">
-                                                <img src="assets/images/products/<%= product.image %>" alt="<%= product.name %>">
+                                                <img src="assets/images/products/<%= product.image %>"
+                                                    alt="<%= product.name %>">
                                                 <div class="button">
-                                            <form action="/addToCart" method="POST">
-                                            <input type="hidden" name="productAutoId"
-                                            value="<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>">
-                                            <button type="submit" class="btn">
-                                            <i class="lni lni-cart"></i> Add to Cart
-                                            </button>
-                                            </form>
-                                                    
+                                                    <form action="/addToCart" method="POST">
+                                                        <input type="hidden" name="productAutoId"
+                                                            value="<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>">
+                                                        <button type="submit" class="btn">
+                                                            <i class="lni lni-cart"></i> Add to Cart
+                                                        </button>
+                                                    </form>
+
                                                 </div>
                                             </div>
                                             <div class="product-info">
@@ -125,20 +126,27 @@
                                                     <%- helper.ratingAndReview(product.rating) %>
                                                 </ul>
                                                 <div class="price">
-                                                    
-<span class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
-<i class="fa fa-rupee"></i>
 
-<% if (product.offerprice) { %>
-<span class="normal-price"><%= product.price %></span>
-<span class="cross-price"><%= product.offerprice %></span>
-<% } else { %>
-<span><%= product.price %></span>
-<% } %>
-</span>
+                                                    <span
+                                                        class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
+                                                        <i class="fa fa-rupee"></i>
+
+                                                        <% if (product.offerprice) { %>
+                                                            <span class="normal-price">
+                                                                <%= product.price %>
+                                                            </span>
+                                                            <span class="cross-price">
+                                                                <%= product.offerprice %>
+                                                            </span>
+                                                            <% } else { %>
+                                                                <span>
+                                                                    <%= product.price %>
+                                                                </span>
+                                                                <% } %>
+                                                    </span>
 
 
-                                                  
+
                                                 </div>
                                             </div>
                                         </div>
@@ -151,23 +159,18 @@
                                     <!-- Pagination -->
                                     <div class="pagination left">
                                         <ul class="pagination-list">
-                                <% for (let i = 1; i <= totalPages; i++) { %>
-                                        <li class="<%= i === page ? 'active' : '' %>">
-                                        <%
-                                        let url = `?page=${i}`;
+                                            <% for (let i=1; i <=totalPages; i++) { %>
+                                                <li class="<%= i === page ? 'active' : '' %>">
+                                                    <% let url=`?page=${i}`; if (categorySlug) { url
+                                                        +=`&category=${categorySlug}`; } if (categoryId) { url
+                                                        +=`&category-id=${helper.generateJwtOTPEncrypt(categoryId)}`; }
+                                                        %>
 
-                                        if (categorySlug) {
-                                        url += `&category=${categorySlug}`;
-                                        }
-
-                                        if (categoryId) {
-                                        url += `&category-id=${helper.generateJwtOTPEncrypt(categoryId)}`;
-                                        }
-                                        %>
-
-                                        <a href="<%= url %>"><%= i %></a>
-                                </li>
-                                <% } %>
+                                                        <a href="<%= url %>">
+                                                            <%= i %>
+                                                        </a>
+                                                </li>
+                                                <% } %>
 
                                         </ul>
                                     </div>
@@ -175,7 +178,7 @@
                                 </div>
                             </div>
                         </div>
-                      
+
                     </div>
                 </div>
             </div>

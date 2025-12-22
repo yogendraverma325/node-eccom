@@ -11,5 +11,6 @@ export default Express.Router()
 	.post("/removeFromCart",HomeController.removeFromCart)
 	.get("/checkout",HomeController.checkout)
 	.get("/contact",HomeController.contact)
+	.post("/contact",HomeController.contact)
 	.get("/about-us",HomeController.aboutUs);
 	

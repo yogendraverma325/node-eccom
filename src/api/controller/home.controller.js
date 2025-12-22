@@ -75,6 +75,22 @@ class HomeController {
 				const categorySlug = req.query.category || null;     // "cat-slug"
 				const page = req.query.page || 1;     // "page"
 				const encryptedId = req.query['category-id'] || null; // "MQ=="
+				const sort = req.query['sort'] || ''; // "MQ=="
+				let order = [['createdAt', 'DESC']]; // default (Popularity / New)
+
+				switch (sort) {
+				case 'price_asc':
+					order = [['price', 'ASC']];
+					break;
+
+				case 'price_desc':
+					order = [['price', 'DESC']];
+					break;
+
+				case 'new':
+					order = [['createdAt', 'DESC']];
+					break;
+				}
 
 	
 				let categoryId = null;
@@ -115,7 +131,7 @@ const products = await db.product.findAndCountAll({
     offset: offset > 0 ? parseInt(offset) : 0,
     subQuery: false, // <--- YE SABSE ZAROORI HAI
     distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
-    order: [['createdAt', 'DESC']]
+    order: order
 });
 
 			
@@ -131,7 +147,8 @@ const products = await db.product.findAndCountAll({
 				SubCategoryList,
 				products,
 				totalPages,
-				page
+				page,
+				sort,
 			  });
 		} catch (error) {
 			console.log(error);
@@ -235,10 +252,19 @@ const products = await db.product.findAndCountAll({
 
 	async  contact(req, res) {
 		try {
-			res.render('contact', {
+			if (req.method === 'GET') {
+				res.render('contact', {
 				title: `Contact us`,
 				description: `Contact us.`
 			  });
+			}
+			 if (req.method === 'POST') {
+				const { name, subject, email,phone,message } = req.body;
+				console.log("req.body",req.body);
+				req.flash('message', JSON.stringify({ type: 'success', text: 'We will connect with you soon' }));	
+				res.redirect('/contact'); // back to the previous page
+			 }
+			
 		} catch (error) {
 	
 		}
