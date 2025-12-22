@@ -7,6 +7,7 @@ import sections from "../api/model/sections.js";
 import productSectionMapping from "../api/model/productSectionMapping.js";
 import business_logic from "../api/model/businesslogic.js"
 import productcategorymappings from "../api/model/productCategoryMapping.js"
+import product_feature_mapping from "../api/model/productFeatures.js"
 import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
 import literal from "sequelize";
@@ -66,7 +67,8 @@ db.cart = cart(sequelize, Sequelize);
 db.user = user(sequelize, Sequelize);
 db.productSectionMapping = productSectionMapping(sequelize, Sequelize);
 db.business_logic=business_logic(sequelize, Sequelize);
-db.productcategorymappings=productcategorymappings(sequelize, Sequelize)
+db.productcategorymappings=productcategorymappings(sequelize, Sequelize);
+db.product_feature_mapping=product_feature_mapping(sequelize, Sequelize)
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -111,6 +113,10 @@ db.category.hasMany(db.productcategorymappings, {
 db.productcategorymappings.belongsTo(db.category, { 
    foreignKey: 'category_id', // Child table (Mapping) ka column
     targetKey: 'catAutoId'      // Parent table (Category) ka column
+});
+
+db.product.hasMany(db.product_feature_mapping, {
+    foreignKey: 'product_auto_id',
 });
 
 export default db;

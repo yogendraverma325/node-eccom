@@ -15,22 +15,24 @@
                     </div> -->
                     <!-- End Single Widget -->
                     <!-- Start Single Widget -->
-                    <div class="single-widget">
-                        <h3>All Categories</h3>
-                        <ul class="list">
-                            <% SubCategoryList.forEach((sub_category)=> { %>
-                                <li>
-                                    <a
-                                        href="/products?category=<%=sub_category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(sub_category.catAutoId) %>">
-                                        <%= sub_category.categoryName %>
-                                    </a>
-                                </li>
-                                <% }) %>
-                        </ul>
-                    </div>
-                    <!-- End Single Widget -->
-                    <!-- Start Single Widget -->
-                    <!-- <div class="single-widget range">
+                    <% if(SubCategoryList.length>0){ %>
+                        <div class="single-widget">
+                            <h3>All Categories</h3>
+                            <ul class="list">
+                                <% SubCategoryList.forEach((sub_category)=> { %>
+                                    <li>
+                                        <a
+                                            href="/products?category=<%=sub_category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(sub_category.catAutoId) %>">
+                                            <%= sub_category.categoryName %>
+                                        </a>
+                                    </li>
+                                    <% }) %>
+                            </ul>
+                        </div>
+                        <% } %>
+                            <!-- End Single Widget -->
+                            <!-- Start Single Widget -->
+                            <!-- <div class="single-widget range">
                         <h3>Price Range</h3>
                         <input type="range" class="form-range" name="range" step="1" min="100" max="10000" value="10"
                             onchange="rangePrimary.value=value">
@@ -39,9 +41,9 @@
                             <input type="text" id="rangePrimary" placeholder="100" />
                         </div>
                     </div> -->
-                    <!-- End Single Widget -->
-                    <!-- Start Single Widget -->
-                    <!-- <div class="single-widget condition">
+                            <!-- End Single Widget -->
+                            <!-- Start Single Widget -->
+                            <!-- <div class="single-widget condition">
                         <h3>Filter by Price</h3>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault1">
@@ -72,7 +74,7 @@
                 </div>
                 <!-- End Product Sidebar -->
             </div>
-            <div class="col-lg-9 col-12">
+            <div class="<%= SubCategoryList && SubCategoryList.length > 0 ? 'col-lg-9' : 'col-lg-12' %> col-12">
                 <div class="product-grids-head">
                     <div class="product-grid-topbar">
                         <div class="row align-items-center">

@@ -31,6 +31,12 @@ export default (sequelize, Sequelize) => {
 		review: {
             type: Sequelize.INTEGER,
         },
+		variant_available: {
+            type: Sequelize.INTEGER,
+        },
+		long_description: {
+			type: Sequelize.STRING,
+		},
 		isActive: {
 			type: Sequelize.BOOLEAN,
 			defaultValue: true,

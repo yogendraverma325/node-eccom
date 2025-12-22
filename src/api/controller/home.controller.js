@@ -3,7 +3,7 @@ import respHelper from "../../helper/respHelper.js";
 import helper from "../../helper/helper.js";
 import {returnCartList} from "../services/cartService.js";
 import { getCategories } from "../services/home.service.js";
-import { Op } from 'sequelize';
+import { Op, fn, col, where} from 'sequelize';
 class HomeController {
 	async home(req, res) {
 		try {
@@ -52,12 +52,17 @@ class HomeController {
 		productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
 		}
 	let productDetails = await db.product.findOne({
-		attributes: ["product_auto_id", "name", "image","price","offerprice","description"],
+		attributes: ["product_auto_id", "name", "image","price","offerprice","description","long_description","variant_available"],
 		where: {
 			product_auto_id: productAutoId,
 			isActive: 1
-		}
+		},
+		 include: [{
+            model: db.product_feature_mapping,
+            attributes: ['feature_value']
+        }]
 	});
+	console.log("productDetails",productDetails)
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
@@ -75,6 +80,7 @@ class HomeController {
 				const categorySlug = req.query.category || null;     // "cat-slug"
 				const page = req.query.page || 1;     // "page"
 				const encryptedId = req.query['category-id'] || null; // "MQ=="
+				const search = (req.query.search || '').trim();
 				const sort = req.query['sort'] || ''; // "MQ=="
 				let order = [['createdAt', 'DESC']]; // default (Popularity / New)
 
@@ -107,24 +113,39 @@ class HomeController {
 				}
 				const limit=20;
                 const offset = (page - 1) * limit;
+
+	const productWhere = {
+	isActive: 1
+	};
+
+	if (search && search.trim() !== '') {
+      const words = search
+        .trim()
+        .toLowerCase()
+        .split(/\s+/); // ["power", "sound", "bar"]
+
+    productWhere[Op.and] = words.map(word =>
+        where(
+            fn('LOWER', col('product.name')),
+            { [Op.like]: `%${word}%` }
+        )
+    );
+}
 			
 const products = await db.product.findAndCountAll({
-    where: { isActive: 1 },
+    where: productWhere,
     include: [{
         model: db.productcategorymappings,
         as: 'mappings',
         required: true, 
-        include: [{
-            model: db.category,
-            where: {
-			isActive: 1,
+        where: {
+			is_active: 1,
 			...(wholeCategory.length > 0 && {
-			catAutoId: {
+			category_id: {
 			[Op.in]: wholeCategory
 			}
 			})
             }
-        }]
     }],
     // Pagination Flags
     limit: limit > 0 ? parseInt(limit) : null,
@@ -133,11 +154,9 @@ const products = await db.product.findAndCountAll({
     distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
     order: order
 });
-
-			
+		
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
-					console.log("totalPages",totalPages)
 			res.render('productList', {
 				title: `productList`,
 				description: `${categorySlug}'s Product List`,
@@ -266,7 +285,7 @@ const products = await db.product.findAndCountAll({
 			 }
 			
 		} catch (error) {
-	
+	         res.redirect('/'); // back to the previous page
 		}
 	}
 	async  aboutUs(req, res) {
@@ -276,7 +295,7 @@ const products = await db.product.findAndCountAll({
 				description: `About us.`
 			  });
 		} catch (error) {
-	
+	  res.redirect('/'); // back to the previous page
 		}
 	}
 }

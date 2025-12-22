@@ -54,6 +54,32 @@ Author: GrayGrids
         window.location.href = url.toString();
     });
      // product list page changed done
+
+
+     // global search
+     const searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+
+    searchBtn.addEventListener('click', () => {
+        const keyword = searchInput.value.trim();
+        if (!keyword) return;
+        const url = new URL(window.location.origin + '/products');
+        // search param add
+        url.searchParams.set('search', keyword);
+
+        // pagination reset
+        url.searchParams.set('page', 1);
+        window.location.href = url.toString();
+    });
+
+    // ENTER key support
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            searchBtn.click();
+        }
+    });
+    // global search
+
  });
     //===== Prealoder
 
