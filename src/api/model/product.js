@@ -31,6 +31,12 @@ export default (sequelize, Sequelize) => {
 		review: {
             type: Sequelize.INTEGER,
         },
+		for_gender: {
+            type: Sequelize.INTEGER,
+        },
+		gender_applicability: {
+			type: Sequelize.STRING,
+		},
 		variant_available: {
             type: Sequelize.INTEGER,
         },

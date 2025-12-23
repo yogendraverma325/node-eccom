@@ -17,7 +17,7 @@ class HomeController {
 							{
 								model: db.product,
 								as: "sectionProducts",
-								attributes: ["product_auto_id", "name", "image","price","offerprice","rating","description","review","slug"],
+								attributes: ["product_auto_id", "name", "image","price","offerprice","rating","description","review","slug","for_gender","gender_applicability"],
 								where: {
 									isActive: 1
 								}
@@ -52,17 +52,43 @@ class HomeController {
 		productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
 		}
 	let productDetails = await db.product.findOne({
-		attributes: ["product_auto_id", "name", "image","price","offerprice","description","long_description","variant_available"],
+		attributes: ["product_auto_id", "name", "image","price","offerprice","description","long_description","variant_available","for_gender","gender_applicability"],
 		where: {
 			product_auto_id: productAutoId,
 			isActive: 1
 		},
-		 include: [{
-            model: db.product_feature_mapping,
-            attributes: ['feature_value']
-        }]
+		 include: [
+			{
+			model: db.product_feature_mapping,
+			attributes: ['feature_value']
+			},
+			{
+			model: db.product_images,
+			attributes: ['image']
+			},
+			{
+			model: db.product_meta_data,
+			attributes: ['meta_data']
+			},
+			{
+			model: db.product_specification_mapping,
+			as: 'specifications',
+			where: { is_active: 1 },
+			required: false,
+			include: [
+			{
+			model: db.specification_master,
+			as: 'specification',
+			attributes: ['specification_name']
+			}
+			]
+			}
+	]
 	});
-	console.log("productDetails",productDetails)
+// 	console.log(
+//   "productDetails",
+//   JSON.stringify(productDetails, null, 2)
+// );
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
@@ -198,7 +224,9 @@ const products = await db.product.findAndCountAll({
 	}
 	async  addToCart(req, res) {
 		try {
+			console.log("req.body",req.body);
 			let  {productAutoId}  = req.body;
+			let  qty  = req.body.qty || 1;
 			if (productAutoId) {
 			productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
 			}
@@ -214,7 +242,7 @@ const products = await db.product.findAndCountAll({
 						await db.cart.create({
 							userCookie: userCart,
 							product_auto_id: productAutoId,
-							qty: 1
+							qty: qty
 						});
 					}
 			 req.flash('message', JSON.stringify({ type: 'success', text: 'Item added into the cart' }));	
@@ -222,7 +250,7 @@ const products = await db.product.findAndCountAll({
 			}else{
 			req.flash('message', JSON.stringify({ type: 'error', text: 'Item is not available' }));	
 			}
-			res.redirect(req.get('Referrer') || '/'); // back to the same page
+			 res.redirect('/cart'); // back to the same page
 		} catch (error) {
 	       req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
 		}

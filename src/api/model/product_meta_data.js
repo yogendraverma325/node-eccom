@@ -1,6 +1,6 @@
 export default (sequelize, Sequelize) => {
-	const product_feature_mapping = sequelize.define("product_feature_mapping", {
-		product_feature_mapping_id: {
+	const product_meta_data = sequelize.define("product_meta_data", {
+		product_meta_data_auto_id: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
@@ -8,10 +8,16 @@ export default (sequelize, Sequelize) => {
 		product_auto_id: {
             type: Sequelize.INTEGER,
         },
-        feature_value: {
+        meta_data: {
             type: Sequelize.STRING,
         },
 		is_active: {
+            type: Sequelize.INTEGER,
+        },
+          createdBy: {
+            type: Sequelize.INTEGER,
+        },
+        updatedBy: {
             type: Sequelize.INTEGER,
         },
 		createdAt: {
@@ -21,5 +27,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATE,
 		},
 	});
-	return product_feature_mapping;
+	return product_meta_data;
 };

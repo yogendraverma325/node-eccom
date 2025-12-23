@@ -11,67 +11,80 @@
                                     alt="<%= productDetails.name %>">
                             </div>
                             <div class="images">
-                                <img src="/assets/images/product-details/01.jpg" class="img" alt="#">
+                                <img src="/assets/images/products/<%= productDetails.image %>" class="img prodimage"
+                                    alt="#">
+                                <% productDetails.product_images.forEach((el)=> { %>
+                                    <img src="/assets/images/products/<%= el.image %>" class="img prodimage" alt="#">
+                                    <% }) %>
+
                             </div>
                         </main>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-12 col-12">
                     <div class="product-info">
-                        <h2 class="title">
-                            <%= productDetails.name %>
-                        </h2>
-                        <h3 class="price">
-                            <i class="fa fa-rupee"></i></i>
-                            <%= productDetails.price %>
-                                <% if (productDetails.offerprice) { %>
-                                    <span class="cross-price">
-                                        <%= productDetails.offerprice %>
-                                    </span>
-                                    <% } %>
-                        </h3>
-                        <p class="info-text">
-                            <%= productDetails.description %>.
-                        </p>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-4 col-12">
-                                <div class="form-group quantity">
-                                    <label for="color">Quantity</label>
-                                    <select class="form-control">
-                                        <option>1</option>
-                                        <option>2</option>
-                                        <option>3</option>
-                                        <option>4</option>
-                                        <option>5</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bottom-content">
-                            <div class="row align-items-end">
-                                <div class="col-lg-4 col-md-4 col-12">
-                                    <div class="button cart-button">
-                                        <form action="/addToCart" method="POST">
-                                            <input type="hidden" name="productAutoId"
-                                                value="<%- helper.generateJwtOTPEncrypt(productDetails.product_auto_id) %>">
-                                            <button type="submit" class="btn" style="width: 100%;"> Add to Cart
-                                            </button>
-                                        </form>
-
-                                    </div>
-                                </div>
-                                <!-- <div class="col-lg-4 col-md-4 col-12">
-                                        <div class="wish-button">
-                                            <button class="btn"><i class="lni lni-reload"></i> Compare</button>
+                        <% if (productDetails.for_gender===1) { %>
+                            <span class="category">
+                                <%= productDetails.gender_applicability %>
+                            </span>
+                            <% } %>
+                                <h2 class="title">
+                                    <%= productDetails.name %>
+                                </h2>
+                                <h3 class="price">
+                                    <i class="fa fa-rupee"></i></i>
+                                    <%= productDetails.price %>
+                                        <% if (productDetails.offerprice) { %>
+                                            <span class="cross-price">
+                                                <%= productDetails.offerprice %>
+                                            </span>
+                                            <% } %>
+                                </h3>
+                                <p class="info-text">
+                                    <%= productDetails.description %>.
+                                </p>
+                                <form action="/addToCart" method="POST">
+                                    <div class="row">
+                                        <div class="col-lg-4 col-md-4 col-12">
+                                            <div class="form-group quantity">
+                                                <label for="color">Quantity</label>
+                                                <select class="form-control" name="qty">
+                                                    <option>1</option>
+                                                    <option>2</option>
+                                                    <option>3</option>
+                                                    <option>4</option>
+                                                    <option>5</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-lg-4 col-md-4 col-12">
+                                    <div class="bottom-content">
+                                        <div class="row align-items-end">
+                                            <div class="col-lg-4 col-md-4 col-12">
+                                                <div class="button cart-button">
+
+                                                    <input type="hidden" name="productAutoId"
+                                                        value="<%- helper.generateJwtOTPEncrypt(productDetails.product_auto_id) %>">
+                                                    <button type="submit" class="btn" style="width: 100%;"> Add to Cart
+                                                    </button>
+
+
+                                                </div>
+                                            </div>
+                                            <!-- <div class="col-lg-4 col-md-4 col-12">
                                         <div class="wish-button">
-                                            <button class="btn"><i class="lni lni-heart"></i> To Wishlist</button>
+                                            <button class="btn" type="button"><i class="lni lni-reload"></i>
+                                                Compare</button>
                                         </div>
                                     </div> -->
-                            </div>
-                        </div>
+                                            <!-- <div class="col-lg-4 col-md-4 col-12">
+                                        <div class="wish-button">
+                                            <button class="btn" type="button"><i class="lni lni-heart"></i> To Wishlist</button>
+                                        </div>
+                                    </div> -->
+                                        </div>
+                                    </div>
+                                </form>
                     </div>
                 </div>
             </div>
@@ -99,11 +112,13 @@
                         <div class="info-body">
                             <h4>Specifications</h4>
                             <ul class="normal-list">
-                                <li><span>Weight:</span> 35.5oz (1006g)</li>
-                                <li><span>Maximum Speed:</span> 35 mph (15 m/s)</li>
-                                <li><span>Maximum Distance:</span> Up to 9,840ft (3,000m)</li>
-                                <li><span>Operating Frequency:</span> 2.4GHz</li>
-                                <li><span>Manufacturer:</span> GoPro, USA</li>
+                                <% productDetails.specifications.forEach((specification)=> { %>
+                                    <li><span>
+                                            <%= specification.specification.specification_name %>:
+                                        </span>
+                                        <%= specification.specification_value %>
+                                    </li>
+                                    <% }) %>
                             </ul>
                             <!-- <h4>Shipping Options:</h4>
                             <ul class="normal-list">

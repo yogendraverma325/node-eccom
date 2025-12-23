@@ -118,38 +118,43 @@
                                                 </div>
                                             </div>
                                             <div class="product-info">
-                                                <h4 class="title">
-                                                    <a
-                                                        href="product-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>">
-                                                        <%= product.name %>
-                                                    </a>
-                                                </h4>
-                                                <ul class="review">
-                                                    <%- helper.ratingAndReview(product.rating) %>
-                                                </ul>
-                                                <div class="price">
-
-                                                    <span
-                                                        class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
-                                                        <i class="fa fa-rupee"></i>
-
-                                                        <% if (product.offerprice) { %>
-                                                            <span class="normal-price">
-                                                                <%= product.price %>
-                                                            </span>
-                                                            <span class="cross-price">
-                                                                <%= product.offerprice %>
-                                                            </span>
-                                                            <% } else { %>
-                                                                <span>
-                                                                    <%= product.price %>
-                                                                </span>
-                                                                <% } %>
+                                                <% if (product.for_gender===1) { %>
+                                                    <span class="category">
+                                                        <%= product.gender_applicability %>
                                                     </span>
+                                                    <% } %>
+                                                        <h4 class="title">
+                                                            <a
+                                                                href="product-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>">
+                                                                <%= product.name %>
+                                                            </a>
+                                                        </h4>
+                                                        <ul class="review">
+                                                            <%- helper.ratingAndReview(product.rating) %>
+                                                        </ul>
+                                                        <div class="price">
+
+                                                            <span
+                                                                class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
+                                                                <i class="fa fa-rupee"></i>
+
+                                                                <% if (product.offerprice) { %>
+                                                                    <span class="normal-price">
+                                                                        <%= product.price %>
+                                                                    </span>
+                                                                    <span class="cross-price">
+                                                                        <%= product.offerprice %>
+                                                                    </span>
+                                                                    <% } else { %>
+                                                                        <span>
+                                                                            <%= product.price %>
+                                                                        </span>
+                                                                        <% } %>
+                                                            </span>
 
 
 
-                                                </div>
+                                                        </div>
                                             </div>
                                         </div>
                                         <!-- End Single Product -->

@@ -8375,3 +8375,21 @@ blockquote span {
 .empty-cart h3 {
   color: #000;
 }
+
+.prodimage {
+  pointer-events: auto;
+}
+
+.continue-shopping {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 500;
+}
+.continue-shopping:hover {
+    background-color: #333;
+}

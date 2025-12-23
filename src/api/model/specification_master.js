@@ -1,17 +1,20 @@
 export default (sequelize, Sequelize) => {
-	const product_feature_mapping = sequelize.define("product_feature_mapping", {
-		product_feature_mapping_id: {
+	const specification_master = sequelize.define("specification_master", {
+		specification_auto_id: {
 			type: Sequelize.INTEGER,
 			primaryKey: true,
 			autoIncrement: true,
 		},
-		product_auto_id: {
-            type: Sequelize.INTEGER,
-        },
-        feature_value: {
+        specification_name: {
             type: Sequelize.STRING,
         },
 		is_active: {
+            type: Sequelize.INTEGER,
+        },
+        updatedBy: {
+            type: Sequelize.INTEGER,
+        },
+        createdBy: {
             type: Sequelize.INTEGER,
         },
 		createdAt: {
@@ -21,5 +24,5 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.DATE,
 		},
 	});
-	return product_feature_mapping;
+	return specification_master;
 };

@@ -14,28 +14,17 @@ Author: GrayGrids
     });
   }
     window.addEventListener('DOMContentLoaded', () => {
-      if (!document.cookie.split('; ').find(row => row.startsWith('userCart='))) {
-        document.cookie = `userCart=${generateUUID()}; path=/; max-age=${100 * 365 * 24 * 60 * 60}`;
-      }
-   if ("geolocation" in navigator) {
-     navigator.geolocation.watchPosition(
-       (position) => {
-         const location = {
-           latitude: position.coords.latitude,
-           longitude: position.coords.longitude,
-         };
+       // product details page image change to main div
+    const currentImg = document.getElementById("current");
+    const thumbnails = document.querySelectorAll(".prodimage");
+    thumbnails.forEach((img) => {
+    img.addEventListener("click", function () {
+    currentImg.src = this.src;
+    });
+    });
+    // product details page image change to main div
 
-         // Save location as a cookie
-         document.cookie = `userLocation=${encodeURIComponent(JSON.stringify(location))}; path=/; max-age=${100 * 365 * 24 * 60 * 60 * 1000}`;
-       },
-       (error) => {
-         console.error("❌ Geolocation error:", error.message);
-       }
-     );
-   } else {
-     console.error("❌ Geolocation not supported by this browser.");
-   }
-   // product list page changed done
+     // product list page changed done
     const sortingSelect = document.getElementById("sorting");
     if (!sortingSelect) return;
 
@@ -80,6 +69,30 @@ Author: GrayGrids
     });
     // global search
 
+      if (!document.cookie.split('; ').find(row => row.startsWith('userCart='))) {
+        document.cookie = `userCart=${generateUUID()}; path=/; max-age=${100 * 365 * 24 * 60 * 60}`;
+      }
+   if ("geolocation" in navigator) {
+     navigator.geolocation.watchPosition(
+       (position) => {
+         const location = {
+           latitude: position.coords.latitude,
+           longitude: position.coords.longitude,
+         };
+
+         // Save location as a cookie
+         document.cookie = `userLocation=${encodeURIComponent(JSON.stringify(location))}; path=/; max-age=${100 * 365 * 24 * 60 * 60 * 1000}`;
+       },
+       (error) => {
+         console.error("❌ Geolocation error:", error.message);
+       }
+     );
+   } else {
+     console.error("❌ Geolocation not supported by this browser.");
+   }
+  
+
+   
  });
     //===== Prealoder
 

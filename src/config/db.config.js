@@ -8,6 +8,10 @@ import productSectionMapping from "../api/model/productSectionMapping.js";
 import business_logic from "../api/model/businesslogic.js"
 import productcategorymappings from "../api/model/productCategoryMapping.js"
 import product_feature_mapping from "../api/model/productFeatures.js"
+import product_specification_mapping from "../api/model/product_specification_mapping.js"
+import specification_master from "../api/model/specification_master.js"
+import product_images from "../api/model/product_images.js";
+import product_meta_data from "../api/model/product_meta_data.js";
 import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
 import literal from "sequelize";
@@ -69,6 +73,10 @@ db.productSectionMapping = productSectionMapping(sequelize, Sequelize);
 db.business_logic=business_logic(sequelize, Sequelize);
 db.productcategorymappings=productcategorymappings(sequelize, Sequelize);
 db.product_feature_mapping=product_feature_mapping(sequelize, Sequelize)
+db.product_specification_mapping=product_specification_mapping(sequelize, Sequelize);
+db.specification_master=specification_master(sequelize, Sequelize);
+db.product_images=product_images(sequelize, Sequelize);
+db.product_meta_data=product_meta_data(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -116,6 +124,31 @@ db.productcategorymappings.belongsTo(db.category, {
 });
 
 db.product.hasMany(db.product_feature_mapping, {
+    foreignKey: 'product_auto_id',
+});
+
+db.product.hasMany(db.product_specification_mapping, {
+    foreignKey: 'product_auto_id',
+	as: 'specifications'
+});
+
+db.specification_master.hasMany(db.specification_master, {
+	foreignKey: 'specification_auto_id',
+	as: 'productSpecifications'
+});
+
+db.product_specification_mapping.belongsTo(db.product, {
+foreignKey: 'product_auto_id'
+});
+
+db.product_specification_mapping.belongsTo(db.specification_master, {
+foreignKey: 'specification_auto_id',
+as: 'specification'
+});
+db.product.hasMany(db.product_images, {
+    foreignKey: 'product_auto_id',
+});
+db.product.hasMany(db.product_meta_data, {
     foreignKey: 'product_auto_id',
 });
 
