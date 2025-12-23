@@ -4,6 +4,8 @@ import helper from "../../helper/helper.js";
 import {returnCartList} from "../services/cartService.js";
 import { getCategories } from "../services/home.service.js";
 import { Op, fn, col, where} from 'sequelize';
+import validator from "../../helper/validator.js";
+import {getState,getCity,getPincodes,businessLogic} from "../services/centralService.js"
 class HomeController {
 	async home(req, res) {
 		try {
@@ -205,6 +207,11 @@ const products = await db.product.findAndCountAll({
 	async  cart(req, res) {
 		try {
 			const userCart = req.cookies.userCart;
+				let Subtotal=0;
+				let shipping=0;
+				let youSaveTotal=0;
+				let grandTotal=0;
+
 			let cartList=[]
 			if (cartList) {
 			  try {
@@ -212,11 +219,19 @@ const products = await db.product.findAndCountAll({
 			  } catch (error) {
 			  }
 			}
+			Subtotal = helper.cartSubtotal(cartList);
+			shipping = await helper.shippingTotal(Subtotal);
+			youSaveTotal = await helper.youSaveTotal(cartList);
+			grandTotal=Subtotal+shipping;
 			res.render('cart', {
 				title: `Blog:cart`,
 				description: `Read about cart.`,
 				cartList,
-				helper
+				helper,
+				Subtotal,
+				shipping,
+				youSaveTotal,
+				grandTotal
 			  });
 		} catch (error) {
 	
@@ -279,21 +294,92 @@ const products = await db.product.findAndCountAll({
 	async  checkout(req, res) {
 		try {
 			const userCart = req.cookies.userCart;
-			let cartList=[]
-			if (cartList) {
+			let cartList=[];
+			let states=[];
 			  try {
-				  cartList = await returnCartList(userCart);
+					cartList = await returnCartList(userCart);
+					states = await getState();
+					
 			  } catch (error) {
+
 			  }
-			}
-			res.render('checkout', {
-				title: `Blog:cart`,
+			
+				if(cartList.length==0){
+				res.redirect('/'); // back to the previous page
+				}
+
+		let Subtotal=0;
+		let shipping=0;
+		let youSaveTotal=0;
+		let grandTotal=0;
+		let discount=0;
+
+		Subtotal = helper.cartSubtotal(cartList);
+		shipping = await helper.shippingTotal(Subtotal);
+		youSaveTotal = await helper.youSaveTotal(cartList);
+		grandTotal=Subtotal+shipping-discount;
+
+			let formError = {};
+			let formData = {};
+
+			if (req.method === 'GET') {
+				res.render('checkout', {
+				title: `Checkout`,
 				description: `Read about cart.`,
 				cartList,
-				helper
+				formError,
+				formData,
+				states,
+				Subtotal,
+				shipping,
+				youSaveTotal,
+				grandTotal,
+				discount
 			  });
+			}
+			 if (req.method === 'POST') {
+				const { error, value } = validator.checkoutSchema.validate(req.body, {
+				abortEarly: false // 🔥 saare errors ek sath
+				});
+				if (error) {
+				let errors={}
+				error.details.forEach(err => {
+				errors[err.path[0]] = err.message;
+				});
+				formError=errors;
+				formData=value;
+
+					return res.render("checkout", {
+					title: `Checkout`,
+					description: `Read about cart.`,
+					cartList,
+					formError,
+					formData,
+					states,
+					Subtotal,
+					shipping,
+					youSaveTotal,
+					grandTotal,
+					discount
+					});
+				}
+			// first_name: 'yogi',
+			// last_name: 'verma',
+			// email: 'yog325@gmail.com',
+			// mobile: '7017734526',
+			// address: 'E 5 ram nagar post krishna nagar mathura',
+			// landmark: 'near shiv park',
+			// state: '1',
+			// city: '1',
+			// pincode: '1',
+			// shipping: 'POD',
+			// coupon: ''
+				
+				res.redirect('/checkout'); // back to the previous page
+			 }
+			
 		} catch (error) {
-	
+					console.log("error",error)
 		}
 	}
 
@@ -326,6 +412,72 @@ const products = await db.product.findAndCountAll({
 	  res.redirect('/'); // back to the previous page
 		}
 	}
+	async  applyCoupon(req, res) {
+		try {
+			const userCart = req.cookies.userCart;
+			let cartList=[];
+			cartList = await returnCartList(userCart);
+			let Subtotal = helper.cartSubtotal(cartList);
+			let shipping = await helper.shippingTotal(Subtotal);
+			let discount=(Subtotal/100)%5;
+			let grandTotal=Subtotal+shipping-discount;
+			//console.log("body",req.body.couponCode)
+			return respHelper(res, {
+				status: 200,
+				data: {discount:discount,finalTotal:grandTotal},
+				msg:"Coupon Applied Successfully",
+			});
+			
+		} catch (error) {
+			console.log("error",error)
+			return respHelper(res, {
+			status: 500,
+			data: {discount:0},
+			msg:"Coupon did't worked",
+			});
+		}
+	}
+
+async  city_list (req, res){
+	try {
+			let stateId=req.query.stateId;
+			let cities = await getCity(stateId);
+		return respHelper(res, {
+		status: 200,
+		data:cities,
+		msg:"City List Returned",
+		});
+	
+} catch (error) {
+	return respHelper(res, {
+	status: 500,
+	data: [],
+	msg:"List not found",
+	});
+}
+
+}
+async  pincodeList (req, res){
+	try {
+		let cityId=req.query.cityId;
+		console.log("body",cityId)
+		let picodes = await getPincodes(cityId);
+		return respHelper(res, {
+		status: 200,
+		data:picodes,
+		msg:"Pincode List Returned",
+		});
+	
+} catch (error) {
+	console.log("error",error)
+	return respHelper(res, {
+	status: 500,
+	data: [],
+	msg:"List not found",
+	});
+}
+
+}
 }
 
 export default new HomeController();

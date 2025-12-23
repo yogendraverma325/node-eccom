@@ -12,6 +12,9 @@ import product_specification_mapping from "../api/model/product_specification_ma
 import specification_master from "../api/model/specification_master.js"
 import product_images from "../api/model/product_images.js";
 import product_meta_data from "../api/model/product_meta_data.js";
+import stateMaster from "../api/model/state.js";
+import cityMaster from "../api/model/city.js";
+import pinCodeMaster from "../api/model/pincode.js"
 import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
 import literal from "sequelize";
@@ -77,6 +80,9 @@ db.product_specification_mapping=product_specification_mapping(sequelize, Sequel
 db.specification_master=specification_master(sequelize, Sequelize);
 db.product_images=product_images(sequelize, Sequelize);
 db.product_meta_data=product_meta_data(sequelize, Sequelize);
+db.stateMaster=stateMaster(sequelize, Sequelize);
+db.cityMaster=cityMaster(sequelize, Sequelize);
+db.pinCodeMaster=pinCodeMaster(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai

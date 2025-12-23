@@ -17,170 +17,232 @@
 </div>
 <section class="checkout-wrapper section">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
+        <form id="checkoutForm" class="checkout-form" action="/checkout" method="POST">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
 
-                <div class="checkout-steps-form-style-1">
+                    <div class="checkout-steps-form-style-1 checkout-white-bg">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="single-form form-default">
+                                    <% if (formError && Object.keys(formError).length> 0) { %>
+                                        <div class="alert alert-danger">
+                                            Please enter details properly
+                                        </div>
+                                        <% } %>
 
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="single-form form-default">
-                                <label>User Name</label>
-                                <div class="row">
-                                    <div class="col-md-6 form-input form">
-                                        <input type="text" placeholder="First Name">
+                                            <label>User Name</label>
+                                            <div class="row">
+                                                <div class="col-md-6 form-input form">
+                                                    <input type="text" placeholder="First Name" name="first_name"
+                                                        required value="yogi">
+                                                </div>
+                                                <% if (formError?.first_name) { %>
+                                                    <small class="text-danger">
+                                                        <%= formError.first_name %>
+                                                    </small>
+                                                    <% } %>
+                                                        <div class="col-md-6 form-input form">
+                                                            <input type="text" placeholder="Last Name" name="last_name"
+                                                                required value="verma">
+                                                        </div>
+                                                        <% if (formError?.last_name) { %>
+                                                            <small class="text-danger">
+                                                                <%= formError.last_name %>
+                                                            </small>
+                                                            <% } %>
+                                            </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="single-form form-default">
+                                    <label>Email</label>
+                                    <div class="form-input form">
+                                        <input type="email" placeholder="Email" name="email" required
+                                            value="yog325@gmail.com">
                                     </div>
-                                    <div class="col-md-6 form-input form">
-                                        <input type="text" placeholder="Last Name">
+                                    <% if (formError?.email) { %>
+                                        <small class="text-danger">
+                                            <%= formError.email %>
+                                        </small>
+                                        <% } %>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="single-form form-default">
+                                    <label>Mobile</label>
+                                    <div class="form-input form">
+                                        <input type="text" placeholder="Mobile" name="mobile" required
+                                            value="7017734526">
                                     </div>
+                                    <% if (formError?.mobile) { %>
+                                        <small class="text-danger">
+                                            <%= formError.mobile %>
+                                        </small>
+                                        <% } %>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="single-form form-default">
-                                <label>Email</label>
-                                <div class="form-input form">
-                                    <input type="email" placeholder="Email">
+                            <div class="col-md-12">
+                                <div class="single-form form-default">
+                                    <label>Address</label>
+                                    <div class="form-input form">
+                                        <input type="text" placeholder="Address" name="address" required
+                                            value="E 5 ram nagar post krishna nagar mathura">
+                                    </div>
+                                    <% if (formError?.address) { %>
+                                        <small class="text-danger">
+                                            <%= formError.address %>
+                                        </small>
+                                        <% } %>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="single-form form-default">
-                                <label>Mobile</label>
-                                <div class="form-input form">
-                                    <input type="text" placeholder="Mobile">
+                            <div class="col-md-12">
+                                <div class="single-form form-default">
+                                    <label>Landmark</label>
+                                    <div class="form-input form">
+                                        <input type="text" placeholder="Landmark" name="landmark" required
+                                            value="near shiv park">
+                                    </div>
+                                    <% if (formError?.landmark) { %>
+                                        <small class="text-danger">
+                                            <%= formError.landmark %>
+                                        </small>
+                                        <% } %>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="single-form form-default">
-                                <label>Address</label>
-                                <div class="form-input form">
-                                    <input type="text" placeholder="Address">
+                            <div class="col-md-6">
+                                <div class="single-form form-default">
+                                    <label>Region/State</label>
+                                    <div class="select-items">
+                                        <select class="form-control" name="state" required id="state">
+                                            <option value="">Select State</option>
+                                            <% states.forEach((state)=> { %>
+                                                <option value="<%= state.stateId %>">
+                                                    <%= state.stateName %>
+                                                </option>
+                                                <% }) %>
+                                        </select>
+                                    </div>
+                                    <% if (formError?.state) { %>
+                                        <small class="text-danger">
+                                            <%= formError.state %>
+                                        </small>
+                                        <% } %>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="single-form form-default">
-                                <label>Landmark</label>
-                                <div class="form-input form">
-                                    <input type="text" placeholder="Landmark">
+                            <div class="col-md-6">
+                                <div class="single-form form-default">
+                                    <label>City</label>
+                                    <div class="select-items">
+                                        <select class="form-control" name="city" required id="city">
+                                            <option value="">Select City</option>
+                                        </select>
+                                    </div>
+                                    <% if (formError?.city) { %>
+                                        <small class="text-danger">
+                                            <%= formError.city %>
+                                        </small>
+                                        <% } %>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="single-form form-default">
-                                <label>Region/State</label>
-                                <div class="select-items">
-                                    <select class="form-control">
-                                        <option value="0">select</option>
-                                        <option value="1">select option 01</option>
-                                    </select>
+                            <div class="col-md-6">
+                                <div class="single-form form-default">
+                                    <label>Pincode</label>
+                                    <div class="select-items">
+                                        <select class="form-control" name="pincode" required id="pincode">
+                                            <option value="">Select Pincode</option>
+                                        </select>
+                                    </div>
+                                    <% if (formError?.pincode) { %>
+                                        <small class="text-danger">
+                                            <%= formError.pincode %>
+                                        </small>
+                                        <% } %>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="single-form form-default">
-                                <label>City</label>
-                                <div class="select-items">
-                                    <select class="form-control">
-                                        <option value="0">select</option>
-                                        <option value="1">select option 01</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="single-form form-default">
-                                <label>Pincode</label>
-                                <div class="select-items">
-                                    <select class="form-control">
-                                        <option value="0">select</option>
-                                        <option value="1">select option 01</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
 
 
-                        <div class="col-md-12">
-                            <div class="checkout-payment-option">
-                                <h6 class="heading-6 font-weight-400 payment-title">Select Delivery
-                                    Option</h6>
-                                <div class="payment-option-wrapper">
-                                    <div class="single-payment-option">
-                                        <input type="radio" name="shipping" checked="" id="shipping-1">
-                                        <label for="shipping-1">
-                                            <img src="assets/images/shipping/shipping-1.png" alt="Sipping">
-                                            <p>Standerd Shipping</p>
-                                            <span class="price">$10.50</span>
-                                        </label>
+                            <div class="col-md-12">
+                                <div class="checkout-payment-option">
+                                    <h6 class="heading-6 font-weight-400 payment-title">Select Delivery Option</h6>
+                                    <div class="payment-option-wrapper">
+                                        <div class="single-payment-option">
+                                            <input type="radio" name="shipping" value="POD" id="shipping-1" checked>
+                                            <label for="shipping-1">
+                                                <p>POD(Pay On Delivery)</p>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="checkout-sidebar">
-                    <div class="checkout-sidebar-coupon">
-                        <p>Appy Coupon to get discount!</p>
-                        <form action="#">
+                <div class="col-lg-4">
+                    <div class="checkout-sidebar">
+                        <div class="checkout-sidebar-coupon">
+                            <p>Appy Coupon to get discount!</p>
+
                             <div class="single-form form-default">
                                 <div class="form-input form">
-                                    <input type="text" placeholder="Coupon Code">
+                                    <input type="text" placeholder="Coupon Code" id="couponCode" name="coupon">
                                 </div>
                                 <div class="button">
-                                    <button class="btn">apply</button>
+                                    <button class="btn" id="applyCouponBtn" type="button">apply</button>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class="checkout-sidebar-price-table mt-30">
-                        <h5 class="title">Pricing Table</h5>
 
-                        <div class="sub-total-price">
-                            <div class="total-price">
-                                <p class="value">Subtotal:</p>
-                                <p class="price"><i class="fa fa-rupee"></i>
-                                    <%= helper.cartSubtotal(cartList) %>
-                                </p>
-                            </div>
-                            <div class="total-price shipping">
-                                <p class="value">Shipping:</p>
-                                <p class="price"><i class="fa fa-rupee"></i>
-                                    <%= helper.shippingTotal(cartList) %>
-                                </p>
-                            </div>
-                            <div class="total-price discount">
-                                <p class="value">Discount:</p>
-                                <p class="price"><i class="fa fa-rupee"></i>
-                                    <%= helper.youSaveTotal(cartList) %>
-                                </p>
-                            </div>
                         </div>
+                        <div class="checkout-sidebar-price-table mt-30">
+                            <h5 class="title">Pricing Table</h5>
 
-                        <div class="total-payable">
-                            <div class="payable-price">
-                                <p class="value">Final Price:</p>
-                                <p class="price"><i class="fa fa-rupee"></i>
-                                    <%= helper.cartGrandtotal(cartList) %>
-                                </p>
+                            <div class="sub-total-price">
+                                <div class="total-price">
+                                    <p class="value">Subtotal:</p>
+                                    <p class="price"><i class="fa fa-rupee"></i>
+                                        <%= Subtotal %>
+                                    </p>
+                                </div>
+                                <div class="total-price shipping">
+                                    <p class="value">Shipping:</p>
+                                    <p class="price"><i class="fa fa-rupee"></i>
+                                        <%= shipping %>
+                                    </p>
+                                </div>
+                                <div class="total-price discount">
+                                    <p class="value">Extra Discount:</p>
+                                    <p class="price"><i class="fa fa-rupee"></i>
+                                        <span class="discountAmount">
+                                            <%= discount %>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="total-payable">
+                                <div class="payable-price">
+                                    <p class="value">Final Price:</p>
+                                    <p class="price"><i class="fa fa-rupee"></i>
+                                        <span class="finalTotal">
+                                            <%= grandTotal %>
+                                        </span>
+
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="price-table-btn button">
+                                <button class="btn btn-alt" type="submit">Checkout</button>
                             </div>
                         </div>
-                        <div class="price-table-btn button">
-                            <a href="javascript:void(0)" class="btn btn-alt">Checkout</a>
-                        </div>
-                    </div>
-                    <!-- <div class="checkout-sidebar-banner mt-30">
+                        <!-- <div class="checkout-sidebar-banner mt-30">
                         <a href="product-grids.html">
                             <img src="assets/images/banner/banner.jpg" alt="#">
                         </a>
                     </div> -->
+                    </div>
                 </div>
+
             </div>
-        </div>
+        </form>
     </div>
 </section>

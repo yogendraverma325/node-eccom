@@ -12,5 +12,9 @@ export default Express.Router()
 	.get("/checkout",HomeController.checkout)
 	.get("/contact",HomeController.contact)
 	.post("/contact",HomeController.contact)
-	.get("/about-us",HomeController.aboutUs);
+	.get("/about-us",HomeController.aboutUs)
+	.post("/apply-coupon",HomeController.applyCoupon)
+	.post("/checkout",HomeController.checkout)
+	.get("/get-cities",HomeController.city_list)
+	.get("/get-pincodes",HomeController.pincodeList);
 	

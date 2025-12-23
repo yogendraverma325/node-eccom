@@ -11,6 +11,7 @@ import crypto from "crypto";
 import axios from "axios";
 import https from "https";
 import pushNotificationEmitter from "../services/pushNotificationEventService.js"; // New
+import { businessLogic } from "../api/services/centralService.js";
 // import { createCanvas, loadImage } from "canvas";
 
 const generateJwtToken = async (data) => {
@@ -4564,7 +4565,7 @@ const ratingAndReview = (rating) => {
 		let discount=0;
 		return discount;
   };
-  const cartSubtotal = (cartList) => {
+  const cartSubtotal =  (cartList) => {
 	let total=cartList.reduce((acc, item) => {
 		return acc + (item.cartProducts.price * item.qty);
 	}, 0);
@@ -4572,16 +4573,31 @@ const ratingAndReview = (rating) => {
 };
 const cartGrandtotal = (cartList) => {
 	let total=0;
-	let subtotal = cartSubtotal(cartList);
-	return total = subtotal + shippingTotal(cartList) - youSaveTotal(cartList);
+	let subtotal =  cartSubtotal(cartList);
+	return total = subtotal +  shippingTotal(cartList) -  youSaveTotal(cartList);
 };
-const shippingTotal = (cartList) => {
+const shippingTotal = async (subTotalAmount) => { 
+	let storeInfo=await businessLogic('SHIPPING_DETAILS');
+	let SHIPPING_FEE=getValueFromKey(storeInfo,'SHIPPING_FEE');
+	let MIN_CART_VALUE=getValueFromKey(storeInfo,'MIN_CART_VALUE')
 	let total=0;
+	if(MIN_CART_VALUE>subTotalAmount){
+		total=SHIPPING_FEE;
+	}
 	return total;
 };
-const youSaveTotal = (cartList) => {
-	let total=0;
-	return total;
+const youSaveTotal =  (cartList) => {
+	let totalSavings = 0;
+	cartList.forEach(item => {
+	const price = (item.cartProducts.price || 0);
+	const offerPrice = (item.cartProducts.offerprice || 0);
+	const qty = (item.qty || 1);
+
+	if (offerPrice > 0 && offerPrice > price) {
+	totalSavings += (offerPrice - price) * qty;
+	}
+	});
+	return totalSavings;
 }; 
 
 const getValueFromKey=(INPUT_ARRAY,INPUT_KEY)=>{
