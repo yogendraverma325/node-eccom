@@ -571,6 +571,102 @@ async  pincodeList (req, res){
 }
 
 }
+async account(req, res){
+	  const orders = await db.orders.findAll({});
+	res.render('account/layout', {
+		title: `Accont`,
+		description: `Accont`,
+		active: 'orders',
+        // 👇 inner page path
+        page: 'order.ejs',
+        // 👇 inner page data
+        pageData: {
+            orders
+        }
+    });
+}
+async changePassword(req, res){
+let addresses={};
+	res.render('account/layout', {
+		title: `Accont`,
+		description: `Accont`,
+		active: 'changePassword',
+        // 👇 inner page path
+        page: 'changePassword.ejs',
+        // 👇 inner page data
+        pageData: {
+            addresses
+        }
+    });
+}
+async addressBook(req, res){
+let addresses={};
+	res.render('account/layout', {
+		title: `Accont`,
+		description: `Accont`,
+		active: 'addressbook',
+        // 👇 inner page path
+        page: 'address-book.ejs',
+        // 👇 inner page data
+        pageData: {
+            addresses
+        }
+    });
+}
+async orderDetails(req, res){
+		let encryptedId = req.params.orderid || null; // "MQ=="
+		if(!encryptedId){
+			res.redirect('/account'); 
+		}
+	let orderId=null;
+	if (encryptedId) {
+			orderId=helper.generateJwtOTPDecrypt(encryptedId);
+	}
+	const orderDetails = await db.orders.findOne({where:{
+	order_id:orderId
+	}});
+	const ordeerItmes = await db.order_items.findAll({where:{
+	order_id:orderId
+	}});
+	console.log(JSON.stringify(ordeerItmes,null,2))
+	res.render('account/layout', {
+		title: `Order Details`,
+		description: `Order Details`,
+		active: 'orders',
+        // 👇 inner page path
+        page: 'order-details.ejs',
+        // 👇 inner page data
+        pageData: {
+			orderDetails,
+			ordeerItmes
+        }
+    });
+	console.log("orderId",orderId)
+
+}
+async orderTimeline(req, res){
+let encryptedId = req.params.orderid || null; // "MQ=="
+		if(!encryptedId){
+			res.redirect('/account'); 
+		}
+	console.log("encryptedId",encryptedId)
+	let orderId=null;
+	if (encryptedId) {
+			orderId=helper.generateJwtOTPDecrypt(encryptedId);
+	}
+	let addresses={};
+	res.render('account/layout', {
+		title: `Order Timeline`,
+		description: `Order Timeline`,
+		active: 'orders',
+        // 👇 inner page path
+        page: 'ordertimeline.ejs',
+        // 👇 inner page data
+        pageData: {
+            addresses
+        }
+    });
+}
 }
 
 export default new HomeController();

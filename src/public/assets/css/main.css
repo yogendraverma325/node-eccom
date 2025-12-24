@@ -8411,3 +8411,99 @@ blockquote span {
     margin-left: -15px;
     margin-right: -15px;
 }
+
+/* toogle user menu */
+/* ================= USER MENU DROPDOWN (FINAL) ================= */
+
+/* parent wrapper */
+.wishlist.user-menu {
+    position: relative !important;
+}
+
+/* user icon */
+.wishlist.user-menu .user-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}
+
+/* dropdown menu */
+.wishlist.user-menu .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+
+    /* CENTER BELOW ICON */
+    left: 50% !important;
+    right: auto !important;
+    transform: translate(-50%, 10px) !important;
+
+    min-width: 180px !important;
+    background: #ffffff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+
+    padding: 8px 0 !important;
+
+    display: block !important; /* bootstrap override */
+    opacity: 0 !important;
+    visibility: hidden !important;
+
+    transition: all 0.25s ease !important;
+    z-index: 99999 !important;
+}
+
+/* OPEN STATE (click / mobile) */
+.wishlist.user-menu.active .dropdown-menu {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translate(-50%, 0) !important;
+}
+
+/* DESKTOP HOVER */
+@media (min-width: 769px) {
+    .wishlist.user-menu:hover .dropdown-menu {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translate(-50%, 0) !important;
+    }
+}
+
+/* dropdown links */
+.wishlist.user-menu .dropdown-menu a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+    color: #333 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+/* hover effect */
+.wishlist.user-menu .dropdown-menu a:hover {
+    background: #f5f5f5 !important;
+}
+
+/* icon size */
+.wishlist.user-menu .dropdown-menu i {
+    font-size: 16px !important;
+}
+
+/* MOBILE SAFE ALIGNMENT */
+@media (max-width: 768px) {
+    .wishlist.user-menu .dropdown-menu {
+        left: auto !important;
+        right: 0 !important;
+        transform: translateY(10px) !important;
+        min-width: 200px !important;
+    }
+
+    .wishlist.user-menu.active .dropdown-menu {
+        transform: translateY(0) !important;
+    }
+}
+
+/* togle user menu */

@@ -4632,7 +4632,9 @@ const  applyCouponCode=(couponCode,Subtotal,shipping)=> {
 	return {discount,grandTotal}
 }
 
-
+const dateToReadAbleFormat=(date)=>{
+return moment(date).format("dddd, MMMM Do YYYY, h:mm:ss A")
+}
 export default {
 	getLoggedinUser,
 	checkFolder,
@@ -4647,5 +4649,6 @@ export default {
 	generateJwtOTPDecrypt,
 	generateJwtOTPEncrypt,
 	generateOrderNo,
-	applyCouponCode
+	applyCouponCode,
+	dateToReadAbleFormat
 };

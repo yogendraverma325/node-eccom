@@ -16,8 +16,8 @@ class AuthController {
 			}
 			  const { slug } = req.params;
 			  res.render('login', {
-				title: `Blog: ${slug} | SEO Portal`,
-				description: `Read about ${slug} in detail.`,
+				title: `Blog:  SEO Portal`,
+				description: `Read about in detail.`,
 				slug,
 				validationError:''
 			  });
@@ -40,7 +40,8 @@ class AuthController {
 			req.session.user = {
 			id: user.id,
 			name: user.name
-			};
+			}; 
+			req.flash('message', JSON.stringify({ type: 'success', text: 'Login successfully done' }));
 			return res.redirect('/');
 			}
 			res.render('login', {

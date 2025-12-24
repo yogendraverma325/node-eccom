@@ -1,0 +1,164 @@
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f1f3f6;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .order-details-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .order-info {
+        background: #fff;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .order-info p {
+        margin: 5px 0;
+    }
+
+    .items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .item-card {
+        background: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        border-radius: 10px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .item-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1 1 60%;
+    }
+
+    .item-left img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .item-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-info strong {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .item-info span {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .item-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+        min-width: 120px;
+    }
+
+    .item-right span {
+        font-size: 14px;
+    }
+
+    .badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .pending {
+        background-color: #f0ad4e;
+    }
+
+    .confirmed {
+        background-color: #0275d8;
+    }
+
+    .shipped {
+        background-color: #5bc0de;
+    }
+
+    .delivered {
+        background-color: #5cb85c;
+    }
+
+    .cancelled {
+        background-color: #d9534f;
+    }
+
+    @media(max-width: 600px) {
+        .item-left {
+            flex: 1 1 100%;
+        }
+
+        .item-right {
+            align-items: flex-start;
+            min-width: auto;
+            margin-top: 10px;
+        }
+    }
+</style>
+
+
+<div class="order-details-container">
+    <h2>Order #10234 Details</h2>
+
+    <!-- General Order Info -->
+    <div class="order-info">
+        <p><strong>Order Date:</strong> 24 Dec 2025</p>
+        <p><strong>Grand Total:</strong> ₹1,299</p>
+        <p><strong>Shipping:</strong> ₹50 via COD</p>
+        <p><strong>Coupon Discount:</strong> ₹100</p>
+        <p><strong>Payment Status:</strong> Paid</p>
+        <p><strong>Order Status:</strong> Confirmed</p>
+    </div>
+
+    <!-- Items List -->
+    <div class="items-list">
+        <% ordeerItmes.forEach(order=> { %>
+            <div class="item-card">
+                <div class="item-left">
+                    <img src="/assets/images/products/product-8.jpg" alt="Apple MacBook Air">
+                    <div class="item-info">
+                        <strong>Apple MacBook Air</strong>
+                        <span>Qty: 1</span>
+                        <span>Price: ₹899</span>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <span>Subtotal: ₹899</span>
+                    <span class="badge confirmed">Confirmed</span>
+                </div>
+            </div>
+
+            <% }); %>
+    </div>
+</div>

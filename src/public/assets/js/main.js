@@ -15,6 +15,35 @@ Author: GrayGrids
   }
   
     window.addEventListener('DOMContentLoaded', () => {
+
+        // user menu
+        var userMenus = document.querySelectorAll('.user-menu');
+
+    userMenus.forEach(function (menu) {
+        var icon = menu.querySelector('.user-icon');
+
+        icon.addEventListener('click', function (e) {
+            e.stopPropagation();
+
+            // close other menus
+            userMenus.forEach(function (m) {
+                if (m !== menu) {
+                    m.classList.remove('active');
+                }
+            });
+
+            // toggle current
+            menu.classList.toggle('active');
+        });
+    });
+
+    // click outside close
+    document.addEventListener('click', function () {
+        userMenus.forEach(function (menu) {
+            menu.classList.remove('active');
+        });
+    });
+        //user menu
     // coupon application 
     const applyBtn = document.getElementById('applyCouponBtn');
     const couponInput = document.getElementById('couponCode');

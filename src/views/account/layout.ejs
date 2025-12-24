@@ -1,0 +1,84 @@
+<style>
+    .account-wrapper {
+        max-width: 1200px;
+        margin: 30px auto;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 20px;
+        padding: 0 15px;
+    }
+
+    /* SIDEBAR */
+    .account-sidebar {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    .account-sidebar h3 {
+        margin-bottom: 15px;
+    }
+
+    .account-sidebar a {
+        display: block;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .account-sidebar a.active,
+    .account-sidebar a:hover {
+        background: #0d6efd;
+        color: #fff;
+    }
+
+    /* CONTENT */
+    .account-content {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .account-wrapper {
+            grid-template-columns: 1fr;
+        }
+
+        .account-sidebar {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+
+        .account-sidebar h3 {
+            display: none;
+        }
+
+        .account-sidebar a {
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="account-wrapper">
+
+    <div class="account-sidebar">
+        <h3>My Account</h3>
+        <a href="/account" class="<%= active === 'orders' ? 'active' : '' %>">Orders</a>
+        <a href="/address-book" class="<%= active === 'addressbook' ? 'active' : '' %>">Address Book</a>
+        <a href="/changes-passord" class="<%= active === 'changePassword' ? 'active' : '' %>">Change Password</a>
+    </div>
+    <!-- layout -->
+    <%- include(page, pageData) %>
+        <!-- layout -->
+
+</div>

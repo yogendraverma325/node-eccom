@@ -16,5 +16,10 @@ export default Express.Router()
 	.post("/apply-coupon",HomeController.applyCoupon)
 	.post("/checkout",HomeController.checkoutProcess)
 	.get("/get-cities",HomeController.city_list)
-	.get("/get-pincodes",HomeController.pincodeList);
+	.get("/get-pincodes",HomeController.pincodeList)
+	.get("/account",HomeController.account)
+	.get("/address-book",HomeController.addressBook)
+	.get("/changes-passord",HomeController.changePassword)
+	.get("/order-details/:orderid",HomeController.orderDetails)
+	.get("/order-timeline/:orderid",HomeController.orderTimeline);
 	

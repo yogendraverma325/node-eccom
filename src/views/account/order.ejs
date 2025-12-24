@@ -1,0 +1,107 @@
+<div class="account-content container mt-5">
+    <h2 class="section-title mb-4">My Orders</h2>
+
+    <!-- Order Filter -->
+    <div class="order-filter mb-4 d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-primary active" data-status="all">All</button>
+        <button class="btn btn-outline-primary" data-status="pending">Pending</button>
+        <button class="btn btn-outline-primary" data-status="shipped">Shipped</button>
+        <button class="btn btn-outline-primary" data-status="delivered">Delivered</button>
+        <button class="btn btn-outline-primary" data-status="cancelled">Cancelled</button>
+    </div>
+
+    <!-- Orders List -->
+    <div class="row g-3">
+        <% if (orders && orders.length> 0) { %>
+            <% orders.forEach(order=> { %>
+                <div class="col-12 col-md-6 col-lg-4 order-card" data-status="<%= order.order_status %>">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title mb-2">Order #<%= order.order_number %>
+                                </h5>
+                                <p class="mb-1"><strong>Placed on:</strong>
+                                    <%= helper.dateToReadAbleFormat(order.createdAt)%>
+                                </p>
+                                <p class="mb-1"><strong>Grand Total:</strong> ₹<%= order.grand_total %>
+                                </p>
+                                <p class="mb-1"><strong>Discount:</strong> ₹<%= order.discount_amount %>
+                                </p>
+                                <span class="badge 
+                                    <% if(order.order_status === 'pending'){ %> bg-warning
+                                    <% } else if(order.order_status === 'shipped'){ %> bg-info
+                                    <% } else if(order.order_status === 'delivered'){ %> bg-success
+                                    <% } else if(order.order_status === 'cancelled'){ %> bg-danger
+                                    <% } %>">
+                                    <%= order.order_status %>
+                                </span>
+                            </div>
+                            <div class="mt-3 d-grid gap-2">
+                                <!-- View Details button -->
+                                <a href="/order-details/<%= helper.generateJwtOTPEncrypt(order.order_id) %>"
+                                    class="btn btn-primary btn-sm w-100">
+                                    View Details
+                                </a>
+
+                                <!-- Timeline button -->
+                                <a href="/order-timeline/<%=helper.generateJwtOTPEncrypt(order.order_id) %>"
+                                    class="btn btn-secondary btn-sm w-100">
+                                    View Timeline
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">You have no orders yet.</div>
+                        </div>
+                        <% } %>
+    </div>
+</div>
+
+<script>
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.order-filter button');
+    const orderCards = document.querySelectorAll('.order-card');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const status = btn.dataset.status;
+            orderCards.forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .order-card .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .order-card .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.35em 0.6em;
+    }
+
+    @media (max-width: 576px) {
+        .order-card .card-body {
+            text-align: center;
+        }
+    }
+</style>
