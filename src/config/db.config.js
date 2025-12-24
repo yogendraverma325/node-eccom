@@ -17,6 +17,10 @@ import cityMaster from "../api/model/city.js";
 import pinCodeMaster from "../api/model/pincode.js"
 import cart from "../api/model/cart.js";
 import user from "../api/model/user.js";
+import orders from "../api/model/order.js";
+import order_items from "../api/model/order_items.js";
+import order_shipping from "../api/model/order_shipping.js";
+import order_returns from "../api/model/order_returns.js";
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 //
@@ -83,6 +87,10 @@ db.product_meta_data=product_meta_data(sequelize, Sequelize);
 db.stateMaster=stateMaster(sequelize, Sequelize);
 db.cityMaster=cityMaster(sequelize, Sequelize);
 db.pinCodeMaster=pinCodeMaster(sequelize, Sequelize);
+db.orders=orders(sequelize, Sequelize);
+db.order_returns=order_returns(sequelize, Sequelize);
+db.order_items=order_items(sequelize, Sequelize);
+db.order_shipping=order_shipping(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai

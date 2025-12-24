@@ -30,7 +30,7 @@ class HomeController {
 						}
 					});
 
-					
+					req.session.orderPlaced = false;
 					res.render('index', {
 					title: 'Home',
 					description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
@@ -293,6 +293,9 @@ const products = await db.product.findAndCountAll({
 	}
 	async  checkout(req, res) {
 		try {
+		if (req.session.orderPlaced) {
+		return res.redirect('/');
+		}
 			const userCart = req.cookies.userCart;
 			let cartList=[];
 			let states=[];
@@ -303,11 +306,13 @@ const products = await db.product.findAndCountAll({
 			  } catch (error) {
 
 			  }
+			 
 			
 				if(cartList.length==0){
-				res.redirect('/'); // back to the previous page
+				 res.redirect('/'); // back to the previous page
 				}
-
+		let formError = {};
+		let formData = {};
 		let Subtotal=0;
 		let shipping=0;
 		let youSaveTotal=0;
@@ -318,27 +323,50 @@ const products = await db.product.findAndCountAll({
 		shipping = await helper.shippingTotal(Subtotal);
 		youSaveTotal = await helper.youSaveTotal(cartList);
 		grandTotal=Subtotal+shipping-discount;
+		res.render('checkout', {
+		title: `Checkout`,
+		description: `Read about cart.`,
+		cartList,
+		formError,
+		formData,
+		states,
+		Subtotal,
+		shipping,
+		youSaveTotal,
+		grandTotal,
+		discount
+		});
+			
+		} catch (error) {
+			console.log("error",error)
+		req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
+		res.redirect('/checkout'); 
+		}
+	}
 
-			let formError = {};
-			let formData = {};
+	async checkoutProcess(req, res){
+	try {
+		const userCart = req.cookies.userCart;
+		let cartList= await returnCartList(userCart);
+		let states = await getState();
+		if(cartList.length==0){
+		req.flash('message', JSON.stringify({ type: 'error', text: 'Cart is empty' }));	
+		res.redirect('/cart'); 
+		}
+		let formError = {};
+		let formData = {};
 
-			if (req.method === 'GET') {
-				res.render('checkout', {
-				title: `Checkout`,
-				description: `Read about cart.`,
-				cartList,
-				formError,
-				formData,
-				states,
-				Subtotal,
-				shipping,
-				youSaveTotal,
-				grandTotal,
-				discount
-			  });
-			}
-			 if (req.method === 'POST') {
-				const { error, value } = validator.checkoutSchema.validate(req.body, {
+		let Subtotal=0;
+		let shipping=0;
+		let youSaveTotal=0;
+		let grandTotal=0;
+		let discount=0;
+
+		Subtotal = helper.cartSubtotal(cartList);
+		shipping = await helper.shippingTotal(Subtotal);
+		youSaveTotal = await helper.youSaveTotal(cartList);
+
+		const { error, value } = validator.checkoutSchema.validate(req.body, {
 				abortEarly: false // 🔥 saare errors ek sath
 				});
 				if (error) {
@@ -349,7 +377,7 @@ const products = await db.product.findAndCountAll({
 				formError=errors;
 				formData=value;
 
-					return res.render("checkout", {
+				return res.render("checkout", {
 					title: `Checkout`,
 					description: `Read about cart.`,
 					cartList,
@@ -362,25 +390,89 @@ const products = await db.product.findAndCountAll({
 					grandTotal,
 					discount
 					});
-				}
-			// first_name: 'yogi',
-			// last_name: 'verma',
-			// email: 'yog325@gmail.com',
-			// mobile: '7017734526',
-			// address: 'E 5 ram nagar post krishna nagar mathura',
-			// landmark: 'near shiv park',
-			// state: '1',
-			// city: '1',
-			// pincode: '1',
-			// shipping: 'POD',
-			// coupon: ''
-				
-				res.redirect('/checkout'); // back to the previous page
-			 }
-			
-		} catch (error) {
-					console.log("error",error)
+			}
+let checkoutData=value;
+			let dataFromCoupon=helper.applyCouponCode(value.coupon,Subtotal,shipping)
+			discount=dataFromCoupon.discount;
+			grandTotal=dataFromCoupon.grandTotal;
+
+			// checkout process start
+			let orderCount=await db.orders.count()+1;
+			let userId=1
+			let orderNumber=await helper.generateOrderNo(orderCount);
+			const transaction = await db.sequelize.transaction();
+
+	const orderData = {
+		order_number: orderNumber,
+		user_id: 1,
+		subtotal:Subtotal,
+		discount_amount: discount,
+		shipping_amount: shipping,
+		grand_total:grandTotal,
+		coupon_code: checkoutData.coupon,
+		payment_method:checkoutData.shipping,      // POD / Online
+		payment_status: 'pending',    // pending / paid / failed
+		order_status:'pending',     // placed / shipped / delivered / cancelled,
+		createdBy:userId
+	};
+
+   const order = await db.orders.create(orderData,{ transaction });
+   await db.order_shipping.create({
+    order_id: order.order_id,
+    full_name: checkoutData.first_name+' '+checkoutData.last_name,
+    mobile:checkoutData.mobile,
+    address: checkoutData.address,
+    landmark: checkoutData.landmark,
+    state: checkoutData.state,
+    city: checkoutData.city,
+    pincode: checkoutData.pincode,
+    createdBy: userId,
+  }, { transaction });
+
+  const orderItemsData = cartList.map(item => ({
+	order_id: order.order_id,
+	product_auto_id: item.product_auto_id,
+	qty: item.qty,
+	price: item.cartProducts.price ,
+	offerprice: item.cartProducts.offerprice ,
+	item_total: item.qty *  item.cartProducts.price,
+	item_status: 'active',
+	createdBy: userId
+}));
+	await db.order_items.bulkCreate(orderItemsData, {
+	transaction
+	});
+if(checkoutData.shipping=='POD'){
+	await db.orders.update(
+  {
+    order_status: 'confirmed',
+    payment_status: 'pending' // optional
+  },
+  {
+    where: {
+      order_id: order.order_id
+    },
+    transaction
+  }
+);
+		await db.cart.destroy({ // destroy cart
+		where: {
+			userCookie: userCart
 		}
+		});
+	await transaction.commit();
+	req.session.orderPlaced = true;
+	req.flash('message', JSON.stringify({ type: 'success', text: 'Order has been Placed' }));	
+	res.redirect('/'); 
+}
+
+	}
+	catch (error) {
+		//    await transaction.rollback();
+		console.log("error",error)
+		req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
+		res.redirect('/checkout'); 
+	}
 	}
 
 	async  contact(req, res) {
@@ -419,8 +511,9 @@ const products = await db.product.findAndCountAll({
 			cartList = await returnCartList(userCart);
 			let Subtotal = helper.cartSubtotal(cartList);
 			let shipping = await helper.shippingTotal(Subtotal);
-			let discount=(Subtotal/100)%5;
-			let grandTotal=Subtotal+shipping-discount;
+			let dataFromCoupon=helper.applyCouponCode(req.body.couponCode,Subtotal,shipping)
+			let discount=dataFromCoupon.discount;
+			let grandTotal=dataFromCoupon.grandTotal
 			//console.log("body",req.body.couponCode)
 			return respHelper(res, {
 				status: 200,

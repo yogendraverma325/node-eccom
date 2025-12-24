@@ -126,7 +126,9 @@ Author: GrayGrids
     });
     // city change pincode list fetch
 
-
+ if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+  }
        // product details page image change to main div
     const currentImg = document.getElementById("current");
     const thumbnails = document.querySelectorAll(".prodimage");

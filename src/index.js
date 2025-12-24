@@ -28,6 +28,13 @@ import {businessLogic} from "../src/api/services/centralService.js"
 import flash from 'connect-flash';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 app.use(helmet());
 app.set("trust proxy", 1);
 app.use(morgan("dev"));

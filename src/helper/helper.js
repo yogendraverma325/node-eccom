@@ -4622,6 +4622,17 @@ const getValueFromKey=(INPUT_ARRAY,INPUT_KEY)=>{
 }
 // custom portal
 
+const  generateOrderNo=(id)=> {
+  const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  return `ORD-${date}-${String(id).padStart(8,'0')}`;
+}
+const  applyCouponCode=(couponCode,Subtotal,shipping)=> {
+	let discount=(Subtotal/100)%5;
+	let grandTotal=Subtotal+shipping-discount;
+	return {discount,grandTotal}
+}
+
+
 export default {
 	getLoggedinUser,
 	checkFolder,
@@ -4634,5 +4645,7 @@ export default {
 	youSaveTotal,
 	getValueFromKey,
 	generateJwtOTPDecrypt,
-	generateJwtOTPEncrypt
+	generateJwtOTPEncrypt,
+	generateOrderNo,
+	applyCouponCode
 };
