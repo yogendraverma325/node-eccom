@@ -19,7 +19,8 @@ export default Express.Router()
 	.get("/get-pincodes",HomeController.pincodeList)
 	.get("/account",HomeController.account)
 	.get("/address-book",HomeController.addressBook)
-	.get("/changes-passord",HomeController.changePassword)
+	.get("/change-passord",HomeController.changePassword)
+	.post("/updatePaassord",HomeController.updatePaassord)
 	.get("/order-details/:orderid",HomeController.orderDetails)
 	.get("/order-timeline/:orderid",HomeController.orderTimeline);
 	

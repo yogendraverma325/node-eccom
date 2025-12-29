@@ -55,9 +55,39 @@ const checkoutSchema = Joi.object({
 
   coupon: Joi.string().allow("", null) // optional
 });
+const changePasswordSchema = Joi.object({
+	current_password: Joi.string()
+		.min(5)
+		.required()
+		.label("Current Password"),
+
+	new_password: Joi.string()
+		.min(5)
+		.required()
+		.label("New Password"),
+});
+
+const forgotPassword = Joi.object({
+	email: Joi.string().required().label("email is required")
+});
+
+const passwordUpdate = Joi.object({
+	otp: Joi.string()
+		.min(4)
+		.required()
+		.label("OTP is required"),
+
+	password: Joi.string()
+		.min(5)
+		.required()
+		.label("Password"),
+});
 
 export default {
 	loginSchema,
-	checkoutSchema
+	checkoutSchema,
+  changePasswordSchema,
+  forgotPassword,
+  passwordUpdate
 	// end by jay
 };

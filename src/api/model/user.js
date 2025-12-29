@@ -17,6 +17,21 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false,
         },
+		is_active:{
+			type: Sequelize.INTEGER,
+		},
+		last_login: {
+			type: Sequelize.DATE,
+		},
+		otp_count_of_the_date: {
+			type: Sequelize.INTEGER,
+		},
+		otp_date: {
+			type: Sequelize.DATE,
+		},
+		otp:{
+			type: Sequelize.STRING,
+		},
 		createdAt: {
 			type: Sequelize.DATE,
 		},

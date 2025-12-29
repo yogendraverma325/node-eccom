@@ -4650,5 +4650,6 @@ export default {
 	generateJwtOTPEncrypt,
 	generateOrderNo,
 	applyCouponCode,
-	dateToReadAbleFormat
+	dateToReadAbleFormat,
+	encryptPassword
 };

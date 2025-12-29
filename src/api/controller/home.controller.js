@@ -6,6 +6,7 @@ import { getCategories } from "../services/home.service.js";
 import { Op, fn, col, where} from 'sequelize';
 import validator from "../../helper/validator.js";
 import {getState,getCity,getPincodes,businessLogic} from "../services/centralService.js"
+import bcrypt from "bcryptjs";
 class HomeController {
 	async home(req, res) {
 		try {
@@ -586,7 +587,8 @@ async account(req, res){
     });
 }
 async changePassword(req, res){
-let addresses={};
+	let formError={};
+			let formData={}
 	res.render('account/layout', {
 		title: `Accont`,
 		description: `Accont`,
@@ -595,7 +597,8 @@ let addresses={};
         page: 'changePassword.ejs',
         // 👇 inner page data
         pageData: {
-            addresses
+			formError,
+			formData
         }
     });
 }
@@ -667,6 +670,71 @@ let encryptedId = req.params.orderid || null; // "MQ=="
         }
     });
 }
+	async updatePaassord(req, res) {
+		try {
+			let formError={};
+			let formData={}
+				const { error, value } = validator.changePasswordSchema.validate(req.body, {
+				abortEarly: false // 🔥 saare errors ek sath
+				});
+				if (error) {
+				let errors={}
+				error.details.forEach(err => {
+				errors[err.path[0]] = err.message;
+				});
+				formError=errors;
+				formData=value;
+
+
+			res.render('account/layout', {
+				title: `Accont`,
+				description: `Accont`,
+				active: 'changePassword',
+				// 👇 inner page path
+				page: 'changePassword.ejs',
+				// 👇 inner page data
+				pageData: {
+					formError,
+					formData,
+				}
+			});
+			}
+			let userData=await db.user.findOne({
+			where: {
+			userId:1
+			}
+			}
+			);
+
+		const comparePass = await bcrypt.compare(
+				value.new_password,
+				userData.password,
+		);
+		if (!comparePass) {
+		req.flash('message', JSON.stringify({ type: 'error', text: 'Current Password Does not matched' }));
+		return res.redirect('/change-passord');
+		}
+	const hashedPassword = await helper.encryptPassword(value.new_password);
+		await db.user.update(
+		{
+		password:hashedPassword
+		},
+		{
+		where: {
+		userId:1
+		}
+		}
+		);
+			req.flash('message', JSON.stringify({ type: 'success', text: 'Password Updated Successfully' }));
+			return res.redirect('/change-passord');
+			
+
+		} catch (error) {
+			console.log(error);
+			req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));
+			return res.redirect('/change-passord');
+		}
+	}
 }
 
 export default new HomeController();

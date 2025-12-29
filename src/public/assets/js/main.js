@@ -15,6 +15,24 @@ Author: GrayGrids
   }
   
     window.addEventListener('DOMContentLoaded', () => {
+//   password toggle
+        const toggles = document.querySelectorAll('.toggle-password');
+
+        toggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const inputId = toggle.getAttribute('data-target');
+            const input = document.getElementById(inputId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = '👁️'; // open eye
+            } else {
+                input.type = 'password';
+                toggle.textContent = '👁️‍🗨️'; // closed eye
+            }
+        });
+        });
+//   password toggle
 
         // user menu
         var userMenus = document.querySelectorAll('.user-menu');
