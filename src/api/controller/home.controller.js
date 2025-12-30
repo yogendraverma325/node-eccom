@@ -574,7 +574,10 @@ async  pincodeList (req, res){
 
 }
 async account(req, res){
-	  const orders = await db.orders.findAll({});
+	let userId=req.session.user.id;
+	  const orders = await db.orders.findAll({where:{
+	user_id:userId
+	}});
 	res.render('account/layout', {
 		title: `Accont`,
 		description: `Accont`,
@@ -618,6 +621,7 @@ let addresses={};
     });
 }
 async orderDetails(req, res){
+		let userId=req.session.user.id;
 		let encryptedId = req.params.orderid || null; // "MQ=="
 		if(!encryptedId){
 			res.redirect('/account'); 
@@ -627,7 +631,8 @@ async orderDetails(req, res){
 			orderId=helper.generateJwtOTPDecrypt(encryptedId);
 	}
 	const orderDetails = await db.orders.findOne({where:{
-	order_id:orderId
+	order_id:orderId,
+	user_id:userId
 	}});
 	const ordeerItmes = await db.order_items.findAll({where:{
 	order_id:orderId
@@ -699,16 +704,18 @@ let encryptedId = req.params.orderid || null; // "MQ=="
 					formData,
 				}
 			});
+			return ;
 			}
+				let userId=req.session.user.id;
 			let userData=await db.user.findOne({
 			where: {
-			userId:1
+			userId:userId
 			}
 			}
 			);
 
 		const comparePass = await bcrypt.compare(
-				value.new_password,
+				value.current_password,
 				userData.password,
 		);
 		if (!comparePass) {
@@ -722,7 +729,7 @@ let encryptedId = req.params.orderid || null; // "MQ=="
 		},
 		{
 		where: {
-		userId:1
+		userId:userId
 		}
 		}
 		);

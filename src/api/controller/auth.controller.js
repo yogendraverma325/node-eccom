@@ -78,7 +78,7 @@ class AuthController {
 			
 			// Set session
 			req.session.user = {
-			id: user.id,
+			id: user.userId,
 			name: user.name
 			}; 
 
