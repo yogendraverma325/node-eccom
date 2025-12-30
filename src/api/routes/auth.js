@@ -7,5 +7,6 @@ export default Express.Router()
 	.get("/forgot-password",AuthController.forgotPassword)
 	.post("/account-recovery",AuthController.accountRecovery)
 	.get("/otp-verification",AuthController.otpVerification)
-	.post("/password-update",AuthController.passwordUpdate);
+	.post("/password-update",AuthController.passwordUpdate)
+	.post("/resendOTP",AuthController.resendOTP);
 	

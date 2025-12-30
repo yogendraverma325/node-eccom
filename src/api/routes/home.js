@@ -1,5 +1,6 @@
 import Express from "express";
 import HomeController from "../controller/home.controller.js";
+import { isLogin } from "../../middleware/authentication.js";
 
 
 export default Express.Router()
@@ -9,18 +10,20 @@ export default Express.Router()
 	.get("/cart",HomeController.cart)
 	.post("/addToCart",HomeController.addToCart)
 	.post("/removeFromCart",HomeController.removeFromCart)
-	.get("/checkout",HomeController.checkout)
 	.get("/contact",HomeController.contact)
 	.post("/contact",HomeController.contact)
 	.get("/about-us",HomeController.aboutUs)
-	.post("/apply-coupon",HomeController.applyCoupon)
-	.post("/checkout",HomeController.checkoutProcess)
-	.get("/get-cities",HomeController.city_list)
-	.get("/get-pincodes",HomeController.pincodeList)
-	.get("/account",HomeController.account)
-	.get("/address-book",HomeController.addressBook)
-	.get("/change-passord",HomeController.changePassword)
-	.post("/updatePaassord",HomeController.updatePaassord)
-	.get("/order-details/:orderid",HomeController.orderDetails)
-	.get("/order-timeline/:orderid",HomeController.orderTimeline);
+
+
+	.get("/checkout",isLogin,HomeController.checkout)
+	.post("/apply-coupon",isLogin,HomeController.applyCoupon)
+	.post("/checkout",isLogin,HomeController.checkoutProcess)
+	.get("/get-cities",isLogin,HomeController.city_list)
+	.get("/get-pincodes",isLogin,HomeController.pincodeList)
+	.get("/account",isLogin,HomeController.account)
+	.get("/address-book",isLogin,HomeController.addressBook)
+	.get("/change-passord",isLogin,HomeController.changePassword)
+	.post("/updatePaassord",isLogin,HomeController.updatePaassord)
+	.get("/order-details/:orderid",isLogin,HomeController.orderDetails)
+	.get("/order-timeline/:orderid",isLogin,HomeController.orderTimeline);
 	

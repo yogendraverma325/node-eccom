@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import validator from "../../helper/validator.js";
 import db from "../../config/db.config.js";
 import helper from "../../helper/helper.js";
+import respHelper from "../../helper/respHelper.js";
+import moment from 'moment';
 class AuthController {
 	async login(req, res) {
 		try {
@@ -156,6 +158,7 @@ try{
 	async otpVerification(req, res) {
 		try {
 			let email=res.locals.userEmail;
+			console.log("email",email)
 			let formError={};
 			let formData={};
 			res.render('otp-verification', {
@@ -175,6 +178,7 @@ try{
 		async passwordUpdate(req, res){
 try{
 					let email=res.locals.userEmail;
+					console.log("email",email)
 					let formError={};
 					let formData={};
 			
@@ -208,7 +212,7 @@ try{
 			}
 
 			if(userData.otp!=value.otp){
-			 req.flash('message', JSON.stringify({ type: 'success', text: 'OTP did not matched' }));
+			 req.flash('message', JSON.stringify({ type: 'error', text: 'OTP did not matched' }));
 			 return res.redirect('/user/otp-verification');	
 			}
 			const hashedPassword = await helper.encryptPassword(value.password);
@@ -233,6 +237,67 @@ try{
 			return res.redirect('/user/forgot-password');
 		}
 				
+
+	}
+	async resendOTP(req, res){
+		try{
+				let email=res.locals.userEmail;
+				console.log("email",email)
+			let userData=await db.user.findOne({
+				where: {
+				email:email,
+				is_active:1
+				}
+				}
+				);
+				 if (!userData) {
+				return respHelper(res, {
+				status: 400,
+				data: {},
+				msg:"Account not found",
+				});
+				 }
+			let OTP=1234;
+		const today = moment().startOf('day'); // 00:00:00 today
+		const otpDate = userData.otp_date ? moment(userData.otp_date).startOf('day') : null;
+
+        // 3. OTP count check
+        if (otpDate && otpDate.isSame(today, 'day') && userData.otp_count_of_the_date >= 3) {
+			return respHelper(res, {
+				status: 400,
+				data: {},
+				msg:"You can only request 3 OTPs per day",
+				});
+        }
+
+        // 4. OTP generate
+        const newOtp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+
+        // 5. Update user table
+        await db.user.update(
+            {
+                otp: newOtp,
+                otp_date: today.toDate(),
+                otp_count_of_the_date: otpDate && otpDate.isSame(today, 'day') 
+                                        ? userData.otp_count_of_the_date + 1 
+                                        : 1
+            },
+            { where: { email:email } }
+        );
+
+			console.log("email",email);
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"OTP generated Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
 
 	}
 }

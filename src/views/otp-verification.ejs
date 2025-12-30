@@ -13,6 +13,10 @@
     .toggle-password:hover {
         color: #000;
     }
+
+    .resendOTP {
+        cursor: pointer;
+    }
 </style>
 
 <div class="breadcrumbs">
@@ -69,7 +73,8 @@
                         </div>
 
                         <div class="d-flex flex-wrap justify-content-between bottom-content">
-                            <a class="lost-pass" href="/user/login">Login ?</a>
+                            <span class="resendOTP" id="resendOtpBtn">Resend OTP</span>
+                            <div id="otpMessage" class="text-success mt-2"></div>
                         </div>
                         <div class="button">
                             <button class="btn" type="submit">Submit</button>
@@ -85,3 +90,4 @@
     </div>
 </div>
 <!-- End Account Login Area -->
+<script src="/assets/js/resentOTP.js"></script>

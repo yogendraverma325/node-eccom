@@ -7,6 +7,7 @@ import { Op, fn, col, where} from 'sequelize';
 import validator from "../../helper/validator.js";
 import {getState,getCity,getPincodes,businessLogic} from "../services/centralService.js"
 import bcrypt from "bcryptjs";
+import moment from 'moment';
 class HomeController {
 	async home(req, res) {
 		try {
