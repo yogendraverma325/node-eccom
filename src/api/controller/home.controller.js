@@ -348,6 +348,8 @@ const products = await db.product.findAndCountAll({
 
 	async checkoutProcess(req, res){
 			const transaction = await db.sequelize.transaction();
+			let userId=req.session.user.id;
+			//let userId=1
 	try {
 		const userCart = req.cookies.userCart;
 		let cartList= await returnCartList(userCart);
@@ -401,13 +403,12 @@ let checkoutData=value;
 
 			// checkout process start
 			let orderCount=await db.orders.count()+1;
-			let userId=1
 			let orderNumber=await helper.generateOrderNo(orderCount);
 		
 
 	const orderData = {
 		order_number: orderNumber,
-		user_id: 1,
+		user_id: userId,
 		subtotal:Subtotal,
 		discount_amount: discount,
 		shipping_amount: shipping,
@@ -463,6 +464,13 @@ if(checkoutData.shipping=='POD'){
 			userCookie: userCart
 		}
 		});
+		await helper.timelineCreation(transaction,{
+					order_id:order.order_id,
+					status:'confirmed',
+					reason:'order placed',
+					remark:'order placed',
+					createdBy:userId
+				});
 	await transaction.commit();
 	req.session.orderPlaced = true;
 	req.flash('message', JSON.stringify({ type: 'success', text: 'Order has been Placed' }));	
@@ -480,21 +488,51 @@ if(checkoutData.shipping=='POD'){
 
 	async  contact(req, res) {
 		try {
+			let formError = {};
+			let formData = {};
 			if (req.method === 'GET') {
 				res.render('contact', {
 				title: `Contact us`,
-				description: `Contact us.`
+				description: `Contact us.`,
+				formError,
+				formData
 			  });
 			}
 			 if (req.method === 'POST') {
+				const { error, value } = validator.contactUsSchema.validate(req.body, {
+				abortEarly: false // 🔥 saare errors ek sath
+				});
+				if (error) {
+				let errors={}
+				error.details.forEach(err => {
+				errors[err.path[0]] = err.message;
+				});
+				formError=errors;
+				formData=value;
+
+				return res.render('contact', {
+				title: `Contact us`,
+				description: `Contact us.`,
+				formError,
+				formData
+			  });
+			}
+
 				const { name, subject, email,phone,message } = req.body;
-				console.log("req.body",req.body);
+					await db.contact_us.create({
+					name,
+					email,
+					phone,
+					subject,
+					message,
+					})
 				req.flash('message', JSON.stringify({ type: 'success', text: 'We will connect with you soon' }));	
 				res.redirect('/contact'); // back to the previous page
 			 }
 			
 		} catch (error) {
-	         res.redirect('/'); // back to the previous page
+				req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+	         res.redirect('/contact'); // back to the previous page
 		}
 	}
 	async  aboutUs(req, res) {
@@ -580,18 +618,17 @@ async account(req, res){
 			const order_status = req.query.order_status || null;;     // "page"
 			const limit=9;
 			const offset = (current_page - 1) * limit;
-	//let userId=req.session.user.id;
+      let userId=req.session.user.id;
 			const orders = await db.orders.findAndCountAll({
 			where:{
-				...order_status && {order_status:order_status}
-			//user_id:userId
+				...order_status && {order_status:order_status},
+			user_id:userId
 			},
 			limit: limit > 0 ? parseInt(limit) : null,
 			offset: offset > 0 ? parseInt(offset) : null,
 			order : [['createdAt', 'DESC']]
 			});
 			let totalPages = Math.ceil(orders.count / limit);
-			console.log("order_status",order_status)
 	res.render('account/layout', {
 		title: `Accont`,
 		description: `Accont`,
@@ -651,10 +688,26 @@ async orderDetails(req, res){
 	order_id:orderId,
 	user_id:userId
 	}});
-	const ordeerItmes = await db.order_items.findAll({where:{
+	const ordeerItmes = await db.order_items.findAll(
+		{
+	where:{
 	order_id:orderId
-	}});
-	console.log(JSON.stringify(ordeerItmes,null,2))
+	},
+	include: [
+        {
+            model: db.product,
+            as: 'product',
+            attributes: [
+                'product_auto_id',
+                'name',
+                'price',
+                'offerprice',
+                'image',
+                'slug'
+            ]
+        }
+    ]
+});
 	res.render('account/layout', {
 		title: `Order Details`,
 		description: `Order Details`,
@@ -667,20 +720,23 @@ async orderDetails(req, res){
 			ordeerItmes
         }
     });
-	console.log("orderId",orderId)
 
 }
 async orderTimeline(req, res){
-let encryptedId = req.params.orderid || null; // "MQ=="
+	let encryptedId = req.params.orderid || null; // "MQ=="
 		if(!encryptedId){
 			res.redirect('/account'); 
 		}
-	console.log("encryptedId",encryptedId)
 	let orderId=null;
 	if (encryptedId) {
 			orderId=helper.generateJwtOTPDecrypt(encryptedId);
 	}
-	let addresses={};
+	let timelines=await db.order_status_timeline.findAll({
+				where:{
+					order_id:orderId
+				},
+				order: [['createdAt', 'DESC']]
+		} );
 	res.render('account/layout', {
 		title: `Order Timeline`,
 		description: `Order Timeline`,
@@ -689,7 +745,7 @@ let encryptedId = req.params.orderid || null; // "MQ=="
         page: 'ordertimeline.ejs',
         // 👇 inner page data
         pageData: {
-            addresses
+            timelines
         }
     });
 }
@@ -763,8 +819,7 @@ let encryptedId = req.params.orderid || null; // "MQ=="
 	async cancelOrder(req, res) {
 			const transaction = await db.sequelize.transaction();
 		try {
-		
-let userid=1;
+		let userid=req.session.user.id;
 				const { error, value } = validator.cancel_reason.validate(req.body, {
 				abortEarly: false // 🔥 saare errors ek sath
 				});
@@ -782,18 +837,13 @@ let userid=1;
 			}
 
 					let encryptedId =value.cancelOrderId;
-
-					// 				body {
-					//   cancelOrderId: 'Nw==',
-					//   cancel_reason: 'out_of_stock',
-					//   cancel_message: 'dsdsd'
-					// }
 					let orderId=null;
 					if (encryptedId) {
 					orderId=helper.generateJwtOTPDecrypt(encryptedId);
 					}
 			const order = await db.orders.findOne({where:{
 				order_id:orderId,
+				user_id:userid,
 				order_status:'confirmed'
 				}});
 

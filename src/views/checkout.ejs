@@ -30,28 +30,6 @@
                                             Please enter details properly
                                         </div>
                                         <% } %>
-
-                                            <label>User Name</label>
-                                            <div class="row">
-                                                <div class="col-md-6 form-input form">
-                                                    <input type="text" placeholder="First Name" name="first_name"
-                                                        required value="yogi">
-                                                </div>
-                                                <% if (formError?.first_name) { %>
-                                                    <small class="text-danger">
-                                                        <%= formError.first_name %>
-                                                    </small>
-                                                    <% } %>
-                                                        <div class="col-md-6 form-input form">
-                                                            <input type="text" placeholder="Last Name" name="last_name"
-                                                                required value="verma">
-                                                        </div>
-                                                        <% if (formError?.last_name) { %>
-                                                            <small class="text-danger">
-                                                                <%= formError.last_name %>
-                                                            </small>
-                                                            <% } %>
-                                            </div>
                                 </div>
                             </div>
                             <div class="col-md-6">

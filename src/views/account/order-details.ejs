@@ -129,16 +129,35 @@
 
 
 <div class="order-details-container">
-    <h2>Order #10234 Details</h2>
+    <h2>Order Details (<%= (orderDetails.order_number)%>)</h2>
 
     <!-- General Order Info -->
     <div class="order-info">
-        <p><strong>Order Date:</strong> 24 Dec 2025</p>
-        <p><strong>Grand Total:</strong> ₹1,299</p>
-        <p><strong>Shipping:</strong> ₹50 via COD</p>
-        <p><strong>Coupon Discount:</strong> ₹100</p>
-        <p><strong>Payment Status:</strong> Paid</p>
-        <p><strong>Order Status:</strong> Confirmed</p>
+        <p><strong>Order Date:</strong>
+            <%= helper.dateToReadAbleFormat(orderDetails.createdAt)%>
+        </p>
+        <p><strong>Grand Total:</strong>
+            <i class="fa fa-rupee"></i>
+            <%= (orderDetails.grand_total)%>
+        </p>
+
+        <p><strong>Coupon Discount:</strong>
+            <i class="fa fa-rupee"></i>
+            <%= (orderDetails.discount_amount)%>
+        </p>
+        <p><strong>Shipping Amount:</strong>
+            <i class="fa fa-rupee"></i>
+            <%= (orderDetails.shipping_amount)%>
+        </p>
+        <p><strong>Order Mode:</strong>
+            <%= (orderDetails.payment_method)%>
+        </p>
+        <p><strong>Payment Status:</strong>
+            <%= (orderDetails.payment_status)%>
+        </p>
+        <p><strong>Order Status:</strong>
+            <%= (orderDetails.order_status)%>
+        </p>
     </div>
 
     <!-- Items List -->
@@ -146,16 +165,27 @@
         <% ordeerItmes.forEach(order=> { %>
             <div class="item-card">
                 <div class="item-left">
-                    <img src="/assets/images/products/product-8.jpg" alt="Apple MacBook Air">
+                    <img src="/assets/images/products/<%= order.product.image %>" alt="Apple MacBook Air">
                     <div class="item-info">
-                        <strong>Apple MacBook Air</strong>
-                        <span>Qty: 1</span>
-                        <span>Price: ₹899</span>
+                        <strong>
+                            <a
+                                href="/product-details/<%- helper.generateJwtOTPEncrypt(order.product.product_auto_id) %>/<%- order.product.slug %>">
+                                <%= order.product.name %>
+                            </a>
+                        </strong>
+                        <span>Qty: <%= (order.qty)%></span>
+                        <span>Price: <i class="fa fa-rupee"></i>
+                            <%= (order.price)%>
+                        </span>
                     </div>
                 </div>
                 <div class="item-right">
-                    <span>Subtotal: ₹899</span>
-                    <span class="badge confirmed">Confirmed</span>
+                    <span>Subtotal: <i class="fa fa-rupee"></i>
+                        <%= (order.item_total)%>
+                    </span>
+                    <span class="badge confirmed">
+                        <%= (order.item_status)%>
+                    </span>
                 </div>
             </div>
 

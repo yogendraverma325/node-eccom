@@ -21,7 +21,8 @@ import orders from "../api/model/order.js";
 import order_items from "../api/model/order_items.js";
 import order_shipping from "../api/model/order_shipping.js";
 import order_returns from "../api/model/order_returns.js";
-import order_status_timeline from "../api/model/order_status_timeline.js"
+import order_status_timeline from "../api/model/order_status_timeline.js";
+import contact_us from "../api/model/contactus.js";
 import literal from "sequelize";
 import QueryTypes from "sequelize";
 //
@@ -93,6 +94,7 @@ db.order_returns=order_returns(sequelize, Sequelize);
 db.order_items=order_items(sequelize, Sequelize);
 db.order_shipping=order_shipping(sequelize, Sequelize);
 db.order_status_timeline=order_status_timeline(sequelize, Sequelize);
+db.contact_us=contact_us(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -172,6 +174,15 @@ db.orders.hasMany(db.order_status_timeline, {
 });
 db.orders.hasMany(db.order_status_timeline, {
   foreignKey: "order_id",
+});
+
+db.order_items.belongsTo(db.product, {
+    foreignKey: 'product_auto_id',
+    as: 'product'
+});
+
+db.product.hasMany(db.order_items, {
+    foreignKey: 'product_auto_id'
 });
 
 export default db;

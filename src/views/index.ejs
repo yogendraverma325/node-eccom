@@ -24,7 +24,7 @@
                             <li><a href="product-grids.html"></a></li>
                         </ul>
                         <div class="images">
-                            <img src="assets/images/featured-categories/<%= category.image %>"
+                            <img src="/assets/images/featured-categories/<%= category.image %>"
                                 alt="<%= category.categoryName %>">
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                     <!-- Start Single Product -->
                     <div class="single-product">
                         <div class="product-image">
-                            <img src="assets/images/products/<%= product.sectionProducts.image %>"
+                            <img src="/assets/images/products/<%= product.sectionProducts.image %>"
                                 alt="<%= product.sectionProducts.name %>">
 
                             <div class="button">
@@ -73,7 +73,7 @@
                                 <% } %>
                                     <h4 class="title">
                                         <a
-                                            href="product-details/<%- helper.generateJwtOTPEncrypt(product.sectionProducts.product_auto_id) %>/<%- product.sectionProducts.slug %>">
+                                            href="/product-details/<%- helper.generateJwtOTPEncrypt(product.sectionProducts.product_auto_id) %>/<%- product.sectionProducts.slug %>">
                                             <%= product.sectionProducts.name %>
                                         </a>
                                     </h4>

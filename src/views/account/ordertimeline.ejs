@@ -1,22 +1,15 @@
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f1f3f6;
-        padding: 20px;
-    }
-
     .timeline {
         position: relative;
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto;
-        padding-left: 40px;
+        padding: 20px 0 20px 40px;
     }
 
-    /* Vertical line */
     .timeline::before {
         content: '';
         position: absolute;
-        left: 20px;
+        left: 18px;
         top: 0;
         width: 4px;
         height: 100%;
@@ -26,86 +19,149 @@
 
     .timeline-item {
         position: relative;
-        margin-bottom: 30px;
+        margin-bottom: 24px;
     }
 
-    .timeline-item:last-child {
-        margin-bottom: 0;
-    }
-
-    /* Node circle */
     .timeline-item::before {
         content: '';
         position: absolute;
-        left: 12px;
-        top: 0;
-        width: 16px;
-        height: 16px;
+        left: 10px;
+        top: 8px;
+        width: 14px;
+        height: 14px;
         background: #4dabf7;
-        border: 3px solid #fff;
         border-radius: 50%;
         box-shadow: 0 0 0 4px rgba(77, 171, 247, 0.2);
     }
 
     .timeline-content {
         background: #fff;
-        padding: 12px 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        padding: 14px 16px;
+        border-radius: 10px;
         margin-left: 40px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .timeline-content strong {
-        display: block;
-        font-size: 16px;
-        margin-bottom: 5px;
+    .timeline-status {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1971c2;
+        margin-bottom: 6px;
     }
 
-    .timeline-content small {
-        color: #6c757d;
+    .timeline-meta {
+        margin-bottom: 8px;
+    }
+
+    .timeline-reason {
+        background: #f1f3f5;
+        font-size: 13px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .timeline-remark {
         font-size: 14px;
+        line-height: 1.5;
+        color: #333;
+        margin-bottom: 10px;
     }
 
-    @media (max-width: 480px) {
+    .timeline-date {
+        font-size: 12px;
+        color: #868e96;
+        text-align: right;
+    }
+
+    @media (max-width: 576px) {
+
         .timeline {
-            padding-left: 30px;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            left: 12px;
+            width: 3px;
         }
 
         .timeline-item::before {
-            left: 8px;
+            left: 6px;
+            width: 12px;
+            height: 12px;
         }
 
         .timeline-content {
-            margin-left: 30px;
-            padding: 10px;
+            margin-left: 28px;
+            padding: 12px;
         }
+
+        .timeline-status {
+            font-size: 14px;
+        }
+
+        .timeline-reason {
+            font-size: 12px;
+            padding: 3px 6px;
+        }
+
+        .timeline-remark {
+            font-size: 13px;
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            text-align: left;
+            margin-top: 6px;
+        }
+    }
+
+    .timeline-content {
+        transition: transform 0.2s ease;
+    }
+
+    .timeline-content:active {
+        transform: scale(0.98);
     }
 </style>
 
 
 <div class="timeline">
-    <div class="timeline-item">
-        <div class="timeline-content">
-            <strong>Pending</strong>
-            <small>24 Dec 2025, 10:30 AM</small>
+
+    <% timelines.forEach(timeline=> { %>
+        <div class="timeline-item">
+            <div class="timeline-content">
+
+                <!-- STATUS -->
+                <div class="timeline-status">
+                    <%= timeline.status %>
+                </div>
+
+                <!-- META -->
+                <div class="timeline-meta">
+                    <span class="timeline-reason">
+                        remarks: <%= timeline.reason || '—' %>
+                    </span>
+                </div>
+
+                <!-- REMARK -->
+                <% if(timeline.remark){ %>
+                    <div class="timeline-meta">
+                        <span class="timeline-reason">
+                            message: <%= timeline.remark || '—' %>
+                        </span>
+                    </div>
+
+
+                    <% } %>
+
+                        <!-- DATE -->
+                        <div class="timeline-date">
+                            <%= helper.dateToReadAbleFormat(timeline.createdAt) %>
+                        </div>
+
+            </div>
         </div>
-    </div>
-    <div class="timeline-item">
-        <div class="timeline-content">
-            <strong>Confirmed</strong>
-            <small>25 Dec 2025, 02:15 PM</small>
-        </div>
-    </div>
-    <div class="timeline-item">
-        <div class="timeline-content">
-            <strong>Shipped</strong>
-            <small>26 Dec 2025, 11:00 AM</small>
-        </div>
-    </div>
-    <div class="timeline-item">
-        <div class="timeline-content">
-            <strong>Delivered</strong>
-            <small>28 Dec 2025, 04:45 PM</small>
-        </div>
-    </div>
+        <% }); %>
+
 </div>

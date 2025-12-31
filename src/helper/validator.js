@@ -9,15 +9,7 @@ const loginSchema = Joi.object({
 });
 
 const checkoutSchema = Joi.object({
-  first_name: Joi.string().trim().min(2).required().messages({
-    "string.empty": "First name is required"
-  }),
-
-  last_name: Joi.string().trim().min(2).required().messages({
-    "string.empty": "Last name is required"
-  }),
-
-  email: Joi.string().email().required().messages({
+email: Joi.string().email().required().messages({
     "string.email": "Invalid email address",
     "string.empty": "Email is required"
   }),
@@ -96,6 +88,31 @@ const cancel_reason = Joi.object({
   .max(255)
   .label("message"),
 });
+ const contactUsSchema = Joi.object({
+  name: Joi.string()
+    .max(255)
+    .required()
+    .label("Name"),
+
+  subject: Joi.string()
+    .max(255)
+    .required()
+    .label("Subject"),
+
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .max(255)
+    .required()
+    .label("Email"),
+
+phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
+"string.pattern.base": "Mobile number must be 10 digits",
+"string.empty": "Mobile number is required"
+}),
+  message: Joi.string()
+    .max(255)
+    .label("Message"),
+});
 
 
 export default {
@@ -104,5 +121,6 @@ export default {
   changePasswordSchema,
   forgotPassword,
   passwordUpdate,
-  cancel_reason
+  cancel_reason,
+  contactUsSchema
 };
