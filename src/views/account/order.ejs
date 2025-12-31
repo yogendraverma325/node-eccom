@@ -1,90 +1,37 @@
-<div class="account-content container mt-5">
-    <h2 class="section-title mb-4">My Orders</h2>
-
-    <!-- Order Filter -->
-    <div class="order-filter mb-4 d-flex gap-2 flex-wrap">
-        <button class="btn btn-outline-primary active" data-status="all">All</button>
-        <button class="btn btn-outline-primary" data-status="pending">Pending</button>
-        <button class="btn btn-outline-primary" data-status="shipped">Shipped</button>
-        <button class="btn btn-outline-primary" data-status="delivered">Delivered</button>
-        <button class="btn btn-outline-primary" data-status="cancelled">Cancelled</button>
-    </div>
-
-    <!-- Orders List -->
-    <div class="row g-3">
-        <% if (orders && orders.length> 0) { %>
-            <% orders.forEach(order=> { %>
-                <div class="col-12 col-md-6 col-lg-4 order-card" data-status="<%= order.order_status %>">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body d-flex flex-column justify-content-between">
-                            <div>
-                                <h5 class="card-title mb-2">Order #<%= order.order_number %>
-                                </h5>
-                                <p class="mb-1"><strong>Placed on:</strong>
-                                    <%= helper.dateToReadAbleFormat(order.createdAt)%>
-                                </p>
-                                <p class="mb-1"><strong>Grand Total:</strong> ₹<%= order.grand_total %>
-                                </p>
-                                <p class="mb-1"><strong>Discount:</strong> ₹<%= order.discount_amount %>
-                                </p>
-                                <span class="badge 
-                                    <% if(order.order_status === 'pending'){ %> bg-warning
-                                    <% } else if(order.order_status === 'shipped'){ %> bg-info
-                                    <% } else if(order.order_status === 'delivered'){ %> bg-success
-                                    <% } else if(order.order_status === 'cancelled'){ %> bg-danger
-                                    <% } %>">
-                                    <%= order.order_status %>
-                                </span>
-                            </div>
-                            <div class="mt-3 d-grid gap-2">
-                                <!-- View Details button -->
-                                <a href="/order-details/<%= helper.generateJwtOTPEncrypt(order.order_id) %>"
-                                    class="btn btn-primary btn-sm w-100">
-                                    View Details
-                                </a>
-
-                                <!-- Timeline button -->
-                                <a href="/order-timeline/<%=helper.generateJwtOTPEncrypt(order.order_id) %>"
-                                    class="btn btn-secondary btn-sm w-100">
-                                    View Timeline
-                                </a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-                <% }); %>
-                    <% } else { %>
-                        <div class="col-12">
-                            <div class="alert alert-info text-center">You have no orders yet.</div>
-                        </div>
-                        <% } %>
-    </div>
-</div>
-
-<script>
-    // Filter functionality
-    const filterBtns = document.querySelectorAll('.order-filter button');
-    const orderCards = document.querySelectorAll('.order-card');
-
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            const status = btn.dataset.status;
-            orderCards.forEach(card => {
-                if (status === 'all' || card.dataset.status === status) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    });
-</script>
-
 <style>
+    .status-wrapper {
+        display: flex;
+        flex-direction: column;
+        /* 👈 yahi main fix hai */
+        /* 👈 yahi main fix hai */
+        gap: 4px;
+
+        flex-wrap: wrap;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 13px;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        font-size: 12px;
+        text-transform: capitalize;
+    }
+
+    .bg-muted {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+
     .order-card .card {
         transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -105,3 +52,160 @@
         }
     }
 </style>
+<div class="account-content container mt-5">
+    <h2 class="section-title mb-4">My Orders</h2>
+
+    <!-- Order Filter -->
+    <div class="order-filter mb-4 d-flex gap-2 flex-wrap">
+
+        <select name="order_status" class="form-select w-auto" id="orderStatus">
+            <option value="" <%=!order_status ? 'selected' : '' %>>All Orders</option>
+            <option value="pending" <%=order_status==='pending' ? 'selected' : '' %>>Pending</option>
+            <option value="shipped" <%=order_status==='shipped' ? 'selected' : '' %>>Shipped</option>
+            <option value="delivered" <%=order_status==='delivered' ? 'selected' : '' %>>Delivered</option>
+            <option value="cancelled" <%=order_status==='cancelled' ? 'selected' : '' %>>Cancelled</option>
+
+        </select>
+    </div>
+
+    <!-- Orders List -->
+    <div class="row g-3">
+        <% if (orders && orders.rows.length> 0) { %>
+            <% orders.rows.forEach(order=> { %>
+                <div class="col-12 col-md-6 col-lg-4 order-card" data-status="<%= order.order_status %>">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title mb-2">Order #<%= order.order_number %>
+                                </h5>
+                                <p class="mb-1"><strong>Placed on:</strong>
+                                    <%= helper.dateToReadAbleFormat(order.createdAt)%>
+                                </p>
+                                <p class="mb-1"><strong>Grand Total:</strong> ₹<%= order.grand_total %>
+                                </p>
+                                <p class="mb-1"><strong>Discount:</strong> ₹<%= order.discount_amount %>
+                                </p>
+                                <div class="status-wrapper">
+                                    <div class="status-item">
+                                        <span class="status-label">Payment:</span>
+                                        <span class="badge
+                                        <% if(order.payment_status === 'pending'){ %> bg-warning
+                                        <% } else if(order.payment_status === 'paid'){ %> bg-success
+                                        <% } %>">
+                                            <%= order.payment_status %>
+                                        </span>
+                                    </div>
+
+                                    <div class="status-item">
+                                        <span class="status-label">Order:</span>
+                                        <span class="badge
+                                        <% if(order.order_status === 'pending'){ %> bg-muted
+                                        <% } else if(order.order_status==='confirmed' ){ %> bg-warning
+                                        <% } else if(order.order_status === 'shipped'){ %> bg-info
+                                        <% } else if(order.order_status === 'delivered'){ %> bg-success
+                                        <% } else if(order.order_status === 'cancelled'){ %> bg-danger
+                                        <% } %>">
+                                            <%= order.order_status %>
+                                        </span>
+                                        <% if(order.order_status==='confirmed' ){ %>
+                                            <button type="button" class="btn btn-sm btn-outline-danger cancel-order-btn"
+                                                data-order-id="<%= helper.generateJwtOTPEncrypt(order.order_id) %>">
+                                                Cancel
+                                            </button>
+                                            <% } %>
+                                    </div>
+                                    <div class="status-item">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="mt-3 d-grid gap-2">
+                                <!-- View Details button -->
+                                <a href="/order-details/<%= helper.generateJwtOTPEncrypt(order.order_id) %>"
+                                    class="btn btn-primary btn-sm w-100">
+                                    View Details
+                                </a>
+
+                                <!-- Timeline button -->
+                                <a href="/order-timeline/<%=helper.generateJwtOTPEncrypt(order.order_id) %>"
+                                    class="btn btn-secondary btn-sm w-100">
+                                    View Timeline
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <!-- Pagination -->
+                    <div class="pagination left">
+                        <ul class="pagination-list">
+                            <% for (let i=1; i <=totalPages; i++) { %>
+                                <li class="<%= i == current_page ? 'active' : '' %>">
+                                    <% let url=`?page=${i}`; if (order_status) { url +=`&order_status=${order_status}`;
+                                        } %>
+
+
+                                        <a href="<%= url %>">
+                                            <%= i %>
+                                                <% current_page %>
+                                        </a>
+                                </li>
+                                <% } %>
+
+                        </ul>
+                    </div>
+                    <!--/ End Pagination -->
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">You have no orders yet.</div>
+                        </div>
+                        <% } %>
+    </div>
+</div>
+<!-- order cancel modal -->
+
+<div class="modal fade" id="cancelOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" id="cancelOrderForm" action="/cancelOrder" method="POST">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="cancelOrderId" name="cancelOrderId">
+
+                <div class="mb-3">
+                    <label class="form-label">Reason *</label>
+                    <select class="form-select" id="cancelReason" required name="cancel_reason">
+                        <option value="">Select reason</option>
+                        <option value="customer_request">Customer Request</option>
+                        <option value="out_of_stock">Out of Stock</option>
+                        <option value="delay">Delivery Delay</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Message *</label>
+                    <textarea class="form-control" id="cancelMessage" rows="3" placeholder="Enter cancellation message"
+                        name="cancel_message" required></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    Confirm Cancel
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+<!-- order cancel modal -->
+
+<script src="/assets/js/orderList.js"></script>

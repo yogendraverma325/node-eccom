@@ -347,6 +347,7 @@ const products = await db.product.findAndCountAll({
 	}
 
 	async checkoutProcess(req, res){
+			const transaction = await db.sequelize.transaction();
 	try {
 		const userCart = req.cookies.userCart;
 		let cartList= await returnCartList(userCart);
@@ -402,7 +403,7 @@ let checkoutData=value;
 			let orderCount=await db.orders.count()+1;
 			let userId=1
 			let orderNumber=await helper.generateOrderNo(orderCount);
-			const transaction = await db.sequelize.transaction();
+		
 
 	const orderData = {
 		order_number: orderNumber,
@@ -470,7 +471,7 @@ if(checkoutData.shipping=='POD'){
 
 	}
 	catch (error) {
-		//    await transaction.rollback();
+		   await transaction.rollback();
 		console.log("error",error)
 		req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
 		res.redirect('/checkout'); 
@@ -574,10 +575,23 @@ async  pincodeList (req, res){
 
 }
 async account(req, res){
-	let userId=req.session.user.id;
-	  const orders = await db.orders.findAll({where:{
-	user_id:userId
-	}});
+	
+			const current_page = req.query.page || 1;     // "page"
+			const order_status = req.query.order_status || null;;     // "page"
+			const limit=9;
+			const offset = (current_page - 1) * limit;
+	//let userId=req.session.user.id;
+			const orders = await db.orders.findAndCountAll({
+			where:{
+				...order_status && {order_status:order_status}
+			//user_id:userId
+			},
+			limit: limit > 0 ? parseInt(limit) : null,
+			offset: offset > 0 ? parseInt(offset) : null,
+			order : [['createdAt', 'DESC']]
+			});
+			let totalPages = Math.ceil(orders.count / limit);
+			console.log("order_status",order_status)
 	res.render('account/layout', {
 		title: `Accont`,
 		description: `Accont`,
@@ -586,7 +600,10 @@ async account(req, res){
         page: 'order.ejs',
         // 👇 inner page data
         pageData: {
-            orders
+            orders,
+			current_page,
+			totalPages,
+			order_status
         }
     });
 }
@@ -741,6 +758,80 @@ let encryptedId = req.params.orderid || null; // "MQ=="
 			console.log(error);
 			req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));
 			return res.redirect('/change-passord');
+		}
+	}
+	async cancelOrder(req, res) {
+			const transaction = await db.sequelize.transaction();
+		try {
+		
+let userid=1;
+				const { error, value } = validator.cancel_reason.validate(req.body, {
+				abortEarly: false // 🔥 saare errors ek sath
+				});
+				if (error) {
+				let errors={}
+				error.details.forEach(err => {
+				errors[err.path[0]] = err.message;
+				});
+
+
+		
+		
+			req.flash('message', JSON.stringify({ type: 'success', text: 'Please select reason/Fill message' }));
+			return res.redirect('/account');
+			}
+
+					let encryptedId =value.cancelOrderId;
+
+					// 				body {
+					//   cancelOrderId: 'Nw==',
+					//   cancel_reason: 'out_of_stock',
+					//   cancel_message: 'dsdsd'
+					// }
+					let orderId=null;
+					if (encryptedId) {
+					orderId=helper.generateJwtOTPDecrypt(encryptedId);
+					}
+			const order = await db.orders.findOne({where:{
+				order_id:orderId,
+				order_status:'confirmed'
+				}});
+
+			
+				
+				if(!order){
+                  req.flash('message', JSON.stringify({ type: 'error', text: 'Can not cancel the order' }));
+				  return res.redirect('/account');
+				}
+				
+				await db.orders.update(
+				{
+				order_status: 'cancelled'
+				},
+				{
+				where: {
+				order_id:orderId
+				},
+				transaction
+				}
+				);
+				await helper.timelineCreation(transaction,{
+					order_id:orderId,
+					status:'cancelled',
+					reason:value.cancel_reason,
+					remark:value.cancel_message,
+					createdBy:userid
+				});
+				await transaction.commit();
+				req.flash('message', JSON.stringify({ type: 'success', text: 'Order has been cancelled' }));
+				return res.redirect('/account');
+			
+
+		} catch (error) {
+			console.log("error",error)
+			await transaction.rollback();
+			req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));
+			return res.redirect('/account');
 		}
 	}
 }

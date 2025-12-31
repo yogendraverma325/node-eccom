@@ -4635,6 +4635,16 @@ const  applyCouponCode=(couponCode,Subtotal,shipping)=> {
 const dateToReadAbleFormat=(date)=>{
 return moment(date).format("dddd, MMMM Do YYYY, h:mm:ss A")
 }
+const timelineCreation=async (transaction,data)=>{
+	console.log("data",data)
+	await db.order_status_timeline.create({
+			order_id:data.order_id,
+			status:data.status,
+			remark:data.remark,
+			createdBy:data.createdBy,
+			reason:data.reason
+	}, { transaction} );
+}
 export default {
 	getLoggedinUser,
 	checkFolder,
@@ -4651,5 +4661,6 @@ export default {
 	generateOrderNo,
 	applyCouponCode,
 	dateToReadAbleFormat,
-	encryptPassword
+	encryptPassword,
+	timelineCreation
 };

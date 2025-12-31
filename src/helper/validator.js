@@ -82,12 +82,27 @@ const passwordUpdate = Joi.object({
 		.required()
 		.label("Password"),
 });
+const cancel_reason = Joi.object({
+  cancelOrderId: Joi.string()
+    .min(4)
+    .required()
+    .label("OTP is required"),
+
+  cancel_reason: Joi.string()
+    .required()
+    .label("reson"),
+  cancel_message: Joi.string()
+  .required()
+  .max(255)
+  .label("message"),
+});
+
 
 export default {
 	loginSchema,
 	checkoutSchema,
   changePasswordSchema,
   forgotPassword,
-  passwordUpdate
-	// end by jay
+  passwordUpdate,
+  cancel_reason
 };
