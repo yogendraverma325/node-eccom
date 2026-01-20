@@ -80,7 +80,8 @@ class AuthController {
 			// Set session
 			req.session.user = {
 			id: user.userId,
-			name: user.name
+			name: user.name,
+			email: user.email
 			}; 
 
 			// const hashedPassword = await helper.encryptPassword(result.password);

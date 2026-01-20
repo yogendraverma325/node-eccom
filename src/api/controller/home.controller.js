@@ -350,6 +350,8 @@ const products = await db.product.findAndCountAll({
 	async checkoutProcess(req, res){
 			const transaction = await db.sequelize.transaction();
 			let userId=req.session.user.id;
+			let email=req.session.user.email;
+			let name=req.session.user.name;
 			//let userId=1
 	try {
 		const userCart = req.cookies.userCart;
@@ -472,7 +474,22 @@ if(checkoutData.shipping=='POD'){
 					remark:'order placed',
 					createdBy:userId
 				});
+			
 	await transaction.commit();
+	// mail for order placed
+	let paymentMehthod='COD'
+		eventEmitter.emit(
+		"orderConfirmation",
+		JSON.stringify({
+			email,
+			orderNumber,
+			name,
+			discount,
+			paymentMehthod,
+			grandTotal
+		}),
+		);
+// mail for order placed
 	req.session.orderPlaced = true;
 	req.flash('message', JSON.stringify({ type: 'success', text: 'Order has been Placed' }));	
 	res.redirect('/'); 
