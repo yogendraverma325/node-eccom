@@ -8,6 +8,7 @@ import validator from "../../helper/validator.js";
 import {getState,getCity,getPincodes,businessLogic} from "../services/centralService.js"
 import bcrypt from "bcryptjs";
 import moment from 'moment';
+import eventEmitter from "../services/eventService.js";
 class HomeController {
 	async home(req, res) {
 		try {
@@ -526,6 +527,12 @@ if(checkoutData.shipping=='POD'){
 					subject,
 					message,
 					})
+					eventEmitter.emit(
+						"contactus",
+						JSON.stringify({
+							name, subject, email,phone,message
+						}),
+					);
 				req.flash('message', JSON.stringify({ type: 'success', text: 'We will connect with you soon' }));	
 				res.redirect('/contact'); // back to the previous page
 			 }

@@ -6,6 +6,7 @@ import db from "../../config/db.config.js";
 import helper from "../../helper/helper.js";
 import respHelper from "../../helper/respHelper.js";
 import moment from 'moment';
+import eventEmitter from "../services/eventService.js";
 class AuthController {
 	async login(req, res) {
 		try {
@@ -142,10 +143,40 @@ try{
 				}
 				);
 			if(!userData){
-			req.flash('message', JSON.stringify({ type: 'success', text: 'OTP sent to your email for verification' }));
+			req.flash('message', JSON.stringify({ type: 'error', text: 'Account does not exist' }));
+			return res.redirect('/user/forgot-password');
 			}
 			req.session.userEmail = value.email;
-			return res.redirect('/user/otp-verification');
+			let email=value.email;
+			const today = moment().startOf('day'); // 00:00:00 today
+			const otpDate = userData.otp_date ? moment(userData.otp_date).startOf('day') : null;
+
+			// 3. OTP count check
+			if (otpDate && otpDate.isSame(today, 'day') && userData.otp_count_of_the_date >= 3) {
+			req.flash('message', JSON.stringify({ type: 'error', text: 'You can only request 3 OTPs per day' }));
+			return res.redirect('/user/forgot-password');
+			}
+			 const newOtp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+			eventEmitter.emit(
+			"OTP",
+			JSON.stringify({
+			email,
+			newOtp,
+			userData
+			}),
+			);
+			  await db.user.update(
+            {
+                otp: newOtp,
+                otp_date: today.toDate(),
+                otp_count_of_the_date: otpDate && otpDate.isSame(today, 'day') 
+                                        ? userData.otp_count_of_the_date + 1 
+                                        : 1
+            },
+            { where: { email:email } }
+        );
+		req.flash('message', JSON.stringify({ type: 'success', text: 'OTP sent to your email for verification' }));
+        return res.redirect('/user/otp-verification');
 		}
 		catch (error) {
 			console.log(error);
@@ -285,7 +316,14 @@ try{
             { where: { email:email } }
         );
 
-			console.log("email",email);
+				eventEmitter.emit(
+				"OTP",
+				JSON.stringify({
+					email,
+					newOtp,
+					userData
+				}),
+				);
 		return respHelper(res, {
 		status: 200,
 		data: {},
