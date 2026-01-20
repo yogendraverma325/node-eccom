@@ -1,4 +1,72 @@
 <!-- Start Item Details -->
+<style>
+    .meta-data {
+        list-style: none;
+        /* default bullets hataye */
+        padding: 0;
+        margin: 10px 0;
+        font-family: 'Arial', sans-serif;
+        color: #333;
+    }
+
+    .meta-data li {
+        position: relative;
+        padding-left: 18px;
+        margin-bottom: 4px;
+        font-size: 14px;
+        line-height: 1.6;
+        transition: transform 0.2s;
+    }
+
+    /* Custom bullet - checkmark style */
+    .meta-data li::before {
+        content: "*";
+        /* aap ✓ ya 🎯 bhi use kar sakte ho */
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    /* Hover effect */
+    .meta-data li:hover {
+        transform: translateX(5px);
+        color: #1E88E5;
+    }
+
+    .service-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        /* spacing between badges */
+        margin: 15px 0;
+    }
+
+    .info-badge {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-block;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+    /* Bold label */
+    .info-badge strong {
+        font-weight: 600;
+        margin-right: 5px;
+    }
+
+    /* Hover effect */
+    .info-badge:hover {
+        background-color: #1E88E5;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+</style>
 <section class="item-details section">
     <div class="container">
         <div class="top-area">
@@ -21,72 +89,82 @@
                         </main>
                     </div>
                 </div>
+
                 <div class="col-lg-6 col-md-12 col-12">
                     <div class="product-info">
-                        <% if (productDetails.for_gender===1) { %>
-                            <span class="category">
-                                <%= productDetails.gender_applicability %>
-                            </span>
-                            <% } %>
-                                <h2 class="title">
-                                    <%= productDetails.name %>
-                                </h2>
-                                <h3 class="price">
-                                    <i class="fa fa-rupee"></i></i>
-                                    <%= productDetails.price %>
-                                        <% if (productDetails.offerprice) { %>
-                                            <span class="cross-price">
-                                                <%= productDetails.offerprice %>
+                        <h2 class="title">
+                            <%= productDetails.name %>
+                        </h2>
+
+                        <h3 class="price">
+                            <i class="fa fa-rupee"></i></i>
+                            <%= productDetails.price %>
+                                <% if (productDetails.offerprice) { %>
+                                    <span class="cross-price">
+                                        <%= productDetails.offerprice %>
+                                    </span>
+                                    <% } %>
+                        </h3>
+                        <p class="info-text"></p>
+                        <%= productDetails.description %>
+                            </p>
+                            <div class="service-info">
+                                <% if (productDetails.price_type) { %>
+                                    <span class="info-badge">
+                                        <strong>Price For:</strong>
+                                        <%= productDetails.price_type %>
+                                    </span>
+                                    <% } %>
+
+                                        <% if (productDetails.capacity) { %>
+                                            <span class="info-badge">
+                                                <strong>Capacity:</strong>
+                                                <%= productDetails.capacity %>
                                             </span>
                                             <% } %>
-                                </h3>
-                                <p class="info-text">
-                                    <%= productDetails.description %>.
-                                </p>
-                                <form action="/addToCart" method="POST">
-                                    <div class="row">
-                                        <div class="col-lg-4 col-md-4 col-12">
-                                            <div class="form-group quantity">
-                                                <label for="color">Quantity</label>
-                                                <select class="form-control" name="qty">
-                                                    <option>1</option>
-                                                    <option>2</option>
-                                                    <option>3</option>
-                                                    <option>4</option>
-                                                    <option>5</option>
-                                                </select>
-                                            </div>
+
+                                                <% if (productDetails.unit) { %>
+                                                    <span class="info-badge">
+                                                        <strong>Unit:</strong>
+                                                        <%= productDetails.unit %>
+                                                    </span>
+                                                    <% } %>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-12 col-md-12 col-12">
+                                    <ul class="meta-data">
+
+                                        <% productDetails.product_meta_data.forEach((product_meta_data)=> { %>
+                                            <li>
+                                                <%= product_meta_data.meta_data %>
+                                            </li>
+                                            <% }) %>
+
+
+                                    </ul>
+                                </div>
+
+
+                            </div>
+                            <p class="category"><i class="lni lni-tag"></i> Service Provider:<a
+                                    href="javascript:void(0)"></a>
+                                <%= productDetails.vendorService.vendor.vendor_name %>
+                                    </a>
+                            </p>
+                            <div class="bottom-content">
+                                <div class="row align-items-end">
+                                    <div class="col-lg-4 col-md-4 col-12">
+                                        <div class="button cart-button">
+                                            <button class="btn" style="width: 100%;">Contact For
+                                                Booking</button>
                                         </div>
                                     </div>
-                                    <div class="bottom-content">
-                                        <div class="row align-items-end">
-                                            <div class="col-lg-4 col-md-4 col-12">
-                                                <div class="button cart-button">
-
-                                                    <input type="hidden" name="productAutoId"
-                                                        value="<%- helper.generateJwtOTPEncrypt(productDetails.product_auto_id) %>">
-                                                    <button type="submit" class="btn" style="width: 100%;"> Add to Cart
-                                                    </button>
-
-
-                                                </div>
-                                            </div>
-                                            <!-- <div class="col-lg-4 col-md-4 col-12">
-                                        <div class="wish-button">
-                                            <button class="btn" type="button"><i class="lni lni-reload"></i>
-                                                Compare</button>
-                                        </div>
-                                    </div> -->
-                                            <!-- <div class="col-lg-4 col-md-4 col-12">
-                                        <div class="wish-button">
-                                            <button class="btn" type="button"><i class="lni lni-heart"></i> To Wishlist</button>
-                                        </div>
-                                    </div> -->
-                                        </div>
-                                    </div>
-                                </form>
+                                </div>
+                            </div>
                     </div>
                 </div>
+
             </div>
         </div>
         <div class="product-details-info">
@@ -98,7 +176,7 @@
                             <p>
                                 <%= productDetails.long_description %>
                             </p>
-                            <h4>Features</h4>
+                            <h4>Amenties</h4>
                             <ul class="features">
                                 <% productDetails.product_feature_mappings.forEach((feature)=> { %>
                                     <li>
@@ -110,23 +188,21 @@
                     </div>
                     <div class="col-lg-6 col-12">
                         <div class="info-body">
-                            <h4>Specifications</h4>
+                            <h4>Inclusion /Exlusion</h4>
                             <ul class="normal-list">
-                                <% productDetails.specifications.forEach((specification)=> { %>
+
+                                <% productDetails.specifications.forEach((specification)=>
+                                    { %>
                                     <li><span>
-                                            <%= specification.specification.specification_name %>:
+                                            <%= specification.specification_value %>
+                                                :
                                         </span>
-                                        <%= specification.specification_value %>
+                                        <%= specification.specification.specification_name %>
                                     </li>
                                     <% }) %>
+
+
                             </ul>
-                            <!-- <h4>Shipping Options:</h4>
-                            <ul class="normal-list">
-                                <li><span>Courier:</span> 2 - 4 days, $22.50</li>
-                                <li><span>Local Shipping:</span> up to one week, $10.00</li>
-                                <li><span>UPS Ground Shipping:</span> 4 - 6 days, $18.00</li>
-                                <li><span>Unishop Global Export:</span> 3 - 4 days, $25.00</li>
-                            </ul> -->
                         </div>
                     </div>
                 </div>
@@ -135,63 +211,6 @@
         </div>
     </div>
 </section>
-<!-- End Item Details -->
 
-<!-- Review Modal -->
-<!-- <div class="modal fade review-modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Leave a Review</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="review-name">Your Name</label>
-                                <input class="form-control" type="text" id="review-name" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="review-email">Your Email</label>
-                                <input class="form-control" type="email" id="review-email" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="review-subject">Subject</label>
-                                <input class="form-control" type="text" id="review-subject" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="review-rating">Rating</label>
-                                <select class="form-control" id="review-rating">
-                                    <option>5 Stars</option>
-                                    <option>4 Stars</option>
-                                    <option>3 Stars</option>
-                                    <option>2 Stars</option>
-                                    <option>1 Star</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="review-message">Review</label>
-                        <textarea class="form-control" id="review-message" rows="8" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer button">
-                    <button type="button" class="btn">Submit Review</button>
-                </div>
-            </div>
-        </div>
-    </div> -->
-<!-- End Review Modal -->
 
 <script src="/assets/js/productdetails.js"></script>

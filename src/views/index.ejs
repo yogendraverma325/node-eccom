@@ -3,113 +3,54 @@
         <div class="row">
             <div class="col-12">
                 <div class="section-title">
-                    <h2>Featured Categories</h2>
-                    <p>Browse our handpicked categories showcasing customer favorites and trending collections</p>
+                    <h2>Our Services</h2>
+                    <p>Explore our trusted services for a comfortable and hassle-free stay</p>
                 </div>
             </div>
         </div>
         <div class="row">
             <% categories.forEach((category)=> { %>
-                <div class="col-lg-4 col-md-6 col-12">
+                <div class="col-lg-4 col-md-6 col-12" style="cursor: pointer;">
                     <!-- Start Single Category -->
                     <div class="single-category">
-                        <h3 class="heading">
-                            <%= category.categoryName %>
-                        </h3>
-                        <ul>
-                            <li><a href="product-grids.html"></a></li>
-                            <li><a href="product-grids.html"></a></li>
-                            <li><a href="product-grids.html"></a></li>
-                            <li><a href="product-grids.html"></a></li>
-                            <li><a href="product-grids.html"></a></li>
-                        </ul>
-                        <div class="images">
-                            <img src="/assets/images/featured-categories/<%= category.image %>"
-                                alt="<%= category.categoryName %>">
-                        </div>
+                        <a
+                            href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>">
+
+                            <h3 class="heading">
+                                <%= category.categoryName %>
+                            </h3>
+                            <ul>
+                                <li><a
+                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
+                                </li>
+                                <li><a
+                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
+                                </li>
+                                <li><a
+                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
+                                </li>
+                                <li><a
+                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
+                                </li>
+                                <li><a
+                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
+                                </li>
+                            </ul>
+                            <div class="images">
+                                <img src="/assets/images/featured-categories/<%= category.image %>"
+                                    alt="<%= category.categoryName %>">
+                            </div>
+
                     </div>
                     <!-- End Single Category -->
                 </div>
+                </a>
                 <% }) %>
         </div>
     </div>
 </section>
 
-<!-- Start Trending Product Area -->
-<section class="trending-product section" style="margin-top: 12px;">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="section-title">
-                    <h2>Trending Product</h2>
-                    <p>Explore top trending products that everyone is talking about right now</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <% hotProducts.forEach((product)=> { %>
-                <div class="col-lg-3 col-md-6 col-12">
-                    <!-- Start Single Product -->
-                    <div class="single-product">
-                        <div class="product-image">
-                            <img src="/assets/images/products/<%= product.sectionProducts.image %>"
-                                alt="<%= product.sectionProducts.name %>">
 
-                            <div class="button">
-                                <form action="/addToCart" method="POST">
-                                    <input type="hidden" name="productAutoId"
-                                        value="<%- helper.generateJwtOTPEncrypt(product.sectionProducts.product_auto_id) %>">
-                                    <button type="submit" class="btn">
-                                        <i class="lni lni-cart"></i> Add to Cart
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <% if (product.sectionProducts.for_gender===1) { %>
-                                <span class="category">
-                                    <%= product.sectionProducts.gender_applicability %>
-                                </span>
-                                <% } %>
-                                    <h4 class="title">
-                                        <a
-                                            href="/product-details/<%- helper.generateJwtOTPEncrypt(product.sectionProducts.product_auto_id) %>/<%- product.sectionProducts.slug %>">
-                                            <%= product.sectionProducts.name %>
-                                        </a>
-                                    </h4>
-                                    <ul class="review">
-                                        <%- helper.ratingAndReview(product.sectionProducts.rating) %>
-                                            <!-- <li><span><%= product.sectionProducts.review %> Review(s)</span></li> -->
-                                    </ul>
-                                    <div class="price">
-                                        <span
-                                            class="<%= product.sectionProducts.offerprice ? 'price-wrapper' : 'normal-price' %>">
-                                            <i class="fa fa-rupee"></i>
-
-                                            <% if (product.sectionProducts.offerprice) { %>
-                                                <span class="normal-price">
-                                                    <%= product.sectionProducts.price %>
-                                                </span>
-                                                <span class="cross-price">
-                                                    <%= product.sectionProducts.offerprice %>
-                                                </span>
-                                                <% } else { %>
-                                                    <span>
-                                                        <%= product.sectionProducts.price %>
-                                                    </span>
-                                                    <% } %>
-                                        </span>
-                                    </div>
-                        </div>
-                    </div>
-                    <!-- End Single Product -->
-                </div>
-                <% }) %>
-
-        </div>
-    </div>
-</section>
-<!-- End Trending Product Area -->
 
 <!-- Start Shipping Info -->
 <section class="shipping-info">
@@ -121,10 +62,8 @@
                     <i class="lni lni-delivery"></i>
                 </div>
                 <div class="media-body">
-                    <h5>Free Shipping</h5>
-                    <span>On order above <i class="fa fa-rupee"></i>
-                        <%- helper.getValueFromKey(businessLogic,'MIN_CART_VALUE') %>
-                    </span>
+                    <h5>Trusted Services</h5>
+                    <span>Verified rooms, rentals & local providers</span>
                 </div>
             </li>
             <!-- Money Return -->
@@ -143,8 +82,8 @@
                     <i class="lni lni-credit-cards"></i>
                 </div>
                 <div class="media-body">
-                    <h5>POD/COD Payment.</h5>
-                    <span>Offline Payment Services.</span>
+                    <h5>Easy Enquiry.</h5>
+                    <span>Quick call & WhatsApp booking</span>
                 </div>
             </li>
             <!-- Safe Payment -->
@@ -153,8 +92,8 @@
                     <i class="lni lni-reload"></i>
                 </div>
                 <div class="media-body">
-                    <h5>Easy Return.</h5>
-                    <span>Hassle Free Shopping.</span>
+                    <h5>Best Price Guarantee</h5>
+                    <span>No hidden charges.</span>
                 </div>
             </li>
         </ul>

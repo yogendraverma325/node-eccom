@@ -1,49 +1,50 @@
-<!-- Start Product Grids -->
+<style>
+    .meta-data {
+        list-style: none;
+        /* default bullets hataye */
+        padding: 0;
+        margin: 10px 0;
+        font-family: 'Arial', sans-serif;
+        color: #333;
+    }
+
+    .meta-data li {
+        position: relative;
+        padding-left: 18px;
+        margin-bottom: 4px;
+        font-size: 14px;
+        line-height: 1.6;
+        transition: transform 0.2s;
+    }
+
+    /* Custom bullet - checkmark style */
+    .meta-data li::before {
+        content: "*";
+        /* aap ✓ ya 🎯 bhi use kar sakte ho */
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    /* Hover effect */
+    .meta-data li:hover {
+        transform: translateX(5px);
+        color: #1E88E5;
+    }
+</style>
 <section class="product-grids section">
     <div class="container">
         <div class="row">
             <div class="col-lg-3 col-12">
                 <!-- Start Product Sidebar -->
                 <div class="product-sidebar">
+
+
+
                     <!-- Start Single Widget -->
-                    <!-- <div class="single-widget search">
-                        <h3>Search Product</h3>
-                        <form action="/">
-                            <input type="text" placeholder="Search Here...">
-                            <button type="submit"><i class="lni lni-search-alt"></i></button>
-                        </form>
-                    </div> -->
-                    <!-- End Single Widget -->
-                    <!-- Start Single Widget -->
-                    <% if(SubCategoryList.length>0){ %>
-                        <div class="single-widget">
-                            <h3>All Categories</h3>
-                            <ul class="list">
-                                <% SubCategoryList.forEach((sub_category)=> { %>
-                                    <li>
-                                        <a
-                                            href="/products?category=<%=sub_category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(sub_category.catAutoId) %>">
-                                            <%= sub_category.categoryName %>
-                                        </a>
-                                    </li>
-                                    <% }) %>
-                            </ul>
-                        </div>
-                        <% } %>
-                            <!-- End Single Widget -->
-                            <!-- Start Single Widget -->
-                            <!-- <div class="single-widget range">
-                        <h3>Price Range</h3>
-                        <input type="range" class="form-range" name="range" step="1" min="100" max="10000" value="10"
-                            onchange="rangePrimary.value=value">
-                        <div class="range-inner">
-                            <label>$</label>
-                            <input type="text" id="rangePrimary" placeholder="100" />
-                        </div>
-                    </div> -->
-                            <!-- End Single Widget -->
-                            <!-- Start Single Widget -->
-                            <!-- <div class="single-widget condition">
+                    <div class="single-widget condition">
                         <h3>Filter by Price</h3>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault1">
@@ -69,12 +70,12 @@
                                 $1,000 - $5,000 (213)
                             </label>
                         </div>
-                    </div> -->
+                    </div>
 
                 </div>
                 <!-- End Product Sidebar -->
             </div>
-            <div class="<%= SubCategoryList && SubCategoryList.length > 0 ? 'col-lg-9' : 'col-lg-12' %> col-12">
+            <div class="col-lg-9 col-12">
                 <div class="product-grids-head">
                     <div class="product-grid-topbar">
                         <div class="row align-items-center">
@@ -92,48 +93,56 @@
                                     </select>
                                 </div>
                             </div>
-
+                            <div class="col-lg-5 col-md-4 col-12">
+                                <nav>
+                                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                        <button class="nav-link">Filters</button>
+                                    </div>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                     <div class="tab-content" id="nav-tabContent">
-                        <div class="tab-pane fade show active" id="nav-grid" role="tabpanel"
-                            aria-labelledby="nav-grid-tab">
+
+                        <div class="tab-pane fade active show" id="nav-list" role="tabpanel"
+                            aria-labelledby="nav-list-tab">
                             <div class="row">
                                 <% products.rows.forEach((product)=> { %>
-                                    <div class="col-lg-4 col-md-6 col-12">
+                                    <div class="col-lg-12 col-md-12 col-12">
                                         <!-- Start Single Product -->
                                         <div class="single-product">
-                                            <div class="product-image">
-                                                <img src="/assets/images/products/<%= product.image %>"
-                                                    alt="<%= product.name %>">
-                                                <div class="button">
-                                                    <form action="/addToCart" method="POST">
-                                                        <input type="hidden" name="productAutoId"
-                                                            value="<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>">
-                                                        <button type="submit" class="btn">
-                                                            <i class="lni lni-cart"></i> Add to Cart
-                                                        </button>
-                                                    </form>
-
+                                            <div class="row align-items-center">
+                                                <div class="col-lg-4 col-md-4 col-12">
+                                                    <div class="product-image">
+                                                        <img src="/assets/images/products/<%= product.image %>"
+                                                            alt="<%= product.name %>">
+                                                        <div class="button">
+                                                            <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
+                                                                class="
+                                                        btn"> View</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="product-info">
-                                                <% if (product.for_gender===1) { %>
-                                                    <span class="category">
-                                                        <%= product.gender_applicability %>
-                                                    </span>
-                                                    <% } %>
+                                                <div class="col-lg-4 col-md-4 col-12">
+                                                    <div class="product-info">
+
+
+
+                                                        <!-- PRODUCT NAME -->
                                                         <h4 class="title">
                                                             <a
-                                                                href="/product-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>">
-                                                                <%= product.name %>
+                                                                href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>">
+                                                                <%- product.name %>
                                                             </a>
                                                         </h4>
+
+                                                        <!-- RATING -->
                                                         <ul class="review">
                                                             <%- helper.ratingAndReview(product.rating) %>
                                                         </ul>
-                                                        <div class="price">
 
+                                                        <!-- PRICE -->
+                                                        <div class="price">
                                                             <span
                                                                 class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
                                                                 <i class="fa fa-rupee"></i>
@@ -151,10 +160,22 @@
                                                                         </span>
                                                                         <% } %>
                                                             </span>
-
-
-
                                                         </div>
+
+
+
+                                                    </div>
+
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-12">
+                                                    <ul class="meta-data">
+                                                        <% product.product_feature_mappings.forEach((feature)=> { %>
+                                                            <li>
+                                                                <%= feature.feature_value %>
+                                                            </li>
+                                                            <% }) %>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                         <!-- End Single Product -->
@@ -178,20 +199,17 @@
                                                         </a>
                                                 </li>
                                                 <% } %>
-
                                         </ul>
                                     </div>
                                     <!--/ End Pagination -->
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-<!-- End Product Grids -->
 
 <script src="/assets/js/productlist.js"></script>

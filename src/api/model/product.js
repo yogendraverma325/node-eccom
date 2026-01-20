@@ -53,6 +53,19 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		 
+		price_type: {
+		type: Sequelize.STRING,  // 'per_hour','per_day','per_night', 'per_person','per_item','fixed'
+		},
+		capacity: {
+		type: Sequelize.STRING,  //  -- optional
+		},
+		unit: {
+		type: Sequelize.STRING,  //  AC / Non-AC / 4 Seater / Veg / Non-Veg
+		},
+		vendor_service_id: {
+		type: Sequelize.INTEGER,
+		},
 	});
 	return product;
 };

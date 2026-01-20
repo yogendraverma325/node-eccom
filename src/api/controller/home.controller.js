@@ -13,37 +13,13 @@ class HomeController {
 	async home(req, res) {
 		try {
 					
-			        const categories = await getCategories(0,6)
-					
-					const hotProducts = await db.productSectionMapping.findAll({
-						order: [["createdAt", "DESC"]],
-						limit: 10,
-						include: [
-							{
-								model: db.product,
-								as: "sectionProducts",
-								attributes: ["product_auto_id", "name", "image","price","offerprice","rating","description","review","slug","for_gender","gender_applicability"],
-								where: {
-									isActive: 1
-								}
-							}
-						],
-						where:{
-							sectionId:1
-						}
-					});
-
-					req.session.orderPlaced = false;
-					res.render('index', {
-					title: 'Home',
-					description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
-					categories,
-					hotProducts
-					});
-
-			
-			
-			
+			const categories = await getCategories(0,12)
+			req.session.orderPlaced = false;
+			res.render('index', {
+			title: 'Home',
+			description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
+			categories,
+			});
 			
 		} catch (error) {
 			console.log("error",error);
@@ -57,7 +33,21 @@ class HomeController {
 		productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
 		}
 	let productDetails = await db.product.findOne({
-		attributes: ["product_auto_id", "name", "image","price","offerprice","description","long_description","variant_available","for_gender","gender_applicability"],
+		attributes: [
+			"product_auto_id",
+			 "name", 
+			 "image",
+			 "price",
+			 "offerprice",
+			 "description",
+			 "long_description",
+			 "variant_available",
+			 "for_gender",
+			 "gender_applicability",
+			  "price_type",
+			   "capacity",
+			   "unit"
+			],
 		where: {
 			product_auto_id: productAutoId,
 			isActive: 1
@@ -73,7 +63,10 @@ class HomeController {
 			},
 			{
 			model: db.product_meta_data,
-			attributes: ['meta_data']
+			attributes: ['meta_data'],
+			where:{
+				visibility:1
+			}
 			},
 			{
 			model: db.product_specification_mapping,
@@ -87,13 +80,20 @@ class HomeController {
 			attributes: ['specification_name']
 			}
 			]
-			}
+			},
+		{
+		model: db.vendor_services,
+		as:'vendorService',
+		include: [
+		{ model:  db.vendors},
+		]
+		},
 	]
 	});
-// 	console.log(
-//   "productDetails",
-//   JSON.stringify(productDetails, null, 2)
-// );
+	console.log(
+  "productDetails",
+  JSON.stringify(productDetails, null, 2)
+);
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
@@ -111,6 +111,7 @@ class HomeController {
 				const categorySlug = req.query.category || null;     // "cat-slug"
 				const page = req.query.page || 1;     // "page"
 				const encryptedId = req.query['category-id'] || null; // "MQ=="
+				const vendor = req.query['vendor'] || null; // "MQ=="
 				const search = (req.query.search || '').trim();
 				const sort = req.query['sort'] || ''; // "MQ=="
 				let order = [['createdAt', 'DESC']]; // default (Popularity / New)
@@ -131,16 +132,14 @@ class HomeController {
 
 	
 				let categoryId = null;
-				let subcategoryId = null;
-				let SubCategoryList=[];
-				let wholeCategory =[] ;
 				if (encryptedId) {
 					categoryId=helper.generateJwtOTPDecrypt(encryptedId);
-					SubCategoryList=await getCategories(categoryId,0);
-						wholeCategory = [
-						categoryId,
-						...SubCategoryList.map(c => c.catAutoId),
-						];
+				}
+				let vendor_id=null;
+				if(vendor){
+					vendor_id=helper.generateJwtOTPDecrypt(vendor);
+					console.log("vendorid",vendor_id)
+					
 				}
 				const limit=20;
                 const offset = (page - 1) * limit;
@@ -148,36 +147,41 @@ class HomeController {
 	const productWhere = {
 	isActive: 1
 	};
+// 	if (search && search.trim() !== '') {
+//       const words = search
+//         .trim()
+//         .toLowerCase()
+//         .split(/\s+/); // ["power", "sound", "bar"]
 
-	if (search && search.trim() !== '') {
-      const words = search
-        .trim()
-        .toLowerCase()
-        .split(/\s+/); // ["power", "sound", "bar"]
-
-    productWhere[Op.and] = words.map(word =>
-        where(
-            fn('LOWER', col('product.name')),
-            { [Op.like]: `%${word}%` }
-        )
-    );
-}
+//     productWhere[Op.and] = words.map(word =>
+//         where(
+//             fn('LOWER', col('product.name')),
+//             { [Op.like]: `%${word}%` }
+//         )
+//     );
+// }
 			
 const products = await db.product.findAndCountAll({
     where: productWhere,
-    include: [{
-        model: db.productcategorymappings,
-        as: 'mappings',
-        required: true, 
-        where: {
-			is_active: 1,
-			...(wholeCategory.length > 0 && {
-			category_id: {
-			[Op.in]: wholeCategory
-			}
-			})
-            }
-    }],
+	include: [
+		{
+    model: db.vendor_services,
+	as:'vendorService',
+	where:{
+      status:1,
+	  service_id:categoryId,
+	  ...vendor_id&& {vendor_id:vendor_id}
+	},
+	
+    include: [
+       { model:  db.vendors},
+    ]
+  },
+	{
+	model: db.product_feature_mapping,
+	attributes: ['feature_value']
+	},
+],
     // Pagination Flags
     limit: limit > 0 ? parseInt(limit) : null,
     offset: offset > 0 ? parseInt(offset) : 0,
@@ -185,16 +189,14 @@ const products = await db.product.findAndCountAll({
     distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
     order: order
 });
-		
+	// console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
 				title: `productList`,
-				description: `${categorySlug}'s Product List`,
+				description: `${categorySlug}'s services`,
 				categoryId,
 				categorySlug,
-				subcategoryId,
-				SubCategoryList,
 				products,
 				totalPages,
 				page,

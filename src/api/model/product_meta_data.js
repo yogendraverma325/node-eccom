@@ -14,6 +14,9 @@ export default (sequelize, Sequelize) => {
 		is_active: {
             type: Sequelize.INTEGER,
         },
+		visibility: {
+            type: Sequelize.INTEGER,
+        },
           createdBy: {
             type: Sequelize.INTEGER,
         },

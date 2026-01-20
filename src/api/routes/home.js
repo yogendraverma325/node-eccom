@@ -5,8 +5,8 @@ import { isLogin } from "../../middleware/authentication.js";
 
 export default Express.Router()
 	.get("/",HomeController.home)
-	.get("/product-details/:id/:slug", HomeController.productDetails) 
-	.get("/products",HomeController.productList)
+	.get("/service-details/:id/:slug/:vendor", HomeController.productDetails) 
+	.get("/services",HomeController.productList)
 	.get("/cart",HomeController.cart)
 	.post("/addToCart",HomeController.addToCart)
 	.post("/removeFromCart",HomeController.removeFromCart)

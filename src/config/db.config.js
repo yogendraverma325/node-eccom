@@ -25,6 +25,10 @@ import order_status_timeline from "../api/model/order_status_timeline.js";
 import contact_us from "../api/model/contactus.js";
 import literal from "sequelize";
 import QueryTypes from "sequelize";
+import vendors from "../api/model/vendor.js";
+import vendor_services from "../api/model/vendor_services.js";
+
+
 //
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
@@ -95,6 +99,8 @@ db.order_items=order_items(sequelize, Sequelize);
 db.order_shipping=order_shipping(sequelize, Sequelize);
 db.order_status_timeline=order_status_timeline(sequelize, Sequelize);
 db.contact_us=contact_us(sequelize, Sequelize);
+db.vendors=vendors(sequelize, Sequelize);
+db.vendor_services=vendor_services(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -183,6 +189,18 @@ db.order_items.belongsTo(db.product, {
 
 db.product.hasMany(db.order_items, {
     foreignKey: 'product_auto_id'
+});
+
+db.vendors.hasMany(db.vendor_services);
+db.vendor_services.belongsTo(db.vendors);
+
+db.product.belongsTo(db.vendor_services, {
+  foreignKey: 'vendor_service_id',
+  as: 'vendorService'
+});
+db.vendor_services.hasMany(db.product, {
+  foreignKey: 'vendor_service_id',
+  as: 'products',
 });
 
 export default db;

@@ -1,3 +1,11 @@
+<style>
+    .site-logo {
+        height: 60px;
+        /* perfect for navbar */
+        width: auto;
+        object-fit: contain;
+    }
+</style>
 <header class="header navbar-area">
 
     <!-- Start Header Middle -->
@@ -7,7 +15,7 @@
                 <div class="col-lg-3 col-md-3 col-7">
                     <!-- Start Header Logo -->
                     <a class="navbar-brand" href="/">
-                        <img src="/assets/images/logo/logo.svg" alt="Logo">
+                        <img src="/assets/images/logo/logo.png" alt="Local travel stay" class="site-logo">
                     </a>
                     <!-- End Header Logo -->
                 </div>
@@ -17,7 +25,7 @@
                         <!-- navbar search start -->
                         <div class="navbar-search search-style-5">
                             <div class="search-input">
-                                <input type="text" placeholder="Search" id="searchInput">
+                                <input type="text" placeholder="Search" id="searchInput" disabled>
                             </div>
                             <div class="search-btn">
                                 <button id="searchBtn"><i class="lni lni-search-alt"></i></button>
@@ -42,7 +50,7 @@
                                         <i class="lni lni-user"></i>
                                     </a>
                                     <div class="dropdown-menu">
-                                        <a href="/account"><i class="lni lni-user"></i> Account</a>
+                                        <!-- <a href="/account"><i class="lni lni-user"></i> Account</a> -->
                                         <a href="/user/logout"><i class="lni lni-exit"></i> Logout</a>
                                     </div>
                                 </div>
@@ -53,80 +61,7 @@
                                         </a>
                                     </div>
                                     <% }%>
-                                        <!-- <div class="wishlist">
-                                <a href="javascript:void(0)">
-                                    <i class="lni lni-heart"></i>
-                                    <span class="total-items">0</span>
-                                </a>
-                            </div> -->
-                                        <div class="cart-items">
-                                            <a href="javascript:void(0)" class="main-btn">
-                                                <i class="lni lni-cart"></i>
-                                                <span class="total-items">
-                                                    <%= cartList.length %>
-                                                </span>
-                                            </a>
-                                            <!-- Shopping Item -->
-                                            <div class="shopping-item">
-                                                <div class="dropdown-cart-header">
-                                                    <span>
-                                                        <%= cartList.length %> Items
-                                                    </span>
-                                                    <a href="/cart">View Cart</a>
-                                                </div>
-                                                <ul class="shopping-list"
-                                                    style="max-height: 250px; overflow-y: auto; overflow-x: hidden;">
-                                                    <% cartList.forEach((product)=> { %>
-                                                        <li style="margin-right: 20px;">
-                                                            <form action="/removeFromCart" method="POST">
-                                                                <input type="hidden" name="productAutoId"
-                                                                    value=" <%- helper.generateJwtOTPEncrypt(product.cartProducts.product_auto_id) %>">
-                                                                <button type="submit" class="remove">
-                                                                    <i class="lni lni-close"></i>
-                                                                </button>
-                                                            </form>
 
-                                                            <div class="cart-img-head">
-                                                                <a class="cart-img"
-                                                                    href="/product-details/<%- helper.generateJwtOTPEncrypt(product.cartProducts.product_auto_id) %>/<%- product.cartProducts.slug %>"><img
-                                                                        src="/assets/images/products/<%= product.cartProducts.image %>"
-                                                                        alt="<%= product.cartProducts.name %>"></a>
-                                                            </div>
-
-                                                            <div class="content">
-                                                                <h4><a
-                                                                        href="/product-details/<%- helper.generateJwtOTPEncrypt(product.cartProducts.product_auto_id) %>/<%- product.cartProducts.slug %>">
-                                                                        <%= product.cartProducts.name %>
-                                                                    </a></h4>
-                                                                <p class="quantity">
-                                                                    <%= product.qty %> x <span class="amount"><i
-                                                                                class="fa fa-rupee"></i>
-                                                                            <%= product.cartProducts.price %>
-                                                                        </span>
-                                                                </p>
-                                                            </div>
-                                                        </li>
-                                                        <% }) %>
-
-                                                </ul>
-                                                <div class="bottom">
-                                                    <div class="total">
-                                                        <span>Total</span>
-                                                        <span class="total-amount"><i class="fa fa-rupee"></i>
-                                                            <%= cartList.reduce((acc, product)=> acc +
-                                                                (product.cartProducts.price * product.qty),
-                                                                0).toFixed(2) %>
-                                                        </span>
-                                                    </div>
-                                                    <% if(cartList.length>0){ %>
-                                                        <div class="button">
-                                                            <a href="/checkout" class="btn animate">Checkout</a>
-                                                        </div>
-                                                        <% } %>
-                                                </div>
-                                            </div>
-                                            <!--/ End Shopping Item -->
-                                        </div>
                         </div>
                     </div>
                 </div>
@@ -139,33 +74,6 @@
         <div class="row align-items-center">
             <div class="col-lg-8 col-md-6 col-12">
                 <div class="nav-inner">
-                    <!-- Start Mega Category Menu -->
-                    <!-- <div class="mega-category-menu">
-                        <span class="cat-button"><i class="lni lni-menu"></i>All Categories</span>
-                        <ul class="sub-category">
-                            <li><a href="product-grids.html">Footwear <i class="lni lni-chevron-right"></i></a>
-                                <ul class="inner-sub-category">
-                                    <li><a href="product-grids.html">Sports Shoes</a></li>
-                                    <li><a href="product-grids.html">Casual Shoes</a></li>
-                                    <li><a href="product-grids.html">Formal Shoes</a></li>
-                                    <li><a href="product-grids.html">Sneakers</a></li>
-                                    <li><a href="product-grids.html">Running Shoes</a></li>
-                                    <li><a href="product-grids.html">Walking Shoes</a></li>
-                                    <li><a href="product-grids.html">Sandals</a></li>
-                                    <li><a href="product-grids.html">Floaters</a></li>
-                                    <li><a href="product-grids.html">Slippers / Flip-Flops</a></li>
-                                    <li><a href="product-grids.html">Loafers</a></li>
-                                    <li><a href="product-grids.html">Boots</a></li>
-                                    <li><a href="product-grids.html">Ethnic / Mojaris</a></li>
-                                    <li><a href="product-grids.html">Office Wear Shoes</a></li>
-                                    <li><a href="product-grids.html">Party Wear Shoes</a></li>
-                                    <li><a href="product-grids.html">Trekking / Outdoor Shoes</a></li>
-                                </ul>
-                            </li>
-                        
-                        </ul>
-                    </div> -->
-                    <!-- End Mega Category Menu -->
                     <!-- Start Navbar -->
                     <%- include('nav') %>
                         <!-- End Navbar -->

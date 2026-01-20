@@ -71,11 +71,11 @@
                     </div>
                     <div class="col-lg-4 col-md-4 col-12">
                         <div class="single-footer f-link">
-                            <h3>Shop Departments</h3>
+                            <h3>Our Services</h3>
                             <ul>
                                 <% hotCategories.forEach((category)=> { %>
                                     <li><a
-                                            href="/products?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>">
+                                            href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>">
                                             <%= category.categoryName %>
                                         </a></li>
                                     <% }) %>
