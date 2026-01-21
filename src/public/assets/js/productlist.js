@@ -19,4 +19,80 @@ window.addEventListener('DOMContentLoaded', () => {
         window.location.href = url.toString();
     });
      // product list page changed done
+
+
+    //  filters section
+    const myModalEl = document.getElementById('filterModal');
+    const filterModal = new bootstrap.Modal(myModalEl);
+
+    // 2. Filter Button ka listener
+    const openBtn = document.getElementById('openFilterBtn');
+    if (openBtn) {
+        openBtn.addEventListener('click', function () {
+            // Manual open
+            filterModal.show();
+        });
+    }
+
+    // 3. Apply Button ka listener
+    const applyBtn = document.getElementById('applyFilterBtn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', function () {
+              const url = new URL(window.location.href);
+            const princeRange = document.querySelector('input[name="priceRange"]:checked');
+            const rating = document.querySelector('input[name="rating"]:checked');
+            if (princeRange) {
+            const [minVal, maxVal] = princeRange.value.split('-');
+              console.log('minVal',minVal,"maxVal",maxVal);
+             url.searchParams.set("minVal", minVal);
+              url.searchParams.set("maxVal", maxVal);
+            // Ab aap isse fetch ya window.location mein use kar sakte hain
+            // window.location.href = `/search?minPrice=${minVal}&maxPrice=${maxVal}`;
+            }
+            if(rating){
+            const ratingValue = rating.value;
+             url.searchParams.set("rating", ratingValue);
+            }
+            url.searchParams.set("page", 1);
+            window.location.href = url.toString();
+        });
+    }
+    
+    // 4. Modal events (Optional: Agar khulne ya band hone par kuch karna ho)
+    myModalEl.addEventListener('shown.bs.modal', function () {
+        console.log('Modal is now visible');
+    });
+    // filters section
+
+
+    const sections = 4;
+    const container = document.getElementById('dynamicPriceFilters');
+    const priceData = document.getElementById('price-data');
+    const min = parseInt(priceData.getAttribute('data-min')) || 0;
+    const max = parseInt(priceData.getAttribute('data-max')) || 0;
+    
+    // Har section ka gap calculate karein (approx 1225)
+    const step = (max - min) / sections;
+
+    let htmlContent = '';
+
+    for (let i = 0; i < sections; i++) {
+        let currentMin = Math.round(min + (i * step));
+        let currentMax = Math.round(min + ((i + 1) * step));
+        
+        // Unique ID har radio button ke liye
+        const id = `priceRange${i}`;
+        const rangeValue = `${currentMin}-${currentMax}`;
+
+        htmlContent += `
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="priceRange" id="${id}" value="${rangeValue}">
+                <label class="form-check-label" for="${id}">
+                     <i class="fa fa-rupee"></i> ${currentMin} -  <i class="fa fa-rupee"></i>${currentMax}
+                </label>
+            </div>
+        `;
+    }
+
+    container.innerHTML += htmlContent;
   });

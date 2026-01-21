@@ -156,7 +156,8 @@
                                 <div class="row align-items-end">
                                     <div class="col-lg-4 col-md-4 col-12">
                                         <div class="button cart-button">
-                                            <button class="btn" style="width: 100%;">Contact For
+                                            <button class="btn" style="width: 100%;" id="bookingModal">Contact For
+
                                                 Booking</button>
                                         </div>
                                     </div>
@@ -210,6 +211,52 @@
 
         </div>
     </div>
+
+    <!-- modal -->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Service Provider Contact Details</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+
+                            <div class="mb-3"> <strong>📞 Phone:</strong>
+                                <span>
+                                    <%= productDetails.vendorService.vendor.phone %>
+                                </span>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>📧 Email:</strong>
+                                <span>
+                                    <%= productDetails.vendorService.vendor.email %>
+                                </span>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>📍 Address:</strong>
+                                <span>
+                                    <%= productDetails.vendorService.vendor.address %>
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="ClosebookingModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- modal -->
 </section>
 
 

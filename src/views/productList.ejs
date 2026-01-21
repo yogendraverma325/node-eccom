@@ -44,31 +44,15 @@
 
 
                     <!-- Start Single Widget -->
-                    <div class="single-widget condition">
+                    <div class="single-widget condition d-none d-md-block">
                         <h3>Filter by Price</h3>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault1">
-                            <label class="form-check-label" for="flexCheckDefault1">
-                                $50 - $100L (208)
-                            </label>
+                            <input class="form-check-input" type="checkbox" value="" id="price1">
+                            <label class="form-check-label" for="price1">$50 - $100 (208)</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault2">
-                            <label class="form-check-label" for="flexCheckDefault2">
-                                $100L - $500 (311)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault3">
-                            <label class="form-check-label" for="flexCheckDefault3">
-                                $500 - $1,000 (485)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault4">
-                            <label class="form-check-label" for="flexCheckDefault4">
-                                $1,000 - $5,000 (213)
-                            </label>
+                            <input class="form-check-input" type="checkbox" value="" id="price2">
+                            <label class="form-check-label" for="price2">$100 - $500 (311)</label>
                         </div>
                     </div>
 
@@ -79,7 +63,7 @@
                 <div class="product-grids-head">
                     <div class="product-grid-topbar">
                         <div class="row align-items-center">
-                            <div class="col-lg-7 col-md-8 col-12">
+                            <div class="col-lg-6 col-md-6 col-12">
                                 <div class="product-sorting">
                                     <label for="sorting">Sort by:</label>
                                     <select class="form-control" id="sorting">
@@ -93,10 +77,10 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-lg-5 col-md-4 col-12">
+                            <div class="col-12 d-block d-md-none">
                                 <nav>
                                     <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                                        <button class="nav-link">Filters</button>
+                                        <button class="nav-link" id="openFilterBtn">Filters</button>
                                     </div>
                                 </nav>
                             </div>
@@ -162,7 +146,11 @@
                                                             </span>
                                                         </div>
 
-
+                                                        <p class="category"><i class="lni lni-tag"></i> Service
+                                                            Provided By:<a href="javascript:void(0)"></a>
+                                                            <%= product.vendorService.vendor.vendor_name %>
+                                                                </a>
+                                                        </p>
 
                                                     </div>
 
@@ -210,6 +198,60 @@
             </div>
         </div>
     </div>
+
+
+    <!-- filters -->
+    <div class="single-widget condition d-none d-md-block">
+        <h3>Filter by Price</h3>
+    </div>
+
+    <div class="modal fade" id="filterModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Filters</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-section mb-4">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2">Rating</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" id="cat1" value="1" name="rating">
+                            <label class="form-check-label" for="cat1">1</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" id="cat2" value="2" name="rating">
+                            <label class="form-check-label" for="cat2">2</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" id="cat3" value="3" name="rating">
+                            <label class="form-check-label" for="cat3">3</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" id="cat4" value="4" name="rating">
+                            <label class="form-check-label" for="cat2">4</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" id="cat5" value="5" name="rating">
+                            <label class="form-check-label" for="cat5">5</label>
+                        </div>
+                    </div>
+
+
+                    <div class="filter-section mb-4">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2" id="price-data" data-min="<%= min %>"
+                            data-max="<%=max %>">Price</h6>
+                        <div id="dynamicPriceFilters">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="applyFilterBtn" class="btn btn-success w-100">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- filters -->
 </section>
 
 <script src="/assets/js/productlist.js"></script>

@@ -55,18 +55,21 @@ class HomeController {
 		 include: [
 			{
 			model: db.product_feature_mapping,
-			attributes: ['feature_value']
+			attributes: ['feature_value'],
+			required: false,
 			},
 			{
 			model: db.product_images,
-			attributes: ['image']
+			attributes: ['image'],
+			required: false,
 			},
 			{
 			model: db.product_meta_data,
 			attributes: ['meta_data'],
 			where:{
 				visibility:1
-			}
+			},
+			required: false,
 			},
 			{
 			model: db.product_specification_mapping,
@@ -77,7 +80,8 @@ class HomeController {
 			{
 			model: db.specification_master,
 			as: 'specification',
-			attributes: ['specification_name']
+			attributes: ['specification_name'],
+			required: false,
 			}
 			]
 			},
@@ -85,15 +89,17 @@ class HomeController {
 		model: db.vendor_services,
 		as:'vendorService',
 		include: [
-		{ model:  db.vendors},
+		{ model:  db.vendors,
+			attributes: ['id','vendor_name',"phone","email","address"],
+		},
 		]
 		},
 	]
 	});
-	console.log(
-  "productDetails",
-  JSON.stringify(productDetails, null, 2)
-);
+// 	console.log(
+//   "productDetails",
+//   JSON.stringify(productDetails, null, 2)
+// );
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
@@ -108,6 +114,8 @@ class HomeController {
 	}
 	async  productList(req, res) {
 		try {
+				const min=600;
+				const max=5000;
 				const categorySlug = req.query.category || null;     // "cat-slug"
 				const page = req.query.page || 1;     // "page"
 				const encryptedId = req.query['category-id'] || null; // "MQ=="
@@ -172,9 +180,12 @@ const products = await db.product.findAndCountAll({
 	  service_id:categoryId,
 	  ...vendor_id&& {vendor_id:vendor_id}
 	},
-	
+	 attributes: ['vendor_id',"service_id"],
     include: [
-       { model:  db.vendors},
+       {
+		 model:  db.vendors,
+		 attributes: ['vendor_name',"id"]
+		},
     ]
   },
 	{
@@ -201,6 +212,8 @@ const products = await db.product.findAndCountAll({
 				totalPages,
 				page,
 				sort,
+				min,
+				max
 			  });
 		} catch (error) {
 			console.log(error);
