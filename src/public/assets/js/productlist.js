@@ -52,20 +52,26 @@ for (let btn of openBtns) {
     const applyBtn = document.getElementById('applyFilterBtn');
     if (applyBtn) {
         applyBtn.addEventListener('click', function () {
+            let filterApplied=false
               const url = new URL(window.location.href);
             const princeRange = document.querySelector('input[name="priceRange"]:checked');
             const rating = document.querySelector('input[name="rating"]:checked');
             if (princeRange) {
+                filterApplied=true;
              url.searchParams.set("price", princeRange.value);
             // Ab aap isse fetch ya window.location mein use kar sakte hain
             // window.location.href = `/search?minPrice=${minVal}&maxPrice=${maxVal}`;
             }
             if(rating){
+                 filterApplied=true;
             const ratingValue = rating.value;
              url.searchParams.set("rating", ratingValue);
             }
             url.searchParams.set("page", 1);
-            window.location.href = url.toString();
+            if( filterApplied){
+                window.location.href = url.toString();
+            }
+           
         });
     }
     

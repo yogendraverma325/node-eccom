@@ -33,6 +33,38 @@
         transform: translateX(5px);
         color: #1E88E5;
     }
+
+    .service-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        /* spacing between badges */
+        margin: 15px 0;
+    }
+
+    .info-badge {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-block;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+    /* Bold label */
+    .info-badge strong {
+        font-weight: 600;
+        margin-right: 5px;
+    }
+
+    /* Hover effect */
+    .info-badge:hover {
+        background-color: #1E88E5;
+        color: #fff;
+        transform: translateY(-2px);
+    }
 </style>
 <section class="product-grids section">
     <div class="container">
@@ -154,9 +186,31 @@
                                                                                 <% } %>
                                                                     </span>
                                                                 </div>
+                                                                <div class="service-info">
+                                                                    <% if (product.price_type) { %>
+                                                                        <span class="info-badge">
+                                                                            <strong>Price For:</strong>
+                                                                            <%= product.price_type %>
+                                                                        </span>
+                                                                        <% } %>
 
-                                                                <p class="category"><i class="lni lni-tag"></i> Service
-                                                                    Provided By:<a href="javascript:void(0)"></a>
+                                                                            <% if (product.capacity) { %>
+                                                                                <span class="info-badge">
+                                                                                    <strong>Capacity:</strong>
+                                                                                    <%= product.capacity %> PAX
+                                                                                </span>
+                                                                                <% } %>
+
+                                                                                    <% if (product.unit) { %>
+                                                                                        <span class="info-badge">
+                                                                                            <strong>Unit:</strong>
+                                                                                            <%= product.unit %>
+                                                                                        </span>
+                                                                                        <% } %>
+                                                                </div>
+
+                                                                <p class="category"><i class="lni lni-tag"></i>
+                                                                    Provider:<a href="javascript:void(0)"></a>
                                                                     <%= product.vendorService.vendor.vendor_name %>
                                                                         </a>
                                                                 </p>
