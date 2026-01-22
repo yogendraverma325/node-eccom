@@ -201,6 +201,9 @@ const products = await db.product.findAndCountAll({
     include: [
        {
 		 model:  db.vendors,
+			where:{
+			status:1
+			},
 		 attributes: ['vendor_name',"id"]
 		},
     ]

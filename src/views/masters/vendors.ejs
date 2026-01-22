@@ -1,0 +1,64 @@
+<section class="vendors-list-wrapper py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Local Vendors List</h2>
+        <a class="btn btn-sm btn-success mb-5">
+            Add Vendor
+        </a>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor Name</th>
+                        <th scope="col">Phone Number</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Email</th>
+                        <th scope="col" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Example Row -->
+                    <% let i=1; vendors.rows.forEach((vendor)=> { %>
+                        <tr>
+                            <th scope="row">
+                                <%= i %>
+                            </th>
+                            <td>
+                                <%= vendor.vendor_name %>
+                            </td>
+                            <td>
+                                <%= vendor.phone %>
+                            </td>
+                            <td>
+                                <%= vendor.email %>
+                            </td>
+                            <td>
+                                <%= vendor.address %>
+                            </td>
+                            <td class="text-center">
+                                <% if (vendor.status) { %>
+                                    <a class="btn btn-sm btn-danger me-1"
+                                        href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>/<%- helper.generateJwtOTPEncrypt(vendor.status) %>">
+                                        In-Active
+                                    </a>
+
+                                    <% } else {%>
+                                        <a class="btn btn-sm btn-success me-1"
+                                            href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>/<%- helper.generateJwtOTPEncrypt(vendor.status) %>">
+                                            Active
+                                        </a>
+
+                                        <% } %>
+                                            <button class="btn btn-sm btn-primary me-1">Edit</button>
+
+                            </td>
+                        </tr>
+                        <% i++}) %>
+
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
