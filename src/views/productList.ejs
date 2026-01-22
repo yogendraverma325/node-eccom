@@ -43,21 +43,14 @@
 
 
 
-                    <!-- Start Single Widget -->
+
                     <div class="single-widget condition d-none d-md-block">
-                        <h3>Filter by Price</h3>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="price1">
-                            <label class="form-check-label" for="price1">$50 - $100 (208)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="price2">
-                            <label class="form-check-label" for="price2">$100 - $500 (311)</label>
-                        </div>
+                        <h5 class="modal-title mb-3 border-bottom pb-2">Select Filters</h5>
+                        <button class="nav-link btn btn-success openFilterBtn">Filters</button>
                     </div>
 
                 </div>
-                <!-- End Product Sidebar -->
+
             </div>
             <div class="col-lg-9 col-12">
                 <div class="product-grids-head">
@@ -72,7 +65,7 @@
                                             Price</option>
                                         <option value="price_desc" <%=sort==='price_desc' ? 'selected' : '' %>>High -
                                             Low Price</option>
-                                        <option value="new_desc" <%=sort==='new_desc' ? 'selected' : '' %>>New Arrival
+                                        <option value="new_desc" <%=sort==='new_desc' ? 'selected' : '' %>>Newly Added
                                         </option>
                                     </select>
                                 </div>
@@ -80,7 +73,7 @@
                             <div class="col-12 d-block d-md-none">
                                 <nav>
                                     <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                                        <button class="nav-link" id="openFilterBtn">Filters</button>
+                                        <button class="nav-link openFilterBtn">Filters</button>
                                     </div>
                                 </nav>
                             </div>
@@ -91,84 +84,101 @@
                         <div class="tab-pane fade active show" id="nav-list" role="tabpanel"
                             aria-labelledby="nav-list-tab">
                             <div class="row">
-                                <% products.rows.forEach((product)=> { %>
-                                    <div class="col-lg-12 col-md-12 col-12">
-                                        <!-- Start Single Product -->
-                                        <div class="single-product">
-                                            <div class="row align-items-center">
-                                                <div class="col-lg-4 col-md-4 col-12">
-                                                    <div class="product-image">
-                                                        <img src="/assets/images/products/<%= product.image %>"
-                                                            alt="<%= product.name %>">
-                                                        <div class="button">
-                                                            <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
-                                                                class="
-                                                        btn"> View</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4 col-md-4 col-12">
-                                                    <div class="product-info">
+                                <% if (products.rows.length===0) { %>
+                                    <div class="col-12">
+                                        <div
+                                            class="d-flex flex-column align-items-center justify-content-center text-center p-4 bg-white border rounded shadow-sm">
 
+                                            <i class="fa fa-search fa-3x text-primary mb-3"></i>
 
+                                            <h5 class="fw-bold text-dark">No Services Found</h5>
 
-                                                        <!-- PRODUCT NAME -->
-                                                        <h4 class="title">
-                                                            <a
-                                                                href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>">
-                                                                <%- product.name %>
-                                                            </a>
-                                                        </h4>
-
-                                                        <!-- RATING -->
-                                                        <ul class="review">
-                                                            <%- helper.ratingAndReview(product.rating) %>
-                                                        </ul>
-
-                                                        <!-- PRICE -->
-                                                        <div class="price">
-                                                            <span
-                                                                class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
-                                                                <i class="fa fa-rupee"></i>
-
-                                                                <% if (product.offerprice) { %>
-                                                                    <span class="normal-price">
-                                                                        <%= product.price %>
-                                                                    </span>
-                                                                    <span class="cross-price">
-                                                                        <%= product.offerprice %>
-                                                                    </span>
-                                                                    <% } else { %>
-                                                                        <span>
-                                                                            <%= product.price %>
-                                                                        </span>
-                                                                        <% } %>
-                                                            </span>
-                                                        </div>
-
-                                                        <p class="category"><i class="lni lni-tag"></i> Service
-                                                            Provided By:<a href="javascript:void(0)"></a>
-                                                            <%= product.vendorService.vendor.vendor_name %>
-                                                                </a>
-                                                        </p>
-
-                                                    </div>
-
-                                                </div>
-                                                <div class="col-lg-4 col-md-4 col-12">
-                                                    <ul class="meta-data">
-                                                        <% product.product_feature_mappings.forEach((feature)=> { %>
-                                                            <li>
-                                                                <%= feature.feature_value %>
-                                                            </li>
-                                                            <% }) %>
-                                                    </ul>
-                                                </div>
-                                            </div>
+                                            <p class="text-muted mb-3">
+                                                We couldn't find any sercice matching your filters.
+                                                Try adjusting or clearing the filters.
+                                            </p>
                                         </div>
-                                        <!-- End Single Product -->
                                     </div>
-                                    <% }) %>
+                                    <% } %>
+                                        <% products.rows.forEach((product)=> { %>
+                                            <div class="col-lg-12 col-md-12 col-12">
+                                                <!-- Start Single Product -->
+                                                <div class="single-product">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-lg-4 col-md-4 col-12">
+                                                            <div class="product-image">
+                                                                <img src="/assets/images/products/<%= product.image %>"
+                                                                    alt="<%= product.name %>">
+                                                                <div class="button">
+                                                                    <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
+                                                                        class="
+                                                        btn"> View</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-4 col-md-4 col-12">
+                                                            <div class="product-info">
+
+
+
+                                                                <!-- PRODUCT NAME -->
+                                                                <h4 class="title">
+                                                                    <a
+                                                                        href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>">
+                                                                        <%- product.name %>
+                                                                    </a>
+                                                                </h4>
+
+                                                                <!-- RATING -->
+                                                                <ul class="review">
+                                                                    <%- helper.ratingAndReview(product.rating) %>
+                                                                </ul>
+
+                                                                <!-- PRICE -->
+                                                                <div class="price">
+                                                                    <span
+                                                                        class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
+                                                                        <i class="fa fa-rupee"></i>
+
+                                                                        <% if (product.offerprice) { %>
+                                                                            <span class="normal-price">
+                                                                                <%= product.price %>
+                                                                            </span>
+                                                                            <span class="cross-price">
+                                                                                <%= product.offerprice %>
+                                                                            </span>
+                                                                            <% } else { %>
+                                                                                <span>
+                                                                                    <%= product.price %>
+                                                                                </span>
+                                                                                <% } %>
+                                                                    </span>
+                                                                </div>
+
+                                                                <p class="category"><i class="lni lni-tag"></i> Service
+                                                                    Provided By:<a href="javascript:void(0)"></a>
+                                                                    <%= product.vendorService.vendor.vendor_name %>
+                                                                        </a>
+                                                                </p>
+
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="col-lg-4 col-md-4 col-12">
+                                                            <ul class="meta-data">
+                                                                <% product.product_feature_mappings.forEach((feature)=>
+                                                                    { %>
+                                                                    <li>
+                                                                        <%= feature.feature_value %>
+                                                                    </li>
+                                                                    <% }) %>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- End Single Product -->
+                                            </div>
+                                            <% }) %>
                             </div>
                             <div class="row">
                                 <div class="col-12">
@@ -201,10 +211,6 @@
 
 
     <!-- filters -->
-    <div class="single-widget condition d-none d-md-block">
-        <h3>Filter by Price</h3>
-    </div>
-
     <div class="modal fade" id="filterModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -215,38 +221,30 @@
                 <div class="modal-body">
                     <div class="filter-section mb-4">
                         <h6 class="fw-bold mb-3 border-bottom pb-2">Rating</h6>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" id="cat1" value="1" name="rating">
-                            <label class="form-check-label" for="cat1">1</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" id="cat2" value="2" name="rating">
-                            <label class="form-check-label" for="cat2">2</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" id="cat3" value="3" name="rating">
-                            <label class="form-check-label" for="cat3">3</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" id="cat4" value="4" name="rating">
-                            <label class="form-check-label" for="cat2">4</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" id="cat5" value="5" name="rating">
-                            <label class="form-check-label" for="cat5">5</label>
-                        </div>
+                        <% for (let i=1; i <=5; i++) { %>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="rating" id="cat<%= i %>"
+                                    value="<%= i %>" <%=rating==i ? "checked" : "" %>
+                                >
+                                <label class="form-check-label" for="cat<%= i %>">
+                                    <%= i %>
+                                </label>
+                            </div>
+                            <% } %>
                     </div>
-
-
                     <div class="filter-section mb-4">
                         <h6 class="fw-bold mb-3 border-bottom pb-2" id="price-data" data-min="<%= min %>"
-                            data-max="<%=max %>">Price</h6>
+                            data-max="<%=max %>" data-pricemin="<%=pricemin %>" data-pricemax="<%=pricemax %>">Price
+                        </h6>
                         <div id="dynamicPriceFilters">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button id="applyFilterBtn" class="btn btn-success w-100">Apply</button>
+                    <% if (pricemin || pricemax || rating) { %>
+                        <button id="clearFilterBtn" class="btn btn-danger w-100">Clear</button>
+                        <% } %>
                 </div>
             </div>
         </div>

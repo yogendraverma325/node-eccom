@@ -116,6 +116,15 @@ class HomeController {
 		try {
 				const min=600;
 				const max=5000;
+				let pricemin='';
+				let pricemax='';
+				let price = req.query['price'] || ''; // "MQ=="
+				const rating = req.query['rating'] || ''; // "MQ=="
+				if(price){
+					pricemin=price.split('-')[0];
+					pricemax=price.split('-')[1];
+				}
+				
 				const categorySlug = req.query.category || null;     // "cat-slug"
 				const page = req.query.page || 1;     // "page"
 				const encryptedId = req.query['category-id'] || null; // "MQ=="
@@ -155,6 +164,14 @@ class HomeController {
 	const productWhere = {
 	isActive: 1
 	};
+	if(rating){
+	productWhere.rating=rating;
+	}
+	if (price) {
+    productWhere.price = {
+    [Op.between]: [pricemin, pricemax]
+  };
+}
 // 	if (search && search.trim() !== '') {
 //       const words = search
 //         .trim()
@@ -213,7 +230,10 @@ const products = await db.product.findAndCountAll({
 				page,
 				sort,
 				min,
-				max
+				max,
+				pricemin,
+				pricemax,
+				rating
 			  });
 		} catch (error) {
 			console.log(error);

@@ -1,5 +1,19 @@
 
 window.addEventListener('DOMContentLoaded', () => {
+
+    // clear filters
+     // 3. Apply Button ka listener
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', function () {
+              const url = new URL(window.location.href);
+                url.searchParams.delete("rating");
+                url.searchParams.delete("price");
+                url.searchParams.set("page", 1);
+            window.location.href = url.toString();
+        });
+    }
+    // clear fitlers
 // product list page changed done
     const sortingSelect = document.getElementById("sorting");
     if (!sortingSelect) return;
@@ -26,13 +40,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const filterModal = new bootstrap.Modal(myModalEl);
 
     // 2. Filter Button ka listener
-    const openBtn = document.getElementById('openFilterBtn');
-    if (openBtn) {
-        openBtn.addEventListener('click', function () {
-            // Manual open
-            filterModal.show();
-        });
-    }
+    const openBtns = document.getElementsByClassName('openFilterBtn');
+
+for (let btn of openBtns) {
+  btn.addEventListener('click', function () {
+    filterModal.show();
+  });
+}
 
     // 3. Apply Button ka listener
     const applyBtn = document.getElementById('applyFilterBtn');
@@ -42,10 +56,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const princeRange = document.querySelector('input[name="priceRange"]:checked');
             const rating = document.querySelector('input[name="rating"]:checked');
             if (princeRange) {
-            const [minVal, maxVal] = princeRange.value.split('-');
-              console.log('minVal',minVal,"maxVal",maxVal);
-             url.searchParams.set("minVal", minVal);
-              url.searchParams.set("maxVal", maxVal);
+             url.searchParams.set("price", princeRange.value);
             // Ab aap isse fetch ya window.location mein use kar sakte hain
             // window.location.href = `/search?minPrice=${minVal}&maxPrice=${maxVal}`;
             }
@@ -70,6 +81,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const priceData = document.getElementById('price-data');
     const min = parseInt(priceData.getAttribute('data-min')) || 0;
     const max = parseInt(priceData.getAttribute('data-max')) || 0;
+    const pricemin = parseInt(priceData.getAttribute('data-pricemin')) || null;
+    const pricemax = parseInt(priceData.getAttribute('data-pricemax')) || null;
+    let priceRange=''
+if(pricemin && pricemax){
+priceRange=pricemin+'-'+pricemax;
+}
     
     // Har section ka gap calculate karein (approx 1225)
     const step = (max - min) / sections;
@@ -86,7 +103,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         htmlContent += `
             <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="priceRange" id="${id}" value="${rangeValue}">
+                <input class="form-check-input" type="radio" name="priceRange" id="${id}" value="${rangeValue}" ${priceRange == rangeValue ? "checked" : ""}>
                 <label class="form-check-label" for="${id}">
                      <i class="fa fa-rupee"></i> ${currentMin} -  <i class="fa fa-rupee"></i>${currentMax}
                 </label>
