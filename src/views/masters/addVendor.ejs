@@ -1,0 +1,109 @@
+<div class="breadcrumbs">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 col-md-6 col-12">
+                <div class="breadcrumbs-content">
+                    <h1 class="page-title">Add Vendor</h1>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-12">
+                <ul class="breadcrumb-nav">
+                    <li><a href="/"><i class="lni lni-home"></i> Home</a></li>
+                    <li><a href="/admin/vendors"> Vendors</a></li>
+                    <li>Add Vendor</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <section class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+
+                    <div class="card shadow">
+
+                        <div class="card-body">
+                            <% if (formError && Object.keys(formError).length> 0) { %>
+                                <div class="alert alert-danger">
+                                    Please enter details properly
+                                </div>
+                                <% } %>
+                                    <form method="post" action="/admin/addvendor">
+
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Vendor Name</label>
+                                                <input type="text" class="form-control" placeholder="Enter vendor name"
+                                                    name="name">
+                                                <% if (formError?.name) { %>
+                                                    <small class="text-danger">
+                                                        <%= formError.name %>
+                                                    </small>
+                                                    <% } %>
+                                            </div>
+                                            <!-- <div class="col-md-6">
+                                        <label class="form-label">Vendor Type</label>
+                                        <select class="form-select">
+                                            <option value="">Select Type</option>
+                                            <option>Room</option>
+                                            <option>Car Rental</option>
+                                            <option>Bike Rental</option>
+                                            <option>Pick & Drop</option>
+                                            <option>Restaurant</option>
+                                        </select>
+                                    </div> -->
+                                        </div>
+
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Phone Number</label>
+                                                <input type="text" class="form-control" placeholder="Enter phone number"
+                                                    name="phone">
+                                                <% if (formError?.phone) { %>
+                                                    <small class="text-danger">
+                                                        <%= formError.phone %>
+                                                    </small>
+                                                    <% } %>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Email Address</label>
+                                                <input type="email" class="form-control" placeholder="Enter email"
+                                                    name="email">
+                                                <% if (formError?.email) { %>
+                                                    <small class="text-danger">
+                                                        <%= formError.email %>
+                                                    </small>
+                                                    <% } %>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Address</label>
+                                            <textarea class="form-control" rows="3" placeholder="Enter full address"
+                                                name="address"></textarea>
+                                            <% if (formError?.address) { %>
+                                                <small class="text-danger">
+                                                    <%= formError.address %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+
+                                        <div class="row mb-3">
+                                            <!-- <div class="col-md-6">
+                                            <label class="form-label">City</label>
+                                            <input type="text" class="form-control" placeholder="City name">
+                                            </div> -->
+                                        </div>
+
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-primary ms-2">Save Vendor</button>
+                                        </div>
+
+                                    </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>

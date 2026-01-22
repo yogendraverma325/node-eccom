@@ -114,6 +114,26 @@ phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
     .label("Message"),
 });
 
+ const addvendorSchema = Joi.object({
+  name: Joi.string()
+    .max(255)
+    .required()
+    .label("Name"),
+
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .max(255)
+    .required()
+    .label("Email"),
+
+phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
+"string.pattern.base": "Phone number must be 10 digits",
+"string.empty": "Phone number is required"
+}),
+  address: Joi.string()
+    .max(255)
+    .label("address"),
+});
 
 export default {
 	loginSchema,
@@ -122,5 +142,6 @@ export default {
   forgotPassword,
   passwordUpdate,
   cancel_reason,
-  contactUsSchema
+  contactUsSchema,
+  addvendorSchema
 };
