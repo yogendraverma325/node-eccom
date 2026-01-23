@@ -8,5 +8,8 @@ export default Express.Router()
 	.post("/account-recovery",AuthController.accountRecovery)
 	.get("/otp-verification",AuthController.otpVerification)
 	.post("/password-update",AuthController.passwordUpdate)
-	.post("/resendOTP",AuthController.resendOTP);
-	
+	.post("/resendOTP",AuthController.resendOTP)
+	.get("/signup",AuthController.signUp)
+	.post("/signup",AuthController.signUp)
+	.get("/singupverification",AuthController.singupverification)
+	.post("/singupverification",AuthController.singupverification)

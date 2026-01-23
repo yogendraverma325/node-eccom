@@ -56,7 +56,6 @@ class AuthController {
 	async logInFunction(req, res) {
 		try {
 			const  data  = req.body;
-			console.log("data",data)
 			const { email, password } = data;
 			const user = await authenticateUser(email);
 			if(!user){
@@ -67,6 +66,13 @@ class AuthController {
 				req.flash('message', JSON.stringify({ type: 'error', text: 'Your Account has been deactivated ,Please connect with customer support' }));
 				return res.redirect('/user/login');
 			}
+			if(user.is_verified==0){
+				req.flash('message', JSON.stringify({ type: 'error', text: 'Your Account is not verfied, Please verify to proceed' }));
+				req.session.userEmail = user.email;
+				return res.redirect('/user/singupverification');
+			}
+			
+			
 
 			const comparePass = await bcrypt.compare(
 					password,
@@ -83,6 +89,16 @@ class AuthController {
 			name: user.name,
 			email: user.email
 			}; 
+			await db.user.update(
+			{
+			last_login:moment()
+			},
+			{
+			where: {
+			email:user.email
+			}
+			}
+			);
 
 			// const hashedPassword = await helper.encryptPassword(result.password);
 			req.flash('message', JSON.stringify({ type: 'success', text: 'Login successfully done' }));
@@ -190,7 +206,6 @@ try{
 	async otpVerification(req, res) {
 		try {
 			let email=res.locals.userEmail;
-			console.log("email",email)
 			let formError={};
 			let formData={};
 			res.render('otp-verification', {
@@ -225,7 +240,7 @@ try{
 						formError=errors;
 						formData=value;
 
-					res.render('otp-verification', {
+					return res.render('otp-verification', {
 					title: `Otp verification`,
 					description: `Otp verification`,
 					formError,
@@ -241,6 +256,7 @@ try{
 			);
 			if(!userData){
 			req.flash('message', JSON.stringify({ type: 'error', text: 'User not found' }));
+			 return res.redirect('/user/otp-verification');
 			}
 
 			if(userData.otp!=value.otp){
@@ -289,7 +305,6 @@ try{
 				msg:"Account not found",
 				});
 				 }
-			let OTP=1234;
 		const today = moment().startOf('day'); // 00:00:00 today
 		const otpDate = userData.otp_date ? moment(userData.otp_date).startOf('day') : null;
 
@@ -338,6 +353,164 @@ try{
 			});
 		}
 
+	}
+	async signUp(req, res) {
+		  const transaction = await db.sequelize.transaction();
+		try {
+			 
+			
+						 let AdminId=100;
+					
+				let formError = {};
+				let formData = {};
+			  
+			if (req.method === 'GET') {
+			return res.render('signup', {
+			title: `Sign up`,
+			description: `Create your account`,
+			formError,
+			formData
+			});
+			}
+					const { error, value } = validator.signUpSchema.validate(req.body, {
+					abortEarly: false // 🔥 saare errors ek sath
+					});
+						if (error) {
+						let errors={}
+						error.details.forEach(err => {
+						errors[err.path[0]] = err.message;
+						});
+						formError=errors;
+						formData=value;
+			
+					return res.render('signUp', {
+					title: `signUp`,
+					description: `signUp`,
+					formError,
+					formData
+					});
+						}
+					const existingUser= await db.user.findOne({
+					where: {
+					[db.Sequelize.Op.or]: [
+					{ phone: value.phone },
+					{ email: value.email }
+					]
+					}
+					});
+					if(existingUser){
+						req.flash('message', JSON.stringify({ type: 'error', text: 'Phone Or email already exists' }));	
+						res.redirect('/user/signup');
+					}
+				const hashedPassword = await helper.encryptPassword(value.password);
+				const today = moment().startOf('day'); // 00:00:00 today
+				const newOtp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+
+
+					let userData= await  db.user.create({
+									name:value.name,
+									phone:value.phone,
+									email:value.email,
+									password:hashedPassword,
+									otp:newOtp,
+									otp_count_of_the_date:1,
+									otp_date: today.toDate()
+								},transaction);
+					
+										
+					await transaction.commit();
+					let email=value.email;
+					eventEmitter.emit(
+				"OTP",
+				JSON.stringify({
+					email,
+					newOtp,
+					userData
+				}),
+				);
+				    req.session.userEmail =email;
+					req.flash('message', JSON.stringify({ type: 'success', text: `Account has been created` }));
+					res.redirect('/user/singupverification'); // back to the previous page
+					console.log("value",value)
+		}
+		catch (error) {
+			await transaction.rollback();
+			console.log("error",error);
+			req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+			res.redirect('/user/signup');
+		}
+	}
+	
+async singupverification(req, res) {
+	  const transaction = await db.sequelize.transaction();
+		try {
+			 
+			let email=res.locals.userEmail;
+			let formError={};
+			let formData={};
+			if (req.method === 'GET') {
+                   return res.render('signup-verification', {
+			title: `Otp verification`,
+			description: `Otp verification`,
+			formError,
+			formData,
+			});
+			}
+
+			const { error, value } = validator.signUpOTP.validate(req.body, {
+						abortEarly: false // 🔥 saare errors ek sath
+						});
+						if (error) {
+						let errors={}
+						error.details.forEach(err => {
+						errors[err.path[0]] = err.message;
+						});
+						formError=errors;
+						formData=value;
+
+					  return res.render('signup-verification', {
+					title: `Otp verification`,
+					description: `Otp verification`,
+					formError,
+					formData,
+					});
+					}
+				let userData=await db.user.findOne({
+				where: {
+				email:email
+				}
+				}
+				);
+			if(!userData){
+			req.flash('message', JSON.stringify({ type: 'error', text: 'User not found' }));
+			 return res.redirect('/user/singupverification');	
+			}
+			if(userData.otp!=value.otp){
+			 req.flash('message', JSON.stringify({ type: 'error', text: 'OTP did not matched' }));
+			 return res.redirect('/user/singupverification');	
+			}
+			await db.user.update(
+			{
+			is_verified:1
+			},
+			{
+			where: {
+			email:email
+			}
+			}
+			);
+			 await transaction.commit();
+		req.flash('message', JSON.stringify({ type: 'success', text: 'Account has been activated' }));
+		return res.redirect('/user/login');
+     
+			
+		}
+		catch (error) {
+		 await transaction.rollback();
+			console.log("error",error);
+			req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+			res.redirect('/user/signup');
+		}
 	}
 }
 

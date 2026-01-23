@@ -65,7 +65,7 @@ const forgotPassword = Joi.object({
 
 const passwordUpdate = Joi.object({
 	otp: Joi.string()
-		.min(4)
+		.min(6)
 		.required()
 		.label("OTP is required"),
 
@@ -135,6 +135,33 @@ phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
     .label("address"),
 });
 
+const signUpSchema = Joi.object({
+  name: Joi.string()
+    .max(255)
+    .required()
+    .label("Name"),
+
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .max(255)
+    .required()
+    .label("Email"),
+
+  phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
+  "string.pattern.base": "Phone number must be 10 digits",
+  "string.empty": "Phone number is required"
+  }),
+  password: Joi.string()
+		.min(5)
+		.required()
+		.label("Password"),
+});
+const signUpOTP = Joi.object({
+	otp: Joi.string()
+		.min(6)
+		.required()
+		.label("OTP is required"),
+});
 export default {
 	loginSchema,
 	checkoutSchema,
@@ -143,5 +170,7 @@ export default {
   passwordUpdate,
   cancel_reason,
   contactUsSchema,
-  addvendorSchema
+  addvendorSchema,
+  signUpSchema,
+  signUpOTP
 };

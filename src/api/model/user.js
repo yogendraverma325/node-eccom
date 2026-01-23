@@ -9,6 +9,10 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false,
         },
+		phone: {
+            type: Sequelize.STRING,
+            allowNull: false,
+        },
 		email: {
             type: Sequelize.STRING,
             allowNull: false,
@@ -18,6 +22,9 @@ export default (sequelize, Sequelize) => {
             allowNull: false,
         },
 		is_active:{
+			type: Sequelize.INTEGER,
+		},
+		is_verified:{
 			type: Sequelize.INTEGER,
 		},
 		last_login: {
