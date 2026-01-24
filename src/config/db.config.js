@@ -203,4 +203,15 @@ db.vendor_services.hasMany(db.product, {
   as: 'products',
 });
 
+db.category.hasMany(db.vendor_services, {
+  foreignKey: 'service_id',
+  sourceKey: 'catAutoId'
+});
+
+db.vendor_services.belongsTo(db.category, {
+  foreignKey: 'service_id',
+  targetKey: 'catAutoId'
+});
+
+
 export default db;

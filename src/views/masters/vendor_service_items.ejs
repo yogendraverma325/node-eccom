@@ -1,0 +1,83 @@
+<section class="vendors-list-wrapper py-5">
+    <div class="container">
+        <a class="btn btn-sm btn-success mb-5"
+            href="/admin/add_service_item/<%- helper.generateJwtOTPEncrypt(vendor_service_id) %>">
+            Add Service Item
+        </a>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Service Item Name</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Rating</th>
+                        <th scope="col" class="text-center">Change Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Example Row -->
+                    <% let i=1; vendor_service_items.rows.forEach((vendor_service_item)=> { %>
+                        <tr>
+                            <th scope="row">
+                                <%= i %>
+                            </th>
+                            <td>
+                                <%= vendor_service_item.name %>
+                            </td>
+                            <td>
+                                <img src="/assets/images/products/<%= vendor_service_item.image %>" id="current"
+                                    alt="<%= vendor_service_item.name %>" width="50" height="50">
+                            </td>
+                            <td>
+                                <%= vendor_service_item.price %>
+                            </td>
+                            <td>
+                                <%= vendor_service_item.rating %>
+                            </td>
+
+                            <td class="text-center">
+                                <% if (vendor_service_item.isActive) { %>
+                                    <a class="btn btn-sm btn-danger me-1"
+                                        href="/admin/change_service_item_status/<%- helper.generateJwtOTPEncrypt(vendor_service_item.product_auto_id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service_item.isActive) %>">
+                                        In-Active
+                                    </a>
+
+                                    <% } else {%>
+                                        <a class="btn btn-sm btn-success me-1"
+                                            href="/admin/change_service_item_status/<%- helper.generateJwtOTPEncrypt(vendor_service_item.product_auto_id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service_item.isActive) %>">
+                                            Active
+                                        </a>
+
+                                        <% } %>
+
+                            </td>
+                        </tr>
+                        <% i++}) %>
+
+
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <!-- Pagination -->
+                <div class="pagination left">
+                    <ul class="pagination-list">
+                        <% for (let i=1; i <=totalPages; i++) { %>
+                            <li class="<%= i == page ? 'active' : '' %>">
+                                <% let url=`?page=${i}` %>
+
+                                    <a href="<%= url %>">
+                                        <%= i %>
+                                    </a>
+                            </li>
+                            <% } %>
+                    </ul>
+                </div>
+                <!--/ End Pagination -->
+            </div>
+        </div>
+    </div>
+</section>

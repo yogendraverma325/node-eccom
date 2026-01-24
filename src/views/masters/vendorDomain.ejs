@@ -3,13 +3,14 @@
         <div class="row align-items-center">
             <div class="col-lg-6 col-md-6 col-12">
                 <div class="breadcrumbs-content">
-                    <h1 class="page-title">Local Vendors List</h1>
+                    <h1 class="page-title">Vendor Domain(s)</h1>
                 </div>
             </div>
             <div class="col-lg-6 col-md-6 col-12">
                 <ul class="breadcrumb-nav">
                     <li><a href="/"><i class="lni lni-home"></i> Home</a></li>
-                    <li>Local Vendors List</li>
+                    <li><a href="/admin/vendors"> Vendor List</a></li>
+                    <li>Vendor Domain(s)</li>
                 </ul>
             </div>
         </div>
@@ -17,9 +18,7 @@
 </div>
 <section class="vendors-list-wrapper py-5">
     <div class="container">
-        <a class="btn btn-sm btn-success mb-5" href="/admin/add-vendor">
-            Add Vendor
-        </a>
+
 
 
         <div class="table-responsive">
@@ -27,60 +26,45 @@
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Vendor Name</th>
-                        <th scope="col">Phone Number</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Domain</th>
+                        <th scope="col">Domain Name</th>
+                        <th scope="col">View Service Listing</th>
                         <th scope="col" class="text-center">Change Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Example Row -->
-                    <% let i=1; vendors.rows.forEach((vendor)=> { %>
+                    <% let i=1; vendor_services.rows.forEach((vendor_service)=> { %>
                         <tr>
                             <th scope="row">
                                 <%= i %>
                             </th>
                             <td>
-                                <%= vendor.vendor_name %>
+                                <%= vendor_service.category.categoryName %>
                             </td>
                             <td>
-                                <%= vendor.phone %>
-                            </td>
-                            <td>
-                                <%= vendor.email %>
-                            </td>
-                            <td>
-                                <%= vendor.address %>
-                            </td>
-                            <td>
-                                <a href="/admin/vendor-domains/<%- helper.generateJwtOTPEncrypt(vendor.id) %>">
+                                <a
+                                    href="/admin/vendor-domain-services/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>">
                                     <i class="fa fa-server fa-2x"></i>
                                 </a>
                             </td>
-                            <!--<td>
-                                <a href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>">
-                                    <i class="fa fa-skyatlas fa-2x"></i>
-                                </a>
-                            </td> -->
                             <td class="text-center">
-                                <% if (vendor.status) { %>
+                                <% if (vendor_service.status) { %>
                                     <a class="btn btn-sm btn-danger me-1"
-                                        href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>/<%- helper.generateJwtOTPEncrypt(vendor.status) %>">
+                                        href="/admin/change_vendor_domain_status/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service.status) %>">
                                         In-Active
                                     </a>
 
                                     <% } else {%>
                                         <a class="btn btn-sm btn-success me-1"
-                                            href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>/<%- helper.generateJwtOTPEncrypt(vendor.status) %>">
+                                            href="/admin/change_vendor_domain_status/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service.status) %>">
                                             Active
                                         </a>
 
                                         <% } %>
-                                            <button class="btn btn-sm btn-primary me-1">Edit</button>
 
                             </td>
+
+
                         </tr>
                         <% i++}) %>
 

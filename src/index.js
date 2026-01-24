@@ -58,6 +58,7 @@ app.use(async (req, res, next) => {
 res.locals.flashMessage = req.flash('message') || null;
 res.locals.user = req.session.user || null;
 res.locals.userEmail = req.session.userEmail || null;
+res.locals.lastUrl = req.session.lastUrl || null;
 let cart=[]
 if(req.cookies.userCart){
 cart=await returnCartList(req.cookies.userCart);
