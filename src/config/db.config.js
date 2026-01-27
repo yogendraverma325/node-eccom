@@ -27,7 +27,7 @@ import literal from "sequelize";
 import QueryTypes from "sequelize";
 import vendors from "../api/model/vendor.js";
 import vendor_services from "../api/model/vendor_services.js";
-
+import vendor_services_locations from "../api/model/vendor_service_location.js"
 
 //
 const sequelize = new Sequelize(
@@ -101,6 +101,7 @@ db.order_status_timeline=order_status_timeline(sequelize, Sequelize);
 db.contact_us=contact_us(sequelize, Sequelize);
 db.vendors=vendors(sequelize, Sequelize);
 db.vendor_services=vendor_services(sequelize, Sequelize);
+db.vendor_services_locations=vendor_services_locations(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -212,6 +213,18 @@ db.vendor_services.belongsTo(db.category, {
   foreignKey: 'service_id',
   targetKey: 'catAutoId'
 });
+
+
+db.vendor_services.hasMany(db.vendor_services_locations, {
+  foreignKey: 'vendor_service_auto_id',
+  sourceKey: 'id'
+});
+
+db.vendor_services_locations.belongsTo(db.vendor_services, {
+  foreignKey: 'vendor_service_auto_id',
+  targetKey: 'id'
+});
+
 
 
 export default db;

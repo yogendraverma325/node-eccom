@@ -39,8 +39,9 @@ app.use(helmet());
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(cors());
-app.use(express.urlencoded({ extended: true })); // to parse form data
 app.use(express.json());  // JSON data ke liye
+app.use(express.urlencoded({ extended: true })); // to parse form data
+
 // to maintain session
 app.use(expressLayouts);
 app.use(
@@ -92,7 +93,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('layout',	 path.join(__dirname, 'layouts/main')); // default layout file
 app.use(express.static(path.join(process.cwd(), '/src/public')));
-
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use('/', ui_routes);
 io.on("connection", (socket) => {
 	console.log("Client Socket Connected");

@@ -28,6 +28,9 @@ class HomeController {
 	}
 	async  productDetails(req, res) {
 		try {
+			let userLocationData=res.locals.userLocationData?JSON.parse(res.locals.userLocationData):null;
+			const userLat = userLocationData ?userLocationData.latitude: 0;
+			const userLng = userLocationData ?userLocationData.longitude: 0;
 			let productAutoId = req.params.id;
 			let slug = req.params.slug;
 		if (productAutoId) {
@@ -89,29 +92,64 @@ class HomeController {
 		{
 		model: db.vendor_services,
 		as:'vendorService',
-		attributes: ["branch_address"],
+		attributes: ["id"],
+		required: true,
 		include: [
 		{ model:  db.vendors,
 			attributes: ['id','vendor_name',"phone","email","address"],
 		},
+		 {
+          model: db.vendor_services_locations,
+		  required: true,
+          attributes: ['vendor_services_locations_auto_id','city_id',"branch_address",
+			 [
+          literal(`
+            (6371 * acos(
+              cos(radians(${userLat}))
+              * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${userLng}))
+              + sin(radians(${userLat}))
+              * sin(radians(latitude))
+            ))
+          `),
+          'distance'
+        ]
+		  ],
+          where: { 
+			status: 1,
+			[Op.and]: [
+			literal(`
+			(6371 * acos(
+			cos(radians(${userLat}))
+			* cos(radians(latitude))
+			* cos(radians(longitude) - radians(${userLng}))
+			+ sin(radians(${userLat}))
+			* sin(radians(latitude))
+			)) <= 5
+			`)
+			]
+		   }
+        }
 		]
 		},
 	]
 	});
-	console.log(
-  "productDetails",
-  JSON.stringify(productDetails, null, 2)
-);
+// 	console.log(
+//   "productDetails",
+//   JSON.stringify(productDetails, null, 2)
+// );
+if(!productDetails){
+	req.flash('message', JSON.stringify({ type: 'error', text: 'Product not found' }));	
+	return  res.redirect('/'); // back to the previous page
+}
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
 				productDetails
 			  });
 		} catch (error) {
-			console.log(error);
-			return respHelper(res, {
-				status: 500,
-			});
+			 req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
+			  res.redirect('/'); // back to the previous page
 		}
 	}
 	async  productList(req, res) {
@@ -202,10 +240,25 @@ const products = await db.product.findAndCountAll({
 
       attributes: [
         'vendor_id',
-        'service_id',
-        'latitude',
-        'longitude',
-        [
+        'service_id'
+      ],
+
+      where: {
+        status: 1,
+        service_id: categoryId,
+        ...(vendor_id && { vendor_id })
+      },
+
+      include: [
+        {
+          model: db.vendors,
+          attributes: ['id', 'vendor_name'],
+          where: { status: 1 }
+        },
+		 {
+          model: db.vendor_services_locations,
+          attributes: ['city_id',"branch_address",
+			 [
           literal(`
             (6371 * acos(
               cos(radians(${userLat}))
@@ -217,14 +270,10 @@ const products = await db.product.findAndCountAll({
           `),
           'distance'
         ]
-      ],
-
-      where: {
-        status: 1,
-        service_id: categoryId,
-        ...(vendor_id && { vendor_id }),
-
-        [Op.and]: [
+		  ],
+          where: { 
+			status: 1,
+			 [Op.and]: [
           literal(`
             (6371 * acos(
               cos(radians(${userLat}))
@@ -235,13 +284,7 @@ const products = await db.product.findAndCountAll({
             )) <= 5
           `)
         ]
-      },
-
-      include: [
-        {
-          model: db.vendors,
-          attributes: ['id', 'vendor_name'],
-          where: { status: 1 }
+		   }
         }
       ]
     },
@@ -260,11 +303,11 @@ const products = await db.product.findAndCountAll({
   order: order
 });
 
-	//console.log("products",JSON.stringify(products,null,2))	
+	// console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
-				title: `productList`,
+				title: `Services`,
 				description: `${categorySlug}'s services`,
 				categoryId,
 				categorySlug,

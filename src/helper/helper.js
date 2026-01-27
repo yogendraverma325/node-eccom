@@ -227,7 +227,6 @@ const dateToReadAbleFormat=(date)=>{
 return moment(date).format("dddd, MMMM Do YYYY, h:mm:ss A")
 }
 const timelineCreation=async (transaction,data)=>{
-	console.log("data",data)
 	await db.order_status_timeline.create({
 			order_id:data.order_id,
 			status:data.status,
@@ -236,6 +235,15 @@ const timelineCreation=async (transaction,data)=>{
 			reason:data.reason
 	}, { transaction} );
 }
+const generateSlug = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")   // special chars remove
+    .replace(/\s+/g, "-")           // spaces → hyphen
+    .replace(/-+/g, "-");           // multiple - → single
+}; 
 export default {
 	getLoggedinUser,
 	checkFolder,
@@ -254,5 +262,6 @@ export default {
 	dateToReadAbleFormat,
 	encryptPassword,
 	timelineCreation,
-	mailService
+	mailService,
+	generateSlug
 };

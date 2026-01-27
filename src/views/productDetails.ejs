@@ -75,14 +75,12 @@
                     <div class="product-images">
                         <main id="gallery">
                             <div class="main-img">
-                                <img src="/assets/images/products/<%= productDetails.image %>" id="current"
-                                    alt="<%= productDetails.name %>">
+                                <img src="/<%= productDetails.image %>" id="current" alt="<%= productDetails.name %>">
                             </div>
                             <div class="images">
-                                <img src="/assets/images/products/<%= productDetails.image %>" class="img prodimage"
-                                    alt="#">
+                                <img src="/<%= productDetails.image %>" class="img prodimage" alt="#">
                                 <% productDetails.product_images.forEach((el)=> { %>
-                                    <img src="/assets/images/products/<%= el.image %>" class="img prodimage" alt="#">
+                                    <img src="/<%= el.image %>" class="img prodimage" alt="#">
                                     <% }) %>
 
                             </div>
@@ -242,7 +240,7 @@
                             <div class="mb-3">
                                 <strong>📍 Address:</strong>
                                 <span>
-                                    <%= productDetails.vendorService.branch_address %>
+                                    <%= productDetails.vendorService.vendor_services_locations[0].branch_address %>
                                 </span>
                             </div>
 

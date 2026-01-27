@@ -162,6 +162,51 @@ const signUpOTP = Joi.object({
 		.required()
 		.label("OTP is required"),
 });
+const addProductSchema = Joi.object({
+
+    name: Joi.string()
+        .max(255)
+        .required()
+        .label("Product Name"),
+
+    description: Joi.string()
+        .max(500)
+        .allow("")
+        .label("Description"),
+
+    long_description: Joi.string()
+        .allow("")
+        .label("Long Description"),
+
+    price: Joi.number()
+        .precision(2)
+        .required()
+        .label("Price"),
+
+    offerprice: Joi.number()
+        .precision(2)
+        .allow(0)
+        .label("Offer Price"),
+
+    rating: Joi.number()
+        .integer()
+        .min(0)
+        .max(5)
+        .allow(null)
+        .label("Rating"),
+    price_type: Joi.string()
+        .required()
+        .label("Price Type"),
+
+    capacity: Joi.string()
+        .allow("")
+        .label("Capacity"),
+
+    unit: Joi.string()
+        .allow("")
+        .label("Unit")
+
+});
 export default {
 	loginSchema,
 	checkoutSchema,
@@ -172,5 +217,6 @@ export default {
   contactUsSchema,
   addvendorSchema,
   signUpSchema,
-  signUpOTP
+  signUpOTP,
+  addProductSchema
 };

@@ -287,6 +287,82 @@ class AdminController {
 		}
     }
 
+       async add_service_item(req, res) {
+          req.session.lastUrl =req.originalUrl;
+      
+        const transaction = await db.sequelize.transaction();
+        let AdminId=100;
+        let service_item_id = helper.generateJwtOTPDecrypt(req.params.service_item_id);
+      
+		try {
+        let formError = {};
+        let formData = {};
+
+            if (req.method === 'GET') {
+     
+  
+              return res.render('masters/addService', {
+              title: 'Add Service',
+              description: 'Add Service',
+              formError,
+              formData,
+              service_item_id
+              });
+			}
+
+            const { error, value } = validator.addProductSchema.validate(req.body, {
+                            abortEarly: false // 🔥 saare errors ek sath
+                            });
+            if (error) {
+            let errors={}
+            error.details.forEach(err => {
+            errors[err.path[0]] = err.message;
+            });
+          if (!req.file) {
+          errors.image = "Product image is required";
+          }
+            formError=errors;
+            formData=value;
+
+            return res.render('masters/addService', {
+              title: 'Add Service',
+              description: 'Add Service',
+              formError,
+              formData,
+              service_item_id
+              });
+            }
+              let lastUrl=res.locals.lastUrl;
+              
+            await  db.product.create({
+              slug:helper.generateSlug(value.name),
+              name:value.name,
+              description:value.description,
+              long_description:value.long_description,
+              price:value.price,
+              offerprice:value.offerprice,
+              price_type:value.price_type,
+              capacity:value.capacity,
+              unit:value.unit,
+              rating:value.rating,
+              image:req.file.path,
+              vendor_service_id:service_item_id,
+              createdBy:AdminId
+            },transaction);
+
+					
+		   await transaction.commit();
+             req.flash('message', JSON.stringify({ type: 'success', text: `Service  has been added` }));
+            res.redirect(lastUrl); // back to the previous page
+			
+		} catch (error) {
+             await transaction.rollback();
+            console.log("error",error);
+            req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+             res.redirect('/admin/add-vendor');
+			
+		}
+	}
 }
 
 export default new AdminController();
