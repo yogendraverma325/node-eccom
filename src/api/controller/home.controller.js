@@ -3,12 +3,13 @@ import respHelper from "../../helper/respHelper.js";
 import helper from "../../helper/helper.js";
 import {returnCartList} from "../services/cartService.js";
 import { getCategories } from "../services/home.service.js";
-import { Op, fn, col, where} from 'sequelize';
+import { Op, fn, col, where,literal} from 'sequelize';
 import validator from "../../helper/validator.js";
 import {getState,getCity,getPincodes,businessLogic} from "../services/centralService.js"
 import bcrypt from "bcryptjs";
 import moment from 'moment';
 import eventEmitter from "../services/eventService.js";
+
 class HomeController {
 	async home(req, res) {
 		try {
@@ -88,6 +89,7 @@ class HomeController {
 		{
 		model: db.vendor_services,
 		as:'vendorService',
+		attributes: ["branch_address"],
 		include: [
 		{ model:  db.vendors,
 			attributes: ['id','vendor_name',"phone","email","address"],
@@ -96,10 +98,10 @@ class HomeController {
 		},
 	]
 	});
-// 	console.log(
-//   "productDetails",
-//   JSON.stringify(productDetails, null, 2)
-// );
+	console.log(
+  "productDetails",
+  JSON.stringify(productDetails, null, 2)
+);
 			res.render('productDetails', {
 				title: `Blog: productDetails`,
 				description: `Read about productDetails.`,
@@ -114,6 +116,9 @@ class HomeController {
 	}
 	async  productList(req, res) {
 		try {
+				let userLocationData=res.locals.userLocationData?JSON.parse(res.locals.userLocationData):null;
+				const userLat = userLocationData ?userLocationData.latitude: 0;
+				const userLng = userLocationData ?userLocationData.longitude: 0;
 				const min=600;
 				const max=5000;
 				let pricemin='';
@@ -187,40 +192,75 @@ class HomeController {
 // }
 			
 const products = await db.product.findAndCountAll({
-    where: productWhere,
-	include: [
-		{
-    model: db.vendor_services,
-	as:'vendorService',
-	where:{
-      status:1,
-	  service_id:categoryId,
-	  ...vendor_id&& {vendor_id:vendor_id}
-	},
-	 attributes: ['vendor_id',"service_id"],
-    include: [
-       {
-		 model:  db.vendors,
-			where:{
-			status:1
-			},
-		 attributes: ['vendor_name',"id"]
-		},
-    ]
-  },
-	{
-	model: db.product_feature_mapping,
-	attributes: ['feature_value']
-	},
-],
-    // Pagination Flags
-    limit: limit > 0 ? parseInt(limit) : null,
-    offset: offset > 0 ? parseInt(offset) : 0,
-    subQuery: false, // <--- YE SABSE ZAROORI HAI
-    distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
-    order: order
+  where: productWhere,
+
+  include: [
+    {
+      model: db.vendor_services,
+      as: 'vendorService',
+      required: true,
+
+      attributes: [
+        'vendor_id',
+        'service_id',
+        'latitude',
+        'longitude',
+        [
+          literal(`
+            (6371 * acos(
+              cos(radians(${userLat}))
+              * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${userLng}))
+              + sin(radians(${userLat}))
+              * sin(radians(latitude))
+            ))
+          `),
+          'distance'
+        ]
+      ],
+
+      where: {
+        status: 1,
+        service_id: categoryId,
+        ...(vendor_id && { vendor_id }),
+
+        [Op.and]: [
+          literal(`
+            (6371 * acos(
+              cos(radians(${userLat}))
+              * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${userLng}))
+              + sin(radians(${userLat}))
+              * sin(radians(latitude))
+            )) <= 5
+          `)
+        ]
+      },
+
+      include: [
+        {
+          model: db.vendors,
+          attributes: ['id', 'vendor_name'],
+          where: { status: 1 }
+        }
+      ]
+    },
+
+    {
+      model: db.product_feature_mapping,
+      attributes: ['feature_value']
+    }
+  ],
+
+  limit: limit > 0 ? parseInt(limit) : null,
+  offset: offset > 0 ? parseInt(offset) : 0,
+
+  subQuery: false,
+  distinct: true,
+  order: order
 });
-	// console.log("products",JSON.stringify(products,null,2))	
+
+	//console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {

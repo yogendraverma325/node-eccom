@@ -59,11 +59,16 @@ res.locals.flashMessage = req.flash('message') || null;
 res.locals.user = req.session.user || null;
 res.locals.userEmail = req.session.userEmail || null;
 res.locals.lastUrl = req.session.lastUrl || null;
-let cart=[]
+let cart=[];
+let userLocation=null;
 if(req.cookies.userCart){
 cart=await returnCartList(req.cookies.userCart);
 }
+if(req.cookies.userLocation){
+userLocation=req.cookies.userLocation;
+}
 res.locals.cartList=cart;
+res.locals.userLocationData=userLocation;
 res.locals.hotCategories=await getCategories(0,6)
 res.locals.helper=helper;
 res.locals.businessLogic=await businessLogic('SHIPPING_DETAILS');
