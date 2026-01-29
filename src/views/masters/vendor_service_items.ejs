@@ -51,7 +51,10 @@
                                         </a>
 
                                         <% } %>
-
+                                            <a class="btn btn-sm btn-info me-1"
+                                                href="/admin/edit_service_item/<%- helper.generateJwtOTPEncrypt(vendor_service_item.product_auto_id) %>">
+                                                Edit
+                                            </a>
                             </td>
                         </tr>
                         <% i++}) %>

@@ -8,7 +8,10 @@ import validator from "../../helper/validator.js";
 import {getState,getCity,getPincodes,businessLogic} from "../services/centralService.js"
 import bcrypt from "bcryptjs";
 import moment from 'moment';
-import eventEmitter from "../services/eventService.js";
+import fs from 'fs';
+import path from 'path';
+// Agar aapko project root track karna hai ES modules mein:
+const __dirname = path.resolve();
 class AdminController {
     async vendorList(req, res) {
            req.session.lastUrl =req.originalUrl;
@@ -353,6 +356,122 @@ class AdminController {
 					
 		   await transaction.commit();
              req.flash('message', JSON.stringify({ type: 'success', text: `Service  has been added` }));
+            res.redirect(lastUrl); // back to the previous page
+			
+		} catch (error) {
+             await transaction.rollback();
+            console.log("error",error);
+            req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+             res.redirect('/admin/add-vendor');
+			
+		}
+	}
+       async edit_service_item(req, res) {
+          req.session.lastUrl =req.originalUrl;
+      
+        const transaction = await db.sequelize.transaction();
+        let AdminId=100;
+        let service_item_id = helper.generateJwtOTPDecrypt(req.params.service_item_id);
+      
+		try {
+        let formError = {};
+        let formData = {};
+       let  serviceData={}
+        serviceData = await db.product.findOne({
+                  attributes: [
+                  "product_auto_id",
+                  "name", 
+                  "image",
+                  "price",
+                  "offerprice",
+                  "description",
+                  "long_description",
+                  "price_type",
+                  "capacity",
+                  "unit",
+                  "rating"
+                    ],
+                  where: {
+                    product_auto_id: service_item_id
+                  },
+                });
+
+            if (req.method === 'GET') {
+                
+
+              return res.render('masters/editService', {
+              title: 'Edit Service',
+              description: 'Edit Service',
+              formError,
+              formData,
+              service_item_id,
+              serviceData
+              });
+			}
+
+            const { error, value } = validator.editProductSchema.validate(req.body, {
+                            abortEarly: false // 🔥 saare errors ek sath
+                            });
+            if (error) {
+            let errors={}
+            error.details.forEach(err => {
+            errors[err.path[0]] = err.message;
+            });
+            // if (!req.file) {
+            // errors.image = "Product image is required";
+            // }
+            formError=errors;
+            formData=value;
+
+             return res.render('masters/editService', {
+              title: 'Edit Service',
+              description: 'Edit Service',
+              formError,
+              formData,
+              service_item_id,
+              serviceData
+              });
+            }
+              let lastUrl=res.locals.lastUrl;
+              let updateData={
+              slug:helper.generateSlug(value.name),
+              name:value.name,
+              description:value.description,
+              long_description:value.long_description,
+              price:value.price,
+              offerprice:value.offerprice,
+              price_type:value.price_type,
+              capacity:value.capacity,
+              unit:value.unit,
+              rating:value.rating,
+             // createdBy:AdminId
+              }
+              if(req.file){
+                  if (serviceData.image) {
+                const oldImagePath = path.join(process.cwd(), serviceData.image);
+
+                // File delete logic
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlink(oldImagePath, (err) => {
+                        if (err) console.error("Error deleting file:", err);
+                    });
+                }
+              }
+                  updateData.image=req.file.path;
+              }
+              
+              await db.product.update(
+                updateData,
+                {
+                  where: {
+                    product_auto_id: service_item_id
+                  },
+                  transaction
+                }
+              );
+
+		   await transaction.commit();
+             req.flash('message', JSON.stringify({ type: 'success', text: `Service  has been updated` }));
             res.redirect(lastUrl); // back to the previous page
 			
 		} catch (error) {

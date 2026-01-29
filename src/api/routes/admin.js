@@ -14,6 +14,10 @@ export default Express.Router()
 .get("/change_service_item_status/:service_item_id/:status",AdminController.change_service_item_status)
 .get("/add_service_item/:service_item_id",AdminController.add_service_item)
 .post("/add_service_item/:service_item_id",
-    productUploadMiddleware
-    ,AdminController.add_service_item)
+productUploadMiddleware
+,AdminController.add_service_item)
+.get("/edit_service_item/:service_item_id",AdminController.edit_service_item)
+.post("/edit_service_item/:service_item_id",
+productUploadMiddleware
+,AdminController.edit_service_item)
     
