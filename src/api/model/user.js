@@ -27,6 +27,9 @@ export default (sequelize, Sequelize) => {
 		is_verified:{
 			type: Sequelize.INTEGER,
 		},
+		is_admin:{
+			type: Sequelize.INTEGER,
+		},
 		last_login: {
 			type: Sequelize.DATE,
 		},

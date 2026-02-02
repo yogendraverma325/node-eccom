@@ -24,22 +24,24 @@
                         <% }) %>
                 </ul>
             </li>
-            <li class="nav-item">
-                <a class="dd-menu collapsed" href="javascript:void(0)" data-bs-toggle="collapse"
-                    data-bs-target="#masterMenu" aria-controls="navbarSupportedContent" aria-expanded="false"
-                    aria-label="Toggle navigation">Masters</a>
-                <ul class="sub-menu collapse" id="masterMenu">
-                    <li class="nav-item"><a href="/admin/vendors">
-                            vendors
-                        </a></li>
-                </ul>
-            </li>
-            <li class="nav-item">
-                <a href="/about-us" aria-label="Toggle navigation">About Us</a>
-            </li>
-            <li class="nav-item">
-                <a href="/contact" aria-label="Toggle navigation">Contact Us</a>
-            </li>
+            <% if (user && user.is_admin) { %>
+                <li class="nav-item">
+                    <a class="dd-menu collapsed" href="javascript:void(0)" data-bs-toggle="collapse"
+                        data-bs-target="#masterMenu" aria-controls="navbarSupportedContent" aria-expanded="false"
+                        aria-label="Toggle navigation">Masters</a>
+                    <ul class="sub-menu collapse" id="masterMenu">
+                        <li class="nav-item"><a href="/admin/vendors">
+                                vendors
+                            </a></li>
+                    </ul>
+                </li>
+                <% } %>
+                    <li class="nav-item">
+                        <a href="/about-us" aria-label="Toggle navigation">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/contact" aria-label="Toggle navigation">Contact Us</a>
+                    </li>
         </ul>
     </div> <!-- navbar collapse -->
 </nav>

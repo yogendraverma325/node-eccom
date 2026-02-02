@@ -38,8 +38,7 @@
                                 <form action="/user/signup" method="POST">
                                     <div class="form-group input-group">
                                         <label for="reg-fn">name</label>
-                                        <input class="form-control" id="reg-email" required name="name"
-                                            value="yogendra">
+                                        <input class="form-control" id="reg-email" required name="name" value="">
                                         <% if (formError?.name) { %>
                                             <small class="text-danger">
                                                 <%= formError.name %>
@@ -47,9 +46,8 @@
                                             <% } %>
                                     </div>
                                     <div class="form-group input-group">
-                                        <label for="reg-fn">Email</label>
-                                        <input class="form-control" id="reg-email" required name="phone"
-                                            value="7017334526">
+                                        <label for="reg-fn">Phone</label>
+                                        <input class="form-control" id="reg-email" required name="phone" value="">
                                         <% if (formError?.phone) { %>
                                             <small class="text-danger">
                                                 <%= formError.phone %>
@@ -58,8 +56,7 @@
                                     </div>
                                     <div class="form-group input-group">
                                         <label for="reg-fn">Email</label>
-                                        <input class="form-control" id="reg-email" required name="email"
-                                            value="yogendraverma2021@gmail.com">
+                                        <input class="form-control" id="reg-email" required name="email" value="">
                                         <% if (formError?.email) { %>
                                             <small class="text-danger">
                                                 <%= formError.email %>
@@ -68,7 +65,7 @@
                                     </div>
                                     <div class="form-group input-group">
                                         <label for="reg-fn">Password</label>
-                                        <input class="form-control" id="reg-pass" required name="password" value="12345"
+                                        <input class="form-control" id="reg-pass" required name="password" value=""
                                             type="password">
                                     </div>
 

@@ -87,7 +87,8 @@ class AuthController {
 			req.session.user = {
 			id: user.userId,
 			name: user.name,
-			email: user.email
+			email: user.email,
+			is_admin:user.is_admin
 			}; 
 			await db.user.update(
 			{
