@@ -530,6 +530,86 @@ class AdminController {
 			
 		}
   }
+  async vendorLocations(req, res) {
+          req.session.lastUrl =req.originalUrl;
+        try {
+            let vendor_service_auto_id = helper.generateJwtOTPDecrypt(req.params.vendor_service_auto_id);
+            console.log("vendor_service_auto_id",vendor_service_auto_id)
+            let cities=await getCity(34);
+
+                const page = req.query.page || 1;     // "page"
+                const limit=5;
+                const offset = (page - 1) * limit;
+                const vendor_services = await db.vendor_services_locations.findAndCountAll({
+                    attributes: ['vendor_services_locations_auto_id',"vendor_service_auto_id","latitude","longitude","branch_address","status"],
+                  where:{
+                    vendor_service_auto_id:vendor_service_auto_id
+                  },
+                  include: 
+                      {
+                        model: db.cityMaster,
+                        attributes: ['cityId',"cityName"],
+                        where:{
+                        isActive:1
+                        },
+                      },
+                // Pagination Flags
+                limit: limit > 0 ? parseInt(limit) : null,
+                offset: offset > 0 ? parseInt(offset) : 0,
+                subQuery: false, // <--- YE SABSE ZAROORI HAI
+                distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
+                order: [['created_at', 'DESC']]
+                });
+                 console.log("vendor_id 2", JSON.stringify(vendor_services, null, 2))
+                
+                const totalRecords = vendor_services.count;
+				const totalPages = Math.ceil(totalRecords / limit);
+            res.render('masters/vendor_service_location', {
+            title: 'vendors locations',
+            description: 'vendors locations',
+            vendor_services,
+            totalPages,
+            page,
+            cities,
+            vendor_service_auto_id
+            });
+            
+        } catch (error) {
+          console.log("error",error);
+            // res.redirect('/admin/vendors'); // back to the previous page
+        }
+    }
+     async  change_vendor_locations_status(req, res) {
+        let lastUrl=res.locals.lastUrl;
+        const transaction = await db.sequelize.transaction();
+         let AdminId=100;
+            try {
+            let vendor_services_locations_auto_id = helper.generateJwtOTPDecrypt(req.params.vendor_services_locations_auto_id);
+            let status = helper.generateJwtOTPDecrypt(req.params.status);
+            await db.vendor_services_locations.update(
+              {
+               status:!status,
+               updatedBy:AdminId
+              },
+              {
+                where: {
+                  vendor_services_locations_auto_id: vendor_services_locations_auto_id
+                },
+                transaction
+              }
+            );
+            await transaction.commit();
+            req.flash('message', JSON.stringify({ type: 'success', text: `Vendor's location status has been changed` }));
+             res.redirect(lastUrl); // back to the previous page
+            
+        } catch (error) {
+          console.log("error",error)
+          await transaction.rollback();
+         req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
+         res.redirect(lastUrl); // back to the previous page
+			
+		}
+    }
 }
 
 export default new AdminController();

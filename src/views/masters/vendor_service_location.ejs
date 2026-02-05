@@ -3,14 +3,14 @@
         <div class="row align-items-center">
             <div class="col-lg-6 col-md-6 col-12">
                 <div class="breadcrumbs-content">
-                    <h1 class="page-title">Vendor Domain(s)</h1>
+                    <h1 class="page-title">Vendor Location(s)</h1>
                 </div>
             </div>
             <div class="col-lg-6 col-md-6 col-12">
                 <ul class="breadcrumb-nav">
                     <li><a href="/"><i class="lni lni-home"></i> Home</a></li>
                     <li><a href="/admin/vendors"> Vendor List</a></li>
-                    <li>Vendor Domain(s)</li>
+                    <li>Vendor Location(s)</li>
                 </ul>
             </div>
         </div>
@@ -19,8 +19,8 @@
 <section class="vendors-list-wrapper py-5">
     <div class="container">
         <button class="btn btn-sm btn-primary my-2" data-bs-toggle="modal" data-bs-target="#categoryModal"
-            data-vendor-id="<%= helper.generateJwtOTPEncrypt(vendor_id) %>">
-            Manage Service Categories
+            data-vendor-id="<%= helper.generateJwtOTPEncrypt(vendor_service_auto_id) %>">
+            Manage Locations
         </button>
 
 
@@ -30,9 +30,9 @@
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Domain Name</th>
-                        <th scope="col">Locations</th>
-                        <th scope="col">View Service Listing</th>
+                        <th scope="col">City</th>
+                        <th scope="col">Lattitude</th>
+                        <th scope="col">Longitude</th>
                         <th scope="col" class="text-center">Change Status</th>
                     </tr>
                 </thead>
@@ -44,31 +44,25 @@
                                 <%= i %>
                             </th>
                             <td>
-                                <%= vendor_service.category.categoryName %>
+                                <%= vendor_service.citymaster.cityName %>
                             </td>
                             <td>
-                                <a
-                                    href="/admin/vendor-locations/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>">
-                                    <i class="fa fa-map-marker fa-2x"></i>
-                                </a>
+                                <%= vendor_service.latitude %>
                             </td>
                             <td>
-                                <a
-                                    href="/admin/vendor-domain-services/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>">
-                                    <i class="fa fa-server fa-2x"></i>
-                                </a>
+                                <%= vendor_service.longitude %>
                             </td>
 
                             <td class="text-center">
                                 <% if (vendor_service.status) { %>
                                     <a class="btn btn-sm btn-danger me-1"
-                                        href="/admin/change_vendor_domain_status/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service.status) %>">
+                                        href="/admin/change_vendor_locations_status/<%- helper.generateJwtOTPEncrypt(vendor_service.vendor_services_locations_auto_id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service.status) %>">
                                         In-Active
                                     </a>
 
                                     <% } else {%>
                                         <a class="btn btn-sm btn-success me-1"
-                                            href="/admin/change_vendor_domain_status/<%- helper.generateJwtOTPEncrypt(vendor_service.id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service.status) %>">
+                                            href="/admin/change_vendor_locations_status/<%- helper.generateJwtOTPEncrypt(vendor_service.vendor_services_locations_auto_id) %>/<%- helper.generateJwtOTPEncrypt(vendor_service.status) %>">
                                             Active
                                         </a>
 
@@ -112,20 +106,21 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Vendor Service Category Mapping</h5>
+                    <h5 class="modal-title">Vendor Service City Mapping</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
 
-                    <input type="hidden" name="vendorId" value="<%= helper.generateJwtOTPEncrypt(vendor_id) %>">
+                    <input type="hidden" name="vendorId"
+                        value="<%= helper.generateJwtOTPEncrypt(vendor_service_auto_id) %>">
 
                     <div class="mb-3">
-                        <label class="form-label">Select Categories</label>
-                        <select name="categoryIds[]" class="form-select" multiple required>
-                            <% filteredCategories.forEach(cat=> { %>
-                                <option value="<%= helper.generateJwtOTPEncrypt(cat.catAutoId) %>">
-                                    <%= cat.categoryName %>
+                        <label class="form-label">Select Cities</label>
+                        <select name="citiid" class="form-select" multiple required>
+                            <% cities.forEach(city=> { %>
+                                <option value="<%= helper.generateJwtOTPEncrypt(city.cityId) %>">
+                                    <%= city.cityName %>
                                 </option>
                                 <% }) %>
                         </select>

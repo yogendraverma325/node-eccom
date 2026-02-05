@@ -23,4 +23,6 @@ productUploadMiddleware
 productUploadMiddleware
 ,AdminController.edit_service_item)
 .post("/vendor-category-mapping",isAdmin,AdminController.addVendorCategoryMapping)
+.get("/vendor-locations/:vendor_service_auto_id",isAdmin,AdminController.vendorLocations)
+.get("/change_vendor_locations_status/:vendor_services_locations_auto_id/:status",isAdmin,AdminController.change_vendor_locations_status)
     

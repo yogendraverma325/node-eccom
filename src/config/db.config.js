@@ -226,5 +226,13 @@ db.vendor_services_locations.belongsTo(db.vendor_services, {
 });
 
 
+	db.cityMaster.hasMany(db.vendor_services_locations, { 
+	foreignKey: 'city_id', // Child table ka column
+	sourceKey: 'cityId',    // Parent table ka column
+	});
+	db.vendor_services_locations.belongsTo(db.cityMaster, { 
+	foreignKey: 'city_id', // Child table (Mapping) ka column
+	targetKey: 'cityId'      // Parent table (CityMaster) ka column
+	});
 
 export default db;
