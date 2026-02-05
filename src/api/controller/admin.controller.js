@@ -696,6 +696,45 @@ class AdminController {
 		}
 
 	}
+   async add_service_feature(req, res){
+		try{
+      
+        let service_item_id = helper.generateJwtOTPDecrypt(req.body.product_id);
+         let product_feature_mapping_id =req.body.service_item_id;
+        let feature_value = (req.body.feature_value);
+        let edit_mode = req.body.edit_mode;
+        if(edit_mode == true){
+          await db.product_feature_mapping.update({
+            feature_value:feature_value
+          },
+          {
+            where:{
+              product_feature_mapping_id:product_feature_mapping_id
+            }
+          })
+        }else{  
+        await db.product_feature_mapping.create({
+            product_auto_id:service_item_id,
+            feature_value:feature_value,
+            is_active:1
+        })
+      }
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service feature added Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+  }
+
+	}
 }
 
 export default new AdminController();

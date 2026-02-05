@@ -28,3 +28,4 @@ productUploadMiddleware
 .post("/vendor-location-mapping",isAdmin,AdminController.addVendorLocationMapping)
 .post("/service_feature_list",isAdmin,AdminController.service_feature_list)
 .post("/service_feature_status_change",isAdmin,AdminController.service_feature_status_change)
+.post("/add_service_feature",isAdmin,AdminController.add_service_feature)

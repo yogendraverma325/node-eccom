@@ -99,9 +99,29 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="fearure_mapping_exampleModalLabel">Service Provider Contact Details</h5>
+                <h5 class="modal-title" id="fearure_mapping_exampleModalLabel">Features/Amenties Mapping</h5>
             </div>
             <div class="modal-body">
+                <form id="addFeatureForm">
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-4">
+                            <input type="text" id="feature_input" class="form-control" placeholder="Enter feature"
+                                required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100" id="add_feature_btn">
+                                Add/update Feature
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-info w-100" id="cancel_feature_btn"
+                                style="display: none;">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
                 <div id="product_feature_mappings_div"></div>
 
             </div>

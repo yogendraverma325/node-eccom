@@ -1,5 +1,7 @@
   window.addEventListener('DOMContentLoaded', () => {
     let product_id=0;
+    let service_item_id=0;
+    let edit_mode=false;
      const myModalEl = document.getElementById('fearure_mapping_exampleModal');
     const filterModal = new bootstrap.Modal(myModalEl);
 
@@ -74,8 +76,16 @@ async function renderServiceFeatures({
                         <button 
                             class="btn btn-sm features_amenities_disbaled ${item.is_active == 1 ? 'btn-success' : 'btn-danger'}"
                             data-service-item-id="${item.product_feature_mapping_id}"
+                           
                             >
                             ${item.is_active == 1 ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button 
+                            class="btn btn-sm features_amenities_edit btn-info"
+                            data-service-item-id="${item.product_feature_mapping_id}"
+                             data-service-item-value="${item.feature_value}"
+                            >
+                            Edit
                         </button>
                     </td>
                 </tr>
@@ -122,5 +132,75 @@ document.getElementById('product_feature_mappings_div').innerHTML = tableHtml;
     }
 });
 
+document.getElementById('addFeatureForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); // page reload roko
+
+    const featureValue = document.getElementById('feature_input').value.trim();
+     if (!featureValue) {
+        alert('Feature is required');
+        return;
+    }
+
+    try {
+            console.log("form submitted",featureValue);
+        const response = await fetch('/admin/add_service_feature', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                feature_value: featureValue,
+                edit_mode:edit_mode,
+                service_item_id:service_item_id,
+                product_id: product_id // modal open pe set karo
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status) {
+            document.getElementById('feature_input').value = '';
+            document.getElementById('cancel_feature_btn').style.display = 'none';
+             edit_mode=false;
+             service_item_id=0;
+            // list refresh
+            renderServiceFeatures({
+                itemId: product_id
+            });
+        } else {
+            alert(result.message || 'Failed to add feature');
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('Something went wrong');
+    }
+
+});
+
+
+// edit form
+ document
+  .getElementById('product_feature_mappings_div')
+  .addEventListener('click', async function (e) {
+
+    if (e.target.classList.contains('features_amenities_edit')) {
+        const itemId = e.target.dataset.serviceItemId;
+        edit_mode=true;
+        service_item_id = itemId;
+        console.log('itemValue:', itemId);
+        document.getElementById('feature_input').value = e.target.dataset.serviceItemValue;
+        document.getElementById('cancel_feature_btn').style.display = 'block';
+
+         document
+        .getElementById('cancel_feature_btn')
+        .addEventListener('click', async function (e) {
+            e.preventDefault();
+            document.getElementById('feature_input').value = '';
+            document.getElementById('cancel_feature_btn').style.display = 'none';
+        });
+    }
+});
+// edit form
 //     // open modal
   });
