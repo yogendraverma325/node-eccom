@@ -534,7 +534,6 @@ class AdminController {
           req.session.lastUrl =req.originalUrl;
         try {
             let vendor_service_auto_id = helper.generateJwtOTPDecrypt(req.params.vendor_service_auto_id);
-            console.log("vendor_service_auto_id",vendor_service_auto_id)
             let cities=await getCity(34);
 
                 const page = req.query.page || 1;     // "page"
@@ -560,7 +559,6 @@ class AdminController {
                 distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
                 order: [['created_at', 'DESC']]
                 });
-                 console.log("vendor_id 2", JSON.stringify(vendor_services, null, 2))
                 
                 const totalRecords = vendor_services.count;
 				const totalPages = Math.ceil(totalRecords / limit);
@@ -610,6 +608,38 @@ class AdminController {
 			
 		}
     }
+     async addVendorLocationMapping(req, res) {
+    const transaction = await db.sequelize.transaction();
+     let lastUrl=res.locals.lastUrl;
+    try{
+      console.log("req.body",req.body);
+
+    let vendor_service_auto_id = helper.generateJwtOTPDecrypt(req.body.vendor_service_auto_id);
+    let citiid = helper.generateJwtOTPDecrypt(req.body.citiid);
+      let AdminId=100;
+       const vendor_services = await db.vendor_services_locations.create({
+            vendor_service_auto_id: vendor_service_auto_id,
+            city_id:citiid,
+            latitude:req.body.lattitude,
+            longitude:req.body.longtitude,
+            branch_address:req.body.branch_address,
+            created_by:AdminId
+            }, { transaction });
+      console.log("req.body",vendor_service_auto_id)
+     
+    await transaction.commit();
+    req.flash('message', JSON.stringify({ type: 'success', text: `Vendor Service Location Mapping has been added` }));
+    res.redirect(lastUrl); // back to the previous page
+
+    }
+    catch (error) {
+             await transaction.rollback();
+            console.log("error",error);
+            req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+             res.redirect(lastUrl);
+			
+		}
+  }
 }
 
 export default new AdminController();

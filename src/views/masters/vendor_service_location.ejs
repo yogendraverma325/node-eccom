@@ -31,8 +31,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">City</th>
-                        <th scope="col">Lattitude</th>
-                        <th scope="col">Longitude</th>
+                        <th scope="col">Address</th>
                         <th scope="col" class="text-center">Change Status</th>
                     </tr>
                 </thead>
@@ -47,10 +46,7 @@
                                 <%= vendor_service.citymaster.cityName %>
                             </td>
                             <td>
-                                <%= vendor_service.latitude %>
-                            </td>
-                            <td>
-                                <%= vendor_service.longitude %>
+                                <%= vendor_service.branch_address %>
                             </td>
 
                             <td class="text-center">
@@ -102,7 +98,7 @@
 
 <div class="modal fade" id="categoryModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <form method="POST" action="/admin/vendor-category-mapping">
+        <form method="POST" action="/admin/vendor-location-mapping">
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -112,18 +108,30 @@
 
                 <div class="modal-body">
 
-                    <input type="hidden" name="vendorId"
+                    <input type="hidden" name="vendor_service_auto_id"
                         value="<%= helper.generateJwtOTPEncrypt(vendor_service_auto_id) %>">
 
                     <div class="mb-3">
-                        <label class="form-label">Select Cities</label>
-                        <select name="citiid" class="form-select" multiple required>
+                        <label class="form-label">Select City</label>
+                        <select name="citiid" class="form-select" required>
                             <% cities.forEach(city=> { %>
                                 <option value="<%= helper.generateJwtOTPEncrypt(city.cityId) %>">
                                     <%= city.cityName %>
                                 </option>
                                 <% }) %>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lattitude</label>
+                        <input type="text" name="lattitude" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Longtitude</label>
+                        <input type="text" name="longtitude" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Branch Address</label>
+                        <input type="text" name="branch_address" class="form-control" required maxlength="255">
                     </div>
 
                 </div>
