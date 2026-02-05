@@ -22,4 +22,5 @@ productUploadMiddleware
     isAdmin,
 productUploadMiddleware
 ,AdminController.edit_service_item)
+.post("/vendor-category-mapping",isAdmin,AdminController.addVendorCategoryMapping)
     

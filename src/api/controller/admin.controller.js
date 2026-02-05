@@ -143,15 +143,30 @@ class AdminController {
 		}
 	}
    async vendorDomains(req, res) {
+         req.session.lastUrl =req.originalUrl;
         try {
-          req.session.lastUrl =req.originalUrl;
+           let vendor_id = helper.generateJwtOTPDecrypt(req.params.vendor_id);
+            const categories = await getCategories(0,0);
+            
+             const vendor_servicesList = await db.vendor_services.findAll({
+               where:{
+                    vendor_id:vendor_id
+                  },
+             });
+           
+          
+              const serviceIds = vendor_servicesList.map(
+              item => item.service_id
+              );
 
-              let vendor_id = helper.generateJwtOTPDecrypt(req.params.vendor_id);
+              // categories filter karo
+              const filteredCategories = categories.filter(
+              cat => !serviceIds.includes(cat.catAutoId)
+              );
 
                 const page = req.query.page || 1;     // "page"
                 const limit=5;
                 const offset = (page - 1) * limit;
-                  console.log("vendor_id 1",vendor_id)
                 const vendor_services = await db.vendor_services.findAndCountAll({
                     attributes: ['id',"vendor_id","status"],
                   where:{
@@ -181,10 +196,13 @@ class AdminController {
             description: 'vendors domain(s)',
             vendor_services,
             totalPages,
-            page
+            page,
+            filteredCategories,
+            vendor_id
             });
             
         } catch (error) {
+          console.log("error",error);
              res.redirect(lastUrl); // back to the previous page
         }
     }
@@ -482,6 +500,36 @@ class AdminController {
 			
 		}
 	}
+  async addVendorCategoryMapping(req, res) {
+    const transaction = await db.sequelize.transaction();
+    try{
+      let vendorId = helper.generateJwtOTPDecrypt(req.body.vendorId);
+      let AdminId=100;
+      let lastUrl=res.locals.lastUrl;
+      console.log("req.body",vendorId)
+      console.log("categoryIds",req.body.categoryIds);
+      for (const item of req.body.categoryIds) {
+        let categoryId = helper.generateJwtOTPDecrypt(item);
+       
+            await db.vendor_services.create({
+            vendor_id: vendorId,
+            service_id: categoryId,
+            created_by:AdminId
+            }, { transaction });
+      }
+    await transaction.commit();
+    req.flash('message', JSON.stringify({ type: 'success', text: `Vendor Service Category Mapping has been added` }));
+    res.redirect(lastUrl); // back to the previous page
+
+    }
+    catch (error) {
+             await transaction.rollback();
+            console.log("error",error);
+            req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+             res.redirect('/admin/add-vendor');
+			
+		}
+  }
 }
 
 export default new AdminController();

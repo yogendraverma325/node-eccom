@@ -18,6 +18,10 @@
 </div>
 <section class="vendors-list-wrapper py-5">
     <div class="container">
+        <button class="btn btn-sm btn-primary my-2" data-bs-toggle="modal" data-bs-target="#categoryModal"
+            data-vendor-id="<%= helper.generateJwtOTPEncrypt(vendor_id) %>">
+            Manage Service Categories
+        </button>
 
 
 
@@ -93,3 +97,42 @@
         </div>
     </div>
 </section>
+
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="/admin/vendor-category-mapping">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Vendor Service Category Mapping</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" name="vendorId" value="<%= helper.generateJwtOTPEncrypt(vendor_id) %>">
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Categories</label>
+                        <select name="categoryIds[]" class="form-select" multiple required>
+                            <% filteredCategories.forEach(cat=> { %>
+                                <option value="<%= helper.generateJwtOTPEncrypt(cat.catAutoId) %>">
+                                    <%= cat.categoryName %>
+                                </option>
+                                <% }) %>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
