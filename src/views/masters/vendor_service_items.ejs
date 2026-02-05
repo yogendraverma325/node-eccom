@@ -13,6 +13,7 @@
                         <th scope="col">Image</th>
                         <th scope="col">Price</th>
                         <th scope="col">Rating</th>
+                        <th scope="col">Features/Amenties</th>
                         <th scope="col" class="text-center">Change Status</th>
                     </tr>
                 </thead>
@@ -35,6 +36,13 @@
                             </td>
                             <td>
                                 <%= vendor_service_item.rating %>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-primary me-1 features_amenities" href="javascript:void(0)"
+                                    data-service-item-id="<%- helper.generateJwtOTPEncrypt(vendor_service_item.product_auto_id) %>">
+                                    View Features/Amenities
+                                </button>
+
                             </td>
 
                             <td class="text-center">
@@ -84,3 +92,24 @@
         </div>
     </div>
 </section>
+
+<!-- Modal -->
+<div class="modal fade" id="fearure_mapping_exampleModal" tabindex="-1" role="dialog"
+    aria-labelledby="fearure_mapping_exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fearure_mapping_exampleModalLabel">Service Provider Contact Details</h5>
+            </div>
+            <div class="modal-body">
+                <div id="product_feature_mappings_div"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="fearure_mapping_close_modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- modal -->
+<script src="/assets/js/vendorServiceItem.js"></script>

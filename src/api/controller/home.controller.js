@@ -61,17 +61,24 @@ class HomeController {
 			model: db.product_feature_mapping,
 			attributes: ['feature_value'],
 			required: false,
+			where: {
+			is_active: 1
+			},
 			},
 			{
 			model: db.product_images,
 			attributes: ['image'],
 			required: false,
+			where: {
+			is_active: 1
+			},
 			},
 			{
 			model: db.product_meta_data,
 			attributes: ['meta_data'],
 			where:{
-				visibility:1
+				visibility:1,
+				is_active: 1
 			},
 			required: false,
 			},

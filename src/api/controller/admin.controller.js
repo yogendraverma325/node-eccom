@@ -612,7 +612,6 @@ class AdminController {
     const transaction = await db.sequelize.transaction();
      let lastUrl=res.locals.lastUrl;
     try{
-      console.log("req.body",req.body);
 
     let vendor_service_auto_id = helper.generateJwtOTPDecrypt(req.body.vendor_service_auto_id);
     let citiid = helper.generateJwtOTPDecrypt(req.body.citiid);
@@ -640,6 +639,63 @@ class AdminController {
 			
 		}
   }
+  async service_feature_list(req, res){
+		try{
+        let service_item_id = helper.generateJwtOTPDecrypt(req.body.service_item_id);
+        const products = await db.product_feature_mapping.findAll(
+          {
+          where:{
+          product_auto_id:service_item_id
+          },
+          attributes:["product_feature_mapping_id","feature_value","is_active"]
+
+      });
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: products,
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+
+	}
+    async service_feature_status_change(req, res){
+		try{
+        let service_item_id = (req.body.service_item_id);
+        console.log("service_item_id",service_item_id)
+        await db.product_feature_mapping.update(
+      {
+      is_active: db.sequelize.literal('IF(is_active = 1, 0, 1)')
+      },
+      {
+      where: {
+      product_feature_mapping_id: service_item_id
+      }
+      }
+      )
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+
+	}
 }
 
 export default new AdminController();
