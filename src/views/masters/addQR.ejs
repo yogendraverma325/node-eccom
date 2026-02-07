@@ -1,0 +1,72 @@
+<div class="breadcrumbs">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 col-md-6 col-12">
+                <div class="breadcrumbs-content">
+                    <h1 class="page-title">Add QR</h1>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-12">
+                <ul class="breadcrumb-nav">
+                    <li><a href="/"><i class="lni lni-home"></i> Home</a></li>
+                    <li><a href="/admin/qrcodes"> QR Codes</a></li>
+                    <li>Add QR Code</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <section class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+
+                    <div class="card shadow">
+
+                        <div class="card-body">
+                            <% if (formError && Object.keys(formError).length> 0) { %>
+                                <div class="alert alert-danger">
+                                    Please enter details properly
+                                </div>
+                                <% } %>
+                                    <form method="post" action="/admin/addQrCode">
+
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Redirection URL</label>
+                                                <input type="text" class="form-control"
+                                                    placeholder="Enter Redirection URL" name="redirect_url">
+                                                <% if (formError?.redirect_url) { %>
+                                                    <small class="text-danger">
+                                                        <%= formError.redirect_url %>
+                                                    </small>
+                                                    <% } %>
+                                            </div>
+
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">QR Code For</label>
+                                                <input type="text" class="form-control" placeholder="QR Code For"
+                                                    name="created_for">
+                                                <% if (formError?.created_for) { %>
+                                                    <small class="text-danger">
+                                                        <%= formError.created_for %>
+                                                    </small>
+                                                    <% } %>
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-primary ms-2">Save QR Code</button>
+                                        </div>
+
+                                    </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>

@@ -66,6 +66,28 @@
         color: #fff;
         transform: translateY(-2px);
     }
+
+    .feature-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .chip {
+        padding: 6px 12px;
+        background: #eef2ff;
+        color: #3730a3;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid #c7d2fe;
+        transition: 0.2s;
+    }
+
+    .chip:hover {
+        background: #6366f1;
+        color: #fff;
+    }
 </style>
 <section class="item-details section">
     <div class="container">
@@ -176,27 +198,29 @@
                                 <%= productDetails.long_description %>
                             </p>
                             <h4>Amenties</h4>
-                            <ul class="features">
+                            <div class="feature-chips">
                                 <% productDetails.product_feature_mappings.forEach((feature)=> { %>
-                                    <li>
+                                    <span class="chip">
                                         <%= feature.feature_value %>
-                                    </li>
+                                    </span>
                                     <% }) %>
-                            </ul>
+                            </div>
+
                         </div>
                     </div>
                     <div class="col-lg-6 col-12">
                         <div class="info-body">
-                            <h4>Inclusion /Exlusion</h4>
+                            <h4>Facilities Information/Package Information</h4>
                             <ul class="normal-list">
 
                                 <% productDetails.specifications.forEach((specification)=>
                                     { %>
                                     <li><span>
-                                            <%= specification.specification_value %>
+                                            <%= specification.specification.specification_name %>
                                                 :
                                         </span>
-                                        <%= specification.specification.specification_name %>
+                                        <%= specification.specification_value %>
+
                                     </li>
                                     <% }) %>
 

@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import moment from 'moment';
 import fs from 'fs';
 import path from 'path';
+import QRCode from 'qrcode';
 // Agar aapko project root track karna hai ES modules mein:
 const __dirname = path.resolve();
 class AdminController {
@@ -258,6 +259,16 @@ class AdminController {
         order: order
     });
       const totalRecords = vendor_service_items.count;
+
+       const specifications = await db.specification_master.findAll(
+          {
+          where:{
+          is_active:1
+          },
+          attributes:["specification_auto_id","specification_name","is_active"]
+
+      });
+
 				const totalPages = Math.ceil(totalRecords / limit);
             res.render('masters/vendor_service_items', {
             title: 'vendors service items',
@@ -265,9 +276,9 @@ class AdminController {
             vendor_service_items,
             totalPages,
             page,
-            vendor_service_id
+            vendor_service_id,
+            specifications
             });
-      //  console.log("vendor_services", JSON.stringify(vendor_service_items, null, 2))
     }
     catch (error) {
           console.log("error",error)
@@ -952,6 +963,450 @@ class AdminController {
 		}
 
 	}
+   async service_details_list(req, res){
+		try{
+        let service_item_id = helper.generateJwtOTPDecrypt(req.body.service_item_id);
+        const products = await db.product_specification_mapping.findAll(
+          {
+          where:{
+          product_auto_id:service_item_id
+          },
+          include: [
+          {
+          model: db.specification_master,
+          as: 'specification',
+          attributes: ['specification_name'],
+          required: false,
+          }
+          ]
+
+      });
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: products,
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+
+	}
+   async service_details_data_status_change(req, res){
+		try{
+        let service_item_id = (req.body.service_item_id);
+        await db.product_specification_mapping.update(
+      {
+      is_active: db.sequelize.literal('IF(is_active = 1, 0, 1)')
+      },
+      {
+      where: {
+      product_specification_mapping_id: service_item_id
+      }
+      }
+      )
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+
+	}
+    async add_service_details_data(req, res){
+		try{
+       let AdminId=1;
+        let service_item_id = helper.generateJwtOTPDecrypt(req.body.product_id);
+         let product_feature_mapping_id =req.body.service_item_id;
+        let feature_value = (req.body.feature_value);
+           let specification_value = (req.body.sepecificatoin);
+        let edit_mode = req.body.edit_mode;
+        if(edit_mode == true){
+          await db.product_specification_mapping.update({
+            specification_auto_id:specification_value,
+            specification_value:feature_value,
+          },
+          {
+            where:{
+              product_specification_mapping_id:product_feature_mapping_id,
+               product_auto_id:service_item_id,
+            }
+          })
+        }else{  
+        await db.product_specification_mapping.create({
+            product_auto_id:service_item_id,
+            specification_auto_id:specification_value,
+            specification_value:feature_value,
+            is_active:1,
+            createdBy:AdminId
+        })
+      }
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service meta data added Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+  }
+
+	} 
+   async qrcodes(req, res) {
+           req.session.lastUrl =req.originalUrl;
+        try {
+                const page = req.query.page || 1;     // "page"
+                const limit=5;
+                const offset = (page - 1) * limit;
+                const qr_codesList = await db.qr_codes.findAndCountAll({
+                // Pagination Flags
+                limit: limit > 0 ? parseInt(limit) : null,
+                offset: offset > 0 ? parseInt(offset) : 0,
+                subQuery: false, // <--- YE SABSE ZAROORI HAI
+                distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
+                order: [['createdAt', 'DESC']]
+                });
+                
+            const totalRecords = qr_codesList.count;
+            const totalPages = Math.ceil(totalRecords / limit);
+     
+            res.render('masters/qrcodes', {
+            title: 'QR Codes',
+            description: 'QR Codes(s)',
+            qr_codesList,
+            totalPages,
+            page
+            });
+            
+        } catch (error) {
+            console.log("error",error);
+        }
+    }
+    async addQrCode(req, res){
+       const transaction = await db.sequelize.transaction();
+           let AdminId=1;
+              req.session.lastUrl =req.originalUrl;
+           try{
+              let formError = {};
+			let formData = {};
+
+        if (req.method === 'GET') {
+          return res.render('masters/addQR', {
+        title: 'Add QR ',
+        description: 'Add QR ',
+        formError,
+        formData
+        });
+        }
+
+         const { error, value } = validator.addQRCODESchema.validate(req.body, {
+                            abortEarly: false // 🔥 saare errors ek sath
+                            });
+            if (error) {
+            let errors={}
+            error.details.forEach(err => {
+            errors[err.path[0]] = err.message;
+            });
+            formError=errors;
+            formData=value;
+
+             return res.render('masters/addQR', {
+        title: 'Add QR ',
+        description: 'Add QR ',
+        formError,
+        formData
+        });
+            }
+             let lastUrl=res.locals.lastUrl;
+            console.log("value",value)
+
+            await  db.qr_codes.create({
+              created_for:value.created_for,
+              redirect_url:value.redirect_url,
+              createdBy:AdminId
+            },transaction);
+
+					
+		       await transaction.commit();
+             req.flash('message', JSON.stringify({ type: 'success', text: `QR Code has been added` }));
+            res.redirect(lastUrl); // back to the previous page
+
+           }
+           catch (error) {
+        await transaction.rollback();
+        console.log("error",error);
+        req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+        res.redirect('/admin/add-vendor');
+			
+		}
+
+    }
+    async generateQR(req, res){
+const { itemId } = req.params;
+      let AdminId=1;
+      let QR_CODE_ID = helper.generateJwtOTPDecrypt(itemId);
+      const QRCodeDAAT = await db.qr_codes.findOne({
+      where:{
+      qr_codes_auto_id:QR_CODE_ID
+      }
+      });
+      if(QRCodeDAAT){
+          const url = await QRCode.toDataURL(`${process.env.PROXY_URL}/QR/${itemId}`);
+        let html=`<style>
+    .card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 650px;
+        width: 100%;
+        padding: 40px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+
+    .card-content {
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+    }
+
+    .left-content {
+        flex: 1;
+    }
+
+    .right-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .logo {
+        font-size: 38px;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+
+    .tagline {
+        color: #666;
+        font-size: 19px;
+    }
+
+    .qr-container {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        display: inline-block;
+    }
+
+    #qrcode {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .services {
+        margin: 20px 0;
+    }
+
+    .services h3 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .service-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .service-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        transition: transform 0.2s;
+    }
+
+    .service-item:hover {
+        transform: translateX(5px);
+        background: #e9ecef;
+    }
+
+    .service-icon {
+        font-size: 36px;
+        min-width: 40px;
+    }
+
+    .service-name {
+        font-size: 18px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .scan-text {
+        color: #667eea;
+        font-weight: 600;
+        font-size: 19px;
+        text-align: center;
+    }
+
+    .url {
+        color: #888;
+        font-size: 15px;
+        word-break: break-all;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .download-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 30px;
+        transition: transform 0.2s;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .download-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .footer {
+        margin-top: 25px;
+        color: #999;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+
+        .download-btn {
+            display: none;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .card-content {
+            flex-direction: column;
+        }
+
+        .card {
+            padding: 30px 20px;
+        }
+
+        .logo {
+            font-size: 32px;
+        }
+
+        .tagline {
+            font-size: 16px;
+        }
+
+        .services h3 {
+            font-size: 20px;
+        }
+
+        .service-name {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="card">
+    <div class="header">
+        <div class="logo">🏨 Local Travel Stay</div>
+        <div class="tagline">Your Complete Travel Solution</div>
+    </div>
+
+    <div class="card-content">
+        <div class="left-content">
+            <div class="services">
+                <h3>Our Services</h3>
+                <div class="service-list">
+                    <div class="service-item">
+                        <div class="service-icon">🏠</div>
+                        <div class="service-name">Guest House</div>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-icon">🏨</div>
+                        <div class="service-name">Hotels</div>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-icon">🍽️</div>
+                        <div class="service-name">Restaurants</div>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-icon">🚗</div>
+                        <div class="service-name">Car & Bike Rental</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-content">
+            <div class="scan-text">Scan to Visit</div>
+            <div class="qr-container">
+                <div id="qrcode">
+                <img src="${url}" style="width: 150px; height: 150px;" />
+                </div>
+            </div>
+            <div class="url">www.localtravelstay.com</div>
+            <div class="url">QR:${QR_CODE_ID}</div>
+             
+        </div>
+    </div>
+</div>`;
+        
+        return respHelper(res, {
+        status: 200,
+        data: html,
+        msg:"service_frature_list listed Successfully",
+        });
+      }else{
+        return respHelper(res, {
+        status: 404,
+        data: {},
+        msg:"QR Code could not be generated",
+          });
+        }
+    }
 }
 
 export default new AdminController();

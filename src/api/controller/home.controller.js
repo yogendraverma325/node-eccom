@@ -1036,6 +1036,30 @@ async orderTimeline(req, res){
 			return res.redirect('/account');
 		}
 	}
+	async  QRCodeReading(req, res) {
+		try {
+			let QRCODEID = req.params.QRCODEID;
+
+			if (QRCODEID) {
+			QRCODEID=helper.generateJwtOTPDecrypt(QRCODEID);
+			}
+		const QRCodeDAAT = await db.qr_codes.findOne({
+		where:{
+		qr_codes_auto_id:QRCODEID
+		}
+		});
+		if(QRCodeDAAT){
+			await QRCodeDAAT.increment('scan_count', { by: 1 });
+			 res.redirect(QRCodeDAAT.redirect_url); // back to the previous page
+		}else{
+			 res.redirect('https://www.localtravelstay.com'); // back to the previous page
+		}
+		}
+		catch (error) {
+			
+			 res.redirect('https://www.localtravelstay.com'); // back to the previous page
+		}
+	}
 }
 
 export default new HomeController();

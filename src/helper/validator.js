@@ -252,6 +252,17 @@ const editProductSchema = Joi.object({
         .label("Unit")
 
 });
+ const addQRCODESchema = Joi.object({
+  redirect_url: Joi.string()
+    .max(255)
+    .required()
+    .label("Redirect Url"),
+
+ created_for: Joi.string()
+    .max(255)
+    .required()
+    .label("QR Code For"),
+});
 export default {
 	loginSchema,
 	checkoutSchema,
@@ -264,5 +275,6 @@ export default {
   signUpSchema,
   signUpOTP,
   addProductSchema,
-  editProductSchema
+  editProductSchema,
+  addQRCODESchema
 };

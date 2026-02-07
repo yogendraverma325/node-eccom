@@ -356,7 +356,7 @@ const meta_mapping_close_modal = document.getElementById('meta_mapping_close_mod
     }
 
 });
-// meta data modal logic
+
 
    document
   .getElementById('product_meta_data_mappings_div')
@@ -436,5 +436,218 @@ const meta_mapping_close_modal = document.getElementById('meta_mapping_close_mod
         // yaha API call / status change logic
     }
 });
+// meta data modal logic
+
+
+
+// details data modal logic
+async function renderServiceDetailsData({
+    itemId,
+}) {
+    try {
+            const response = await fetch('/admin/service_details_list', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                service_item_id: itemId,
+                })
+            });
+
+            const data = await response.json();
+            
+            if(data.status==true){
+               
+                 let tableHtml = `
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Specification</th>
+                    <th>Specification Value</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    if (data.data.length == 0) {
+        tableHtml += `
+            <tr>
+                <td colspan="4" class="text-center">No Meta Data found</td>
+            </tr>
+        `;
+    } else {
+        data.data.forEach((item, index) => {
+            tableHtml += `
+                <tr>
+                    <td>${index + 1}</td>
+                     <td>${item.specification.specification_name}</td>
+                    <td>${item.specification_value}</td>
+                    <td>
+                        ${item.is_active == 1
+                            ? '<span class="badge bg-success">Active</span>' 
+                            : '<span class="badge bg-danger">Inactive</span>'}
+                    </td>
+                    <td>
+                        <button 
+                            class="btn btn-sm details_disbaled ${item.is_active == 1 ? 'btn-success' : 'btn-danger'}"
+                            data-service-item-id="${item.product_specification_mapping_id}"
+                           
+                            >
+                            ${item.is_active == 1 ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button 
+                            class="btn btn-sm details_data_edit btn-info"
+                            data-service-item-id="${item.product_specification_mapping_id}"
+                             data-service-item-value="${item.specification_value}"
+                              data-service-item-specification="${item.specification_auto_id}"
+                            >
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    tableHtml += `
+            </tbody>
+        </table>
+    `;
+document.getElementById('product_details_data_mappings_div').innerHTML = tableHtml;
+            }
+        } catch (err) {
+           document.getElementById('product_details_data_mappings_div').innerHTML = '<div class="alert alert-danger">Something went wrong</div';
+           
+        }
+}
+ const details_data_exampleModal = document.getElementById('details_data_exampleModal');
+    const details_data_exampleModalIn = new bootstrap.Modal(details_data_exampleModal);
+
+    // 2. Filter Button ka listener
+    const features_other_details_data = document.getElementsByClassName('features_other_details_data');
+for (let btn of features_other_details_data) {
+  btn.addEventListener('click', async function () {
+        const itemId = btn.dataset.serviceItemId
+        product_id=itemId;
+            renderServiceDetailsData({
+            itemId: itemId
+            });
+    details_data_exampleModalIn.show();
+  });
+}
+const detials_mapping_close_modal = document.getElementById('detials_mapping_close_modal');
+   detials_mapping_close_modal.addEventListener('click', async function () {
+     details_data_exampleModalIn.hide();
+   })
+
+     document
+  .getElementById('product_details_data_mappings_div')
+  .addEventListener('click', async function (e) {
+
+    if (e.target.classList.contains('details_disbaled')) {
+        const itemId = e.target.dataset.serviceItemId;
+        console.log('itemId btn clicked:', itemId);
+         const response = await fetch('/admin/service_details_data_status_change', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                service_item_id: itemId,
+                })
+            });
+
+            const data = await response.json();
+              if(data.status==true){
+                    renderServiceDetailsData({
+                    itemId: product_id
+                    });
+              }
+
+        // yaha API call / status change logic
+    }
+});
+
+ document.getElementById('addDetailsForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); // page reload roko
+
+    const details_data_input_value = document.getElementById('details_data_input').value.trim();
+     if (!details_data_input_value) {
+        alert('Meta Details is required');
+        return;
+    }
+    const sepecificatoin = document.getElementById('sepecificatoin').value.trim();
+     if (!sepecificatoin) {
+        alert('Sepecificatoin Data is required');
+        return;
+    }
+
+    try {
+        const response = await fetch('/admin/add_service_details_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                feature_value: details_data_input_value,
+                 sepecificatoin: sepecificatoin,
+                edit_mode:edit_mode,
+                service_item_id:service_item_id,
+                product_id: product_id // modal open pe set karo
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status) {
+            document.getElementById('details_data_input').value = '';
+            document.getElementById('sepecificatoin').value = '';
+            document.getElementById('cancel_details_data_btn').style.display = 'none';
+            edit_mode=false;
+            service_item_id=0;
+            // list refresh
+            renderServiceDetailsData({
+                itemId: product_id
+            });
+        } else {
+            alert(result.message || 'Failed to add meta data');
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('Something went wrong');
+    }
+
+});
+
+document
+  .getElementById('product_details_data_mappings_div')
+  .addEventListener('click', async function (e) {
+
+    if (e.target.classList.contains('details_data_edit')) {
+        const itemId = e.target.dataset.serviceItemId;
+        edit_mode=true;
+        service_item_id = itemId;
+        console.log('itemValue:', itemId);
+        document.getElementById('details_data_input').value = e.target.dataset.serviceItemValue;
+         document.getElementById('sepecificatoin').value = e.target.dataset.serviceItemSpecification;
+        document.getElementById('cancel_details_data_btn').style.display = 'block';
+
+         document
+        .getElementById('cancel_details_data_btn')
+        .addEventListener('click', async function (e) {
+            e.preventDefault();
+            document.getElementById('details_data_input').value = '';
+             document.getElementById('sepecificatoin').value = '';
+            document.getElementById('cancel_details_data_btn').style.display = 'none';
+        });
+    }
+});
+// details data modal logic
+
 
   });

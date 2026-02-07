@@ -6,6 +6,7 @@ import { isLogin } from "../../middleware/authentication.js";
 export default Express.Router()
 	.get("/",HomeController.home)
 	.get("/service-details/:id/:slug/:vendor", HomeController.productDetails) 
+	.get("/QR/:QRCODEID", HomeController.QRCodeReading) 
 	.get("/services",HomeController.productList)
 	.get("/cart",HomeController.cart)
 	.post("/addToCart",HomeController.addToCart)

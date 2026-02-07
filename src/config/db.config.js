@@ -27,8 +27,8 @@ import literal from "sequelize";
 import QueryTypes from "sequelize";
 import vendors from "../api/model/vendor.js";
 import vendor_services from "../api/model/vendor_services.js";
-import vendor_services_locations from "../api/model/vendor_service_location.js"
-
+import vendor_services_locations from "../api/model/vendor_service_location.js";
+import qr_codes from "../api/model/QRCode.js";
 //
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
@@ -102,6 +102,7 @@ db.contact_us=contact_us(sequelize, Sequelize);
 db.vendors=vendors(sequelize, Sequelize);
 db.vendor_services=vendor_services(sequelize, Sequelize);
 db.vendor_services_locations=vendor_services_locations(sequelize, Sequelize);
+db.qr_codes=qr_codes(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
