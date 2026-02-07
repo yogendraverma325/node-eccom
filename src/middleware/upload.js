@@ -36,3 +36,20 @@ export const productUploadMiddleware = (req, res, next) => {
     next();
   });
 };
+
+export const productMultipleUploadMiddleware = (req, res, next) => {
+
+  upload.fields([
+    { name: "images[0]", maxCount: 1 },
+    { name: "images[1]", maxCount: 1 },
+    { name: "images[2]", maxCount: 1 }
+  ])(req, res, function (err) {
+
+    if (err) {
+      req.formError = { images: err.message };
+      return next();
+    }
+
+    next();
+  });
+};

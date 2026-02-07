@@ -1,6 +1,6 @@
 import Express from "express";
 import AdminController from "../controller/admin.controller.js";
-import { productUploadMiddleware } from "../../middleware/upload.js";
+import { productUploadMiddleware,productMultipleUploadMiddleware } from "../../middleware/upload.js";
 import { isAdmin } from "../../middleware/admin.js";
 
 export default Express.Router()
@@ -28,4 +28,12 @@ productUploadMiddleware
 .post("/vendor-location-mapping",isAdmin,AdminController.addVendorLocationMapping)
 .post("/service_feature_list",isAdmin,AdminController.service_feature_list)
 .post("/service_feature_status_change",isAdmin,AdminController.service_feature_status_change)
-.post("/add_service_feature",isAdmin,AdminController.add_service_feature)
+.post("/add_service_feature",isAdmin,AdminController.add_service_feature) 
+.get("/edit_service_item_images/:service_item_id",isAdmin,AdminController.edit_service_item_images)
+.post("/edit_service_item_images/:service_item_id",isAdmin,productMultipleUploadMiddleware,AdminController.edit_service_item_images)
+
+
+.post("/service_meta_list",isAdmin,AdminController.service_meta_list)
+.post("/service_meta_data_status_change",isAdmin,AdminController.service_meta_data_status_change)
+.post("/service_meta_data_visibility_change",isAdmin,AdminController.service_meta_data_visibility_change)
+.post("/add_service_meta_data",isAdmin,AdminController.add_service_meta_data) 

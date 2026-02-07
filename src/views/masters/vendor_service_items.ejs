@@ -14,6 +14,8 @@
                         <th scope="col">Price</th>
                         <th scope="col">Rating</th>
                         <th scope="col">Features/Amenties</th>
+                        <th scope="col">Meta Data</th>
+                        <th scope="col">Images</th>
                         <th scope="col" class="text-center">Change Status</th>
                     </tr>
                 </thead>
@@ -44,6 +46,20 @@
                                 </button>
 
                             </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-primary me-1 features_meta_data" href="javascript:void(0)"
+                                    data-service-item-id="<%- helper.generateJwtOTPEncrypt(vendor_service_item.product_auto_id) %>">
+                                    View Meta Data
+                                </button>
+
+                            </td>
+                            <td class="text-center">
+                                <a class="btn btn-sm btn-info me-1"
+                                    href="/admin/edit_service_item_images/<%- helper.generateJwtOTPEncrypt(vendor_service_item.product_auto_id) %>">
+                                    Images
+                                </a>
+                            </td>
+
 
                             <td class="text-center">
                                 <% if (vendor_service_item.isActive) { %>
@@ -93,7 +109,7 @@
     </div>
 </section>
 
-<!-- Modal -->
+<!-- fearure modal -->
 <div class="modal fade" id="fearure_mapping_exampleModal" tabindex="-1" role="dialog"
     aria-labelledby="fearure_mapping_exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -131,5 +147,45 @@
         </div>
     </div>
 </div>
-<!-- modal -->
+<!-- fearure modal -->
+
+<!-- mata data modal -->
+<div class="modal fade" id="meta_data_exampleModal" tabindex="-1" role="dialog"
+    aria-labelledby="meta_data_exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="meta_data_exampleModalLabel">Meta Data</h5>
+            </div>
+            <div class="modal-body">
+                <form id="addMetaForm">
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-4">
+                            <input type="text" id="meta_data_input" class="form-control" placeholder="Enter meta data"
+                                required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100" id="add_meta_data_btn">
+                                Add/update Meta Data
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-info w-100" id="cancel_meta_data_btn"
+                                style="display: none;">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="product_meta_data_mappings_div"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="meta_mapping_close_modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- mata data modal -->
 <script src="/assets/js/vendorServiceItem.js"></script>

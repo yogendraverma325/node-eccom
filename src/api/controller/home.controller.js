@@ -162,6 +162,7 @@ if(!productDetails){
 	async  productList(req, res) {
 		try {
 				let userLocationData=res.locals.userLocationData?JSON.parse(res.locals.userLocationData):null;
+				console.log("userLocationData",userLocationData)
 				const userLat = userLocationData ?userLocationData.latitude: 0;
 				const userLng = userLocationData ?userLocationData.longitude: 0;
 				const min=600;
@@ -205,8 +206,7 @@ if(!productDetails){
 				let vendor_id=null;
 				if(vendor){
 					vendor_id=helper.generateJwtOTPDecrypt(vendor);
-					console.log("vendorid",vendor_id)
-					
+					//console.log("vendorid",vendor_id)
 				}
 				const limit=20;
                 const offset = (page - 1) * limit;

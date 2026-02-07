@@ -1,0 +1,128 @@
+<style>
+    body {
+        background: #fff;
+    }
+
+    .upload-box {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        height: 180px;
+        background: #f8f9fa;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .upload-box:hover {
+        border-color: #0d6efd;
+        background: #fff;
+    }
+
+    .upload-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .upload-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #6c757d;
+        text-align: center;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #fff;
+        border-radius: 50%;
+        padding: 3px 7px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="breadcrumbs">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 col-md-6 col-12">
+                <div class="breadcrumbs-content">
+                    <h1 class="page-title">Update Service Images</h1>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-12">
+                <ul class="breadcrumb-nav">
+                    <li><a href="/"><i class="lni lni-home"></i> Home</a></li>
+                    <li><a href="/admin/vendors"> Vendors</a></li>
+                    <li>Update Service Images</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <h4 class="mb-4">Upload Images</h4>
+
+    <form enctype="multipart/form-data" method="post"
+        action="/admin/edit_service_item_images/<%- helper.generateJwtOTPEncrypt(service_item_id) %>">
+
+        <div class="row g-3">
+
+            <% for(let i=0; i<3; i++){ %>
+
+                <div class="col-md-4">
+                    <label class="upload-box">
+
+                        <!-- File Input -->
+                        <input type="file" class="image-input" name="images[<%= i %>]" accept="image/*"
+                            data-index="<%= i %>">
+
+                        <!-- Old Image Hidden -->
+                        <input type="hidden" name="oldImages[<%= i %>]"
+                            value="<%= images && images[i] ? images[i].image : '' %>">
+
+                        <!-- Preview -->
+                        <% if(images && images[i]) { %>
+
+                            <span class="remove-btn" data-index="<%= i %>">✕</span>
+
+                            <img class="preview-img" src="/<%= images[i].image %>">
+
+                            <div class="upload-text d-none">
+                                <div class="fs-1">+</div>
+                                <div>Select Image</div>
+                            </div>
+
+                            <% } else { %>
+
+                                <img class="preview-img d-none">
+
+                                <div class="upload-text">
+                                    <div class="fs-1">+</div>
+                                    <div>Select Image</div>
+                                </div>
+
+                                <% } %>
+
+                    </label>
+                </div>
+
+                <% } %>
+
+        </div>
+
+        <div id="error" class="text-danger mt-3"></div>
+
+        <button class="btn btn-primary mt-4">Save</button>
+    </form>
+</div>
+
+<script src="/assets/js/editImages.js"></script>

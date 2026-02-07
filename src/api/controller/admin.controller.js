@@ -45,7 +45,7 @@ class AdminController {
     async  change_vendor_status(req, res) {
         let lastUrl=res.locals.lastUrl;
         const transaction = await db.sequelize.transaction();
-         let AdminId=100;
+         let AdminId=1;
             try {
             let vendor_id = helper.generateJwtOTPDecrypt(req.params.vendor_id);
             let status = helper.generateJwtOTPDecrypt(req.params.status);
@@ -74,7 +74,7 @@ class AdminController {
     }
      async addvendorForm(req, res) {
          const transaction = await db.sequelize.transaction();
-           let AdminId=100;
+           let AdminId=1;
 		try {
             let formError = {};
 			let formData = {};
@@ -209,7 +209,7 @@ class AdminController {
        async  change_vendor_domain_status(req, res) {
         let lastUrl=res.locals.lastUrl;
         const transaction = await db.sequelize.transaction();
-         let AdminId=100;
+         let AdminId=1;
             try {
             let vendor_service_id = helper.generateJwtOTPDecrypt(req.params.vendor_service_id);
             let status = helper.generateJwtOTPDecrypt(req.params.status);
@@ -279,7 +279,7 @@ class AdminController {
      async  change_service_item_status(req, res) {
         let lastUrl=res.locals.lastUrl;
         const transaction = await db.sequelize.transaction();
-         let AdminId=100;
+         let AdminId=1;
             try {
             let service_item_id = helper.generateJwtOTPDecrypt(req.params.service_item_id);
             let status = helper.generateJwtOTPDecrypt(req.params.status);
@@ -312,7 +312,7 @@ class AdminController {
           req.session.lastUrl =req.originalUrl;
       
         const transaction = await db.sequelize.transaction();
-        let AdminId=100;
+        let AdminId=1;
         let service_item_id = helper.generateJwtOTPDecrypt(req.params.service_item_id);
       
 		try {
@@ -388,7 +388,7 @@ class AdminController {
           req.session.lastUrl =req.originalUrl;
       
         const transaction = await db.sequelize.transaction();
-        let AdminId=100;
+        let AdminId=1;
         let service_item_id = helper.generateJwtOTPDecrypt(req.params.service_item_id);
       
 		try {
@@ -504,7 +504,7 @@ class AdminController {
     const transaction = await db.sequelize.transaction();
     try{
       let vendorId = helper.generateJwtOTPDecrypt(req.body.vendorId);
-      let AdminId=100;
+      let AdminId=1;
       let lastUrl=res.locals.lastUrl;
       console.log("req.body",vendorId)
       console.log("categoryIds",req.body.categoryIds);
@@ -580,7 +580,7 @@ class AdminController {
      async  change_vendor_locations_status(req, res) {
         let lastUrl=res.locals.lastUrl;
         const transaction = await db.sequelize.transaction();
-         let AdminId=100;
+         let AdminId=1;
             try {
             let vendor_services_locations_auto_id = helper.generateJwtOTPDecrypt(req.params.vendor_services_locations_auto_id);
             let status = helper.generateJwtOTPDecrypt(req.params.status);
@@ -615,7 +615,7 @@ class AdminController {
 
     let vendor_service_auto_id = helper.generateJwtOTPDecrypt(req.body.vendor_service_auto_id);
     let citiid = helper.generateJwtOTPDecrypt(req.body.citiid);
-      let AdminId=100;
+      let AdminId=1;
        const vendor_services = await db.vendor_services_locations.create({
             vendor_service_auto_id: vendor_service_auto_id,
             city_id:citiid,
@@ -733,6 +733,223 @@ class AdminController {
 				status: 500,
 			});
   }
+
+	} 
+   async edit_service_item_images(req, res) {
+          req.session.lastUrl =req.originalUrl;
+      
+       const transaction = await db.sequelize.transaction();
+        let AdminId=1;
+        let service_item_id = helper.generateJwtOTPDecrypt(req.params.service_item_id);
+      
+		try {
+        let formError = {};
+        let formData = {};
+       let  images=[]
+        images =  await db.product_images.findAll({
+      attributes: ["product_image_auto_id", "image", "is_active"],
+      where: { product_auto_id: service_item_id },
+      order: [["product_image_auto_id", "ASC"]], // ensure same order
+    });
+
+            if (req.method === 'GET') {
+              return res.render('masters/editImages', {
+              title: 'Edit Service Images',
+              description: 'Edit Service Images',
+              formError,
+              formData,
+              service_item_id,
+              images
+              });
+			}
+        let lastUrl=res.locals.lastUrl;
+
+    const oldImages = req.body.oldImages; // hidden inputs from frontend
+    let finalImages = [...oldImages];
+  for (let i = 0; i < 3; i++) {
+      const fileKey = `images[${i}]`;
+      const newFile = req.files[fileKey]?.[0];
+
+      // New upload → replace old
+      if (newFile) {
+        // Unlink old if exists
+        if (oldImages[i] && fs.existsSync(oldImages[i])) {
+          fs.unlinkSync(oldImages[i]);
+        }
+
+        finalImages[i] = "uploads/" + newFile.filename;
+      }
+      // No new file + oldImages[i] empty → user removed image
+      else if (!oldImages[i]) {
+        if (oldImages[i] && fs.existsSync(oldImages[i])) {
+          fs.unlinkSync(oldImages[i]);
+        }
+        finalImages[i] = "";
+      }
+      // No new file + oldImages[i] exists → keep old
+      else {
+        finalImages[i] = oldImages[i];
+      }
+    }
+
+    // Update DB
+    for (let i = 0; i < 3; i++) {
+      const imgRecord = images[i];
+
+      if (imgRecord) {
+        await db.product_images.update(
+          { image: finalImages[i] || null ,updatedBy:AdminId}, // empty string → null
+          { where: { product_image_auto_id: imgRecord.product_image_auto_id } },
+          transaction
+        );
+      } else if (finalImages[i]) {
+        // If slot empty in DB but new file exists, create it
+        await db.product_images.create({
+          product_auto_id: service_item_id,
+          image: finalImages[i],
+          is_active: 1,
+          createdBy:AdminId
+        },transaction);
+      }
+    }
+
+     
+
+         await transaction.commit();
+              req.flash('message', JSON.stringify({ type: 'success', text: `Service  has been updated` }));
+            res.redirect(lastUrl); // back to the previous page
+			
+		} catch (error) {
+            await transaction.rollback();
+            console.log("error",error);
+            req.flash('message', JSON.stringify({ type: 'error', text: 'Something went wrong' }));	
+            res.redirect(lastUrl); // back to the previous page
+			
+		}
+	}
+   async service_meta_list(req, res){
+		try{
+        let service_item_id = helper.generateJwtOTPDecrypt(req.body.service_item_id);
+        const products = await db.product_meta_data.findAll(
+          {
+          where:{
+          product_auto_id:service_item_id
+          },
+          attributes:["product_meta_data_auto_id","meta_data","is_active","visibility"]
+
+      });
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: products,
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+
+	}
+   async add_service_meta_data(req, res){
+		try{
+      
+        let service_item_id = helper.generateJwtOTPDecrypt(req.body.product_id);
+         let product_feature_mapping_id =req.body.service_item_id;
+        let feature_value = (req.body.feature_value);
+        let edit_mode = req.body.edit_mode;
+        if(edit_mode == true){
+          await db.product_meta_data.update({
+            meta_data:feature_value
+          },
+          {
+            where:{
+              product_meta_data_auto_id:product_feature_mapping_id
+            }
+          })
+        }else{  
+        await db.product_meta_data.create({
+            product_auto_id:service_item_id,
+            meta_data:feature_value,
+            is_active:1,
+            visibility:0
+        })
+      }
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service meta data added Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+  }
+
+	} 
+   async service_meta_data_status_change(req, res){
+		try{
+        let service_item_id = (req.body.service_item_id);
+        await db.product_meta_data.update(
+      {
+      is_active: db.sequelize.literal('IF(is_active = 1, 0, 1)')
+      },
+      {
+      where: {
+      product_meta_data_auto_id: service_item_id
+      }
+      }
+      )
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
+
+	}
+  async service_meta_data_visibility_change(req, res){
+		try{
+        let service_item_id = (req.body.service_item_id);
+        await db.product_meta_data.update(
+      {
+      visibility: db.sequelize.literal('IF(visibility = 1, 0, 1)')
+      },
+      {
+      where: {
+      product_meta_data_auto_id: service_item_id
+      }
+      }
+      )
+
+			// service_frature_list
+		return respHelper(res, {
+		status: 200,
+		data: {},
+		msg:"service_frature_list listed Successfully",
+		});
+	}
+	catch (error) {
+			console.log(error);
+			return respHelper(res, {
+				status: 500,
+			});
+		}
 
 	}
 }
