@@ -10,12 +10,29 @@
     </title>
     <meta name="description" content="<%= description %>" />
 
-    <!-- Open Graph for better social sharing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TravelAgency",
+      "name": "Local Travel Stay",
+      "url": "https://www.localtravelstay.com",
+      "logo": "https://www.localtravelstay.com/assets/images/logo.png",
+      "description": "<%= description %>",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "IN"
+      }
+    }
+    </script>
+
     <meta property="og:title" content="<%= title %>" />
     <meta property="og:description" content="<%= description %>" />
-    <meta name="description" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.localtravelstay.com" />
+    <meta property="og:image" content="https://www.localtravelstay.com/assets/images/og-image.png" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" type="image/x-icon" href="assets/images/favicon.png" />
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/images/favicon.png" />
 
     <!-- ========================= CSS here ========================= -->
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />

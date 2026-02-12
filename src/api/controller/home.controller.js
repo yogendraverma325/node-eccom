@@ -17,8 +17,8 @@ class HomeController {
 			const categories = await getCategories(0,12)
 			req.session.orderPlaced = false;
 			res.render('index', {
-			title: 'Home',
-			description: 'This is a sample SEO-friendly home page using Node.js and EJS.',
+			title: 'Local Travel Stay | Best Room Stay, Car & Bike Rental Services',
+			description: 'Book verified rooms, car rentals, and bike rentals at the best prices with Local Travel Stay. Trusted local providers and 24/7 support.',
 			categories,
 			});
 			
@@ -167,8 +167,8 @@ if(!productDetails){
 	return  res.redirect('/'); // back to the previous page
 }
 			res.render('productDetails', {
-				title: `Blog: productDetails`,
-				description: `Read about productDetails.`,
+				title: `${productDetails.name} | ${productDetails.mappings[0].category.categoryName} | Local Travel Stay`,
+				description: `Book ${productDetails.name} at the best price. Explore features, images, and verified details for this ${productDetails.mappings[0].category.categoryName} service on Local Travel Stay.`,
 				productDetails
 			  });
 		} catch (error) {
@@ -221,7 +221,7 @@ if(!productDetails){
 					categoryId=helper.generateJwtOTPDecrypt(encryptedId);
 				}
 				let catData=await db.category.findOne({
-					attributes:['is_price_allowed_to_display', 'is_details_page_allowed'],
+					attributes:['is_price_allowed_to_display', 'is_details_page_allowed',"categoryName"],
 					where: { isActive: 1,catAutoId:categoryId}
 				});
 				//console.log("catData",catData)
@@ -332,12 +332,14 @@ const products = await db.product.findAndCountAll({
   order: order
 });
 
-// console.log("products",JSON.stringify(products,null,2))	
+//  console.log("catData",JSON.stringify(catData,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
-				title: `Services`,
-				description: `${categorySlug}'s services`,
+			title: `${catData.categoryName} Services | Best Rates at Local Travel Stay`,
+
+			// Description: Search result mein user ko attract karne ke liye
+			description: `Book the best ${catData.categoryName} services at Local Travel Stay. Verified providers, 24/7 support, and best price guarantee for ${categorySlug}.`,
 				categoryId,
 				categorySlug,
 				products,
@@ -661,8 +663,8 @@ if(checkoutData.shipping=='POD'){
 			let formData = {};
 			if (req.method === 'GET') {
 				res.render('contact', {
-				title: `Contact us`,
-				description: `Contact us.`,
+				title: 'Contact Us | Local Travel Stay - Support & Bookings',
+				description: 'Get in touch with Local Travel Stay for verified room stays, car rentals, and bike rental inquiries. We are available 24/7 to assist with your travel needs.',
 				formError,
 				formData
 			  });
@@ -680,8 +682,8 @@ if(checkoutData.shipping=='POD'){
 				formData=value;
 
 				return res.render('contact', {
-				title: `Contact us`,
-				description: `Contact us.`,
+				title: 'Contact Us | Local Travel Stay - Support & Bookings',
+				description: 'Get in touch with Local Travel Stay for verified room stays, car rentals, and bike rental inquiries. We are available 24/7 to assist with your travel needs.',
 				formError,
 				formData
 			  });
@@ -713,8 +715,8 @@ if(checkoutData.shipping=='POD'){
 	async  aboutUs(req, res) {
 		try {
 			res.render('aboutUs', {
-				title: `About us`,
-				description: `About us.`
+				title: 'About Us | Local Travel Stay - Your Trusted Travel Partner',
+				description: 'Learn more about Local Travel Stay. We provide verified room stays, hassle-free car rentals, and bike rentals to make your travel comfortable and safe.',
 			  });
 		} catch (error) {
 	  res.redirect('/'); // back to the previous page

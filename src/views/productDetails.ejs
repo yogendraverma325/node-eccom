@@ -118,6 +118,28 @@
 
     /* image zoom */
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "<%= productDetails.name %>",
+  "image": [
+    "https://www.localtravelstay.com/assets/images/featured-categories/<%= productDetails.image %>"
+   ],
+  "description": "<%= description %>",
+  "brand": {
+    "@type": "Brand",
+    "name": "Local Travel Stay"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "https://www.localtravelstay.com/services/details/<%= productDetails.slug %>",
+    "priceCurrency": "INR",
+    "price": "<%= productDetails.price || '0' %>",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
 <section class="item-details section">
     <div class="container">
         <div class="top-area">
@@ -142,9 +164,9 @@
 
                 <div class="col-lg-6 col-md-12 col-12">
                     <div class="product-info">
-                        <h2 class="title">
+                        <h1 class="title">
                             <%= productDetails.name %>
-                        </h2>
+                        </h1>
                         <% if (productDetails.mappings[0].category.is_price_allowed_to_display===true) { %>
                             <h3 class="price">
                                 <i class="fa fa-rupee"></i></i>
