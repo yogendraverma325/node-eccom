@@ -139,6 +139,23 @@ class HomeController {
         }
 		]
 		},
+		{
+		model: db.productcategorymappings,
+		as:'mappings',
+		required: true,
+		attributes: [
+		'product_category_mapping_auto_id'
+		],
+		where: {
+		is_active: 1,
+		},
+		include: 
+		{
+			model: db.category,
+			attributes: ['is_price_allowed_to_display', 'is_details_page_allowed',"categoryName"],
+			where: { isActive: 1 }
+		},
+		},
 	]
 	});
 // 	console.log(
@@ -203,6 +220,11 @@ if(!productDetails){
 				if (encryptedId) {
 					categoryId=helper.generateJwtOTPDecrypt(encryptedId);
 				}
+				let catData=await db.category.findOne({
+					attributes:['is_price_allowed_to_display', 'is_details_page_allowed'],
+					where: { isActive: 1,catAutoId:categoryId}
+				});
+				//console.log("catData",catData)
 				let vendor_id=null;
 				if(vendor){
 					vendor_id=helper.generateJwtOTPDecrypt(vendor);
@@ -259,7 +281,7 @@ const products = await db.product.findAndCountAll({
       include: [
         {
           model: db.vendors,
-          attributes: ['id', 'vendor_name'],
+          attributes: ['id', 'vendor_name','phone','email'],
           where: { status: 1 }
         },
 		 {
@@ -310,7 +332,7 @@ const products = await db.product.findAndCountAll({
   order: order
 });
 
-	// console.log("products",JSON.stringify(products,null,2))	
+// console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
@@ -326,7 +348,8 @@ const products = await db.product.findAndCountAll({
 				max,
 				pricemin,
 				pricemax,
-				rating
+				rating,
+				catData
 			  });
 		} catch (error) {
 			console.log(error);

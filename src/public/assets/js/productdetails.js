@@ -20,4 +20,23 @@
     // exampleModal
   });
     // open modal
+
+    const mainImgContainer = document.querySelector('.main-img');
+const mainImg = document.getElementById('current');
+
+mainImgContainer.addEventListener('mousemove', (e) => {
+    // Calculate mouse position percentage inside the container
+    const x = e.clientX - e.target.offsetLeft;
+    const y = e.clientY - e.target.offsetTop;
+    
+    const xPercent = (x / mainImgContainer.offsetWidth) * 100;
+    const yPercent = (y / mainImgContainer.offsetHeight) * 100;
+    
+    // Move the zoom focus to where the mouse is
+    mainImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+});
+
+mainImgContainer.addEventListener('mouseleave', () => {
+    mainImg.style.transformOrigin = 'center center';
+});
   });

@@ -88,6 +88,35 @@
         background: #6366f1;
         color: #fff;
     }
+
+    /* image zoom */
+    .main-img {
+        overflow: hidden;
+        /* Important: keeps the zoom inside the box */
+        position: relative;
+        cursor: zoom-in !important;
+        background-color: #f8f9fa;
+        border: 1px solid #eee;
+        border-radius: 8px;
+    }
+
+    .main-img img {
+        transition: transform 0.3s ease;
+        /* Smooth transition */
+        width: 100%;
+        height: auto;
+        display: block;
+        transform-origin: center center;
+        /* Default zoom from center */
+    }
+
+    /* When hovering, scale the image */
+    .main-img:hover img {
+        transform: scale(2);
+        /* Adjust 1.5 to 2.0 depending on zoom depth */
+    }
+
+    /* image zoom */
 </style>
 <section class="item-details section">
     <div class="container">
@@ -96,7 +125,8 @@
                 <div class="col-lg-6 col-md-12 col-12">
                     <div class="product-images">
                         <main id="gallery">
-                            <div class="main-img">
+                            <div class="main-img"
+                                style="height: 500px; display: flex; align-items: center; justify-content: center;">
                                 <img src="/<%= productDetails.image %>" id="current" alt="<%= productDetails.name %>">
                             </div>
                             <div class="images">
@@ -115,74 +145,79 @@
                         <h2 class="title">
                             <%= productDetails.name %>
                         </h2>
-
-                        <h3 class="price">
-                            <i class="fa fa-rupee"></i></i>
-                            <%= productDetails.price %>
-                                <% if (productDetails.offerprice) { %>
-                                    <span class="cross-price">
-                                        <%= productDetails.offerprice %>
-                                    </span>
-                                    <% } %>
-                        </h3>
-                        <p class="info-text"></p>
-                        <%= productDetails.description %>
-                            </p>
-                            <div class="service-info">
-                                <% if (productDetails.price_type) { %>
-                                    <span class="info-badge">
-                                        <strong>Price For:</strong>
-                                        <%= productDetails.price_type %>
-                                    </span>
-                                    <% } %>
-
-                                        <% if (productDetails.capacity) { %>
-                                            <span class="info-badge">
-                                                <strong>Capacity:</strong>
-                                                <%= productDetails.capacity %> PAX
-                                            </span>
-                                            <% } %>
-
-                                                <% if (productDetails.unit) { %>
-                                                    <span class="info-badge">
-                                                        <strong>Unit:</strong>
-                                                        <%= productDetails.unit %>
-                                                    </span>
-                                                    <% } %>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-lg-12 col-md-12 col-12">
-                                    <ul class="meta-data">
-
-                                        <% productDetails.product_meta_data.forEach((product_meta_data)=> { %>
-                                            <li>
-                                                <%= product_meta_data.meta_data %>
-                                            </li>
-                                            <% }) %>
+                        <% if (productDetails.mappings[0].category.is_price_allowed_to_display===true) { %>
+                            <h3 class="price">
+                                <i class="fa fa-rupee"></i></i>
+                                <%= productDetails.price %>
+                                    <% if (productDetails.offerprice) { %>
+                                        <span class="cross-price">
+                                            <%= productDetails.offerprice %>
+                                        </span>
+                                        <% } %>
+                            </h3>
+                            <% } %>
+                                <p class="info-text"></p>
+                                <%= productDetails.description %>
+                                    </p>
+                                    <div class="service-info">
+                                        <% if (productDetails.mappings[0].category.is_price_allowed_to_display===true) {
+                                            %>
+                                            <% if (productDetails.price_type) { %>
+                                                <span class="info-badge">
+                                                    <strong>Price For:</strong>
+                                                    <%= productDetails.price_type %>
+                                                </span>
+                                                <% }} %>
 
 
-                                    </ul>
-                                </div>
+                                                    <% if (productDetails.capacity) { %>
+                                                        <span class="info-badge">
+                                                            <strong>Capacity:</strong>
+                                                            <%= productDetails.capacity %> PAX
+                                                        </span>
+                                                        <% } %>
+
+                                                            <% if (productDetails.unit) { %>
+                                                                <span class="info-badge">
+                                                                    <strong>Unit:</strong>
+                                                                    <%= productDetails.unit %>
+                                                                </span>
+                                                                <% } %>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-lg-12 col-md-12 col-12">
+                                            <ul class="meta-data">
+
+                                                <% productDetails.product_meta_data.forEach((product_meta_data)=> { %>
+                                                    <li>
+                                                        <%= product_meta_data.meta_data %>
+                                                    </li>
+                                                    <% }) %>
 
 
-                            </div>
-                            <p class="category"><i class="lni lni-tag"></i> Service Provider:<a
-                                    href="javascript:void(0)"></a>
-                                <%= productDetails.vendorService.vendor.vendor_name %>
-                                    </a>
-                            </p>
-                            <div class="bottom-content">
-                                <div class="row align-items-end">
-                                    <div class="col-lg-4 col-md-4 col-12">
-                                        <div class="button cart-button">
-                                            <button class="btn" style="width: 100%;" id="bookingModal">Contact For
+                                            </ul>
+                                        </div>
 
-                                                Booking</button>
+
+                                    </div>
+                                    <p class="category"><i class="lni lni-tag"></i> Service Provider:<a
+                                            href="javascript:void(0)"></a>
+                                        <%= productDetails.vendorService.vendor.vendor_name %>
+                                            </a>
+                                    </p>
+                                    <div class="bottom-content">
+                                        <div class="row align-items-end">
+                                            <div class="col-lg-4 col-md-4 col-12">
+                                                <div class="button cart-button">
+                                                    <button class="btn" style="width: 100%;" id="bookingModal">Contact
+                                                        For
+
+                                                        Booking</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
                     </div>
                 </div>
 

@@ -142,9 +142,25 @@
                                                                 <img src="/<%= product.image %>"
                                                                     alt="<%= product.name %>">
                                                                 <div class="button">
-                                                                    <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
-                                                                        class="
-                                                        btn"> View</a>
+                                                                    <% if (typeof catData.is_details_page_allowed
+                                                                        !=='undefined' &&
+                                                                        catData.is_details_page_allowed===true) { %>
+                                                                        <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
+                                                                            class="btn">
+                                                                            View</a>
+                                                                        <% } else { %>
+                                                                            <button class="btn booking-modal-btn"
+                                                                                style="width: 100%;"
+                                                                                data-phone="<%= product.vendorService.vendor.phone %>"
+                                                                                data-email="<%= product.vendorService.vendor.email %>"
+                                                                                data-address="<%= product.vendorService.vendor_services_locations[0].branch_address %>">View
+                                                                                Contact
+                                                                                Details</button>
+
+
+                                                                            <% } %>
+
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -155,10 +171,18 @@
 
                                                                 <!-- PRODUCT NAME -->
                                                                 <h4 class="title">
-                                                                    <a
-                                                                        href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>">
-                                                                        <%- product.name %>
-                                                                    </a>
+                                                                    <% if (typeof catData.is_details_page_allowed
+                                                                        !=='undefined' &&
+                                                                        catData.is_details_page_allowed===true) { %>
+                                                                        <a
+                                                                            href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>">
+                                                                            <%- product.name %>
+                                                                        </a>
+                                                                        <% } else { %>
+                                                                            <a href="javascipt:void(0)"><%- product.name
+                                                                                    %></a>
+
+                                                                            <% } %>
                                                                 </h4>
 
                                                                 <!-- RATING -->
@@ -167,53 +191,71 @@
                                                                 </ul>
 
                                                                 <!-- PRICE -->
-                                                                <div class="price">
-                                                                    <span
-                                                                        class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
-                                                                        <i class="fa fa-rupee"></i>
+                                                                <% if (typeof catData.is_price_allowed_to_display
+                                                                    !=='undefined' &&
+                                                                    catData.is_price_allowed_to_display===true) { %>
+                                                                    <div class="price">
+                                                                        <span
+                                                                            class="<%= product.offerprice ? 'price-wrapper' : 'normal-price' %>">
+                                                                            <i class="fa fa-rupee"></i>
 
-                                                                        <% if (product.offerprice) { %>
-                                                                            <span class="normal-price">
-                                                                                <%= product.price %>
-                                                                            </span>
-                                                                            <span class="cross-price">
-                                                                                <%= product.offerprice %>
-                                                                            </span>
-                                                                            <% } else { %>
-                                                                                <span>
+                                                                            <% if (product.offerprice) { %>
+                                                                                <span class="normal-price">
                                                                                     <%= product.price %>
                                                                                 </span>
-                                                                                <% } %>
-                                                                    </span>
-                                                                </div>
-                                                                <div class="service-info">
-                                                                    <% if (product.price_type) { %>
-                                                                        <span class="info-badge">
-                                                                            <strong>Price For:</strong>
-                                                                            <%= product.price_type %>
-                                                                        </span>
-                                                                        <% } %>
-
-                                                                            <% if (product.capacity) { %>
-                                                                                <span class="info-badge">
-                                                                                    <strong>Capacity:</strong>
-                                                                                    <%= product.capacity %> PAX
+                                                                                <span class="cross-price">
+                                                                                    <%= product.offerprice %>
                                                                                 </span>
-                                                                                <% } %>
-
-                                                                                    <% if (product.unit) { %>
-                                                                                        <span class="info-badge">
-                                                                                            <strong>Unit:</strong>
-                                                                                            <%= product.unit %>
-                                                                                        </span>
+                                                                                <% } else { %>
+                                                                                    <span>
+                                                                                        <%= product.price %>
+                                                                                    </span>
+                                                                                    <% } %>
+                                                                        </span>
+                                                                    </div>
+                                                                    <% } %>
+                                                                        <div class="service-info">
+                                                                            <% if (typeof
+                                                                                catData.is_price_allowed_to_display
+                                                                                !=='undefined' &&
+                                                                                catData.is_price_allowed_to_display===true)
+                                                                                { %>
+                                                                                <% if (product.price_type) { %>
+                                                                                    <span class="info-badge">
+                                                                                        <strong>Price For:</strong>
+                                                                                        <%= product.price_type %>
+                                                                                    </span>
+                                                                                    <% } %>
                                                                                         <% } %>
-                                                                </div>
 
-                                                                <p class="category"><i class="lni lni-tag"></i>
-                                                                    Provider:<a href="javascript:void(0)"></a>
-                                                                    <%= product.vendorService.vendor.vendor_name %>
-                                                                        </a>
-                                                                </p>
+                                                                                            <% if (product.capacity) {
+                                                                                                %>
+                                                                                                <span
+                                                                                                    class="info-badge">
+                                                                                                    <strong>Capacity:</strong>
+                                                                                                    <%= product.capacity
+                                                                                                        %> PAX
+                                                                                                </span>
+                                                                                                <% } %>
+
+                                                                                                    <% if (product.unit)
+                                                                                                        { %>
+                                                                                                        <span
+                                                                                                            class="info-badge">
+                                                                                                            <strong>Unit:</strong>
+                                                                                                            <%= product.unit
+                                                                                                                %>
+                                                                                                        </span>
+                                                                                                        <% } %>
+                                                                        </div>
+
+
+                                                                        <p class="category"><i class="lni lni-tag"></i>
+                                                                            Provider:<a href="javascript:void(0)"></a>
+                                                                            <%= product.vendorService.vendor.vendor_name
+                                                                                %>
+                                                                                </a>
+                                                                        </p>
 
                                                             </div>
 
@@ -286,13 +328,16 @@
                             </div>
                             <% } %>
                     </div>
-                    <div class="filter-section mb-4">
-                        <h6 class="fw-bold mb-3 border-bottom pb-2" id="price-data" data-min="<%= min %>"
-                            data-max="<%=max %>" data-pricemin="<%=pricemin %>" data-pricemax="<%=pricemax %>">Price
-                        </h6>
-                        <div id="dynamicPriceFilters">
+                    <% if (typeof catData.is_price_allowed_to_display !=='undefined' &&
+                        catData.is_price_allowed_to_display===true) { %>
+                        <div class="filter-section mb-4">
+                            <h6 class="fw-bold mb-3 border-bottom pb-2" id="price-data" data-min="<%= min %>"
+                                data-max="<%=max %>" data-pricemin="<%=pricemin %>" data-pricemax="<%=pricemax %>">Price
+                            </h6>
+                            <div id="dynamicPriceFilters">
+                            </div>
                         </div>
-                    </div>
+                        <% } %>
                 </div>
                 <div class="modal-footer">
                     <button id="applyFilterBtn" class="btn btn-success w-100">Apply</button>
@@ -305,5 +350,49 @@
     </div>
     <!-- filters -->
 </section>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Service Provider Contact Details</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row justify-content-center">
+                    <div class="col-auto">
+
+                        <div class="mb-3"> <strong>📞 Phone:</strong>
+                            <span id="b_phone">
+
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>📧 Email:</strong>
+                            <span id="b_email">
+
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>📍 Address:</strong>
+                            <span id="b_address">
+
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="ClosebookingModal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- modal -->
 
 <script src="/assets/js/productlist.js"></script>

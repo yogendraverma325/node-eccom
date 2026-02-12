@@ -21,6 +21,14 @@ export default (sequelize, Sequelize) => {
 			type: Sequelize.BOOLEAN,
 			defaultValue: true,
 		},
+		is_price_allowed_to_display: {
+			type: Sequelize.BOOLEAN,
+			defaultValue: true,
+		},
+		is_details_page_allowed: {
+			type: Sequelize.BOOLEAN,
+			defaultValue: true,
+		},
 		createdAt: {
 			type: Sequelize.DATE,
 		},

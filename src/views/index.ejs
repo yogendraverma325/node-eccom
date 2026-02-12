@@ -1,3 +1,8 @@
+<style>
+    .featured-categories .single-category img {
+        position: relative !important;
+    }
+</style>
 <section class="featured-categories section">
     <div class="container">
         <div class="row">
@@ -10,41 +15,26 @@
         </div>
         <div class="row">
             <% categories.forEach((category)=> { %>
-                <div class="col-lg-4 col-md-6 col-12" style="cursor: pointer;">
-                    <!-- Start Single Category -->
-                    <div class="single-category">
-                        <a
-                            href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>">
+                <div class="col-lg-4 col-md-6 col-12 mb-4">
+                    <div class="single-category position-relative h-100 p-4 border rounded shadow-sm bg-white d-flex flex-column justify-content-between"
+                        style="min-height: 350px;">
 
-                            <h3 class="heading">
+                        <div class="w-100 text-center">
+                            <h3 class="heading mt-2">
                                 <%= category.categoryName %>
                             </h3>
-                            <ul>
-                                <li><a
-                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
-                                </li>
-                                <li><a
-                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
-                                </li>
-                                <li><a
-                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
-                                </li>
-                                <li><a
-                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
-                                </li>
-                                <li><a
-                                        href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"></a>
-                                </li>
-                            </ul>
-                            <div class="images">
-                                <img src="/assets/images/featured-categories/<%= category.image %>"
-                                    alt="<%= category.categoryName %>">
-                            </div>
+                        </div>
 
+                        <div class="images w-100 text-center">
+                            <img src="/assets/images/featured-categories/<%= category.image %>"
+                                alt="<%= category.categoryName %>" class="img-fluid mx-auto d-block"
+                                style="max-height: 180px; width: auto; object-fit: contain;">
+                        </div>
+
+                        <a href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"
+                            class="stretched-link"></a>
                     </div>
-                    <!-- End Single Category -->
                 </div>
-                </a>
                 <% }) %>
         </div>
     </div>

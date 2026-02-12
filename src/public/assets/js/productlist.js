@@ -1,6 +1,33 @@
 
 window.addEventListener('DOMContentLoaded', () => {
 
+        const bookingmodalbtn = document.getElementsByClassName('booking-modal-btn');
+
+        for (let btn of bookingmodalbtn) {
+        btn.addEventListener('click', function () {
+
+            const phone = btn.dataset.phone;
+            const email = btn.dataset.email;
+            const address = btn.dataset.address;
+            
+            const b_phonecontainer = document.getElementById('b_phone');
+            b_phonecontainer.innerHTML = phone;
+            const b_emailcontainer = document.getElementById('b_email');
+            b_emailcontainer.innerHTML = email;
+            const b_addresscontainer = document.getElementById('b_address');
+            b_addresscontainer.innerHTML = address;
+
+        $('#exampleModal').modal('show')
+        });
+        }
+    
+  const closebookingModal = document.getElementById('ClosebookingModal');
+    closebookingModal.addEventListener('click', async () => {
+    $('#exampleModal').modal('hide')
+    // exampleModal
+  });
+    // open modal
+
     // clear filters
      // 3. Apply Button ka listener
     const clearFilterBtn = document.getElementById('clearFilterBtn');
