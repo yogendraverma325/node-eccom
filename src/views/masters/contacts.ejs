@@ -3,13 +3,13 @@
         <div class="row align-items-center">
             <div class="col-lg-6 col-md-6 col-12">
                 <div class="breadcrumbs-content">
-                    <h1 class="page-title">Local Vendors List</h1>
+                    <h1 class="page-title">Queries List</h1>
                 </div>
             </div>
             <div class="col-lg-6 col-md-6 col-12">
                 <ul class="breadcrumb-nav">
                     <li><a href="/"><i class="lni lni-home"></i> Home</a></li>
-                    <li>Local Vendors List</li>
+                    <li>Queries List</li>
                 </ul>
             </div>
         </div>
@@ -17,21 +17,16 @@
 </div>
 <section class="vendors-list-wrapper py-5">
     <div class="container">
-        <a class="btn btn-sm btn-success mb-5" href="/admin/add-vendor">
-            Add Vendor
-        </a>
-
-
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Vendor Name</th>
+                        <th scope="col">Name</th>
                         <th scope="col">Phone Number</th>
                         <th scope="col">Email</th>
-                        <th scope="col">Address</th>
-                        <th scope="col">Domain</th>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Message</th>
                         <th scope="col" class="text-center">Change Status</th>
                     </tr>
                 </thead>
@@ -43,7 +38,7 @@
                                 <%= i %>
                             </th>
                             <td>
-                                <%= vendor.vendor_name %>
+                                <%= vendor.name %>
                             </td>
                             <td>
                                 <%= vendor.phone %>
@@ -52,30 +47,27 @@
                                 <%= vendor.email %>
                             </td>
                             <td>
-                                <%= vendor.address %>
+                                <%= vendor.subject %>
                             </td>
                             <td>
-                                <a href="/admin/vendor-domains/<%- helper.generateJwtOTPEncrypt(vendor.id) %>">
-                                    <i class="fa fa-server fa-2x"></i>
-                                </a>
+                                <%= vendor.message %>
                             </td>
+
 
 
                             <td class="text-center">
-                                <% if (vendor.status) { %>
-                                    <a class="btn btn-sm btn-danger me-1"
-                                        href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>/<%- helper.generateJwtOTPEncrypt(vendor.status) %>">
-                                        In-Active
+                                <% if (vendor.is_read) { %>
+                                    <a class="btn btn-sm btn-success me-1"
+                                        href="/admin/change-query-status/<%- helper.generateJwtOTPEncrypt(vendor.contact_id) %>/<%- helper.generateJwtOTPEncrypt(vendor.is_read) %>">
+                                        Read
                                     </a>
 
                                     <% } else {%>
-                                        <a class="btn btn-sm btn-success me-1"
-                                            href="/admin/change_vendor_status/<%- helper.generateJwtOTPEncrypt(vendor.id) %>/<%- helper.generateJwtOTPEncrypt(vendor.status) %>">
-                                            Active
+                                        <a class="btn btn-sm btn-danger me-1"
+                                            href="/admin/change-query-status/<%- helper.generateJwtOTPEncrypt(vendor.contact_id) %>/<%- helper.generateJwtOTPEncrypt(vendor.is_read) %>">
+                                            Un-read
                                         </a>
-
                                         <% } %>
-                                            <button class="btn btn-sm btn-primary me-1">Edit</button>
 
                             </td>
                         </tr>

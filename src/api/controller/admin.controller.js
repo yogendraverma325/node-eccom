@@ -1407,6 +1407,66 @@ const { itemId } = req.params;
           });
         }
     }
+    async contacts(req, res) {
+           req.session.lastUrl =req.originalUrl;
+        try {
+                const page = req.query.page || 1;     // "page"
+                const limit=5;
+                const offset = (page - 1) * limit;
+                const vendors = await db.contact_us.findAndCountAll({
+                // Pagination Flags
+                limit: limit > 0 ? parseInt(limit) : null,
+                offset: offset > 0 ? parseInt(offset) : 0,
+                subQuery: false, // <--- YE SABSE ZAROORI HAI
+                distinct: true,  // <--- Taaki count sahi aaye (Duplicate products na gine)
+                order: [['createdAt', 'DESC']]
+                });
+                //   JSON.stringify(productDetails, null, 2)
+                const totalRecords = vendors.count;
+				const totalPages = Math.ceil(totalRecords / limit);
+            res.render('masters/contacts', {
+            title: 'contacts',
+            description: 'contacts(s)',
+            vendors,
+            totalPages,
+            page
+            });
+            
+        } catch (error) {
+            console.log("error",error);
+        }
+    }
+      async  changeQueryStatus(req, res) {
+        let lastUrl=res.locals.lastUrl;
+        const transaction = await db.sequelize.transaction();
+         let AdminId=1;
+            try {
+            let contact_id = helper.generateJwtOTPDecrypt(req.params.contact_id);
+            let is_read = helper.generateJwtOTPDecrypt(req.params.is_read);
+            await db.contact_us.update(
+              {
+               is_read:!is_read,
+               updatedBy:AdminId
+              },
+              {
+                where: {
+                  contact_id: contact_id
+                },
+                transaction
+              }
+            );
+            await transaction.commit();
+            req.flash('message', JSON.stringify({ type: 'success', text: `status has been changed` }));
+             res.redirect(lastUrl); // back to the previous page
+            
+        } catch (error) {
+          console.log("error",error)
+          await transaction.rollback();
+         req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
+         res.redirect(lastUrl); // back to the previous page
+			
+		}
+    }
 }
 
 export default new AdminController();

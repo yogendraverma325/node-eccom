@@ -44,3 +44,5 @@ productUploadMiddleware
 .get("/add-qr-code",isAdmin,AdminController.addQrCode)
 .post("/addQrCode",isAdmin,AdminController.addQrCode)
 .get("/generate-qr/:itemId",isAdmin,AdminController.generateQR)
+.get("/contacts",isAdmin,AdminController.contacts)
+.get("/change-query-status/:contact_id/:is_read",isAdmin,AdminController.changeQueryStatus)
