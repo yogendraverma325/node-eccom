@@ -58,6 +58,7 @@ app.use(cookieParser());
 app.use(async (req, res, next) => {
 res.locals.flashMessage = req.flash('message') || null;
 res.locals.user = req.session.user || null;
+res.locals.currentPath = req.path;
 res.locals.userEmail = req.session.userEmail || null;
 res.locals.lastUrl = req.session.lastUrl || null;
 let cart=[];
@@ -92,6 +93,7 @@ app.get("/api/uploads/:user/:fileName", (req, res) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('layout',	 path.join(__dirname, 'layouts/main')); // default layout file
+
 app.use(express.static(path.join(process.cwd(), '/src/public')));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use('/', ui_routes);
