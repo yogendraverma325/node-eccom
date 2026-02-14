@@ -112,6 +112,7 @@ for (let btn of openBtns) {
     const sections = 4;
     const container = document.getElementById('dynamicPriceFilters');
     const priceData = document.getElementById('price-data');
+    if(priceData){
     const min = parseInt(priceData.getAttribute('data-min')) || 0;
     const max = parseInt(priceData.getAttribute('data-max')) || 0;
     const pricemin = parseInt(priceData.getAttribute('data-pricemin')) || null;
@@ -145,4 +146,5 @@ priceRange=pricemin+'-'+pricemax;
     }
 
     container.innerHTML += htmlContent;
+}
   });

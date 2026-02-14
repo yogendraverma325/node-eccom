@@ -126,6 +126,7 @@
                                             <h5 class="fw-bold text-dark">No Services Found</h5>
 
                                             <p class="text-muted mb-3">
+
                                                 We couldn't find any sercice matching your filters.
                                                 Try adjusting or clearing the filters.
                                             </p>
@@ -394,5 +395,46 @@
     </div>
 </div>
 <!-- modal -->
+
+<div id="location-overlay"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(240, 36, 36, 0.9); color:white !important; z-index:999; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+    <h2 id="location-message" style="color: white !important;"></h2>
+    <button id="enable-location-btn"
+        style="padding:15px 30px; font-size:18px; background:#ff5722; color:white; border:none; border-radius:5px; cursor:pointer;">
+        Enable Location Now
+    </button>
+</div>
+
+<div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="locationModalLabel">📍 Location Access Required</h5>
+            </div>
+            <div class="modal-content-body p-4">
+                <p class="text-muted">To show you nearby services, we need your location. It seems you have blocked
+                    location access.</p>
+
+                <h6 class="fw-bold">How to enable:</h6>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item small">1. Click the <strong>Lock (🔒) icon</strong> in the address bar.
+                    </li>
+                    <li class="list-group-item small">2. Change <strong>Location</strong> setting to
+                        <strong>"Allow"</strong>.
+                    </li>
+                    <li class="list-group-item small">3. <strong>Refresh</strong> the page to see services.</li>
+                </ul>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" id="reloadModal">I've Enabled It
+                        (Reload Now)</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="/assets/js/productlist.js"></script>
