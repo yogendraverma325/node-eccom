@@ -27,8 +27,7 @@
 
                         <div class="images w-100 text-center">
                             <img src="/assets/images/featured-categories/<%= category.image %>"
-                                alt="<%= category.categoryName %>" class="img-fluid mx-auto d-block"
-                                style="max-height: 180px; width: auto; object-fit: contain;">
+                                alt="<%= category.categoryName %>" class="img-fluid mx-auto d-block" loading="lazy">
                         </div>
 
                         <a href="/services?category=<%= category.slug %>&category-id=<%- helper.generateJwtOTPEncrypt(category.catAutoId) %>"
