@@ -353,6 +353,7 @@ class AdminController {
           if (!req.file) {
           errors.image = "Product image is required";
           }
+          console.log("req.file",req.file)
             formError=errors;
             formData=value;
 
@@ -377,7 +378,7 @@ class AdminController {
               capacity:value.capacity,
               unit:value.unit,
               rating:value.rating,
-              image:req.file.path,
+              image:req.file.path, 
               vendor_service_id:service_item_id,
               createdBy:AdminId
             },transaction);
