@@ -1176,7 +1176,7 @@ const { itemId } = req.params;
         background: white;
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 650px;
+        max-width: 768px;
         width: 100%;
         padding: 40px;
     }
@@ -1352,7 +1352,7 @@ const { itemId } = req.params;
 
 <div class="card">
     <div class="header">
-        <div class="logo">🏨 Local Travel Stay</div>
+        <div class="logo">Local Travel Stay</div>
         <div class="tagline">Your Complete Travel Solution</div>
     </div>
 
@@ -1362,13 +1362,10 @@ const { itemId } = req.params;
                 <h3>Our Services</h3>
                 <div class="service-list">
                     <div class="service-item">
-                        <div class="service-icon">🏠</div>
-                        <div class="service-name">Guest House</div>
+                        <div class="service-icon">🛌</div>
+                        <div class="service-name">Rooms</div>
                     </div>
-                    <div class="service-item">
-                        <div class="service-icon">🏨</div>
-                        <div class="service-name">Hotels</div>
-                    </div>
+                    
                     <div class="service-item">
                         <div class="service-icon">🍽️</div>
                         <div class="service-name">Restaurants</div>
@@ -1377,21 +1374,33 @@ const { itemId } = req.params;
                         <div class="service-icon">🚗</div>
                         <div class="service-name">Car & Bike Rental</div>
                     </div>
+                    <div class="service-item">
+                        <div class="service-icon">🗺️</div>
+                        <div class="service-name">Travel Guide</div>
+                    </div>
+                    <div class="service-item more-services">
+                    <div class="service-icon">➕</div>
+                    <div class="service-name">Many More...</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="right-content">
-            <div class="scan-text">Scan to Visit</div>
-            <div class="qr-container">
-                <div id="qrcode">
-                <img src="${url}" style="width: 150px; height: 150px;" />
-                </div>
-            </div>
-            <div class="url">www.localtravelstay.com</div>
-            <div class="url">QR:${QR_CODE_ID}</div>
-             
+       <div class="right-content">
+    <div class="scan-text" style="font-weight: bold; margin-bottom: 10px;">Scan to Visit</div>
+    
+    <div class="qr-container">
+        <div id="qrcode">
+            <img src="${url}" alt="QR Code" style="width: 300px; height: 300px; border: 1px solid #eee; padding: 5px;" />
         </div>
+    </div>
+
+    <div style="margin: 10px 0; color: #666; font-size: 14px;">— OR —</div>
+
+    <div class="url-text">Visit: <strong>www.localtravelstay.com</strong></div>
+    
+    <div class="qr-id" style="font-size: 10px; color: #999; margin-top: 5px;">Ref: ${QR_CODE_ID}</div>
+</div>
     </div>
 </div>`;
         
