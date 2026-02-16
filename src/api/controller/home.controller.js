@@ -37,131 +37,107 @@ class HomeController {
 		productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
 		}
 	let productDetails = await db.product.findOne({
-		attributes: [
-			"product_auto_id",
-			 "name", 
-			 "image",
-			 "price",
-			 "offerprice",
-			 "description",
-			 "long_description",
-			 "variant_available",
-			 "for_gender",
-			 "gender_applicability",
-			  "price_type",
-			   "capacity",
-			   "unit"
-			],
-		where: {
-			product_auto_id: productAutoId,
-			isActive: 1
-		},
-		 include: [
-			{
-			model: db.product_feature_mapping,
-			attributes: ['feature_value'],
-			required: false,
-			where: {
-			is_active: 1
-			},
-			},
-			{
-			model: db.product_images,
-			attributes: ['image'],
-			required: false,
-			where: {
-			is_active: 1
-			},
-			},
-			{
-			model: db.product_meta_data,
-			attributes: ['meta_data'],
-			where:{
-				visibility:1,
-				is_active: 1
-			},
-			required: false,
-			},
-			{
-			model: db.product_specification_mapping,
-			as: 'specifications',
-			where: { is_active: 1 },
-			required: false,
-			include: [
-			{
-			model: db.specification_master,
-			as: 'specification',
-			attributes: ['specification_name'],
-			required: false,
-			}
-			]
-			},
+    attributes: [
+        "product_auto_id", "name", "image", "price", "offerprice", 
+        "description", "long_description", "variant_available", 
+        "for_gender", "gender_applicability", "price_type", "capacity", "unit"
+    ],
+    where: {
+        product_auto_id: productAutoId,
+        isActive: 1
+    },
+    include: [
 		{
-		model: db.vendor_services,
-		as:'vendorService',
-		attributes: ["id"],
-		required: true,
-		include: [
-		{ model:  db.vendors,
-			attributes: ['id','vendor_name',"phone","email","address"],
-		},
-		 {
-          model: db.vendor_services_locations,
-		  required: true,
-          attributes: ['vendor_services_locations_auto_id','city_id',"branch_address",
-		// 	 [
-        //   literal(`
-        //     (6371 * acos(
-        //       cos(radians(${userLat}))
-        //       * cos(radians(latitude))
-        //       * cos(radians(longitude) - radians(${userLng}))
-        //       + sin(radians(${userLat}))
-        //       * sin(radians(latitude))
-        //     ))
-        //   `),
-        //   'distance'
-        // ]
-		  ],
-          where: { 
-			status: 1,
-			// [Op.and]: [
-			// literal(`
-			// (6371 * acos(
-			// cos(radians(${userLat}))
-			// * cos(radians(latitude))
-			// * cos(radians(longitude) - radians(${userLng}))
-			// + sin(radians(${userLat}))
-			// * sin(radians(latitude))
-			// )) <= 5
-			// `)
-			// ]
-		   }
+			model: db.menu_categories,
+    as: 'menuCategories',
+    separate: true, // <--- Isse query split ho jayegi aur collision nahi hoga
+    include: [
+        {
+            model: db.menu_items,
+            as: 'items',
+            separate: true, // <--- Isse items ke liye alag query chalegi
+            include: [
+                {
+                    model: db.menu_item_prices,
+                    as: 'prices',
+                    separate: true // <--- Prices ke liye alag query
+                }
+            ]
         }
-		]
+    ]
 		},
+        {
+            model: db.product_feature_mapping,
+            attributes: ['feature_value'],
+            required: false,
+            where: { is_active: 1 },
+            separate: true // <--- Performance optimization
+        },
 		{
-		model: db.productcategorymappings,
-		as:'mappings',
-		required: true,
-		attributes: [
-		'product_category_mapping_auto_id'
-		],
-		where: {
-		is_active: 1,
-		},
-		include: 
-		{
-			model: db.category,
-			attributes: ['is_price_allowed_to_display', 'is_details_page_allowed',"categoryName"],
-			where: { isActive: 1 }
-		},
-		},
-	]
-	});
-// 	console.log(
-//   "productDetails",
-//   JSON.stringify(productDetails, null, 2)
-// );
+            model: db.product_meta_data,
+            attributes: ['meta_data'],
+            required: false,
+            where: { is_active: 1,visibility:1 },
+            separate: true // <--- Performance optimization
+        },
+        {
+            model: db.product_images,
+            attributes: ['image'],
+            required: false,
+            where: { is_active: 1 },
+            separate: true // <--- Performance optimization
+        },
+		
+        {
+            model: db.product_specification_mapping,
+			 attributes: ['product_specification_mapping_id',"specification_value"],
+            as: 'specifications',
+            where: { is_active: 1 },
+            required: false,
+            separate: true, // <--- Performance optimization
+            include: [{
+                model: db.specification_master,
+                as: 'specification',
+                attributes: ['specification_name'],
+                required: false,
+            }]
+        },
+        {
+            model: db.vendor_services,
+            as: 'vendorService',
+            attributes: ["id"],
+            required: true,
+            include: [
+                { 
+                    model: db.vendors, 
+                    attributes: ['id', 'vendor_name', "phone", "email", "address"] 
+                },
+                {
+                    model: db.vendor_services_locations,
+                    required: true,
+                    attributes: ['vendor_services_locations_auto_id', 'city_id', "branch_address"],
+                    where: { status: 1 }
+                }
+            ]
+        },
+        {
+            model: db.productcategorymappings,
+            as: 'mappings',
+            required: true,
+            attributes: ['product_category_mapping_auto_id'],
+            where: { is_active: 1 },
+            include: {
+                model: db.category,
+                attributes: ['is_price_allowed_to_display', 'is_details_page_allowed', "categoryName"],
+                where: { isActive: 1 }
+            },
+        },
+    ]
+});
+	console.log(
+  "productDetails",
+  JSON.stringify(productDetails, null, 2)
+);
 if(!productDetails){
 	req.flash('message', JSON.stringify({ type: 'error', text: 'Product not found' }));	
 	return  res.redirect('/'); // back to the previous page
@@ -172,8 +148,9 @@ if(!productDetails){
 				productDetails
 			  });
 		} catch (error) {
+			console.log("error",error)
 			 req.flash('message', JSON.stringify({ type: 'error', text: 'Something Went Wrong' }));	
-			  res.redirect('/'); // back to the previous page
+			 // res.redirect('/'); // back to the previous page
 		}
 	}
 	async  productList(req, res) {
@@ -260,79 +237,53 @@ if(!productDetails){
 			
 let products = await db.product.findAndCountAll({
   where: productWhere,
-
   include: [
     {
       model: db.vendor_services,
       as: 'vendorService',
       required: true,
-
-      attributes: [
-        'vendor_id',
-        'service_id'
-      ],
-
+      attributes: ['vendor_id', 'service_id'],
       where: {
         status: 1,
         service_id: categoryId,
         ...(vendor_id && { vendor_id })
       },
-
       include: [
         {
           model: db.vendors,
-          attributes: ['id', 'vendor_name','phone','email'],
+          attributes: ['id', 'vendor_name', 'phone', 'email'],
           where: { status: 1 }
         },
-		 {
+        {
           model: db.vendor_services_locations,
-          attributes: ['city_id',"branch_address",
-			[
-      literal(`
-        (6371 * acos(
-          cos(radians(${userLat}))
-          * cos(radians(latitude))
-          * cos(radians(longitude) - radians(${userLng}))
-          + sin(radians(${userLat}))
-          * sin(radians(latitude))
-        ))
-      `),
-      'distance'
-    ]
-		  ],
-          where: { 
-			status: 1,
-		// 	 [Op.and]: [
-        //   literal(`
-        //     (6371 * acos(
-        //       cos(radians(${userLat}))
-        //       * cos(radians(latitude))
-        //       * cos(radians(longitude) - radians(${userLng}))
-        //       + sin(radians(${userLat}))
-        //       * sin(radians(latitude))
-        //     )) <= 5
-        //   `)
-        // ]
-		   }
+          attributes: [
+            'city_id', 
+            'branch_address',
+            [
+              literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
+              'distance'
+            ]
+          ],
+          where: { status: 1 },
+          required: true // Agar location must hai distance ke liye
         }
       ]
     },
-
     {
-      model: db.product_feature_mapping,
-      attributes: ['feature_value']
+	model: db.product_meta_data,
+	attributes: ['meta_data'],
+	required: false,
+	where: { is_active: 1,visibility:1 },
+	separate: true // <--- Isse duplication aur subQuery issues solve honge
     }
   ],
-
   limit: limit > 0 ? parseInt(limit) : null,
   offset: offset > 0 ? parseInt(offset) : 0,
-
-  subQuery: false,
-  distinct: true,
+  distinct: true, // Count sahi nikalne ke liye
   order: order
 });
 	products.rows = products.rows.map(p => p.get({ plain: true }));
-	//console.log("products",JSON.stringify(products,null,2))	
+	console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {

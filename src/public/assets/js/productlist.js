@@ -12,8 +12,24 @@ window.addEventListener('DOMContentLoaded', () => {
             
             const b_phonecontainer = document.getElementById('b_phone');
             b_phonecontainer.innerHTML = phone;
-            const b_emailcontainer = document.getElementById('b_email');
-            b_emailcontainer.innerHTML = email;
+                const b_emailcontainer = document.getElementById('b_email');
+                const vendor_contact_email_cont = document.getElementById('vendor_contact_email');
+
+                // Pehle check karein ki data (email) hai ya nahi
+                if (email && email.trim() !== "") {
+                if (b_emailcontainer) {
+                b_emailcontainer.innerHTML = email;
+                }
+                if (vendor_contact_email_cont) {
+                vendor_contact_email_cont.style.display = 'block'; // Ya 'flex' jo bhi design ho
+                }
+                } else {
+                // Agar email nahi hai, to pura container chhupa dein
+                if (vendor_contact_email_cont) {
+                vendor_contact_email_cont.style.display = 'none';
+                }
+                }
+          
             const b_addresscontainer = document.getElementById('b_address');
             b_addresscontainer.innerHTML = address;
 

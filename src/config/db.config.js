@@ -29,6 +29,9 @@ import vendors from "../api/model/vendor.js";
 import vendor_services from "../api/model/vendor_services.js";
 import vendor_services_locations from "../api/model/vendor_service_location.js";
 import qr_codes from "../api/model/QRCode.js";
+import menu_categories from "../api/model/menu_categories.js";
+import menu_items from "../api/model/menu_item.js";
+import menu_price from "../api/model/menu_price.js";
 //
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
@@ -103,6 +106,10 @@ db.vendors=vendors(sequelize, Sequelize);
 db.vendor_services=vendor_services(sequelize, Sequelize);
 db.vendor_services_locations=vendor_services_locations(sequelize, Sequelize);
 db.qr_codes=qr_codes(sequelize, Sequelize);
+db.menu_categories = menu_categories(sequelize, Sequelize);
+db.menu_items = menu_items(sequelize, Sequelize);
+db.menu_item_prices = menu_price(sequelize, Sequelize);
+
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -236,4 +243,19 @@ db.vendor_services_locations.belongsTo(db.vendor_services, {
 	targetKey: 'cityId'      // Parent table (CityMaster) ka column
 	});
 
+	// Ek Category mein bahut saare Items ho sakte hain
+db.menu_categories.hasMany(db.menu_items, { foreignKey: 'category_id', as: 'items' });
+db.menu_items.belongsTo(db.menu_categories, { foreignKey: 'category_id' });
+
+db.menu_items.hasMany(db.menu_item_prices, { foreignKey: 'menu_item_id', as: 'prices' });
+db.menu_item_prices.belongsTo(db.menu_items, { foreignKey: 'menu_item_id' });
+
+db.product.hasMany(db.menu_categories, { foreignKey: 'product_auto_id', as: 'menuCategories' });
+db.menu_categories.belongsTo(db.product, { foreignKey: 'product_auto_id' });
+
+// Restaurant (Vendor) aur Items ka direct link (Faster queries ke liye)
+db.product.hasMany(db.menu_items, { foreignKey: 'product_auto_id', as: 'menuItems' });
+db.menu_items.belongsTo(db.product, { foreignKey: 'product_auto_id' });
 export default db;
+
+

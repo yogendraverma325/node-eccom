@@ -272,10 +272,10 @@
                                                         </div>
                                                         <div class="col-lg-4 col-md-4 col-12">
                                                             <ul class="meta-data">
-                                                                <% product.product_feature_mappings.forEach((feature)=>
+                                                                <% product.product_meta_data.forEach((feature)=>
                                                                     { %>
                                                                     <li>
-                                                                        <%= feature.feature_value %>
+                                                                        <%= feature.meta_data %>
                                                                     </li>
                                                                     <% }) %>
                                                             </ul>
@@ -379,7 +379,7 @@
                             </span>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3" id="vendor_contact_email">
                             <strong>📧 Email:</strong>
                             <span id="b_email">
 

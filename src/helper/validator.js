@@ -120,10 +120,11 @@ phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
     .required()
     .label("Name"),
 
-  email: Joi.string()
+ email: Joi.string()
     .email({ tlds: { allow: false } })
     .max(255)
-    .required()
+    .lowercase() // Tip: Emails hamesha lowercase mein save karna achhi practice hai
+    .allow('', null) // Yeh line empty string aur null dono ko allow karegi
     .label("Email"),
 
 phone: Joi.string().pattern(/^[0-9]{10}$/).required().messages({
