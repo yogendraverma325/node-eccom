@@ -109,32 +109,32 @@ class HomeController {
           model: db.vendor_services_locations,
 		  required: true,
           attributes: ['vendor_services_locations_auto_id','city_id',"branch_address",
-			 [
-          literal(`
-            (6371 * acos(
-              cos(radians(${userLat}))
-              * cos(radians(latitude))
-              * cos(radians(longitude) - radians(${userLng}))
-              + sin(radians(${userLat}))
-              * sin(radians(latitude))
-            ))
-          `),
-          'distance'
-        ]
+		// 	 [
+        //   literal(`
+        //     (6371 * acos(
+        //       cos(radians(${userLat}))
+        //       * cos(radians(latitude))
+        //       * cos(radians(longitude) - radians(${userLng}))
+        //       + sin(radians(${userLat}))
+        //       * sin(radians(latitude))
+        //     ))
+        //   `),
+        //   'distance'
+        // ]
 		  ],
           where: { 
 			status: 1,
-			[Op.and]: [
-			literal(`
-			(6371 * acos(
-			cos(radians(${userLat}))
-			* cos(radians(latitude))
-			* cos(radians(longitude) - radians(${userLng}))
-			+ sin(radians(${userLat}))
-			* sin(radians(latitude))
-			)) <= 5
-			`)
-			]
+			// [Op.and]: [
+			// literal(`
+			// (6371 * acos(
+			// cos(radians(${userLat}))
+			// * cos(radians(latitude))
+			// * cos(radians(longitude) - radians(${userLng}))
+			// + sin(radians(${userLat}))
+			// * sin(radians(latitude))
+			// )) <= 5
+			// `)
+			// ]
 		   }
         }
 		]
@@ -258,7 +258,7 @@ if(!productDetails){
 //     );
 // }
 			
-const products = await db.product.findAndCountAll({
+let products = await db.product.findAndCountAll({
   where: productWhere,
 
   include: [
@@ -287,32 +287,32 @@ const products = await db.product.findAndCountAll({
 		 {
           model: db.vendor_services_locations,
           attributes: ['city_id',"branch_address",
-			 [
-          literal(`
-            (6371 * acos(
-              cos(radians(${userLat}))
-              * cos(radians(latitude))
-              * cos(radians(longitude) - radians(${userLng}))
-              + sin(radians(${userLat}))
-              * sin(radians(latitude))
-            ))
-          `),
-          'distance'
-        ]
+			[
+      literal(`
+        (6371 * acos(
+          cos(radians(${userLat}))
+          * cos(radians(latitude))
+          * cos(radians(longitude) - radians(${userLng}))
+          + sin(radians(${userLat}))
+          * sin(radians(latitude))
+        ))
+      `),
+      'distance'
+    ]
 		  ],
           where: { 
 			status: 1,
-			 [Op.and]: [
-          literal(`
-            (6371 * acos(
-              cos(radians(${userLat}))
-              * cos(radians(latitude))
-              * cos(radians(longitude) - radians(${userLng}))
-              + sin(radians(${userLat}))
-              * sin(radians(latitude))
-            )) <= 5
-          `)
-        ]
+		// 	 [Op.and]: [
+        //   literal(`
+        //     (6371 * acos(
+        //       cos(radians(${userLat}))
+        //       * cos(radians(latitude))
+        //       * cos(radians(longitude) - radians(${userLng}))
+        //       + sin(radians(${userLat}))
+        //       * sin(radians(latitude))
+        //     )) <= 5
+        //   `)
+        // ]
 		   }
         }
       ]
@@ -331,8 +331,8 @@ const products = await db.product.findAndCountAll({
   distinct: true,
   order: order
 });
-
- //console.log("products",JSON.stringify(products,null,2))	
+	products.rows = products.rows.map(p => p.get({ plain: true }));
+	console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
@@ -717,6 +717,29 @@ if(checkoutData.shipping=='POD'){
 			res.render('aboutUs', {
 				title: 'About Us | Local Travel Stay - Your Trusted Travel Partner',
 				description: 'Learn more about Local Travel Stay. We provide verified room stays, hassle-free car rentals, and bike rentals to make your travel comfortable and safe.',
+			  });
+		} catch (error) {
+	  res.redirect('/'); // back to the previous page
+		}
+	}
+		async  termAndCondition(req, res) {
+		try {
+			let year=moment().format('YYYY');
+			console.log("year",year)
+			res.render('termAndCondition', {
+				title: 'Terms and Conditions | Local Travel Stay - Booking Rules',
+				description: 'Review the Terms and Conditions of Local Travel Stay. Know the rules, booking policies, and service agreements for our room stays and rental services.',
+				year
+			  });
+		} catch (error) {
+	  res.redirect('/'); // back to the previous page
+		}
+	}
+		async  privacyAndPolicy(req, res) {
+		try {
+			res.render('privacyAndPolicy', {
+				title: 'Privacy Policy | Local Travel Stay - Your Data Security',
+				description: 'Read the Privacy Policy of Local Travel Stay. Learn how we collect, use, and protect your personal information during room bookings and rental services.',
 			  });
 		} catch (error) {
 	  res.redirect('/'); // back to the previous page

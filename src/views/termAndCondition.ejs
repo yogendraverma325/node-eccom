@@ -1,0 +1,173 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f4f7f6;
+        color: #2d3436;
+    }
+
+    .terms-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 40px;
+        margin-top: 40px;
+        margin-bottom: 40px;
+        border-top: 5px solid #007bff;
+        /* Professional Blue Accent */
+    }
+
+    .policy-title {
+        color: #007bff;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .last-update {
+        text-align: center;
+        color: #636e72;
+        font-size: 0.9rem;
+        margin-bottom: 30px;
+    }
+
+    .section-heading {
+        font-weight: 700;
+        color: #212529;
+        margin-top: 25px;
+        margin-bottom: 12px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-heading::before {
+        content: "";
+        width: 4px;
+        height: 20px;
+        background: #007bff;
+        margin-right: 12px;
+        border-radius: 2px;
+    }
+
+    /* Highlight Box for Legal Shield */
+    .legal-shield {
+        background-color: #e7f3ff;
+        border-left: 5px solid #007bff;
+        padding: 15px;
+        margin: 20px 0;
+        font-size: 0.95rem;
+        color: #004085;
+    }
+
+    /* Highlight Box for Warning/Liability */
+    .warning-box {
+        background-color: #fff9db;
+        border-left: 5px solid #fab005;
+        padding: 15px;
+        margin: 20px 0;
+        font-size: 0.95rem;
+        color: #664d03;
+    }
+
+    .list-styled li {
+        margin-bottom: 8px;
+    }
+
+    .footer-text {
+        text-align: center;
+        font-size: 0.85rem;
+        color: #636e72;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 576px) {
+        .terms-card {
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-md-11">
+            <div class="terms-card">
+
+                <h1 class="policy-title">Terms and Conditions</h1>
+                <p class="last-update">Last Updated: February 2026</p>
+
+                <p class="lead text-center mb-4">Welcome to <strong>LocalTravelStay</strong>. By using this
+                    platform, you agree to the following legally binding terms:</p>
+
+                <hr>
+
+                <div class="section-heading">1. Nature of Service (Pure Intermediary)</div>
+                <p><strong>LocalTravelStay</strong> is a listing platform (aggregator) that connects customers with
+                    independent vendors for rooms, car rentals, bike rentals, and restaurants.</p>
+                <div class="legal-shield">
+                    <strong>Legal Status:</strong> This platform is an <strong>‘Intermediary’ under Section
+                        79</strong> of the Information Technology Act, 2000. We do not own, manage, or provide any
+                    of the services listed. We are strictly a digital notice board.
+                </div>
+
+                <div class="section-heading">2. Direct Dealing & Liability</div>
+                <ul class="list-styled">
+                    <li><strong>Direct Interaction:</strong> All bookings, payments, and negotiations happen
+                        directly between the customer and the vendor. The platform is NOT a party to these
+                        transactions.</li>
+                    <li><strong>No Guarantee:</strong> We do not guarantee the quality, safety, or condition of the
+                        services (e.g., room cleanliness, vehicle condition, or food quality).</li>
+                </ul>
+
+                <div class="section-heading">3. Identity & Safety (KYC)</div>
+                <p><strong>Verification:</strong> Users are advised to verify the Government ID (Aadhar, Driving
+                    License, etc.) of the vendor/driver/hotel staff before engaging. The platform does not conduct
+                    criminal background checks on vendors or users. <strong>Use services at your own risk.</strong>
+                </p>
+
+                <div class="section-heading">4. Incident Reporting & Legal Disputes</div>
+                <div class="warning-box">
+                    <strong>Misbehavior/Incidents:</strong> In case of any criminal activity, harassment,
+                    misbehavior, or physical harm, the platform is <strong>NOT liable</strong>.
+                </div>
+                <p>The aggrieved party must approach the local police authorities directly. We will provide data
+                    logs/records only if formally requested by legal authorities through a valid warrant or notice.
+                </p>
+
+                <div class="section-heading">5. Zero Tolerance Policy</div>
+                <p>We maintain a <strong>Zero Tolerance Policy</strong> for misconduct. If a vendor or customer is
+                    found guilty of fraud, misbehavior, or providing false information, we reserve the right to
+                    <strong>Permanently Ban</strong> their account without prior notice.
+                </p>
+
+                <div class="section-heading">6. Specific Service Rules</div>
+                <ul class="list-styled">
+                    <li><strong>Family Only:</strong> Certain listings (especially in Mathura/Vrindavan) are
+                        strictly for families. Vendors have the right to deny check-in to single persons.</li>
+                    <li><strong>Amenities:</strong> Amenities like 'Cooler', 'Wi-Fi', etc., are provided by the
+                        vendor. No compensation can be claimed from the platform for deficiencies.</li>
+                    <li><strong>Check-out:</strong> Standard check-out is 10:00 AM unless otherwise agreed with the
+                        vendor.</li>
+                </ul>
+
+                <div class="section-heading">7. Limitation of Liability</div>
+                <p>LocalTravelStay shall not be held responsible for any loss, damage, accident, theft, or injury
+                    arising from the use of services listed. Users agree to indemnify the platform against all such
+                    claims.</p>
+
+                <div class="footer-text">
+                    <p>&copy; <%= year %> LocalTravelStay. All Rights Reserved.</p>
+                    <p class="text-primary fw-bold">Tip: Always confirm booking details via call before arrival.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -14,8 +14,8 @@ export default Express.Router()
 	.get("/contact",HomeController.contact)
 	.post("/contact",HomeController.contact)
 	.get("/about-us",HomeController.aboutUs)
-
-
+	.get("/term-and-condition",HomeController.termAndCondition)
+	.get("/privacy-and-policy",HomeController.privacyAndPolicy)
 	.get("/checkout",isLogin,HomeController.checkout)
 	.post("/apply-coupon",isLogin,HomeController.applyCoupon)
 	.post("/checkout",isLogin,HomeController.checkoutProcess)

@@ -142,6 +142,14 @@
                                                             <div class="product-image">
                                                                 <img src="/<%= product.image %>"
                                                                     alt="<%= product.name %>" loading="lazy">
+                                                                <div class="service-info">
+
+                                                                    <%= product.vendorService.vendor_services_locations[0].distance.toFixed(2)
+                                                                        %>
+                                                                        KM from your locaation
+
+
+                                                                </div>
                                                                 <div class="button">
                                                                     <% if (typeof catData.is_details_page_allowed
                                                                         !=='undefined' &&
@@ -249,6 +257,7 @@
                                                                                                         </span>
                                                                                                         <% } %>
                                                                         </div>
+
 
 
                                                                         <p class="category"><i class="lni lni-tag"></i>
