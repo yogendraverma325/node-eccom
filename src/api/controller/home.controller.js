@@ -332,7 +332,7 @@ let products = await db.product.findAndCountAll({
   order: order
 });
 	products.rows = products.rows.map(p => p.get({ plain: true }));
-	console.log("products",JSON.stringify(products,null,2))	
+	//console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
