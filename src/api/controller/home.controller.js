@@ -113,38 +113,31 @@ class HomeController {
                     attributes: ['id', 'vendor_name', "phone", "email", "address"] 
                 },
                 {
-                    model: db.vendor_services_locations,
+                    model: db.vendor_services_locations, 
                     required: true,
                     attributes: ['vendor_services_locations_auto_id', 'city_id', "branch_address"],
-                    where: { status: 1 }
-                }
-            ]
-        },
-        {
-            model: db.productcategorymappings,
-            as: 'mappings',
-            required: true,
-            attributes: ['product_category_mapping_auto_id'],
-            where: { is_active: 1 },
-            include: {
-                model: db.category,
+                    where: { status: 1 },
+                },
+				{
+                     model: db.category,
                 attributes: ['is_price_allowed_to_display', 'is_details_page_allowed', "categoryName"],
                 where: { isActive: 1 }
-            },
-        },
+                }
+            ]
+        }
     ]
 });
-	console.log(
-  "productDetails",
-  JSON.stringify(productDetails, null, 2)
-);
+// 	console.log(
+//   "productDetails",
+//   JSON.stringify(productDetails, null, 2)
+// );
 if(!productDetails){
 	req.flash('message', JSON.stringify({ type: 'error', text: 'Product not found' }));	
 	return  res.redirect('/'); // back to the previous page
 }
 			res.render('productDetails', {
-				title: `${productDetails.name} | ${productDetails.mappings[0].category.categoryName} | Local Travel Stay`,
-				description: `Book ${productDetails.name} at the best price. Explore features, images, and verified details for this ${productDetails.mappings[0].category.categoryName} service on Local Travel Stay.`,
+				title: `${productDetails.name} | ${productDetails.vendorService.category.categoryName} | Local Travel Stay`,
+				description: `Book ${productDetails.name} at the best price. Explore features, images, and verified details for this ${productDetails.vendorService.category.categoryName} service on Local Travel Stay.`,
 				productDetails
 			  });
 		} catch (error) {
