@@ -295,58 +295,61 @@
             <h2 class="menu-header text-center mb-4">Scopes & Service Menu</h2>
 
             <% productDetails.menuCategories.forEach(category=> { %>
-                <div class="menu-category-block mb-5">
-                    <h4 class="menu-category-title text-primary border-bottom pb-2 mb-3">
-                        <i class="fas fa-utensils me-2"></i>
-                        <%= category.category_name %>
-                    </h4>
+                <% if (category.items && category.items.length> 0) { %>
+                    <div class="menu-category-block mb-5">
+                        <h4 class="menu-category-title text-primary border-bottom pb-2 mb-3">
+                            <i class="fas fa-utensils me-2"></i>
+                            <%= category.category_name %>
+                        </h4>
 
-                    <div class="row g-3">
-                        <% category.items.forEach(item=> { %>
-                            <div class="col-md-6 col-lg-4">
-                                <div class="menu-item-card card h-100 border-0 shadow-sm">
-                                    <div class="menu-card-body card-body p-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="menu-info-wrapper flex-grow-1">
-                                                <h6 class="menu-item-name fw-bold mb-1">
-                                                    <%= item.name %>
-                                                </h6>
-                                                <p class="menu-item-desc small text-muted mb-0">
-                                                    <%= item.description ? item.description : '' %>
-                                                </p>
-                                            </div>
+                        <div class="row g-3">
+                            <% category.items.forEach(item=> { %>
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="menu-item-card card h-100 border-0 shadow-sm">
+                                        <div class="menu-card-body card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="menu-info-wrapper flex-grow-1">
+                                                    <h6 class="menu-item-name fw-bold mb-1">
+                                                        <%= item.name %>
+                                                    </h6>
+                                                    <p class="menu-item-desc small text-muted mb-0">
+                                                        <%= item.description ? item.description : '' %>
+                                                    </p>
+                                                </div>
 
-                                            <div class="menu-price-wrapper text-end ms-2">
-                                                <% if (item.prices && item.prices.length> 0) { %>
-                                                    <% item.prices.forEach(priceObj=> { %>
-                                                        <div
-                                                            class="menu-price-row d-flex justify-content-end align-items-center mb-1">
-                                                            <% if (item.prices.length> 1) { %>
-                                                                <% if (priceObj.variant_name) { %>
-                                                                    <span
-                                                                        class="menu-variant-badge badge bg-light text-dark border me-1">
-                                                                        <%= priceObj.variant_name %>
-                                                                    </span>
-                                                                    <% } %>
+                                                <div class="menu-price-wrapper text-end ms-2">
+                                                    <% if (item.prices && item.prices.length> 0) { %>
+                                                        <% item.prices.forEach(priceObj=> { %>
+                                                            <div
+                                                                class="menu-price-row d-flex justify-content-end align-items-center mb-1">
+                                                                <% if (item.prices.length> 1) { %>
+                                                                    <% if (priceObj.variant_name) { %>
+                                                                        <span
+                                                                            class="menu-variant-badge badge bg-light text-dark border me-1">
+                                                                            <%= priceObj.variant_name %>
+                                                                        </span>
                                                                         <% } %>
-                                                                            <span
-                                                                                class="menu-price-value fw-bold text-success">
-                                                                                ₹<%= Math.round(priceObj.price) %>
-                                                                            </span>
-                                                        </div>
-                                                        <% }) %>
-                                                            <% } else { %>
-                                                                <span class="menu-no-price text-muted small">N/A</span>
-                                                                <% } %>
+                                                                            <% } %>
+                                                                                <span
+                                                                                    class="menu-price-value fw-bold text-success">
+                                                                                    ₹<%= Math.round(priceObj.price) %>
+                                                                                </span>
+                                                            </div>
+                                                            <% }) %>
+                                                                <% } else { %>
+                                                                    <span
+                                                                        class="menu-no-price text-muted small">N/A</span>
+                                                                    <% } %>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <% }) %>
+                                <% }) %>
+                        </div>
                     </div>
-                </div>
-                <% }) %>
+                    <% } %>
+                        <% }) %>
         </div>
         <% }%>
 
