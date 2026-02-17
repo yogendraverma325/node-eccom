@@ -157,6 +157,8 @@ async function requestLocation() {
 // Auto-run if cookie is missing (First time visit)
     if (!getCookie("userLocation")) {
         requestLocation();
+    }else{
+         requestLocation();
     }
 
     // "Enable Now" Button Listener

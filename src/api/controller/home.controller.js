@@ -127,10 +127,10 @@ class HomeController {
         }
     ]
 });
-// 	console.log(
-//   "productDetails",
-//   JSON.stringify(productDetails, null, 2)
-// );
+	console.log(
+  "productDetails",
+  JSON.stringify(productDetails, null, 2)
+);
 if(!productDetails){
 	req.flash('message', JSON.stringify({ type: 'error', text: 'Product not found' }));	
 	return  res.redirect('/'); // back to the previous page
@@ -253,9 +253,8 @@ let products = await db.product.findAndCountAll({
             'city_id', 
             'branch_address',
             [
-			literal(`ROUND((6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude)))), 2)`),
-			'distance'
-              
+              literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
+              'distance'
             ]
           ],
           where: { status: 1 },
