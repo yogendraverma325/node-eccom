@@ -253,8 +253,9 @@ let products = await db.product.findAndCountAll({
             'city_id', 
             'branch_address',
             [
-              literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
-              'distance'
+			literal(`ROUND((6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude)))), 2)`),
+			'distance'
+              
             ]
           ],
           where: { status: 1 },
