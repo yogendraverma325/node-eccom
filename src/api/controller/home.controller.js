@@ -120,17 +120,17 @@ class HomeController {
                 },
 				{
                      model: db.category,
-                attributes: ['is_price_allowed_to_display', 'is_details_page_allowed', "categoryName"],
+                attributes: ['is_price_allowed_to_display', 'is_details_page_allowed', "categoryName","service_scope_name","service_scope_type"],
                 where: { isActive: 1 }
                 }
             ]
         }
     ]
 });
-	console.log(
-  "productDetails",
-  JSON.stringify(productDetails, null, 2)
-);
+// 	console.log(
+//   "productDetails",
+//   JSON.stringify(productDetails.vendorService, null, 2)
+// ); 
 if(!productDetails){
 	req.flash('message', JSON.stringify({ type: 'error', text: 'Product not found' }));	
 	return  res.redirect('/'); // back to the previous page

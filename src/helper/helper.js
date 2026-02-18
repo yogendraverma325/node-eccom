@@ -152,6 +152,19 @@ const ratingAndReview = (rating) => {
   }
   return stars;
   };
+  const service_scope_type = (input) => {
+	let out = '';
+	switch (input) {
+		case 'PRICE':
+          out='₹';
+		break;
+		case 'TIME':
+		out='<i class="lni lni-timer"></i>';
+		break;
+
+	}
+  return out;
+  };
   const discountOnProduct = (product) => {
 		let discount=0;
 		return discount;
@@ -249,6 +262,7 @@ export default {
 	checkFolder,
 	isAuthenticated,
 	ratingAndReview,
+	service_scope_type,
 	discountOnProduct,
 	cartSubtotal,
 	cartGrandtotal,

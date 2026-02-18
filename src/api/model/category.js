@@ -35,6 +35,12 @@ export default (sequelize, Sequelize) => {
 		updatedAt: {
 			type: Sequelize.DATE,
 		},
+		service_scope_name: {
+			type: Sequelize.STRING,
+		},
+        service_scope_type: {
+			type: Sequelize.STRING,
+		},
 	});
 	return category;
 };

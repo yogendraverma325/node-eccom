@@ -12,8 +12,8 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING, // "Half", "Full", "Single"
             defaultValue: "Full"
         },
-        price: {
-            type: Sequelize.DECIMAL(10, 2),
+        menu_data: {
+           type: Sequelize.STRING,
         },
         is_active: {
             type: Sequelize.INTEGER,

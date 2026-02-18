@@ -1,4 +1,41 @@
   window.addEventListener('DOMContentLoaded', () => {
+
+    const mainImg = document.querySelector('.main-img');
+const img = document.getElementById('current');
+
+mainImg.addEventListener('mousemove', (e) => {
+    // Container ki position nikalna
+    const { left, top, width, height } = mainImg.getBoundingClientRect();
+    
+    // Mouse ki position percentage mein nikalna
+    const x = ((e.pageX - left - window.scrollX) / width) * 100;
+    const y = ((e.pageY - top - window.scrollY) / height) * 100;
+
+    // Zoom ka origin wahi rakhein jahan mouse hai
+    img.style.transformOrigin = `${x}% ${y}%`;
+});
+
+// Mouse hatne par origin center kar dein
+mainImg.addEventListener('mouseleave', () => {
+    img.style.transformOrigin = 'center center';
+    img.style.transition = 'transform 0.3s ease'; // Wapas aate waqt smooth ho
+});
+
+    const scrollBtn = document.getElementById('scrollToScope');
+    
+    if (scrollBtn) {
+        scrollBtn.addEventListener('click', function() {
+            // Jahan scroll karna hai, us div ki ID yahan likhein
+            const targetDiv = document.getElementById('target-spec-div'); 
+            
+            if (targetDiv) {
+                targetDiv.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
+        });
+    }
  // product details page image change to main div
     const currentImg = document.getElementById("current");
     const thumbnails = document.querySelectorAll(".prodimage");
@@ -21,22 +58,5 @@
   });
     // open modal
 
-    const mainImgContainer = document.querySelector('.main-img');
-const mainImg = document.getElementById('current');
-
-mainImgContainer.addEventListener('mousemove', (e) => {
-    // Calculate mouse position percentage inside the container
-    const x = e.clientX - e.target.offsetLeft;
-    const y = e.clientY - e.target.offsetTop;
-    
-    const xPercent = (x / mainImgContainer.offsetWidth) * 100;
-    const yPercent = (y / mainImgContainer.offsetHeight) * 100;
-    
-    // Move the zoom focus to where the mouse is
-    mainImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
-});
-
-mainImgContainer.addEventListener('mouseleave', () => {
-    mainImg.style.transformOrigin = 'center center';
-});
+ 
   });

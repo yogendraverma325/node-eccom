@@ -91,29 +91,65 @@
 
     /* image zoom */
     .main-img {
+        height: 500px;
+        /* Ya jo aapki main height hai */
+        width: 100%;
         overflow: hidden;
-        /* Important: keeps the zoom inside the box */
         position: relative;
-        cursor: zoom-in !important;
+        cursor: zoom-in;
         background-color: #f8f9fa;
         border: 1px solid #eee;
         border-radius: 8px;
     }
 
     .main-img img {
-        transition: transform 0.3s ease;
-        /* Smooth transition */
         width: 100%;
-        height: auto;
+        height: 100%;
+        /* Auto ki jagah 100% karein */
+        object-fit: cover;
+        /* Image fit rahegi */
         display: block;
+        transition: transform 0.3s ease-out;
+        /* Smoothness ke liye */
         transform-origin: center center;
-        /* Default zoom from center */
     }
 
-    /* When hovering, scale the image */
+    /* Hover par transition ko hatana zaroori hai mouse movement ke waqt */
     .main-img:hover img {
         transform: scale(2);
-        /* Adjust 1.5 to 2.0 depending on zoom depth */
+        transition: none;
+        /* Mouse move ke waqt delay na ho */
+    }
+
+    /* Gallery container ko manage karne ke liye */
+    .product-image-gallery {
+        margin-top: 1%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        /* Images ke beech ka gap */
+    }
+
+    /* Image ke bahar ka dabba (Sabka size ek jaisa) */
+    .image-wrapper {
+        width: 70px;
+        /* Aap apne hisaab se width set karein (e.g. 100%, 200px) */
+        aspect-ratio: 1/1;
+        /* Image ko square banane ke liye (16/9 bhi kar sakte hain) */
+        overflow: hidden;
+        /* Extra part ko chupa dega */
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    /* Asli image box ke andar kaise dikhegi */
+    .prodimage {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Image ko bina khiche dabba bhar dega (Crop karega center se) */
+        object-position: center;
+        display: block;
     }
 
     /* image zoom */
@@ -148,15 +184,20 @@
                     <div class="product-images">
                         <main id="gallery">
                             <div class="main-img"
-                                style="height: 500px; display: flex; align-items: center; justify-content: center;">
-                                <img src="/<%= productDetails.image %>" id="current" alt="<%= productDetails.name %>">
+                                style="height: 500px; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px;">
+                                <img src="/<%= productDetails.image %>" id="current" alt="<%= productDetails.name %>"
+                                    style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                             </div>
-                            <div class="images">
-                                <img src="/<%= productDetails.image %>" class="img prodimage" alt="#">
-                                <% productDetails.product_images.forEach((el)=> { %>
-                                    <img src="/<%= el.image %>" class="img prodimage" alt="#">
-                                    <% }) %>
+                            <div class="product-image-gallery">
+                                <div class="image-wrapper">
+                                    <img src="/<%= productDetails.image %>" class="img prodimage" alt="Main Product">
+                                </div>
 
+                                <% productDetails.product_images.forEach((el)=> { %>
+                                    <div class="image-wrapper">
+                                        <img src="/<%= el.image %>" class="img prodimage" alt="Product Gallery">
+                                    </div>
+                                    <% }) %>
                             </div>
                         </main>
                     </div>
@@ -232,10 +273,18 @@
                                         <div class="row align-items-end">
                                             <div class="col-lg-4 col-md-4 col-12">
                                                 <div class="button cart-button">
-                                                    <button class="btn" style="width: 100%;" id="bookingModal">Contact
-                                                        For
+                                                    <button class="btn" style="width: 100%;" id="bookingModal">
+                                                        Contact For Booking
+                                                    </button>
 
-                                                        Booking</button>
+                                                    <button class="btn"
+                                                        style="width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                                        id="scrollToScope">
+                                                        <i class="fa fa-eye"></i>
+                                                        <span>View <%=
+                                                                productDetails.vendorService.category.service_scope_name
+                                                                %></span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -248,51 +297,59 @@
         <div class="product-details-info">
             <div class="single-block">
                 <div class="row">
-                    <div class="col-lg-6 col-12">
-                        <div class="info-body custom-responsive-margin">
-                            <h4>Details</h4>
-                            <p>
-                                <%= productDetails.long_description %>
-                            </p>
-                            <h4>Amenties</h4>
-                            <div class="feature-chips">
-                                <% productDetails.product_feature_mappings.forEach((feature)=> { %>
-                                    <span class="chip">
-                                        <%= feature.feature_value %>
-                                    </span>
-                                    <% }) %>
+                    <% let columnClass=(productDetails.specifications && productDetails.specifications.length> 0) ?
+                        'col-lg-6' : 'col-lg-12';
+                        %>
+                        <div class="<%= columnClass %> col-12">
+                            <div class="info-body custom-responsive-margin">
+                                <h4>Details</h4>
+                                <p>
+                                    <%= productDetails.long_description %>
+                                </p>
+                                <% if (productDetails.product_feature_mappings.length> 0) { %>
+                                    <h4>Amenties</h4>
+                                    <div class="feature-chips">
+                                        <% productDetails.product_feature_mappings.forEach((feature)=> { %>
+                                            <span class="chip">
+                                                <%= feature.feature_value %>
+                                            </span>
+                                            <% }) %>
+                                    </div>
+                                    <% } %>
                             </div>
-
                         </div>
-                    </div>
-                    <div class="col-lg-6 col-12">
-                        <div class="info-body">
-                            <h4>Facilities Information/Package Information</h4>
-                            <ul class="normal-list">
+                        <% if (productDetails.specifications.length> 0) { %>
+                            <div class="col-lg-6 col-12">
+                                <div class="info-body">
+                                    <h4>Facilities Information/Package Information</h4>
+                                    <ul class="normal-list">
 
-                                <% productDetails.specifications.forEach((specification)=>
-                                    { %>
-                                    <li><span>
-                                            <%= specification.specification.specification_name %>
-                                                :
-                                        </span>
-                                        <%= specification.specification_value %>
+                                        <% productDetails.specifications.forEach((specification)=>
+                                            { %>
+                                            <li><span>
+                                                    <%= specification.specification.specification_name %>
+                                                        :
+                                                </span>
+                                                <%= specification.specification_value %>
 
-                                    </li>
-                                    <% }) %>
+                                            </li>
+                                            <% }) %>
 
 
-                            </ul>
-                        </div>
-                    </div>
+                                    </ul>
+                                </div>
+                            </div>
+                            <% } %>
                 </div>
             </div>
 
         </div>
     </div>
     <% if (productDetails.menuCategories && productDetails.menuCategories.length> 0) { %>
-        <div class="menu-main-container container my-5">
-            <h2 class="menu-header text-center mb-4">Scopes & Service Menu</h2>
+        <div class="menu-main-container container my-5" id="target-spec-div">
+            <h2 class="menu-header text-center mb-4">
+                <%= productDetails.vendorService.category.service_scope_name %>
+            </h2>
 
             <% productDetails.menuCategories.forEach(category=> { %>
                 <% if (category.items && category.items.length> 0) { %>
@@ -331,8 +388,12 @@
                                                                         <% } %>
                                                                             <% } %>
                                                                                 <span
-                                                                                    class="menu-price-value fw-bold text-success">
-                                                                                    ₹<%= Math.round(priceObj.price) %>
+                                                                                    class="menu-price-value fw-bold text-success d-inline-flex align-items-center">
+                                                                                    <%- helper.service_scope_type(productDetails.vendorService.category.service_scope_type)
+                                                                                        %>
+                                                                                        <span class="ms-1">
+                                                                                            <%= (priceObj.menu_data) %>
+                                                                                        </span>
                                                                                 </span>
                                                             </div>
                                                             <% }) %>
