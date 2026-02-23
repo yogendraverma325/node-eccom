@@ -269,6 +269,24 @@
                                         <%= productDetails.vendorService.vendor.vendor_name %>
                                             </a>
                                     </p>
+                                    <div class="service-info mt-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <span class="badge bg-light text-dark border">
+                                                <%= (productDetails.vendorService &&
+                                                    productDetails.vendorService.vendor_services_locations &&
+                                                    productDetails.vendorService.vendor_services_locations.length> 0)
+                                                    ?
+                                                    productDetails.vendorService.vendor_services_locations[0].getDataValue('distance').toFixed(2)
+                                                    : '0.00' %> KM
+                                            </span>
+                                            <a href="https://www.google.com/maps/dir/?api=1&destination=<%= productDetails.vendorService.vendor_services_locations[0].latitude %>,<%= productDetails.vendorService.vendor_services_locations[0].longitude %>"
+                                                target="_blank" class="text-decoration-none small fw-bold text-primary">
+                                                <i class="bi bi-cursor-fill"></i> Get
+                                                Directions
+                                            </a>
+                                        </div>
+                                    </div>
+
                                     <div class="bottom-content">
                                         <div class="row align-items-end">
                                             <div class="col-lg-4 col-md-4 col-12">
@@ -276,15 +294,17 @@
                                                     <button class="btn" style="width: 100%;" id="bookingModal">
                                                         Contact For Booking
                                                     </button>
-
-                                                    <button class="btn"
-                                                        style="width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;"
-                                                        id="scrollToScope">
-                                                        <i class="fa fa-eye"></i>
-                                                        <span>View <%=
-                                                                productDetails.vendorService.category.service_scope_name
-                                                                %></span>
-                                                    </button>
+                                                    <% if (productDetails.menuCategories &&
+                                                        productDetails.menuCategories.length> 0) { %>
+                                                        <button class="btn"
+                                                            style="width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                                            id="scrollToScope">
+                                                            <i class="fa fa-eye"></i>
+                                                            <span>View <%=
+                                                                    productDetails.vendorService.category.service_scope_name
+                                                                    %></span>
+                                                        </button>
+                                                        <% } %>
                                                 </div>
                                             </div>
                                         </div>

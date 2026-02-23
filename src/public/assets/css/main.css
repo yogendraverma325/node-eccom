@@ -3378,10 +3378,10 @@ ol {
   visibility: visible;
 }
 
-.single-product:hover .product-image img {
+/* .single-product:hover .product-image img {
   -webkit-transform: scale(1.1);
           transform: scale(1.1);
-}
+} */
 
 .single-product .product-info {
   padding: 20px;

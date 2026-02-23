@@ -113,10 +113,19 @@ class HomeController {
                     attributes: ['id', 'vendor_name', "phone", "email", "address"] 
                 },
                 {
-                    model: db.vendor_services_locations, 
-                    required: true,
-                    attributes: ['vendor_services_locations_auto_id', 'city_id', "branch_address"],
-                    where: { status: 1 },
+				model: db.vendor_services_locations, 
+				required: true,
+				attributes: [
+				'vendor_services_locations_auto_id', 
+				'branch_address', 'latitude', 'longitude',
+				[
+				literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
+				'distance'
+				]
+				],
+				where: { status: 1 },
+				// Ise add karein taaki sabse kam distance pehle aaye
+				order: [[literal('distance'), 'desc']]
                 },
 				{
                      model: db.category,
@@ -248,17 +257,19 @@ let products = await db.product.findAndCountAll({
           where: { status: 1 }
         },
         {
-          model: db.vendor_services_locations,
-          attributes: [
-            'city_id', 
-            'branch_address',
-            [
-              literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
-              'distance'
-            ]
-          ],
-          where: { status: 1 },
-          required: true // Agar location must hai distance ke liye
+				model: db.vendor_services_locations, 
+				required: true,
+				attributes: [
+				'vendor_services_locations_auto_id', 
+				'branch_address', 'latitude', 'longitude',
+				[
+				literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
+				'distance'
+				]
+				],
+				where: { status: 1 },
+				// Ise add karein taaki sabse kam distance pehle aaye
+				order: [[literal('distance'), 'desc']]
         }
       ]
     },
@@ -276,7 +287,7 @@ let products = await db.product.findAndCountAll({
   order: order
 });
 	products.rows = products.rows.map(p => p.get({ plain: true }));
-	console.log("products",JSON.stringify(products,null,2))	
+	//console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {
