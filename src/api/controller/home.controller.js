@@ -129,7 +129,7 @@ class HomeController {
                 },
 				{
                      model: db.category,
-                attributes: ['is_price_allowed_to_display', 'is_details_page_allowed', "categoryName","service_scope_name","service_scope_type"],
+                attributes: ['is_price_allowed_to_display', 'is_details_page_allowed', "categoryName","service_scope_name","service_scope_type","hide_contact_details"],
                 where: { isActive: 1 }
                 }
             ]
@@ -200,7 +200,7 @@ if(!productDetails){
 					categoryId=helper.generateJwtOTPDecrypt(encryptedId);
 				}
 				let catData=await db.category.findOne({
-					attributes:['is_price_allowed_to_display', 'is_details_page_allowed',"categoryName"],
+					attributes:['is_price_allowed_to_display', 'is_details_page_allowed',"categoryName","hide_contact_details"],
 					where: { isActive: 1,catAutoId:categoryId}
 				});
 				//console.log("catData",catData)

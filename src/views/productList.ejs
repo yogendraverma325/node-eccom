@@ -157,29 +157,36 @@
                                                                         </a>
                                                                     </div>
                                                                 </div>
-                                                                <div class="btn btn-primary w-100 py-2 shadow-none"
-                                                                    style="height: 35px; line-height: 1; display: flex; align-items: center; justify-content: center;">
-                                                                    <% if (typeof catData.is_details_page_allowed
-                                                                        !=='undefined' &&
-                                                                        catData.is_details_page_allowed===true) { %>
-                                                                        <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
-                                                                            class="btn" style="color:white">
-                                                                            View</a>
-                                                                        <% } else { %>
-                                                                            <button
-                                                                                class="btn booking-modal-btn btn-primary w-100 py-2 shadow-none"
-                                                                                style="height: 35px; line-height: 1; display: flex; align-items: center; justify-content: center;"
-                                                                                data-phone="<%= product.vendorService.vendor.phone %>"
-                                                                                data-email="<%= product.vendorService.vendor.email %>"
-                                                                                data-address="<%= product.vendorService.vendor_services_locations[0].branch_address %>">View
-                                                                                Contact
-                                                                                Details</button>
+                                                                <% if (typeof catData.hide_contact_details
+                                                                    !=='undefined' &&
+                                                                    catData.hide_contact_details===true) { %>
+                                                                    <div class="btn btn-primary w-100 py-2 shadow-none"
+                                                                        style="height: 35px; line-height: 1; display: flex; align-items: center; justify-content: center;">
 
+                                                                        <% if (typeof catData.is_details_page_allowed
+                                                                            !=='undefined' &&
+                                                                            catData.is_details_page_allowed===true) { %>
 
-                                                                            <% } %>
+                                                                            <a href="/service-details/<%- helper.generateJwtOTPEncrypt(product.product_auto_id) %>/<%- product.slug %>/<%- helper.generateJwtOTPEncrypt(product.vendorService.vendor_id) %>"
+                                                                                class="btn" style="color:white">
+                                                                                View
+                                                                            </a>
 
+                                                                            <% } else { %>
 
-                                                                </div>
+                                                                                <button
+                                                                                    class="btn booking-modal-btn btn-primary w-100 py-2 shadow-none"
+                                                                                    style="height: 35px; line-height: 1; display: flex; align-items: center; justify-content: center;"
+                                                                                    data-phone="<%= product.vendorService.vendor.phone %>"
+                                                                                    data-email="<%= product.vendorService.vendor.email %>"
+                                                                                    data-address="<%= product.vendorService.vendor_services_locations[0].branch_address %>">
+                                                                                    View Contact Details
+                                                                                </button>
+
+                                                                                <% } %>
+
+                                                                    </div>
+                                                                    <% } %>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4 col-12">
@@ -252,7 +259,8 @@
                                                                                                     class="info-badge">
                                                                                                     <strong>Capacity:</strong>
                                                                                                     <%= product.capacity
-                                                                                                        %> PAX
+                                                                                                        %>
+                                                                                                        PAX
                                                                                                 </span>
                                                                                                 <% } %>
 

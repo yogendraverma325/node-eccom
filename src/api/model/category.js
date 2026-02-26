@@ -41,6 +41,10 @@ export default (sequelize, Sequelize) => {
         service_scope_type: {
 			type: Sequelize.STRING,
 		},
+		hide_contact_details: {
+			type: Sequelize.BOOLEAN,
+			defaultValue: true,
+		},
 	});
 	return category;
 };
