@@ -8,73 +8,128 @@
 
 
 <url>
-  <loc>https://www.localtravelstay.com</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <loc>https://www.localtravelstay.com/</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/user/login</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/services?category=room-stay&amp;category-id=MQ==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/services?category=car-rental&amp;category-id=Mg==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/services?category=bike-scooter&amp;category-id=Mw==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/services?category=restaurant-food&amp;category-id=NA==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.localtravelstay.com/services?category=charger-utilities&amp;category-id=NQ==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.localtravelstay.com/services?category=laundry-service&amp;category-id=Ng==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.localtravelstay.com/about-us</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.localtravelstay.com/contact</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/services?category=local-travel-guide&amp;category-id=Nw==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://www.localtravelstay.com/services?category=pickup-drop&amp;category-id=OA==</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <loc>https://www.localtravelstay.com/about-us</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/contact</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/term-and-condition</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/privacy-and-policy</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/user/forgot-password</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://www.localtravelstay.com/user/signup</loc>
-  <lastmod>2026-02-12T16:01:51+00:00</lastmod>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MTg=/double-bed-room/MTU=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MjA=/double-bed-room/MTU=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MjE=/double-bed-room/MTU=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MTc=/triple-bed-room/MTQ=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MTY=/double-bed-room/MTQ=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MTQ=/triple-bed-room-for-larger-families/MTE=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MTM=/double-room-for-small-family/MTE=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/services?page=1&amp;category=room-stay&amp;category-id=MQ==</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/service-details/MTU=/maa-vaishnavi-food/MTI=</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/services?page=1&amp;category=restaurant-food&amp;category-id=NA==</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/services?page=1&amp;category=local-travel-guide&amp;category-id=Nw==</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.localtravelstay.com/services?page=2&amp;category=local-travel-guide&amp;category-id=Nw==</loc>
+  <lastmod>2026-02-27T05:10:20+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 
