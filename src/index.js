@@ -35,7 +35,30 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+        "connect-src": [
+          "'self'", 
+          "https://www.google-analytics.com", 
+          "https://stats.g.doubleclick.net" // Isse doubleclick block nahi hoga
+        ],
+        "img-src": [
+          "'self'", 
+          "data:", 
+          "https://www.google-analytics.com", 
+          "https://www.googletagmanager.com",
+          "https://stats.g.doubleclick.net", // Doubleclick images ke liye
+          "https://www.google.co.in",      // Google India ads/audiences ke liye
+          "https://www.google.com"         // Global Google support ke liye
+        ],
+      },
+    },
+  })
+);
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(cors());
