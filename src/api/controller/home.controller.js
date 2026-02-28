@@ -37,11 +37,35 @@ class HomeController {
 		productAutoId=helper.generateJwtOTPDecrypt(productAutoId);
 		}
 	let productDetails = await db.product.findOne({
-    attributes: [
-        "product_auto_id", "name", "image", "price", "offerprice", 
-        "description", "long_description", "variant_available", 
-        "for_gender", "gender_applicability", "price_type", "capacity", "unit"
-    ],
+   attributes: [
+   'product_auto_id',
+    'name',
+    'image',
+    'price',
+    'offerprice',
+    'description',
+    'long_description',
+    'rating',
+    'review',
+    'slug',
+    'isActive',
+    'createdAt',
+    'updatedAt',
+    'variant_available',
+    'for_gender',
+    'gender_applicability',
+    'price_type',
+    'capacity',
+    'unit',
+    'vendor_service_id',
+	'latitude',
+	'longitude',
+    [
+        // Table alias 'product' added to latitude and longitude
+        literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(\`product\`. \`latitude\`)) * cos(radians(\`product\`. \`longitude\`) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(\`product\`. \`latitude\`))))`),
+        'distance'
+    ]
+],
     where: {
         product_auto_id: productAutoId,
         isActive: 1
@@ -117,15 +141,9 @@ class HomeController {
 				required: true,
 				attributes: [
 				'vendor_services_locations_auto_id', 
-				'branch_address', 'latitude', 'longitude',
-				[
-				literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
-				'distance'
-				]
+				'branch_address'
 				],
 				where: { status: 1 },
-				// Ise add karein taaki sabse kam distance pehle aaye
-				order: [[literal('distance'), 'desc']]
                 },
 				{
                      model: db.category,
@@ -138,12 +156,13 @@ class HomeController {
 });
 // 	console.log(
 //   "productDetails",
-//   JSON.stringify(productDetails.vendorService, null, 2)
+//   JSON.stringify(productDetails, null, 2)
 // ); 
 if(!productDetails){
 	req.flash('message', JSON.stringify({ type: 'error', text: 'Product not found' }));	
 	return  res.redirect('/'); // back to the previous page
 }
+      productDetails = productDetails ? productDetails.get({ plain: true }) : null;
 			res.render('productDetails', {
 				title: `${productDetails.name} | ${productDetails.vendorService.category.categoryName} | Local Travel Stay`,
 				description: `Book ${productDetails.name} at the best price. Explore features, images, and verified details for this ${productDetails.vendorService.category.categoryName} service on Local Travel Stay.`,
@@ -258,18 +277,8 @@ let products = await db.product.findAndCountAll({
         },
         {
 				model: db.vendor_services_locations, 
-				required: true,
-				attributes: [
-				'vendor_services_locations_auto_id', 
-				'branch_address', 'latitude', 'longitude',
-				[
-				literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
-				'distance'
-				]
-				],
-				where: { status: 1 },
-				// Ise add karein taaki sabse kam distance pehle aaye
-				order: [[literal('distance'), 'desc']]
+				attributes: ['city_id', 'branch_address'],
+				required: true
         }
       ]
     },
@@ -281,13 +290,41 @@ let products = await db.product.findAndCountAll({
 	separate: true // <--- Isse duplication aur subQuery issues solve honge
     }
   ],
+	attributes: [
+   'product_auto_id',
+    'name',
+    'image',
+    'price',
+    'offerprice',
+    'description',
+    'long_description',
+    'rating',
+    'review',
+    'slug',
+    'isActive',
+    'createdAt',
+    'updatedAt',
+    'variant_available',
+    'for_gender',
+    'gender_applicability',
+    'price_type',
+    'capacity',
+    'unit',
+    'vendor_service_id',
+	'latitude',
+	'longitude',
+    [
+      literal(`(6371 * acos(cos(radians(${userLat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(latitude))))`),
+      'distance'
+    ]
+  ],
   limit: limit > 0 ? parseInt(limit) : null,
   offset: offset > 0 ? parseInt(offset) : 0,
   distinct: true, // Count sahi nikalne ke liye
   order: order
 });
 	products.rows = products.rows.map(p => p.get({ plain: true }));
-	//console.log("products",JSON.stringify(products,null,2))	
+	// console.log("products",JSON.stringify(products,null,2))	
 				const totalRecords = products.count;
 				const totalPages = Math.ceil(totalRecords / limit);
 			res.render('productList', {

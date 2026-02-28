@@ -146,10 +146,9 @@
                                                                     <div
                                                                         class="d-flex align-items-center flex-wrap gap-2">
                                                                         <span class="badge bg-light text-dark border">
-                                                                            <%= product.vendorService.vendor_services_locations[0].distance.toFixed(2)
-                                                                                %> KM
+                                                                            <%= product.distance.toFixed(2) %> KM
                                                                         </span>
-                                                                        <a href="https://www.google.com/maps/dir/?api=1&destination=<%= product.vendorService.vendor_services_locations[0].latitude %>,<%= product.vendorService.vendor_services_locations[0].longitude %>"
+                                                                        <a href="https://www.google.com/maps/dir/?api=1&destination=<%= product.latitude %>,<%= product.longitude %>"
                                                                             target="_blank"
                                                                             class="text-decoration-none small fw-bold text-primary">
                                                                             <i class="bi bi-cursor-fill"></i> Get

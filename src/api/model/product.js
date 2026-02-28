@@ -66,6 +66,12 @@ export default (sequelize, Sequelize) => {
 		vendor_service_id: {
 		type: Sequelize.INTEGER,
 		},
+		longitude: {
+			type: Sequelize.DECIMAL(18, 10),
+		},
+		latitude: {
+			type: Sequelize.DECIMAL(18, 10),
+		},
 	});
 	return product;
 };

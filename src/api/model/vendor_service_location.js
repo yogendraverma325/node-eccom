@@ -14,12 +14,7 @@ export default (sequelize, Sequelize) => {
 		branch_address: {
 		type: Sequelize.STRING,
 		},
-		longitude: {
-			type: Sequelize.DECIMAL(18, 10),
-		},
-		latitude: {
-			type: Sequelize.DECIMAL(18, 10),
-		},
+
         updated_by: {
 			type: Sequelize.INTEGER,
 		},
