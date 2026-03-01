@@ -15,7 +15,44 @@ for (let btn of openBtns) {
 
       try {
             // 1. API Call karein
-            const response = await fetch(`/admin/generate-qr/${itemId}`);
+            const response = await fetch(`/admin/generate-qr/${itemId}/0`);
+            const data = await response.json();
+
+            if (data.status) {
+                   const printWrapper = document.querySelector('#print-wrapper'); 
+
+    // Sirf EK baar design inject karein modal ke liye
+    printWrapper.innerHTML = `
+        <div class="a5-card-design">${data.data}</div>
+    `;
+
+    qrModalEl.show();
+            }else{
+                 alert(data.msg);
+            }
+        } catch (error) {
+            console.error("Error fetching QR:", error);
+            alert("QR Code could not be generated");
+        }
+      console.log("item ID is:", itemId); 
+      
+      // Ya Template Literal use karein:
+      // console.log(`Item ID: ${itemId}`);
+  });
+}
+ const qr_code_print_f = document.getElementsByClassName('qr_code_print_f');
+
+for (let btn of qr_code_print_f) {
+  btn.addEventListener('click', async function () {
+      // dataset se value nikaalte waqt camelCase ka dhyaan rakhein
+      // 'data-service-item-id' banta hai 'serviceItemId'
+      const itemId = btn.dataset.serviceItemId;
+      
+      // Sahi tarika print karne ka:
+
+      try {
+            // 1. API Call karein
+            const response = await fetch(`/admin/generate-qr/${itemId}/1`);
             const data = await response.json();
 
             if (data.status) {

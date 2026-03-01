@@ -1161,7 +1161,9 @@ class AdminController {
 
     }
     async generateQR(req, res){
-const { itemId } = req.params;
+  const { itemId } = req.params;
+  const { mode } = req.params;
+  console.log("mode",mode)
       let AdminId=1;
       let QR_CODE_ID = helper.generateJwtOTPDecrypt(itemId);
       const QRCodeDAAT = await db.qr_codes.findOne({
@@ -1174,234 +1176,222 @@ const { itemId } = req.params;
         let html=`<style>
     .card {
         background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 768px;
-        width: 100%;
-        padding: 40px;
-    }
-
-    .header {
-        text-align: center;
-        margin-bottom: 35px;
-    }
-
-    .card-content {
-        display: flex;
-        gap: 40px;
-        align-items: flex-start;
-    }
-
-    .left-content {
-        flex: 1;
-    }
-
-    .right-content {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        width: 148mm;  /* A5 Width */
+        height: 210mm; /* A5 Height */
+        padding: 0px 2px; /* Padding kam ki hai */
+        box-sizing: border-box;
+        font-family: 'Arial', sans-serif;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 15px;
     }
 
+    /* 1. Header Section - More Compact */
+    .header-section {
+       display: flex;
+        align-items: center; /* Vertical centering */
+        gap: 20px;           /* Logo aur Text ke beech ka space */
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+.logo-img {
+        width: 100px;  /* Logo size adjust karein */
+        height: 100px;
+        object-fit: contain;
+    }
     .logo {
-        font-size: 38px;
-        font-weight: bold;
-        color: #667eea;
-        margin-bottom: 10px;
+      font-size: 30px;
+      font-weight: 800;
+      color: #4A90E2;
+      margin-bottom: 2px;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
     }
 
     .tagline {
-        color: #666;
-        font-size: 19px;
+       color: #666;
+        font-size: 16px;
+        font-style: italic;
+    }
+
+    /* 2. QR Section - Tightened spacing */
+    .qr-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 5px;
+        background: #fcfcfc;
+        width: 100%;
+        padding: 1px 0;
+        border-radius: 12px;
+    }
+
+    .scan-text {
+        color: #4A90E2;
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 8px;
     }
 
     .qr-container {
-        background: #f8f9fa;
-        border-radius: 15px;
-        padding: 20px;
-        display: inline-block;
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
-    #qrcode {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    .qr-container img {
+        width: 160px; /* Size thoda chota kiya space bachane ke liye */
+        height: 160px;
+        display: block;
     }
 
-    .services {
-        margin: 20px 0;
+    .url-text {
+        font-size: 13px;
+        color: #444;
+        margin-top: 2px;
     }
 
-    .services h3 {
+    /* 3. Services Section - 3 Column Grid for more items */
+    .services-wrapper {
+        width: 100%;
+        border-top: 2px solid #4A90E2;
+        padding-top: 15px;
+    }
+
+    .services-heading {
         color: #333;
-        font-size: 24px;
-        margin-bottom: 20px;
-        font-weight: 600;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-align: center;
+        text-transform: uppercase;
     }
 
-    .service-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+    .service-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; /* 3 Columns */
+        gap: 8px;
     }
 
     .service-item {
         display: flex;
+        flex-direction: column; /* Icon upar, text niche */
         align-items: center;
-        gap: 15px;
-        padding: 12px 15px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        transition: transform 0.2s;
-    }
-
-    .service-item:hover {
-        transform: translateX(5px);
-        background: #e9ecef;
+        justify-content: center;
+        padding: 10px 5px;
+        background: #f4f7fa;
+        border-radius: 6px;
+        border: 1px solid #eef2f6;
+        text-align: center;
     }
 
     .service-icon {
-        font-size: 36px;
-        min-width: 40px;
+        font-size: 22px;
+        margin-bottom: 4px;
     }
 
     .service-name {
-        font-size: 18px;
+        font-size: 12px;
+        font-weight: 700;
         color: #333;
-        font-weight: 500;
+        line-height: 1.2;
     }
 
-    .scan-text {
-        color: #667eea;
-        font-weight: 600;
-        font-size: 19px;
-        text-align: center;
-    }
-
-    .url {
-        color: #888;
-        font-size: 15px;
-        word-break: break-all;
-        text-align: center;
-        font-weight: 500;
-    }
-
-    .download-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 40px;
-        border-radius: 25px;
-        font-size: 17px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 30px;
-        transition: transform 0.2s;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .download-btn:hover {
-        transform: scale(1.05);
-    }
-
-    .footer {
-        margin-top: 25px;
-        color: #999;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    @media print {
-        body {
-            background: white;
-        }
-
-        .download-btn {
-            display: none;
-        }
-    }
-
-    @media (max-width: 650px) {
-        .card-content {
-            flex-direction: column;
-        }
-
-        .card {
-            padding: 30px 20px;
-        }
-
-        .logo {
-            font-size: 32px;
-        }
-
-        .tagline {
-            font-size: 16px;
-        }
-
-        .services h3 {
-            font-size: 20px;
-        }
-
-        .service-name {
-            font-size: 16px;
-        }
+    .footer-ref {
+        margin-top: auto;
+        font-size: 9px;
+        color: #bbb;
+        width: 100%;
+        text-align: right;
     }
 </style>
 
 <div class="card">
-    <div class="header">
-        <div class="logo">Local Travel Stay</div>
-        <div class="tagline">Your Complete Travel Solution</div>
+    <div class="header-section">
+        <img src="/assets/images/logo/logo.png" alt="LTS Logo" class="logo-img" />
+        <div class="brand-text">
+            <div class="logo">Local Travel Stay</div>
+            <div class="tagline">Your Complete Travel Solution</div>
+        </div>
     </div>
 
-    <div class="card-content">
-        <div class="left-content">
-            <div class="services">
-                <h3>Our Services</h3>
-                <div class="service-list">
-                    <div class="service-item">
-                        <div class="service-icon">🛌</div>
-                        <div class="service-name">Rooms</div>
-                    </div>
-                    
-                    <div class="service-item">
-                        <div class="service-icon">🍽️</div>
-                        <div class="service-name">Restaurants</div>
-                    </div>
-                    <div class="service-item">
-                        <div class="service-icon">🚗</div>
-                        <div class="service-name">Car & Bike Rental</div>
-                    </div>
-                    <div class="service-item">
-                        <div class="service-icon">🗺️</div>
-                        <div class="service-name">Travel Guide</div>
-                    </div>
-                    <div class="service-item more-services">
-                    <div class="service-icon">➕</div>
-                    <div class="service-name">Many More...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-       <div class="right-content">
-    <div class="scan-text" style="font-weight: bold; margin-bottom: 10px;">Scan to Visit</div>
+   <div class="qr-section">
+    <div class="scan-text">SCAN TO VISIT</div>
     
     <div class="qr-container">
-        <div id="qrcode">
-            <img src="${url}" alt="QR Code" style="width: 300px; height: 300px; border: 1px solid #eee; padding: 5px;" />
+        <img src="${url}" alt="QR Code" />
+    </div>
+
+    <div class="url-text">www.localtravelstay.com</div>
+
+    <div class="steps-to-scan" style="margin-top: 15px; padding: 10px; border-top: 1px dashed #ddd; width: 90%;">
+        <div style="font-size: 14px; font-weight: bold; color: #4A90E2; margin-bottom: 8px;">How to Scan?</div>
+        
+        <div style="display: flex; flex-direction: column; gap: 5px; text-align: left; font-size: 12px; color: #555;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: #4A90E2; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 10px;">1</span>
+                <span>Open your <strong>Phone Camera</strong> or <strong>Google Lens</strong>.</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: #4A90E2; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 10px;">2</span>
+                <span>Point the camera at the <strong>QR Code</strong>.</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: #4A90E2; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; font-size: 10px;">3</span>
+                <span>Tap the <strong>Link</strong> that appears on your screen.</span>
+            </div>
         </div>
     </div>
+</div>
 
-    <div style="margin: 10px 0; color: #666; font-size: 14px;">— OR —</div>
-
-    <div class="url-text">Visit: <strong>www.localtravelstay.com</strong></div>
-    
-    <div class="qr-id" style="font-size: 10px; color: #999; margin-top: 5px;">Ref: ${QR_CODE_ID}</div>
+    <div class="services-wrapper">
+        <div class="services-heading">Our Services</div>
+        <div class="service-grid">
+    <div class="service-item">
+        <span class="service-icon">🛌</span>
+        <span class="service-name">Rooms</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🍽️</span>
+        <span class="service-name">Restaurants</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🚗</span>
+        <span class="service-name">Car Rental</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🏍️</span>
+        <span class="service-name">Bike Rental</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🗺️</span>
+        <span class="service-name">Travel Guide</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🏥</span>
+        <span class="service-name">Medical</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🧺</span>
+        <span class="service-name">Laundry</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">🚕</span>
+        <span class="service-name">Pick & Drop</span>
+    </div>
+    <div class="service-item">
+        <span class="service-icon">➕</span>
+        <span class="service-name">Many More</span>
+    </div>
 </div>
     </div>
+
+    <div class="footer-ref">Ref: ${QR_CODE_ID}</div>
 </div>`;
         
         return respHelper(res, {

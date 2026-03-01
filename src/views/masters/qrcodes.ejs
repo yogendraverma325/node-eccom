@@ -1,26 +1,74 @@
 <style>
+    /* 1. Modal View (Screen par kaisa dikhega) */
+    #printableArea {
+        display: flex;
+        justify-content: center;
+        background-color: #eee;
+        /* Modal ke andar thoda contrast */
+        padding: 20px;
+    }
+
+    /* Card ka base style jo aapne pehle banaya tha */
+    .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 450px;
+        /* Modal mein zyada bada na dikhe */
+        padding: 25px;
+        margin: 0 auto;
+        font-family: Arial, sans-serif;
+    }
+
+    /* 2. Printing Logic (Ctrl + P dabane par) */
     @media print {
+        @page {
+            /* A4 paper ko Landscape (aara) rakhenge taaki do design side-by-side aa sakein */
+            size: A4 landscape;
+            margin: 0;
+        }
+
         body * {
             visibility: hidden;
-            /* Sab chhupa do */
+            /* Baki sab chhupa do */
         }
 
         #printableArea,
         #printableArea * {
             visibility: visible;
-            /* Sirf card dikhao */
+            /* Sirf design dikhao */
         }
 
         #printableArea {
-            position: absolute;
+            position: fixed;
             left: 0;
             top: 0;
-            width: 100%;
+            width: 100vw;
+            height: 100vh;
+            display: flex !important;
+            justify-content: center;
+            /* Print mein center rakho */
+            align-items: center;
+            background: white;
         }
 
-        .no-print {
+        .card {
+            /* A5 Portrait size jo A4 Landscape ke aadhe mein perfect fit ho */
+            width: 148mm !important;
+            height: 210mm !important;
+            padding: 15mm;
+            box-shadow: none;
+            border: 1px dashed #ccc;
+            /* Cutting line jo sirf print mein dikhegi */
+            box-sizing: border-box;
+        }
+
+        /* Modal ke buttons aur background print mein display na hon */
+        .modal-footer,
+        .btn-close,
+        .modal-header {
             display: none !important;
-            /* Buttons ko print se hata do */
         }
     }
 </style>
@@ -79,7 +127,11 @@
                             <td class="text-center">
                                 <button class="btn btn-sm btn-info me-1 qr_code_print" href="javascript:void(0)"
                                     data-service-item-id="<%- helper.generateJwtOTPEncrypt(qr_code.qr_codes_auto_id) %>">
-                                    View And Download
+                                    View(H)
+                                </button>
+                                <button class="btn btn-sm btn-info me-1 qr_code_print_f" href="javascript:void(0)"
+                                    data-service-item-id="<%- helper.generateJwtOTPEncrypt(qr_code.qr_codes_auto_id) %>">
+                                    View(F)
                                 </button>
 
                             </td>
@@ -114,11 +166,10 @@
 </section>
 
 <div class="modal fade" id="qrModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-body" id="printableArea">
-                <div id="qrcode">
-                </div>
+                <div id="print-wrapper"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
