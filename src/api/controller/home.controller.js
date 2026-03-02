@@ -737,6 +737,16 @@ if(checkoutData.shipping=='POD'){
 	  res.redirect('/'); // back to the previous page
 		}
 	}
+	async  partnerWithUs(req, res) {
+		try {
+			res.render('partnerWithUs', {
+				title: 'Privacy Policy | Local Travel Stay - Your Data Security',
+				description: 'Read the Privacy Policy of Local Travel Stay. Learn how we collect, use, and protect your personal information during room bookings and rental services.',
+			  });
+		} catch (error) {
+	  res.redirect('/'); // back to the previous page
+		}
+	}
 	async  applyCoupon(req, res) {
 		try {
 			const userCart = req.cookies.userCart;

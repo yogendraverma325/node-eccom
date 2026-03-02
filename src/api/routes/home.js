@@ -28,4 +28,5 @@ export default Express.Router()
 	.get("/order-details/:orderid",isLogin,HomeController.orderDetails)
 	.get("/order-timeline/:orderid",isLogin,HomeController.orderTimeline)
 	.post("/cancelOrder",isLogin,HomeController.cancelOrder)
+		.get("/partner-with-us",HomeController.partnerWithUs)
 	

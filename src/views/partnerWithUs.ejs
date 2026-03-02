@@ -1,0 +1,333 @@
+<style>
+    /* All styles are locked to this ID only */
+    #partner-page-wrapper {
+        background-color: #f9f9f9;
+        padding: 3px 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #partner-page-wrapper .partner-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    #partner-page-wrapper .partner-hero-section {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    #partner-page-wrapper .partner-hero-section h1 {
+        font-size: 2.5rem;
+        color: #f39c12;
+        /* Braj Saffron */
+        margin-bottom: 15px;
+    }
+
+    #partner-page-wrapper .partner-hero-section p {
+        font-size: 1.1rem;
+        color: #555;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    #partner-page-wrapper .partner-pricing-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 25px;
+    }
+
+    #partner-page-wrapper .partner-plan-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 320px;
+        /* Fixed width for desktop */
+        display: flex;
+        flex-direction: column;
+        border-top: 5px solid #eee;
+        box-sizing: border-box;
+    }
+
+    #partner-page-wrapper .partner-plan-card.partner-featured {
+        border-top-color: #f39c12;
+        position: relative;
+        transform: scale(1.05);
+        /* Slightly larger */
+    }
+
+    #partner-page-wrapper .partner-badge {
+        background: #f39c12;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    #partner-page-wrapper .partner-plan-name {
+        font-size: 1.4rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    #partner-page-wrapper .partner-plan-price {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #f39c12;
+        margin-bottom: 20px;
+    }
+
+    #partner-page-wrapper .partner-plan-price span {
+        font-size: 1rem;
+        color: #777;
+    }
+
+    #partner-page-wrapper .partner-features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 30px 0;
+        text-align: left;
+        flex-grow: 1;
+    }
+
+    #partner-page-wrapper .partner-features-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 0.9rem;
+        color: #444;
+    }
+
+    #partner-page-wrapper .partner-features-list li::before {
+        content: "✓";
+        color: #f39c12;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    #partner-page-wrapper .partner-btn {
+        display: block;
+        padding: 12px 20px;
+        background-color: #f39c12;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    #partner-page-wrapper .partner-btn-outline {
+        background-color: transparent;
+        border: 2px solid #f39c12;
+        color: #f39c12;
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 768px) {
+        #partner-page-wrapper .partner-plan-card.partner-featured {
+            transform: scale(1);
+            margin: 10px 0;
+        }
+
+        #partner-page-wrapper .partner-plan-card {
+            width: 100%;
+            /* Full width on mobile */
+        }
+    }
+
+
+    /* --- Why Partner With Us Section Styles --- */
+
+    #partner-page-wrapper .partner-why-section {
+        margin-top: 80px;
+        padding: 40px 20px;
+        background-color: #ffffff;
+        border-radius: 20px;
+    }
+
+    #partner-page-wrapper .partner-section-title {
+        text-align: center;
+        font-size: 2.2rem;
+        color: #2c3e50;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    #partner-page-wrapper .partner-section-title::after {
+        content: '';
+        width: 60px;
+        height: 4px;
+        background: #f39c12;
+        display: block;
+        margin: 10px auto 0;
+        border-radius: 2px;
+    }
+
+    #partner-page-wrapper .partner-why-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 30px;
+        text-align: center;
+    }
+
+    #partner-page-wrapper .partner-why-item {
+        padding: 20px;
+        transition: 0.3s;
+    }
+
+    #partner-page-wrapper .partner-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    #partner-page-wrapper .partner-why-item h3 {
+        font-size: 1.3rem;
+        color: #f39c12;
+        margin-bottom: 10px;
+    }
+
+    #partner-page-wrapper .partner-why-item p {
+        font-size: 0.95rem;
+        color: #666;
+        line-height: 1.5;
+    }
+
+    /* Mobile responsive for Why Section */
+    @media (max-width: 768px) {
+        #partner-page-wrapper .partner-why-section {
+            margin-top: 40px;
+            padding: 40px 15px;
+        }
+
+        #partner-page-wrapper .partner-section-title {
+            font-size: 1.8rem;
+        }
+    }
+
+    /* Header Button Styling */
+    #partner-page-wrapper .partner-header-cta {
+        margin-top: 25px;
+    }
+
+    #partner-page-wrapper .partner-btn-main {
+        font-size: 1.1rem;
+        padding: 15px 40px;
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        border-radius: 30px;
+        /* Rounded pill shape for the main button */
+        display: inline-block;
+    }
+
+    #partner-page-wrapper .partner-btn-main:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+    }
+
+    /* Ensure smooth scrolling when clicking the button */
+    html {
+        scroll-behavior: smooth;
+    }
+</style>
+<div id="partner-page-wrapper">
+    <div class="partner-container">
+        <header class="partner-hero-section">
+            <h1>Partner With Us</h1>
+            <p>Transform your business into a digital brand. Join Mathura's fastest-growing travel network and start
+                reaching thousands of pilgrims today.</p>
+        </header>
+
+        <div class="partner-pricing-grid">
+
+            <div class="partner-plan-card">
+                <div class="partner-plan-name">Basic (Starter)</div>
+                <div class="partner-plan-price">Free <span>/month</span></div>
+                <ul class="partner-features-list">
+                    <li>Standard Search Listing</li>
+                    <li>Basic Business Profile</li>
+                    <li>Business Name & Number</li>
+                    <li>Up to 3 Photos</li>
+                    <li>Email Support</li>
+                </ul>
+            </div>
+
+            <div class="partner-plan-card partner-featured">
+                <div class="partner-badge">Most Popular</div>
+                <div class="partner-plan-name">Silver (Growth)</div>
+                <div class="partner-plan-price">₹499 <span>/month</span></div>
+                <ul class="partner-features-list">
+                    <li><strong>Priority Listing</strong> (Top 10)</li>
+                    <li>Verified Vendor Badge</li>
+                    <li>Direct WhatsApp Button</li>
+                    <li>Up to 10 Photos + 1 Video</li>
+                    <li>1 Active Monthly Offer</li>
+                    <li>Call Support</li>
+                </ul>
+            </div>
+
+            <div class="partner-plan-card">
+                <div class="partner-plan-name">Gold (Elite)</div>
+                <div class="partner-plan-price">₹1,499 <span>/month</span></div>
+                <ul class="partner-features-list">
+                    <li><strong>Top Tier Featured Slots</strong></li>
+                    <li>Premium Partner Badge</li>
+                    <li>One-Click Instant Booking</li>
+                    <li>Unlimited Media Uploads</li>
+                    <li>Daily Custom Banner Ads</li>
+                    <li><strong>Dedicated Account Manager</strong></li>
+                </ul>
+            </div>
+        </div>
+        <br>
+        <header class="partner-hero-section">
+            <h1>Contact Us to Grow Your Business</h1>
+            <p>Join Mathura's most trusted network and connect with thousands of travelers. Choose a plan or reach out
+                to us for
+                a custom solution.</p>
+
+            <div class="partner-header-cta">
+                <a href="/contact" class="partner-btn partner-btn-main">Contact Us Now</a>
+            </div>
+        </header>
+    </div>
+</div>
+<div id="partner-page-wrapper">
+    <section class="partner-why-section">
+        <h2 class="partner-section-title">Why Partner With Us?</h2>
+        <div class="partner-why-grid">
+
+            <div class="partner-why-item">
+                <div class="partner-icon">🚀</div>
+                <h3>Be Discovered First</h3>
+                <p>Break away from the crowded streets. Our smart-ranking puts your services directly in front of
+                    travelers planning their trip.</p>
+            </div>
+
+            <div class="partner-why-item">
+                <div class="partner-icon">✅</div>
+                <h3>Built-in Trust</h3>
+                <p>Gain instant credibility with our "Verified" badges. Travelers feel safe booking with partners we
+                    recommend.</p>
+            </div>
+
+            <div class="partner-why-item">
+                <div class="partner-icon">📲</div>
+                <h3>Direct Connection</h3>
+                <p>No middleman. Receive inquiries and bookings directly on your WhatsApp. You keep 100% of your
+                    profits.</p>
+            </div>
+
+            <div class="partner-why-item">
+                <div class="partner-icon">📊</div>
+                <h3>Data-Driven Growth</h3>
+                <p>Understand your customers better with real-time analytics on profile views and booking clicks.</p>
+            </div>
+
+        </div>
+    </section>
+</div>
