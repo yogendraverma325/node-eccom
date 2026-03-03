@@ -153,6 +153,94 @@
     }
 
     /* image zoom */
+
+
+    /* Section Wrapper - Subtle Dark Gradient */
+    .digital-menu-wrapper {
+        background: #121212 !important;
+        /* Solid dark color as fallback */
+        background: linear-gradient(145deg, #121212 0%, #1e1e1e 100%) !important;
+        min-height: 100vh;
+        /* Poori screen cover karne ke liye */
+        width: 100%;
+        padding: 40px 0;
+        color: #ffffff !important;
+    }
+
+    /* Header Styling */
+    .digital-menu-wrapper .menu-header {
+        color: #ffffff !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-size: 3rem;
+        font-weight: 800;
+    }
+
+    .digital-menu-wrapper .menu-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: #ffc107;
+        /* Gold Accent */
+        border-radius: 2px;
+    }
+
+    /* Category Title */
+    .digital-menu-wrapper .menu-category-title {
+        color: #ffc107 !important;
+        /* Keep Gold accent */
+        border-bottom: 2px solid #ffc107 !important;
+    }
+
+    /* Card Styling - Glassmorphism */
+    .digital-menu-wrapper .menu-item-card {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(12px);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .digital-menu-wrapper .menu-item-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.07) !important;
+        border-color: rgba(255, 193, 7, 0.5) !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* Text Elements */
+    .digital-menu-wrapper .menu-item-name {
+        color: #ffffff;
+        font-size: 1.1rem;
+    }
+
+    .digital-menu-wrapper .menu-item-desc {
+        color: rgba(255, 255, 255, 0.7) !important;
+        /* 70% opacity white best hota hai readability ke liye */
+        line-height: 1.4;
+    }
+
+    /* Price Elements */
+    .digital-menu-wrapper .menu-price-value {
+        color: #4ade80 !important;
+        /* Neon Green Price */
+        font-size: 1.1rem;
+    }
+
+    .digital-menu-wrapper .menu-variant-badge {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #ffc107 !important;
+        border: 1px solid rgba(255, 193, 7, 0.3) !important;
+        font-size: 0.7rem;
+    }
+
+    #target-spec-div {
+        background-color: #121212 !important;
+    }
 </style>
 <script type="application/ld+json">
 {
@@ -361,8 +449,9 @@
 
         </div>
     </div>
+
     <% if (productDetails.menuCategories && productDetails.menuCategories.length> 0) { %>
-        <div class="menu-main-container container my-5" id="target-spec-div">
+        <div class="menu-main-container container my-5 digital-menu-wrapper" id="target-spec-div">
             <h2 class="menu-header text-center mb-4">
                 <%= productDetails.vendorService.category.service_scope_name %>
             </h2>
