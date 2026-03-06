@@ -4,6 +4,7 @@ import auth from "../api/routes/auth.js"; // Adjust the import path as necessary
 import admin from "../api/routes/admin.js"
 const router = express.Router();
 router.use("/admin", admin);
-router.use("/", home);
 router.use("/user/", auth);
+router.use("/", home);
+
 export default router;
