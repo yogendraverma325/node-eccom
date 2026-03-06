@@ -747,6 +747,48 @@ if(checkoutData.shipping=='POD'){
 	  res.redirect('/'); // back to the previous page
 		}
 	}
+	async  cityWiseService(req, res) {
+		try {
+			const { city, service } = req.params;
+		
+			const pageData = await db.cityServicePage.findOne({
+            include: [
+                {
+                    model: db.cityMaster,
+					attributes: ['cityCode', 'cityId','cityName'],
+                   where: { cityCode: city }
+                },
+                {
+                    model: db.serviceMaster,
+                    where: { serviceSlug: service }
+                }
+            ]
+        });
+			//console.log(JSON.stringify(pageData,null,2));
+			if(!pageData){
+				 res.redirect('/');
+				 return ;
+			}
+const otherServices = await db.cityServicePage.findAll({
+    where: { 
+        cityId: pageData.citymaster.cityId, 
+        pageId: { [db.Sequelize.Op.ne]: pageData.pageId }
+    },
+    include: [db.serviceMaster]
+});
+res.render('serviceTemplate', {
+    ...pageData.toJSON(),
+    otherServices: otherServices,
+	title: pageData.seoTitle, 
+    description: pageData.metaDesc,
+    citySlug: pageData.citymaster.cityCode.toLowerCase()
+});
+				
+		} catch (error) {
+			console.log("error",error)
+	 //  res.redirect('/'); // back to the previous page
+		}
+	}
 	async  applyCoupon(req, res) {
 		try {
 			const userCart = req.cookies.userCart;

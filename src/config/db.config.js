@@ -32,6 +32,8 @@ import qr_codes from "../api/model/QRCode.js";
 import menu_categories from "../api/model/menu_categories.js";
 import menu_items from "../api/model/menu_item.js";
 import menu_price from "../api/model/menu_price.js";
+import serviceMaster from "../api/model/serviceMaster.js";
+import cityServicePage from "../api/model/CityServicePage.js";
 //
 const sequelize = new Sequelize(
 	process.env.DB_NAME,
@@ -109,7 +111,8 @@ db.qr_codes=qr_codes(sequelize, Sequelize);
 db.menu_categories = menu_categories(sequelize, Sequelize);
 db.menu_items = menu_items(sequelize, Sequelize);
 db.menu_item_prices = menu_price(sequelize, Sequelize);
-
+db.serviceMaster=serviceMaster(sequelize, Sequelize);
+db.cityServicePage=cityServicePage(sequelize, Sequelize);
 // Mapping belongs to Product
 db.productSectionMapping.belongsTo(db.product, { 
     foreignKey: 'product_auto_id', // Model mein jo key hai
@@ -256,6 +259,13 @@ db.menu_categories.belongsTo(db.product, { foreignKey: 'product_auto_id' });
 // Restaurant (Vendor) aur Items ka direct link (Faster queries ke liye)
 db.product.hasMany(db.menu_items, { foreignKey: 'product_auto_id', as: 'menuItems' });
 db.menu_items.belongsTo(db.product, { foreignKey: 'product_auto_id' });
+
+// Relations
+db.cityMaster.hasMany(db.cityServicePage, { foreignKey: 'cityId' });
+db.serviceMaster.hasMany(db.cityServicePage, { foreignKey: 'serviceId' });
+
+db.cityServicePage.belongsTo(db.cityMaster, { foreignKey: 'cityId' });
+db.cityServicePage.belongsTo(db.serviceMaster, { foreignKey: 'serviceId' });
 export default db;
 
 
