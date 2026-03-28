@@ -1,5 +1,4 @@
 export const isAdmin = (req, res, next) => {
-     return next(); // Agar admin hai toh aage badhne dein
     // return next(); // Agar admin hai toh aage badhne dein
     // Check karein ki user logged in hai aur uska is_admin true hai
     if (req.session && req.session.user && req.session.user.is_admin) {
