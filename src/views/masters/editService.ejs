@@ -130,7 +130,7 @@
                                             <label class="form-label">Capacity</label>
                                             <select class="form-select" name="capacity">
                                                 <option value="">Select</option>
-                                                <% ["2", "4" , "8" , "10+" ].forEach(cap=> { %>
+                                                <% ["2", "4" , "8" ,"6", "10+" ].forEach(cap=> { %>
                                                     <option value="<%= cap %>" <%=serviceData.capacity==cap ? 'selected'
                                                         : '' %>><%= cap %>
                                                     </option>
@@ -146,7 +146,8 @@
                                             <label class="form-label">Unit</label>
                                             <select class="form-select" name="unit">
                                                 <option value="">Select</option>
-                                                <% ["AC", "NON-AC" , "AC-NON-AC" , "VEG" , "NO-VEG" ].forEach(u=> { %>
+                                                <% ["AC", "NON-AC" , "AC-NON-AC" , "VEG" , "NO-VEG" ,"VEG_NON_VEG",
+                                                    ,"PETROL","DIESEL","CNG","PETROL_CNG","EV"].forEach(u=> { %>
                                                     <option value="<%= u %>" <%=serviceData.unit===u ? 'selected' : ''
                                                         %>><%= u %>
                                                     </option>
@@ -165,6 +166,26 @@
                                             <% if (formError?.rating) { %>
                                                 <small class="text-danger">
                                                     <%= formError.rating %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Longitude</label>
+                                            <input type="text" class="form-control" name="longitude"
+                                                value="<%= serviceData.longitude %>">
+                                            <% if (formError?.longitude) { %>
+                                                <small class="text-danger">
+                                                    <%= formError.longitude %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Latitude</label>
+                                            <input type="text" class="form-control" name="latitude"
+                                                value="<%= serviceData.latitude %>">
+                                            <% if (formError?.latitude) { %>
+                                                <small class="text-danger">
+                                                    <%= formError.latitude %>
                                                 </small>
                                                 <% } %>
                                         </div>

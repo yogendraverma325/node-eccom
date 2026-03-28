@@ -124,6 +124,7 @@
                                                 <option value="">Select</option>
                                                 <option value="2">2</option>
                                                 <option value="4">4</option>
+                                                <option value="6">6</option>
                                                 <option value="8">8</option>
                                                 <option value="10+">10+</option>
                                             </select>
@@ -141,7 +142,13 @@
                                                 <option value="NON-AC">NON-AC</option>
                                                 <option value="AC-NON-AC">AC-NON-AC</option>
                                                 <option value="VEG">VEG</option>
-                                                <option value="NO-VEG">NO-VEG</option>
+                                                <option value="NON_VEG">NON_VEG</option>
+                                                <option value="VEG_NON_VEG">VEG_NON_VEG</option>
+                                                <option value="PETROL">Petrol</option>
+                                                <option value="DIESEL">Diesel</option>
+                                                <option value="CNG">CNG</option>
+                                                <option value="PETROL_CNG">Petrol + CNG</option>
+                                                <option value="EV">EV</option>
                                             </select>
                                             <% if (formError?.unit) { %>
                                                 <small class="text-danger">
@@ -155,6 +162,24 @@
                                             <% if (formError?.rating) { %>
                                                 <small class="text-danger">
                                                     <%= formError.rating %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Longitude</label>
+                                            <input type="text" class="form-control" name="longitude">
+                                            <% if (formError?.longitude) { %>
+                                                <small class="text-danger">
+                                                    <%= formError.longitude %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Latitude</label>
+                                            <input type="text" class="form-control" name="latitude">
+                                            <% if (formError?.latitude) { %>
+                                                <small class="text-danger">
+                                                    <%= formError.latitude %>
                                                 </small>
                                                 <% } %>
                                         </div>

@@ -376,6 +376,8 @@ class AdminController {
               offerprice:value.offerprice,
               price_type:value.price_type,
               capacity:value.capacity,
+              longitude:value.longitude,
+              latitude:value.latitude,
               unit:value.unit,
               rating:value.rating,
               image:req.file.path, 
@@ -419,7 +421,9 @@ class AdminController {
                   "price_type",
                   "capacity",
                   "unit",
-                  "rating"
+                  "rating",
+                  "longitude",
+                  "latitude"
                     ],
                   where: {
                     product_auto_id: service_item_id
@@ -473,6 +477,8 @@ class AdminController {
               price_type:value.price_type,
               capacity:value.capacity,
               unit:value.unit,
+              longitude:value.longitude,
+              latitude:value.latitude,
               rating:value.rating,
              // createdBy:AdminId
               }

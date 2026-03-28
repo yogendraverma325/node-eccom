@@ -171,7 +171,7 @@ const addProductSchema = Joi.object({
         .label("Product Name"),
 
     description: Joi.string()
-        .max(500)
+        .max(255)
         .allow("")
         .label("Description"),
 
@@ -183,6 +183,13 @@ const addProductSchema = Joi.object({
         .precision(2)
         .required()
         .label("Price"),
+   longitude: Joi.string()
+  .required()
+  .label("longitude"),
+
+latitude: Joi.string()
+  .required()
+  .label("latitude"),
 
     offerprice: Joi.number()
         .precision(2)
@@ -216,7 +223,7 @@ const editProductSchema = Joi.object({
         .label("Product Name"),
 
     description: Joi.string()
-        .max(500)
+        .max(255)
         .allow("")
         .label("Description"),
 
@@ -250,7 +257,15 @@ const editProductSchema = Joi.object({
 
     unit: Joi.string()
         .allow("")
-        .label("Unit")
+        .label("Unit"),
+    longitude: Joi.string()
+  .required()
+  .label("longitude"),
+
+latitude: Joi.string()
+  .required()
+  .label("latitude"),
+
 
 });
  const addQRCODESchema = Joi.object({
